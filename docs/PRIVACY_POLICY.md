@@ -4,7 +4,7 @@
 
 **App:** Ruby Run / روبی ران (`com.studiojavid.rubyrun`)
 
-**Developer:** Javids Studio
+**Developer:** Studio Javid
 
 > **Publication TODO:** Before release, the developer must add a real contact address and publish this exact policy at an HTTPS URL, then set `privacy_policy_url` in `data/release_config.json`. No placeholder URL is presented as real.
 
@@ -36,4 +36,4 @@ Local data is held in Android app-private storage. No method of storage is guara
 
 ## Changes and contact
 
-Material changes will be reflected in this document and its effective date. Before publication, Javids Studio must provide a monitored privacy contact here and on the hosted policy page.
+Material changes will be reflected in this document and its effective date. Before publication, Studio Javid must provide a monitored privacy contact here and on the hosted policy page.
