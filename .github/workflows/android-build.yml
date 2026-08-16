@@ -74,12 +74,12 @@ jobs:
             --import \
             --quit
 
-      - name: Run automated tests
-        run: |
-          godot \
-            --headless \
-            --path . \
-            --script res://tests/test_runner.gd
+       - name: Run automated tests
+  run: |
+    godot \
+      --headless \
+      --path . \
+      --script res://tests/test_runner.gd
 
       - name: Export debug APK
         run: |
