@@ -1,0 +1,9 @@
+{
+  "environment": "development",
+  "privacy_policy_url": "",
+  "ads_enabled": false,
+  "analytics_enabled": false,
+  "production_ad_units_configured": false,
+  "target_sdk": 36,
+  "min_sdk": 24
+}
