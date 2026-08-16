@@ -1,73 +1,44 @@
-# Ruby Run / روبی ران
+# Ruby Run 3D / روبی ران
 
-A real, offline-first 2D endless runner for Android, built with **Godot 4.7.1** and GDScript. Ruby auto-runs through Ruby Forest; tap to jump and tap again for a double jump. The project is structured for Google Play, CafeBazaar, and Myket release without claiming that unconfigured external services are present.
+A portrait Android **third-person runner + auto shooter + number-gate game** built with Unity 6.3 LTS, C#, URP, Input System, and Cinemachine. Package: `com.studiojavid.rubyrun`.
 
-## Play
+## Current vertical slice
 
-1. Install Godot 4.7.1.
-2. Open `project.godot` and run the main scene.
-3. Tap/click/Space jumps; a second input in the air double-jumps.
+Stage 1 is implemented end-to-end in source: Ruby auto-runs with smooth touch drag; ten real pooled soldiers follow an adaptive formation; Ruby and soldiers acquire targets and fire pooled 3D projectiles; three gate decisions modify the army; three enemy archetypes move/attack/take damage/die; victory, game over, retry, next, coins, upgrades, skins, daily reward, settings, local saves and offline play are functional.
 
-No network connection, account, Android permission, ad SDK, or analytics SDK is needed by the base game.
+All current character/environment art is **original procedural low-poly placeholder art**, not copied or downloaded. It uses custom generated meshes rather than Unity primitive GameObjects and exposes replaceable visual roots. It is coherent enough for engineering/testing, but it is not represented as final commercial character art; final rigged models and authored animation still require art-direction approval.
 
-## Implemented
+## Unity
 
-- Endless speed progression, score/best score, random fair obstacle patterns, pooled rocks/logs/coins, collision, retry and home flow
-- Portrait vector placeholder artwork with multi-layer parallax Ruby Forest and animated fox states
-- Five data-driven skins with purchase/equip economy
-- Defensive, atomic, versioned local saves and in-app confirmed reset
-- Seven-day local daily reward with clock-rollback guard
-- Music/sound/vibration settings (audio facade ready; production audio assets remain to be supplied)
-- Disabled-by-default, failure-safe boundaries for ads, analytics, consent, and compliance preflight
-- Debug APK and secret-signed release APK/AAB CI jobs
-- Privacy Policy, Data Safety statement, Android guide, and release checklist
+- Editor: `6000.3.21f1` (Unity 6.3 LTS)
+- Rendering: URP 17
+- Input: Input System EnhancedTouch
+- Camera: Cinemachine 3 package with damped mobile follow fallback
+- Android: portrait, ARM64, IL2CPP, min API 24, target API 36
 
-## Architecture
+Open `Assets/Scenes/Bootstrap.unity` and press Play. The game requires no network service or account.
+
+## Structure
 
 ```text
-scenes/                 Main Godot scene
-scripts/managers/       Save, game, audio, skin, reward, ad, analytics, consent, compliance
-scripts/player/         Ruby movement, double jump, visual animation, hit state
-scripts/world/          Pooled entities and parallax forest
-assets/images/          Replaceable SVG placeholder/icon
-data/                    Skin catalog and release configuration
-docs/                    Privacy, Data Safety, Android and release controls
-tests/                   Headless GDScript tests
-tools/                   Static release/project validator
-.github/workflows/       Reproducible Android CI
+Assets/
+  Art Audio Materials Prefabs Scenes UI VFX
+  Scripts/
+    Army Combat Core Data Editor Enemies Gates Player Services Stage UI
+  Tests/Editor
+Packages/
+ProjectSettings/
+docs/
 ```
 
-Autoloads communicate through narrow manager interfaces. Scene code never calls an ad or analytics provider. Placeholder visuals can be replaced without changing gameplay data or service architecture.
+See [architecture](docs/ARCHITECTURE.md), [Data Safety](docs/DATA_SAFETY.md), [Privacy Policy](docs/PRIVACY_POLICY.md), and [release checklist](docs/RELEASE_CHECKLIST.md).
 
-## Validation
+## CI migration note
 
-```bash
-python3 tools/validate_project.py
-godot --headless --editor --path . --import --quit
-godot --headless --path . res://tests/test_runner.tscn
-godot --headless --path . --export-debug "Android Debug" export/RubyRun-debug.apk
-```
+`docs/unity-android-build.yml` is the reviewed Unity workflow template. Copy it to `.github/workflows/android-build.yml` through GitHub after the Unity source push; the Arena GitHub App cannot modify workflow files. Delete/replace the old Godot workflow rather than keeping both.
 
-Every push and pull request runs those checks and a debug Android export. Manual/release workflows require all signing secrets and produce signed APK/AAB artifacts. See [Android release guide](docs/ANDROID_RELEASE.md).
+Unity CI additionally requires `UNITY_LICENSE`, `UNITY_EMAIL`, and `UNITY_PASSWORD`. Signed release builds require `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD`. No keystore or credential belongs in Git.
 
-## Android configuration
+## Status
 
-| Setting | Value |
-|---|---|
-| Application ID | `com.studiojavid.rubyrun` |
-| Name | Ruby Run |
-| Version | 1.0.0 / code 1 |
-| Orientation | Portrait |
-| Minimum SDK | 24 |
-| Target SDK | 36 (must be rechecked at release time) |
-| Base permissions | None |
-
-`data/release_config.json` deliberately remains in development mode with an empty privacy URL. Publish the supplied policy at a real HTTPS location and complete `docs/RELEASE_CHECKLIST.md` before release. Never insert a fake URL.
-
-## Advertising and analytics status
-
-Neither SDK is included. Therefore rewarded controls are hidden, gameplay remains fully available, no interstitial/banner is shown, no analytics event leaves the device, and no network permission is requested. `AdManager` includes placement availability and frequency-cap boundaries; `AnalyticsManager` uses strict event/parameter allowlists. Adding a provider is a separate reviewed release change requiring privacy, consent, SDK inventory, manifest, and Data Safety updates.
-
-## License and assets
-
-Source licensing must be selected by the repository owner before public distribution. Current vector art is original project placeholder art; production store artwork and audio should be reviewed and supplied before publishing.
+This repository is a source-complete vertical-slice implementation, **not yet a completed commercial release**. Unity compilation, device profiling, final art/animation, signed APK/AAB generation, final manifest inspection, and store testing remain release blockers.

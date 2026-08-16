@@ -1,31 +1,24 @@
-# Google Play Data Safety — Base Build
+# Data Safety — current base build
 
-Last reviewed: 2026-08-16. This document describes the repository's **actual base configuration**, not a future ad-supported build.
+Reviewed: 2026-08-16
 
-## Declaration summary
-
-| Question | Base-build answer |
+| Item | Actual base-build behavior |
 |---|---|
-| Does the app collect user data? | No |
-| Does the app share user data with third parties? | No |
-| Is all data encrypted in transit? | Not applicable; no data is transmitted |
-| Can users request deletion? | No account/server data exists; local data has an in-app reset |
-| Account creation | None |
+| User data collected | No |
+| User data shared | No |
+| Accounts | None |
+| Network gameplay dependency | None |
+| Local deletion | Settings → Reset Local Data → Confirm |
 
-## Local-only data
-
-Coins, scores, skins, settings, daily reward timestamps, run count, and collected-coin count are stored in `user://ruby_run_save.json` (Android app-private storage). Local-only processing is not declared as collection under the Data Safety definition when it never leaves the device. Reset Local Data erases it.
+Local coins, progress, upgrades, skins, daily timestamps, and preferences never leave app-private storage. Local-only processing is not declared as collection when it is not transmitted.
 
 ## SDK inventory
 
-| Component | Data collected/shared | Network | Purpose |
-|---|---|---|---|
-| Godot Engine 4.7.1 official runtime/export templates | None by app configuration | None | Game engine |
-| Ad SDK | **Not included** | None | Interface disabled |
-| Analytics SDK | **Not included** | None | Interface disabled |
+- Unity 6.3 LTS runtime and URP
+- Unity Input System
+- Unity Cinemachine
+- No advertising SDK
+- No analytics SDK
+- No social/login SDK
 
-There are no third-party binary plugins in the base build. The Android export has `INTERNET=false` and `ACCESS_NETWORK_STATE=false`. Android may merge platform-required manifest declarations from official export templates; inspect the final manifest before upload.
-
-## Required review when adding a service
-
-Before enabling ads, analytics, crash reporting, cloud saves, or another SDK, document: exact SDK and version; collected and shared data; purpose; retention; encryption; deletion/control; required permissions; consent requirements; data-processing terms; Google Play SDK Index/policy status; and whether identifiers or diagnostics are used. Then update this file, the hosted privacy policy, consent flow, store declarations, and final-manifest audit. Do not copy this base declaration to a build whose behavior differs.
+Before adding any SDK, review its exact version, Google Play SDK Index status, permissions, collected/shared data, purposes, encryption, retention, deletion controls, consent requirements, and child-directed treatment. Then update the final manifest, this document, and the hosted privacy policy. Never reuse this declaration for a behaviorally different build.

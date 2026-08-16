@@ -1,12 +1,31 @@
-# Godot generated
-.godot/
-.android/
-android/build/
-export/
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+.gradle/
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.DS_Store
+.vscode/
+.idea/
 *.apk
 *.aab
-
-# Signing and secrets
 *.keystore
 *.jks
 *.p12
@@ -16,11 +35,5 @@ export/
 .env.*
 secrets/
 credentials/
-service-account*.json
 release-signing.properties
-
-# OS / editors
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
+Assets/Plugins/Android/keystore.properties

@@ -1,0 +1,30 @@
+%YAML 1.1
+--- !u!47 &1
+QualitySettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 5
+  m_CurrentQuality: 1
+  m_QualitySettings:
+  - serializedVersion: 4
+    name: Low
+    pixelLightCount: 1
+    shadows: 0
+    shadowDistance: 20
+    antiAliasing: 0
+    vSyncCount: 0
+  - serializedVersion: 4
+    name: Medium
+    pixelLightCount: 2
+    shadows: 1
+    shadowResolution: 1
+    shadowDistance: 35
+    antiAliasing: 2
+    vSyncCount: 0
+  - serializedVersion: 4
+    name: High
+    pixelLightCount: 3
+    shadows: 2
+    shadowResolution: 2
+    shadowDistance: 50
+    antiAliasing: 4
+    vSyncCount: 0

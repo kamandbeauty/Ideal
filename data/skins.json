@@ -1,9 +1,0 @@
-{
-  "skins": [
-    {"id":"classic","name":"Ruby Classic","name_fa":"روبی کلاسیک","price":0,"color":"#E85D3F"},
-    {"id":"red","name":"Ruby Red","name_fa":"روبی قرمز","price":500,"color":"#C62F3B"},
-    {"id":"ninja","name":"Ruby Ninja","name_fa":"روبی نینجا","price":1200,"color":"#303044"},
-    {"id":"golden","name":"Ruby Golden","name_fa":"روبی طلایی","price":2500,"color":"#F4B942"},
-    {"id":"space","name":"Ruby Space","name_fa":"روبی فضایی","price":4000,"color":"#7C62C9"}
-  ]
-}

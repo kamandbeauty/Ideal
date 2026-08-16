@@ -1,24 +1,20 @@
-# Ruby Run 1.0.0 Release Checklist
+# Ruby Run 3D 1.0.0 Release Checklist
 
-- [ ] Release signing configured through GitHub Secrets
-- [ ] Debug logging disabled and final logs reviewed
-- [x] Test ads disabled (no ad SDK in base build)
-- [ ] Production ads configured **or ads remain disabled and are declared absent**
-- [ ] Privacy Policy published and URL configured
-- [x] Data Safety reviewed for current base source
-- [ ] Target SDK 36 still satisfies current Play requirements on submission date
-- [x] Permissions reviewed in source/export preset
-- [x] Third-party SDKs reviewed (none beyond Godot base runtime)
-- [ ] Final APK/AAB manifest audited
-- [ ] Crash testing completed on representative physical Android devices
-- [ ] Offline mode tested on physical device
-- [x] Ads-unavailable mode automated test
-- [x] Save system automated test
-- [ ] Reset Data tested on physical device
-- [ ] Store listing, icon, feature graphic and truthful screenshots finalized
-- [ ] Content rating and target audience completed accurately
+- [ ] Stage 1 visual/art review completed
+- [ ] Stage 1 tested start-to-victory on physical Android devices
+- [ ] Loss, retry, next stage, save/load and reset tested
+- [ ] Low/Medium/High profiles measured on representative devices
+- [ ] 60 FPS target profiled; army stress test completed
+- [ ] Final licensed models, animation and audio supplied or placeholders explicitly accepted
+- [ ] Privacy Policy contact and real HTTPS URL configured
+- [x] Base Data Safety documented (no collection/sharing)
+- [ ] Final merged Android manifest and permissions audited
+- [ ] Target API 36 requirement rechecked at submission date
 - [ ] 16 KB page-size compatibility verified in Play Console
-- [ ] AAB generated and signature verified
-- [ ] APK generated and signature verified
-
-A release is blocked while any item relevant to the chosen build remains unchecked. Never enable a release service without updating privacy and Data Safety disclosures.
+- [ ] Unity license Secrets configured for CI
+- [ ] Release Keystore Secrets configured
+- [ ] Signed APK built and signature verified
+- [ ] Signed AAB built and uploaded to Internal Testing
+- [ ] Play pre-launch report reviewed
+- [ ] CafeBazaar/Myket requirements reviewed separately
+- [ ] Content rating, target audience and truthful store listing complete
