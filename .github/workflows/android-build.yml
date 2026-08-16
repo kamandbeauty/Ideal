@@ -5,7 +5,8 @@ on:
   pull_request:
   workflow_dispatch:
   release:
-    types: [published]
+    types:
+      - published
 
 permissions:
   contents: read
@@ -15,6 +16,7 @@ env:
 
 jobs:
   validate-and-debug-export:
+    name: Validate and export debug APK
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -63,7 +65,8 @@ jobs:
           SETTINGS
 
       - name: Static validation
-        run: python tools/validate_project.py
+        run: |
+          python tools/validate_project.py
 
       - name: Import project and validate syntax
         run: |
@@ -74,12 +77,12 @@ jobs:
             --import \
             --quit
 
-       - name: Run automated tests
-  run: |
-    godot \
-      --headless \
-      --path . \
-      --script res://tests/test_runner.gd
+      - name: Run automated tests
+        run: |
+          godot \
+            --headless \
+            --path . \
+            res://tests/test_runner.tscn
 
       - name: Export debug APK
         run: |
@@ -102,6 +105,8 @@ jobs:
           retention-days: 14
 
   signed-release:
+    name: Export signed APK and AAB
+
     if: >
       github.event_name == 'workflow_dispatch' ||
       github.event_name == 'release'
@@ -112,6 +117,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -136,7 +146,7 @@ jobs:
           use-dotnet: false
           include-templates: true
 
-      - name: Require and verify signing secrets
+      - name: Require signing secrets
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -155,6 +165,13 @@ jobs:
             fi
           done
 
+      - name: Decode and verify release keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
           printf '%s' "$KEYSTORE_B64" \
             | base64 --decode \
             > "$RUNNER_TEMP/release.jks"
@@ -166,8 +183,6 @@ jobs:
             -alias "$KEY_ALIAS" \
             >/dev/null
 
-          # Godot uses the store password for release signing.
-          # Normalize only the temporary runner copy when passwords differ.
           if [ "$KEY_PASSWORD" != "$STORE_PASSWORD" ]; then
             keytool \
               -keypasswd \
@@ -187,25 +202,34 @@ jobs:
           import os
           from pathlib import Path
 
-          preset = Path("export_presets.cfg")
-          content = preset.read_text()
+          preset_path = Path("export_presets.cfg")
+          content = preset_path.read_text()
 
           content = content.replace(
               "@RELEASE_KEYSTORE@",
               os.environ["RUNNER_TEMP"] + "/release.jks",
           )
+
           content = content.replace(
               "@RELEASE_ALIAS@",
               os.environ["KEY_ALIAS"],
           )
+
           content = content.replace(
               "@RELEASE_PASSWORD@",
               os.environ["STORE_PASSWORD"],
           )
 
-          preset.write_text(content)
+          if "@RELEASE_" in content:
+              raise SystemExit(
+                  "Release signing placeholders were not completely replaced"
+              )
+
+          preset_path.write_text(content)
           PY
 
+      - name: Configure Godot Android SDK
+        run: |
           mkdir -p "$HOME/.config/godot"
           mkdir -p export
 
@@ -217,6 +241,10 @@ jobs:
           export/android/java_sdk_path = "$JAVA_HOME"
           SETTINGS
 
+      - name: Static validation
+        run: |
+          python tools/validate_project.py
+
       - name: Import project
         run: |
           godot \
@@ -225,6 +253,13 @@ jobs:
             --path . \
             --import \
             --quit
+
+      - name: Run automated tests
+        run: |
+          godot \
+            --headless \
+            --path . \
+            res://tests/test_runner.tscn
 
       - name: Export signed release APK
         run: |
@@ -252,6 +287,15 @@ jobs:
             verify \
             --verbose \
             export/RubyRun-release.apk
+
+      - name: Verify release artifacts
+        run: |
+          test -s export/RubyRun-release.apk
+          test -s export/RubyRun-release.aab
+
+          ls -lh \
+            export/RubyRun-release.apk \
+            export/RubyRun-release.aab
 
       - name: Upload signed APK and AAB
         uses: actions/upload-artifact@v4
