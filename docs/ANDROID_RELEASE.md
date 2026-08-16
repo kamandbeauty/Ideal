@@ -1,6 +1,6 @@
 # Android and signing
 
-- Package: `com.javidsstudio.rubyrun`
+- Package: `com.studiojavid.rubyrun`
 - Version: `1.0.0` (`versionCode 1`)
 - Orientation: portrait
 - Minimum SDK: API 24

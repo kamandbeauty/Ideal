@@ -6,10 +6,8 @@ required=['project.godot','scenes/main.tscn','data/skins.json','data/release_con
 for p in required:
     if not (root/p).exists(): errors.append(f'missing: {p}')
 config=(root/'project.godot').read_text()
-for value in ['com.javidsstudio.rubyrun']:
-    pass
 presets=(root/'export_presets.cfg').read_text()
-for value in ['com.javidsstudio.rubyrun','version/code=1','version/name="1.0.0"','gradle_build/target_sdk="36"']:
+for value in ['com.studiojavid.rubyrun','version/code=1','version/name="1.0.0"','gradle_build/target_sdk="36"']:
     if value not in presets: errors.append(f'export config missing {value}')
 audited_files=[root/'project.godot', root/'export_presets.cfg'] + list((root/'scripts').rglob('*.gd'))
 audited_text='\n'.join(p.read_text(errors='ignore') for p in audited_files)

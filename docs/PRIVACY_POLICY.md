@@ -1,7 +1,9 @@
 # Ruby Run Privacy Policy
 
-**Effective date:** 16 August 2026  
-**App:** Ruby Run / روبی ران (`com.javidsstudio.rubyrun`)  
+**Effective date:** 16 August 2026
+
+**App:** Ruby Run / روبی ران (`com.studiojavid.rubyrun`)
+
 **Developer:** Javids Studio
 
 > **Publication TODO:** Before release, the developer must add a real contact address and publish this exact policy at an HTTPS URL, then set `privacy_policy_url` in `data/release_config.json`. No placeholder URL is presented as real.

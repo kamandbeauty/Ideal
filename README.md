@@ -54,7 +54,7 @@ Every push and pull request runs those checks and a debug Android export. Manual
 
 | Setting | Value |
 |---|---|
-| Application ID | `com.javidsstudio.rubyrun` |
+| Application ID | `com.studiojavid.rubyrun` |
 | Name | Ruby Run |
 | Version | 1.0.0 / code 1 |
 | Orientation | Portrait |
