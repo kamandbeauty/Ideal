@@ -1,7 +1,7 @@
 class_name RunnerEntity
 extends Node2D
 
-enum Kind { ROCK, LOG, COIN }
+enum Kind { ROCK, LOG, PIT, COIN }
 var kind := Kind.ROCK
 var active := false
 var collected := false
@@ -39,6 +39,8 @@ func collision_rect() -> Rect2:
 			return Rect2(position - Vector2(22, 22), Vector2(44, 44))
 		Kind.LOG:
 			return Rect2(position + Vector2(-48, -48), Vector2(96, 48))
+		Kind.PIT:
+			return Rect2(position + Vector2(-62, -7), Vector2(124, 14))
 		_:
 			return Rect2(position + Vector2(-37, -64), Vector2(74, 64))
 
@@ -67,6 +69,14 @@ func _draw() -> void:
 			draw_rect(Rect2(-48, -42, 96, 42), Color("#70452D"), true)
 			draw_circle(Vector2(44, -21), 21, Color("#B97845"))
 			draw_circle(Vector2(44, -21), 11, Color("#70452D"), false, 4)
+		Kind.PIT:
+			draw_colored_polygon(
+				PackedVector2Array(
+					[Vector2(-66, -5), Vector2(66, -5), Vector2(48, 33), Vector2(-48, 33)]
+				),
+				Color("#221B2B")
+			)
+			draw_line(Vector2(-66, -6), Vector2(66, -6), Color("#4B3226"), 8)
 		Kind.ROCK:
 			draw_colored_polygon(
 				PackedVector2Array(

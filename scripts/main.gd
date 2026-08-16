@@ -214,7 +214,12 @@ func _process(delta: float) -> void:
 
 func _spawn_fair_pattern() -> void:
 	# One grounded obstacle per pattern; spacing scales above the physics-required reaction gap.
-	var obstacle_kind := RunnerEntity.Kind.ROCK if rng.randf() < 0.55 else RunnerEntity.Kind.LOG
+	var roll := rng.randf()
+	var obstacle_kind := RunnerEntity.Kind.ROCK
+	if roll > 0.72:
+		obstacle_kind = RunnerEntity.Kind.PIT
+	elif roll > 0.42:
+		obstacle_kind = RunnerEntity.Kind.LOG
 	_spawn_entity(obstacle_kind, Vector2(800, 980), world_speed)
 	var coin_count := rng.randi_range(2, 5)
 	var airborne := rng.randf() < 0.65
