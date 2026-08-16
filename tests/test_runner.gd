@@ -43,7 +43,7 @@ func run() -> void:
 		and not AnalyticsManager.ALLOWED_PARAMETERS.has(&"email")
 	)
 	expect(valid_events, "analytics allowlist excludes personal fields")
-	var provider := load("res://tests/mock_ad_provider.gd").new()
+	var provider: Node = load("res://tests/mock_ad_provider.gd").new()
 	root.add_child(provider)
 	set_meta("reward_placement", "")
 	AdManager.rewarded_completed.connect(
