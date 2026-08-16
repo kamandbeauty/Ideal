@@ -85,10 +85,13 @@ func save() -> bool:
 		return false
 	file.store_string(json)
 	file.close()
+	var save_os_path := ProjectSettings.globalize_path(SAVE_PATH)
+	var backup_os_path := ProjectSettings.globalize_path(BACKUP_PATH)
+	var temp_os_path := ProjectSettings.globalize_path(temp_path)
 	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.copy_absolute(SAVE_PATH, BACKUP_PATH)
-	DirAccess.remove_absolute(SAVE_PATH)
-	var error := DirAccess.rename_absolute(temp_path, SAVE_PATH)
+		DirAccess.copy_absolute(save_os_path, backup_os_path)
+	DirAccess.remove_absolute(save_os_path)
+	var error := DirAccess.rename_absolute(temp_os_path, save_os_path)
 	if error != OK:
 		push_error("Unable to commit local save: %s" % error)
 		return false
@@ -113,6 +116,6 @@ func reset_all() -> void:
 	data = defaults()
 	for path in [SAVE_PATH, BACKUP_PATH, SAVE_PATH + ".tmp"]:
 		if FileAccess.file_exists(path):
-			DirAccess.remove_absolute(path)
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	save()
 	data_reset.emit()

@@ -30,6 +30,7 @@ func _ready() -> void:
 	player = RubyPlayerScript.new()
 	add_child(player)
 	player.hit.connect(_on_player_hit)
+	AdManager.rewarded_completed.connect(_on_ad_rewarded)
 	player.visible = false
 	for i in POOL_SIZE:
 		var entity: RunnerEntity = EntityScript.new()
@@ -263,6 +264,22 @@ func _on_player_hit() -> void:
 	show_game_over()
 
 
+func _on_ad_rewarded(placement: String) -> void:
+	if placement != "revive" or GameManager.state != GameManager.State.GAME_OVER:
+		return
+	clear_ui()
+	_deactivate_entities()
+	GameManager.run_coins = 0  # Coins before the revive were already committed.
+	GameManager.revived = true
+	GameManager.state = GameManager.State.PLAYING
+	ending = false
+	spawn_distance = 700.0
+	background.playing = true
+	player.reset_player()
+	_build_hud()
+	AnalyticsManager.track(&"revive_used")
+
+
 func show_game_over() -> void:
 	var box := panel_base("GAME OVER", "پایان بازی")
 	box.add_child(
@@ -338,6 +355,7 @@ func show_daily() -> void:
 func _claim_daily() -> void:
 	var amount := RewardManager.claim()
 	if amount > 0:
+		AudioManager.play_sfx("reward")
 		show_notice("+%d COINS!" % amount, show_daily)
 
 

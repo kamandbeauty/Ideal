@@ -56,6 +56,7 @@ func take_hit() -> void:
 	if not active:
 		return
 	active = false
+	AudioManager.vibrate(45)
 	queue_redraw()
 	hit.emit()
 
