@@ -16,7 +16,7 @@ func expect(condition: bool, message: String) -> void:
 
 
 func run() -> void:
-	await process_frame
+	await get_tree().process_frame
 	expect(SaveManager.defaults().coins == 0, "save defaults are safe")
 	expect(SaveManager.data.unlocked_skins.has("classic"), "classic skin always unlocked")
 	expect(SkinManager.skins.size() == 5, "five data-driven skins load")
