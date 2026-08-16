@@ -1,9 +1,9 @@
-extends SceneTree
+extends Node
 
 var failures := 0
 
 
-func _init() -> void:
+func _ready() -> void:
 	call_deferred("run")
 
 
@@ -32,7 +32,7 @@ func run() -> void:
 	SaveManager.data = original
 	SaveManager.save()
 	var ruby := RubyPlayer.new()
-	root.add_child(ruby)
+	add_child(ruby)
 	ruby.reset_player()
 	expect(ruby.jump(), "first jump works")
 	expect(ruby.jump(), "double jump works")
@@ -44,7 +44,7 @@ func run() -> void:
 	)
 	expect(valid_events, "analytics allowlist excludes personal fields")
 	var provider: Node = load("res://tests/mock_ad_provider.gd").new()
-	root.add_child(provider)
+	add_child(provider)
 	set_meta("reward_placement", "")
 	AdManager.rewarded_completed.connect(
 		func(placement: String): set_meta("reward_placement", placement)
@@ -53,4 +53,4 @@ func run() -> void:
 	expect(AdManager.show_rewarded("revive"), "configured rewarded flow starts")
 	expect(get_meta("reward_placement") == "revive", "reward requires provider completion callback")
 	print("TEST RESULT: ", failures, " failure(s)")
-	quit(1 if failures else 0)
+	get_tree().quit(1 if failures else 0)

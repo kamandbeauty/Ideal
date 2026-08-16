@@ -44,7 +44,7 @@ Autoloads communicate through narrow manager interfaces. Scene code never calls 
 ```bash
 python3 tools/validate_project.py
 godot --headless --editor --path . --import --quit
-godot --headless --path . --script res://tests/test_runner.gd
+godot --headless --path . res://tests/test_runner.tscn
 godot --headless --path . --export-debug "Android Debug" export/RubyRun-debug.apk
 ```
 
