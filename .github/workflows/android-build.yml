@@ -1,308 +1,119 @@
-name: Validate and build Android
+name: Unity Android CI
 
 on:
   push:
   pull_request:
   workflow_dispatch:
-  release:
-    types:
-      - published
 
 permissions:
   contents: read
+  checks: write
+
+concurrency:
+  group: unity-android-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
-  GODOT_VERSION: 4.7.1
+  UNITY_VERSION: 6000.3.21f1
 
 jobs:
-  validate-and-debug-export:
-    name: Validate and export debug APK
+  test:
+    name: Unity EditMode tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
         with:
-          python-version: "3.12"
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+          lfs: true
+      - uses: actions/cache@v4
         with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-36" \
-            "build-tools;36.0.0"
-
-      - name: Setup Godot
-        uses: chickensoft-games/setup-godot@v2
+          path: Library
+          key: Library-${{ runner.os }}-${{ hashFiles('Packages/**', 'ProjectSettings/**', 'Assets/**') }}
+          restore-keys: Library-${{ runner.os }}-
+      - name: Run Unity tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          version: ${{ env.GODOT_VERSION }}
-          use-dotnet: false
-          include-templates: true
-
-      - name: Configure Godot Android SDK
-        run: |
-          mkdir -p "$HOME/.config/godot"
-
-          cat > "$HOME/.config/godot/editor_settings-4.7.tres" <<SETTINGS
-          [gd_resource format=3]
-
-          [resource]
-          export/android/android_sdk_path = "$ANDROID_HOME"
-          export/android/java_sdk_path = "$JAVA_HOME"
-          SETTINGS
-
-      - name: Static validation
-        run: |
-          python tools/validate_project.py
-
-      - name: Import project and validate syntax
-        run: |
-          godot \
-            --headless \
-            --editor \
-            --path . \
-            --import \
-            --quit
-
-      - name: Run automated tests
-        run: |
-          godot \
-            --headless \
-            --path . \
-            res://tests/test_runner.tscn
-
-      - name: Export debug APK
-        run: |
-          mkdir -p export
-
-          godot \
-            --headless \
-            --path . \
-            --export-debug "Android Debug" \
-            export/RubyRun-debug.apk
-
-          test -s export/RubyRun-debug.apk
-
-      - name: Upload debug APK
-        uses: actions/upload-artifact@v4
+          unityVersion: ${{ env.UNITY_VERSION }}
+          testMode: EditMode
+          artifactsPath: TestArtifacts
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Ruby Run 3D EditMode Tests
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: RubyRun-debug-${{ github.sha }}
-          path: export/RubyRun-debug.apk
-          if-no-files-found: error
-          retention-days: 14
+          name: unity-test-results
+          path: TestArtifacts
+          if-no-files-found: warn
 
-  signed-release:
-    name: Export signed APK and AAB
-
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'release'
-
+  signed-android:
+    name: Signed APK and AAB
+    if: github.event_name == 'workflow_dispatch'
+    needs: test
     runs-on: ubuntu-latest
-    timeout-minutes: 35
-
+    timeout-minutes: 60
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
         with:
-          python-version: "3.12"
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android SDK packages
-        run: |
-          sdkmanager \
-            "platform-tools" \
-            "platforms;android-36" \
-            "build-tools;36.0.0"
-
-      - name: Setup Godot
-        uses: chickensoft-games/setup-godot@v2
-        with:
-          version: ${{ env.GODOT_VERSION }}
-          use-dotnet: false
-          include-templates: true
-
-      - name: Require signing secrets
+          lfs: true
+      - name: Require release secrets
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          LICENSE: ${{ secrets.UNITY_LICENSE }}
         run: |
-          for name in \
-            KEYSTORE_B64 \
-            STORE_PASSWORD \
-            KEY_ALIAS \
-            KEY_PASSWORD
-          do
-            if [ -z "${!name}" ]; then
-              echo "::error::Required signing secret $name is missing"
-              exit 1
-            fi
+          for name in KEYSTORE_B64 STORE_PASSWORD KEY_ALIAS KEY_PASSWORD LICENSE; do
+            test -n "${!name}" || { echo "::error::Required secret $name is missing"; exit 1; }
           done
-
-      - name: Decode and verify release keystore
-        env:
-          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          printf '%s' "$KEYSTORE_B64" \
-            | base64 --decode \
-            > "$RUNNER_TEMP/release.jks"
-
-          keytool \
-            -list \
-            -keystore "$RUNNER_TEMP/release.jks" \
-            -storepass "$STORE_PASSWORD" \
-            -alias "$KEY_ALIAS" \
-            >/dev/null
-
-          if [ "$KEY_PASSWORD" != "$STORE_PASSWORD" ]; then
-            keytool \
-              -keypasswd \
-              -keystore "$RUNNER_TEMP/release.jks" \
-              -storepass "$STORE_PASSWORD" \
-              -alias "$KEY_ALIAS" \
-              -keypass "$KEY_PASSWORD" \
-              -new "$STORE_PASSWORD"
-          fi
-
-      - name: Inject temporary signing configuration
-        env:
-          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        run: |
-          python - <<'PY'
-          import os
-          from pathlib import Path
-
-          preset_path = Path("export_presets.cfg")
-          content = preset_path.read_text()
-
-          content = content.replace(
-              "@RELEASE_KEYSTORE@",
-              os.environ["RUNNER_TEMP"] + "/release.jks",
-          )
-
-          content = content.replace(
-              "@RELEASE_ALIAS@",
-              os.environ["KEY_ALIAS"],
-          )
-
-          content = content.replace(
-              "@RELEASE_PASSWORD@",
-              os.environ["STORE_PASSWORD"],
-          )
-
-          if "@RELEASE_" in content:
-              raise SystemExit(
-                  "Release signing placeholders were not completely replaced"
-              )
-
-          preset_path.write_text(content)
-          PY
-
-      - name: Configure Godot Android SDK
-        run: |
-          mkdir -p "$HOME/.config/godot"
-          mkdir -p export
-
-          cat > "$HOME/.config/godot/editor_settings-4.7.tres" <<SETTINGS
-          [gd_resource format=3]
-
-          [resource]
-          export/android/android_sdk_path = "$ANDROID_HOME"
-          export/android/java_sdk_path = "$JAVA_HOME"
-          SETTINGS
-
-      - name: Static validation
-        run: |
-          python tools/validate_project.py
-
-      - name: Import project
-        run: |
-          godot \
-            --headless \
-            --editor \
-            --path . \
-            --import \
-            --quit
-
-      - name: Run automated tests
-        run: |
-          godot \
-            --headless \
-            --path . \
-            res://tests/test_runner.tscn
-
-      - name: Export signed release APK
-        run: |
-          godot \
-            --headless \
-            --path . \
-            --export-release "Android Release APK" \
-            export/RubyRun-release.apk
-
-          test -s export/RubyRun-release.apk
-
-      - name: Export signed release AAB
-        run: |
-          godot \
-            --headless \
-            --path . \
-            --export-release "Android Release AAB" \
-            export/RubyRun-release.aab
-
-          test -s export/RubyRun-release.aab
-
-      - name: Verify APK signature
-        run: |
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" \
-            verify \
-            --verbose \
-            export/RubyRun-release.apk
-
-      - name: Verify release artifacts
-        run: |
-          test -s export/RubyRun-release.apk
-          test -s export/RubyRun-release.aab
-
-          ls -lh \
-            export/RubyRun-release.apk \
-            export/RubyRun-release.aab
-
-      - name: Upload signed APK and AAB
-        uses: actions/upload-artifact@v4
+          mkdir -p "$RUNNER_TEMP/signing"
+          printf '%s' "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/signing/rubyrun.jks"
+      - uses: actions/cache@v4
         with:
-          name: RubyRun-1.0.0-signed
+          path: Library
+          key: Library-Android-${{ hashFiles('Packages/**', 'ProjectSettings/**', 'Assets/**') }}
+          restore-keys: Library-Android-
+      - name: Build signed APK
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/signing/rubyrun.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: Android
+          buildMethod: RubyRun3D.Editor.BuildAndroid.BuildApk
+      - name: Build signed AAB
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/signing/rubyrun.jks
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        with:
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: Android
+          buildMethod: RubyRun3D.Editor.BuildAndroid.BuildAab
+      - name: Verify outputs
+        run: |
+          test -s Build/Android/RubyRun3D-release.apk
+          test -s Build/Android/RubyRun3D-release.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RubyRun3D-1.0.0-signed
           path: |
-            export/RubyRun-release.apk
-            export/RubyRun-release.aab
+            Build/Android/RubyRun3D-release.apk
+            Build/Android/RubyRun3D-release.aab
           if-no-files-found: error
           retention-days: 30
