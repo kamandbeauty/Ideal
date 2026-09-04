@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: PHP syntax (${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Lint every PHP file
+        run: |
+          find tshirt-designer -name '*.php' -print0 \
+            | xargs -0 -n1 -P4 php -l
+
+  coding-standards:
+    name: WordPress coding standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          coverage: none
+          tools: cs2pr
+
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/composer
+          key: composer-${{ hashFiles('composer.json') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      # Advisory on the first run: the codebase was written to WPCS by hand but
+      # has never been machine-checked, so phpcs is expected to report style
+      # nits. Review the first run's annotations, fix them, then delete the
+      # continue-on-error line below to make standards blocking.
+      - name: Run phpcs
+        run: vendor/bin/phpcs --report-full --report-checkstyle=phpcs-report.xml
+        continue-on-error: true
+
+      - name: Annotate results
+        run: cs2pr phpcs-report.xml
+        if: always()
+
+      # Errors (as opposed to warnings) should never be acceptable, so surface
+      # the count even while the job as a whole is advisory.
+      - name: Summarise
+        if: always()
+        run: |
+          if [ -f phpcs-report.xml ]; then
+            errors=$(grep -c 'severity="5"' phpcs-report.xml || true)
+            echo "phpcs errors: ${errors:-0}" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  translations:
+    name: Translation catalogue is up to date
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Regenerate the catalogue
+        run: python3 tools/make_translations.py | tee /tmp/i18n.log
+
+      - name: Fail on missing translations
+        run: |
+          if grep -q "^MISSING fa translations" /tmp/i18n.log; then
+            echo "::error::New translatable strings have no Persian translation."
+            grep -A100 "^MISSING" /tmp/i18n.log
+            exit 1
+          fi
+          echo "fa_IR coverage is complete."
+
+      - name: Fail if the committed catalogue is stale
+        run: |
+          # The generator rewrites POT-Creation-Date on every run, so a plain
+          # `git diff` is always dirty. Compare only the msgid/msgstr content.
+          strip() { grep -vE '^"(POT-Creation-Date|PO-Revision-Date):' "$1"; }
+          for f in tshirt-designer/languages/tshirt-designer.pot \
+                   tshirt-designer/languages/tshirt-designer-fa_IR.po; do
+            git show "HEAD:$f" > /tmp/committed.po 2>/dev/null || continue
+            if ! diff -q <(strip /tmp/committed.po) <(strip "$f") >/dev/null; then
+              echo "::error::$f is out of date. Run tools/make_translations.py and commit."
+              diff <(strip /tmp/committed.po) <(strip "$f") | head -40
+              exit 1
+            fi
+          done
+          echo "Translation catalogue is up to date."

@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<ruleset name="Custom Product Designer">
+	<description>WordPress coding standards for the Custom Product Designer plugin.</description>
+
+	<file>tshirt-designer</file>
+
+	<!-- Third-party and generated assets are not ours to lint. -->
+	<exclude-pattern>*/assets/js/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+
+	<arg name="extensions" value="php"/>
+	<arg name="colors"/>
+	<arg value="sp"/>
+	<arg name="parallel" value="8"/>
+
+	<rule ref="WordPress">
+		<!--
+			The plugin uses short array syntax nowhere and long syntax
+			everywhere, which WPCS already enforces; nothing to exclude here.
+			Exclusions below are deliberate and each has a reason.
+		-->
+
+		<!--
+			Custom tables are the whole point of this plugin: designs, jobs,
+			files and events cannot be post meta. Direct queries and the
+			absence of a persistent cache are intentional design decisions,
+			not oversights, and every query is prepared.
+		-->
+		<exclude name="WordPress.DB.DirectDatabaseQuery.DirectQuery"/>
+		<exclude name="WordPress.DB.DirectDatabaseQuery.NoCaching"/>
+	</rule>
+
+	<!-- The plugin targets PHP 8.1+. -->
+	<config name="testVersion" value="8.1-"/>
+	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- Text domain must be consistent. -->
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="tshirt-designer"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Prefix rules for globals, hooks and options. -->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<properties>
+			<property name="prefixes" type="array">
+				<element value="td_"/>
+				<element value="TD_"/>
+				<element value="TShirtDesigner"/>
+			</property>
+		</properties>
+	</rule>
+
+	<!-- Minimum supported WordPress version. -->
+	<config name="minimum_wp_version" value="6.0"/>
+
+	<!--
+		Test files are developer tooling, not shipped runtime code. They
+		legitimately use direct output, eval-free bootstrapping and
+		non-prefixed helper names.
+	-->
+	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
+		<exclude-pattern>*/tests/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Security.EscapeOutput">
+		<exclude-pattern>*/tests/*</exclude-pattern>
+	</rule>
+</ruleset>

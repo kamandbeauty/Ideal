@@ -1,2 +1,16 @@
+# Python bytecode from tools/
 __pycache__/
 *.pyc
+
+# Composer (dev tooling only; the plugin ships no runtime dependencies)
+/vendor/
+composer.lock
+
+# phpcs output
+phpcs-report.xml
+.phpcs-cache
+
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
