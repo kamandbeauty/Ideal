@@ -558,4 +558,48 @@ TD_Test::ok(
 	'the designer template renders an Add to cart control'
 );
 
+TD_Test::group( 'My Designs — order again' );
+
+// $design_id was ordered and paid earlier in this suite, so it is locked.
+$locked = $plugin->designs->get_design( (int) $design_id, 1, '' );
+TD_Test::ok(
+	in_array( (string) $locked['status'], TShirtDesigner\Design_Manager::PROTECTED_STATUSES, true ),
+	'the purchased design is in a protected status'
+);
+
+$before_version = (int) $locked['version'];
+$before_status  = (string) $locked['status'];
+
+WC()->cart->empty_cart();
+
+// Drive the same private path the nonced My Designs link uses.
+$reorder = new ReflectionMethod( TShirtDesigner\My_Designs::class, 'reorder' );
+$reorder->setAccessible( true );
+$notice = (string) $reorder->invoke( new TShirtDesigner\My_Designs( $plugin ), (int) $design_id, 1 );
+TD_Test::equals( 'reordered', $notice, 'ordering again succeeds' );
+
+$after = $plugin->designs->get_design( (int) $design_id, 1, '' );
+TD_Test::equals( $before_version, (int) $after['version'], 'the purchased design is not re-versioned' );
+TD_Test::equals( $before_status, (string) $after['status'], 'the purchased design keeps its status' );
+
+$cart_rows = array_values( WC()->cart->get_cart() );
+TD_Test::equals( 1, count( $cart_rows ), 'exactly one line is added to the cart' );
+$carted_id = (int) $cart_rows[0][ TShirtDesigner\Cart_Manager::CART_KEY ]['design_id'];
+TD_Test::ok( $carted_id > 0, 'the cart line carries a design id' );
+TD_Test::ok(
+	$carted_id !== (int) $design_id,
+	'the cart holds a COPY, so the historical order record can never be edited'
+);
+
+$copy = $plugin->designs->get_design( $carted_id, 1, '' );
+TD_Test::equals(
+	(string) $locked['uuid'] === (string) $copy['uuid'] ? 'same' : 'different',
+	'different',
+	'the copy gets its own design code'
+);
+
+// A design belonging to somebody else must not be reorderable.
+$other = (string) $reorder->invoke( new TShirtDesigner\My_Designs( $plugin ), (int) $design_id, 99999 );
+TD_Test::equals( 'error', $other, 'another user cannot order somebody else\'s design again' );
+
 exit( TD_Test::summary() );

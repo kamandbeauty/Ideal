@@ -123,14 +123,51 @@ final class My_Designs {
 		} elseif ( 'delete' === $action ) {
 			$result = $this->plugin->designs->delete( $design_id, $user_id, '' );
 			$notice = $result['ok'] ? 'deleted' : 'error';
+		} elseif ( 'reorder' === $action ) {
+			$notice = $this->reorder( $design_id, $user_id );
 		} else {
 			return;
 		}
 
-		wp_safe_redirect(
-			add_query_arg( 'td_notice', $notice, wc_get_account_endpoint_url( self::ENDPOINT ) )
-		);
+		// A successful reorder goes straight to the cart; everything else
+		// stays on the designs list with a notice.
+		$target = ( 'reordered' === $notice && function_exists( 'wc_get_cart_url' ) )
+			? wc_get_cart_url()
+			: add_query_arg( 'td_notice', $notice, wc_get_account_endpoint_url( self::ENDPOINT ) );
+
+		wp_safe_redirect( $target );
 		exit;
+	}
+
+	/**
+	 * Put a previously ordered design back in the cart.
+	 *
+	 * The design is duplicated first and the *copy* is carted. A design that
+	 * has been ordered is immutable - its snapshot is what the customer paid
+	 * for and what production printed - so re-carting the original would drag
+	 * a historical record back into an open cart where editing it could
+	 * change the record of a completed sale.
+	 *
+	 * @return string Notice key.
+	 */
+	private function reorder( int $design_id, int $user_id ): string {
+		if ( null === $this->plugin->cart ) {
+			return 'nocart';
+		}
+
+		// duplicate() re-checks ownership, so an id belonging to someone else
+		// never gets this far.
+		$copy = $this->plugin->designs->duplicate( $design_id, $user_id, '' );
+		if ( empty( $copy['ok'] ) ) {
+			return 'error';
+		}
+
+		$added = $this->plugin->cart->add_to_cart( (int) $copy['id'], 1, $user_id, '' );
+		if ( empty( $added['ok'] ) ) {
+			return 'error';
+		}
+
+		return 'reordered';
 	}
 
 	/**

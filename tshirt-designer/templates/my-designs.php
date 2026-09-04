@@ -27,6 +27,10 @@ $td_plugin = Plugin::instance();
 	<div class="woocommerce-message" role="alert">
 		<?php esc_html_e( 'The design was deleted.', 'tshirt-designer' ); ?>
 	</div>
+<?php elseif ( 'nocart' === $notice ) : ?>
+	<div class="woocommerce-error" role="alert">
+		<?php esc_html_e( 'Ordering is unavailable right now.', 'tshirt-designer' ); ?>
+	</div>
 <?php elseif ( 'error' === $notice ) : ?>
 	<div class="woocommerce-error" role="alert">
 		<?php esc_html_e( 'That action could not be completed.', 'tshirt-designer' ); ?>
@@ -108,6 +112,12 @@ $td_plugin = Plugin::instance();
 					href="<?php echo esc_url( My_Designs::action_url( 'duplicate', $td_id ) ); ?>">
 					<?php esc_html_e( 'Duplicate', 'tshirt-designer' ); ?>
 				</a>
+				<?php if ( $td_locked && null !== $td_plugin->cart ) : ?>
+					<a class="woocommerce-button button"
+						href="<?php echo esc_url( My_Designs::action_url( 'reorder', $td_id ) ); ?>">
+						<?php esc_html_e( 'Order again', 'tshirt-designer' ); ?>
+					</a>
+				<?php endif; ?>
 				<?php if ( ! $td_locked ) : ?>
 					<a class="woocommerce-button button"
 						href="<?php echo esc_url( My_Designs::action_url( 'delete', $td_id ) ); ?>"
