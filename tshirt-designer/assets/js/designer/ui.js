@@ -41,6 +41,7 @@ export class UI {
       priceLines: el(root, 'priceLines'),
       priceTotal: el(root, 'priceTotal'),
       save: el(root, 'save'),
+      addToCart: el(root, 'addToCart'),
       saveStatus: el(root, 'saveStatus'),
       toolsToggle: el(root, 'toolsToggle'),
       textContent: el(root, 'textContent'),
@@ -58,6 +59,7 @@ export class UI {
     this._bindLayers();
     this._bindSave();
     this._bindText();
+    this._bindCart();
 
     if (this.refs.uploadHint) {
       this.refs.uploadHint.textContent = `${this.i18n.uploadHint || 'JPG, PNG or WEBP — up to'} ${this.uploadMaxMb}MB`;
@@ -131,6 +133,14 @@ export class UI {
       btn.addEventListener('click', () => {
         if (this.onEditorAction) this.onEditorAction(btn.getAttribute('data-layer'));
       });
+    });
+  }
+
+  _bindCart() {
+    const btn = this.refs.addToCart;
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+      if (this.onAddToCart) this.onAddToCart();
     });
   }
 

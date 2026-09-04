@@ -2,12 +2,14 @@
  * REST client for /wp-json/tshirt-designer/v1/.
  */
 export class Api {
-  constructor({ restUrl, nonce }) {
+  constructor({ restUrl, restUrlV2, nonce }) {
     this.root = restUrl.replace(/\/$/, '');
+    // The v2 namespace carries the cart/product-type routes; v1 stays as-is.
+    this.rootV2 = (restUrlV2 || '').replace(/\/$/, '');
     this.nonce = nonce;
   }
 
-  async request(path, { method = 'GET', body = null } = {}) {
+  async request(path, { method = 'GET', body = null, v2 = false } = {}) {
     const headers = {};
     if (this.nonce) headers['X-WP-Nonce'] = this.nonce;
     let payload = body;
@@ -16,7 +18,8 @@ export class Api {
       payload = JSON.stringify(body);
     }
 
-    const res = await fetch(`${this.root}${path}`, {
+    const base = v2 ? this.rootV2 : this.root;
+    const res = await fetch(`${base}${path}`, {
       method,
       headers,
       credentials: 'same-origin',
@@ -52,4 +55,17 @@ export class Api {
     return this.request('/designs', { method: 'POST', body: { ...design, preview } });
   }
   getDesign(id) { return this.request(`/designs/${id}`); }
+
+  /**
+   * Add a saved design to the WooCommerce cart. Only the design id and a
+   * quantity are sent - the server recomputes the price from the stored
+   * snapshot, so nothing here can influence what the customer is charged.
+   */
+  addToCart(designId, quantity = 1) {
+    return this.request('/cart', {
+      method: 'POST',
+      v2: true,
+      body: { design_id: designId, quantity },
+    });
+  }
 }

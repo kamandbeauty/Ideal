@@ -984,3 +984,16 @@
 		font-size: 16px;
 	}
 }
+
+.td-btn--cart {
+	margin-top: 8px;
+	background: var(--td-ok);
+	border-color: var(--td-ok);
+	color: #05230f;
+	font-weight: 700;
+}
+
+.td-btn--cart:disabled {
+	opacity: 0.6;
+	cursor: progress;
+}

@@ -15,7 +15,9 @@ class DesignerApp {
   constructor(root) {
     this.root = root;
     this.boot = JSON.parse(root.dataset.boot || '{}');
-    this.api = new Api({ restUrl: this.boot.restUrl || '/wp-json/tshirt-designer/v1', nonce: this.boot.nonce || '' });
+    this.api = new Api({ restUrl: this.boot.restUrl || '/wp-json/tshirt-designer/v1',
+      restUrlV2: this.boot.restUrlV2 || '/wp-json/custom-product-designer/v1',
+      nonce: this.boot.nonce || '' });
     this.state = new State();
     this.i18n = this.boot.i18n || {};
     this.currency = this.boot.currency || {};
@@ -65,6 +67,7 @@ class DesignerApp {
     this.ui.onAddText = (text) => this.editor.addText(text);
     this.ui.onUpdateText = (id, text) => this.editor.updateText(id, text);
     this.ui.onSave = () => this.save();
+    this.ui.onAddToCart = () => this.addToCart();
 
     // State changes drive every panel.
     this.state.subscribe((data) => this.render(data));
@@ -267,7 +270,8 @@ class DesignerApp {
       return;
     }
     if (!this.state.itemCount()) {
-      return;
+      this.ui.setSaveStatus(this.i18n.emptyDesign || 'Add some artwork or text first.', false);
+      return 0;
     }
 
     const btn = this.root.querySelector('[data-td-el="save"]');
@@ -282,8 +286,47 @@ class DesignerApp {
         this.state.set({ price: res.breakdown });
         this.ui.renderPrice(false);
       }
+      this.designId = res.id;
+      return res.id;
     } catch (err) {
       this.ui.setSaveStatus(err.message || this.i18n.saveError || 'Could not save the design.', false);
+      return 0;
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  /**
+   * Save-then-add-to-cart. The design must exist server-side first, because
+   * the cart endpoint takes only a design id and prices it from the stored
+   * snapshot - the browser never gets to name a price.
+   */
+  async addToCart() {
+    const model = this.state.get('model');
+    if (!model) return;
+    if (!this.state.itemCount()) {
+      this.ui.setSaveStatus(this.i18n.emptyDesign || 'Add some artwork or text first.', false);
+      return;
+    }
+
+    const btn = this.root.querySelector('[data-td-el="addToCart"]');
+    if (btn) btn.disabled = true;
+
+    try {
+      // Always re-save: the customer may have edited since the last save, and
+      // the cart must bind to the version they are actually looking at.
+      const designId = await this.save();
+      if (!designId) return;
+
+      this.ui.setSaveStatus(this.i18n.addingToCart || 'Adding to cart…', null);
+      const res = await this.api.addToCart(designId, 1);
+      this.ui.setSaveStatus(this.i18n.addedToCart || 'Added to your cart.', true);
+
+      if (res && res.cart_url) {
+        window.location.href = res.cart_url;
+      }
+    } catch (err) {
+      this.ui.setSaveStatus(err.message || this.i18n.cartError || 'Could not add to cart.', false);
     } finally {
       if (btn) btn.disabled = false;
     }

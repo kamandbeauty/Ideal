@@ -539,4 +539,23 @@ $ti = getimagesize( (string) $tote_files[0]['file_path'] );
 TD_Test::equals( $tw, (int) $ti[0], 'the tote print file uses the tote print size (28cm), not the t-shirt one' );
 TD_Test::equals( $th, (int) $ti[1], 'the tote print file height uses the tote print size (32cm)' );
 
+TD_Test::group( 'Designer boot data — cart integration' );
+
+// The Add to Cart button in templates/designer.php is gated on this flag, so
+// the flag flipping to true with WooCommerce active is what actually makes
+// the sales cycle reachable from the designer.
+$boot = TShirtDesigner\Assets::boot_data( $plugin, 0, 0 );
+TD_Test::ok( ! empty( $boot['hasWoo'] ), 'boot data reports WooCommerce as available' );
+TD_Test::ok(
+	str_contains( (string) $boot['restUrlV2'], TShirtDesigner\Rest_Api_V2::NS ),
+	'boot data exposes the v2 REST namespace used by the cart route'
+);
+TD_Test::ok( ! empty( $boot['i18n']['addToCart'] ), 'the Add to cart label is translated into boot data' );
+
+$designer_tpl = (string) file_get_contents( TD_PLUGIN_DIR . 'templates/designer.php' );
+TD_Test::ok(
+	str_contains( $designer_tpl, 'data-td-el="addToCart"' ),
+	'the designer template renders an Add to cart control'
+);
+
 exit( TD_Test::summary() );

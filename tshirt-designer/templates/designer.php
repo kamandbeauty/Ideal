@@ -185,6 +185,11 @@ $root = 'td-app-' . wp_generate_password( 8, false, false );
 				<button type="button" class="td-btn td-btn--primary td-btn--block" data-td-el="save">
 					<?php esc_html_e( 'Save design', 'tshirt-designer' ); ?>
 				</button>
+				<?php if ( ! empty( $boot['hasWoo'] ) ) : ?>
+					<button type="button" class="td-btn td-btn--cart td-btn--block" data-td-el="addToCart">
+						<?php esc_html_e( 'Add to cart', 'tshirt-designer' ); ?>
+					</button>
+				<?php endif; ?>
 				<div class="td-price__note td-hidden" data-td-el="saveStatus"></div>
 			</div>
 		</aside>
