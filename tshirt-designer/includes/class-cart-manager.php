@@ -249,11 +249,8 @@ final class Cart_Manager {
 		if ( ! $cart instanceof \WC_Cart ) {
 			return;
 		}
-		if ( did_action( 'woocommerce_before_calculate_totals' ) >= 2 && ! doing_action( 'woocommerce_before_calculate_totals' ) ) {
-			return;
-		}
 
-		foreach ( $cart->get_cart() as $cart_item ) {
+		foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
 			$payload = $cart_item[ self::CART_KEY ] ?? null;
 			if ( ! is_array( $payload ) || ! isset( $cart_item['data'] ) ) {
 				continue;
@@ -262,11 +259,49 @@ final class Cart_Manager {
 			if ( ! $product instanceof \WC_Product ) {
 				continue;
 			}
-			$price = (float) ( $payload['unit_price'] ?? 0 );
+
+			// The unit price is always re-derived from the stored price
+			// snapshot of the exact design version being bought. The value
+			// carried in the session is never trusted, so editing the cart
+			// session cannot change what the customer is charged.
+			$price = $this->authoritative_price( $payload );
 			if ( $price > 0 ) {
-				$product->set_price( $price );
+				$product->set_price( (string) $price );
 			}
 		}
+	}
+
+	/**
+	 * Resolve the price a cart line must be charged at.
+	 *
+	 * Priority: the immutable price snapshot of the purchased design version,
+	 * then the snapshot embedded in the cart payload. Session values are only
+	 * used when neither is available (and are re-validated as numeric).
+	 *
+	 * @param array<string, mixed> $payload Cart payload.
+	 */
+	private function authoritative_price( array $payload ): float {
+		$design_id = (int) ( $payload['design_id'] ?? 0 );
+		$version   = (int) ( $payload['design_version'] ?? 0 );
+
+		if ( $design_id > 0 && $version > 0 ) {
+			$row = $this->plugin->designs->get_version( $design_id, $version );
+			if ( is_array( $row ) && (float) $row['price_total'] > 0 ) {
+				return (float) $row['price_total'];
+			}
+		}
+
+		$snapshot = $payload['snapshot'] ?? null;
+		if ( is_array( $snapshot ) && (float) ( $snapshot['price_total'] ?? 0 ) > 0 ) {
+			return (float) $snapshot['price_total'];
+		}
+
+		$pricing = $payload['pricing'] ?? null;
+		if ( is_array( $pricing ) && (float) ( $pricing['total'] ?? 0 ) > 0 ) {
+			return (float) $pricing['total'];
+		}
+
+		return 0.0;
 	}
 
 	/**

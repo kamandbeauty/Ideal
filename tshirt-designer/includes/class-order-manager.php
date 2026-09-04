@@ -350,8 +350,12 @@ final class Order_Manager {
 		return array(
 			'ok'        => true,
 			'errors'    => array(),
+			// `id` mirrors the shape returned by Design_Manager::save()/duplicate()
+			// so every caller can treat design results uniformly.
+			'id'        => (int) $result['id'],
 			'design_id' => (int) $result['id'],
 			'uuid'      => (string) $result['uuid'],
+			'version'   => (int) $result['version'],
 		);
 	}
 

@@ -41,13 +41,23 @@ final class Media_Manager {
 			$error = __( 'No file was uploaded.', 'tshirt-designer' );
 			return null;
 		}
-		foreach ( array( 'name', 'type', 'tmp_name', 'size' ) as $key ) {
+		// PHP fills `size` as an integer and `error` as an integer; only the
+		// three path/name fields are strings.
+		foreach ( array( 'name', 'type', 'tmp_name' ) as $key ) {
 			if ( ! isset( $file[ $key ] ) || ! is_string( $file[ $key ] ) ) {
 				$error = __( 'Invalid upload payload.', 'tshirt-designer' );
 				return null;
 			}
 		}
-		$size = isset( $file['size'] ) ? (int) $file['size'] : 0;
+		if ( ! isset( $file['size'] ) || ! is_numeric( $file['size'] ) ) {
+			$error = __( 'Invalid upload payload.', 'tshirt-designer' );
+			return null;
+		}
+		if ( isset( $file['error'] ) && UPLOAD_ERR_OK !== (int) $file['error'] ) {
+			$error = __( 'The file could not be uploaded. Please try again.', 'tshirt-designer' );
+			return null;
+		}
+		$size = (int) $file['size'];
 		if ( ! is_uploaded_file( $file['tmp_name'] ) && ! $this->is_test_context( $file['tmp_name'] ) ) {
 			$error = __( 'Invalid upload source.', 'tshirt-designer' );
 			return null;
@@ -72,6 +82,12 @@ final class Media_Manager {
 		$mime  = is_string( $check['type'] ?? null ) ? $check['type'] : '';
 		if ( '' === $ext || '' === $mime ) {
 			$error = __( 'Only JPG, JPEG, PNG and WEBP images are allowed.', 'tshirt-designer' );
+			return null;
+		}
+		// WordPress sets `proper_filename` when the real content does not match
+		// the supplied extension. Refuse rather than silently renaming.
+		if ( ! empty( $check['proper_filename'] ) ) {
+			$error = __( 'The file contents do not match its extension.', 'tshirt-designer' );
 			return null;
 		}
 
@@ -298,7 +314,10 @@ final class Media_Manager {
 		$owner_guest = (string) $row['guest_token'];
 		$is_owner    = ( 0 !== $owner_user && $owner_user === $user_id )
 			|| ( 0 === $owner_user && '' !== $guest_token && $owner_guest === $guest_token );
-		if ( ! $is_owner && ! current_user_can( 'manage_options' ) ) {
+		// Capability is evaluated for the identity being acted on, not for the
+		// ambient session, so an admin session cannot leak another user's
+		// upload into a customer-scoped call.
+		if ( ! $is_owner && ! ( $user_id > 0 && user_can( $user_id, 'manage_options' ) ) ) {
 			return null;
 		}
 		$row['id']            = (int) $row['id'];

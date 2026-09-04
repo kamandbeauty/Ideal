@@ -169,7 +169,7 @@ final class Plugin {
 		}
 
 		if ( is_admin() ) {
-			\Admin\Admin::register( $this );
+			Admin\Admin::register( $this );
 		}
 	}
 

@@ -514,6 +514,94 @@ final class Production_Renderer {
 	}
 
 	/**
+	 * Bundle every production file of an order (optionally a single item) into
+	 * a ZIP archive for the admin "Download All" action.
+	 *
+	 * The archive is written into the protected production directory and is
+	 * rebuilt on every call so it always matches the current files.
+	 *
+	 * @param int $order_id Order id.
+	 * @param int $item_id  Optional order item id to limit the archive to.
+	 * @return array{path:string, name:string, count:int}|null Null when there
+	 *         is nothing to zip or the ZIP extension is unavailable.
+	 */
+	public function build_zip( int $order_id, int $item_id = 0 ): ?array {
+		if ( ! class_exists( '\ZipArchive' ) ) {
+			Plugin::instance()->logger->error(
+				Logger::CHANNEL_PRODUCTION,
+				'Cannot build ZIP: the PHP zip extension is not installed',
+				array( 'order_id' => $order_id )
+			);
+			return null;
+		}
+
+		$files = $this->for_order( $order_id, $item_id );
+		if ( array() === $files ) {
+			return null;
+		}
+
+		$storage = $this->storage_dir();
+		if ( null === $storage ) {
+			return null;
+		}
+
+		$name = $item_id > 0
+			? sprintf( 'ORDER-%d-ITEM-%d-PRINT-FILES.zip', $order_id, $item_id )
+			: sprintf( 'ORDER-%d-PRINT-FILES.zip', $order_id );
+		$path = trailingslashit( $storage['dir'] ) . $name;
+
+		if ( file_exists( $path ) ) {
+			wp_delete_file( $path );
+		}
+
+		$zip = new \ZipArchive();
+		if ( true !== $zip->open( $path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE ) ) {
+			Plugin::instance()->logger->error(
+				Logger::CHANNEL_PRODUCTION,
+				'Could not create the production ZIP',
+				array( 'order_id' => $order_id )
+			);
+			return null;
+		}
+
+		$added = 0;
+		$used  = array();
+		foreach ( $files as $file ) {
+			$file_path = (string) $file['file_path'];
+			if ( '' === $file_path || ! is_readable( $file_path ) ) {
+				continue;
+			}
+			$entry = (string) $file['file_name'];
+			if ( '' === $entry ) {
+				$entry = basename( $file_path );
+			}
+			// Never let two areas collide inside the archive.
+			if ( isset( $used[ $entry ] ) ) {
+				$entry = sprintf(
+					'%s-%d.%s',
+					pathinfo( $entry, PATHINFO_FILENAME ),
+					(int) $file['id'],
+					pathinfo( $entry, PATHINFO_EXTENSION )
+				);
+			}
+			$used[ $entry ] = true;
+			if ( $zip->addFile( $file_path, $entry ) ) {
+				++$added;
+			}
+		}
+		$zip->close();
+
+		if ( 0 === $added ) {
+			if ( file_exists( $path ) ) {
+				wp_delete_file( $path );
+			}
+			return null;
+		}
+
+		return array( 'path' => $path, 'name' => $name, 'count' => $added );
+	}
+
+	/**
 	 * @param array<string, mixed> $row Raw row.
 	 * @return array<string, mixed>
 	 */

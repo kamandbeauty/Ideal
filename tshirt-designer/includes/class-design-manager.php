@@ -352,7 +352,7 @@ final class Design_Manager {
 	/**
 	 * Compute the authoritative price for a design payload.
 	 *
-	 * @return array{ok:bool, errors:string[], breakdown?:array<string,mixed>}
+	 * @return array{ok:bool, errors:string[], breakdown?:array<string,mixed>, design?:array<string,mixed>, items?:array<int,array<string,mixed>>}
 	 */
 	public function quote( array $input, int $user_id, string $guest_token ): array {
 		$result = $this->validate_design( $input, $user_id, $guest_token );
@@ -393,7 +393,13 @@ final class Design_Manager {
 		$breakdown['size_name'] = $size_name;
 		$breakdown['currency']  = Plugin::instance()->settings->all()['currency'];
 
-		return array( 'ok' => true, 'errors' => array(), 'breakdown' => $breakdown );
+		return array(
+			'ok'        => true,
+			'errors'    => array(),
+			'breakdown' => $breakdown,
+			'design'    => $design,
+			'items'     => $result['items'],
+		);
 	}
 
 	/**
@@ -909,7 +915,10 @@ final class Design_Manager {
 	 * @param array<string, mixed> $row Design row.
 	 */
 	public function user_owns_design( array $row, int $user_id, string $guest_token ): bool {
-		if ( current_user_can( 'manage_options' ) ) {
+		// Capability is checked against the identity the caller is acting as,
+		// never against the ambient current user: passing an explicit
+		// $user_id must not inherit an administrator session.
+		if ( $user_id > 0 && user_can( $user_id, 'manage_options' ) ) {
 			return true;
 		}
 		$owner_user  = (int) $row['user_id'];
