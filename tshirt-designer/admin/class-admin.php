@@ -33,6 +33,7 @@ final class Admin {
 			'assets'      => new Admin_Assets( $plugin ),
 			'pricing'     => new Admin_Pricing( $plugin ),
 			'designs'     => new Admin_Designs( $plugin ),
+			'production'  => new Admin_Production( $plugin ),
 			'settings'    => new Admin_Settings( $plugin ),
 		);
 
@@ -67,6 +68,7 @@ final class Admin {
 			'assets'      => __( 'Design Assets', 'tshirt-designer' ),
 			'pricing'     => __( 'Pricing', 'tshirt-designer' ),
 			'designs'     => __( 'Designs', 'tshirt-designer' ),
+			'production'  => __( 'Production', 'tshirt-designer' ),
 			'settings'    => __( 'Settings', 'tshirt-designer' ),
 		);
 

@@ -257,6 +257,24 @@ $td_settings = td_plugin()->settings;
 						href="<?php echo esc_url( Admin_Order_Panel::action_url( 'download_all', $order_id, array( 'item_id' => $td_item_id ) ) ); ?>">
 						<?php esc_html_e( 'Download this item (ZIP)', 'tshirt-designer' ); ?>
 					</a>
+
+					<?php
+					/*
+					 * §26: WooCommerce stays the commerce source; production
+					 * lives in its own screen. Link across rather than
+					 * duplicating the fulfilment UI inside the order.
+					 */
+					$td_job = TShirtDesigner\Plugin::instance()->production_jobs->find_by_item( (int) $order_id, (int) $td_item_id );
+					if ( null !== $td_job ) :
+						?>
+						<a class="button"
+							href="<?php echo esc_url( TShirtDesigner\Admin\Admin::page_url( 'production', array( 'job' => (int) $td_job['id'] ) ) ); ?>">
+							<?php esc_html_e( 'View production', 'tshirt-designer' ); ?>
+						</a>
+						<span class="td-badge td-badge--<?php echo esc_attr( (string) $td_job['badge'] ); ?>">
+							<?php echo esc_html( (string) $td_job['status_label'] ); ?>
+						</span>
+					<?php endif; ?>
 				</p>
 			</div>
 		</div>

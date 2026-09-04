@@ -639,3 +639,125 @@
 		white-space: nowrap;
 	}
 }
+
+/* ------------------------------------------------- production dashboard */
+
+/*
+ * Status badges. The modifier names come from Production_Status::badges(),
+ * so a new status only needs a colour here.
+ */
+.td-badge--info  { background: #e5f0fb; color: #0a4b78; }
+.td-badge--work  { background: #fcf0e0; color: #8a4b00; }
+.td-badge--warn  { background: #fcf3d7; color: #7a5c00; }
+.td-badge--ok    { background: #e5f5e8; color: #116329; }
+.td-badge--done  { background: #d8ecdd; color: #0a4a1c; }
+.td-badge--error { background: #fbeaea; color: #8a1f1f; }
+.td-badge--muted { background: #f0f0f1; color: #646970; }
+
+.td-prio {
+	font-size: 12px;
+}
+
+.td-prio--high {
+	color: #8a4b00;
+	font-weight: 600;
+}
+
+.td-prio--urgent {
+	color: #b32d2e;
+	font-weight: 700;
+}
+
+.td-prod__filters .search-box {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+	margin: 10px 0;
+	/* Wraps instead of overflowing on a narrow admin screen. */
+	max-width: 100%;
+}
+
+.td-prod__filters input[type="search"] {
+	min-width: 260px;
+}
+
+.td-prod__detail {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+	gap: 16px;
+	margin: 16px 0;
+	align-items: start;
+}
+
+.td-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 12px 16px;
+	margin: 16px 0;
+}
+
+.td-card h2 {
+	margin-top: 0;
+}
+
+.td-prod__preview img {
+	max-width: 100%;
+	height: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+/* Activity log: a simple, readable timeline that mirrors correctly in RTL. */
+.td-timeline {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	max-height: 420px;
+	overflow-y: auto;
+}
+
+.td-timeline li {
+	display: grid;
+	grid-template-columns: 130px 1fr;
+	gap: 4px 10px;
+	padding: 7px 0;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: 13px;
+}
+
+.td-timeline__time {
+	color: #646970;
+	font-variant-numeric: tabular-nums;
+}
+
+.td-timeline__who {
+	grid-column: 2;
+	color: #646970;
+	font-size: 12px;
+}
+
+.td-timeline__note {
+	grid-column: 2;
+	color: #1d2327;
+}
+
+/*
+ * The timeline uses a fixed first column; in RTL the grid direction flips
+ * automatically, but the numeric timestamps must stay LTR to read correctly.
+ */
+.rtl .td-timeline__time {
+	direction: ltr;
+	text-align: right;
+}
+
+@media screen and (max-width: 782px) {
+	.td-prod__detail {
+		grid-template-columns: 1fr;
+	}
+
+	.td-timeline li {
+		grid-template-columns: 1fr;
+	}
+}

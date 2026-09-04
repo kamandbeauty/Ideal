@@ -29,6 +29,7 @@ defined( 'ABSPATH' ) || exit;
 				'assets'      => __( 'Design Assets', 'tshirt-designer' ),
 				'pricing'     => __( 'Pricing', 'tshirt-designer' ),
 				'designs'     => __( 'Designs', 'tshirt-designer' ),
+				'production'  => __( 'Production', 'tshirt-designer' ),
 				'settings'    => __( 'Settings', 'tshirt-designer' ),
 			);
 			// phpcs:ignore WordPress.Security.NonceVerification
