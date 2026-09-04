@@ -344,8 +344,29 @@ final class Media_Manager {
 
 	/**
 	 * Whether we are in a test context (files staged outside PHP's tmp).
+	 *
+	 * This exists only so the integration suites can stage a fixture file
+	 * without a real multipart upload. It deliberately bypasses
+	 * is_uploaded_file(), so it must never be reachable from a web request:
+	 * a constant leaking into a live site would otherwise let an attacker
+	 * nominate an arbitrary server path as an "upload".
+	 *
+	 * Three independent conditions must hold, and a real HTTP request can
+	 * satisfy none of them:
+	 *   - TD_TESTING is defined (only tests/bootstrap-wp.php defines it);
+	 *   - the request is running under a CLI-style SAPI, never php-fpm/apache;
+	 *   - no HTTP request context is present.
 	 */
 	private function is_test_context( string $tmp_name ): bool {
-		return defined( 'TD_TESTING' ) && TD_TESTING && file_exists( $tmp_name );
+		if ( ! defined( 'TD_TESTING' ) || ! TD_TESTING ) {
+			return false;
+		}
+		if ( ! in_array( PHP_SAPI, array( 'cli', 'cli-server', 'phpdbg', 'embed', 'wasm' ), true ) ) {
+			return false;
+		}
+		if ( isset( $_SERVER['REMOTE_ADDR'] ) || isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
+			return false;
+		}
+		return '' !== $tmp_name && file_exists( $tmp_name );
 	}
 }

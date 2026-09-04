@@ -14,6 +14,21 @@
  * @package TShirtDesigner
  */
 
+/*
+ * Test-only entry point. These files live inside the plugin folder and are
+ * therefore reachable over HTTP on a normal install; bootstrap-wp.php also
+ * defines TD_TESTING, which relaxes upload validation. Refuse to run for
+ * anything that is not a local CLI invocation.
+ */
+if ( PHP_SAPI !== 'cli' && PHP_SAPI !== 'cli-server' && PHP_SAPI !== 'phpdbg' && PHP_SAPI !== 'embed' && PHP_SAPI !== 'wasm' ) {
+	http_response_code( 403 );
+	exit( 'Forbidden.' );
+}
+if ( isset( $_SERVER['REMOTE_ADDR'] ) || isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
+	http_response_code( 403 );
+	exit( 'Forbidden.' );
+}
+
 // phpcs:disable WordPress.Security.NonceVerification, WordPress.PHP.DevelopmentFunctions
 
 require_once __DIR__ . '/bootstrap-wp.php';
@@ -1253,5 +1268,273 @@ foreach ( $td_catalog->entries as $td_key => $td_entry ) {
 	}
 }
 TD_Test::equals( 0, count( $td_missing ), 'no string is left untranslated' . ( $td_missing ? ' :: ' . implode( ' | ', array_slice( $td_missing, 0, 5 ) ) : '' ) );
+
+TD_Test::group( 'Hardening — test shim cannot leak into a web request' );
+
+// is_test_context() deliberately bypasses is_uploaded_file(). If TD_TESTING
+// ever leaked onto a live site, an attacker could nominate an arbitrary
+// server path as an "upload", so it must be unreachable from HTTP even when
+// the constant IS defined (which it is, right now, in this suite).
+$td_mm      = new ReflectionMethod( TShirtDesigner\Media_Manager::class, 'is_test_context' );
+$td_mm->setAccessible( true );
+$td_probe   = tempnam( sys_get_temp_dir(), 'td' );
+file_put_contents( $td_probe, 'x' );
+
+TD_Test::ok( defined( 'TD_TESTING' ) && TD_TESTING, 'TD_TESTING is defined in this suite' );
+TD_Test::ok( $td_mm->invoke( $plugin->media, $td_probe ), 'the CLI test context is still recognised' );
+
+// Simulate a web request by setting the markers a real HTTP request always has.
+$_SERVER['REMOTE_ADDR'] = '203.0.113.7';
+TD_Test::ok(
+	! $td_mm->invoke( $plugin->media, $td_probe ),
+	'REMOTE_ADDR present => the shim refuses, even with TD_TESTING defined'
+);
+unset( $_SERVER['REMOTE_ADDR'] );
+
+$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0';
+TD_Test::ok(
+	! $td_mm->invoke( $plugin->media, $td_probe ),
+	'a User-Agent header => the shim refuses'
+);
+unset( $_SERVER['HTTP_USER_AGENT'] );
+
+TD_Test::ok( $td_mm->invoke( $plugin->media, $td_probe ), 'the shim works again once the web markers are gone' );
+@unlink( $td_probe );
+
+// Every test file must refuse to execute over HTTP.
+foreach ( array( 'bootstrap-wp.php', 'integration-suite.php', 'integration-woocommerce.php', 'integration-admin.php', 'unit-bounds-pricing.php' ) as $td_tf ) {
+	$td_src = (string) file_get_contents( TD_PLUGIN_DIR . 'tests/' . $td_tf );
+	TD_Test::ok(
+		str_contains( $td_src, 'Test-only entry point' ) && str_contains( $td_src, 'http_response_code( 403 )' ),
+		sprintf( 'tests/%s refuses to run over HTTP', $td_tf )
+	);
+}
+
+TD_Test::group( 'Migrations — idempotency and data preservation' );
+
+global $wpdb;
+$td_designs_tbl  = $plugin->db->table( 'designs' );
+$td_versions_tbl = $plugin->db->table( 'design_versions' );
+
+// Snapshot the world before re-running the migration.
+$td_before_designs  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$td_designs_tbl}" );
+$td_before_versions = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$td_versions_tbl}" );
+$td_before_rows     = $wpdb->get_results( "SELECT id, uuid, version, product_type, price_total, status FROM {$td_designs_tbl} ORDER BY id", ARRAY_A );
+TD_Test::ok( $td_before_designs > 0, 'there is real design data to protect' );
+
+// Re-run the whole upgrade routine several times. A migration that is not
+// idempotent corrupts a site the moment a plugin update runs twice, or when
+// two requests race during activation.
+for ( $td_i = 0; $td_i < 3; $td_i++ ) {
+	// OPTION_APPLIED is the ledger that actually guards re-running a step;
+	// clearing it forces the migration to genuinely execute again, which is
+	// what idempotency has to survive.
+	delete_option( TShirtDesigner\Migrations::OPTION_APPLIED );
+	delete_option( TShirtDesigner\Migrations::OPTION_DB_VERSION );
+	$plugin->migrations->run();
+}
+
+$td_after_designs  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$td_designs_tbl}" );
+$td_after_versions = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$td_versions_tbl}" );
+$td_after_rows     = $wpdb->get_results( "SELECT id, uuid, version, product_type, price_total, status FROM {$td_designs_tbl} ORDER BY id", ARRAY_A );
+
+TD_Test::equals( $td_before_designs, $td_after_designs, 'running the migration 3x creates no duplicate designs' );
+TD_Test::equals( $td_before_versions, $td_after_versions, 'running the migration 3x creates no duplicate versions' );
+TD_Test::equals(
+	wp_json_encode( $td_before_rows ),
+	wp_json_encode( $td_after_rows ),
+	'every design row is byte-identical after repeated migration'
+);
+TD_Test::equals( TD_DB_VERSION, (string) get_option( TShirtDesigner\Migrations::OPTION_DB_VERSION ), 'the stored DB version is restored' );
+
+// A legacy Phase 1 row: no uuid, no version, no product_type.
+$wpdb->insert(
+	$td_designs_tbl,
+	array(
+		'uuid'         => '',
+		'version'      => 0,
+		'product_type' => '',
+		'user_id'      => 1,
+		'guest_token'  => '',
+		'model_id'     => $tshirt_id,
+		'color_id'     => $color_id,
+		'size_id'      => $size_id,
+		'design_data'  => wp_json_encode( array( 'areas' => array( (string) $front_id => array( array( 'id' => 'legacy', 'type' => 'asset', 'ref_id' => $asset1, 'x' => 5, 'y' => 5, 'w' => 6, 'h' => 6, 'rotation' => 0 ) ) ) ) ),
+		'price_total'  => 123456,
+		'status'       => 'saved',
+		'created_at'   => '2025-01-01 00:00:00',
+		'updated_at'   => '2025-01-01 00:00:00',
+	)
+);
+$td_legacy_id = (int) $wpdb->insert_id;
+TD_Test::ok( $td_legacy_id > 0, 'a legacy Phase 1 design row is inserted' );
+
+delete_option( TShirtDesigner\Migrations::OPTION_APPLIED );
+delete_option( TShirtDesigner\Migrations::OPTION_DB_VERSION );
+$plugin->migrations->run();
+
+$td_upgraded = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$td_designs_tbl} WHERE id = %d", $td_legacy_id ), ARRAY_A );
+TD_Test::ok( str_starts_with( (string) $td_upgraded['uuid'], 'DESIGN-' ), 'the legacy row is given a design code' );
+TD_Test::equals( 1, (int) $td_upgraded['version'], 'the legacy row becomes version 1' );
+TD_Test::equals( 'tshirt', (string) $td_upgraded['product_type'], 'the legacy row inherits its product type from the model' );
+TD_Test::equals( 123456.0, (float) $td_upgraded['price_total'], 'the legacy price is preserved exactly' );
+
+$td_legacy_items = json_decode( (string) $td_upgraded['design_data'], true );
+$td_legacy_item  = $td_legacy_items['areas'][ (string) $front_id ][0];
+TD_Test::ok( isset( $td_legacy_item['layer'] ), 'legacy items gain a layer index' );
+TD_Test::ok( isset( $td_legacy_item['opacity'] ), 'legacy items gain an opacity' );
+TD_Test::equals( 6.0, (float) $td_legacy_item['w'], 'legacy item geometry is untouched' );
+
+$td_legacy_versions = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$td_versions_tbl} WHERE design_id = %d", $td_legacy_id ) );
+TD_Test::equals( 1, $td_legacy_versions, 'the legacy design gets exactly one v1 snapshot' );
+
+// And re-running again must not add a second snapshot for it.
+delete_option( TShirtDesigner\Migrations::OPTION_APPLIED );
+delete_option( TShirtDesigner\Migrations::OPTION_DB_VERSION );
+$plugin->migrations->run();
+TD_Test::equals(
+	1,
+	(int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$td_versions_tbl} WHERE design_id = %d", $td_legacy_id ) ),
+	'a second migration run does not duplicate the legacy snapshot'
+);
+
+TD_Test::group( 'Schema — MySQL strict-mode compatibility' );
+
+// SQLite accepts a missing NOT NULL column; MySQL in STRICT_TRANS_TABLES
+// (the default since 5.7) rejects the INSERT outright. Every NOT NULL column
+// must therefore carry a DEFAULT, or every insert path must always supply it.
+$td_schema = '';
+$td_ref    = new ReflectionClass( $plugin->db );
+foreach ( array( 'schema', 'statements', 'create_statements' ) as $td_m ) {
+	if ( $td_ref->hasMethod( $td_m ) ) {
+		$td_meth = $td_ref->getMethod( $td_m );
+		$td_meth->setAccessible( true );
+		$td_out    = $td_meth->invoke( $plugin->db );
+		$td_schema = is_array( $td_out ) ? implode( ";\n", $td_out ) : (string) $td_out;
+		break;
+	}
+}
+TD_Test::ok( '' !== $td_schema, 'the schema DDL can be read' );
+
+$td_bad = array();
+foreach ( explode( 'CREATE TABLE', $td_schema ) as $td_block ) {
+	if ( ! preg_match( '/^[^(]*?(\w+)\s*\(/', $td_block, $td_tm ) ) {
+		continue;
+	}
+	foreach ( explode( "\n", $td_block ) as $td_line ) {
+		$td_line = trim( rtrim( trim( $td_line ), ',' ) );
+		if ( preg_match( '/^(PRIMARY|UNIQUE|KEY|\))/i', $td_line ) || '' === $td_line ) {
+			continue;
+		}
+		if ( ! preg_match( '/^(\w+)\s+(\w+)/', $td_line, $td_cm ) ) {
+			continue;
+		}
+		if ( preg_match( '/NOT NULL/i', $td_line )
+			&& ! preg_match( '/DEFAULT|AUTO_INCREMENT/i', $td_line )
+			&& ! preg_match( '/^(text|longtext|mediumtext|blob|longblob)$/i', $td_cm[2] ) ) {
+			$td_bad[] = $td_tm[1] . '.' . $td_cm[1];
+		}
+	}
+}
+TD_Test::equals(
+	0,
+	count( $td_bad ),
+	'no NOT NULL column lacks a DEFAULT' . ( $td_bad ? ' :: ' . implode( ', ', $td_bad ) : '' )
+);
+
+// utf8mb4 uses 4 bytes per character; an InnoDB index key is capped at 3072.
+TD_Test::ok( str_contains( $td_schema, 'utf8mb4' ), 'tables declare utf8mb4' );
+$td_wide = array();
+foreach ( explode( 'CREATE TABLE', $td_schema ) as $td_block ) {
+	if ( ! preg_match( '/^[^(]*?(\w+)\s*\(/', $td_block, $td_tm ) ) {
+		continue;
+	}
+	preg_match_all( '/^\s*(\w+)\s+varchar\((\d+)\)/mi', $td_block, $td_cols, PREG_SET_ORDER );
+	$td_widths = array();
+	foreach ( $td_cols as $td_c ) {
+		$td_widths[ $td_c[1] ] = (int) $td_c[2];
+	}
+	preg_match_all( '/(?:UNIQUE KEY|KEY)\s+\w+\s*\(([^)]*)\)/i', $td_block, $td_keys, PREG_SET_ORDER );
+	foreach ( $td_keys as $td_k ) {
+		$td_bytes = 0;
+		foreach ( explode( ',', $td_k[1] ) as $td_part ) {
+			$td_name = trim( explode( '(', trim( $td_part ) )[0] );
+			if ( isset( $td_widths[ $td_name ] ) ) {
+				$td_bytes += $td_widths[ $td_name ] * 4;
+			}
+		}
+		if ( $td_bytes > 3072 ) {
+			$td_wide[] = $td_tm[1] . ' (' . $td_k[1] . ') = ' . $td_bytes . 'B';
+		}
+	}
+}
+TD_Test::equals(
+	0,
+	count( $td_wide ),
+	'no index exceeds the InnoDB 3072-byte key limit under utf8mb4' . ( $td_wide ? ' :: ' . implode( '; ', $td_wide ) : '' )
+);
+
+// MySQL forbids a DEFAULT on TEXT/BLOB entirely.
+TD_Test::ok(
+	0 === preg_match( '/\b(text|longtext|mediumtext|blob)\b[^,\n]*DEFAULT\s+/i', $td_schema ),
+	'no TEXT/BLOB column declares a DEFAULT (illegal in MySQL)'
+);
+TD_Test::ok(
+	! str_contains( $td_schema, "'0000-00-00" ),
+	'no zero-date default (rejected under NO_ZERO_DATE)'
+);
+
+/*
+ * Regression: three defects that only a real browser rendering the shortcode
+ * could surface (phase-2.1 browser pass).
+ */
+TD_Test::group( 'Frontend rendering regressions' );
+
+$td_assets_rm = new ReflectionMethod( 'TShirtDesigner\\Assets', 'enqueue_designer' );
+TD_Test::ok(
+	$td_assets_rm->isStatic(),
+	'Assets::enqueue_designer() is static (templates/designer.php calls it statically)'
+);
+TD_Test::ok(
+	$td_assets_rm->isPublic(),
+	'Assets::enqueue_designer() is public'
+);
+
+// templates/designer.php requires $plugin in scope; Shortcode::render() must supply it.
+$td_sc_src = (string) file_get_contents( TD_PLUGIN_DIR . 'includes/class-shortcode.php' );
+TD_Test::ok(
+	(bool) preg_match( '/\$plugin\s*=\s*\$this->plugin\s*;/', $td_sc_src ),
+	'Shortcode::render() puts $plugin in scope before requiring the template'
+);
+
+// The shortcode must render without a fatal and emit the app root.
+$td_sc_out = do_shortcode( '[tshirt_designer]' );
+TD_Test::ok( str_contains( $td_sc_out, 'td-app' ), 'the shortcode renders the .td-app root' );
+TD_Test::ok( str_contains( $td_sc_out, 'data-boot' ), 'the shortcode emits boot data' );
+$td_boot_json = array();
+if ( preg_match( '/data-boot="([^"]*)"/', $td_sc_out, $td_m ) ) {
+	$td_boot_json = json_decode( html_entity_decode( $td_m[1], ENT_QUOTES ), true );
+}
+TD_Test::ok( is_array( $td_boot_json ) && ! empty( $td_boot_json ), 'boot data is valid JSON' );
+TD_Test::ok(
+	isset( $td_boot_json['restUrl'], $td_boot_json['restUrlV2'], $td_boot_json['nonce'] ),
+	'boot data carries both REST roots and a nonce'
+);
+
+// Editor2D.render() must tolerate a null print area (crashed on first paint).
+$td_ed_src = (string) file_get_contents( TD_PLUGIN_DIR . 'assets/js/designer/editor2d.js' );
+TD_Test::ok(
+	(bool) preg_match( '/render\(\)\s*\{.*?if\s*\(\s*!this\.area\s*\)/s', $td_ed_src ),
+	'Editor2D.render() guards against a null print area'
+);
+
+// The layout must collapse on the app's own width, not just the viewport:
+// block themes give the designer a narrow constrained column.
+$td_css_src = (string) file_get_contents( TD_PLUGIN_DIR . 'assets/css/designer.css' );
+TD_Test::ok(
+	str_contains( $td_css_src, 'container-type: inline-size' )
+		&& str_contains( $td_css_src, '@container tdapp' ),
+	'designer.css collapses its grid via a container query'
+);
 
 exit( TD_Test::summary() );

@@ -88,7 +88,7 @@ final class Database {
 		return array(
 			"CREATE TABLE {$this->table('models')} (
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				name varchar(191) NOT NULL,
+				name varchar(191) NOT NULL DEFAULT '',
 				slug varchar(191) NOT NULL DEFAULT '',
 				product_type varchar(40) NOT NULL DEFAULT 'tshirt',
 				description text NULL,
@@ -112,7 +112,7 @@ final class Database {
 			"CREATE TABLE {$this->table('model_colors')} (
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 				model_id bigint(20) unsigned NOT NULL DEFAULT 0,
-				name varchar(191) NOT NULL,
+				name varchar(191) NOT NULL DEFAULT '',
 				hex varchar(7) NOT NULL DEFAULT '#FFFFFF',
 				texture_image_id bigint(20) unsigned NOT NULL DEFAULT 0,
 				thumbnail_id bigint(20) unsigned NOT NULL DEFAULT 0,
@@ -128,7 +128,7 @@ final class Database {
 			"CREATE TABLE {$this->table('model_sizes')} (
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 				model_id bigint(20) unsigned NOT NULL DEFAULT 0,
-				name varchar(191) NOT NULL,
+				name varchar(191) NOT NULL DEFAULT '',
 				price_modifier decimal(14,2) NOT NULL DEFAULT 0,
 				is_active tinyint(1) NOT NULL DEFAULT 1,
 				sort_order int(11) NOT NULL DEFAULT 0,
@@ -142,7 +142,7 @@ final class Database {
 			"CREATE TABLE {$this->table('print_areas')} (
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 				model_id bigint(20) unsigned NOT NULL DEFAULT 0,
-				name varchar(191) NOT NULL,
+				name varchar(191) NOT NULL DEFAULT '',
 				area_type varchar(40) NOT NULL DEFAULT 'other',
 				max_width_cm decimal(6,2) NOT NULL DEFAULT 30,
 				max_height_cm decimal(6,2) NOT NULL DEFAULT 35,
@@ -158,7 +158,7 @@ final class Database {
 
 			"CREATE TABLE {$this->table('design_assets')} (
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				name varchar(191) NOT NULL,
+				name varchar(191) NOT NULL DEFAULT '',
 				category varchar(40) NOT NULL DEFAULT 'other',
 				file_id bigint(20) unsigned NOT NULL DEFAULT 0,
 				file_path varchar(500) NOT NULL DEFAULT '',

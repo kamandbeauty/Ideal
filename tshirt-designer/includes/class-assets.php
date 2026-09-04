@@ -89,8 +89,12 @@ final class Assets {
 
 	/**
 	 * Enqueue designer assets (called by the template).
+	 *
+	 * Static because templates/designer.php calls it off the class name and it
+	 * needs no instance state; the styles/scripts it enqueues are registered on
+	 * `wp_enqueue_scripts` by register_designer().
 	 */
-	public function enqueue_designer(): void {
+	public static function enqueue_designer(): void {
 		wp_enqueue_style( 'td-designer-style' );
 		wp_enqueue_script( self::DESIGNER_HANDLE );
 

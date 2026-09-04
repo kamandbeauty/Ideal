@@ -8,6 +8,21 @@
  * @package TShirtDesigner
  */
 
+/*
+ * Test-only entry point. These files live inside the plugin folder and are
+ * therefore reachable over HTTP on a normal install; bootstrap-wp.php also
+ * defines TD_TESTING, which relaxes upload validation. Refuse to run for
+ * anything that is not a local CLI invocation.
+ */
+if ( PHP_SAPI !== 'cli' && PHP_SAPI !== 'cli-server' && PHP_SAPI !== 'phpdbg' && PHP_SAPI !== 'embed' && PHP_SAPI !== 'wasm' ) {
+	http_response_code( 403 );
+	exit( 'Forbidden.' );
+}
+if ( isset( $_SERVER['REMOTE_ADDR'] ) || isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
+	http_response_code( 403 );
+	exit( 'Forbidden.' );
+}
+
 // phpcs:disable WordPress.Security.NonceVerification, WordPress.PHP.DevelopmentFunctions
 
 require_once __DIR__ . '/bootstrap-wp.php';

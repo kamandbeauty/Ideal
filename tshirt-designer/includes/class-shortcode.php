@@ -58,6 +58,10 @@ final class Shortcode {
 			$preload_design = (int) $_GET['td_design']; // phpcs:ignore WordPress.Security.NonceVerification
 		}
 
+		// templates/designer.php documents $plugin/$initial_model/$preload_design
+		// as its contract; $plugin has to be in scope for the require below.
+		$plugin = $this->plugin;
+
 		ob_start();
 		require TD_PLUGIN_DIR . 'templates/designer.php';
 		return (string) ob_get_clean();

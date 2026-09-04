@@ -388,6 +388,13 @@ export class Editor2D {
 
   render() {
     const { ctx } = this;
+    // No active print area yet (first paint, or a model whose areas are still
+    // loading): there is nothing to draw and the grid below would dereference
+    // a null area. _resizeCanvas() already collapses the canvas in that case.
+    if (!this.area) {
+      ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      return;
+    }
     const W = this.canvas.width;
     const H = this.canvas.height;
     ctx.save();

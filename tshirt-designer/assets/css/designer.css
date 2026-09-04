@@ -53,6 +53,29 @@
 	align-items: start;
 }
 
+/*
+ * The designer is a widget, not a full page: a block theme routinely gives it
+ * a ~620px constrained column on a 1920px viewport. The viewport media queries
+ * below cannot see that, so the 3-column grid would crush the 3D stage down to
+ * a few dozen pixels. Collapse on the app's OWN width instead.
+ */
+@supports (container-type: inline-size) {
+	.td-app {
+		container-type: inline-size;
+		container-name: tdapp;
+	}
+
+	@container tdapp (max-width: 980px) {
+		.td-app__inner {
+			grid-template-columns: 1fr;
+		}
+
+		.td-stage { order: 0; }
+		.td-panel--tools { order: 1; }
+		.td-panel--config { order: 2; }
+	}
+}
+
 .td-panel {
 	background: var(--td-bg-2);
 	border: 1px solid var(--td-line);
