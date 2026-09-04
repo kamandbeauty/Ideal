@@ -1,5 +1,9 @@
 # Gap Analysis — what the plugin is still missing
 
+> **STATUS: ALL SIX ISSUES RESOLVED.** This document is kept as the record of what was
+> found and why it mattered. See `docs/REMEDIATION-REPORT.md` for what was done about each
+> one. The findings below are preserved as originally written.
+
 Audit of `f0c0cb9` (end of Phase 3). This is a **findings report, nothing was changed.**
 Scope: production-readiness gaps, not new features. Phase 3 itself passes its own mandate;
 these are things that sit *outside* the §1–§65 checklist and were therefore never required.
