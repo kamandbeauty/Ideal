@@ -3,7 +3,7 @@
  * Plugin Name:       Custom Product Designer
  * Plugin URI:        https://github.com/kamandbeauty/Ideal
  * Description:       Product-agnostic 3D product designer for WooCommerce (T-Shirt, Tote Bag and more) — models, colors, sizes, print areas, artwork, uploads, text, server-computed pricing, cart/order integration and print-ready production files.
- * Version:           1.1.0
+ * Version:           1.2.0
  * Requires at least: 6.0
  * Requires PHP:      8.1
  * Author:            Studio Javid
@@ -21,7 +21,7 @@ declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TD_VERSION', '1.1.0' );
+define( 'TD_VERSION', '1.2.0' );
 define( 'TD_DB_VERSION', '1.2.0' );
 define( 'TD_PLUGIN_FILE', __FILE__ );
 define( 'TD_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
