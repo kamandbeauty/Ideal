@@ -171,6 +171,7 @@ final class Plugin {
 			$this->cart   = new Cart_Manager( $this );
 			$this->orders = new Order_Manager( $this );
 			new My_Designs( $this );
+			new Customer_Status( $this );
 		}
 
 		if ( is_admin() ) {

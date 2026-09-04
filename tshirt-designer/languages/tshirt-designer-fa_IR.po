@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: T-Shirt Designer 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/kamandbeauty/Ideal/issues\n"
-"POT-Creation-Date: 2026-09-04 23:21+0000\n"
-"PO-Revision-Date: 2026-09-04 23:21+0000\n"
+"POT-Creation-Date: 2026-09-04 23:27+0000\n"
+"PO-Revision-Date: 2026-09-04 23:27+0000\n"
 "Language: fa_IR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -67,6 +67,10 @@ msgid "Paid"
 msgstr "پرداخت‌شده"
 
 #: admin/class-admin-designs.php:159
+#: includes/class-customer-status.php:41
+#: includes/class-customer-status.php:42
+#: includes/class-customer-status.php:43
+#: includes/class-customer-status.php:49
 #: includes/class-order-manager.php:68
 #: includes/class-production-status.php:78
 msgid "In production"
@@ -1870,6 +1874,42 @@ msgstr "آستین چپ"
 msgid "Right sleeve"
 msgstr "آستین راست"
 
+#: includes/class-customer-status.php:38
+msgid "Awaiting payment"
+msgstr "در انتظار پرداخت"
+
+#: includes/class-customer-status.php:39
+#: includes/class-customer-status.php:40
+msgid "Preparing"
+msgstr "در حال آماده‌سازی"
+
+#: includes/class-customer-status.php:44
+#: includes/class-production-status.php:81
+msgid "Packed"
+msgstr "بسته‌بندی‌شده"
+
+#: includes/class-customer-status.php:45
+#: includes/class-order-manager.php:71
+#: includes/class-production-status.php:82
+msgid "Shipped"
+msgstr "ارسال‌شده"
+
+#: includes/class-customer-status.php:46
+#: includes/class-order-manager.php:72
+#: includes/class-production-status.php:83
+msgid "Completed"
+msgstr "تکمیل‌شده"
+
+#: includes/class-customer-status.php:47
+#: includes/class-order-manager.php:73
+#: includes/class-production-status.php:84
+msgid "Cancelled"
+msgstr "لغوشده"
+
+#: includes/class-customer-status.php:110
+msgid "Production:"
+msgstr "تولید:"
+
 #: includes/class-design-manager.php:95
 msgid "Please choose a valid color."
 msgstr "لطفاً یک رنگ معتبر انتخاب کنید."
@@ -1994,21 +2034,6 @@ msgstr "آماده تولید"
 msgid "Printed"
 msgstr "چاپ‌شده"
 
-#: includes/class-order-manager.php:71
-#: includes/class-production-status.php:82
-msgid "Shipped"
-msgstr "ارسال‌شده"
-
-#: includes/class-order-manager.php:72
-#: includes/class-production-status.php:83
-msgid "Completed"
-msgstr "تکمیل‌شده"
-
-#: includes/class-order-manager.php:73
-#: includes/class-production-status.php:84
-msgid "Cancelled"
-msgstr "لغوشده"
-
 #: includes/class-order-manager.php:286
 msgid "You are not allowed to reorder this item."
 msgstr "شما اجازه سفارش مجدد این آیتم را ندارید."
@@ -2116,10 +2141,6 @@ msgstr "فایل تولید موجود نیست. آن را بازتولید کن
 #: includes/class-production-service.php:192
 msgid "That file is outside the production directory."
 msgstr "این فایل خارج از پوشه تولید است."
-
-#: includes/class-production-status.php:81
-msgid "Packed"
-msgstr "بسته‌بندی‌شده"
 
 #: includes/class-production-status.php:85
 msgid "Production error"

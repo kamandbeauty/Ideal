@@ -430,6 +430,9 @@ FA = {
     "Delete this design?": "این طرح حذف شود؟",
 
     # --- Phase 3: production workflow ---
+    "Awaiting payment": "در انتظار پرداخت",
+    "Preparing": "در حال آماده‌سازی",
+    "Production:": "تولید:",
     "You are not allowed to manage production.": "شما اجازه مدیریت تولید را ندارید.",
     "Production": "تولید",
     "That production job does not exist.": "این کار تولید وجود ندارد.",
