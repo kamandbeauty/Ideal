@@ -8,6 +8,7 @@
  * area (via utils.clampItem) so the 3D print can never exceed the bounds.
  */
 import { clampItem, uid } from './utils.js';
+import { renderTextDataUrl, measure as measureText, normalizeText } from './textrender.js';
 
 const HANDLE = 7;   // handle radius in px
 const GAP = 3;      // distance between resize/rotate handles
@@ -253,6 +254,16 @@ export class Editor2D {
   }
 
   _commit(next) {
+    // Resizing a text item must re-rasterise it: scaling the old bitmap up
+    // would blur the glyphs, and the print file is rendered from the text
+    // data anyway, so the preview has to match what will actually be printed.
+    if (next.type === 'text' && next.text) {
+      const prev = this.state.items().find((it) => it.id === next.id);
+      if (!prev || prev.w !== next.w || prev.h !== next.h) {
+        next = { ...next, src: renderTextDataUrl(next.text, next.w, next.h) };
+        this._cacheDataUrl(next.src);
+      }
+    }
     this.state.updateItem(next.id, next);
   }
 
@@ -307,6 +318,68 @@ export class Editor2D {
     this.images.set(src, pre);
     this.state.addItem(clampItem(item, area));
     pre.decode().catch(() => {});
+  }
+
+  /**
+   * Add a text item. Text is kept as structured data; `src` only holds a
+   * preview raster so the item paints through the same path as artwork.
+   */
+  addText(text) {
+    const area = this.area;
+    if (!area) return null;
+
+    const payload = normalizeText(text);
+    if (!payload.content) return null;
+
+    // Size the box from the text's natural aspect ratio so it is not
+    // stretched, then clamp it into the print area.
+    const { ratio } = measureText(payload);
+    let w = Math.min(area.max_width_cm * 0.8, 16);
+    let h = Math.max(1, w * ratio);
+    if (h > area.max_height_cm * 0.5) {
+      h = area.max_height_cm * 0.5;
+      w = h / (ratio || 1);
+    }
+
+    const item = clampItem({
+      id: uid(),
+      type: 'text',
+      ref_id: 0,
+      text: payload,
+      src: renderTextDataUrl(payload, w, h),
+      x: area.max_width_cm / 2,
+      y: area.max_height_cm / 2,
+      w,
+      h,
+      rotation: 0,
+    }, area);
+
+    this._cacheDataUrl(item.src);
+    this.state.addItem(item);
+    return item;
+  }
+
+  /** Re-style an existing text item in place. */
+  updateText(itemId, text) {
+    const item = this.state.items().find((it) => it.id === itemId);
+    if (!item || item.type !== 'text') return false;
+    const payload = normalizeText(text);
+    if (!payload.content) return false;
+    const src = renderTextDataUrl(payload, item.w, item.h);
+    this._cacheDataUrl(src);
+    this.state.updateItem(itemId, { text: payload, src });
+    return true;
+  }
+
+  /**
+   * A data: URL decodes synchronously, so seed the image cache directly and
+   * skip the load round-trip that would flash an empty box.
+   */
+  _cacheDataUrl(src) {
+    const img = new Image();
+    img.src = src;
+    this.images.set(src, img);
+    img.decode().catch(() => {});
   }
 
   addUpload(upload) {

@@ -75,6 +75,9 @@ $root = 'td-app-' . wp_generate_password( 8, false, false );
 			<div class="td-tabs" role="tablist">
 				<button type="button" class="td-tab is-active" data-tab="design" role="tab"><?php esc_html_e( 'Design', 'tshirt-designer' ); ?></button>
 				<button type="button" class="td-tab" data-tab="artwork" role="tab"><?php esc_html_e( 'Artwork', 'tshirt-designer' ); ?></button>
+				<?php if ( ! empty( $boot['allowText'] ) ) : ?>
+					<button type="button" class="td-tab" data-tab="text" role="tab"><?php esc_html_e( 'Text', 'tshirt-designer' ); ?></button>
+				<?php endif; ?>
 			</div>
 
 			<div class="td-tabpane is-active" data-tabpane="design">
@@ -109,6 +112,69 @@ $root = 'td-app-' . wp_generate_password( 8, false, false );
 					<div class="td-upload__status td-hidden" data-td-el="uploadStatus"></div>
 				</div>
 			</div>
+
+			<?php if ( ! empty( $boot['allowText'] ) ) : ?>
+			<div class="td-tabpane" data-tabpane="text">
+				<div class="td-text">
+					<label class="td-field">
+						<span class="td-field__label"><?php esc_html_e( 'Your text', 'tshirt-designer' ); ?></span>
+						<textarea
+							class="td-field__input td-text__content"
+							data-td-el="textContent"
+							rows="3"
+							maxlength="200"
+							placeholder="<?php esc_attr_e( 'Type something…', 'tshirt-designer' ); ?>"></textarea>
+						<small class="td-field__hint">
+							<span data-td-el="textCount">0</span>/200
+						</small>
+					</label>
+
+					<label class="td-field">
+						<span class="td-field__label"><?php esc_html_e( 'Font', 'tshirt-designer' ); ?></span>
+						<select class="td-field__input" data-td-el="textFont"></select>
+					</label>
+
+					<div class="td-field__row">
+						<label class="td-field td-field--color">
+							<span class="td-field__label"><?php esc_html_e( 'Color', 'tshirt-designer' ); ?></span>
+							<input type="color" class="td-field__input" data-td-el="textColor" value="#111111" />
+						</label>
+
+						<div class="td-field">
+							<span class="td-field__label"><?php esc_html_e( 'Style', 'tshirt-designer' ); ?></span>
+							<div class="td-toggles">
+								<button type="button" class="td-btn td-btn--sm td-toggle" data-text-toggle="bold" aria-pressed="false"><strong>B</strong></button>
+								<button type="button" class="td-btn td-btn--sm td-toggle" data-text-toggle="italic" aria-pressed="false"><em>I</em></button>
+							</div>
+						</div>
+					</div>
+
+					<div class="td-field">
+						<span class="td-field__label"><?php esc_html_e( 'Alignment', 'tshirt-designer' ); ?></span>
+						<div class="td-toggles" data-td-el="textAlign">
+							<button type="button" class="td-btn td-btn--sm td-toggle" data-text-align="left" aria-pressed="false"><?php esc_html_e( 'Left', 'tshirt-designer' ); ?></button>
+							<button type="button" class="td-btn td-btn--sm td-toggle is-active" data-text-align="center" aria-pressed="true"><?php esc_html_e( 'Center', 'tshirt-designer' ); ?></button>
+							<button type="button" class="td-btn td-btn--sm td-toggle" data-text-align="right" aria-pressed="false"><?php esc_html_e( 'Right', 'tshirt-designer' ); ?></button>
+						</div>
+					</div>
+
+					<?php // Direction is auto-detected from the content; this only overrides it. ?>
+					<div class="td-field">
+						<span class="td-field__label"><?php esc_html_e( 'Direction', 'tshirt-designer' ); ?></span>
+						<div class="td-toggles" data-td-el="textDirection">
+							<button type="button" class="td-btn td-btn--sm td-toggle is-active" data-text-dir="" aria-pressed="true"><?php esc_html_e( 'Auto', 'tshirt-designer' ); ?></button>
+							<button type="button" class="td-btn td-btn--sm td-toggle" data-text-dir="ltr" aria-pressed="false">LTR</button>
+							<button type="button" class="td-btn td-btn--sm td-toggle" data-text-dir="rtl" aria-pressed="false">RTL</button>
+						</div>
+					</div>
+
+					<button type="button" class="td-btn td-btn--primary td-btn--block" data-td-el="textAdd">
+						<?php esc_html_e( 'Add text', 'tshirt-designer' ); ?>
+					</button>
+					<div class="td-text__status td-hidden" data-td-el="textStatus" role="status"></div>
+				</div>
+			</div>
+			<?php endif; ?>
 
 			<div class="td-price" data-td-el="price">
 				<div class="td-price__lines" data-td-el="priceLines"></div>

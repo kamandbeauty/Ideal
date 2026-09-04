@@ -9,6 +9,7 @@ import { Viewer } from './viewer.js';
 import { Editor2D } from './editor2d.js';
 import { UI } from './ui.js';
 import { debounce } from './utils.js';
+import { setFontStacks, renderTextDataUrl } from './textrender.js';
 
 class DesignerApp {
   constructor(root) {
@@ -44,6 +45,7 @@ class DesignerApp {
       i18n: this.i18n,
       currency: this.currency,
       uploadMaxMb: this.boot.uploadMaxMb || 5,
+      fonts: this.boot.fonts || [],
       onChange: () => this.requestPrice(),
     });
 
@@ -60,6 +62,8 @@ class DesignerApp {
     };
     this.ui.onView = (name) => this.viewer.setView(name);
     this.ui.onEditorAction = (action) => this.editorAction(action);
+    this.ui.onAddText = (text) => this.editor.addText(text);
+    this.ui.onUpdateText = (id, text) => this.editor.updateText(id, text);
     this.ui.onSave = () => this.save();
 
     // State changes drive every panel.
@@ -81,6 +85,10 @@ class DesignerApp {
     this._debouncedPrice = debounce(() => this.fetchPrice(), 500);
 
     this.compositor.onRepaint = () => {};
+
+    // Preview font stacks come from the server so the on-screen text and the
+    // TTF used for the print file are always the same family.
+    setFontStacks(this.boot.fonts || []);
 
     this.init();
   }
@@ -211,6 +219,7 @@ class DesignerApp {
     this.ui.renderAreas();
     this.ui.renderLayers();
     this.ui.renderAssets();
+    this.ui.syncTextPanel();
     this.editor.render();
 
     if (model) {
@@ -294,7 +303,16 @@ class DesignerApp {
 
       const areas = {};
       for (const [areaId, items] of Object.entries(d.areas || {})) {
-        areas[areaId] = (items || []).map((it) => ({ ...it }));
+        areas[areaId] = (items || []).map((it) => {
+          const item = { ...it };
+          // The server stores text as data, not as a bitmap, so a restored
+          // text item arrives without a preview raster. Rebuild it here or
+          // the item would render as an empty box.
+          if (item.type === 'text' && item.text) {
+            item.src = renderTextDataUrl(item.text, item.w, item.h);
+          }
+          return item;
+        });
       }
       this.state.set({
         colorId: d.color_id || this.state.get('colorId'),

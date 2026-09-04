@@ -229,6 +229,14 @@ final class Assets {
 				'other'   => __( 'Other', 'tshirt-designer' ),
 			),
 			'cm'             => __( 'cm', 'tshirt-designer' ),
+			'text'           => __( 'Text', 'tshirt-designer' ),
+			'addText'        => __( 'Add text', 'tshirt-designer' ),
+			'textEmpty'      => __( 'Type some text first.', 'tshirt-designer' ),
+			'textTooLong'    => __( 'Text is limited to 200 characters.', 'tshirt-designer' ),
+			'textAdded'      => __( 'Text added to the print area.', 'tshirt-designer' ),
+			'textUpdated'    => __( 'Text updated.', 'tshirt-designer' ),
+			'updateText'     => __( 'Update text', 'tshirt-designer' ),
+			'noAreaSelected' => __( 'Pick a print area first.', 'tshirt-designer' ),
 		);
 
 		return array(
@@ -239,6 +247,8 @@ final class Assets {
 			'uploadMaxMb'   => (float) $plugin->settings->get( 'upload_max_mb', 5 ),
 			'isLoggedIn'    => is_user_logged_in(),
 			'canSave'       => is_user_logged_in() || (int) $plugin->settings->get( 'allow_guest_designs', 1 ),
+			'allowText'     => (bool) $plugin->settings->get( 'allow_text_items', 1 ),
+			'fonts'         => Text_Engine::public_fonts(),
 			'i18n'          => $i18n,
 			'currency'      => $plugin->settings->all()['currency'],
 		);

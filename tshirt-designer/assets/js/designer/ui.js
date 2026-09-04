@@ -9,7 +9,7 @@ import { esc, formatPrice, formatCm } from './utils.js';
 const el = (root, name) => root.querySelector(`[data-td-el="${name}"]`);
 
 export class UI {
-  constructor(root, { state, api, i18n, currency, uploadMaxMb, onChange, onEditorAction }) {
+  constructor(root, { state, api, i18n, currency, uploadMaxMb, fonts, onChange, onEditorAction }) {
     this.root = root;
     this.state = state;
     this.api = api;
@@ -18,6 +18,7 @@ export class UI {
     this.uploadMaxMb = uploadMaxMb || 5;
     this.onChange = onChange || null;
     this.onEditorAction = onEditorAction || null;
+    this.fonts = fonts || [];
 
     this.refs = {
       models: el(root, 'models'),
@@ -42,6 +43,12 @@ export class UI {
       save: el(root, 'save'),
       saveStatus: el(root, 'saveStatus'),
       toolsToggle: el(root, 'toolsToggle'),
+      textContent: el(root, 'textContent'),
+      textCount: el(root, 'textCount'),
+      textFont: el(root, 'textFont'),
+      textColor: el(root, 'textColor'),
+      textAdd: el(root, 'textAdd'),
+      textStatus: el(root, 'textStatus'),
     };
 
     this._bindToolsToggle();
@@ -50,6 +57,7 @@ export class UI {
     this._bindUpload();
     this._bindLayers();
     this._bindSave();
+    this._bindText();
 
     if (this.refs.uploadHint) {
       this.refs.uploadHint.textContent = `${this.i18n.uploadHint || 'JPG, PNG or WEBP — up to'} ${this.uploadMaxMb}MB`;
@@ -164,6 +172,179 @@ export class UI {
       if (this.onUploaded) this.onUploaded(res.upload);
     } catch (err) {
       show(err.message, false);
+    }
+  }
+
+
+  /**
+   * Text panel. Adding text with nothing selected creates a new item; with a
+   * text item selected the panel edits it in place, which is what makes the
+   * item genuinely editable rather than a one-shot stamp.
+   */
+  _bindText() {
+    const { textContent, textFont, textAdd, textCount } = this.refs;
+    if (!textAdd) return;                       // text disabled in settings
+
+    // Fonts come from the server (Text_Engine) so the preview stack and the
+    // print-time TTF always refer to the same font.
+    if (textFont) {
+      textFont.innerHTML = '';
+      for (const f of this.fonts) {
+        const opt = document.createElement('option');
+        opt.value = f.slug;
+        opt.textContent = f.label;
+        opt.style.fontFamily = f.stack;
+        textFont.appendChild(opt);
+      }
+    }
+
+    if (textContent && textCount) {
+      const sync = () => {
+        textCount.textContent = String(textContent.value.length);
+      };
+      textContent.addEventListener('input', () => {
+        sync();
+        this._liveUpdateText();
+      });
+      sync();
+    }
+
+    this.root.querySelectorAll('[data-text-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const on = btn.getAttribute('aria-pressed') !== 'true';
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.classList.toggle('is-active', on);
+        this._liveUpdateText();
+      });
+    });
+
+    this._bindToggleGroup('[data-text-align]');
+    this._bindToggleGroup('[data-text-dir]');
+
+    if (textFont) textFont.addEventListener('change', () => this._liveUpdateText());
+    if (this.refs.textColor) {
+      this.refs.textColor.addEventListener('input', () => this._liveUpdateText());
+    }
+
+    textAdd.addEventListener('click', () => {
+      const payload = this.textPayload();
+      if (!payload.content) {
+        this.showTextStatus(this.i18n.textEmpty || 'Type some text first.', false);
+        return;
+      }
+      if (!this.state.get('activeAreaId')) {
+        this.showTextStatus(this.i18n.noAreaSelected || 'Pick a print area first.', false);
+        return;
+      }
+      const selected = this.selectedTextItem();
+      if (selected) {
+        if (this.onUpdateText) this.onUpdateText(selected.id, payload);
+        this.showTextStatus(this.i18n.textUpdated || 'Text updated.', true);
+      } else {
+        if (this.onAddText) this.onAddText(payload);
+        this.showTextStatus(this.i18n.textAdded || 'Text added.', true);
+      }
+    });
+  }
+
+  /** Radio-style button group where exactly one option is active. */
+  _bindToggleGroup(selector) {
+    const buttons = this.root.querySelectorAll(selector);
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        buttons.forEach((other) => {
+          const on = other === btn;
+          other.classList.toggle('is-active', on);
+          other.setAttribute('aria-pressed', on ? 'true' : 'false');
+        });
+        this._liveUpdateText();
+      });
+    });
+  }
+
+  /** Push panel changes straight into an already-selected text item. */
+  _liveUpdateText() {
+    const selected = this.selectedTextItem();
+    if (!selected || !this.onUpdateText) return;
+    const payload = this.textPayload();
+    if (!payload.content) return;
+    this.onUpdateText(selected.id, payload);
+  }
+
+  /** The selected item, but only when it is a text item. */
+  selectedTextItem() {
+    const id = this.state.get('selectedItemId');
+    if (!id) return null;
+    const item = this.state.items().find((it) => it.id === id);
+    return item && item.type === 'text' ? item : null;
+  }
+
+  /** Read the text panel into a payload the server will re-validate. */
+  textPayload() {
+    const active = (attr) => {
+      const btn = this.root.querySelector(`[${attr}].is-active`);
+      return btn ? (btn.getAttribute(attr) || '') : '';
+    };
+    return {
+      content: this.refs.textContent ? this.refs.textContent.value.trim() : '',
+      font: this.refs.textFont ? this.refs.textFont.value : '',
+      color: this.refs.textColor ? this.refs.textColor.value : '#111111',
+      bold: this._togglePressed('bold'),
+      italic: this._togglePressed('italic'),
+      align: active('data-text-align') || 'center',
+      direction: active('data-text-dir'),
+    };
+  }
+
+  _togglePressed(name) {
+    const btn = this.root.querySelector(`[data-text-toggle="${name}"]`);
+    return !!btn && btn.getAttribute('aria-pressed') === 'true';
+  }
+
+  /** Mirror a selected text item back into the panel controls. */
+  syncTextPanel() {
+    const item = this.selectedTextItem();
+    const { textAdd, textContent, textFont, textColor, textCount } = this.refs;
+    if (!textAdd) return;
+
+    if (textAdd) {
+      textAdd.textContent = item
+        ? (this.i18n.updateText || 'Update text')
+        : (this.i18n.addText || 'Add text');
+    }
+    if (!item || !item.text) return;
+
+    const t = item.text;
+    if (textContent && textContent.value !== t.content) {
+      textContent.value = t.content;
+      if (textCount) textCount.textContent = String(t.content.length);
+    }
+    if (textFont && t.font) textFont.value = t.font;
+    if (textColor && t.color) textColor.value = t.color;
+
+    const setToggle = (sel, on) => {
+      const btn = this.root.querySelector(sel);
+      if (!btn) return;
+      btn.classList.toggle('is-active', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    };
+    setToggle('[data-text-toggle="bold"]', !!t.bold);
+    setToggle('[data-text-toggle="italic"]', !!t.italic);
+    this.root.querySelectorAll('[data-text-align]').forEach((btn) => {
+      setToggle(`[data-text-align="${btn.getAttribute('data-text-align')}"]`,
+        btn.getAttribute('data-text-align') === t.align);
+    });
+  }
+
+  showTextStatus(message, ok) {
+    const box = this.refs.textStatus;
+    if (!box) return;
+    box.textContent = message;
+    box.classList.remove('td-hidden');
+    box.classList.toggle('is-error', !ok);
+    if (ok) {
+      clearTimeout(this._textStatusTimer);
+      this._textStatusTimer = setTimeout(() => box.classList.add('td-hidden'), 2500);
     }
   }
 
@@ -346,7 +527,14 @@ export class UI {
       li.appendChild(thumb);
       const name = document.createElement('span');
       name.className = 'td-layer__name';
-      name.textContent = `${formatCm(it.w, this.i18n)}×${formatCm(it.h, this.i18n)}`;
+      // A text layer is identified by its words; artwork by its print size.
+      if (it.type === 'text' && it.text && it.text.content) {
+        const words = it.text.content.replace(/\s+/g, ' ').trim();
+        name.textContent = words.length > 24 ? `${words.slice(0, 24)}…` : words;
+        name.title = words;
+      } else {
+        name.textContent = `${formatCm(it.w, this.i18n)}×${formatCm(it.h, this.i18n)}`;
+      }
       li.appendChild(name);
       li.addEventListener('click', () => {
         this.state.set({ selectedItemId: it.id });
