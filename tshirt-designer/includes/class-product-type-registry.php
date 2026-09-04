@@ -102,6 +102,24 @@ final class Product_Type_Registry {
 	}
 
 	/**
+	 * Human readable label for a product type.
+	 *
+	 * Unknown slugs fall back to the slug itself so admin screens never show
+	 * an empty cell for data created by a plugin that is no longer active.
+	 */
+	public static function label( string $slug ): string {
+		$slug = self::sanitize_slug( $slug );
+		if ( '' === $slug ) {
+			return '';
+		}
+		$all = self::all();
+		if ( isset( $all[ $slug ] ) ) {
+			return (string) $all[ $slug ]['label'];
+		}
+		return ucwords( str_replace( array( '-', '_' ), ' ', $slug ) );
+	}
+
+	/**
 	 * Sanitize an incoming product type slug, falling back to the legacy type.
 	 */
 	public static function sanitize( string $slug ): string {

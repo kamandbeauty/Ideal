@@ -422,3 +422,220 @@
 .td-rule-size {
 	margin: 10px 0;
 }
+
+/* ==========================================================================
+   Order production panel (WooCommerce order screen)
+   ========================================================================== */
+
+.td-order-panel__toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	align-items: flex-end;
+	justify-content: space-between;
+	padding: 12px 0 16px;
+	border-bottom: 1px solid #dcdcde;
+	margin-bottom: 16px;
+}
+
+.td-order-panel__toolbar .td-inline-form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin: 0;
+}
+
+.td-order-panel__bulk {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.td-design-card {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	padding: 16px 0;
+	border-bottom: 1px solid #f0f0f1;
+}
+
+.td-design-card:last-child {
+	border-bottom: 0;
+}
+
+.td-design-card__media {
+	flex: 0 0 220px;
+	max-width: 100%;
+}
+
+.td-design-card__media img {
+	width: 100%;
+	height: auto;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	background: #fff;
+}
+
+.td-design-card__noimage {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 160px;
+	border: 1px dashed #c3c4c7;
+	border-radius: 6px;
+	color: #787c82;
+	font-size: 12px;
+	text-align: center;
+	padding: 8px;
+}
+
+.td-design-card__body {
+	flex: 1 1 420px;
+	min-width: 0;
+}
+
+.td-design-card__body h4 {
+	margin: 18px 0 8px;
+}
+
+.td-design-card__actions {
+	margin-top: 14px;
+}
+
+.td-design-meta th[scope="row"],
+.td-price-table th[scope="row"] {
+	width: 180px;
+	font-weight: 600;
+}
+
+.td-area-table code {
+	font-size: 11px;
+	word-break: break-all;
+}
+
+.td-swatch {
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	border-radius: 3px;
+	border: 1px solid rgba(0, 0, 0, 0.2);
+	vertical-align: -2px;
+	margin-inline-end: 6px;
+}
+
+/* ==========================================================================
+   Design library filters
+   ========================================================================== */
+
+.td-filters {
+	margin: 12px 0 18px;
+}
+
+.td-filters__row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 16px;
+	align-items: flex-end;
+	margin-top: 10px;
+	padding: 12px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+}
+
+.td-filters__row label {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+}
+
+.td-filters__row label > span {
+	font-weight: 600;
+	color: #50575e;
+}
+
+.td-filters__actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.td-status {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 11px;
+	font-weight: 600;
+	background: #f0f0f1;
+	color: #50575e;
+	white-space: nowrap;
+}
+
+.td-status--saved   { background: #e5f5fa; color: #0a4b78; }
+.td-status--ordered { background: #fcf3e3; color: #8a5700; }
+.td-status--paid    { background: #edf7ed; color: #135e28; }
+.td-status--production { background: #ece5f7; color: #46318b; }
+
+.td-intro {
+	max-width: 860px;
+	margin-bottom: 18px;
+}
+
+/* ==========================================================================
+   RTL + responsive
+   ========================================================================== */
+
+.rtl .td-code-block {
+	direction: ltr;
+	text-align: left;
+}
+
+.rtl .td-design-meta th[scope="row"],
+.rtl .td-price-table th[scope="row"] {
+	text-align: right;
+}
+
+@media screen and (max-width: 782px) {
+	.td-order-panel__toolbar {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.td-order-panel__bulk .button,
+	.td-order-panel__toolbar .button {
+		width: 100%;
+		text-align: center;
+		margin-bottom: 6px;
+	}
+
+	.td-design-card {
+		flex-direction: column;
+	}
+
+	.td-design-card__media {
+		flex-basis: auto;
+		max-width: 260px;
+	}
+
+	.td-filters__row label,
+	.td-filters__row .td-filters__actions {
+		width: 100%;
+	}
+
+	.td-filters__row select,
+	.td-filters__row input {
+		width: 100%;
+	}
+
+	/* Let wide admin tables scroll instead of breaking the layout. */
+	.td-area-table,
+	.td-design-meta,
+	.td-price-table,
+	.td-table {
+		display: block;
+		overflow-x: auto;
+		white-space: nowrap;
+	}
+}

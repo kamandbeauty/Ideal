@@ -107,7 +107,20 @@ final class Admin_Models {
 	}
 
 	public static function redirect( string $page, array $args = array() ): void {
-		wp_safe_redirect( Admin::page_url( $page, $args ) );
+		$url = Admin::page_url( $page, $args );
+
+		/**
+		 * Fires just before an admin screen redirects after handling a form.
+		 *
+		 * Lets integration tests observe the outcome instead of having the
+		 * process terminate on `exit`.
+		 *
+		 * @param string $url  Destination URL.
+		 * @param string $page Page key.
+		 */
+		do_action( 'td_admin_before_redirect', $url, $page );
+
+		wp_safe_redirect( $url );
 		exit;
 	}
 }

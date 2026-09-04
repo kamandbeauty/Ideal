@@ -167,6 +167,33 @@ function td_rest( string $method, string $route, array $body = array(), array $p
 }
 
 /**
+ * Run an admin form handler and capture where it wanted to redirect,
+ * instead of letting `exit` kill the test process.
+ *
+ * @param callable $callback Handler invocation.
+ * @return string Redirect URL ('' when the handler did not redirect).
+ */
+function td_capture_redirect( callable $callback ): string {
+	$captured = '';
+	$spy      = static function ( string $url ) use ( &$captured ): void {
+		$captured = $url;
+		throw new \RuntimeException( 'td-redirect' );
+	};
+	add_action( 'td_admin_before_redirect', $spy );
+	try {
+		$callback();
+	} catch ( \RuntimeException $e ) {
+		if ( 'td-redirect' !== $e->getMessage() ) {
+			remove_action( 'td_admin_before_redirect', $spy );
+			throw $e;
+		}
+	} finally {
+		remove_action( 'td_admin_before_redirect', $spy );
+	}
+	return $captured;
+}
+
+/**
  * Overwrite a few plugin settings through the real sanitizer.
  *
  * @param array<string, mixed> $changes Settings to change.

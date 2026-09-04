@@ -25,7 +25,8 @@ final class Admin {
 
 	private function __construct( private \TShirtDesigner\Plugin $plugin ) {
 		$this->pages = array(
-			'models'      => new Admin_Models( $plugin ),
+			'models'        => new Admin_Models( $plugin ),
+			'product-types' => new Admin_Product_Types( $plugin ),
 			'colors'      => new Admin_Colors( $plugin ),
 			'sizes'       => new Admin_Sizes( $plugin ),
 			'print-areas' => new Admin_Print_Areas( $plugin ),
@@ -34,6 +35,10 @@ final class Admin {
 			'designs'     => new Admin_Designs( $plugin ),
 			'settings'    => new Admin_Settings( $plugin ),
 		);
+
+		// The order panel is not a menu page: it hooks into the WooCommerce
+		// order screen and owns its own admin-post endpoint.
+		new Admin_Order_Panel( $plugin );
 
 		add_action( 'admin_menu', array( $this, 'menu' ) );
 		add_action( 'admin_post_td_action', array( $this, 'route_action' ) );
@@ -44,8 +49,8 @@ final class Admin {
 	 */
 	public function menu(): void {
 		add_menu_page(
-			__( 'T-Shirt Designer', 'tshirt-designer' ),
-			__( 'T-Shirt Designer', 'tshirt-designer' ),
+			__( 'Custom Product Designer', 'tshirt-designer' ),
+			__( 'Product Designer', 'tshirt-designer' ),
 			self::CAPABILITY,
 			self::SLUG,
 			array( $this->pages['models'], 'render' ),
@@ -55,6 +60,7 @@ final class Admin {
 
 		$submenus = array(
 			'models'      => __( 'Models', 'tshirt-designer' ),
+			'product-types' => __( 'Product Types', 'tshirt-designer' ),
 			'colors'      => __( 'Colors', 'tshirt-designer' ),
 			'sizes'       => __( 'Sizes', 'tshirt-designer' ),
 			'print-areas' => __( 'Print Areas', 'tshirt-designer' ),
@@ -67,7 +73,7 @@ final class Admin {
 		foreach ( $submenus as $slug => $title ) {
 			add_submenu_page(
 				self::SLUG,
-				'T-Shirt Designer — ' . $title,
+				__( 'Custom Product Designer', 'tshirt-designer' ) . ' — ' . $title,
 				$title,
 				self::CAPABILITY,
 				self::SLUG . '-' . $slug,

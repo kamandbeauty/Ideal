@@ -114,16 +114,37 @@ final class Assets {
 	 * Admin assets.
 	 */
 	public function register_admin( string $hook ): void {
-		if ( ! str_contains( $hook, 'tshirt-designer' ) ) {
+		$is_plugin_page = str_contains( $hook, 'tshirt-designer' );
+
+		// The production panel is rendered on the WooCommerce order screen
+		// (both the legacy post editor and HPOS), which needs our styles too.
+		$is_order_screen = false;
+		if ( function_exists( 'get_current_screen' ) ) {
+			$screen = get_current_screen();
+			if ( null !== $screen ) {
+				$order_screens = array( 'shop_order', 'edit-shop_order', 'woocommerce_page_wc-orders' );
+				$is_order_screen = in_array( (string) $screen->id, $order_screens, true )
+					|| 'shop_order' === (string) $screen->post_type;
+			}
+		}
+
+		if ( ! $is_plugin_page && ! $is_order_screen ) {
 			return;
 		}
-		wp_enqueue_media();
+
 		wp_enqueue_style(
 			self::ADMIN_HANDLE . '-style',
 			Plugin::url( 'assets/css/admin.css' ),
 			array(),
 			TD_VERSION
 		);
+
+		if ( ! $is_plugin_page ) {
+			// Order screens only need the stylesheet.
+			return;
+		}
+
+		wp_enqueue_media();
 		wp_enqueue_script(
 			self::ADMIN_HANDLE,
 			Plugin::url( 'assets/js/admin/admin.js' ),

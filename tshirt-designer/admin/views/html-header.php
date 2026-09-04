@@ -21,7 +21,8 @@ defined( 'ABSPATH' ) || exit;
 		<nav class="td-admin__tabs">
 			<?php
 			$tabs = array(
-				'models'      => __( 'Models', 'tshirt-designer' ),
+				'models'        => __( 'Models', 'tshirt-designer' ),
+				'product-types' => __( 'Product Types', 'tshirt-designer' ),
 				'colors'      => __( 'Colors', 'tshirt-designer' ),
 				'sizes'       => __( 'Sizes', 'tshirt-designer' ),
 				'print-areas' => __( 'Print Areas', 'tshirt-designer' ),
