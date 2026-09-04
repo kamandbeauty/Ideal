@@ -1,0 +1,1209 @@
+# Translation template for the T-Shirt Designer plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: T-Shirt Designer 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/kamandbeauty/Ideal/issues\n"
+"POT-Creation-Date: 2026-09-04 18:14+0000\n"
+"PO-Revision-Date: 2026-09-04 18:14+0000\n"
+"Language: fa_IR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: admin/class-admin-assets.php:51
+msgid "Please provide a name."
+msgstr "لطفاً یک نام وارد کنید."
+
+#: admin/class-admin-assets.php:63
+msgid "Asset updated."
+msgstr "گرافیک به‌روزرسانی شد."
+
+#: admin/class-admin-assets.php:66
+msgid "Asset added."
+msgstr "گرافیک افزوده شد."
+
+#: admin/class-admin-assets.php:78
+msgid "Asset deleted."
+msgstr "گرافیک حذف شد."
+
+#: admin/class-admin-assets.php:89
+msgid "Asset status changed."
+msgstr "وضعیت گرافیک تغییر کرد."
+
+#: admin/class-admin-colors.php:64
+msgid "Please provide a color name and a valid model."
+msgstr "لطفاً نام رنگ و یک مدل معتبر وارد کنید."
+
+#: admin/class-admin-colors.php:79
+msgid "Color updated."
+msgstr "رنگ به‌روزرسانی شد."
+
+#: admin/class-admin-colors.php:82
+msgid "Color added."
+msgstr "رنگ افزوده شد."
+
+#: admin/class-admin-colors.php:95
+msgid "Color deleted."
+msgstr "رنگ حذف شد."
+
+#: admin/class-admin-designs.php:66
+msgid "Design deleted."
+msgstr "طرح حذف شد."
+
+#: admin/class-admin-models.php:58
+msgid "Please enter a model name."
+msgstr "لطفاً نام مدل را وارد کنید."
+
+#: admin/class-admin-models.php:75
+msgid "Model updated."
+msgstr "مدل به‌روزرسانی شد."
+
+#: admin/class-admin-models.php:79
+msgid "Model created."
+msgstr "مدل ساخته شد."
+
+#: admin/class-admin-models.php:93
+msgid "Model deleted."
+msgstr "مدل حذف شد."
+
+#: admin/class-admin-models.php:104
+msgid "Model status changed."
+msgstr "وضعیت مدل تغییر کرد."
+
+#: admin/class-admin-pricing.php:96
+msgid "Pricing rule saved."
+msgstr "قانون قیمت‌گذاری ذخیره شد."
+
+#: admin/class-admin-pricing.php:110
+msgid "Pricing rule deleted."
+msgstr "قانون قیمت‌گذاری حذف شد."
+
+#: admin/class-admin-print-areas.php:65
+msgid "Please provide an area name and a valid model."
+msgstr "لطفاً نام ناحیه و یک مدل معتبر وارد کنید."
+
+#: admin/class-admin-print-areas.php:81
+msgid "Print area updated."
+msgstr "ناحیه چاپ به‌روزرسانی شد."
+
+#: admin/class-admin-print-areas.php:84
+msgid "Print area created."
+msgstr "ناحیه چاپ ساخته شد."
+
+#: admin/class-admin-print-areas.php:97
+msgid "Print area deleted."
+msgstr "ناحیه چاپ حذف شد."
+
+#: admin/class-admin-settings.php:46
+msgid "Settings saved."
+msgstr "تنظیمات ذخیره شد."
+
+#: admin/class-admin-sizes.php:62
+msgid "Please provide a size name and a valid model."
+msgstr "لطفاً نام سایز و یک مدل معتبر وارد کنید."
+
+#: admin/class-admin-sizes.php:75
+msgid "Size updated."
+msgstr "سایز به‌روزرسانی شد."
+
+#: admin/class-admin-sizes.php:78
+msgid "Size added."
+msgstr "سایز افزوده شد."
+
+#: admin/class-admin-sizes.php:91
+msgid "Size deleted."
+msgstr "سایز حذف شد."
+
+#: admin/class-admin.php:47
+#: admin/class-admin.php:48
+#: includes/class-assets.php:53
+msgid "T-Shirt Designer"
+msgstr "طراح تی‌شرت"
+
+#: admin/class-admin.php:57
+#: admin/views/html-header.php:24
+#: admin/views/html-models.php:20
+msgid "Models"
+msgstr "مدل‌ها"
+
+#: admin/class-admin.php:58
+#: admin/views/html-colors.php:20
+#: admin/views/html-header.php:25
+#: admin/views/html-models.php:32
+msgid "Colors"
+msgstr "رنگ‌ها"
+
+#: admin/class-admin.php:59
+#: admin/views/html-header.php:26
+#: admin/views/html-models.php:33
+#: admin/views/html-sizes.php:20
+msgid "Sizes"
+msgstr "سایزها"
+
+#: admin/class-admin.php:60
+#: admin/views/html-header.php:27
+#: admin/views/html-print-areas.php:20
+msgid "Print Areas"
+msgstr "ناحیه‌های چاپ"
+
+#: admin/class-admin.php:61
+#: admin/views/html-assets.php:19
+#: admin/views/html-header.php:28
+msgid "Design Assets"
+msgstr "گرافیک‌های طراحی"
+
+#: admin/class-admin.php:62
+#: admin/views/html-header.php:29
+#: admin/views/html-pricing.php:21
+msgid "Pricing"
+msgstr "قیمت‌گذاری"
+
+#: admin/class-admin.php:63
+#: admin/views/html-designs-view.php:16
+#: admin/views/html-designs.php:18
+#: admin/views/html-header.php:30
+msgid "Designs"
+msgstr "طرح‌ها"
+
+#: admin/class-admin.php:64
+#: admin/views/html-header.php:31
+#: admin/views/html-settings.php:16
+#: includes/class-assets.php:51
+msgid "Settings"
+msgstr "تنظیمات"
+
+#: admin/class-admin.php:85
+msgid "You are not allowed to do that."
+msgstr "اجازه انجام این کار را ندارید."
+
+#: admin/class-admin.php:96
+msgid "Unknown page."
+msgstr "صفحهٔ ناشناخته."
+
+#: admin/views/html-assets.php:25
+msgid "Artwork library"
+msgstr "کتابخانه گرافیک"
+
+#: admin/views/html-assets.php:28
+#: includes/class-assets.php:200
+msgid "All"
+msgstr "همه"
+
+#: admin/views/html-assets.php:36
+msgid "No assets in this category."
+msgstr "در این دسته گرافیکی وجود ندارد."
+
+#: admin/views/html-assets.php:46
+msgid "Edit"
+msgstr "ویرایش"
+
+#: admin/views/html-assets.php:52
+msgid "On"
+msgstr "روشن"
+
+#: admin/views/html-assets.php:52
+msgid "Off"
+msgstr "خاموش"
+
+#: admin/views/html-assets.php:59
+#: admin/views/html-colors.php:70
+#: admin/views/html-designs.php:68
+#: admin/views/html-models.php:90
+#: admin/views/html-pricing.php:73
+#: admin/views/html-pricing.php:108
+#: admin/views/html-print-areas.php:71
+#: admin/views/html-sizes.php:66
+#: includes/class-assets.php:192
+#: templates/designer.php:89
+msgid "Delete"
+msgstr "حذف"
+
+#: admin/views/html-assets.php:68
+#: admin/views/html-assets.php:104
+msgid "Add asset"
+msgstr "افزودن گرافیک"
+
+#: admin/views/html-assets.php:68
+msgid "Edit asset"
+msgstr "ویرایش گرافیک"
+
+#: admin/views/html-assets.php:77
+msgid "Image file (PNG recommended)"
+msgstr "فایل تصویر (PNG پیشنهاد می‌شود)"
+
+#: admin/views/html-assets.php:80
+#: admin/views/html-colors.php:103
+#: admin/views/html-models.php:124
+#: admin/views/html-models.php:133
+msgid "Choose from media library"
+msgstr "انتخاب از کتابخانه رسانه"
+
+#: admin/views/html-assets.php:81
+#: admin/views/html-colors.php:104
+#: admin/views/html-models.php:125
+#: admin/views/html-models.php:134
+#: includes/class-assets.php:139
+msgid "Remove"
+msgstr "حذف"
+
+#: admin/views/html-assets.php:85
+#: admin/views/html-colors.php:45
+#: admin/views/html-colors.php:89
+#: admin/views/html-models.php:31
+#: admin/views/html-models.php:108
+#: admin/views/html-print-areas.php:44
+#: admin/views/html-print-areas.php:103
+#: admin/views/html-sizes.php:44
+msgid "Name"
+msgstr "نام"
+
+#: admin/views/html-assets.php:89
+msgid "Category"
+msgstr "دسته"
+
+#: admin/views/html-assets.php:100
+#: admin/views/html-colors.php:108
+#: admin/views/html-models.php:147
+#: admin/views/html-pricing.php:149
+#: admin/views/html-print-areas.php:133
+#: admin/views/html-sizes.php:94
+msgid "Sort order"
+msgstr "ترتیب نمایش"
+
+#: admin/views/html-assets.php:104
+#: admin/views/html-colors.php:118
+#: admin/views/html-models.php:157
+#: admin/views/html-print-areas.php:143
+#: admin/views/html-sizes.php:104
+msgid "Save changes"
+msgstr "ذخیره تغییرات"
+
+#: admin/views/html-assets.php:106
+#: admin/views/html-colors.php:120
+#: admin/views/html-models.php:159
+#: admin/views/html-print-areas.php:145
+#: admin/views/html-sizes.php:106
+msgid "Cancel"
+msgstr "انصراف"
+
+#: admin/views/html-colors.php:25
+#: admin/views/html-print-areas.php:25
+#: admin/views/html-sizes.php:25
+msgid "Create a model first."
+msgstr "ابتدا یک مدل بسازید."
+
+#: admin/views/html-colors.php:29
+#: admin/views/html-print-areas.php:29
+#: admin/views/html-sizes.php:29
+msgid "Model:"
+msgstr "مدل:"
+
+#: admin/views/html-colors.php:40
+msgid "Colors of “%s”"
+msgstr "رنگ‌های «%s»"
+
+#: admin/views/html-colors.php:46
+msgid "HEX"
+msgstr "HEX"
+
+#: admin/views/html-colors.php:47
+msgid "Fabric texture"
+msgstr "بافت پارچه"
+
+#: admin/views/html-colors.php:48
+#: admin/views/html-designs-view.php:62
+#: admin/views/html-designs.php:32
+#: admin/views/html-models.php:36
+#: admin/views/html-print-areas.php:48
+#: admin/views/html-sizes.php:46
+msgid "Status"
+msgstr "وضعیت"
+
+#: admin/views/html-colors.php:49
+#: admin/views/html-designs.php:34
+#: admin/views/html-models.php:37
+#: admin/views/html-pricing.php:53
+#: admin/views/html-pricing.php:89
+#: admin/views/html-print-areas.php:49
+#: admin/views/html-sizes.php:47
+msgid "Actions"
+msgstr "عملیات"
+
+#: admin/views/html-colors.php:54
+msgid "No colors yet."
+msgstr "هنوز رنگی ثبت نشده است."
+
+#: admin/views/html-colors.php:61
+msgid "Custom texture"
+msgstr "بافت سفارشی"
+
+#: admin/views/html-colors.php:61
+msgid "—"
+msgstr "—"
+
+#: admin/views/html-colors.php:62
+#: admin/views/html-colors.php:114
+#: admin/views/html-models.php:79
+#: admin/views/html-models.php:153
+#: admin/views/html-print-areas.php:63
+#: admin/views/html-print-areas.php:139
+#: admin/views/html-sizes.php:58
+#: admin/views/html-sizes.php:100
+msgid "Active"
+msgstr "فعال"
+
+#: admin/views/html-colors.php:62
+#: admin/views/html-models.php:79
+#: admin/views/html-print-areas.php:63
+#: admin/views/html-sizes.php:58
+msgid "Inactive"
+msgstr "غیرفعال"
+
+#: admin/views/html-colors.php:80
+#: admin/views/html-colors.php:118
+msgid "Add color"
+msgstr "افزودن رنگ"
+
+#: admin/views/html-colors.php:80
+msgid "Edit color"
+msgstr "ویرایش رنگ"
+
+#: admin/views/html-colors.php:93
+msgid "HEX color"
+msgstr "رنگ HEX"
+
+#: admin/views/html-colors.php:95
+msgid "Applied to the 3D model instantly, without reloading the page."
+msgstr "بلافاصله روی مدل سه‌بعدی اعمال می‌شود؛ بدون بارگذاری مجدد صفحه."
+
+#: admin/views/html-colors.php:100
+msgid "Fabric texture (optional)"
+msgstr "بافت پارچه (اختیاری)"
+
+#: admin/views/html-designs-view.php:21
+#: includes/class-rest-api.php:309
+msgid "Design not found."
+msgstr "طرح یافت نشد."
+
+#: admin/views/html-designs-view.php:38
+msgid "Back to designs"
+msgstr "بازگشت به طرح‌ها"
+
+#: admin/views/html-designs-view.php:42
+msgid "Design #%d"
+msgstr "طرح شمارهٔ %d"
+
+#: admin/views/html-designs-view.php:47
+msgid "No preview image was saved with this design."
+msgstr "برای این طرح تصویر پیش‌نمایشی ذخیره نشده است."
+
+#: admin/views/html-designs-view.php:50
+msgid "Design data (JSON)"
+msgstr "داده‌های طرح (JSON)"
+
+#: admin/views/html-designs-view.php:55
+msgid "Summary"
+msgstr "خلاصه"
+
+#: admin/views/html-designs-view.php:58
+#: admin/views/html-designs.php:29
+msgid "Model"
+msgstr "مدل"
+
+#: admin/views/html-designs-view.php:59
+#: includes/class-assets.php:163
+#: templates/designer.php:36
+msgid "Color"
+msgstr "رنگ"
+
+#: admin/views/html-designs-view.php:60
+#: includes/class-assets.php:164
+#: templates/designer.php:39
+msgid "Size"
+msgstr "سایز"
+
+#: admin/views/html-designs-view.php:61
+msgid "Printed items"
+msgstr "آیتم‌های چاپی"
+
+#: admin/views/html-designs-view.php:63
+#: admin/views/html-designs.php:33
+msgid "Date"
+msgstr "تاریخ"
+
+#: admin/views/html-designs-view.php:68
+msgid "Price breakdown"
+msgstr "تفکیک قیمت"
+
+#: admin/views/html-designs-view.php:71
+#: includes/class-assets.php:176
+msgid "Base product"
+msgstr "محصول پایه"
+
+#: admin/views/html-designs-view.php:72
+#: includes/class-assets.php:177
+msgid "Size surcharge"
+msgstr "هزینه اضافی سایز"
+
+#: admin/views/html-designs-view.php:76
+msgid "Prints — %s"
+msgstr "چاپ — %s"
+
+#: admin/views/html-designs-view.php:81
+#: includes/class-assets.php:179
+#: templates/designer.php:113
+msgid "Total"
+msgstr "جمع کل"
+
+#: admin/views/html-designs.php:22
+msgid "Saved designs"
+msgstr "طرح‌های ذخیره‌شده"
+
+#: admin/views/html-designs.php:27
+#: admin/views/html-models.php:30
+msgid "Preview"
+msgstr "پیش‌نمایش"
+
+#: admin/views/html-designs.php:28
+msgid "ID"
+msgstr "شناسه"
+
+#: admin/views/html-designs.php:30
+msgid "Owner"
+msgstr "مالک"
+
+#: admin/views/html-designs.php:31
+msgid "Total price"
+msgstr "قیمت کل"
+
+#: admin/views/html-designs.php:39
+msgid "No saved designs yet."
+msgstr "هنوز طرح ذخیره‌شده‌ای وجود ندارد."
+
+#: admin/views/html-designs.php:57
+msgid "Guest"
+msgstr "مهمان"
+
+#: admin/views/html-designs.php:62
+msgid "View"
+msgstr "مشاهده"
+
+#: admin/views/html-models.php:26
+msgid "T-shirt models"
+msgstr "مدل‌های تی‌شرت"
+
+#: admin/views/html-models.php:34
+msgid "Print areas"
+msgstr "ناحیه‌های چاپ"
+
+#: admin/views/html-models.php:35
+#: admin/views/html-models.php:143
+msgid "Base price"
+msgstr "قیمت پایه"
+
+#: admin/views/html-models.php:42
+msgid "No models yet — create your first one."
+msgstr "هنوز مدلی وجود ندارد — اولین مدل را بسازید."
+
+#: admin/views/html-models.php:85
+msgid "Delete this model with its colors, sizes and print areas?"
+msgstr "این مدل به همراه رنگ‌ها، سایزها و ناحیه‌های چاپش حذف شود؟"
+
+#: admin/views/html-models.php:100
+msgid "Add model"
+msgstr "افزودن مدل"
+
+#: admin/views/html-models.php:100
+msgid "Edit model"
+msgstr "ویرایش مدل"
+
+#: admin/views/html-models.php:112
+msgid "Description"
+msgstr "توضیحات"
+
+#: admin/views/html-models.php:121
+msgid "3D model (GLB / GLTF)"
+msgstr "مدل سه‌بعدی (GLB / GLTF)"
+
+#: admin/views/html-models.php:126
+msgid "The bundled Classic T-Shirt model works out of the box. Custom models should use a \"TD_Fabric\" material and the atlas UV layout described in the plugin docs."
+msgstr "مدل تی‌شرت کلاسیک همراه افزونه بدون هیچ تنظیمی کار می‌کند. مدل‌های سفارشی باید از متریال «TD_Fabric» و چیدمان اطلس UV مستندشده استفاده کنند."
+
+#: admin/views/html-models.php:130
+msgid "Preview image"
+msgstr "تصویر پیش‌نمایش"
+
+#: admin/views/html-models.php:138
+msgid "Linked WooCommerce product (optional)"
+msgstr "محصول ووکامرس متصل (اختیاری)"
+
+#: admin/views/html-models.php:140
+msgid "When set, the product price is used as the base price."
+msgstr "در صورت تنظیم، قیمت محصول به عنوان قیمت پایه استفاده می‌شود."
+
+#: admin/views/html-models.php:157
+msgid "Create model"
+msgstr "ساخت مدل"
+
+#: admin/views/html-pricing.php:26
+msgid "Scope:"
+msgstr "دامنه:"
+
+#: admin/views/html-pricing.php:27
+msgid "Global (all areas)"
+msgstr "سراسری (همهٔ ناحیه‌ها)"
+
+#: admin/views/html-pricing.php:38
+msgid "Area rules override the global rules for this print area only. The global rules are also listed for reference."
+msgstr "قوانین ناحیه فقط برای همین ناحیه چاپ جایگزین قوانین سراسری می‌شوند. قوانین سراسری هم برای اطلاع فهرست شده‌اند."
+
+#: admin/views/html-pricing.php:44
+msgid "Size-based print pricing"
+msgstr "قیمت‌گذاری چاپ بر اساس اندازه"
+
+#: admin/views/html-pricing.php:45
+msgid "The tier is matched by the longest side of the artwork in centimeters. The first matching rule wins; area rules beat global rules."
+msgstr "طبقه بر اساس بلندترین ضلع گرافیک بر حسب سانتی‌متر تعیین می‌شود. اولین قانون منطبق اعمال می‌شود؛ قوانین ناحیه بر قوانین سراسری اولویت دارند."
+
+#: admin/views/html-pricing.php:49
+#: admin/views/html-pricing.php:133
+msgid "From (cm)"
+msgstr "از (سانتی‌متر)"
+
+#: admin/views/html-pricing.php:50
+#: admin/views/html-pricing.php:137
+msgid "To (cm)"
+msgstr "تا (سانتی‌متر)"
+
+#: admin/views/html-pricing.php:51
+#: admin/views/html-pricing.php:145
+#: includes/class-assets.php:175
+msgid "Price"
+msgstr "قیمت"
+
+#: admin/views/html-pricing.php:52
+#: admin/views/html-pricing.php:88
+msgid "Scope"
+msgstr "دامنه"
+
+#: admin/views/html-pricing.php:58
+msgid "No size tiers yet."
+msgstr "هنوز طبقهٔ اندازه‌ای تعریف نشده است."
+
+#: admin/views/html-pricing.php:65
+#: admin/views/html-pricing.php:100
+msgid "This area"
+msgstr "این ناحیه"
+
+#: admin/views/html-pricing.php:65
+#: admin/views/html-pricing.php:100
+msgid "Global"
+msgstr "سراسری"
+
+#: admin/views/html-pricing.php:81
+msgid "Additional items in the same print area"
+msgstr "آیتم‌های اضافی در همان ناحیه چاپ"
+
+#: admin/views/html-pricing.php:82
+msgid "Extra charge added to the Nth item (N ≥ 2). If there is no rule for N, the highest defined rule applies."
+msgstr "هزینه‌ای که به آیتم N-ام اضافه می‌شود (N ≥ 2). اگر برای N قانونی تعریف نشده باشد، بالاترین قانون تعریف‌شده اعمال می‌شود."
+
+#: admin/views/html-pricing.php:86
+msgid "Item number"
+msgstr "شمارهٔ آیتم"
+
+#: admin/views/html-pricing.php:87
+msgid "Extra charge"
+msgstr "هزینه اضافی"
+
+#: admin/views/html-pricing.php:94
+msgid "No item rules yet."
+msgstr "هنوز قانون آیتمی تعریف نشده است."
+
+#: admin/views/html-pricing.php:98
+msgid "Item #%d"
+msgstr "آیتم %d"
+
+#: admin/views/html-pricing.php:118
+msgid "Add pricing rule"
+msgstr "افزودن قانون قیمت‌گذاری"
+
+#: admin/views/html-pricing.php:126
+msgid "Rule type"
+msgstr "نوع قانون"
+
+#: admin/views/html-pricing.php:128
+msgid "Size tier"
+msgstr "طبقه اندازه"
+
+#: admin/views/html-pricing.php:129
+msgid "Additional item charge"
+msgstr "هزینه آیتم اضافی"
+
+#: admin/views/html-pricing.php:141
+msgid "Item number (Nth item ≥ 2)"
+msgstr "شمارهٔ آیتم (آیتم N-ام ≥ ۲)"
+
+#: admin/views/html-pricing.php:153
+msgid "Add rule"
+msgstr "افزودن قانون"
+
+#: admin/views/html-pricing.php:158
+msgid "How pricing works"
+msgstr "قیمت‌گذاری چگونه کار می‌کند"
+
+#: admin/views/html-pricing.php:160
+msgid "Final price = base product price + size modifier + print prices. Each printed item is priced by its size tier; the 2nd, 3rd, … item in the same area adds the configured extra charge. Prices are always recalculated on the server — values shown in the designer are for guidance only."
+msgstr "قیمت نهایی = قیمت محصول پایه + تعدیل سایز + قیمت چاپ. هر آیتم چاپی بر اساس طبقهٔ اندازه‌اش قیمت می‌خورد؛ آیتم دوم، سوم و بعدی در یک ناحیه، هزینهٔ اضافهٔ تعریف‌شده را اضافه می‌کنند. قیمت‌ها همیشه روی سرور بازمحاسبه می‌شوند — مبالغ نمایش‌داده‌شده در طراحی فقط جنبهٔ راهنما دارند."
+
+#: admin/views/html-print-areas.php:40
+msgid "Print areas of “%s”"
+msgstr "ناحیه‌های چاپ «%s»"
+
+#: admin/views/html-print-areas.php:45
+#: admin/views/html-print-areas.php:107
+msgid "Type"
+msgstr "نوع"
+
+#: admin/views/html-print-areas.php:46
+msgid "Max size"
+msgstr "حداکثر اندازه"
+
+#: admin/views/html-print-areas.php:47
+msgid "UV mapping"
+msgstr "نگاشت UV"
+
+#: admin/views/html-print-areas.php:54
+msgid "No print areas yet."
+msgstr "هنوز ناحیه چاپی ثبت نشده است."
+
+#: admin/views/html-print-areas.php:62
+msgid "Mapped"
+msgstr "نگاشت‌شده"
+
+#: admin/views/html-print-areas.php:62
+msgid "None"
+msgstr "هیچ‌کدام"
+
+#: admin/views/html-print-areas.php:79
+msgid "Each print area maps a rectangular UV region of the 3D model. Artwork is painted into that region and follows the fabric when the model rotates."
+msgstr "هر ناحیه چاپ به یک ناحیهٔ مستطیلی UV از مدل سه‌بعدی نگاشت می‌شود. گرافیک در همان ناحیه ترسیم می‌شود و با چرخش مدل روی پارچه می‌ماند."
+
+#: admin/views/html-print-areas.php:84
+msgid "Add print area"
+msgstr "افزودن ناحیه چاپ"
+
+#: admin/views/html-print-areas.php:84
+msgid "Edit print area"
+msgstr "ویرایش ناحیه چاپ"
+
+#: admin/views/html-print-areas.php:118
+msgid "Maximum width (cm)"
+msgstr "حداکثر عرض (سانتی‌متر)"
+
+#: admin/views/html-print-areas.php:122
+msgid "Maximum height (cm)"
+msgstr "حداکثر ارتفاع (سانتی‌متر)"
+
+#: admin/views/html-print-areas.php:126
+msgid "Position / UV mapping (JSON)"
+msgstr "موقعیت / نگاشت UV (JSON)"
+
+#: admin/views/html-print-areas.php:129
+msgid "Format: {\"uv_rect\":[u0,v0,u1,v1], \"camera\":{\"azimuth\":0,\"polar\":78,\"distance\":1.55}} — uv_rect is the atlas region for this area (0-1 range), camera is the preset used when the area is selected."
+msgstr "قالب: {\"uv_rect\":[u0,v0,u1,v1], \"camera\":{\"azimuth\":0,\"polar\":78,\"distance\":1.55}} — مقدار uv_rect ناحیهٔ اطلس برای این ناحیه است (بازهٔ ۰ تا ۱) و camera پیش‌تنظیم دوربین هنگام انتخاب ناحیه است."
+
+#: admin/views/html-print-areas.php:143
+msgid "Create area"
+msgstr "ساخت ناحیه"
+
+#: admin/views/html-settings.php:22
+msgid "General settings"
+msgstr "تنظیمات عمومی"
+
+#: admin/views/html-settings.php:28
+msgid "Currency"
+msgstr "واحد پول"
+
+#: admin/views/html-settings.php:30
+msgid "Currency symbol / label"
+msgstr "نماد / برچسب واحد پول"
+
+#: admin/views/html-settings.php:34
+msgid "Symbol position"
+msgstr "جایگاه نماد"
+
+#: admin/views/html-settings.php:36
+msgid "After the amount (350,000 Toman)"
+msgstr "بعد از مبلغ (۳۵۰,۰۰۰ تومان)"
+
+#: admin/views/html-settings.php:37
+msgid "Before the amount (Toman 350,000)"
+msgstr "قبل از مبلغ (تومان ۳۵۰,۰۰۰)"
+
+#: admin/views/html-settings.php:41
+msgid "Decimals"
+msgstr "ارقام اعشار"
+
+#: admin/views/html-settings.php:45
+msgid "Thousands separator"
+msgstr "جداکننده هزارگان"
+
+#: admin/views/html-settings.php:49
+msgid "Decimal separator"
+msgstr "جداکننده اعشار"
+
+#: admin/views/html-settings.php:53
+msgid "Uploads"
+msgstr "بارگذاری‌ها"
+
+#: admin/views/html-settings.php:55
+msgid "Maximum upload size (MB)"
+msgstr "حداکثر حجم بارگذاری (مگابایت)"
+
+#: admin/views/html-settings.php:57
+msgid "Allowed formats: JPG, JPEG, PNG, WEBP. PNG/WEBP transparency is preserved. SVG is not allowed."
+msgstr "فرمت‌های مجاز: JPG، JPEG، PNG و WEBP. شفافیت PNG/WEBP حفظ می‌شود. SVG مجاز نیست."
+
+#: admin/views/html-settings.php:60
+msgid "Uploads per hour (per user/IP)"
+msgstr "بارگذاری در ساعت (به ازای هر کاربر/IP)"
+
+#: admin/views/html-settings.php:66
+msgid "Allow guests to upload images"
+msgstr "مهمان‌ها بتوانند تصویر بارگذاری کنند"
+
+#: admin/views/html-settings.php:72
+msgid "Allow guests to save designs"
+msgstr "مهمان‌ها بتوانند طرح ذخیره کنند"
+
+#: admin/views/html-settings.php:76
+msgid "Data"
+msgstr "داده‌ها"
+
+#: admin/views/html-settings.php:80
+msgid "Delete all plugin data (tables, settings) when the plugin is uninstalled"
+msgstr "حذف کامل داده‌های افزونه (جدول‌ها و تنظیمات) هنگام حذف افزونه"
+
+#: admin/views/html-settings.php:84
+msgid "Save settings"
+msgstr "ذخیره تنظیمات"
+
+#: admin/views/html-settings.php:88
+msgid "Usage"
+msgstr "نحوه استفاده"
+
+#: admin/views/html-settings.php:89
+msgid "Place the shortcode below on any page:"
+msgstr "شورت‌کد زیر را در هر صفحه‌ای قرار دهید:"
+
+#: admin/views/html-settings.php:91
+msgid "Optional attributes: model=\"classic-tshirt\" or model=\"3\" preselects a model. A “T-Shirt Designer” block is also available in the block editor."
+msgstr "اتریبیوت اختیاری: model=\"classic-tshirt\" یا model=\"3\" مدل را از پیش انتخاب می‌کند. بلوک «طراح تی‌شرت» هم در ویرایشگر بلوک در دسترس است."
+
+#: admin/views/html-sizes.php:40
+msgid "Sizes of “%s”"
+msgstr "سایزهای «%s»"
+
+#: admin/views/html-sizes.php:45
+#: admin/views/html-sizes.php:90
+msgid "Price modifier"
+msgstr "تعدیل قیمت"
+
+#: admin/views/html-sizes.php:52
+msgid "No sizes yet."
+msgstr "هنوز سایزی ثبت نشده است."
+
+#: admin/views/html-sizes.php:73
+msgid "Size affects order details and adds its price modifier to the base price."
+msgstr "سایز در جزئیات سفارش اثر دارد و تعدیل قیمتش به قیمت پایه اضافه می‌شود."
+
+#: admin/views/html-sizes.php:77
+#: admin/views/html-sizes.php:104
+msgid "Add size"
+msgstr "افزودن سایز"
+
+#: admin/views/html-sizes.php:77
+msgid "Edit size"
+msgstr "ویرایش سایز"
+
+#: admin/views/html-sizes.php:86
+msgid "Name (e.g. S, M, L, XL)"
+msgstr "نام (مثلاً S، M، L و XL)"
+
+#: includes/class-assets.php:50
+msgid "Default model"
+msgstr "مدل پیش‌فرض"
+
+#: includes/class-assets.php:52
+msgid "Initial model"
+msgstr "مدل اولیه"
+
+#: includes/class-assets.php:54
+msgid "Interactive 3D T-Shirt designer for your customers."
+msgstr "طراح سه‌بعدی و تعاملی تی‌شرت برای مشتریان شما."
+
+#: includes/class-assets.php:55
+msgid "The interactive 3D designer runs on the live page. Preview it by viewing the published post."
+msgstr "طراح سه‌بعدی تعاملی در صفحهٔ اصلی سایت اجرا می‌شود. برای پیش‌نمایش، نوشتهٔ منتشرشده را ببینید."
+
+#: includes/class-assets.php:136
+msgid "Choose a 3D model (GLB/GLTF)"
+msgstr "انتخاب مدل سه‌بعدی (GLB/GLTF)"
+
+#: includes/class-assets.php:137
+msgid "Choose an image"
+msgstr "انتخاب تصویر"
+
+#: includes/class-assets.php:138
+msgid "Use this file"
+msgstr "استفاده از این فایل"
+
+#: includes/class-assets.php:162
+#: templates/designer.php:33
+msgid "Choose a model"
+msgstr "انتخاب مدل"
+
+#: includes/class-assets.php:165
+msgid "Print area"
+msgstr "ناحیه چاپ"
+
+#: includes/class-assets.php:166
+#: templates/designer.php:74
+msgid "Artwork"
+msgstr "گرافیک"
+
+#: includes/class-assets.php:167
+#: templates/designer.php:103
+msgid "Upload image"
+msgstr "بارگذاری تصویر"
+
+#: includes/class-assets.php:168
+msgid "Uploading…"
+msgstr "در حال بارگذاری…"
+
+#: includes/class-assets.php:169
+msgid "JPG, PNG or WEBP — up to"
+msgstr "JPG، PNG یا WEBP — حداکثر"
+
+#: includes/class-assets.php:170
+msgid "Image added to the artwork."
+msgstr "تصویر به گرافیک‌ها اضافه شد."
+
+#: includes/class-assets.php:171
+msgid "Only JPG, PNG and WEBP images are allowed."
+msgstr "فقط تصاویر JPG، PNG و WEBP مجاز هستند."
+
+#: includes/class-assets.php:172
+msgid "The file is larger than the allowed size."
+msgstr "حجم فایل بیشتر از حد مجاز است."
+
+#: includes/class-assets.php:173
+#: templates/designer.php:84
+msgid "Layers"
+msgstr "لایه‌ها"
+
+#: includes/class-assets.php:174
+msgid "No items on this area yet. Pick artwork or upload an image."
+msgstr "هنوز آیتمی روی این ناحیه نیست. یک گرافیک انتخاب کنید یا تصویر بارگذاری کنید."
+
+#: includes/class-assets.php:178
+msgid "Prints"
+msgstr "چاپ‌ها"
+
+#: includes/class-assets.php:180
+#: templates/designer.php:117
+msgid "Save design"
+msgstr "ذخیره طرح"
+
+#: includes/class-assets.php:181
+msgid "Saving…"
+msgstr "در حال ذخیره…"
+
+#: includes/class-assets.php:182
+msgid "Design saved!"
+msgstr "طرح ذخیره شد!"
+
+#: includes/class-assets.php:183
+msgid "Calculating…"
+msgstr "در حال محاسبه…"
+
+#: includes/class-assets.php:184
+#: templates/designer.php:50
+#: templates/designer.php:50
+msgid "Reset view"
+msgstr "بازنشانی نما"
+
+#: includes/class-assets.php:185
+#: includes/class-content-seeder.php:100
+#: templates/designer.php:46
+#: templates/designer.php:46
+msgid "Front"
+msgstr "جلو"
+
+#: includes/class-assets.php:186
+#: includes/class-content-seeder.php:110
+#: templates/designer.php:47
+#: templates/designer.php:47
+msgid "Back"
+msgstr "پشت"
+
+#: includes/class-assets.php:187
+#: templates/designer.php:48
+#: templates/designer.php:48
+msgid "Left"
+msgstr "چپ"
+
+#: includes/class-assets.php:188
+#: templates/designer.php:49
+#: templates/designer.php:49
+msgid "Right"
+msgstr "راست"
+
+#: includes/class-assets.php:189
+#: templates/designer.php:55
+msgid "Loading 3D model…"
+msgstr "در حال بارگذاری مدل سه‌بعدی…"
+
+#: includes/class-assets.php:190
+#: templates/designer.php:58
+msgid "Your browser does not support WebGL, which is required for the 3D preview."
+msgstr "مرورگر شما از WebGL پشتیبانی نمی‌کند؛ این قابلیت برای پیش‌نمایش سه‌بعدی لازم است."
+
+#: includes/class-assets.php:191
+#: templates/designer.php:61
+msgid "Could not load the 3D model."
+msgstr "مدل سه‌بعدی بارگذاری نشد."
+
+#: includes/class-assets.php:193
+#: templates/designer.php:86
+msgid "Duplicate"
+msgstr "تکثیر"
+
+#: includes/class-assets.php:194
+#: templates/designer.php:87
+msgid "Bring forward"
+msgstr "یک لایه بالا"
+
+#: includes/class-assets.php:195
+#: templates/designer.php:88
+msgid "Send backward"
+msgstr "یک لایه پایین"
+
+#: includes/class-assets.php:196
+msgid "Remove item"
+msgstr "حذف آیتم"
+
+#: includes/class-assets.php:197
+#: includes/class-rest-api.php:416
+msgid "Please log in to save designs."
+msgstr "برای ذخیره طرح‌ها وارد حساب خود شوید."
+
+#: includes/class-assets.php:198
+#: includes/class-design-manager.php:355
+msgid "Could not save the design."
+msgstr "ذخیره طرح ممکن نشد."
+
+#: includes/class-assets.php:201
+msgid "Logo"
+msgstr "لوگو"
+
+#: includes/class-assets.php:202
+msgid "Text"
+msgstr "متن"
+
+#: includes/class-assets.php:203
+msgid "Sport"
+msgstr "ورزشی"
+
+#: includes/class-assets.php:204
+msgid "Animal"
+msgstr "حیوانات"
+
+#: includes/class-assets.php:205
+msgid "Nature"
+msgstr "طبیعت"
+
+#: includes/class-assets.php:206
+msgid "Kids"
+msgstr "کودکانه"
+
+#: includes/class-assets.php:207
+msgid "Fantasy"
+msgstr "فانتزی"
+
+#: includes/class-assets.php:208
+msgid "Other"
+msgstr "سایر"
+
+#: includes/class-assets.php:210
+msgid "cm"
+msgstr "سانتی‌متر"
+
+#: includes/class-content-seeder.php:45
+msgid "Classic T-Shirt"
+msgstr "تی‌شرت کلاسیک"
+
+#: includes/class-content-seeder.php:47
+msgid "Crew-neck short-sleeve t-shirt. Bundled 3D model with front, back and sleeve print areas."
+msgstr "تی‌شرت آستین‌کوتاه یقه‌گرد. مدل سه‌بعدی همراه با ناحیه‌های چاپ جلو، پشت و آستین."
+
+#: includes/class-content-seeder.php:58
+msgid "White"
+msgstr "سفید"
+
+#: includes/class-content-seeder.php:59
+msgid "Black"
+msgstr "مشکی"
+
+#: includes/class-content-seeder.php:60
+msgid "Red"
+msgstr "قرمز"
+
+#: includes/class-content-seeder.php:61
+msgid "Navy"
+msgstr "سرمه‌ای"
+
+#: includes/class-content-seeder.php:62
+msgid "Green"
+msgstr "سبز"
+
+#: includes/class-content-seeder.php:63
+msgid "Yellow"
+msgstr "زرد"
+
+#: includes/class-content-seeder.php:120
+msgid "Left sleeve"
+msgstr "آستین چپ"
+
+#: includes/class-content-seeder.php:130
+msgid "Right sleeve"
+msgstr "آستین راست"
+
+#: includes/class-design-manager.php:59
+msgid "The selected model is not available."
+msgstr "مدل انتخاب‌شده در دسترس نیست."
+
+#: includes/class-design-manager.php:71
+msgid "Please choose a valid color."
+msgstr "لطفاً یک رنگ معتبر انتخاب کنید."
+
+#: includes/class-design-manager.php:82
+msgid "Please choose a valid size."
+msgstr "لطفاً یک سایز معتبر انتخاب کنید."
+
+#: includes/class-design-manager.php:100
+msgid "Unknown print area in design."
+msgstr "ناحیه چاپ ناشناخته در طرح."
+
+#: includes/class-design-manager.php:104
+msgid "Invalid print area contents."
+msgstr "محتوای ناحیه چاپ نامعتبر است."
+
+#: includes/class-design-manager.php:110
+msgid "A print area can hold at most %d items."
+msgstr "هر ناحیه چاپ حداکثر %d آیتم را پشتیبانی می‌کند."
+
+#: includes/class-design-manager.php:132
+msgid "An item (%1$s × %2$s cm) is larger than the print area."
+msgstr "یک آیتم (%1$s × %2$s سانتی‌متر) از ناحیه چاپ بزرگ‌تر است."
+
+#: includes/class-design-manager.php:137
+msgid "An item is placed outside the print area."
+msgstr "یک آیتم خارج از ناحیه چاپ قرار گرفته است."
+
+#: includes/class-design-manager.php:190
+msgid "Invalid design item type."
+msgstr "نوع آیتم طرح نامعتبر است."
+
+#: includes/class-design-manager.php:200
+msgid "A design item references an unavailable artwork."
+msgstr "یکی از آیتم‌های طرح به گرافیکی ناموجود ارجاع می‌دهد."
+
+#: includes/class-design-manager.php:207
+msgid "A design item references an unavailable upload."
+msgstr "یکی از آیتم‌های طرح به فایل بارگذاری‌شده‌ای ناموجود ارجاع می‌دهد."
+
+#: includes/class-design-manager.php:222
+msgid "Design items must be at least %d cm wide and tall."
+msgstr "ابعاد آیتم‌های طرح باید دست‌کم %d سانتی‌متر باشد."
+
+#: includes/class-design-manager.php:256
+#: includes/class-rest-api.php:145
+msgid "Model not found."
+msgstr "مدل یافت نشد."
+
+#: includes/class-media-manager.php:41
+msgid "No file was uploaded."
+msgstr "فایلی بارگذاری نشد."
+
+#: includes/class-media-manager.php:46
+msgid "Invalid upload payload."
+msgstr "دادهٔ بارگذاری نامعتبر است."
+
+#: includes/class-media-manager.php:52
+msgid "Invalid upload source."
+msgstr "منبع بارگذاری نامعتبر است."
+
+#: includes/class-media-manager.php:56
+msgid "The uploaded file is empty."
+msgstr "فایل بارگذاری‌شده خالی است."
+
+#: includes/class-media-manager.php:63
+msgid "The file is too large. Maximum allowed size is %s MB."
+msgstr "حجم فایل زیاد است. حداکثر حجم مجاز %s مگابایت است."
+
+#: includes/class-media-manager.php:74
+msgid "Only JPG, JPEG, PNG and WEBP images are allowed."
+msgstr "فقط تصاویر JPG، JPEG، PNG و WEBP مجاز هستند."
+
+#: includes/class-media-manager.php:81
+msgid "The file is not a valid image."
+msgstr "فایل یک تصویر معتبر نیست."
+
+#: includes/class-media-manager.php:85
+#: includes/class-media-manager.php:97
+msgid "The file contents do not match its extension."
+msgstr "محتوای فایل با پسوندش هم‌خوانی ندارد."
+
+#: includes/class-pricing-engine.php:87
+msgid "No pricing tier matches %d cm."
+msgstr "هیچ طبقهٔ قیمتی با %d سانتی‌متر مطابقت ندارد."
+
+#: includes/class-rest-api.php:154
+msgid "This model has no 3D file yet."
+msgstr "این مدل هنوز فایل سه‌بعدی ندارد."
+
+#: includes/class-rest-api.php:211
+msgid "Too many uploads. Please try again later."
+msgstr "تعداد بارگذاری‌ها زیاد است. کمی بعد دوباره تلاش کنید."
+
+#: includes/class-rest-api.php:220
+msgid "The file could not be stored."
+msgstr "ذخیره فایل ممکن نشد."
+
+#: includes/class-rest-api.php:394
+#: includes/class-rest-api.php:411
+msgid "Forbidden."
+msgstr "دسترسی مجاز نیست."
+
+#: includes/class-rest-api.php:399
+msgid "Please log in to upload images."
+msgstr "برای بارگذاری تصویر وارد حساب خود شوید."
+
+#: includes/class-rest-api.php:437
+msgid "Invalid nonce."
+msgstr "مقدار امنیتی (nonce) نامعتبر است."
+
+#: includes/class-woocommerce.php:44
+msgid "T-Shirt Designer: WooCommerce is not active. The 3D designer works standalone; linking models to products and selling require WooCommerce."
+msgstr "طراح تی‌شرت: ووکامرس فعال نیست. طراحی سه‌بعدی مستقل کار می‌کند؛ اتصال مدل‌ها به محصولات و فروش نیازمند ووکامرس است."
+
+#: templates/designer.php:68
+msgid "Design tools"
+msgstr "ابزارهای طراحی"
+
+#: templates/designer.php:73
+msgid "Design"
+msgstr "طرح"

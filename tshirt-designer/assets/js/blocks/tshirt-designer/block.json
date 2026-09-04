@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "tshirt-designer/designer",
+	"title": "T-Shirt Designer",
+	"category": "design",
+	"icon": "admin-customizer",
+	"description": "Interactive 3D T-Shirt designer for your customers.",
+	"keywords": [ "tshirt", "designer", "3d", "print" ],
+	"textdomain": "tshirt-designer",
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"attributes": {
+		"modelId": {
+			"type": "number",
+			"default": 0
+		}
+	}
+}
