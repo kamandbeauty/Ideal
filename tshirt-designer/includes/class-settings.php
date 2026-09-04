@@ -41,6 +41,12 @@ final class Settings {
 			'allow_guest_designs'      => 1,
 			'uploads_per_hour'         => 20,
 			'delete_data_on_uninstall' => 0,
+			'print_dpi'                => 300,
+			'print_dpi_by_type'        => array(),
+			'cleanup_enabled'          => 1,
+			'guest_retention_days'     => 30,
+			'designer_page_url'        => '',
+			'allow_text_items'         => 1,
 		);
 	}
 
@@ -133,6 +139,18 @@ final class Settings {
 			'uploads_per_hour'         => isset( $input['uploads_per_hour'] )
 				? min( 500, max( 1, (int) $input['uploads_per_hour'] ) )
 				: $defaults['uploads_per_hour'],
+			'print_dpi'                => isset( $input['print_dpi'] )
+				? Product_Type_Registry::clamp_dpi( (int) $input['print_dpi'] )
+				: $defaults['print_dpi'],
+			'print_dpi_by_type'        => self::sanitize_dpi_map( $input['print_dpi_by_type'] ?? array() ),
+			'cleanup_enabled'          => empty( $input['cleanup_enabled'] ) ? 0 : 1,
+			'guest_retention_days'     => isset( $input['guest_retention_days'] )
+				? min( 3650, max( 1, (int) $input['guest_retention_days'] ) )
+				: $defaults['guest_retention_days'],
+			'designer_page_url'        => isset( $input['designer_page_url'] )
+				? esc_url_raw( (string) $input['designer_page_url'] )
+				: $defaults['designer_page_url'],
+			'allow_text_items'         => empty( $input['allow_text_items'] ) ? 0 : 1,
 			'delete_data_on_uninstall' => empty( $input['delete_data_on_uninstall'] ) ? 0 : 1,
 		);
 
@@ -147,6 +165,28 @@ final class Settings {
 	/**
 	 * Format a price amount using the currency settings.
 	 */
+	/**
+	 * Per-product-type DPI overrides.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return array<string, int>
+	 */
+	private static function sanitize_dpi_map( mixed $value ): array {
+		if ( ! is_array( $value ) ) {
+			return array();
+		}
+		$out = array();
+		foreach ( $value as $slug => $dpi ) {
+			$slug = sanitize_key( (string) $slug );
+			$dpi  = (int) $dpi;
+			if ( '' === $slug || $dpi <= 0 || ! Product_Type_Registry::exists( $slug ) ) {
+				continue;
+			}
+			$out[ $slug ] = Product_Type_Registry::clamp_dpi( $dpi );
+		}
+		return $out;
+	}
+
 	public function format_price( float $amount ): string {
 		$s = $this->all()['currency'];
 		$formatted = number_format(

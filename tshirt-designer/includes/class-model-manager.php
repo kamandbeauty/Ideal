@@ -20,10 +20,17 @@ final class Model_Manager {
 	 *
 	 * @return array<int, array<string, mixed>>
 	 */
-	public function all( bool $active_only = true ): array {
+	public function all( bool $active_only = true, string $product_type = '' ): array {
 		global $wpdb;
-		$table = $this->db->table( 'models' );
-		$where = $active_only ? 'WHERE is_active = 1' : '';
+		$table  = $this->db->table( 'models' );
+		$clauses = array();
+		if ( $active_only ) {
+			$clauses[] = 'is_active = 1';
+		}
+		if ( '' !== $product_type ) {
+			$clauses[] = $wpdb->prepare( 'product_type = %s', Product_Type_Registry::sanitize( $product_type ) );
+		}
+		$where = $clauses ? 'WHERE ' . implode( ' AND ', $clauses ) : '';
 		// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$rows = $wpdb->get_results(
@@ -133,7 +140,8 @@ final class Model_Manager {
 		return array(
 			'id'          => (int) $model['id'],
 			'name'        => (string) $model['name'],
-			'slug'        => (string) $model['slug'],
+			'slug'         => (string) $model['slug'],
+			'product_type' => (string) $model['product_type'],
 			'description' => (string) $model['description'],
 			'model_url'   => $this->model_file_url( $model ),
 			'preview_url' => $this->preview_url( $model ),
@@ -232,6 +240,9 @@ final class Model_Manager {
 		if ( array_key_exists( 'slug', $data ) ) {
 			$row['slug'] = sanitize_title( (string) $data['slug'] );
 		}
+		if ( array_key_exists( 'product_type', $data ) ) {
+			$row['product_type'] = Product_Type_Registry::sanitize( (string) $data['product_type'] );
+		}
 		if ( array_key_exists( 'description', $data ) ) {
 			$row['description'] = sanitize_textarea_field( (string) $data['description'] );
 		}
@@ -268,6 +279,7 @@ final class Model_Manager {
 			'id'                 => (int) $row['id'],
 			'name'               => (string) $row['name'],
 			'slug'               => (string) $row['slug'],
+			'product_type'       => Product_Type_Registry::sanitize( (string) ( $row['product_type'] ?? '' ) ),
 			'description'        => (string) ( $row['description'] ?? '' ),
 			'model_file_id'      => (int) $row['model_file_id'],
 			'model_file_path'    => (string) $row['model_file_path'],

@@ -356,7 +356,7 @@ final class Rest_Api {
 					if ( ! is_array( $item ) ) {
 						continue;
 					}
-					$clean_items[] = array(
+					$clean = array(
 						'id'       => (string) ( $item['id'] ?? '' ),
 						'type'     => (string) ( $item['type'] ?? '' ),
 						'ref_id'   => (int) ( $item['ref_id'] ?? 0 ),
@@ -365,7 +365,15 @@ final class Rest_Api {
 						'w'        => (float) ( $item['w'] ?? 0 ),
 						'h'        => (float) ( $item['h'] ?? 0 ),
 						'rotation' => (float) ( $item['rotation'] ?? 0 ),
+						'layer'    => (int) ( $item['layer'] ?? 0 ),
+						'opacity'  => isset( $item['opacity'] ) ? (float) $item['opacity'] : 1.0,
 					);
+					// Text items carry a typography payload; it is validated
+					// and sanitized by Design_Manager, never trusted here.
+					if ( isset( $item['text'] ) && is_array( $item['text'] ) ) {
+						$clean['text'] = $item['text'];
+					}
+					$clean_items[] = $clean;
 				}
 				$payload['areas'][ (string) $aid ] = $clean_items;
 			}
@@ -377,8 +385,7 @@ final class Rest_Api {
 	 * Guest token from the td_guest cookie (set when rendering the designer).
 	 */
 	private function guest_token(): string {
-		$token = isset( $_COOKIE['td_guest'] ) ? sanitize_text_field( wp_unslash( $_COOKIE['td_guest'] ) ) : '';
-		return preg_match( '/^[A-Za-z0-9]{20,64}$/', (string) $token ) ? (string) $token : '';
+		return Rest_Permissions::guest_token();
 	}
 
 	/**
@@ -387,86 +394,17 @@ final class Rest_Api {
 	 * can be disabled per feature in settings.
 	 */
 	public function can_upload(): bool|\WP_Error {
-		if ( is_user_logged_in() ) {
-			return $this->verify_nonce();
-		}
-		if ( ! $this->same_origin() ) {
-			return new \WP_Error( 'td_forbidden', __( 'Forbidden.', 'tshirt-designer' ), array( 'status' => 403 ) );
-		}
-		if ( ! (int) $this->plugin->settings->get( 'allow_guest_uploads', 1 ) ) {
-			return new \WP_Error(
-				'td_login_required',
-				__( 'Please log in to upload images.', 'tshirt-designer' ),
-				array( 'status' => 401 )
-			);
-		}
-		return true;
+		return $this->permissions()->can_upload();
 	}
 
 	public function can_post(): bool|\WP_Error {
-		if ( is_user_logged_in() ) {
-			return $this->verify_nonce();
-		}
-		if ( ! $this->same_origin() ) {
-			return new \WP_Error( 'td_forbidden', __( 'Forbidden.', 'tshirt-designer' ), array( 'status' => 403 ) );
-		}
-		if ( ! (int) $this->plugin->settings->get( 'allow_guest_designs', 1 ) ) {
-			return new \WP_Error(
-				'td_login_required',
-				__( 'Please log in to save designs.', 'tshirt-designer' ),
-				array( 'status' => 401 )
-			);
-		}
-		return true;
+		return $this->permissions()->can_post();
 	}
 
 	/**
-	 * Verify the wp_rest nonce when the request carries cookie credentials.
+	 * Shared permission policy (also used by the v2 namespace).
 	 */
-	private function verify_nonce(): bool|\WP_Error {
-		// phpcs:ignore WordPress.Security.NonceVerification
-		$nonce = $_SERVER['X_WP_NONCE'] ?? $_SERVER['HTTP_X_WP_NONCE'] ?? '';
-		$nonce = is_string( $nonce ) ? $nonce : '';
-		if ( '' === $nonce ) {
-			// REST cookie auth already rejects mismatched nonces upstream;
-			// without a nonce the request continues as an anonymous request,
-			// which our same-origin check governs.
-			return $this->same_origin();
-		}
-		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
-			return new \WP_Error( 'td_bad_nonce', __( 'Invalid nonce.', 'tshirt-designer' ), array( 'status' => 403 ) );
-		}
-		return true;
-	}
-
-	/**
-	 * Reject cross-site POSTs from anonymous visitors (CSRF mitigation).
-	 */
-	private function same_origin(): bool {
-		$origin  = isset( $_SERVER['HTTP_ORIGIN'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_ORIGIN'] ) ) : '';
-		$referer = isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
-		$host    = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
-
-		if ( '' === $host ) {
-			return false;
-		}
-		foreach ( array( $origin, $referer ) as $candidate ) {
-			if ( '' === $candidate ) {
-				continue;
-			}
-			$parsed = wp_parse_url( $candidate );
-			if ( is_array( $parsed ) && isset( $parsed['host'] ) ) {
-				$candidate_host = $parsed['host'] . ( isset( $parsed['port'] ) ? ':' . $parsed['port'] : '' );
-				if ( $candidate_host === $host ) {
-					return true;
-				}
-			}
-		}
-		// Same-host requests may legitimately omit both headers (e.g. curl),
-		// so only fail when one of them points elsewhere.
-		if ( '' !== $origin || '' !== $referer ) {
-			return false;
-		}
-		return true;
+	private function permissions(): Rest_Permissions {
+		return new Rest_Permissions( $this->plugin->settings );
 	}
 }

@@ -27,6 +27,9 @@ final class Database {
 			'design_assets',
 			'pricing_rules',
 			'designs',
+			'design_versions',
+			'production_files',
+			'logs',
 			'uploads',
 		);
 	}
@@ -87,6 +90,7 @@ final class Database {
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 				name varchar(191) NOT NULL,
 				slug varchar(191) NOT NULL DEFAULT '',
+				product_type varchar(40) NOT NULL DEFAULT 'tshirt',
 				description text NULL,
 				model_file_id bigint(20) unsigned NOT NULL DEFAULT 0,
 				model_file_path varchar(500) NOT NULL DEFAULT '',
@@ -100,7 +104,9 @@ final class Database {
 				updated_at datetime NOT NULL DEFAULT '{$now}',
 				PRIMARY KEY  (id),
 				KEY is_active (is_active),
-				KEY slug (slug)
+				KEY slug (slug),
+				KEY product_type (product_type),
+				KEY wc_product_id (wc_product_id)
 			) {$c};",
 
 			"CREATE TABLE {$this->table('model_colors')} (
@@ -186,6 +192,9 @@ final class Database {
 
 			"CREATE TABLE {$this->table('designs')} (
 				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				uuid varchar(64) NOT NULL DEFAULT '',
+				version int(10) unsigned NOT NULL DEFAULT 1,
+				product_type varchar(40) NOT NULL DEFAULT '',
 				user_id bigint(20) unsigned NOT NULL DEFAULT 0,
 				guest_token varchar(64) NOT NULL DEFAULT '',
 				model_id bigint(20) unsigned NOT NULL DEFAULT 0,
@@ -199,9 +208,65 @@ final class Database {
 				created_at datetime NOT NULL DEFAULT '{$now}',
 				updated_at datetime NOT NULL DEFAULT '{$now}',
 				PRIMARY KEY  (id),
+				UNIQUE KEY uuid (uuid),
 				KEY user_id (user_id),
 				KEY guest_token (guest_token),
-				KEY model_id (model_id)
+				KEY model_id (model_id),
+				KEY product_type (product_type),
+				KEY status (status),
+				KEY updated_at (updated_at)
+			) {$c};",
+
+			"CREATE TABLE {$this->table('design_versions')} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				design_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				version int(10) unsigned NOT NULL DEFAULT 1,
+				design_data longtext NULL,
+				price_breakdown longtext NULL,
+				price_total decimal(14,2) NOT NULL DEFAULT 0,
+				preview_image_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				created_at datetime NOT NULL DEFAULT '{$now}',
+				PRIMARY KEY  (id),
+				UNIQUE KEY design_version (design_id,version),
+				KEY design_id (design_id)
+			) {$c};",
+
+			"CREATE TABLE {$this->table('production_files')} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				order_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				order_item_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				design_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				design_version int(10) unsigned NOT NULL DEFAULT 1,
+				print_area_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				area_type varchar(40) NOT NULL DEFAULT '',
+				file_name varchar(191) NOT NULL DEFAULT '',
+				file_path varchar(500) NOT NULL DEFAULT '',
+				width_px int(10) unsigned NOT NULL DEFAULT 0,
+				height_px int(10) unsigned NOT NULL DEFAULT 0,
+				dpi int(10) unsigned NOT NULL DEFAULT 300,
+				status varchar(20) NOT NULL DEFAULT 'pending',
+				message text NULL,
+				created_at datetime NOT NULL DEFAULT '{$now}',
+				updated_at datetime NOT NULL DEFAULT '{$now}',
+				PRIMARY KEY  (id),
+				KEY order_id (order_id),
+				KEY order_item_id (order_item_id),
+				KEY design_id (design_id),
+				KEY status (status)
+			) {$c};",
+
+			"CREATE TABLE {$this->table('logs')} (
+				id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				level varchar(20) NOT NULL DEFAULT 'error',
+				channel varchar(40) NOT NULL DEFAULT 'general',
+				message text NULL,
+				context longtext NULL,
+				user_id bigint(20) unsigned NOT NULL DEFAULT 0,
+				created_at datetime NOT NULL DEFAULT '{$now}',
+				PRIMARY KEY  (id),
+				KEY level (level),
+				KEY channel (channel),
+				KEY created_at (created_at)
 			) {$c};",
 
 			"CREATE TABLE {$this->table('uploads')} (

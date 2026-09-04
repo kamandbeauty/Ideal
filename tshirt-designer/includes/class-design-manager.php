@@ -31,6 +31,30 @@ final class Design_Manager {
 	public const MIN_ITEM_CM = 1.0;
 	public const MAX_ITEMS_PER_AREA = 20;
 
+	/** Design item types the engine understands. */
+	public const ITEM_TYPES = array( 'asset', 'upload', 'text' );
+
+	/** Lifecycle statuses (see docs: file lifecycle). */
+	public const STATUS_DRAFT      = 'draft';
+	public const STATUS_SAVED      = 'saved';
+	public const STATUS_ORDERED    = 'ordered';
+	public const STATUS_PAID       = 'paid';
+	public const STATUS_PRODUCTION = 'production';
+
+	/** Statuses that must never be auto-deleted by cleanup. */
+	public const PROTECTED_STATUSES = array( self::STATUS_ORDERED, self::STATUS_PAID, self::STATUS_PRODUCTION );
+
+	/**
+	 * Generate a public design identifier, e.g. DESIGN-8F72A91.
+	 */
+	public static function new_uuid(): string {
+		$bytes = function_exists( 'wp_generate_password' )
+			? wp_generate_password( 12, false, false )
+			: bin2hex( random_bytes( 6 ) );
+		$hash = strtoupper( substr( hash( 'sha256', $bytes . microtime( true ) . random_int( 0, PHP_INT_MAX ) ), 0, 7 ) );
+		return 'DESIGN-' . $hash;
+	}
+
 	public function __construct(
 		private Database $db,
 		private Model_Manager $models,
@@ -141,6 +165,18 @@ final class Design_Manager {
 			}
 
 			if ( array() !== $clean_items ) {
+				// Normalize layer order: respect the client's stacking, then
+				// re-index so production and preview always agree.
+				usort(
+					$clean_items,
+					static function ( array $a, array $b ): int {
+						return (int) $a['layer'] <=> (int) $b['layer'];
+					}
+				);
+				foreach ( $clean_items as $index => $unused ) {
+					$clean_items[ $index ]['layer'] = $index;
+				}
+
 				$design_areas[ (string) $area_id ] = $clean_items;
 				$items[ $area_id ] = array_map(
 					static fn( array $it ): array => array( 'w' => $it['w'], 'h' => $it['h'] ),
@@ -154,10 +190,11 @@ final class Design_Manager {
 		}
 
 		$design = array(
-			'model_id' => $model_id,
-			'color_id' => $color_id,
-			'size_id'  => $size_id,
-			'areas'    => $design_areas,
+			'product_type' => (string) $model['product_type'],
+			'model_id'     => $model_id,
+			'color_id'     => $color_id,
+			'size_id'      => $size_id,
+			'areas'        => $design_areas,
 		);
 
 		return array(
@@ -186,15 +223,21 @@ final class Design_Manager {
 		array &$errors
 	): ?array {
 		$type = (string) ( $item['type'] ?? '' );
-		if ( ! in_array( $type, array( 'asset', 'upload' ), true ) ) {
+		if ( ! in_array( $type, self::ITEM_TYPES, true ) ) {
 			$errors[] = __( 'Invalid design item type.', 'tshirt-designer' );
 			return null;
 		}
 
 		$ref_id = (int) ( $item['ref_id'] ?? 0 );
 		$src    = '';
+		$text   = null;
 
-		if ( 'asset' === $type ) {
+		if ( 'text' === $type ) {
+			$text = $this->validate_text( $item, $errors );
+			if ( null === $text ) {
+				return null;
+			}
+		} elseif ( 'asset' === $type ) {
 			$asset = Plugin::instance()->assets->get( $ref_id );
 			if ( null === $asset || ! $asset['is_active'] ) {
 				$errors[] = __( 'A design item references an unavailable artwork.', 'tshirt-designer' );
@@ -225,7 +268,11 @@ final class Design_Manager {
 			return null;
 		}
 
-		return array(
+		$opacity = isset( $item['opacity'] ) && is_numeric( $item['opacity'] )
+			? round( min( 1.0, max( 0.05, (float) $item['opacity'] ) ), 3 )
+			: 1.0;
+
+		$clean = array(
 			'id'       => mb_substr( sanitize_text_field( (string) ( $item['id'] ?? '' ) ), 0, 40 ),
 			'type'     => $type,
 			'ref_id'   => $ref_id,
@@ -235,6 +282,70 @@ final class Design_Manager {
 			'w'        => $w,
 			'h'        => $h,
 			'rotation' => max( -360.0, min( 360.0, $r ) ),
+			'layer'    => isset( $item['layer'] ) ? max( 0, min( 999, (int) $item['layer'] ) ) : 0,
+			'opacity'  => $opacity,
+		);
+
+		if ( null !== $text ) {
+			$clean['text'] = $text;
+		}
+
+		return $clean;
+	}
+
+	/**
+	 * Validate the typography payload of a text item.
+	 *
+	 * Text is stored as structured data (never rasterized into a fake image),
+	 * so it stays editable and can be re-rendered at print resolution.
+	 *
+	 * @param array<string, mixed> $item   Raw item.
+	 * @param string[]             $errors Collected errors (by-ref).
+	 * @return array<string, mixed>|null
+	 */
+	private function validate_text( array $item, array &$errors ): ?array {
+		$raw = isset( $item['text'] ) && is_array( $item['text'] ) ? $item['text'] : array();
+
+		$content = isset( $raw['content'] ) ? (string) $raw['content'] : '';
+		$content = sanitize_textarea_field( $content );
+		$content = trim( preg_replace( '/[\r\n]+/u', "\n", $content ) ?? '' );
+		if ( '' === $content ) {
+			$errors[] = __( 'Text items need some text.', 'tshirt-designer' );
+			return null;
+		}
+		if ( mb_strlen( $content ) > 200 ) {
+			$content = mb_substr( $content, 0, 200 );
+		}
+
+		$fonts = Text_Engine::fonts();
+		$font  = isset( $raw['font'] ) ? sanitize_key( (string) $raw['font'] ) : '';
+		if ( ! isset( $fonts[ $font ] ) ) {
+			$font = (string) array_key_first( $fonts );
+		}
+
+		$color = isset( $raw['color'] ) ? sanitize_hex_color( (string) $raw['color'] ) : null;
+		if ( ! is_string( $color ) || '' === $color ) {
+			$color = '#111111';
+		}
+
+		$align = isset( $raw['align'] ) ? sanitize_key( (string) $raw['align'] ) : 'center';
+		if ( ! in_array( $align, array( 'left', 'center', 'right' ), true ) ) {
+			$align = 'center';
+		}
+
+		$direction = isset( $raw['direction'] ) ? sanitize_key( (string) $raw['direction'] ) : '';
+		if ( ! in_array( $direction, array( 'rtl', 'ltr' ), true ) ) {
+			$direction = Text_Engine::detect_direction( $content );
+		}
+
+		return array(
+			'content'   => $content,
+			'font'      => $font,
+			'color'     => $color,
+			'bold'      => ! empty( $raw['bold'] ),
+			'italic'    => ! empty( $raw['italic'] ),
+			'align'     => $align,
+			'direction' => $direction,
 		);
 	}
 
@@ -322,26 +433,56 @@ final class Design_Manager {
 
 		$table = $this->db->table( 'designs' );
 
-		$update = false;
+		$existing = null;
 		if ( $design_id > 0 ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
-			$existing = $wpdb->get_row(
+			$candidate = $wpdb->get_row(
 				$wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $design_id ),
 				ARRAY_A
 			);
-			if ( is_array( $existing ) && $this->user_owns_design( $existing, $user_id, $guest_token ) ) {
-				$update = true;
+			if ( is_array( $candidate ) && $this->user_owns_design( $candidate, $user_id, $guest_token ) ) {
+				$existing = $candidate;
+			} elseif ( is_array( $candidate ) ) {
+				return array(
+					'ok'     => false,
+					'errors' => array( __( 'You are not allowed to edit this design.', 'tshirt-designer' ) ),
+				);
 			}
 		}
 
-		if ( $update ) {
+		$row['product_type'] = (string) $design['product_type'];
+
+		if ( null !== $existing ) {
+			// A design attached to a paid order is immutable: branch into a new
+			// design instead of mutating history.
+			if ( in_array( (string) $existing['status'], self::PROTECTED_STATUSES, true ) ) {
+				$existing = null;
+			}
+		}
+
+		if ( null !== $existing ) {
+			$id      = (int) $existing['id'];
+			$version = max( 1, (int) $existing['version'] ) + 1;
+
+			$row['version'] = $version;
 			if ( $preview_id > 0 ) {
 				$row['preview_image_id'] = $preview_id;
 			}
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
-			$wpdb->update( $table, $row, array( 'id' => $design_id ) );
-			$id = $design_id;
+			$wpdb->update( $table, $row, array( 'id' => $id ) );
+
+			$uuid = (string) $existing['uuid'];
+			if ( '' === $uuid ) {
+				$uuid = self::new_uuid();
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->update( $table, array( 'uuid' => $uuid ), array( 'id' => $id ) );
+			}
+			$preview_for_version = $preview_id > 0 ? $preview_id : (int) $existing['preview_image_id'];
 		} else {
+			$uuid              = self::new_uuid();
+			$version           = 1;
+			$row['uuid']       = $uuid;
+			$row['version']    = 1;
 			$row['created_at'] = $now;
 			if ( $preview_id > 0 ) {
 				$row['preview_image_id'] = $preview_id;
@@ -349,13 +490,417 @@ final class Design_Manager {
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->insert( $table, $row );
 			$id = (int) $wpdb->insert_id;
+			$preview_for_version = $preview_id;
 		}
 
 		if ( $id <= 0 ) {
+			Plugin::instance()->logger->error(
+				Logger::CHANNEL_DESIGN,
+				'Design insert failed',
+				array( 'model_id' => $design['model_id'], 'db_error' => $wpdb->last_error )
+			);
 			return array( 'ok' => false, 'errors' => array( __( 'Could not save the design.', 'tshirt-designer' ) ) );
 		}
 
-		return array( 'ok' => true, 'errors' => array(), 'id' => $id );
+		$this->store_version( $id, $version, $design, $breakdown, $preview_for_version, $now );
+
+		return array(
+			'ok'      => true,
+			'errors'  => array(),
+			'id'      => $id,
+			'uuid'    => $uuid,
+			'version' => $version,
+		);
+	}
+
+	/**
+	 * Persist an immutable snapshot of one design version.
+	 *
+	 * @param array<string, mixed> $design    Validated design document.
+	 * @param array<string, mixed> $breakdown Price breakdown.
+	 */
+	private function store_version(
+		int $design_id,
+		int $version,
+		array $design,
+		array $breakdown,
+		int $preview_id,
+		string $now
+	): void {
+		global $wpdb;
+		$table = $this->db->table( 'design_versions' );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$exists = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(*) FROM {$table} WHERE design_id = %d AND version = %d",
+				$design_id,
+				$version
+			)
+		);
+		if ( $exists > 0 ) {
+			return; // Versions never change once written.
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->insert(
+			$table,
+			array(
+				'design_id'        => $design_id,
+				'version'          => $version,
+				'design_data'      => wp_json_encode( $design ),
+				'price_breakdown'  => wp_json_encode( $breakdown ),
+				'price_total'      => (float) $breakdown['total'],
+				'preview_image_id' => $preview_id,
+				'created_at'       => $now,
+			)
+		);
+	}
+
+	/**
+	 * One stored version of a design.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	public function get_version( int $design_id, int $version ): ?array {
+		global $wpdb;
+		$table = $this->db->table( 'design_versions' );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$table} WHERE design_id = %d AND version = %d",
+				$design_id,
+				$version
+			),
+			ARRAY_A
+		);
+		if ( ! is_array( $row ) ) {
+			return null;
+		}
+		return array(
+			'id'               => (int) $row['id'],
+			'design_id'        => (int) $row['design_id'],
+			'version'          => (int) $row['version'],
+			'design_data'      => json_decode( (string) $row['design_data'], true ),
+			'price_breakdown'  => json_decode( (string) $row['price_breakdown'], true ),
+			'price_total'      => (float) $row['price_total'],
+			'preview_image_id' => (int) $row['preview_image_id'],
+			'created_at'       => (string) $row['created_at'],
+		);
+	}
+
+	/**
+	 * Every version of a design, newest first.
+	 *
+	 * @return list<array<string, mixed>>
+	 */
+	public function versions( int $design_id ): array {
+		global $wpdb;
+		$table = $this->db->table( 'design_versions' );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$rows = $wpdb->get_results(
+			$wpdb->prepare( "SELECT * FROM {$table} WHERE design_id = %d ORDER BY version DESC", $design_id ),
+			ARRAY_A
+		);
+		$out = array();
+		foreach ( is_array( $rows ) ? $rows : array() as $row ) {
+			$out[] = array(
+				'version'          => (int) $row['version'],
+				'price_total'      => (float) $row['price_total'],
+				'preview_image_id' => (int) $row['preview_image_id'],
+				'created_at'       => (string) $row['created_at'],
+			);
+		}
+		return $out;
+	}
+
+	/**
+	 * Duplicate a design into a brand new one owned by the same user/guest.
+	 *
+	 * Files are reused (asset/upload ids are kept); only the design record is
+	 * independent, so editing the copy never touches the original.
+	 *
+	 * @return array{ok:bool, errors:string[], id?:int, uuid?:string}
+	 */
+	public function duplicate( int $design_id, int $user_id, string $guest_token ): array {
+		$source = $this->get_design( $design_id, $user_id, $guest_token );
+		if ( null === $source ) {
+			return array( 'ok' => false, 'errors' => array( __( 'Design not found.', 'tshirt-designer' ) ) );
+		}
+
+		$data = is_array( $source['design_data'] ) ? $source['design_data'] : array();
+		$payload = array(
+			'model_id' => (int) ( $data['model_id'] ?? $source['model_id'] ),
+			'color_id' => (int) ( $data['color_id'] ?? $source['color_id'] ),
+			'size_id'  => (int) ( $data['size_id'] ?? $source['size_id'] ),
+			'areas'    => isset( $data['areas'] ) && is_array( $data['areas'] ) ? $data['areas'] : array(),
+		);
+
+		// Re-validate against the *current* catalogue: a copy must be orderable.
+		$result = $this->save( $payload, $user_id, $guest_token, null );
+		if ( ! $result['ok'] ) {
+			return $result;
+		}
+
+		// Carry the preview over so the copy is recognisable straight away.
+		if ( (int) $source['preview_image_id'] > 0 ) {
+			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->update(
+				$this->db->table( 'designs' ),
+				array( 'preview_image_id' => (int) $source['preview_image_id'] ),
+				array( 'id' => (int) $result['id'] )
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Delete a design the caller owns (never a design tied to a paid order).
+	 *
+	 * @return array{ok:bool, errors:string[]}
+	 */
+	public function delete( int $design_id, int $user_id, string $guest_token ): array {
+		$design = $this->get_design( $design_id, $user_id, $guest_token );
+		if ( null === $design ) {
+			return array( 'ok' => false, 'errors' => array( __( 'Design not found.', 'tshirt-designer' ) ) );
+		}
+		if ( in_array( (string) $design['status'], self::PROTECTED_STATUSES, true ) ) {
+			return array(
+				'ok'     => false,
+				'errors' => array( __( 'Designs attached to an order cannot be deleted.', 'tshirt-designer' ) ),
+			);
+		}
+
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->delete( $this->db->table( 'designs' ), array( 'id' => $design_id ), array( '%d' ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->delete( $this->db->table( 'design_versions' ), array( 'design_id' => $design_id ), array( '%d' ) );
+
+		return array( 'ok' => true, 'errors' => array() );
+	}
+
+	/**
+	 * Update a design's lifecycle status (ordered/paid/production).
+	 */
+	public function set_status( int $design_id, string $status ): void {
+		$allowed = array(
+			self::STATUS_DRAFT,
+			self::STATUS_SAVED,
+			self::STATUS_ORDERED,
+			self::STATUS_PAID,
+			self::STATUS_PRODUCTION,
+		);
+		if ( ! in_array( $status, $allowed, true ) ) {
+			return;
+		}
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->update(
+			$this->db->table( 'designs' ),
+			array( 'status' => $status, 'updated_at' => current_time( 'mysql' ) ),
+			array( 'id' => $design_id )
+		);
+	}
+
+	/**
+	 * Move guest designs to a user account after login/registration.
+	 *
+	 * @return int Number of designs transferred.
+	 */
+	public function claim_guest_designs( int $user_id, string $guest_token ): int {
+		if ( $user_id <= 0 || '' === $guest_token ) {
+			return 0;
+		}
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$count = $wpdb->update(
+			$this->db->table( 'designs' ),
+			array( 'user_id' => $user_id, 'guest_token' => '' ),
+			array( 'guest_token' => $guest_token, 'user_id' => 0 ),
+			array( '%d', '%s' ),
+			array( '%s', '%d' )
+		);
+		return is_int( $count ) ? $count : 0;
+	}
+
+	/**
+	 * Build the immutable production snapshot of a design version.
+	 *
+	 * Everything the production pipeline needs is copied by value: model,
+	 * colour, size, area geometry, item positions and resolved file paths.
+	 * Later catalogue edits can therefore never alter a placed order.
+	 *
+	 * @return array<string, mixed>|null
+	 */
+	public function build_snapshot( int $design_id, int $version ): ?array {
+		global $wpdb;
+		$table = $this->db->table( 'designs' );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$row = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $design_id ), ARRAY_A );
+		if ( ! is_array( $row ) ) {
+			return null;
+		}
+		$design = $this->cast( $row );
+
+		$stored = $this->get_version( $design_id, $version );
+		if ( null === $stored ) {
+			return null;
+		}
+		$data = is_array( $stored['design_data'] ) ? $stored['design_data'] : array();
+
+		$model = $this->models->get( (int) ( $data['model_id'] ?? 0 ), true );
+		if ( null === $model ) {
+			return null;
+		}
+
+		$color = Plugin::instance()->colors->get( (int) ( $data['color_id'] ?? 0 ) );
+		$size  = Plugin::instance()->sizes->get( (int) ( $data['size_id'] ?? 0 ) );
+
+		$areas_by_id = array();
+		foreach ( $this->print_areas->for_model( (int) $model['id'], false ) as $area ) {
+			$areas_by_id[ (int) $area['id'] ] = $area;
+		}
+
+		$product_type = (string) ( $data['product_type'] ?? $model['product_type'] );
+		$dpi          = Product_Type_Registry::dpi( $product_type, Plugin::instance()->settings );
+
+		$snapshot_areas = array();
+		$item_count     = 0;
+
+		foreach ( ( $data['areas'] ?? array() ) as $area_key => $items ) {
+			$area_id = (int) $area_key;
+			if ( ! isset( $areas_by_id[ $area_id ] ) || ! is_array( $items ) || array() === $items ) {
+				continue;
+			}
+			$area = $areas_by_id[ $area_id ];
+
+			$snapshot_items = array();
+			foreach ( $items as $item ) {
+				if ( ! is_array( $item ) ) {
+					continue;
+				}
+				$snapshot_items[] = $this->snapshot_item( $item );
+				++$item_count;
+			}
+
+			$snapshot_areas[] = array(
+				'id'            => $area_id,
+				'name'          => (string) $area['name'],
+				'type'          => (string) $area['area_type'],
+				'max_width_cm'  => (float) $area['max_width_cm'],
+				'max_height_cm' => (float) $area['max_height_cm'],
+				'items'         => $snapshot_items,
+			);
+		}
+
+		return array(
+			'snapshot_version' => 1,
+			'taken_at'         => current_time( 'mysql' ),
+			'design_id'        => $design_id,
+			'design_uuid'      => (string) $design['uuid'],
+			'design_version'   => $version,
+			'product_type'     => $product_type,
+			'model'            => array(
+				'id'   => (int) $model['id'],
+				'name' => (string) $model['name'],
+				'slug' => (string) $model['slug'],
+			),
+			'color'            => null === $color
+				? null
+				: array( 'id' => (int) $color['id'], 'name' => (string) $color['name'], 'hex' => (string) $color['hex'] ),
+			'size'             => null === $size
+				? null
+				: array( 'id' => (int) $size['id'], 'name' => (string) $size['name'] ),
+			'areas'            => $snapshot_areas,
+			'item_count'       => $item_count,
+			'dpi'              => $dpi,
+			'preview_image_id' => (int) ( $stored['preview_image_id'] ?: $design['preview_image_id'] ),
+			'pricing'          => $stored['price_breakdown'],
+			'price_total'      => (float) $stored['price_total'],
+		);
+	}
+
+	/**
+	 * Copy one design item into the snapshot, resolving its file by absolute
+	 * path so later media edits cannot change the print output.
+	 *
+	 * @param array<string, mixed> $item Stored design item.
+	 * @return array<string, mixed>
+	 */
+	private function snapshot_item( array $item ): array {
+		$out = array(
+			'id'       => (string) ( $item['id'] ?? '' ),
+			'type'     => (string) ( $item['type'] ?? '' ),
+			'ref_id'   => (int) ( $item['ref_id'] ?? 0 ),
+			'x'        => (float) ( $item['x'] ?? 0 ),
+			'y'        => (float) ( $item['y'] ?? 0 ),
+			'w'        => (float) ( $item['w'] ?? 0 ),
+			'h'        => (float) ( $item['h'] ?? 0 ),
+			'rotation' => (float) ( $item['rotation'] ?? 0 ),
+			'layer'    => (int) ( $item['layer'] ?? 0 ),
+			'opacity'  => isset( $item['opacity'] ) ? (float) $item['opacity'] : 1.0,
+			'src'      => (string) ( $item['src'] ?? '' ),
+		);
+
+		if ( 'text' === $out['type'] ) {
+			$out['text'] = isset( $item['text'] ) && is_array( $item['text'] ) ? $item['text'] : array();
+			return $out;
+		}
+
+		$out['file_path'] = $this->resolve_item_path( $out['type'], $out['ref_id'], $out['src'] );
+		return $out;
+	}
+
+	/**
+	 * Absolute filesystem path of an item's artwork ('' when unresolvable).
+	 */
+	private function resolve_item_path( string $type, int $ref_id, string $src ): string {
+		if ( 'asset' === $type ) {
+			$asset = Plugin::instance()->assets->get( $ref_id );
+			if ( is_array( $asset ) ) {
+				if ( (int) $asset['file_id'] > 0 ) {
+					$path = get_attached_file( (int) $asset['file_id'] );
+					if ( is_string( $path ) && is_readable( $path ) ) {
+						return $path;
+					}
+				}
+				if ( '' !== (string) $asset['file_path'] ) {
+					$path = TD_PLUGIN_DIR . ltrim( (string) $asset['file_path'], '/' );
+					if ( is_readable( $path ) ) {
+						return $path;
+					}
+				}
+			}
+		} elseif ( 'upload' === $type ) {
+			global $wpdb;
+			$table = $this->db->table( 'uploads' );
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+			$attachment_id = (int) $wpdb->get_var(
+				$wpdb->prepare( "SELECT attachment_id FROM {$table} WHERE id = %d", $ref_id )
+			);
+			if ( $attachment_id > 0 ) {
+				$path = get_attached_file( $attachment_id );
+				if ( is_string( $path ) && is_readable( $path ) ) {
+					return $path;
+				}
+			}
+		}
+
+		// Last resort: map a URL inside the uploads dir back to a path.
+		if ( '' !== $src ) {
+			$uploads = wp_upload_dir();
+			if ( empty( $uploads['error'] ) && str_starts_with( $src, (string) $uploads['baseurl'] ) ) {
+				$path = $uploads['basedir'] . substr( $src, strlen( (string) $uploads['baseurl'] ) );
+				if ( is_readable( $path ) ) {
+					return $path;
+				}
+			}
+		}
+
+		return '';
 	}
 
 	/**
@@ -479,7 +1024,11 @@ final class Design_Manager {
 	public function cast( array $row ): array {
 		return array(
 			'id'               => (int) $row['id'],
+			'uuid'             => (string) ( $row['uuid'] ?? '' ),
+			'version'          => max( 1, (int) ( $row['version'] ?? 1 ) ),
+			'product_type'     => (string) ( $row['product_type'] ?? '' ),
 			'user_id'          => (int) $row['user_id'],
+			'guest_token'      => (string) ( $row['guest_token'] ?? '' ),
 			'model_id'         => (int) $row['model_id'],
 			'color_id'         => (int) $row['color_id'],
 			'size_id'          => (int) $row['size_id'],

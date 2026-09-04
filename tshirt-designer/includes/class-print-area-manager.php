@@ -13,6 +13,13 @@ defined( 'ABSPATH' ) || exit;
 
 final class Print_Area_Manager {
 
+	/**
+	 * Legacy list, kept for backward compatibility with phase-1 integrations.
+	 * Validation now goes through Product_Type_Registry so each product type
+	 * declares its own areas.
+	 *
+	 * @deprecated 1.1.0 Use Product_Type_Registry::area_types().
+	 */
 	public const AREA_TYPES = array( 'front', 'back', 'left_sleeve', 'right_sleeve', 'other' );
 
 	public function __construct( private Database $db ) {}
@@ -77,6 +84,20 @@ final class Print_Area_Manager {
 		$wpdb->delete( $this->db->table( 'print_areas' ), array( 'id' => $id ), array( '%d' ) );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 		$wpdb->delete( $this->db->table( 'pricing_rules' ), array( 'print_area_id' => $id, 'scope' => 'area' ), array( '%d', '%s' ) );
+	}
+
+	/**
+	 * Product type of the model owning an area (defaults to the legacy type).
+	 */
+	public function product_type_for_model( int $model_id ): string {
+		if ( $model_id <= 0 ) {
+			return Product_Type_Registry::LEGACY_TYPE;
+		}
+		global $wpdb;
+		$table = $this->db->table( 'models' );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$type = $wpdb->get_var( $wpdb->prepare( "SELECT product_type FROM {$table} WHERE id = %d", $model_id ) );
+		return Product_Type_Registry::sanitize( is_string( $type ) ? $type : '' );
 	}
 
 	/**
@@ -189,7 +210,10 @@ final class Print_Area_Manager {
 		}
 		if ( array_key_exists( 'area_type', $data ) ) {
 			$type         = sanitize_key( (string) $data['area_type'] );
-			$row['area_type'] = in_array( $type, self::AREA_TYPES, true ) ? $type : 'other';
+			$product_type = isset( $data['product_type'] )
+				? Product_Type_Registry::sanitize( (string) $data['product_type'] )
+				: $this->product_type_for_model( (int) ( $data['model_id'] ?? 0 ) );
+			$row['area_type'] = Product_Type_Registry::area_type_allowed( $product_type, $type ) ? $type : 'other';
 		}
 		foreach ( array( 'max_width_cm', 'max_height_cm' ) as $key ) {
 			if ( array_key_exists( $key, $data ) ) {

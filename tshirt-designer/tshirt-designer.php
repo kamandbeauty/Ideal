@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       T-Shirt Designer
+ * Plugin Name:       Custom Product Designer
  * Plugin URI:        https://github.com/kamandbeauty/Ideal
- * Description:       3D t-shirt designer for WooCommerce — let customers pick a model, color and size, place artwork or uploads on print areas, and get a server-computed price.
- * Version:           1.0.0
+ * Description:       Product-agnostic 3D product designer for WooCommerce (T-Shirt, Tote Bag and more) — models, colors, sizes, print areas, artwork, uploads, text, server-computed pricing, cart/order integration and print-ready production files.
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      8.1
  * Author:            Studio Javid
@@ -21,8 +21,8 @@ declare( strict_types=1 );
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'TD_VERSION', '1.0.0' );
-define( 'TD_DB_VERSION', '1.0.0' );
+define( 'TD_VERSION', '1.1.0' );
+define( 'TD_DB_VERSION', '1.1.0' );
 define( 'TD_PLUGIN_FILE', __FILE__ );
 define( 'TD_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -45,6 +45,13 @@ register_activation_hook(
 	__FILE__,
 	static function (): void {
 		td_plugin()->activate();
+	}
+);
+
+register_deactivation_hook(
+	__FILE__,
+	static function (): void {
+		td_plugin()->deactivate();
 	}
 );
 

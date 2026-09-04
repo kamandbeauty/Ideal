@@ -42,7 +42,7 @@ final class Autoloader {
 			$dir = 'includes';
 		}
 
-		$file = strtolower( str_replace( '_', '-', $relative ) ) . '.php';
+		$file = 'class-' . strtolower( str_replace( '_', '-', $relative ) ) . '.php';
 		$path = TD_PLUGIN_DIR . $dir . '/' . $file;
 
 		if ( is_readable( $path ) ) {
