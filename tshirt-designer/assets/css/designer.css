@@ -729,3 +729,151 @@
 		padding: 10px;
 	}
 }
+
+/* ------------------------------------------------------------------ RTL */
+
+/*
+ * The app root carries dir="rtl" on RTL locales. Everything laid out with
+ * flex/grid mirrors automatically; the rules below cover the places where a
+ * physical direction was baked in, and the places that must NOT mirror.
+ */
+
+.td-app[dir="rtl"] {
+	text-align: right;
+}
+
+/*
+ * The print-area editor is a physical drawing surface: x grows to the right
+ * from the area's top-left corner, in centimetres, exactly as the print file
+ * is produced. Mirroring it would put artwork on the wrong side of the
+ * garment, so it stays LTR regardless of locale.
+ */
+.td-app[dir="rtl"] .td-editor,
+.td-app[dir="rtl"] .td-editor__canvas,
+.td-app[dir="rtl"] .td-stage__canvas {
+	direction: ltr;
+}
+
+/* Prices and dimensions read as numbers, never as mirrored text. */
+.td-app[dir="rtl"] .td-price__line,
+.td-app[dir="rtl"] .td-price__total,
+.td-app[dir="rtl"] .td-area__dims,
+.td-app[dir="rtl"] .td-layer__name {
+	unicode-bidi: plaintext;
+}
+
+.td-app[dir="rtl"] .td-spinner {
+	animation-direction: reverse;
+}
+
+/* ------------------------------------------------- touch / small screens */
+
+@media (max-width: 980px) {
+	/*
+	 * Touch targets. WCAG asks for 44px; the desktop chips are smaller
+	 * because a mouse is precise and a fingertip is not.
+	 */
+	.td-btn,
+	.td-tab,
+	.td-cat,
+	.td-size,
+	.td-area {
+		min-height: 44px;
+	}
+
+	.td-swatch {
+		min-width: 44px;
+		min-height: 44px;
+	}
+
+	/* Layer rows are drag/tap targets, not just labels. */
+	.td-layer {
+		min-height: 48px;
+	}
+
+	/*
+	 * The upload dropzone is a tap target on touch devices — drag and drop
+	 * does not exist there, so it needs to look pressable.
+	 */
+	.td-upload__zone {
+		padding: 18px 12px;
+	}
+
+	/* Horizontal chip rows scroll instead of wrapping into a tall block. */
+	.td-tabs,
+	.td-cats,
+	.td-sizes {
+		flex-wrap: nowrap;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: thin;
+	}
+
+	.td-tabs > *,
+	.td-cats > *,
+	.td-sizes > * {
+		flex: 0 0 auto;
+	}
+
+	/*
+	 * Keep the running total visible while the customer edits below the
+	 * fold — the price is the one thing they should never have to hunt for.
+	 */
+	.td-price {
+		position: sticky;
+		bottom: 0;
+		z-index: 5;
+		background: var(--td-bg-2);
+		box-shadow: 0 -6px 16px rgba(0, 0, 0, 0.35);
+	}
+}
+
+@media (max-width: 480px) {
+	/* Two models / four swatches per row rather than a single tall column. */
+	.td-models {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.td-assets {
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	.td-stage__canvas {
+		height: min(80vw, 340px);
+		min-height: 240px;
+	}
+
+	.td-stage__toolbar {
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+
+	.td-layers__actions {
+		flex-wrap: wrap;
+	}
+
+	.td-layers__actions .td-btn {
+		flex: 1 1 calc(50% - 6px);
+	}
+}
+
+/*
+ * Coarse pointers get permanent handles: hover-only affordances are
+ * invisible on a touch screen.
+ */
+@media (hover: none) {
+	.td-layers__actions,
+	.td-editor__canvas {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.td-spinner {
+		animation-duration: 3s;
+	}
+
+	.td-app * {
+		transition-duration: 0.01ms !important;
+	}
+}

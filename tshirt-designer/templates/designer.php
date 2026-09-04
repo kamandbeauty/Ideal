@@ -23,7 +23,10 @@ $root = 'td-app-' . wp_generate_password( 8, false, false );
 <div
 	class="td-app"
 	id="<?php echo esc_attr( $root ); ?>"
-	dir="ltr"
+	<?php // Follow the site locale so Persian shops get a real RTL layout. The
+	// 2D editor canvas is forced back to LTR in CSS because its coordinates
+	// are physical centimetres from the print area's top-left corner. ?>
+	dir="<?php echo is_rtl() ? 'rtl' : 'ltr'; ?>"
 	data-boot="<?php echo esc_attr( (string) wp_json_encode( $boot, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) ); ?>"
 >
 	<div class="td-app__inner">

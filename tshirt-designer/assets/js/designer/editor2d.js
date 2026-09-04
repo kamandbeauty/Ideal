@@ -46,7 +46,17 @@ export class Editor2D {
           this.images.set(it.src, null);
         }
       });
-    if (jobs.length) await Promise.all(jobs);
+    if (!jobs.length) return false;
+    await Promise.all(jobs);
+    return true;
+  }
+
+  /**
+   * Items of the active area in paint order (lowest layer first).
+   * Hit testing walks the same list backwards so the topmost item wins.
+   */
+  _sorted() {
+    return [...this.state.items()].sort((a, b) => (a.layer ?? 0) - (b.layer ?? 0));
   }
 
   setArea(area) {
@@ -95,7 +105,7 @@ export class Editor2D {
 
   /** Hit-test items (top-most first) and handles of the selected item. */
   hitTest(p) {
-    const items = this.state.items();
+    const items = this._sorted();
     const sel = items.find((it) => it.id === this.state.get('selectedItemId'));
 
     if (sel) {
@@ -331,10 +341,12 @@ export class Editor2D {
       ctx.stroke();
     }
 
-    // Items.
-    for (const it of this.state.items()) {
+    // Items, painted lowest layer first.
+    for (const it of this._sorted()) {
       const img = this.images.get(it.src);
       ctx.save();
+      const opacity = typeof it.opacity === 'number' ? it.opacity : 1;
+      ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
       ctx.translate(this.cm2px(it.x), this.cm2px(it.y));
       if (it.rotation) ctx.rotate((it.rotation * Math.PI) / 180);
       if (img) {
@@ -353,6 +365,7 @@ export class Editor2D {
     if (sel) {
       const h = this._handles(sel);
       ctx.save();
+      ctx.globalAlpha = 1;
       ctx.translate(h.cx, h.cy);
       ctx.rotate(h.rot);
       ctx.strokeStyle = '#38bdf8';
@@ -373,7 +386,13 @@ export class Editor2D {
     }
 
     ctx.restore();
-    this._loadImages().then(() => this.requestPaint());
+
+    // Repaint only when loading actually produced a new image. Repainting
+    // unconditionally re-entered render() every frame forever, pinning a CPU
+    // core (and a mobile battery) for as long as the designer stayed open.
+    this._loadImages().then((loaded) => {
+      if (loaded) this.requestPaint();
+    });
   }
 
   requestPaint() {

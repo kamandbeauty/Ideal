@@ -39,7 +39,7 @@ export class State {
   addItem(item) {
     const id = this.data.activeAreaId;
     if (!id) return;
-    const items = [...this.items(id), item];
+    const items = this._reindex([...this.items(id), item]);
     this.set({ areas: { ...this.data.areas, [id]: items }, selectedItemId: item.id });
   }
 
@@ -51,7 +51,7 @@ export class State {
 
   removeItem(itemId) {
     const id = this.data.activeAreaId;
-    const items = this.items(id).filter((it) => it.id !== itemId);
+    const items = this._reindex(this.items(id).filter((it) => it.id !== itemId));
     const sel = this.data.selectedItemId === itemId ? null : this.data.selectedItemId;
     this.set({ areas: { ...this.data.areas, [id]: items }, selectedItemId: sel });
   }
@@ -77,7 +77,12 @@ export class State {
     if (to < 0 || to >= items.length) return;
     const [item] = items.splice(idx, 1);
     items.splice(to, 0, item);
-    this.set({ areas: { ...this.data.areas, [id]: items } });
+    this.set({ areas: { ...this.data.areas, [id]: this._reindex(items) } });
+  }
+
+  /** Rewrite `layer` so it matches the array order after a reorder. */
+  _reindex(items) {
+    return items.map((it, index) => (it.layer === index ? it : { ...it, layer: index }));
   }
 
   /** Serialise the design for the API (server recomputes everything). */
@@ -85,18 +90,29 @@ export class State {
     const areas = {};
     for (const [areaId, items] of Object.entries(this.data.areas)) {
       if (!items.length) continue;
-      areas[areaId] = items.map((it) => ({
-        id: it.id,
-        type: it.type,
-        ref_id: it.ref_id,
-        x: it.x,
-        y: it.y,
-        w: it.w,
-        h: it.h,
-        rotation: it.rotation || 0,
-      }));
+      areas[areaId] = items.map((it, index) => {
+        const row = {
+          id: it.id,
+          type: it.type,
+          ref_id: it.ref_id,
+          x: it.x,
+          y: it.y,
+          w: it.w,
+          h: it.h,
+          rotation: it.rotation || 0,
+          // Array position IS the z-order; send it explicitly so the server
+          // never has to rely on JSON key ordering to reproduce the stack.
+          layer: index,
+          opacity: typeof it.opacity === 'number' ? it.opacity : 1,
+        };
+        // Text items carry their typography so the server can re-render them
+        // at print resolution instead of storing a flattened bitmap.
+        if (it.type === 'text' && it.text) row.text = it.text;
+        return row;
+      });
     }
     return {
+      product_type: this.data.model ? this.data.model.product_type || '' : '',
       model_id: this.data.model ? this.data.model.id : 0,
       color_id: this.data.colorId,
       size_id: this.data.sizeId,

@@ -90,29 +90,51 @@ export class Compositor {
     }
 
     // Items per print area.
-    const jobs = [];
+    //
+    // Images are loaded FIRST and painted afterwards in layer order. Drawing
+    // inside each promise would paint in network-completion order, which
+    // silently reorders layers whenever a cached image resolves before a
+    // slower one.
+    const draws = [];
     for (const area of this.areas) {
       const rect = this.pixelRect(area);
       if (!rect || !area._items || !area._items.length) continue;
       const pxPerCm = rect.w / area.max_width_cm;
       const pxPerCmY = rect.h / area.max_height_cm;
 
-      for (const item of area._items) {
-        jobs.push(
-          loadImage(item.src)
-            .then((img) => {
-              ctx.save();
-              ctx.translate(rect.x + item.x * pxPerCm, rect.y + item.y * pxPerCmY);
-              if (item.rotation) ctx.rotate((item.rotation * Math.PI) / 180);
-              ctx.drawImage(img, (-item.w * pxPerCm) / 2, (-item.h * pxPerCmY) / 2, item.w * pxPerCm, item.h * pxPerCmY);
-              ctx.restore();
-            })
-            .catch(() => { /* skip missing image */ })
-        );
+      const ordered = [...area._items].sort(
+        (a, b) => (a.layer ?? 0) - (b.layer ?? 0)
+      );
+
+      for (const item of ordered) {
+        draws.push({ item, rect, pxPerCm, pxPerCmY });
       }
     }
 
-    if (jobs.length) await Promise.all(jobs);
+    const images = await Promise.all(
+      draws.map(({ item }) => loadImage(item.src).catch(() => null))
+    );
+
+    for (let i = 0; i < draws.length; i += 1) {
+      const img = images[i];
+      if (!img) continue;                       // skip a missing image
+      const { item, rect, pxPerCm, pxPerCmY } = draws[i];
+
+      ctx.save();
+      const opacity = typeof item.opacity === 'number' ? item.opacity : 1;
+      ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
+      ctx.translate(rect.x + item.x * pxPerCm, rect.y + item.y * pxPerCmY);
+      if (item.rotation) ctx.rotate((item.rotation * Math.PI) / 180);
+      ctx.drawImage(
+        img,
+        (-item.w * pxPerCm) / 2,
+        (-item.h * pxPerCmY) / 2,
+        item.w * pxPerCm,
+        item.h * pxPerCmY
+      );
+      ctx.restore();
+    }
+
     this.texture.needsUpdate = true;
     if (this.onRepaint) this.onRepaint();
   }
