@@ -1222,4 +1222,36 @@ foreach ( array( 'new', 'paid', 'ready_for_production', 'in_production', 'printe
 	TD_Test::ok( isset( $statuses[ $needed ] ), "production status `{$needed}` exists" );
 }
 
+TD_Test::group( 'Localization' );
+
+// A malformed .mo is silently ignored by WordPress: every string just falls
+// back to English with no warning anywhere. That is exactly how the Persian
+// catalog shipped broken, so the file is now parsed for real in tests.
+$td_mo = TD_PLUGIN_DIR . 'languages/tshirt-designer-fa_IR.mo';
+TD_Test::ok( file_exists( $td_mo ), 'the Persian .mo file ships with the plugin' );
+
+$td_catalog = new MO();
+TD_Test::ok( $td_catalog->import_from_file( $td_mo ), 'WordPress can actually parse the Persian .mo' );
+TD_Test::ok( count( $td_catalog->entries ) > 300, 'the catalog holds the full string set' );
+
+foreach ( array( 'Add to cart', 'Order again', 'Add text', 'Custom Product Designer' ) as $td_string ) {
+	$td_entry = $td_catalog->entries[ $td_string ] ?? null;
+	TD_Test::ok(
+		null !== $td_entry && '' !== (string) $td_entry->translations[0] && $td_entry->translations[0] !== $td_string,
+		sprintf( '"%s" is translated into Persian', $td_string )
+	);
+}
+
+// Nothing may ship untranslated: this shop is Persian-facing.
+$td_missing = array();
+foreach ( $td_catalog->entries as $td_key => $td_entry ) {
+	if ( '' === $td_key ) {
+		continue;
+	}
+	if ( '' === trim( (string) ( $td_entry->translations[0] ?? '' ) ) ) {
+		$td_missing[] = $td_key;
+	}
+}
+TD_Test::equals( 0, count( $td_missing ), 'no string is left untranslated' . ( $td_missing ? ' :: ' . implode( ' | ', array_slice( $td_missing, 0, 5 ) ) : '' ) );
+
 exit( TD_Test::summary() );

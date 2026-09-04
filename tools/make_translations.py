@@ -289,6 +289,148 @@ FA = {
     "Your browser does not support WebGL, which is required for the 3D preview.": "مرورگر شما از WebGL پشتیبانی نمی‌کند؛ این قابلیت برای پیش‌نمایش سه‌بعدی لازم است.",
     "cm": "سانتی‌متر",
     "—": "—",
+    "Draft": "پیش‌نویس",
+    "Saved": "ذخیره‌شده",
+    "Ordered": "سفارش‌داده‌شده",
+    "Paid": "پرداخت‌شده",
+    "In production": "در حال تولید",
+    "No design selected.": "هیچ طرحی انتخاب نشده است.",
+    "This design belongs to an order and cannot be deleted.": "این طرح به یک سفارش تعلق دارد و قابل حذف نیست.",
+    "Custom Product Design": "طراحی محصول سفارشی",
+    "This order could not be loaded.": "این سفارش بارگذاری نشد.",
+    "This order does not contain any custom designs.": "این سفارش هیچ طرح سفارشی ندارد.",
+    "Order not found.": "سفارش یافت نشد.",
+    "Production status updated.": "وضعیت تولید به‌روزرسانی شد.",
+    "Unknown action.": "عملیات نامعتبر است.",
+    "Production file not found.": "فایل تولید یافت نشد.",
+    "The production folder is not writable.": "پوشه تولید قابل نوشتن نیست.",
+    "Production file is missing on disk.": "فایل تولید روی دیسک موجود نیست.",
+    "There are no production files to download yet.": "هنوز فایل تولیدی برای دانلود وجود ندارد.",
+    "Some production files could not be regenerated. Check the plugin log for details.": "برخی فایل‌های تولید بازسازی نشدند. برای جزئیات گزارش افزونه را ببینید.",
+    "Print resolution saved.": "وضوح چاپ ذخیره شد.",
+    "Custom Product Designer": "طراح محصول سفارشی",
+    "Product Designer": "طراح محصول",
+    "Product Types": "انواع محصول",
+    "Design code": "کد طرح",
+    "Version": "نسخه",
+    "Product type": "نوع محصول",
+    "Version history": "تاریخچه نسخه‌ها",
+    "(current)": "(فعلی)",
+    "Each version keeps its own immutable price snapshot. An order is always bound to the exact version that was purchased.": "هر نسخه تصویر قیمت تغییرناپذیر خود را نگه می‌دارد. هر سفارش همیشه به همان نسخه‌ای که خریداری شده متصل است.",
+    "Search designs": "جست‌وجوی طرح‌ها",
+    "Design code or ID…": "کد طرح یا شناسه…",
+    "Search": "جست‌وجو",
+    "User ID": "شناسه کاربر",
+    "Order ID": "شناسه سفارش",
+    "From": "از",
+    "To": "تا",
+    "Filter": "فیلتر",
+    "Reset": "بازنشانی",
+    "No designs match these filters.": "هیچ طرحی با این فیلترها مطابقت ندارد.",
+    "#%1$d · version %2$d": "#%1$d · نسخه %2$d",
+    "This design belongs to an order.": "این طرح به یک سفارش تعلق دارد.",
+    "Locked": "قفل‌شده",
+    "Delete this design permanently?": "این طرح برای همیشه حذف شود؟",
+    "Production status": "وضعیت تولید",
+    "Update": "به‌روزرسانی",
+    "Download all print files (ZIP)": "دانلود همه فایل‌های چاپ (ZIP)",
+    "Regenerate all production files from the order snapshot?": "همه فایل‌های تولید از روی تصویر سفارش بازسازی شوند؟",
+    "Regenerate from snapshot": "بازسازی از تصویر سفارش",
+    "Design preview": "پیش‌نمایش طرح",
+    "No preview saved": "پیش‌نمایشی ذخیره نشده است",
+    "version %d": "نسخه %d",
+    "Print resolution": "وضوح چاپ",
+    "Area": "ناحیه",
+    "Print size": "اندازه چاپ",
+    "Items": "آیتم‌ها",
+    "Production file": "فایل تولید",
+    "Download": "دانلود",
+    "Not generated yet": "هنوز تولید نشده است",
+    "Download %s": "دانلود %s",
+    "Price breakdown (as charged)": "ریز قیمت (مطابق مبلغ دریافت‌شده)",
+    "%s printing": "چاپ %s",
+    "Unit total": "جمع واحد",
+    "Download this item (ZIP)": "دانلود این آیتم (ZIP)",
+    "Each product type owns its own models, colors, sizes, print areas, pricing rules and production settings. New printable products are registered in code through the \"cpd_product_types\" filter, so adding one never requires changing the designer core.": "هر نوع محصول مدل‌ها، رنگ‌ها، سایزها، نواحی چاپ، قوانین قیمت‌گذاری و تنظیمات تولید مخصوص خود را دارد. محصولات چاپی جدید از طریق فیلتر \"cpd_product_types\" در کد ثبت می‌شوند، بنابراین افزودن یک محصول هرگز نیازمند تغییر هسته طراح نیست.",
+    "Print areas supported": "نواحی چاپ پشتیبانی‌شده",
+    "Has sizes": "دارای سایز",
+    "Print DPI": "DPI چاپ",
+    "Yes": "بله",
+    "No": "خیر",
+    "Production files are rendered at physical print size × DPI. Leave a product type empty to use the global default.": "فایل‌های تولید بر اساس اندازه فیزیکی چاپ × DPI رندر می‌شوند. برای استفاده از مقدار پیش‌فرض سراسری، نوع محصول را خالی بگذارید.",
+    "Default DPI": "DPI پیش‌فرض",
+    "300 DPI is the usual choice for garment printing.": "معمولاً برای چاپ روی پوشاک از ۳۰۰ DPI استفاده می‌شود.",
+    "%s DPI": "%s DPI",
+    "A %1$s × %2$s cm print becomes %3$d × %4$d px at this resolution.": "یک چاپ %1$s × %2$s سانتی‌متری در این وضوح به %3$d × %4$d پیکسل تبدیل می‌شود.",
+    "Add to cart": "افزودن به سبد خرید",
+    "Adding to cart…": "در حال افزودن به سبد خرید…",
+    "Added to your cart.": "به سبد خرید شما افزوده شد.",
+    "Could not add the design to the cart.": "افزودن طرح به سبد خرید ممکن نشد.",
+    "Add some artwork or text before continuing.": "پیش از ادامه، گرافیک یا متنی اضافه کنید.",
+    "Add text": "افزودن متن",
+    "Type some text first.": "ابتدا متنی بنویسید.",
+    "Text is limited to 200 characters.": "متن حداکثر ۲۰۰ کاراکتر می‌تواند باشد.",
+    "Text added to the print area.": "متن به ناحیه چاپ افزوده شد.",
+    "Text updated.": "متن به‌روزرسانی شد.",
+    "Update text": "به‌روزرسانی متن",
+    "Pick a print area first.": "ابتدا یک ناحیه چاپ انتخاب کنید.",
+    "WooCommerce is not available.": "ووکامرس در دسترس نیست.",
+    "This design has no saved version yet.": "این طرح هنوز نسخه ذخیره‌شده‌ای ندارد.",
+    "This model is not linked to a WooCommerce product yet.": "این مدل هنوز به هیچ محصول ووکامرس متصل نشده است.",
+    "The linked product cannot be purchased right now.": "محصول متصل در حال حاضر قابل خرید نیست.",
+    "Could not prepare the design for checkout.": "آماده‌سازی طرح برای تسویه‌حساب ممکن نشد.",
+    "Could not add the product to your cart.": "افزودن محصول به سبد خرید ممکن نشد.",
+    "%1$s (v%2$d)": "%1$s (نسخه %2$d)",
+    "Classic Tote Bag": "کیف پارچه‌ای کلاسیک",
+    "Canvas shopping tote with independent front and back print areas.": "کیف خرید کتان با نواحی چاپ مستقل جلو و پشت.",
+    "Natural": "طبیعی",
+    "Olive": "زیتونی",
+    "One size": "تک‌سایز",
+    "Text items need some text.": "آیتم متنی باید متن داشته باشد.",
+    "You are not allowed to edit this design.": "شما اجازه ویرایش این طرح را ندارید.",
+    "Designs attached to an order cannot be deleted.": "طرح‌های متصل به سفارش قابل حذف نیستند.",
+    "The file could not be uploaded. Please try again.": "فایل بارگذاری نشد. لطفاً دوباره تلاش کنید.",
+    "My Designs": "طرح‌های من",
+    "This link has expired. Please try again.": "این پیوند منقضی شده است. لطفاً دوباره تلاش کنید.",
+    "New": "جدید",
+    "Ready for production": "آماده تولید",
+    "Printed": "چاپ‌شده",
+    "Quality check": "کنترل کیفیت",
+    "Shipped": "ارسال‌شده",
+    "Completed": "تکمیل‌شده",
+    "Cancelled": "لغوشده",
+    "You are not allowed to reorder this item.": "شما اجازه سفارش مجدد این آیتم را ندارید.",
+    "Order item not found.": "آیتم سفارش یافت نشد.",
+    "This item has no stored design.": "این آیتم هیچ طرح ذخیره‌شده‌ای ندارد.",
+    "The product of this design is no longer available.": "محصول این طرح دیگر در دسترس نیست.",
+    "The uploads directory is not writable.": "پوشه بارگذاری‌ها قابل نوشتن نیست.",
+    "The GD image library is required to generate production files.": "برای تولید فایل‌های چاپ، کتابخانه تصویری GD لازم است.",
+    "Could not allocate the print canvas.": "تخصیص بوم چاپ ممکن نشد.",
+    "Could not write the production file.": "نوشتن فایل تولید ممکن نشد.",
+    "Vazirmatn (Persian)": "وزیرمتن (فارسی)",
+    "Sans (Latin)": "سنس (لاتین)",
+    "Serif": "سریف",
+    "Display": "نمایشی",
+    "Your text": "متن شما",
+    "Type something…": "چیزی بنویسید…",
+    "Font": "قلم",
+    "Style": "سبک",
+    "Alignment": "تراز",
+    "Center": "وسط",
+    "Direction": "جهت",
+    "Auto": "خودکار",
+    "The design was duplicated.": "از طرح یک نسخه کپی ساخته شد.",
+    "The design was deleted.": "طرح حذف شد.",
+    "Ordering is unavailable right now.": "ثبت سفارش در حال حاضر در دسترس نیست.",
+    "That action could not be completed.": "این عملیات انجام نشد.",
+    "You have not saved any designs yet.": "هنوز هیچ طرحی ذخیره نکرده‌اید.",
+    "Start designing": "شروع طراحی",
+    "Product": "محصول",
+    "Updated": "به‌روزرسانی",
+    "Version %d": "نسخه %d",
+    "Unavailable": "در دسترس نیست",
+    "Order again": "سفارش مجدد",
+    "Delete this design?": "این طرح حذف شود؟",
 }
 
 # ----------------------------------------------------------------------------
@@ -376,13 +518,37 @@ def write_po(path: Path, catalog: dict, translations: dict | None, language: str
     path.write_text("".join(out), encoding="utf-8")
 
 
+def mo_metadata(language: str = "fa_IR") -> str:
+    """Metadata block for the .mo entry with an empty msgid.
+
+    This is the plain 'Key: value\n' form gettext expects - not the quoted
+    PO syntax that po_header() produces.
+    """
+    now = time.strftime("%Y-%m-%d %H:%M+0000", time.gmtime())
+    return (
+        "Project-Id-Version: T-Shirt Designer 1.0.0\n"
+        f"POT-Creation-Date: {now}\n"
+        f"PO-Revision-Date: {now}\n"
+        f"Language: {language}\n"
+        "MIME-Version: 1.0\n"
+        "Content-Type: text/plain; charset=UTF-8\n"
+        "Content-Transfer-Encoding: 8bit\n"
+        "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+    )
+
+
 def write_mo(path: Path, catalog: dict, translations: dict) -> None:
     """Minimal GNU .mo writer (hash table omitted)."""
-    pairs = []
+    # The entry with an empty msgid carries the catalog metadata. Without it
+    # gettext readers cannot determine the charset, and WordPress rejects the
+    # whole file, so every translation silently falls back to English.
+    pairs = [(b"", mo_metadata().encode("utf-8"))]
+
     for msg in catalog:
-        src = msg.encode("utf-8")
-        dst = translations.get(msg, "").encode("utf-8")
-        pairs.append((src, dst))
+        translated = translations.get(msg, "")
+        if not translated:
+            continue        # an empty translation just means "use the original"
+        pairs.append((msg.encode("utf-8"), translated.encode("utf-8")))
 
     pairs.sort(key=lambda p: p[0])
 
@@ -401,8 +567,11 @@ def write_mo(path: Path, catalog: dict, translations: dict) -> None:
     ipos = keystart
     vpos = valuestart
     for src, dst in pairs:
-        koffsets += [ipos, len(src)]
-        voffsets += [vpos, len(dst)]
+        # A .mo string descriptor is (length, offset) - in that order. Writing
+        # them the other way round produces a file every gettext reader
+        # rejects, which is why the Persian catalog never loaded.
+        koffsets += [len(src), ipos]
+        voffsets += [len(dst), vpos]
         ipos += len(src) + 1
         vpos += len(dst) + 1
 
@@ -413,8 +582,12 @@ def write_mo(path: Path, catalog: dict, translations: dict) -> None:
         n,           # count
         ktable_at,   # original table offset
         vtable_at,   # translation table offset
-        0,           # hash size
-        0,           # hash offset
+        0,           # hash size (no hash table)
+        # Even with an empty hash table the offset must point just past the
+        # two index tables: readers derive the translation table's size from
+        # hash_addr - translations_addr, so leaving it at 0 makes that length
+        # negative and the file is rejected.
+        keystart,    # hash offset
     )
     output += struct.pack(f"{2 * n}i", *koffsets)
     output += struct.pack(f"{2 * n}i", *voffsets)

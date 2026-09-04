@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: T-Shirt Designer 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/kamandbeauty/Ideal/issues\n"
-"POT-Creation-Date: 2026-09-04 18:14+0000\n"
-"PO-Revision-Date: 2026-09-04 18:14+0000\n"
+"POT-Creation-Date: 2026-09-04 21:38+0000\n"
+"PO-Revision-Date: 2026-09-04 21:38+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -46,7 +46,48 @@ msgstr ""
 msgid "Color deleted."
 msgstr ""
 
-#: admin/class-admin-designs.php:66
+#: admin/class-admin-designs.php:155
+msgid "Draft"
+msgstr ""
+
+#: admin/class-admin-designs.php:156
+#: admin/views/html-designs-view.php:93
+msgid "Saved"
+msgstr ""
+
+#: admin/class-admin-designs.php:157
+msgid "Ordered"
+msgstr ""
+
+#: admin/class-admin-designs.php:158
+#: includes/class-order-manager.php:66
+msgid "Paid"
+msgstr ""
+
+#: admin/class-admin-designs.php:159
+#: includes/class-order-manager.php:68
+msgid "In production"
+msgstr ""
+
+#: admin/class-admin-designs.php:212
+msgid "No design selected."
+msgstr ""
+
+#: admin/class-admin-designs.php:223
+#: admin/views/html-designs-view.php:21
+#: includes/class-cart-manager.php:66
+#: includes/class-design-manager.php:634
+#: includes/class-design-manager.php:673
+#: includes/class-rest-api-v2.php:275
+#: includes/class-rest-api.php:309
+msgid "Design not found."
+msgstr ""
+
+#: admin/class-admin-designs.php:233
+msgid "This design belongs to an order and cannot be deleted."
+msgstr ""
+
+#: admin/class-admin-designs.php:245
 msgid "Design deleted."
 msgstr ""
 
@@ -68,6 +109,57 @@ msgstr ""
 
 #: admin/class-admin-models.php:104
 msgid "Model status changed."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:55
+msgid "Custom Product Design"
+msgstr ""
+
+#: admin/class-admin-order-panel.php:75
+msgid "This order could not be loaded."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:97
+msgid "This order does not contain any custom designs."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:112
+#: admin/class-admin.php:91
+msgid "You are not allowed to do that."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:126
+#: includes/class-order-manager.php:180
+#: includes/class-order-manager.php:279
+msgid "Order not found."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:144
+msgid "Production status updated."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:148
+msgid "Unknown action."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:162
+msgid "Production file not found."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:168
+msgid "The production folder is not writable."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:175
+msgid "Production file is missing on disk."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:187
+msgid "There are no production files to download yet."
+msgstr ""
+
+#: admin/class-admin-order-panel.php:216
+msgid "Some production files could not be regenerated. Check the plugin log for details."
 msgstr ""
 
 #: admin/class-admin-pricing.php:96
@@ -94,6 +186,10 @@ msgstr ""
 msgid "Print area deleted."
 msgstr ""
 
+#: admin/class-admin-product-types.php:112
+msgid "Print resolution saved."
+msgstr ""
+
 #: admin/class-admin-settings.php:46
 msgid "Settings saved."
 msgstr ""
@@ -114,69 +210,78 @@ msgstr ""
 msgid "Size deleted."
 msgstr ""
 
-#: admin/class-admin.php:47
-#: admin/class-admin.php:48
-#: includes/class-assets.php:53
-msgid "T-Shirt Designer"
+#: admin/class-admin.php:52
+#: admin/class-admin.php:76
+msgid "Custom Product Designer"
 msgstr ""
 
-#: admin/class-admin.php:57
+#: admin/class-admin.php:53
+msgid "Product Designer"
+msgstr ""
+
+#: admin/class-admin.php:62
 #: admin/views/html-header.php:24
 #: admin/views/html-models.php:20
+#: admin/views/html-product-types.php:37
 msgid "Models"
 msgstr ""
 
-#: admin/class-admin.php:58
-#: admin/views/html-colors.php:20
+#: admin/class-admin.php:63
 #: admin/views/html-header.php:25
+#: admin/views/html-product-types.php:18
+msgid "Product Types"
+msgstr ""
+
+#: admin/class-admin.php:64
+#: admin/views/html-colors.php:20
+#: admin/views/html-header.php:26
 #: admin/views/html-models.php:32
+#: admin/views/html-product-types.php:38
 msgid "Colors"
 msgstr ""
 
-#: admin/class-admin.php:59
-#: admin/views/html-header.php:26
+#: admin/class-admin.php:65
+#: admin/views/html-header.php:27
 #: admin/views/html-models.php:33
+#: admin/views/html-product-types.php:39
 #: admin/views/html-sizes.php:20
 msgid "Sizes"
 msgstr ""
 
-#: admin/class-admin.php:60
-#: admin/views/html-header.php:27
+#: admin/class-admin.php:66
+#: admin/views/html-header.php:28
 #: admin/views/html-print-areas.php:20
 msgid "Print Areas"
 msgstr ""
 
-#: admin/class-admin.php:61
+#: admin/class-admin.php:67
 #: admin/views/html-assets.php:19
-#: admin/views/html-header.php:28
+#: admin/views/html-header.php:29
 msgid "Design Assets"
 msgstr ""
 
-#: admin/class-admin.php:62
-#: admin/views/html-header.php:29
+#: admin/class-admin.php:68
+#: admin/views/html-header.php:30
 #: admin/views/html-pricing.php:21
 msgid "Pricing"
 msgstr ""
 
-#: admin/class-admin.php:63
+#: admin/class-admin.php:69
 #: admin/views/html-designs-view.php:16
-#: admin/views/html-designs.php:18
-#: admin/views/html-header.php:30
+#: admin/views/html-designs.php:26
+#: admin/views/html-header.php:31
+#: admin/views/html-product-types.php:41
 msgid "Designs"
 msgstr ""
 
-#: admin/class-admin.php:64
-#: admin/views/html-header.php:31
+#: admin/class-admin.php:70
+#: admin/views/html-header.php:32
 #: admin/views/html-settings.php:16
 #: includes/class-assets.php:51
 msgid "Settings"
 msgstr ""
 
-#: admin/class-admin.php:85
-msgid "You are not allowed to do that."
-msgstr ""
-
-#: admin/class-admin.php:96
+#: admin/class-admin.php:102
 msgid "Unknown page."
 msgstr ""
 
@@ -185,7 +290,10 @@ msgid "Artwork library"
 msgstr ""
 
 #: admin/views/html-assets.php:28
-#: includes/class-assets.php:200
+#: admin/views/html-designs.php:57
+#: admin/views/html-designs.php:69
+#: admin/views/html-designs.php:81
+#: includes/class-assets.php:226
 msgid "All"
 msgstr ""
 
@@ -194,6 +302,7 @@ msgid "No assets in this category."
 msgstr ""
 
 #: admin/views/html-assets.php:46
+#: templates/my-designs.php:108
 msgid "Edit"
 msgstr ""
 
@@ -207,14 +316,15 @@ msgstr ""
 
 #: admin/views/html-assets.php:59
 #: admin/views/html-colors.php:70
-#: admin/views/html-designs.php:68
+#: admin/views/html-designs.php:206
 #: admin/views/html-models.php:90
 #: admin/views/html-pricing.php:73
 #: admin/views/html-pricing.php:108
 #: admin/views/html-print-areas.php:71
 #: admin/views/html-sizes.php:66
-#: includes/class-assets.php:192
-#: templates/designer.php:89
+#: includes/class-assets.php:213
+#: templates/designer.php:95
+#: templates/my-designs.php:125
 msgid "Delete"
 msgstr ""
 
@@ -242,7 +352,7 @@ msgstr ""
 #: admin/views/html-colors.php:104
 #: admin/views/html-models.php:125
 #: admin/views/html-models.php:134
-#: includes/class-assets.php:139
+#: includes/class-assets.php:160
 msgid "Remove"
 msgstr ""
 
@@ -274,6 +384,7 @@ msgstr ""
 #: admin/views/html-colors.php:118
 #: admin/views/html-models.php:157
 #: admin/views/html-print-areas.php:143
+#: admin/views/html-product-types.php:167
 #: admin/views/html-sizes.php:104
 msgid "Save changes"
 msgstr ""
@@ -311,8 +422,9 @@ msgid "Fabric texture"
 msgstr ""
 
 #: admin/views/html-colors.php:48
-#: admin/views/html-designs-view.php:62
-#: admin/views/html-designs.php:32
+#: admin/views/html-designs-view.php:81
+#: admin/views/html-designs.php:79
+#: admin/views/html-designs.php:128
 #: admin/views/html-models.php:36
 #: admin/views/html-print-areas.php:48
 #: admin/views/html-sizes.php:46
@@ -320,12 +432,14 @@ msgid "Status"
 msgstr ""
 
 #: admin/views/html-colors.php:49
-#: admin/views/html-designs.php:34
+#: admin/views/html-designs.php:130
 #: admin/views/html-models.php:37
 #: admin/views/html-pricing.php:53
 #: admin/views/html-pricing.php:89
 #: admin/views/html-print-areas.php:49
 #: admin/views/html-sizes.php:47
+#: templates/my-designs.php:60
+#: templates/my-designs.php:105
 msgid "Actions"
 msgstr ""
 
@@ -380,11 +494,6 @@ msgstr ""
 msgid "Fabric texture (optional)"
 msgstr ""
 
-#: admin/views/html-designs-view.php:21
-#: includes/class-rest-api.php:309
-msgid "Design not found."
-msgstr ""
-
 #: admin/views/html-designs-view.php:38
 msgid "Back to designs"
 msgstr ""
@@ -405,87 +514,199 @@ msgstr ""
 msgid "Summary"
 msgstr ""
 
-#: admin/views/html-designs-view.php:58
-#: admin/views/html-designs.php:29
+#: admin/views/html-designs-view.php:63
+msgid "Design code"
+msgstr ""
+
+#: admin/views/html-designs-view.php:64
+#: admin/views/html-designs-view.php:91
+msgid "Version"
+msgstr ""
+
+#: admin/views/html-designs-view.php:65
+#: admin/views/html-designs.php:55
+#: admin/views/html-designs.php:124
+#: admin/views/html-order-panel.php:113
+#: admin/views/html-product-types.php:34
+msgid "Product type"
+msgstr ""
+
+#: admin/views/html-designs-view.php:66
+#: admin/views/html-designs.php:67
+#: admin/views/html-designs.php:125
+#: admin/views/html-order-panel.php:117
+#: includes/class-cart-manager.php:220
+#: tests/integration-woocommerce.php:284
 msgid "Model"
 msgstr ""
 
-#: admin/views/html-designs-view.php:59
-#: includes/class-assets.php:163
-#: templates/designer.php:36
+#: admin/views/html-designs-view.php:67
+#: admin/views/html-order-panel.php:122
+#: includes/class-assets.php:184
+#: includes/class-cart-manager.php:225
+#: templates/designer.php:39
+#: templates/designer.php:139
 msgid "Color"
 msgstr ""
 
-#: admin/views/html-designs-view.php:60
-#: includes/class-assets.php:164
-#: templates/designer.php:39
+#: admin/views/html-designs-view.php:68
+#: admin/views/html-order-panel.php:131
+#: includes/class-assets.php:185
+#: includes/class-cart-manager.php:231
+#: templates/designer.php:42
+#: tests/integration-woocommerce.php:285
 msgid "Size"
 msgstr ""
 
-#: admin/views/html-designs-view.php:61
-msgid "Printed items"
-msgstr ""
-
-#: admin/views/html-designs-view.php:63
-#: admin/views/html-designs.php:33
-msgid "Date"
-msgstr ""
-
-#: admin/views/html-designs-view.php:68
-msgid "Price breakdown"
-msgstr ""
-
-#: admin/views/html-designs-view.php:71
-#: includes/class-assets.php:176
-msgid "Base product"
-msgstr ""
-
-#: admin/views/html-designs-view.php:72
-#: includes/class-assets.php:177
-msgid "Size surcharge"
-msgstr ""
-
-#: admin/views/html-designs-view.php:76
-msgid "Prints — %s"
-msgstr ""
-
-#: admin/views/html-designs-view.php:81
-#: includes/class-assets.php:179
-#: templates/designer.php:113
-msgid "Total"
-msgstr ""
-
-#: admin/views/html-designs.php:22
-msgid "Saved designs"
-msgstr ""
-
-#: admin/views/html-designs.php:27
-#: admin/views/html-models.php:30
-msgid "Preview"
-msgstr ""
-
-#: admin/views/html-designs.php:28
-msgid "ID"
-msgstr ""
-
-#: admin/views/html-designs.php:30
+#: admin/views/html-designs-view.php:69
+#: admin/views/html-designs.php:126
 msgid "Owner"
 msgstr ""
 
-#: admin/views/html-designs.php:31
-msgid "Total price"
-msgstr ""
-
-#: admin/views/html-designs.php:39
-msgid "No saved designs yet."
-msgstr ""
-
-#: admin/views/html-designs.php:57
+#: admin/views/html-designs-view.php:76
+#: admin/views/html-designs.php:174
 msgid "Guest"
 msgstr ""
 
-#: admin/views/html-designs.php:62
+#: admin/views/html-designs-view.php:80
+#: admin/views/html-order-panel.php:136
+#: includes/class-cart-manager.php:236
+msgid "Printed items"
+msgstr ""
+
+#: admin/views/html-designs-view.php:82
+#: admin/views/html-designs.php:129
+msgid "Date"
+msgstr ""
+
+#: admin/views/html-designs-view.php:87
+msgid "Version history"
+msgstr ""
+
+#: admin/views/html-designs-view.php:92
+#: admin/views/html-pricing.php:51
+#: admin/views/html-pricing.php:145
+#: includes/class-assets.php:196
+#: templates/my-designs.php:58
+#: templates/my-designs.php:99
+msgid "Price"
+msgstr ""
+
+#: admin/views/html-designs-view.php:102
+msgid "(current)"
+msgstr ""
+
+#: admin/views/html-designs-view.php:112
+msgid "Each version keeps its own immutable price snapshot. An order is always bound to the exact version that was purchased."
+msgstr ""
+
+#: admin/views/html-designs-view.php:117
+msgid "Price breakdown"
+msgstr ""
+
+#: admin/views/html-designs-view.php:120
+#: admin/views/html-order-panel.php:224
+#: includes/class-assets.php:197
+msgid "Base product"
+msgstr ""
+
+#: admin/views/html-designs-view.php:121
+#: admin/views/html-order-panel.php:229
+#: includes/class-assets.php:198
+msgid "Size surcharge"
+msgstr ""
+
+#: admin/views/html-designs-view.php:125
+msgid "Prints — %s"
+msgstr ""
+
+#: admin/views/html-designs-view.php:130
+#: includes/class-assets.php:200
+#: templates/designer.php:182
+msgid "Total"
+msgstr ""
+
+#: admin/views/html-designs.php:46
+msgid "Search designs"
+msgstr ""
+
+#: admin/views/html-designs.php:49
+msgid "Design code or ID…"
+msgstr ""
+
+#: admin/views/html-designs.php:50
+msgid "Search"
+msgstr ""
+
+#: admin/views/html-designs.php:91
+msgid "User ID"
+msgstr ""
+
+#: admin/views/html-designs.php:97
+msgid "Order ID"
+msgstr ""
+
+#: admin/views/html-designs.php:103
+msgid "From"
+msgstr ""
+
+#: admin/views/html-designs.php:108
+msgid "To"
+msgstr ""
+
+#: admin/views/html-designs.php:113
+msgid "Filter"
+msgstr ""
+
+#: admin/views/html-designs.php:114
+msgid "Reset"
+msgstr ""
+
+#: admin/views/html-designs.php:122
+#: admin/views/html-designs.php:191
+#: admin/views/html-models.php:30
+#: templates/my-designs.php:55
+#: templates/my-designs.php:77
+msgid "Preview"
+msgstr ""
+
+#: admin/views/html-designs.php:123
+#: admin/views/html-order-panel.php:95
+#: includes/class-cart-manager.php:208
+#: templates/designer.php:76
+#: templates/my-designs.php:56
+#: templates/my-designs.php:84
+#: tests/integration-woocommerce.php:283
+msgid "Design"
+msgstr ""
+
+#: admin/views/html-designs.php:127
+msgid "Total price"
+msgstr ""
+
+#: admin/views/html-designs.php:135
+msgid "No designs match these filters."
+msgstr ""
+
+#: admin/views/html-designs.php:160
+msgid "#%1$d · version %2$d"
+msgstr ""
+
+#: admin/views/html-designs.php:187
+#: templates/my-designs.php:108
 msgid "View"
+msgstr ""
+
+#: admin/views/html-designs.php:195
+msgid "This design belongs to an order."
+msgstr ""
+
+#: admin/views/html-designs.php:196
+msgid "Locked"
+msgstr ""
+
+#: admin/views/html-designs.php:205
+msgid "Delete this design permanently?"
 msgstr ""
 
 #: admin/views/html-models.php:26
@@ -493,6 +714,8 @@ msgid "T-shirt models"
 msgstr ""
 
 #: admin/views/html-models.php:34
+#: admin/views/html-order-panel.php:146
+#: admin/views/html-product-types.php:40
 msgid "Print areas"
 msgstr ""
 
@@ -545,6 +768,87 @@ msgstr ""
 msgid "Create model"
 msgstr ""
 
+#: admin/views/html-order-panel.php:41
+msgid "Production status"
+msgstr ""
+
+#: admin/views/html-order-panel.php:49
+msgid "Update"
+msgstr ""
+
+#: admin/views/html-order-panel.php:55
+msgid "Download all print files (ZIP)"
+msgstr ""
+
+#: admin/views/html-order-panel.php:59
+msgid "Regenerate all production files from the order snapshot?"
+msgstr ""
+
+#: admin/views/html-order-panel.php:60
+msgid "Regenerate from snapshot"
+msgstr ""
+
+#: admin/views/html-order-panel.php:85
+msgid "Design preview"
+msgstr ""
+
+#: admin/views/html-order-panel.php:87
+msgid "No preview saved"
+msgstr ""
+
+#: admin/views/html-order-panel.php:104
+msgid "version %d"
+msgstr ""
+
+#: admin/views/html-order-panel.php:140
+#: admin/views/html-product-types.php:90
+msgid "Print resolution"
+msgstr ""
+
+#: admin/views/html-order-panel.php:150
+msgid "Area"
+msgstr ""
+
+#: admin/views/html-order-panel.php:151
+msgid "Print size"
+msgstr ""
+
+#: admin/views/html-order-panel.php:152
+msgid "Items"
+msgstr ""
+
+#: admin/views/html-order-panel.php:153
+msgid "Production file"
+msgstr ""
+
+#: admin/views/html-order-panel.php:154
+msgid "Download"
+msgstr ""
+
+#: admin/views/html-order-panel.php:195
+msgid "Not generated yet"
+msgstr ""
+
+#: admin/views/html-order-panel.php:205
+msgid "Download %s"
+msgstr ""
+
+#: admin/views/html-order-panel.php:220
+msgid "Price breakdown (as charged)"
+msgstr ""
+
+#: admin/views/html-order-panel.php:239
+msgid "%s printing"
+msgstr ""
+
+#: admin/views/html-order-panel.php:248
+msgid "Unit total"
+msgstr ""
+
+#: admin/views/html-order-panel.php:258
+msgid "Download this item (ZIP)"
+msgstr ""
+
 #: admin/views/html-pricing.php:26
 msgid "Scope:"
 msgstr ""
@@ -573,12 +877,6 @@ msgstr ""
 #: admin/views/html-pricing.php:50
 #: admin/views/html-pricing.php:137
 msgid "To (cm)"
-msgstr ""
-
-#: admin/views/html-pricing.php:51
-#: admin/views/html-pricing.php:145
-#: includes/class-assets.php:175
-msgid "Price"
 msgstr ""
 
 #: admin/views/html-pricing.php:52
@@ -717,6 +1015,50 @@ msgstr ""
 msgid "Create area"
 msgstr ""
 
+#: admin/views/html-product-types.php:24
+msgid "Each product type owns its own models, colors, sizes, print areas, pricing rules and production settings. New printable products are registered in code through the \"cpd_product_types\" filter, so adding one never requires changing the designer core."
+msgstr ""
+
+#: admin/views/html-product-types.php:35
+msgid "Print areas supported"
+msgstr ""
+
+#: admin/views/html-product-types.php:36
+msgid "Has sizes"
+msgstr ""
+
+#: admin/views/html-product-types.php:42
+msgid "Print DPI"
+msgstr ""
+
+#: admin/views/html-product-types.php:63
+msgid "Yes"
+msgstr ""
+
+#: admin/views/html-product-types.php:63
+msgid "No"
+msgstr ""
+
+#: admin/views/html-product-types.php:93
+msgid "Production files are rendered at physical print size × DPI. Leave a product type empty to use the global default."
+msgstr ""
+
+#: admin/views/html-product-types.php:109
+msgid "Default DPI"
+msgstr ""
+
+#: admin/views/html-product-types.php:114
+msgid "300 DPI is the usual choice for garment printing."
+msgstr ""
+
+#: admin/views/html-product-types.php:124
+msgid "%s DPI"
+msgstr ""
+
+#: admin/views/html-product-types.php:151
+msgid "A %1$s × %2$s cm print becomes %3$d × %4$d px at this resolution."
+msgstr ""
+
 #: admin/views/html-settings.php:22
 msgid "General settings"
 msgstr ""
@@ -839,6 +1181,10 @@ msgstr ""
 msgid "Initial model"
 msgstr ""
 
+#: includes/class-assets.php:53
+msgid "T-Shirt Designer"
+msgstr ""
+
 #: includes/class-assets.php:54
 msgid "Interactive 3D T-Shirt designer for your customers."
 msgstr ""
@@ -847,327 +1193,524 @@ msgstr ""
 msgid "The interactive 3D designer runs on the live page. Preview it by viewing the published post."
 msgstr ""
 
-#: includes/class-assets.php:136
+#: includes/class-assets.php:157
 msgid "Choose a 3D model (GLB/GLTF)"
 msgstr ""
 
-#: includes/class-assets.php:137
+#: includes/class-assets.php:158
 msgid "Choose an image"
 msgstr ""
 
-#: includes/class-assets.php:138
+#: includes/class-assets.php:159
 msgid "Use this file"
 msgstr ""
 
-#: includes/class-assets.php:162
-#: templates/designer.php:33
+#: includes/class-assets.php:183
+#: templates/designer.php:36
 msgid "Choose a model"
 msgstr ""
 
-#: includes/class-assets.php:165
+#: includes/class-assets.php:186
 msgid "Print area"
 msgstr ""
 
-#: includes/class-assets.php:166
-#: templates/designer.php:74
+#: includes/class-assets.php:187
+#: templates/designer.php:77
 msgid "Artwork"
 msgstr ""
 
-#: includes/class-assets.php:167
-#: templates/designer.php:103
+#: includes/class-assets.php:188
+#: templates/designer.php:109
 msgid "Upload image"
 msgstr ""
 
-#: includes/class-assets.php:168
+#: includes/class-assets.php:189
 msgid "Uploading…"
 msgstr ""
 
-#: includes/class-assets.php:169
+#: includes/class-assets.php:190
 msgid "JPG, PNG or WEBP — up to"
 msgstr ""
 
-#: includes/class-assets.php:170
+#: includes/class-assets.php:191
 msgid "Image added to the artwork."
 msgstr ""
 
-#: includes/class-assets.php:171
+#: includes/class-assets.php:192
 msgid "Only JPG, PNG and WEBP images are allowed."
 msgstr ""
 
-#: includes/class-assets.php:172
+#: includes/class-assets.php:193
 msgid "The file is larger than the allowed size."
 msgstr ""
 
-#: includes/class-assets.php:173
-#: templates/designer.php:84
+#: includes/class-assets.php:194
+#: templates/designer.php:90
 msgid "Layers"
 msgstr ""
 
-#: includes/class-assets.php:174
+#: includes/class-assets.php:195
 msgid "No items on this area yet. Pick artwork or upload an image."
 msgstr ""
 
-#: includes/class-assets.php:178
+#: includes/class-assets.php:199
 msgid "Prints"
 msgstr ""
 
-#: includes/class-assets.php:180
-#: templates/designer.php:117
+#: includes/class-assets.php:201
+#: templates/designer.php:186
 msgid "Save design"
 msgstr ""
 
-#: includes/class-assets.php:181
+#: includes/class-assets.php:202
 msgid "Saving…"
 msgstr ""
 
-#: includes/class-assets.php:182
+#: includes/class-assets.php:203
 msgid "Design saved!"
 msgstr ""
 
-#: includes/class-assets.php:183
+#: includes/class-assets.php:204
 msgid "Calculating…"
 msgstr ""
 
-#: includes/class-assets.php:184
-#: templates/designer.php:50
-#: templates/designer.php:50
+#: includes/class-assets.php:205
+#: templates/designer.php:53
+#: templates/designer.php:53
 msgid "Reset view"
 msgstr ""
 
-#: includes/class-assets.php:185
+#: includes/class-assets.php:206
 #: includes/class-content-seeder.php:100
-#: templates/designer.php:46
-#: templates/designer.php:46
+#: includes/class-content-seeder.php:193
+#: templates/designer.php:49
+#: templates/designer.php:49
 msgid "Front"
 msgstr ""
 
-#: includes/class-assets.php:186
+#: includes/class-assets.php:207
 #: includes/class-content-seeder.php:110
-#: templates/designer.php:47
-#: templates/designer.php:47
+#: includes/class-content-seeder.php:203
+#: templates/designer.php:50
+#: templates/designer.php:50
 msgid "Back"
 msgstr ""
 
-#: includes/class-assets.php:187
-#: templates/designer.php:48
-#: templates/designer.php:48
+#: includes/class-assets.php:208
+#: templates/designer.php:51
+#: templates/designer.php:51
+#: templates/designer.php:155
 msgid "Left"
 msgstr ""
 
-#: includes/class-assets.php:188
-#: templates/designer.php:49
-#: templates/designer.php:49
+#: includes/class-assets.php:209
+#: templates/designer.php:52
+#: templates/designer.php:52
+#: templates/designer.php:157
 msgid "Right"
 msgstr ""
 
-#: includes/class-assets.php:189
-#: templates/designer.php:55
+#: includes/class-assets.php:210
+#: templates/designer.php:58
 msgid "Loading 3D model…"
 msgstr ""
 
-#: includes/class-assets.php:190
-#: templates/designer.php:58
+#: includes/class-assets.php:211
+#: templates/designer.php:61
 msgid "Your browser does not support WebGL, which is required for the 3D preview."
 msgstr ""
 
-#: includes/class-assets.php:191
-#: templates/designer.php:61
+#: includes/class-assets.php:212
+#: templates/designer.php:64
 msgid "Could not load the 3D model."
 msgstr ""
 
-#: includes/class-assets.php:193
-#: templates/designer.php:86
+#: includes/class-assets.php:214
+#: templates/designer.php:92
+#: templates/my-designs.php:113
 msgid "Duplicate"
 msgstr ""
 
-#: includes/class-assets.php:194
-#: templates/designer.php:87
+#: includes/class-assets.php:215
+#: templates/designer.php:93
 msgid "Bring forward"
 msgstr ""
 
-#: includes/class-assets.php:195
-#: templates/designer.php:88
+#: includes/class-assets.php:216
+#: templates/designer.php:94
 msgid "Send backward"
 msgstr ""
 
-#: includes/class-assets.php:196
+#: includes/class-assets.php:217
 msgid "Remove item"
 msgstr ""
 
-#: includes/class-assets.php:197
-#: includes/class-rest-api.php:416
+#: includes/class-assets.php:218
+#: includes/class-rest-permissions.php:34
 msgid "Please log in to save designs."
 msgstr ""
 
-#: includes/class-assets.php:198
-#: includes/class-design-manager.php:355
+#: includes/class-assets.php:219
+#: includes/class-design-manager.php:508
 msgid "Could not save the design."
 msgstr ""
 
-#: includes/class-assets.php:201
+#: includes/class-assets.php:220
+#: templates/designer.php:190
+msgid "Add to cart"
+msgstr ""
+
+#: includes/class-assets.php:221
+msgid "Adding to cart…"
+msgstr ""
+
+#: includes/class-assets.php:222
+msgid "Added to your cart."
+msgstr ""
+
+#: includes/class-assets.php:223
+msgid "Could not add the design to the cart."
+msgstr ""
+
+#: includes/class-assets.php:224
+msgid "Add some artwork or text before continuing."
+msgstr ""
+
+#: includes/class-assets.php:227
 msgid "Logo"
 msgstr ""
 
-#: includes/class-assets.php:202
+#: includes/class-assets.php:228
+#: includes/class-assets.php:237
+#: templates/designer.php:79
 msgid "Text"
 msgstr ""
 
-#: includes/class-assets.php:203
+#: includes/class-assets.php:229
 msgid "Sport"
 msgstr ""
 
-#: includes/class-assets.php:204
+#: includes/class-assets.php:230
 msgid "Animal"
 msgstr ""
 
-#: includes/class-assets.php:205
+#: includes/class-assets.php:231
 msgid "Nature"
 msgstr ""
 
-#: includes/class-assets.php:206
+#: includes/class-assets.php:232
 msgid "Kids"
 msgstr ""
 
-#: includes/class-assets.php:207
+#: includes/class-assets.php:233
 msgid "Fantasy"
 msgstr ""
 
-#: includes/class-assets.php:208
+#: includes/class-assets.php:234
 msgid "Other"
 msgstr ""
 
-#: includes/class-assets.php:210
+#: includes/class-assets.php:236
 msgid "cm"
 msgstr ""
 
-#: includes/class-content-seeder.php:45
-msgid "Classic T-Shirt"
+#: includes/class-assets.php:238
+#: templates/designer.php:172
+msgid "Add text"
 msgstr ""
 
-#: includes/class-content-seeder.php:47
-msgid "Crew-neck short-sleeve t-shirt. Bundled 3D model with front, back and sleeve print areas."
+#: includes/class-assets.php:239
+msgid "Type some text first."
 msgstr ""
 
-#: includes/class-content-seeder.php:58
-msgid "White"
+#: includes/class-assets.php:240
+msgid "Text is limited to 200 characters."
 msgstr ""
 
-#: includes/class-content-seeder.php:59
-msgid "Black"
+#: includes/class-assets.php:241
+msgid "Text added to the print area."
 msgstr ""
 
-#: includes/class-content-seeder.php:60
-msgid "Red"
+#: includes/class-assets.php:242
+msgid "Text updated."
 msgstr ""
 
-#: includes/class-content-seeder.php:61
-msgid "Navy"
+#: includes/class-assets.php:243
+msgid "Update text"
 msgstr ""
 
-#: includes/class-content-seeder.php:62
-msgid "Green"
+#: includes/class-assets.php:244
+msgid "Pick a print area first."
 msgstr ""
 
-#: includes/class-content-seeder.php:63
-msgid "Yellow"
+#: includes/class-cart-manager.php:52
+#: includes/class-rest-api-v2.php:225
+msgid "WooCommerce is not available."
 msgstr ""
 
-#: includes/class-content-seeder.php:120
-msgid "Left sleeve"
+#: includes/class-cart-manager.php:74
+msgid "This design has no saved version yet."
 msgstr ""
 
-#: includes/class-content-seeder.php:130
-msgid "Right sleeve"
-msgstr ""
-
-#: includes/class-design-manager.php:59
+#: includes/class-cart-manager.php:95
+#: includes/class-design-manager.php:83
 msgid "The selected model is not available."
 msgstr ""
 
-#: includes/class-design-manager.php:71
+#: includes/class-cart-manager.php:103
+msgid "This model is not linked to a WooCommerce product yet."
+msgstr ""
+
+#: includes/class-cart-manager.php:110
+msgid "The linked product cannot be purchased right now."
+msgstr ""
+
+#: includes/class-cart-manager.php:117
+msgid "Could not prepare the design for checkout."
+msgstr ""
+
+#: includes/class-cart-manager.php:150
+msgid "Could not add the product to your cart."
+msgstr ""
+
+#: includes/class-cart-manager.php:213
+#: includes/class-order-manager.php:100
+msgid "%1$s (v%2$d)"
+msgstr ""
+
+#: includes/class-content-seeder.php:57
+msgid "Classic Tote Bag"
+msgstr ""
+
+#: includes/class-content-seeder.php:60
+msgid "Canvas shopping tote with independent front and back print areas."
+msgstr ""
+
+#: includes/class-content-seeder.php:72
+msgid "Natural"
+msgstr ""
+
+#: includes/class-content-seeder.php:73
+#: includes/class-content-seeder.php:152
+msgid "Black"
+msgstr ""
+
+#: includes/class-content-seeder.php:74
+#: includes/class-content-seeder.php:154
+msgid "Navy"
+msgstr ""
+
+#: includes/class-content-seeder.php:75
+msgid "Olive"
+msgstr ""
+
+#: includes/class-content-seeder.php:91
+msgid "One size"
+msgstr ""
+
+#: includes/class-content-seeder.php:137
+msgid "Classic T-Shirt"
+msgstr ""
+
+#: includes/class-content-seeder.php:140
+msgid "Crew-neck short-sleeve t-shirt. Bundled 3D model with front, back and sleeve print areas."
+msgstr ""
+
+#: includes/class-content-seeder.php:151
+msgid "White"
+msgstr ""
+
+#: includes/class-content-seeder.php:153
+msgid "Red"
+msgstr ""
+
+#: includes/class-content-seeder.php:155
+msgid "Green"
+msgstr ""
+
+#: includes/class-content-seeder.php:156
+msgid "Yellow"
+msgstr ""
+
+#: includes/class-content-seeder.php:213
+msgid "Left sleeve"
+msgstr ""
+
+#: includes/class-content-seeder.php:223
+msgid "Right sleeve"
+msgstr ""
+
+#: includes/class-design-manager.php:95
 msgid "Please choose a valid color."
 msgstr ""
 
-#: includes/class-design-manager.php:82
+#: includes/class-design-manager.php:106
 msgid "Please choose a valid size."
 msgstr ""
 
-#: includes/class-design-manager.php:100
+#: includes/class-design-manager.php:124
 msgid "Unknown print area in design."
 msgstr ""
 
-#: includes/class-design-manager.php:104
+#: includes/class-design-manager.php:128
 msgid "Invalid print area contents."
 msgstr ""
 
-#: includes/class-design-manager.php:110
+#: includes/class-design-manager.php:134
 msgid "A print area can hold at most %d items."
 msgstr ""
 
-#: includes/class-design-manager.php:132
+#: includes/class-design-manager.php:156
 msgid "An item (%1$s × %2$s cm) is larger than the print area."
 msgstr ""
 
-#: includes/class-design-manager.php:137
+#: includes/class-design-manager.php:161
 msgid "An item is placed outside the print area."
 msgstr ""
 
-#: includes/class-design-manager.php:190
+#: includes/class-design-manager.php:227
 msgid "Invalid design item type."
 msgstr ""
 
-#: includes/class-design-manager.php:200
+#: includes/class-design-manager.php:243
 msgid "A design item references an unavailable artwork."
 msgstr ""
 
-#: includes/class-design-manager.php:207
+#: includes/class-design-manager.php:250
 msgid "A design item references an unavailable upload."
 msgstr ""
 
-#: includes/class-design-manager.php:222
+#: includes/class-design-manager.php:265
 msgid "Design items must be at least %d cm wide and tall."
 msgstr ""
 
-#: includes/class-design-manager.php:256
+#: includes/class-design-manager.php:313
+msgid "Text items need some text."
+msgstr ""
+
+#: includes/class-design-manager.php:367
 #: includes/class-rest-api.php:145
 msgid "Model not found."
+msgstr ""
+
+#: includes/class-design-manager.php:454
+msgid "You are not allowed to edit this design."
+msgstr ""
+
+#: includes/class-design-manager.php:678
+msgid "Designs attached to an order cannot be deleted."
 msgstr ""
 
 #: includes/class-media-manager.php:41
 msgid "No file was uploaded."
 msgstr ""
 
-#: includes/class-media-manager.php:46
+#: includes/class-media-manager.php:48
+#: includes/class-media-manager.php:53
 msgid "Invalid upload payload."
 msgstr ""
 
-#: includes/class-media-manager.php:52
+#: includes/class-media-manager.php:57
+msgid "The file could not be uploaded. Please try again."
+msgstr ""
+
+#: includes/class-media-manager.php:62
 msgid "Invalid upload source."
 msgstr ""
 
-#: includes/class-media-manager.php:56
+#: includes/class-media-manager.php:66
 msgid "The uploaded file is empty."
 msgstr ""
 
-#: includes/class-media-manager.php:63
+#: includes/class-media-manager.php:73
 msgid "The file is too large. Maximum allowed size is %s MB."
 msgstr ""
 
-#: includes/class-media-manager.php:74
+#: includes/class-media-manager.php:84
 msgid "Only JPG, JPEG, PNG and WEBP images are allowed."
 msgstr ""
 
-#: includes/class-media-manager.php:81
+#: includes/class-media-manager.php:90
+#: includes/class-media-manager.php:101
+#: includes/class-media-manager.php:113
+msgid "The file contents do not match its extension."
+msgstr ""
+
+#: includes/class-media-manager.php:97
 msgid "The file is not a valid image."
 msgstr ""
 
-#: includes/class-media-manager.php:85
-#: includes/class-media-manager.php:97
-msgid "The file contents do not match its extension."
+#: includes/class-my-designs.php:61
+#: includes/class-my-designs.php:66
+msgid "My Designs"
+msgstr ""
+
+#: includes/class-my-designs.php:114
+msgid "This link has expired. Please try again."
+msgstr ""
+
+#: includes/class-order-manager.php:65
+msgid "New"
+msgstr ""
+
+#: includes/class-order-manager.php:67
+msgid "Ready for production"
+msgstr ""
+
+#: includes/class-order-manager.php:69
+msgid "Printed"
+msgstr ""
+
+#: includes/class-order-manager.php:70
+msgid "Quality check"
+msgstr ""
+
+#: includes/class-order-manager.php:71
+msgid "Shipped"
+msgstr ""
+
+#: includes/class-order-manager.php:72
+msgid "Completed"
+msgstr ""
+
+#: includes/class-order-manager.php:73
+msgid "Cancelled"
+msgstr ""
+
+#: includes/class-order-manager.php:282
+msgid "You are not allowed to reorder this item."
+msgstr ""
+
+#: includes/class-order-manager.php:287
+msgid "Order item not found."
+msgstr ""
+
+#: includes/class-order-manager.php:292
+msgid "This item has no stored design."
+msgstr ""
+
+#: includes/class-order-manager.php:298
+msgid "The product of this design is no longer available."
 msgstr ""
 
 #: includes/class-pricing-engine.php:87
 msgid "No pricing tier matches %d cm."
+msgstr ""
+
+#: includes/class-production-renderer.php:99
+msgid "The uploads directory is not writable."
+msgstr ""
+
+#: includes/class-production-renderer.php:107
+msgid "The GD image library is required to generate production files."
+msgstr ""
+
+#: includes/class-production-renderer.php:217
+msgid "Could not allocate the print canvas."
+msgstr ""
+
+#: includes/class-production-renderer.php:242
+msgid "Could not write the production file."
 msgstr ""
 
 #: includes/class-rest-api.php:154
@@ -1182,27 +1725,120 @@ msgstr ""
 msgid "The file could not be stored."
 msgstr ""
 
-#: includes/class-rest-api.php:394
-#: includes/class-rest-api.php:411
-msgid "Forbidden."
-msgstr ""
-
-#: includes/class-rest-api.php:399
+#: includes/class-rest-permissions.php:27
 msgid "Please log in to upload images."
 msgstr ""
 
-#: includes/class-rest-api.php:437
+#: includes/class-rest-permissions.php:45
+msgid "Forbidden."
+msgstr ""
+
+#: includes/class-rest-permissions.php:67
 msgid "Invalid nonce."
+msgstr ""
+
+#: includes/class-text-engine.php:36
+msgid "Vazirmatn (Persian)"
+msgstr ""
+
+#: includes/class-text-engine.php:43
+msgid "Sans (Latin)"
+msgstr ""
+
+#: includes/class-text-engine.php:50
+msgid "Serif"
+msgstr ""
+
+#: includes/class-text-engine.php:57
+msgid "Display"
 msgstr ""
 
 #: includes/class-woocommerce.php:44
 msgid "T-Shirt Designer: WooCommerce is not active. The 3D designer works standalone; linking models to products and selling require WooCommerce."
 msgstr ""
 
-#: templates/designer.php:68
+#: templates/designer.php:71
 msgid "Design tools"
 msgstr ""
 
-#: templates/designer.php:73
-msgid "Design"
+#: templates/designer.php:120
+msgid "Your text"
+msgstr ""
+
+#: templates/designer.php:126
+msgid "Type something…"
+msgstr ""
+
+#: templates/designer.php:133
+msgid "Font"
+msgstr ""
+
+#: templates/designer.php:144
+msgid "Style"
+msgstr ""
+
+#: templates/designer.php:153
+msgid "Alignment"
+msgstr ""
+
+#: templates/designer.php:156
+msgid "Center"
+msgstr ""
+
+#: templates/designer.php:163
+msgid "Direction"
+msgstr ""
+
+#: templates/designer.php:165
+msgid "Auto"
+msgstr ""
+
+#: templates/my-designs.php:24
+msgid "The design was duplicated."
+msgstr ""
+
+#: templates/my-designs.php:28
+msgid "The design was deleted."
+msgstr ""
+
+#: templates/my-designs.php:32
+msgid "Ordering is unavailable right now."
+msgstr ""
+
+#: templates/my-designs.php:36
+msgid "That action could not be completed."
+msgstr ""
+
+#: templates/my-designs.php:41
+msgid "You have not saved any designs yet."
+msgstr ""
+
+#: templates/my-designs.php:45
+msgid "Start designing"
+msgstr ""
+
+#: templates/my-designs.php:57
+#: templates/my-designs.php:96
+msgid "Product"
+msgstr ""
+
+#: templates/my-designs.php:59
+#: templates/my-designs.php:102
+msgid "Updated"
+msgstr ""
+
+#: templates/my-designs.php:90
+msgid "Version %d"
+msgstr ""
+
+#: templates/my-designs.php:97
+msgid "Unavailable"
+msgstr ""
+
+#: templates/my-designs.php:118
+msgid "Order again"
+msgstr ""
+
+#: templates/my-designs.php:124
+msgid "Delete this design?"
 msgstr ""
