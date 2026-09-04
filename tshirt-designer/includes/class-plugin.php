@@ -29,6 +29,7 @@ final class Plugin {
 	public Migrations $migrations;
 	public Production_Renderer $production;
 	public Production_Manager $production_jobs;
+	public Production_Service $production_service;
 	public ?Cart_Manager $cart = null;
 	public ?Order_Manager $orders = null;
 
@@ -65,6 +66,7 @@ final class Plugin {
 		);
 		$this->production = new Production_Renderer( $this->db, $this->settings );
 		$this->production_jobs = new Production_Manager( $this );
+		$this->production_service = new Production_Service( $this );
 	}
 
 	/**
@@ -159,6 +161,7 @@ final class Plugin {
 
 		new Rest_Api( $this );
 		new Rest_Api_V2( $this );
+		new Rest_Production( $this );
 		new Shortcode( $this );
 		new Woocommerce( $this );
 		new Assets( $this );

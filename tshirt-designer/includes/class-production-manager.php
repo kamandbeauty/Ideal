@@ -80,7 +80,8 @@ final class Production_Manager {
 			'order_id'       => $order_id,
 			'order_item_id'  => $item_id,
 			'design_id'      => (int) ( $snapshot['design_id'] ?? 0 ),
-			'design_version' => max( 1, (int) ( $snapshot['version'] ?? 1 ) ),
+			// The snapshot key is `design_version` (see Design_Manager::snapshot()).
+			'design_version' => max( 1, (int) ( $snapshot['design_version'] ?? 1 ) ),
 			'product_type'   => (string) ( $snapshot['product_type'] ?? '' ),
 			'model_id'       => (int) ( $snapshot['model']['id'] ?? 0 ),
 			'color_id'       => (int) ( $snapshot['color']['id'] ?? 0 ),
@@ -261,12 +262,21 @@ final class Production_Manager {
 			$term = trim( (string) $args['search'] );
 			// Order ID / job ID / design ID / customer name / customer email.
 			$like     = '%' . $wpdb->esc_like( $term ) . '%';
-			$where[]  = '(customer_name LIKE %s OR customer_email LIKE %s OR order_id = %d OR id = %d OR design_id = %d)';
+			$clauses  = array( 'customer_name LIKE %s', 'customer_email LIKE %s' );
 			$params[] = $like;
 			$params[] = $like;
-			$params[] = ctype_digit( $term ) ? (int) $term : 0;
-			$params[] = ctype_digit( $term ) ? (int) $term : 0;
-			$params[] = ctype_digit( $term ) ? (int) $term : 0;
+			// Only compare the numeric columns when the term really is a
+			// number: falling back to 0 would match every job whose order,
+			// design or id column happens to be zero.
+			if ( ctype_digit( $term ) ) {
+				$clauses[] = 'order_id = %d';
+				$clauses[] = 'id = %d';
+				$clauses[] = 'design_id = %d';
+				$params[]  = (int) $term;
+				$params[]  = (int) $term;
+				$params[]  = (int) $term;
+			}
+			$where[] = '(' . implode( ' OR ', $clauses ) . ')';
 		}
 
 		$where_sql = implode( ' AND ', $where );

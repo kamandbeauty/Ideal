@@ -87,7 +87,7 @@ final class Production_Renderer {
 	 * @param bool                 $force    Re-render files that already exist.
 	 * @return array{ok:bool, files:list<array<string,mixed>>, errors:string[]}
 	 */
-	public function generate( array $snapshot, int $order_id, int $item_id, bool $force = false ): array {
+	public function generate( array $snapshot, int $order_id, int $item_id, bool $force = false, int $job_id = 0 ): array {
 		$errors = array();
 		$files  = array();
 
@@ -126,6 +126,8 @@ final class Production_Renderer {
 
 			$area_id   = (int) ( $area['id'] ?? 0 );
 			$area_type = sanitize_key( (string) ( $area['type'] ?? 'other' ) );
+			$area_w_cm = (float) ( $area['max_width_cm'] ?? 0 );
+			$area_h_cm = (float) ( $area['max_height_cm'] ?? 0 );
 			$file_name = self::file_name( $order_id, $design_uuid ?: (string) $design_id, $area_type );
 			$path      = $storage['dir'] . '/' . $file_name;
 
@@ -151,7 +153,10 @@ final class Production_Renderer {
 					0,
 					$dpi,
 					'failed',
-					$result['error']
+					$result['error'],
+					$area_w_cm,
+					$area_h_cm,
+					$job_id
 				);
 				continue;
 			}
@@ -169,7 +174,10 @@ final class Production_Renderer {
 				$result['height'],
 				$dpi,
 				'ready',
-				''
+				'',
+				$area_w_cm,
+				$area_h_cm,
+				$job_id
 			);
 			$files[] = $row;
 		}
@@ -417,7 +425,10 @@ final class Production_Renderer {
 		int $height,
 		int $dpi,
 		string $status,
-		string $message
+		string $message,
+		float $width_cm = 0.0,
+		float $height_cm = 0.0,
+		int $job_id = 0
 	): array {
 		global $wpdb;
 		$table = $this->db->table( 'production_files' );
@@ -435,6 +446,14 @@ final class Production_Renderer {
 			'width_px'       => $width,
 			'height_px'      => $height,
 			'dpi'            => $dpi,
+			'width_cm'       => round( $width_cm, 2 ),
+			'height_cm'      => round( $height_cm, 2 ),
+			'mime_type'      => 'image/png',
+			// Size + hash let the admin verify a file is intact and let §54
+			// prove that regeneration from an unchanged snapshot is identical.
+			'file_size'      => ( '' !== $file_path && file_exists( $file_path ) ) ? (int) filesize( $file_path ) : 0,
+			'file_hash'      => ( '' !== $file_path && file_exists( $file_path ) ) ? (string) hash_file( 'sha256', $file_path ) : '',
+			'job_id'         => $job_id,
 			'status'         => $status,
 			'message'        => $message,
 			'updated_at'     => $now,
@@ -566,12 +585,27 @@ final class Production_Renderer {
 
 		$added = 0;
 		$used  = array();
+		// Everything in the archive must live inside our own storage dir.
+		$root = realpath( $storage['dir'] );
 		foreach ( $files as $file ) {
 			$file_path = (string) $file['file_path'];
 			if ( '' === $file_path || ! is_readable( $file_path ) ) {
 				continue;
 			}
-			$entry = (string) $file['file_name'];
+			// §16: refuse anything that resolves outside the production dir
+			// (symlink or a tampered file_path column) and anything that is
+			// not a regular file.
+			$real = realpath( $file_path );
+			if ( false === $real || false === $root || ! is_file( $real ) || ! str_starts_with( $real, $root . DIRECTORY_SEPARATOR ) ) {
+				continue;
+			}
+			$file_path = $real;
+
+			// §16: the archive entry is a flat, sanitised base name — never a
+			// path — so no entry can traverse on extraction.
+			$entry = basename( (string) $file['file_name'] );
+			$entry = preg_replace( '/[^A-Za-z0-9._-]/', '-', $entry ) ?? '';
+			$entry = ltrim( $entry, '.' );
 			if ( '' === $entry ) {
 				$entry = basename( $file_path );
 			}
@@ -619,6 +653,13 @@ final class Production_Renderer {
 			'width_px'       => (int) $row['width_px'],
 			'height_px'      => (int) $row['height_px'],
 			'dpi'            => (int) $row['dpi'],
+			'width_cm'       => (float) ( $row['width_cm'] ?? 0 ),
+			'height_cm'      => (float) ( $row['height_cm'] ?? 0 ),
+			'mime_type'      => (string) ( $row['mime_type'] ?? 'image/png' ),
+			'file_size'      => (int) ( $row['file_size'] ?? 0 ),
+			'file_hash'      => (string) ( $row['file_hash'] ?? '' ),
+			'job_id'         => (int) ( $row['job_id'] ?? 0 ),
+			'exists'         => '' !== (string) $row['file_path'] && file_exists( (string) $row['file_path'] ),
 			'status'         => (string) $row['status'],
 			'message'        => (string) ( $row['message'] ?? '' ),
 			'created_at'     => (string) $row['created_at'],
