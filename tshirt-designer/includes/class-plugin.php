@@ -28,6 +28,7 @@ final class Plugin {
 	public Logger $logger;
 	public Migrations $migrations;
 	public Production_Renderer $production;
+	public Production_Manager $production_jobs;
 	public ?Cart_Manager $cart = null;
 	public ?Order_Manager $orders = null;
 
@@ -63,6 +64,7 @@ final class Plugin {
 			$this->media
 		);
 		$this->production = new Production_Renderer( $this->db, $this->settings );
+		$this->production_jobs = new Production_Manager( $this );
 	}
 
 	/**

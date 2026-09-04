@@ -157,6 +157,10 @@ final class Order_Manager {
 		$order->update_meta_data( self::META_PRODUCTION_STATUS, self::STATUS_PAID );
 		$order->save();
 
+		// Phase 3: open a production job per designed line. Idempotent, so the
+		// several status hooks that can fire here cannot duplicate jobs.
+		$this->plugin->production_jobs->create_jobs_for_order( $order_id );
+
 		// Production rendering can be slow — push it to the background when
 		// cron is available, otherwise run it inline so nothing is lost.
 		if ( function_exists( 'wp_schedule_single_event' ) && ! wp_next_scheduled( 'td_generate_production_files', array( $order_id ) ) ) {

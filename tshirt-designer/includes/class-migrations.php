@@ -34,6 +34,7 @@ final class Migrations {
 	public function steps(): array {
 		return array(
 			'1.1.0' => 'migrate_110_product_types_and_versioning',
+			'1.2.0' => 'migrate_120_production_jobs',
 		);
 	}
 
@@ -188,4 +189,50 @@ final class Migrations {
 			}
 		}
 	}
+
+	/**
+	 * Phase 3: back-fill production jobs for orders that were paid before the
+	 * production system existed (§55).
+	 *
+	 * Purely additive: no order, design, snapshot or file is modified. Orders
+	 * whose lines carry no design snapshot are skipped. Re-running is safe
+	 * because create_job() is keyed on the UNIQUE (order_id, order_item_id).
+	 */
+	private function migrate_120_production_jobs(): void {
+		if ( ! function_exists( 'wc_get_orders' ) ) {
+			return; // WooCommerce absent: nothing to back-fill.
+		}
+
+		$plugin = Plugin::instance();
+
+		// Only orders that actually reached a paid state deserve a job.
+		$orders = wc_get_orders(
+			array(
+				'limit'      => 500,
+				'status'     => array( 'processing', 'completed', 'on-hold' ),
+				'meta_key'   => '_td_paid_handled', // phpcs:ignore WordPress.DB.SlowDBQuery
+				'return'     => 'ids',
+			)
+		);
+
+		foreach ( (array) $orders as $order_id ) {
+			$order = wc_get_order( (int) $order_id );
+			if ( ! $order instanceof \WC_Order ) {
+				continue;
+			}
+			foreach ( $order->get_items() as $item_id => $item ) {
+				$snapshot = Order_Manager::snapshot_from_item( $item );
+				if ( null === $snapshot ) {
+					continue;
+				}
+				// Preserve whatever production status the order already had.
+				$status = (string) $order->get_meta( Order_Manager::META_PRODUCTION_STATUS );
+				if ( ! Production_Status::is_status( $status ) ) {
+					$status = Production_Status::PAID;
+				}
+				$plugin->production_jobs->create_job( (int) $order_id, (int) $item_id, $snapshot, $status );
+			}
+		}
+	}
+
 }
