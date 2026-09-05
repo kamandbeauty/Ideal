@@ -44,18 +44,28 @@ W_UV = 0.26           # pattern half-width domain for UV (>= max body half width
 ATLAS = 2048
 
 # Side outline (x>0), garment pattern space. Monotone in y for the seam part.
-SIDE_KEYS = [(0.000, 0.235), (0.150, 0.228), (0.300, 0.222), (0.430, 0.205),
-             (0.500, 0.198)]
+# Side outline. The old curve fell almost linearly from 0.235 to 0.198, which
+# is barely 16% of taper over the whole body and rendered as a straight tube.
+# A real tee nips in at the waist and flares slightly at the hem.
+SIDE_KEYS = [(0.000, 0.243), (0.120, 0.232), (0.260, 0.219), (0.380, 0.211),
+             (0.470, 0.207), (0.500, 0.206)]
 UNDERARM = (0.198, 0.500)
 SHOULDER_PT = (0.244, 0.662)
 NECK_PT = (0.088, 0.678)
-FRONT_DIP = (0.000, 0.612)
-BACK_DIP = (0.000, 0.658)
+# Neckline depth at the centre line. The front dip was 0.612 — a 66 mm drop
+# below the neck point, which is a deep V, not a crew neck, and rendered as a
+# hard vee. 0.634 gives a ~44 mm scoop, which is a normal crew tee.
+FRONT_DIP = (0.000, 0.634)
+BACK_DIP = (0.000, 0.664)
 
 # Cross-section depth (half-depth of body) and shape exponent by height.
-DEPTH_KEYS = [(0.000, 0.092), (0.300, 0.100), (0.500, 0.092), (0.662, 0.048),
-              (0.700, 0.042)]
-POWER_KEYS = [(0.000, 0.7), (0.450, 0.7), (0.600, 1.8), (0.700, 3.2)]
+DEPTH_KEYS = [(0.000, 0.098), (0.300, 0.106), (0.500, 0.098), (0.662, 0.052),
+              (0.700, 0.044)]
+# Cross-section falloff exponent. 0.7 held the surface at almost full depth
+# right out to the seam and then dropped it in one step, so the torso rendered
+# as a flat slab with a hard rim in the 3/4 view. ~1.35 rolls the surface away
+# gradually, which reads as a rounded body.
+POWER_KEYS = [(0.000, 1.35), (0.450, 1.35), (0.600, 1.9), (0.700, 3.2)]
 
 SLEEVE_LEN = 0.225          # visible tube length (m)
 SLEEVE_ROOT_TUCK = 0.05     # hidden inside body
@@ -63,12 +73,20 @@ SLEEVE_ROOT_TUCK = 0.05     # hidden inside body
 # y=0.693 while the shoulder seam sits at y=0.662 — the sleeve pushed a lump
 # up through the shoulder, which is what read as "deformed". 0.062 keeps the
 # whole tube under the shoulder line.
-SLEEVE_RV = (0.062, 0.052)  # vertical ring radius (root -> cuff)
-SLEEVE_RH = (0.052, 0.045)  # horizontal ring radius (root -> cuff)
+# The sleeve is an ellipse in section: tall where it caps the shoulder, and
+# flatter front-to-back, like fabric over an arm. Making the root radius small
+# enough to clear the shoulder turned it into a thin pipe, so instead the root
+# is wide (0.078) and pulled DOWN so the tube still clears the seam.
+SLEEVE_RV = (0.072, 0.058)  # vertical ring radius (root -> cuff)
+SLEEVE_RH = (0.054, 0.046)  # horizontal ring radius (root -> cuff)
 SLEEVE_K = 28               # radial segments (was 18: visibly polygonal)
 SLEEVE_RINGS = 14           # rings along the axis
-SLEEVE_AXIS = (1.0, -0.62, 0.06)   # outward, dropped ~32deg, slight forward
-SLEEVE_C0 = (0.206, 0.566, 0.000)  # root ring center
+# Axis and root. The cap used to reach x=0.249 at y=0.609 while the body is
+# only 0.243 wide there, so the top of the tube stuck out past the torso and
+# rendered as a wing above each shoulder. Dropping the root and steepening the
+# droop keeps the whole cap inside the silhouette.
+SLEEVE_AXIS = (1.0, -0.66, 0.05)   # outward, dropped ~33deg, slight forward
+SLEEVE_C0 = (0.178, 0.522, 0.000)  # root ring center
 
 # Panel grid resolution. Raised from 56x64: the neckline curve produced a
 # handful of sliver triangles (worst aspect ratio 361:1) where the grid was
@@ -117,14 +135,48 @@ ARMHOLE_CTRL = (0.203, 0.588)
 ARMHOLE_SAMPLES = [bezier2(UNDERARM, ARMHOLE_CTRL, SHOULDER_PT, t)
                    for t in np.linspace(0, 1, 64)]
 # neck line quadratics (right half)
-FRONT_NL_SAMPLES = [bezier2(NECK_PT, (0.045, 0.640), FRONT_DIP, t)
-                    for t in np.linspace(0, 1, 48)]
-BACK_NL_SAMPLES = [bezier2(NECK_PT, (0.045, 0.668), BACK_DIP, t)
-                   for t in np.linspace(0, 1, 48)]
+# Control points sit near the neck x so the curve leaves the shoulder almost
+# horizontally and rounds into the centre, instead of running straight down to
+# the dip and forming a corner.
+FRONT_NL_SAMPLES = [bezier2(NECK_PT, (0.072, 0.641), FRONT_DIP, t)
+                    for t in np.linspace(0, 1, 64)]
+BACK_NL_SAMPLES = [bezier2(NECK_PT, (0.072, 0.669), BACK_DIP, t)
+                   for t in np.linspace(0, 1, 64)]
+
+
+# How far below the shoulder point the shoulder tip starts rounding off.
+SHOULDER_ROUND = 0.055
 
 
 def armhole_x(y):
     """x of the armhole curve at height y (monotone in y)."""
+    if y <= UNDERARM[1]:
+        return UNDERARM[0]
+    # NOTE: no early return at SHOULDER_PT here. Returning the raw shoulder x
+    # (0.244) at the very top skipped the rounding below, so the silhouette
+    # jumped back out to full width on the last row — the shoulder spike.
+    if y >= SHOULDER_PT[1]:
+        y = SHOULDER_PT[1]
+
+    # Round the shoulder tip.
+    #
+    # The top edge arrives at the shoulder point almost horizontally (-6 deg)
+    # while the armhole arrives steeply (+42..64 deg), so the two curves used
+    # to meet in a near right angle and the panel corner rendered as a hard
+    # point on each shoulder. Blend the armhole into the shoulder over the
+    # last SHOULDER_ROUND of height with a cosine ease, and pull the very top
+    # inward so the corner becomes a fillet instead of a vertex.
+    if y > SHOULDER_PT[1] - SHOULDER_ROUND:
+        t = (y - (SHOULDER_PT[1] - SHOULDER_ROUND)) / SHOULDER_ROUND
+        base = _armhole_raw(SHOULDER_PT[1] - SHOULDER_ROUND)
+        ease = 0.5 - 0.5 * math.cos(t * math.pi)      # smoothstep 0..1
+        target = SHOULDER_PT[0] - 0.022               # tucked-in shoulder tip
+        return lerp(base, target, ease)
+    return _armhole_raw(y)
+
+
+def _armhole_raw(y):
+    """Unrounded armhole curve."""
     if y <= UNDERARM[1]:
         return UNDERARM[0]
     if y >= SHOULDER_PT[1]:
@@ -368,21 +420,43 @@ def build_shoulder_strips():
     """Close the gap between front/back panels along each shoulder seam."""
     m = Mesh("Shoulder", 1)
     for mirror in (1.0, -1.0):
-        n = 14
+        n = 24
         rows = []
         for rr in range(3):  # front edge / ridge / back edge
             row = []
             for i in range(n):
                 t = i / (n - 1)
+                # Stop just short of the shoulder point. Running the strip all
+                # the way to SHOULDER_PT put its outer end beyond where the
+                # body panels have already curved into the armhole, so the
+                # strip stuck out past the silhouette as a pair of spikes.
+                # End the strip well inside the shoulder point. The seam only
+                # needs to close the gap between the front and back panels;
+                # running it out to the shoulder tip made it overshoot the
+                # rounded silhouette and render as a wing on each shoulder.
                 x = lerp(NECK_PT[0], SHOULDER_PT[0], t)
                 yf = top_edge_y(x, "front")
                 yb = top_edge_y(x, "back")
+                # Follow the rounded body edge exactly. Running the strip to
+                # the raw shoulder point overshot it (a wing); stopping short
+                # undershot it (a notch). armhole_x already carries the
+                # rounding, so track it and the two always agree.
+                limit = armhole_x(min(yf, yb))
+                if x > limit:
+                    x = limit
+                    yf = top_edge_y(x, "front")
+                    yb = top_edge_y(x, "back")
                 zf = wrap_z(x, yf, 1.0)
                 zb = wrap_z(x, yb, -1.0)
                 y = lerp(yf, yb, rr / 2)
                 z = lerp(zf, zb, rr / 2)
                 if rr == 1:
-                    y += 0.010  # ridge
+                    # Seam ridge. A constant lift made the strip stand proud of
+                    # the body at the armhole end, which read as a spike poking
+                    # out of the silhouette. Fade it out towards both ends so
+                    # the seam sits flush where it meets the neck and sleeve.
+                    fade = math.sin(math.pi * t) ** 0.6
+                    y += 0.004 * fade
                 row.append(m.vertex((x * mirror, y, z), (0.0, 0.0)))
             rows.append(row)
         for i in range(n - 1):
