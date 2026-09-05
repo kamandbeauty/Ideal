@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """Validate the plugin schema against real MySQL 8 / MariaDB rules."""
-import io, re, sys
+import io, os, re, sys, pathlib
 import sqlglot
 from sqlglot import exp
 
-sql = io.open('/home/user/scratch/schema.sql', encoding='utf-8').read()
+sql = io.open(os.environ.get('TD_SCHEMA_OUT', pathlib.Path(__file__).resolve().parents[2]/'schema.sql'), encoding='utf-8').read()
 stmts = [s.strip() for s in sql.split(';') if s.strip()]
 P=F=0; fails=[]
 def ok(name, cond, extra=''):

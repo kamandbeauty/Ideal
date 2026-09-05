@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """Extract runtime SQL from PHP and validate it against the MySQL dialect."""
-import re, io, pathlib, sys
+import re, io, os, pathlib, sys
 import sqlglot
-root = pathlib.Path('/home/user/Ideal/tshirt-designer')
+root = pathlib.Path(__file__).resolve().parents[2] / 'tshirt-designer'
 files = list(root.glob('includes/*.php')) + list(root.glob('admin/*.php'))
 P=F=0; fails=[]
 def ok(n,c,x=''):

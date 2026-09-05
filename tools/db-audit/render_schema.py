@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """Render the plugin's schema() exactly as PHP would, without running PHP."""
-import re, io, json, pathlib
-SRC = pathlib.Path('/home/user/Ideal/tshirt-designer/includes/class-database.php')
+import re, io, json, os, pathlib
+# Resolve paths relative to the repo so this runs in CI as well as locally.
+REPO = pathlib.Path(__file__).resolve().parents[2]
+SRC  = REPO / 'tshirt-designer' / 'includes' / 'class-database.php'
+OUT  = pathlib.Path(os.environ.get('TD_SCHEMA_OUT', REPO / 'schema.sql'))
 s = io.open(SRC, encoding='utf-8').read()
 
 # tables() keys -> real names, mirroring table(): $wpdb->prefix . 'td_' . $key
@@ -22,7 +25,7 @@ for st in stmts:
     st = re.sub(r"\{\$this->table\('([a-z_]+)'\)\}", lambda mm: tbl(mm.group(1)), st)
     st = st.replace('\\"', '"')
     out.append(st.strip())
-io.open('/home/user/scratch/schema.sql','w',encoding='utf-8').write('\n\n'.join(out))
+io.open(OUT,'w',encoding='utf-8').write(';\n\n'.join(out) + ';\n')
 print(f"tables() keys: {len(keys)}")
 print(f"CREATE TABLE statements rendered: {len(out)}")
 print(f"unresolved placeholders: {sum('{$' in o for o in out)}")

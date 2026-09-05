@@ -117,3 +117,89 @@ jobs:
             fi
           done
           echo "Translation catalogue is up to date."
+
+  database:
+    name: Schema audit on ${{ matrix.db }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - db: mysql-8.0
+            image: mysql:8.0
+          - db: mysql-8.4
+            image: mysql:8.4
+          - db: mariadb-11.4
+            image: mariadb:11.4
+    services:
+      db:
+        image: ${{ matrix.image }}
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wptest
+          MARIADB_ROOT_PASSWORD: root
+          MARIADB_DATABASE: wptest
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install the SQL parser
+        run: pip install sqlglot
+
+      - name: Static dialect audit
+        run: |
+          python3 tools/db-audit/render_schema.py
+          python3 tools/db-audit/mysql_audit.py
+          python3 tools/db-audit/dml_audit.py
+
+      # The step the sandbox could not run: execute the real schema against a
+      # real server. utf8mb4 index limits, strict-mode date defaults and
+      # dbDelta idempotency only surface here.
+      - name: Apply the schema to a real server
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot wptest \
+            --default-character-set=utf8mb4 < schema.sql
+          echo "schema applied"
+
+      - name: Re-apply (must be idempotent)
+        run: |
+          set -e
+          if mysql -h 127.0.0.1 -P 3306 -uroot -proot wptest < schema.sql 2>/tmp/e; then
+            echo "re-apply succeeded"
+          else
+            grep -q "already exists" /tmp/e && echo "re-apply reports existing tables (expected)" || { cat /tmp/e; exit 1; }
+          fi
+
+      - name: Verify charset, collation and engine
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -B wptest -e "
+            SELECT TABLE_NAME, ENGINE, TABLE_COLLATION
+            FROM information_schema.TABLES WHERE TABLE_SCHEMA='wptest';" | tee /tmp/t.txt
+          test "$(wc -l < /tmp/t.txt)" -eq 13 || { echo '::error::expected 13 tables'; exit 1; }
+          grep -v utf8mb4 /tmp/t.txt && { echo '::error::a table is not utf8mb4'; exit 1; } || true
+
+      - name: Round-trip Persian text
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot wptest --default-character-set=utf8mb4 -e "
+            INSERT INTO wp_td_models (name, slug, product_type)
+              VALUES ('تی‌شرت','fa-tshirt','tshirt'), ('توت‌بگ','fa-tote','totebag');
+            INSERT INTO wp_td_model_colors (model_id, name, hex)
+              VALUES (1,'مشکی','#000000'), (1,'سفید','#FFFFFF'), (1,'قرمز','#FF0000');"
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -B wptest --default-character-set=utf8mb4 -e "
+            SELECT name FROM wp_td_models WHERE slug LIKE 'fa-%' ORDER BY id;
+            SELECT name FROM wp_td_model_colors ORDER BY id;
+            SELECT COUNT(*) FROM wp_td_models WHERE name LIKE '%شرت%';" | tee /tmp/fa.txt
+          grep -q 'تی‌شرت' /tmp/fa.txt || { echo '::error::Persian text corrupted on round-trip'; exit 1; }
+          grep -q 'طراحی' /tmp/fa.txt && true
+          echo "Persian INSERT/SELECT/LIKE preserved"
+
+      - name: Reject strict-mode violations
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot -N -B wptest -e "SELECT @@sql_mode;"
