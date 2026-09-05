@@ -83,10 +83,30 @@ export class UI {
     const panes = this.root.querySelectorAll('[data-tabpane]');
     tabs.forEach((tab) => {
       tab.addEventListener('click', () => {
-        const name = tab.getAttribute('data-tab');
-        tabs.forEach((t) => t.classList.toggle('is-active', t === tab));
-        panes.forEach((p) => p.classList.toggle('is-active', p.getAttribute('data-tabpane') === name));
+        this.showTab(tab.getAttribute('data-tab'));
       });
+    });
+  }
+
+  /**
+   * Switch tool tabs programmatically.
+   *
+   * Needed because the move / resize / rotate handles live on the Design tab
+   * while artwork, uploads and text are added from the other two. Adding an
+   * image left the customer looking at the Artwork tab with no way to know the
+   * editor existed, so the design appeared to have no controls at all.
+   */
+  showTab(name) {
+    if (!name) return;
+    const tabs = this.root.querySelectorAll('[data-tab]');
+    const panes = this.root.querySelectorAll('[data-tabpane]');
+    tabs.forEach((t) => {
+      const on = t.getAttribute('data-tab') === name;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    panes.forEach((p) => {
+      p.classList.toggle('is-active', p.getAttribute('data-tabpane') === name);
     });
   }
 

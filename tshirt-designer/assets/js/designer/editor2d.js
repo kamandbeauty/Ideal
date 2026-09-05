@@ -104,15 +104,26 @@ export class Editor2D {
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
+  /** True when the primary input is a finger rather than a mouse. */
+  _coarsePointer() {
+    return typeof window !== 'undefined'
+      && typeof window.matchMedia === 'function'
+      && window.matchMedia('(pointer: coarse)').matches;
+  }
+
   /** Hit-test items (top-most first) and handles of the selected item. */
   hitTest(p) {
     const items = this._sorted();
     const sel = items.find((it) => it.id === this.state.get('selectedItemId'));
 
     if (sel) {
+      // Touch needs a much larger grab radius than a mouse: HANDLE+4 is 11px,
+      // well under the ~44px a fingertip covers, so the resize and rotate
+      // handles were effectively unusable on a phone.
+      const grab = this._coarsePointer() ? HANDLE + 17 : HANDLE + 4;
       const h = this._handles(sel);
       for (const [name, hx, hy] of h.list) {
-        if (Math.hypot(p.x - hx, p.y - hy) <= HANDLE + 4) return { type: name, item: sel };
+        if (Math.hypot(p.x - hx, p.y - hy) <= grab) return { type: name, item: sel };
       }
     }
 

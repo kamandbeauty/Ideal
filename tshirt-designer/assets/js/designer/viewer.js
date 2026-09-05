@@ -60,7 +60,18 @@ export class Viewer {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(width, height);
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    /*
+     * Colour handling.
+     *
+     * ACES filmic tone mapping is built for photographic HDR scenes: it lifts
+     * shadows and rolls off highlights, which washed uploaded artwork out and
+     * desaturated it badly — a customer's logo came back pale and milky.
+     * The artwork is already authored in sRGB and must be reproduced as-is,
+     * so use neutral tone mapping and state the output colour space
+     * explicitly rather than relying on the default.
+     */
+    this.renderer.toneMapping = THREE.NoToneMapping;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.domElement.classList.add('td-stage__webgl');
     this.container.appendChild(this.renderer.domElement);
 
@@ -71,11 +82,20 @@ export class Viewer {
 
     const pmrem = new THREE.PMREMGenerator(this.renderer);
     this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    // The room environment alone already lights the garment; at full strength
+    // it combined with the two directional lights to overexpose the print.
+    this.scene.environmentIntensity = 0.55;
 
-    const key = new THREE.DirectionalLight(0xffffff, 2.0);
+    /*
+     * Key and rim were tuned while ACES was compressing everything above 1.0.
+     * With neutral tone mapping those values clip to white, so they are cut to
+     * roughly a third. The garment still reads as lit, but a mid-tone in the
+     * artwork stays a mid-tone.
+     */
+    const key = new THREE.DirectionalLight(0xffffff, 0.75);
     key.position.set(1.2, 1.8, 1.6);
     this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0xdde7ff, 0.9);
+    const rim = new THREE.DirectionalLight(0xdde7ff, 0.35);
     rim.position.set(-1.4, 1.0, -1.2);
     this.scene.add(rim);
 

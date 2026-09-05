@@ -58,14 +58,27 @@ class DesignerApp {
     this.ui.onSelectSize = (id) => { this.state.set({ sizeId: id }); };
     this.ui.onSelectArea = (id) => this.selectArea(id);
     this.ui.onSelectCategory = (key) => this.loadAssets(key);
-    this.ui.onAddAsset = (asset) => this.editor.addAsset(asset);
+    /*
+     * After anything is added to the design, jump to the Design tab: that is
+     * where the move / resize / rotate handles live. Without this the customer
+     * stays on the Artwork or Text tab and never sees that the item can be
+     * manipulated at all.
+     */
+    this.ui.onAddAsset = (asset) => {
+      this.editor.addAsset(asset);
+      this.ui.showTab('design');
+    };
     this.ui.onUploaded = (upload) => {
       this.editor.addUpload(upload);
+      this.ui.showTab('design');
       this.requestPrice();
     };
     this.ui.onView = (name) => this.viewer.setView(name);
     this.ui.onEditorAction = (action) => this.editorAction(action);
-    this.ui.onAddText = (text) => this.editor.addText(text);
+    this.ui.onAddText = (text) => {
+      this.editor.addText(text);
+      this.ui.showTab('design');
+    };
     this.ui.onUpdateText = (id, text) => this.editor.updateText(id, text);
     this.ui.onSave = () => this.save();
     this.ui.onAddToCart = () => this.previewThenCart();
