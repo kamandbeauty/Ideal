@@ -403,6 +403,7 @@ FA = {
     "The uploads directory is not writable.": "پوشه بارگذاری‌ها قابل نوشتن نیست.",
     "The GD image library is required to generate production files.": "برای تولید فایل‌های چاپ، کتابخانه تصویری GD لازم است.",
     "Could not allocate the print canvas.": "تخصیص بوم چاپ ممکن نشد.",
+    "Could not allocate the %1$d×%2$d print canvas. About %3$d MB of PHP memory is required.": "اختصاص بوم چاپ %1$d×%2$d ممکن نشد. حدود %3$d مگابایت حافظه PHP لازم است.",
     "Could not write the production file.": "نوشتن فایل تولید ممکن نشد.",
     "Vazirmatn (Persian)": "وزیرمتن (فارسی)",
     "Sans (Latin)": "سنس (لاتین)",

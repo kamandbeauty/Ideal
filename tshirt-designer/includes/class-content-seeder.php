@@ -188,48 +188,54 @@ final class Content_Seeder {
 
 	private function seed_print_areas( int $model_id ): void {
 		// UV rects for the bundled Sketchfab t-shirt (assets/models/classic-tshirt.glb).
-		// That model UV-unwraps as separate garment panels rather than the four
-		// equal quadrants the old procedural mesh used, so each rect is inset
-		// inside its own panel island: chest and back sit above the hem and clear
-		// of the armholes, sleeves sit on the outer face.
+		//
+		// Each rect fills its whole garment panel, so a design can run edge to
+		// edge across the shirt (all-over printing) instead of being confined to
+		// a small chest box. Only a 0.004 UV margin is kept, to stop artwork
+		// bleeding across a seam into the neighbouring panel.
+		//
+		// max_width_cm / max_height_cm therefore describe the FULL panel, not a
+		// chest patch. Customers who want a small centred logo simply scale the
+		// artwork down; the reverse — wanting a full print but being capped by a
+		// small area — was not possible before.
 		$areas = array(
 			array(
 				'name'          => __( 'Front', 'tshirt-designer' ),
 				'type'          => 'front',
-				'max_width_cm'  => 30.0,
-				'max_height_cm' => 35.0,
+				'max_width_cm'  => 52.0,
+				'max_height_cm' => 70.0,
 				'position'      => array(
-					'uv_rect' => array( 0.11168, 0.2324, 0.34932, 0.5228 ),
+					'uv_rect' => array( 0.006, 0.012, 0.455, 0.664 ),
 					'camera'  => array( 'azimuth' => 0, 'polar' => 78, 'distance' => 1.55 ),
 				),
 			),
 			array(
 				'name'          => __( 'Back', 'tshirt-designer' ),
 				'type'          => 'back',
-				'max_width_cm'  => 30.0,
-				'max_height_cm' => 35.0,
+				'max_width_cm'  => 52.0,
+				'max_height_cm' => 70.0,
 				'position'      => array(
-					'uv_rect' => array( 0.604, 0.21376, 0.838, 0.49668 ),
+					'uv_rect' => array( 0.5, 0.012, 0.942, 0.647 ),
 					'camera'  => array( 'azimuth' => 180, 'polar' => 78, 'distance' => 1.55 ),
 				),
 			),
 			array(
 				'name'          => __( 'Left sleeve', 'tshirt-designer' ),
 				'type'          => 'left_sleeve',
-				'max_width_cm'  => 10.0,
-				'max_height_cm' => 20.0,
+				'max_width_cm'  => 20.0,
+				'max_height_cm' => 26.0,
 				'position'      => array(
-					'uv_rect' => array( 0.1872, 0.76766, 0.2598, 0.87934 ),
+					'uv_rect' => array( 0.145, 0.653, 0.302, 0.994 ),
 					'camera'  => array( 'azimuth' => -80, 'polar' => 72, 'distance' => 1.5 ),
 				),
 			),
 			array(
 				'name'          => __( 'Right sleeve', 'tshirt-designer' ),
 				'type'          => 'right_sleeve',
-				'max_width_cm'  => 10.0,
-				'max_height_cm' => 20.0,
+				'max_width_cm'  => 20.0,
+				'max_height_cm' => 26.0,
 				'position'      => array(
-					'uv_rect' => array( 0.3772, 0.76698, 0.4498, 0.87802 ),
+					'uv_rect' => array( 0.335, 0.653, 0.492, 0.992 ),
 					'camera'  => array( 'azimuth' => 80, 'polar' => 72, 'distance' => 1.5 ),
 				),
 			),

@@ -200,7 +200,8 @@ final class Migrations {
 	 * because create_job() is keyed on the UNIQUE (order_id, order_item_id).
 	 */
 	/**
-	 * 1.2.1 — re-map the t-shirt print areas onto the replacement 3D model.
+	 * 1.2.1 — re-map the t-shirt print areas onto the replacement 3D model and
+	 * open them up to full-garment coverage.
 	 *
 	 * The bundled t-shirt was replaced with a properly modelled mesh whose UV
 	 * layout is a set of garment panels, not the four equal quadrants the old
@@ -215,22 +216,41 @@ final class Migrations {
 	private function migrate_121_tshirt_uv_rects(): void {
 		global $wpdb;
 
+		// Known stock rects, newest first. A site may be on the original
+		// procedural-model values or on the first Sketchfab mapping, and both
+		// must land on the current full-coverage rect.
 		$old_to_new = array(
 			'front'        => array(
-				'old' => array( 0.10577, 0.09286, 0.39423, 0.34286 ),
-				'new' => array( 0.11168, 0.2324, 0.34932, 0.5228 ),
+				'old' => array(
+					array( 0.10577, 0.09286, 0.39423, 0.34286 ),
+					array( 0.11168, 0.2324, 0.34932, 0.5228 ),
+				),
+				'new' => array( 0.006, 0.012, 0.455, 0.664 ),
+				'cm'  => array( 52.0, 70.0 ),
 			),
 			'back'         => array(
-				'old' => array( 0.60577, 0.07857, 0.89423, 0.32857 ),
-				'new' => array( 0.604, 0.21376, 0.838, 0.49668 ),
+				'old' => array(
+					array( 0.60577, 0.07857, 0.89423, 0.32857 ),
+					array( 0.604, 0.21376, 0.838, 0.49668 ),
+				),
+				'new' => array( 0.5, 0.012, 0.942, 0.647 ),
+				'cm'  => array( 52.0, 70.0 ),
 			),
 			'left_sleeve'  => array(
-				'old' => array( 0.189, 0.625, 0.311, 0.975 ),
-				'new' => array( 0.1872, 0.76766, 0.2598, 0.87934 ),
+				'old' => array(
+					array( 0.189, 0.625, 0.311, 0.975 ),
+					array( 0.1872, 0.76766, 0.2598, 0.87934 ),
+				),
+				'new' => array( 0.145, 0.653, 0.302, 0.994 ),
+				'cm'  => array( 20.0, 26.0 ),
 			),
 			'right_sleeve' => array(
-				'old' => array( 0.689, 0.625, 0.811, 0.975 ),
-				'new' => array( 0.3772, 0.76698, 0.4498, 0.87802 ),
+				'old' => array(
+					array( 0.689, 0.625, 0.811, 0.975 ),
+					array( 0.3772, 0.76698, 0.4498, 0.87802 ),
+				),
+				'new' => array( 0.335, 0.653, 0.492, 0.992 ),
+				'cm'  => array( 20.0, 26.0 ),
 			),
 		);
 
@@ -260,16 +280,24 @@ final class Migrations {
 			}
 
 			$current = array_map( 'floatval', (array) $position['uv_rect'] );
-			$expected = $old_to_new[ $type ]['old'];
 			if ( count( $current ) !== 4 ) {
 				continue;
 			}
 
-			// Float comparison with a tolerance: only rewrite untouched rows.
-			$matches = true;
-			foreach ( $expected as $i => $value ) {
-				if ( abs( $current[ $i ] - $value ) > 0.0005 ) {
-					$matches = false;
+			// Float comparison with a tolerance: only rewrite rows that still
+			// hold one of the stock rects, so a shop that tuned its own print
+			// areas keeps them.
+			$matches = false;
+			foreach ( $old_to_new[ $type ]['old'] as $expected ) {
+				$same = true;
+				foreach ( $expected as $i => $value ) {
+					if ( abs( $current[ $i ] - $value ) > 0.0005 ) {
+						$same = false;
+						break;
+					}
+				}
+				if ( $same ) {
+					$matches = true;
 					break;
 				}
 			}
@@ -279,12 +307,20 @@ final class Migrations {
 
 			$position['uv_rect'] = $old_to_new[ $type ]['new'];
 
+			// The printable size must grow with the area, or the designer would
+			// still cap artwork at the old chest-patch dimensions.
+			list( $width_cm, $height_cm ) = $old_to_new[ $type ]['cm'];
+
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
 			$wpdb->update(
 				$areas_table,
-				array( 'position' => wp_json_encode( $position ) ),
+				array(
+					'position'      => wp_json_encode( $position ),
+					'max_width_cm'  => $width_cm,
+					'max_height_cm' => $height_cm,
+				),
 				array( 'id' => (int) $row['id'] ),
-				array( '%s' ),
+				array( '%s', '%f', '%f' ),
 				array( '%d' )
 			);
 		}

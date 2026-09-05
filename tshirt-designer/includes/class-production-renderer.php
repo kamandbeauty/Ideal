@@ -220,9 +220,37 @@ final class Production_Renderer {
 		[ $px_w, $px_h ] = self::pixel_size( $width_cm, $height_cm, $dpi );
 		$px_per_cm = $px_w / $width_cm;
 
+		/*
+		 * Full-garment print areas are large: 52x70 cm at 300 DPI is
+		 * 6142x8268 px, about 194 MB as a truecolor GD canvas. PHP's default
+		 * 128 MB limit would make imagecreatetruecolor() fail on every order,
+		 * so raise the limit for this request when we can. WordPress may
+		 * already permit more, so never lower it.
+		 */
+		$needed_mb = (int) ceil( ( $px_w * $px_h * 4 * 1.6 ) / 1048576 ) + 64;
+		$current   = wp_convert_hr_to_bytes( (string) ini_get( 'memory_limit' ) );
+		if ( $current > 0 && $current < $needed_mb * 1048576 ) {
+			// phpcs:ignore WordPress.PHP.IniSet.memory_limit_Blacklisted
+			@ini_set( 'memory_limit', $needed_mb . 'M' );
+		}
+
 		$canvas = imagecreatetruecolor( $px_w, $px_h );
 		if ( ! $canvas instanceof \GdImage ) {
-			return array( 'ok' => false, 'width' => 0, 'height' => 0, 'error' => __( 'Could not allocate the print canvas.', 'tshirt-designer' ) );
+			// This class has no logger dependency; the caller records the
+			// returned error against the production job, which is where an
+			// operator will look for it.
+			return array(
+				'ok'     => false,
+				'width'  => 0,
+				'height' => 0,
+				/* translators: 1: image width in pixels, 2: image height in pixels, 3: required memory in MB. */
+				'error'  => sprintf(
+					__( 'Could not allocate the %1$d×%2$d print canvas. About %3$d MB of PHP memory is required.', 'tshirt-designer' ),
+					$px_w,
+					$px_h,
+					$needed_mb
+				),
+			);
 		}
 		imagealphablending( $canvas, false );
 		imagesavealpha( $canvas, true );
