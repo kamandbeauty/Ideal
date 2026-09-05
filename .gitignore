@@ -27,3 +27,6 @@ schema.sql
 # Debug renders emitted by tools/generate_*_model.py
 tools/*.ppm
 tools/manifest.json
+
+# Source model drops (the processed copy lives in the plugin assets)
+/basic_t-shirt.glb

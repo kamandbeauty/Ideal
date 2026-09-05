@@ -35,6 +35,7 @@ final class Migrations {
 		return array(
 			'1.1.0' => 'migrate_110_product_types_and_versioning',
 			'1.2.0' => 'migrate_120_production_jobs',
+			'1.2.1' => 'migrate_121_tshirt_uv_rects',
 		);
 	}
 
@@ -198,6 +199,97 @@ final class Migrations {
 	 * whose lines carry no design snapshot are skipped. Re-running is safe
 	 * because create_job() is keyed on the UNIQUE (order_id, order_item_id).
 	 */
+	/**
+	 * 1.2.1 — re-map the t-shirt print areas onto the replacement 3D model.
+	 *
+	 * The bundled t-shirt was replaced with a properly modelled mesh whose UV
+	 * layout is a set of garment panels, not the four equal quadrants the old
+	 * procedural mesh used. Existing installs still hold the old uv_rect
+	 * values, which would put artwork in the wrong place on the new model.
+	 *
+	 * Only rows that still carry the OLD rect are touched, so a shop that has
+	 * tuned its own print areas keeps them. Nothing is deleted, and designs are
+	 * untouched: uv_rect only affects where the texture lands on the 3D
+	 * preview, and print files are rendered from centimetre coordinates.
+	 */
+	private function migrate_121_tshirt_uv_rects(): void {
+		global $wpdb;
+
+		$old_to_new = array(
+			'front'        => array(
+				'old' => array( 0.10577, 0.09286, 0.39423, 0.34286 ),
+				'new' => array( 0.11168, 0.2324, 0.34932, 0.5228 ),
+			),
+			'back'         => array(
+				'old' => array( 0.60577, 0.07857, 0.89423, 0.32857 ),
+				'new' => array( 0.604, 0.21376, 0.838, 0.49668 ),
+			),
+			'left_sleeve'  => array(
+				'old' => array( 0.189, 0.625, 0.311, 0.975 ),
+				'new' => array( 0.1872, 0.76766, 0.2598, 0.87934 ),
+			),
+			'right_sleeve' => array(
+				'old' => array( 0.689, 0.625, 0.811, 0.975 ),
+				'new' => array( 0.3772, 0.76698, 0.4498, 0.87802 ),
+			),
+		);
+
+		$areas_table  = $this->db->table( 'print_areas' );
+		$models_table = $this->db->table( 'models' );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$rows = $wpdb->get_results(
+			"SELECT a.id, a.area_type, a.position FROM {$areas_table} a
+			 INNER JOIN {$models_table} m ON m.id = a.model_id
+			 WHERE m.product_type = 'tshirt'",
+			ARRAY_A
+		);
+		if ( ! $rows ) {
+			return;
+		}
+
+		foreach ( $rows as $row ) {
+			$type = (string) $row['area_type'];
+			if ( ! isset( $old_to_new[ $type ] ) ) {
+				continue;
+			}
+
+			$position = json_decode( (string) $row['position'], true );
+			if ( ! is_array( $position ) || empty( $position['uv_rect'] ) ) {
+				continue;
+			}
+
+			$current = array_map( 'floatval', (array) $position['uv_rect'] );
+			$expected = $old_to_new[ $type ]['old'];
+			if ( count( $current ) !== 4 ) {
+				continue;
+			}
+
+			// Float comparison with a tolerance: only rewrite untouched rows.
+			$matches = true;
+			foreach ( $expected as $i => $value ) {
+				if ( abs( $current[ $i ] - $value ) > 0.0005 ) {
+					$matches = false;
+					break;
+				}
+			}
+			if ( ! $matches ) {
+				continue;
+			}
+
+			$position['uv_rect'] = $old_to_new[ $type ]['new'];
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->update(
+				$areas_table,
+				array( 'position' => wp_json_encode( $position ) ),
+				array( 'id' => (int) $row['id'] ),
+				array( '%s' ),
+				array( '%d' )
+			);
+		}
+	}
+
 	private function migrate_120_production_jobs(): void {
 		if ( ! function_exists( 'wc_get_orders' ) ) {
 			return; // WooCommerce absent: nothing to back-fill.

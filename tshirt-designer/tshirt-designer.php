@@ -22,7 +22,7 @@ declare( strict_types=1 );
 defined( 'ABSPATH' ) || exit;
 
 define( 'TD_VERSION', '1.2.1' );
-define( 'TD_DB_VERSION', '1.2.0' );
+define( 'TD_DB_VERSION', '1.2.1' );
 define( 'TD_PLUGIN_FILE', __FILE__ );
 define( 'TD_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'TD_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
