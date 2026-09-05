@@ -3,8 +3,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: T-Shirt Designer 1.0.0\n"
 "Report-Msgid-Bugs-To: https://github.com/kamandbeauty/Ideal/issues\n"
-"POT-Creation-Date: 2026-09-04 23:27+0000\n"
-"PO-Revision-Date: 2026-09-04 23:27+0000\n"
+"POT-Creation-Date: 2026-09-05 06:51+0000\n"
+"PO-Revision-Date: 2026-09-05 06:51+0000\n"
 "Language: fa_IR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -624,6 +624,7 @@ msgstr "نوع محصول"
 #: admin/views/html-designs.php:125
 #: admin/views/html-order-panel.php:117
 #: admin/views/html-production-detail.php:89
+#: includes/class-assets.php:266
 #: includes/class-cart-manager.php:220
 #: tests/integration-woocommerce.php:299
 msgid "Model"
@@ -1385,6 +1386,7 @@ msgid "Job"
 msgstr "کار"
 
 #: admin/views/html-production.php:156
+#: includes/class-assets.php:265
 #: templates/my-designs.php:57
 #: templates/my-designs.php:96
 msgid "Product"
@@ -1777,6 +1779,64 @@ msgstr "به‌روزرسانی متن"
 msgid "Pick a print area first."
 msgstr "ابتدا یک ناحیه چاپ انتخاب کنید."
 
+#: includes/class-assets.php:251
+msgid "Product preview"
+msgstr "پیش‌نمایش محصول"
+
+#: includes/class-assets.php:252
+msgid "Preparing your preview…"
+msgstr "در حال آماده‌سازی پیش‌نمایش..."
+
+#: includes/class-assets.php:253
+msgid "The preview could not be displayed."
+msgstr "نمایش پیش‌نمایش با مشکل مواجه شد."
+
+#: includes/class-assets.php:254
+msgid "Please try again."
+msgstr "لطفاً دوباره تلاش کنید."
+
+#: includes/class-assets.php:255
+msgid "This is a preview for approval. You will pay at checkout."
+msgstr "این یک پیش‌نمایش برای تأیید است. پرداخت در مرحله تسویه‌حساب انجام می‌شود."
+
+#: includes/class-assets.php:256
+msgid "Approve and continue"
+msgstr "تأیید طرح و ادامه"
+
+#: includes/class-assets.php:257
+msgid "Back to the designer"
+msgstr "بازگشت به طراحی"
+
+#: includes/class-assets.php:258
+msgid "Try again"
+msgstr "تلاش مجدد"
+
+#: includes/class-assets.php:259
+msgid "Zoom in"
+msgstr "بزرگ‌نمایی"
+
+#: includes/class-assets.php:260
+msgid "Zoom out"
+msgstr "کوچک‌نمایی"
+
+#: includes/class-assets.php:261
+msgid "Reset zoom"
+msgstr "بازنشانی بزرگ‌نمایی"
+
+#: includes/class-assets.php:262
+msgid "Choose a view"
+msgstr "انتخاب نما"
+
+#: includes/class-assets.php:263
+#: includes/class-content-seeder.php:213
+msgid "Left sleeve"
+msgstr "آستین چپ"
+
+#: includes/class-assets.php:264
+#: includes/class-content-seeder.php:223
+msgid "Right sleeve"
+msgstr "آستین راست"
+
 #: includes/class-cart-manager.php:52
 #: includes/class-rest-api-v2.php:225
 msgid "WooCommerce is not available."
@@ -1865,14 +1925,6 @@ msgstr "سبز"
 #: includes/class-content-seeder.php:156
 msgid "Yellow"
 msgstr "زرد"
-
-#: includes/class-content-seeder.php:213
-msgid "Left sleeve"
-msgstr "آستین چپ"
-
-#: includes/class-content-seeder.php:223
-msgid "Right sleeve"
-msgstr "آستین راست"
 
 #: includes/class-customer-status.php:38
 msgid "Awaiting payment"

@@ -8,6 +8,7 @@ import { Compositor } from './compositor.js';
 import { Viewer } from './viewer.js';
 import { Editor2D } from './editor2d.js';
 import { UI } from './ui.js';
+import { Mockup } from './mockup.js';
 import { debounce } from './utils.js';
 import { setFontStacks, renderTextDataUrl } from './textrender.js';
 
@@ -67,7 +68,7 @@ class DesignerApp {
     this.ui.onAddText = (text) => this.editor.addText(text);
     this.ui.onUpdateText = (id, text) => this.editor.updateText(id, text);
     this.ui.onSave = () => this.save();
-    this.ui.onAddToCart = () => this.addToCart();
+    this.ui.onAddToCart = () => this.previewThenCart();
 
     // State changes drive every panel.
     this.state.subscribe((data) => this.render(data));
@@ -301,6 +302,41 @@ class DesignerApp {
    * the cart endpoint takes only a design id and prices it from the stored
    * snapshot - the browser never gets to name a price.
    */
+  /**
+   * Show the customer mockup, then continue to the cart only if they approve.
+   *
+   * The mockup is a confirmation gate, not a step in the commerce flow: it
+   * prices nothing and creates nothing. Declining simply returns to the
+   * designer with the design untouched.
+   */
+  previewThenCart() {
+    const model = this.state.get('model');
+    if (!model) return;
+    if (!this.state.itemCount()) {
+      this.ui.setSaveStatus(this.i18n.emptyDesign || 'Add some artwork or text first.', false);
+      return;
+    }
+
+    const colorId = this.state.get('colorId');
+    const sizeId = this.state.get('sizeId');
+
+    this.mockup = new Mockup({
+      i18n: this.i18n,
+      currency: this.currency,
+      productTypes: this.boot.productTypes || {},
+    });
+    this.mockup.onConfirm = () => this.addToCart();
+    this.mockup.onCancel = () => { this.mockup = null; };
+    this.mockup.open({
+      model,
+      // A copy: the mockup must never hold a reference into live state.
+      areas: JSON.parse(JSON.stringify(this.state.get('areas') || {})),
+      color: (model.colors || []).find((c) => c.id === colorId) || null,
+      size: (model.sizes || []).find((s) => s.id === sizeId) || null,
+      price: this.state.get('price'),
+    });
+  }
+
   async addToCart() {
     const model = this.state.get('model');
     if (!model) return;
@@ -373,7 +409,10 @@ const bootAll = () => {
     if (!root.dataset.booted) {
       root.dataset.booted = '1';
       try {
-        new DesignerApp(root);
+        // Attach the instance to its own element rather than to window:
+        // it keeps the global namespace clean while still giving tests and
+        // debugging a documented handle on the running app.
+        root.tdApp = new DesignerApp(root);
       } catch (err) {
         console.error('[tshirt-designer] boot failed', err);
       }

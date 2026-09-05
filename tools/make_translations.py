@@ -429,6 +429,19 @@ FA = {
     "Order again": "سفارش مجدد",
     "Delete this design?": "این طرح حذف شود؟",
 
+    # --- Phase 3.2: customer mockup preview ---
+    "Product preview": "پیش‌نمایش محصول",
+    "Preparing your preview…": "در حال آماده‌سازی پیش‌نمایش...",
+    "The preview could not be displayed.": "نمایش پیش‌نمایش با مشکل مواجه شد.",
+    "Please try again.": "لطفاً دوباره تلاش کنید.",
+    "This is a preview for approval. You will pay at checkout.": "این یک پیش‌نمایش برای تأیید است. پرداخت در مرحله تسویه‌حساب انجام می‌شود.",
+    "Approve and continue": "تأیید طرح و ادامه",
+    "Back to the designer": "بازگشت به طراحی",
+    "Try again": "تلاش مجدد",
+    "Zoom in": "بزرگ‌نمایی",
+    "Zoom out": "کوچک‌نمایی",
+    "Reset zoom": "بازنشانی بزرگ‌نمایی",
+    "Choose a view": "انتخاب نما",
     # --- Phase 3: production workflow ---
     "Awaiting payment": "در انتظار پرداخت",
     "Preparing": "در حال آماده‌سازی",

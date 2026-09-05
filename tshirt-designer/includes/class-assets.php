@@ -246,6 +246,24 @@ final class Assets {
 			'textUpdated'    => __( 'Text updated.', 'tshirt-designer' ),
 			'updateText'     => __( 'Update text', 'tshirt-designer' ),
 			'noAreaSelected' => __( 'Pick a print area first.', 'tshirt-designer' ),
+
+			// Customer mockup preview.
+			'mockupTitle'     => __( 'Product preview', 'tshirt-designer' ),
+			'mockupLoading'   => __( 'Preparing your preview…', 'tshirt-designer' ),
+			'mockupError'     => __( 'The preview could not be displayed.', 'tshirt-designer' ),
+			'mockupErrorHint' => __( 'Please try again.', 'tshirt-designer' ),
+			'mockupNote'      => __( 'This is a preview for approval. You will pay at checkout.', 'tshirt-designer' ),
+			'approveContinue' => __( 'Approve and continue', 'tshirt-designer' ),
+			'backToDesigner'  => __( 'Back to the designer', 'tshirt-designer' ),
+			'retry'           => __( 'Try again', 'tshirt-designer' ),
+			'zoomIn'          => __( 'Zoom in', 'tshirt-designer' ),
+			'zoomOut'         => __( 'Zoom out', 'tshirt-designer' ),
+			'resetZoom'       => __( 'Reset zoom', 'tshirt-designer' ),
+			'chooseView'      => __( 'Choose a view', 'tshirt-designer' ),
+			'leftSleeve'      => __( 'Left sleeve', 'tshirt-designer' ),
+			'rightSleeve'     => __( 'Right sleeve', 'tshirt-designer' ),
+			'product'         => __( 'Product', 'tshirt-designer' ),
+			'modelLabel'      => __( 'Model', 'tshirt-designer' ),
 		);
 
 		return array(
@@ -260,6 +278,9 @@ final class Assets {
 			'hasWoo'        => null !== $plugin->cart,
 			'restUrlV2'     => esc_url_raw( rest_url( Rest_Api_V2::NS ) ),
 			'fonts'         => Text_Engine::public_fonts(),
+			// slug => translated label, so the mockup can name the product
+			// without adding a field to the model REST payload.
+			'productTypes'  => Product_Type_Registry::options(),
 			'i18n'          => $i18n,
 			'currency'      => $plugin->settings->all()['currency'],
 		);
