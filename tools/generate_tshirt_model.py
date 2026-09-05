@@ -59,14 +59,21 @@ POWER_KEYS = [(0.000, 0.7), (0.450, 0.7), (0.600, 1.8), (0.700, 3.2)]
 
 SLEEVE_LEN = 0.225          # visible tube length (m)
 SLEEVE_ROOT_TUCK = 0.05     # hidden inside body
-SLEEVE_RV = (0.083, 0.068)  # vertical ring radius (root -> cuff)
-SLEEVE_RH = (0.058, 0.050)  # horizontal ring radius (root -> cuff)
-SLEEVE_K = 18               # radial segments
-SLEEVE_RINGS = 12           # rings along the axis
-SLEEVE_AXIS = (1.0, -0.70, 0.06)   # outward, dropped ~35deg, slight forward
-SLEEVE_C0 = (0.208, 0.581, 0.000)  # root ring center
+# Vertical ring radius. The root was 0.083, which put the top of the tube at
+# y=0.693 while the shoulder seam sits at y=0.662 — the sleeve pushed a lump
+# up through the shoulder, which is what read as "deformed". 0.062 keeps the
+# whole tube under the shoulder line.
+SLEEVE_RV = (0.062, 0.052)  # vertical ring radius (root -> cuff)
+SLEEVE_RH = (0.052, 0.045)  # horizontal ring radius (root -> cuff)
+SLEEVE_K = 28               # radial segments (was 18: visibly polygonal)
+SLEEVE_RINGS = 14           # rings along the axis
+SLEEVE_AXIS = (1.0, -0.62, 0.06)   # outward, dropped ~32deg, slight forward
+SLEEVE_C0 = (0.206, 0.566, 0.000)  # root ring center
 
-NCOL, NROW = 56, 64         # panel grid resolution
+# Panel grid resolution. Raised from 56x64: the neckline curve produced a
+# handful of sliver triangles (worst aspect ratio 361:1) where the grid was
+# too coarse to follow the curve.
+NCOL, NROW = 72, 84         # panel grid resolution
 
 # Print areas in pattern space (meters) — front/back: x range + y range.
 PRINT_FRONT = {"x": (-0.15, 0.15), "y": (0.22, 0.57)}

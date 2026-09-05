@@ -23,3 +23,7 @@ schema.sql
 # is not reachable from the build environment.
 /dist/*
 !/dist/custom-product-designer-*.zip
+
+# Debug renders emitted by tools/generate_*_model.py
+tools/*.ppm
+tools/manifest.json

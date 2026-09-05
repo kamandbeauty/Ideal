@@ -12,6 +12,12 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
+/*
+ * Camera pivot. Seeded with the t-shirt's centre, but recomputed from each
+ * model's real bounding box in _frameModel(): a hardcoded pivot framed the
+ * tote bag (centre y=0.267) as if it were a t-shirt (centre y=0.352), which
+ * pushed every model that is not exactly t-shirt height low in the viewport.
+ */
 const TARGET = new THREE.Vector3(0, 0.36, 0);
 
 export class Viewer {
@@ -174,6 +180,7 @@ export class Viewer {
 
           this.modelRoot.scale.setScalar(1.0);
           this.scene.add(this.modelRoot);
+          this._frameModel();
           if (this.onReady) this.onReady();
           resolve(gltf);
         },
@@ -181,6 +188,40 @@ export class Viewer {
         (err) => reject(err)
       );
     });
+  }
+
+  /**
+   * Centre the camera pivot on the model that was just loaded, and work out
+   * the distance that fits it in view.
+   *
+   * Every model is a different height — the t-shirt is 0.70 tall, the tote
+   * 0.53 — so a fixed pivot leaves anything that is not t-shirt sized sitting
+   * low in the frame. Deriving the pivot from the bounding box centres each
+   * product properly, and deriving the distance from the bounding sphere and
+   * the current field of view keeps the whole garment visible on any aspect
+   * ratio, including tall phone viewports.
+   */
+  _frameModel() {
+    if (!this.modelRoot || !this.camera) return;
+
+    const box = new THREE.Box3().setFromObject(this.modelRoot);
+    if (box.isEmpty()) return;
+
+    box.getCenter(TARGET);
+
+    const sphere = box.getBoundingSphere(new THREE.Sphere());
+    this._fitRadius = sphere.radius;
+
+    const vFov = (this.camera.fov * Math.PI) / 180;
+    const hFov = 2 * Math.atan(Math.tan(vFov / 2) * this.camera.aspect);
+    // 1.25 leaves a little breathing room around the garment.
+    const dist = (sphere.radius * 1.25) / Math.sin(Math.min(vFov, hFov) / 2);
+
+    this._fitDistance = dist;
+    this.controls.minDistance = sphere.radius * 0.9;
+    this.controls.maxDistance = dist * 2.2;
+    this.controls.target.copy(TARGET);
+    this.controls.update();
   }
 
   /**
@@ -198,25 +239,57 @@ export class Viewer {
 
   /** View preset buttons: front / back / left / right / reset. */
   setView(name) {
+    // Distances are expressed as a MULTIPLE of the fitted distance rather than
+    // in metres. The stored per-area cameras were authored against the
+    // t-shirt's dimensions, so reusing their absolute distance on a smaller
+    // product (the tote) framed it too far away and off-centre.
     const fallback = {
-      front: { azimuth: 0, polar: 78, distance: 1.55 },
-      back: { azimuth: 180, polar: 78, distance: 1.55 },
-      left: { azimuth: -80, polar: 72, distance: 1.5 },
-      right: { azimuth: 80, polar: 72, distance: 1.5 },
-      reset: { azimuth: 0, polar: 72, distance: 1.6 },
+      front: { azimuth: 0, polar: 78, zoom: 1.0 },
+      back: { azimuth: 180, polar: 78, zoom: 1.0 },
+      left: { azimuth: -80, polar: 72, zoom: 0.97 },
+      right: { azimuth: 80, polar: 72, zoom: 0.97 },
+      reset: { azimuth: 0, polar: 72, zoom: 1.03 },
     };
     const typeMap = { front: 'front', back: 'back', left: 'left_sleeve', right: 'right_sleeve' };
     let preset = fallback[name] || fallback.reset;
+
     if (typeMap[name]) {
       const area = this.printAreas.find((a) => a.type === typeMap[name] && a.camera);
-      if (area && area.camera) preset = { ...preset, ...area.camera };
+      if (area && area.camera) {
+        // Take the angles from the print area, but keep our fitted distance.
+        const { azimuth, polar } = area.camera;
+        preset = {
+          ...preset,
+          ...(typeof azimuth === 'number' ? { azimuth } : {}),
+          ...(typeof polar === 'number' ? { polar } : {}),
+        };
+      }
     }
-    this.setCameraPreset(preset);
+
+    const base = this._fitDistance || 1.55;
+    this.setCameraPreset({
+      azimuth: preset.azimuth,
+      polar: preset.polar,
+      distance: base * (preset.zoom || 1),
+      absolute: true,
+    });
   }
 
   /** Animate the camera to a spherical preset around the target. */
-  setCameraPreset({ azimuth = 0, polar = 75, distance = 1.55 }) {
+  /**
+   * Animate the camera to a spherical preset around the fitted target.
+   *
+   * `distance` is optional. Stored print-area cameras carry a distance that
+   * was authored against the t-shirt, so when one of those is passed directly
+   * it is discarded in favour of this model's fitted distance — otherwise a
+   * smaller product such as the tote is framed from t-shirt range. setView()
+   * passes an explicit distance it has already scaled, and that is honoured.
+   */
+  setCameraPreset({ azimuth = 0, polar = 75, distance = null, absolute = false }) {
     if (!this.camera) return;
+    if (!absolute) {
+      distance = this._fitDistance || distance || 1.55;
+    }
     const az = (azimuth * Math.PI) / 180;
     const po = (polar * Math.PI) / 180;
     const to = new THREE.Vector3(
