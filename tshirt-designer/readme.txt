@@ -4,7 +4,7 @@ Tags: woocommerce, product designer, 3d, print on demand, customization
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -90,6 +90,22 @@ including full RTL support in the admin.
 Yes, compatibility is declared explicitly.
 
 == Changelog ==
+
+= 1.2.1 =
+* Fix: uploaded artwork rendered pale and washed out in the 3D preview. The
+  renderer used filmic tone mapping intended for photographic HDR scenes, which
+  pushed a mid grey 30% toward white. Print files were never affected — they are
+  produced server-side and do not read the 3D canvas.
+* Fix: the move, resize and rotate handles were unreachable. They live on the
+  Design tab, but adding artwork left you on the Artwork tab, so they were never
+  visible. Adding artwork, an upload or text now switches to the Design tab.
+* Fix: handle grab radius raised from 11px to 24px on touch screens, where a
+  fingertip covers roughly 44px and the handles were effectively unusable.
+* Fix: models sat low in the viewport. The camera pivot and distance were
+  hardcoded for the t-shirt, so the tote bag rendered below centre. Both are now
+  derived from each model's bounding box and the live aspect ratio.
+* Fix: t-shirt mesh — hard V neckline rounded, shoulder spikes removed, sleeve
+  caps tucked inside the torso, and the flat slab cross-section rounded.
 
 = 1.2.0 =
 * New: production and fulfilment workflow — one job per designed order line, created on payment.
