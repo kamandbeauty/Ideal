@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Shazdeh.Core;
 using TMPro;
 using UnityEngine;
@@ -27,6 +26,14 @@ namespace Shazdeh.Game.Ui
         const float Cell = 1f;
         const float BoardDropWorld = -0.55f; // the board sits slightly below centre, under the HUD
 
+        // Motion, in seconds. These are the numbers a playtest would tune; keeping them here means
+        // "the game feels slow" is a one-line change and not a hunt through the file.
+        const float SwapSeconds = 0.12f;
+        const float ClearSeconds = 0.14f;
+        const float SettleSeconds = 0.19f;
+        const float RejectSeconds = 0.16f;
+        const float SwipeCells = 0.45f;  // a drag shorter than this is a tap, not a swipe
+
         Camera _camera;
         GameObject _boardRoot;
         Sprite _square;
@@ -41,10 +48,42 @@ namespace Shazdeh.Game.Ui
 
         TextMeshProUGUI _levelLabel;
         TextMeshProUGUI _movesLabel;
-        TextMeshProUGUI _goalsLabel;
-        TextMeshProUGUI _statusLabel;
+        TextMeshProUGUI _hintLabel;
+
+        const int MaxGoalChips = 3;
+        readonly RectTransform[] _goalChip = new RectTransform[MaxGoalChips];
+        readonly Image[] _goalChipIcon = new Image[MaxGoalChips];
+        readonly TextMeshProUGUI[] _goalChipLabel = new TextMeshProUGUI[MaxGoalChips];
+
+        string _hint;
+        float _hintUntil;
+
+        // ---- motion --------------------------------------------------------------------------------
+
+        struct TileTween
+        {
+            public int Index;
+            public Vector3 FromPosition;
+            public Vector3 ToPosition;
+            public Vector3 FromScale;
+            public Vector3 ToScale;
+            public float Delay;
+            public float Duration;
+        }
+
+        readonly List<TileTween> _tweens = new List<TileTween>(48);
+        readonly List<int> _clearedCells = new List<int>(24);
+        float _tweenClock;
+        Action _tweenDone;
+
+        // Input: a press is remembered in board space so the release can be read as a direction.
+        bool _pressActive;
+        Vector3 _pressWorld;
 
         RectTransform _resultOverlay;
+        Image _resultBanner;
+        readonly Image[] _resultStars = new Image[3];
+        float _resultShownAt;
         TextMeshProUGUI _resultTitle;
         TextMeshProUGUI _resultBody;
         Button _primary;
@@ -54,7 +93,6 @@ namespace Shazdeh.Game.Ui
         Action _primaryAction;
         Action _secondaryAction;
 
-        readonly StringBuilder _goalsText = new StringBuilder(64);
 
         // ---- construction -------------------------------------------------------------------------
 
@@ -130,11 +168,40 @@ namespace Shazdeh.Game.Ui
             _movesLabel = UiKit.Label(movesPill, "value", "", Tokens.Type.Base, Tokens.Accent, TextAlignmentOptions.Center);
             UiKit.Stretch(_movesLabel.rectTransform, Tokens.Space.S2, 0f);
 
-            _goalsLabel = UiKit.Label(Root, "goals", "", Tokens.Type.Sm, Tokens.TextMuted, TextAlignmentOptions.Center);
-            UiKit.Place(_goalsLabel.rectTransform, 20f, 92f, UiKit.CanvasWidth - 40f, 22f);
+            BuildGoalChips();
 
-            _statusLabel = UiKit.Label(Root, "status", "", Tokens.Type.Sm, Tokens.Gold, TextAlignmentOptions.Center);
-            UiKit.Place(_statusLabel.rectTransform, 20f, 116f, UiKit.CanvasWidth - 40f, 22f);
+            _hintLabel = UiKit.Label(Root, "hint", "", Tokens.Type.Xs, Tokens.TextMuted, TextAlignmentOptions.Center);
+            UiKit.Place(_hintLabel.rectTransform, 20f, 120f, UiKit.CanvasWidth - 40f, 18f);
+        }
+
+        /// <summary>
+        /// One chip per goal, right to left because the language is: icon, then "۴ از ۱۲". The chips
+        /// are built once at full width and switched off when a level has fewer goals, which keeps the
+        /// layout from moving between levels.
+        /// </summary>
+        void BuildGoalChips()
+        {
+            const float gap = 6f;
+            const float height = 30f;
+            const float icon = 20f;
+            float width = (UiKit.CanvasWidth - 40f - gap * (MaxGoalChips - 1)) / MaxGoalChips;
+
+            for (int i = 0; i < MaxGoalChips; i++)
+            {
+                float x = UiKit.CanvasWidth - 20f - width - i * (width + gap);
+                var chip = UiKit.Panel(Root, "goal_" + i, x, 86f, width, height, Tokens.SurfaceRaised, (int)Tokens.Radius.Md);
+
+                var iconRect = UiKit.Panel(chip, "icon", width - icon - 6f, (height - icon) * 0.5f, icon, icon,
+                    new Color(1f, 1f, 1f, 0f));
+                _goalChipIcon[i] = iconRect.GetComponent<Image>();
+                _goalChipIcon[i].raycastTarget = false;
+
+                _goalChipLabel[i] = UiKit.Label(chip, "value", "", Tokens.Type.Sm, Tokens.Text, TextAlignmentOptions.Center);
+                UiKit.Place(_goalChipLabel[i].rectTransform, 4f, 0f, width - icon - 10f, height);
+
+                _goalChip[i] = chip;
+                chip.gameObject.SetActive(false);
+            }
         }
 
         void BuildResultOverlay()
@@ -144,20 +211,43 @@ namespace Shazdeh.Game.Ui
             dim.GetComponent<Image>().raycastTarget = true;
             _resultOverlay = dim;
 
-            var card = UiKit.Panel(dim, "card", 20f, 210f, UiKit.CanvasWidth - 40f, 318f,
-                Tokens.Surface, (int)Tokens.Radius.Panel);
+            float cardWidth = UiKit.CanvasWidth - 40f;
+            var card = UiKit.Panel(dim, "card", 20f, 176f, cardWidth, 386f, Tokens.Surface, (int)Tokens.Radius.Panel);
+
+            // The plaque is drawn art (result_win / result_lose, 720×200 at the same 3.6:1 ratio) and
+            // the title sits on its dark middle. When the sprite is missing the title still reads on
+            // the card, so the screen never depends on art existing.
+            var banner = UiKit.Panel(card, "banner", 20f, 6f, cardWidth - 40f, (cardWidth - 40f) / 3.6f,
+                new Color(1f, 1f, 1f, 0f));
+            _resultBanner = banner.GetComponent<Image>();
+            _resultBanner.raycastTarget = false;
+            _resultBanner.enabled = false;
 
             _resultTitle = UiKit.LabelBold(card, "title", "", Tokens.Type.Xl, Tokens.Gold, TextAlignmentOptions.Center);
-            UiKit.Place(_resultTitle.rectTransform, 16f, 28f, card.sizeDelta.x - 32f, 34f);
+            UiKit.Place(_resultTitle.rectTransform, 16f, 32f, cardWidth - 32f, 40f);
+
+            for (int i = 0; i < _resultStars.Length; i++)
+            {
+                const float size = 44f;
+                const float gap = 10f;
+                float total = _resultStars.Length * size + (_resultStars.Length - 1) * gap;
+                float x = (cardWidth - total) * 0.5f + i * (size + gap);
+                var star = UiKit.Panel(card, "star_" + i, x, 104f, size, size, new Color(1f, 1f, 1f, 0f));
+                var image = star.GetComponent<Image>();
+                image.raycastTarget = false;
+                if (ArtLibrary.ApplyTo(image, "icon_star")) image.color = Tokens.TextMuted;
+                else image.color = new Color(1f, 1f, 1f, 0f);
+                _resultStars[i] = image;
+            }
 
             _resultBody = UiKit.Label(card, "body", "", Tokens.Type.Base, Tokens.Text, TextAlignmentOptions.Center);
-            UiKit.Place(_resultBody.rectTransform, 24f, 80f, card.sizeDelta.x - 48f, 96f);
+            UiKit.Place(_resultBody.rectTransform, 24f, 160f, cardWidth - 48f, 76f);
 
-            _primary = UiKit.Button(card, "primary", "", 24f, 196f, card.sizeDelta.x - 48f, 52f,
+            _primary = UiKit.Button(card, "primary", "", 24f, 250f, cardWidth - 48f, 54f,
                 Tokens.Accent, Tokens.OnAccent, () => _primaryAction?.Invoke(), (int)Tokens.Radius.Md);
             _primaryLabel = _primary.GetComponentInChildren<TextMeshProUGUI>();
 
-            _secondary = UiKit.Button(card, "secondary", "خانه", 24f, 258f, card.sizeDelta.x - 48f, 44f,
+            _secondary = UiKit.Button(card, "secondary", "خانه", 24f, 314f, cardWidth - 48f, 46f,
                 Tokens.SurfaceRaised, Tokens.Text, () => _secondaryAction?.Invoke(), (int)Tokens.Radius.Md);
             _secondaryLabel = _secondary.GetComponentInChildren<TextMeshProUGUI>();
 
@@ -173,6 +263,8 @@ namespace Shazdeh.Game.Ui
             _run = Session.StartAttempt(number, out _level, out string error);
             _settled = false;
             _selected = null;
+            StopMotion();
+            ClearHint();
 
             ClearTiles();
             _resultOverlay.gameObject.SetActive(false);
@@ -181,7 +273,7 @@ namespace Shazdeh.Game.Ui
             if (_run == null)
             {
                 RtlText.Set(_levelLabel, "مرحله " + Core.Text.PersianText.Number(number));
-                RtlText.Set(_goalsLabel, error ?? "");
+                ShowHint(error, 600f);
                 return false;
             }
 
@@ -271,47 +363,239 @@ namespace Shazdeh.Game.Ui
         {
             if (_run == null || !gameObject.activeInHierarchy) return;
 
+            // Motion runs even when the level is over: the last cascade still has to play, and the
+            // overlay is shown when it finishes rather than on top of it.
+            AdvanceTweens();
+            AnimateResultStars();
+
             Session.RefreshLives();
             RefreshTimerFreeHud();
 
             if (_run.Status != LevelStatus.Playing) return;
-
+            if (_tweens.Count > 0) return;
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+            if (!InputCompat.TryGetPointer(out Vector2 screen, out bool down, out bool up)) return;
 
-            if (!InputCompat.TryGetPointer(out Vector2 screen, out bool down, out _) || !down) return;
+            var world = BoardPoint(screen);
 
-            // The camera sits at z = -10; the board is drawn on z = 0.
-            var world = _camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, 10f));
-            world -= _boardRoot.transform.position;
+            if (down)
+            {
+                // A press is not a tap yet: it becomes either a tap or a swipe when it is released.
+                _pressActive = CellAt(world).HasValue;
+                _pressWorld = world;
+                return;
+            }
+
+            if (!up || !_pressActive) return;
+            _pressActive = false;
+
+            Vector3 drag = world - _pressWorld;
+            drag.z = 0f;
+
+            if (drag.magnitude >= Cell * SwipeCells)
+            {
+                var origin = CellAt(_pressWorld);
+                if (!origin.HasValue) return;
+                var target = Neighbour(origin.Value, drag);
+                if (target.HasValue) Play(origin.Value, target.Value);
+                return;
+            }
+
             var cell = CellAt(world);
             if (cell.HasValue) HandleTap(cell.Value);
         }
 
+        /// <summary>Screen point to board-local space: the camera sits at z = -10, the board at z = 0.</summary>
+        Vector3 BoardPoint(Vector2 screen)
+        {
+            var world = _camera.ScreenToWorldPoint(new Vector3(screen.x, screen.y, 10f));
+            return world - _boardRoot.transform.position;
+        }
+
+        /// <summary>The cell a drag points at, or null when the drag leaves the board.</summary>
+        CellPos? Neighbour(CellPos from, Vector3 drag)
+        {
+            int dx = 0, dy = 0;
+            if (Mathf.Abs(drag.x) >= Mathf.Abs(drag.y)) dx = drag.x > 0f ? 1 : -1;
+            else dy = drag.y > 0f ? 1 : -1;
+
+            var to = new CellPos(from.X + dx, from.Y + dy);
+            if (to.X < 0 || to.Y < 0 || to.X >= _level.Width || to.Y >= _level.Height) return null;
+            return to;
+        }
+
+        /// <summary>
+        /// Tap-to-select stays: it is the forgiving path for a player who cannot swipe reliably, and
+        /// it is the only path that works with a keyboard or accessibility switch. A second tap on a
+        /// neighbour plays the move; a second tap elsewhere moves the selection.
+        /// </summary>
         void HandleTap(CellPos cell)
         {
-            if (!_selected.HasValue)
+            if (_selected.HasValue)
             {
-                _selected = cell;
-                DrawBoard();
-                return;
+                var from = _selected.Value;
+                if (from.X == cell.X && from.Y == cell.Y)
+                {
+                    _selected = null;
+                    DrawBoard();
+                    return;
+                }
+
+                if (Mathf.Abs(from.X - cell.X) + Mathf.Abs(from.Y - cell.Y) == 1)
+                {
+                    Play(from, cell);
+                    return;
+                }
             }
 
-            var from = _selected.Value;
-            if (Mathf.Abs(from.X - cell.X) + Mathf.Abs(from.Y - cell.Y) != 1)
-            {
-                _selected = cell;
-                DrawBoard();
-                return;
-            }
-
-            _run.TrySwap(from.X, from.Y, cell.X, cell.Y);
-            _selected = null;
+            _selected = cell;
             DrawBoard();
+        }
+
+        // ---- a turn ---------------------------------------------------------------------------------
+
+        /// <summary>
+        /// One player action, start to finish: the model decides, then the view plays what the model
+        /// said happened. Nothing here is allowed to change the board — it only reads the events.
+        /// </summary>
+        void Play(CellPos from, CellPos to)
+        {
+            if (_run == null || _run.Status != LevelStatus.Playing) return;
+            if (_tweens.Count > 0) return;
+
+            var result = _run.TrySwap(from.X, from.Y, to.X, to.Y);
+            _selected = null;
+
+            if (result == null || !result.Accepted)
+            {
+                PlayRejected(from, to);
+                return;
+            }
+
+            PlaySwap(from, to, result);
+        }
+
+        void PlayRejected(CellPos from, CellPos to)
+        {
+            ClearHint();
+            DrawBoard();
+
+            // Push the two pieces towards each other and let them spring back: the cheapest way to
+            // say "that is not a move" without a modal, and it cannot be misread as a hint.
+            int a = Index(from), b = Index(to);
+            if (a < 0 || b < 0) return;
+
+            Vector3 pa = WorldOf(from);
+            Vector3 pb = WorldOf(to);
+            Vector3 push = (pb - pa).normalized * 0.16f;
+
+            AddTween(a, pa + push, pa, Vector3.one, Vector3.one, 0f, RejectSeconds);
+            AddTween(b, pb - push, pb, Vector3.one, Vector3.one, 0f, RejectSeconds);
+            _tweenDone = null;
+        }
+
+        void PlaySwap(CellPos from, CellPos to, MoveResult result)
+        {
+            int a = Index(from), b = Index(to);
+            Vector3 pa = WorldOf(from);
+            Vector3 pb = WorldOf(to);
+
+            // Each tile carries its own piece across, which is what a swap looks like; the redraw
+            // afterwards puts both tiles back on their cells.
+            AddTween(a, pa, pb, Vector3.one, Vector3.one, 0f, SwapSeconds);
+            AddTween(b, pb, pa, Vector3.one, Vector3.one, 0f, SwapSeconds);
+
+            _clearedCells.Clear();
+            var events = result.Events;
+            for (int i = 0; i < events.Count; i++)
+            {
+                if (events[i] is PieceClearedEvent cleared)
+                {
+                    int index = Index(cleared.Position);
+                    if (index >= 0 && !_clearedCells.Contains(index)) _clearedCells.Add(index);
+                }
+            }
+
+            _tweenDone = () =>
+            {
+                ResetTiles();
+                DrawBoard();
+                PlayClear();
+            };
+        }
+
+        void PlayClear()
+        {
+            if (_clearedCells.Count == 0)
+            {
+                SettleTurn();
+                return;
+            }
+
+            for (int i = 0; i < _clearedCells.Count; i++)
+            {
+                int index = _clearedCells[i];
+                Vector3 rest = RestOf(index);
+                // A cleared piece rises a little as it shrinks, so the eye reads "taken" not "gone".
+                AddTween(index, rest, rest + Vector3.up * 0.14f, Vector3.one, Vector3.one * 0.08f, 0f, ClearSeconds);
+            }
+
+            _tweenDone = () =>
+            {
+                ResetTiles();
+                DrawBoard();
+                PlaySettle();
+            };
+        }
+
+        void PlaySettle()
+        {
+            // Everything above a cleared cell falls into the gap. Columns are independent, so the
+            // stagger is a row distance and the whole thing stays predictable frame to frame.
+            int width = _level.Width;
+            for (int i = 0; i < _clearedCells.Count; i++)
+            {
+                int index = _clearedCells[i];
+                int column = index % width;
+                int lowest = index / width;
+
+                for (int y = lowest + 1; y < _level.Height; y++)
+                {
+                    int falling = y * width + column;
+                    if (_tiles[falling] == null) continue;
+
+                    int steps = y - lowest;
+                    Vector3 rest = WorldOf(new CellPos(column, y));
+                    _tiles[falling].transform.localPosition = rest + Vector3.up * (0.35f + 0.10f * steps);
+                    _tiles[falling].transform.localScale = Vector3.one * 0.72f;
+
+                    AddTween(falling, rest + Vector3.up * (0.35f + 0.10f * steps), rest,
+                        Vector3.one * 0.72f, Vector3.one, 0.012f * steps, SettleSeconds);
+                }
+            }
+
+            _tweenDone = () =>
+            {
+                ResetTiles();
+                DrawBoard();
+                SettleTurn();
+            };
+
+            // Nothing to drop (a clear at the very top row): finish the turn now.
+            if (_tweens.Count == 0) _tweenDone();
+        }
+
+        void SettleTurn()
+        {
+            _clearedCells.Clear();
+            DrawBoard();
+            Refresh();
             AfterMove();
         }
 
         void AfterMove()
         {
+            if (_run == null) return;
             if (_run.Status == LevelStatus.Playing) return;
             if (_settled) return;
 
@@ -320,10 +604,125 @@ namespace Shazdeh.Game.Ui
             ShowResult(reward, firstClear);
         }
 
+        // ---- tweening --------------------------------------------------------------------------------
+
+        int Index(CellPos cell)
+        {
+            if (_level == null) return -1;
+            if (cell.X < 0 || cell.Y < 0 || cell.X >= _level.Width || cell.Y >= _level.Height) return -1;
+            return cell.Y * _level.Width + cell.X;
+        }
+
+        Vector3 RestOf(int index)
+        {
+            if (_level == null || _level.Width <= 0) return Vector3.zero;
+            return WorldOf(new CellPos(index % _level.Width, index / _level.Width));
+        }
+
+        void AddTween(int index, Vector3 fromPosition, Vector3 toPosition, Vector3 fromScale, Vector3 toScale,
+            float delay, float duration)
+        {
+            if (_tiles == null || index < 0 || index >= _tiles.Length || _tiles[index] == null) return;
+
+            _tweens.Add(new TileTween
+            {
+                Index = index,
+                FromPosition = fromPosition,
+                ToPosition = toPosition,
+                FromScale = fromScale,
+                ToScale = toScale,
+                Delay = delay,
+                Duration = duration
+            });
+        }
+
+        void StopMotion()
+        {
+            _tweens.Clear();
+            _tweenDone = null;
+            _tweenClock = 0f;
+            _clearedCells.Clear();
+            _pressActive = false;
+        }
+
+        void AdvanceTweens()
+        {
+            if (_tweens.Count == 0) return;
+
+            _tweenClock += Time.deltaTime;
+            bool finished = true;
+
+            for (int i = 0; i < _tweens.Count; i++)
+            {
+                var tween = _tweens[i];
+                var tile = _tiles != null && tween.Index < _tiles.Length ? _tiles[tween.Index] : null;
+                if (tile == null) continue;
+
+                float progress = tween.Duration <= 0f
+                    ? 1f
+                    : Mathf.Clamp01((_tweenClock - tween.Delay) / tween.Duration);
+                if (progress < 1f) finished = false;
+
+                float eased = EaseOutCubic(progress);
+                tile.transform.localPosition = Vector3.LerpUnclamped(tween.FromPosition, tween.ToPosition, eased);
+                tile.transform.localScale = Vector3.LerpUnclamped(tween.FromScale, tween.ToScale, eased);
+            }
+
+            if (!finished) return;
+
+            _tweens.Clear();
+            _tweenClock = 0f;
+            var done = _tweenDone;
+            _tweenDone = null;
+            done?.Invoke();
+        }
+
+        static float EaseOutCubic(float t)
+        {
+            float inverted = 1f - t;
+            return 1f - inverted * inverted * inverted;
+        }
+
+        static float EaseOutBack(float t)
+        {
+            const float overshoot = 1.70158f;
+            float shifted = t - 1f;
+            return 1f + (overshoot + 1f) * shifted * shifted * shifted + overshoot * shifted * shifted;
+        }
+
+        /// <summary>Puts every tile back exactly where the board says it lives.</summary>
+        void ResetTiles()
+        {
+            if (_tiles == null) return;
+
+            for (int i = 0; i < _tiles.Length; i++)
+            {
+                if (_tiles[i] == null) continue;
+                _tiles[i].transform.localPosition = RestOf(i);
+                _tiles[i].transform.localScale = Vector3.one;
+            }
+        }
+
+        void AnimateResultStars()
+        {
+            if (_resultOverlay == null || !_resultOverlay.gameObject.activeSelf) return;
+
+            float elapsed = Time.unscaledTime - _resultShownAt;
+            for (int i = 0; i < _resultStars.Length; i++)
+            {
+                if (_resultStars[i] == null) continue;
+
+                float local = Mathf.Clamp01((elapsed - 0.10f * i) / 0.22f);
+                float scale = local <= 0f ? 0f : EaseOutBack(local);
+                _resultStars[i].rectTransform.localScale = Vector3.one * scale;
+            }
+        }
+
         void ShowResult(RewardBundle reward, bool firstClear)
         {
             bool won = _run.Status == LevelStatus.Won;
             bool canPlayNext = won && Session.IsUnlocked(_levelNumber + 1);
+            int stars = StarRating.FromRun(_run);
 
             RtlText.Set(_resultTitle, won ? "مرحله کامل شد" : "حرکت تمام شد");
 
@@ -333,7 +732,15 @@ namespace Shazdeh.Game.Ui
                     ? Core.Text.PersianText.Number(reward.Potions) + " معجون و " +
                       Core.Text.PersianText.Number(reward.Coins) + " سکه"
                     : "این مرحله قبلاً جایزه گرفته است";
-                if (won && Session.IsChapterBuilt) body += "\nناحیه‌های فصل کامل شد";
+
+                if (stars < StarRating.Max)
+                {
+                    StarRating.TwoStarAt(_level.MoveLimit, out int second, out int third);
+                    int needed = stars == StarRating.Min ? second : third;
+                    body += "\nبرای ستاره بعدی " + Core.Text.PersianText.Number(needed) + " حرکت مانده لازم است";
+                }
+
+                if (Session.IsChapterBuilt) body += "\nناحیه‌های فصل کامل شد";
                 RtlText.Set(_resultBody, body);
             }
             else
@@ -341,6 +748,9 @@ namespace Shazdeh.Game.Ui
                 int next = Session.Lives.NextRefillInSeconds;
                 RtlText.Set(_resultBody, "یک جان کم شد\nجان بعدی تا " + Core.Text.PersianText.Time(next));
             }
+
+            ShowStars(stars);
+            ShowBanner(won);
 
             if (canPlayNext)
             {
@@ -366,8 +776,30 @@ namespace Shazdeh.Game.Ui
             RtlText.Set(_secondaryLabel, "خانه");
             _secondaryAction = () => HomeRequested?.Invoke();
 
+            _resultShownAt = Time.unscaledTime;
             _resultOverlay.gameObject.SetActive(true);
             _resultOverlay.SetAsLastSibling();
+            AnimateResultStars();
+        }
+
+        /// <summary>Earned stars are gold, the rest are outlines: the count is readable at a glance.</summary>
+        void ShowStars(int stars)
+        {
+            for (int i = 0; i < _resultStars.Length; i++)
+            {
+                var image = _resultStars[i];
+                if (image == null || image.sprite == null) continue;
+
+                image.color = i < stars ? Tokens.Gold : new Color(Tokens.TextMuted.r, Tokens.TextMuted.g, Tokens.TextMuted.b, 0.30f);
+            }
+        }
+
+        void ShowBanner(bool won)
+        {
+            if (_resultBanner == null) return;
+
+            bool drawn = ArtLibrary.ApplyTo(_resultBanner, won ? "result_win" : "result_lose");
+            _resultBanner.enabled = drawn;
         }
 
         // ---- drawing ------------------------------------------------------------------------------
@@ -494,57 +926,72 @@ namespace Shazdeh.Game.Ui
             if (Session == null) return;
 
             RtlText.Set(_levelLabel, "مرحله " + Core.Text.PersianText.Number(_levelNumber));
+            if (_run == null) return;
 
-            if (_run != null)
-            {
-                RtlText.Set(_movesLabel, "حرکت " + Core.Text.PersianText.Number(_run.MovesLeft));
-                RtlText.Set(_goalsLabel, GoalsText());
-                RtlText.Set(_statusLabel, _run.Status == LevelStatus.Playing ? "" : "پایان مرحله");
-            }
+            RtlText.Set(_movesLabel, "حرکت " + Core.Text.PersianText.Number(_run.MovesLeft));
+            RefreshGoalChips();
+
+            if (_hint == null || Time.unscaledTime >= _hintUntil) ClearHint();
         }
 
-        string GoalsText()
+        /// <summary>
+        /// Each goal is one chip: its icon, then "۴ از ۱۲". A finished goal goes gold and stops
+        /// changing, which is the only feedback that matters while the board is busy.
+        /// </summary>
+        void RefreshGoalChips()
         {
-            _goalsText.Length = 0;
             var goals = _run.Goals;
-            for (int i = 0; i < goals.Count; i++)
+
+            for (int i = 0; i < MaxGoalChips; i++)
             {
-                if (i > 0) _goalsText.Append("  ·  ");
+                if (i >= goals.Count)
+                {
+                    if (_goalChip[i] != null) _goalChip[i].gameObject.SetActive(false);
+                    continue;
+                }
+
+                if (_goalChip[i] != null) _goalChip[i].gameObject.SetActive(true);
+
                 var goal = goals.Goal(i);
-                _goalsText.Append(goal.Kind == GoalKind.ClearPieces ? PieceWord(goal.Piece) : ObstacleWord(goal.Obstacle));
-                _goalsText.Append(' ').Append(Core.Text.PersianText.Number(goals.Progress(i)));
-                _goalsText.Append('/').Append(Core.Text.PersianText.Number(goals.Target(i)));
+                bool done = goals.IsComplete(i);
+                RtlText.SetFraction(_goalChipLabel[i], goals.Progress(i), goals.Target(i));
+                if (_goalChipLabel[i] != null)
+                    _goalChipLabel[i].color = done ? Tokens.Gold : Tokens.Text;
+
+                string iconId = goal.Kind == GoalKind.ClearPieces ? PieceId(goal.Piece) : ObstacleId(goal.Obstacle);
+                var icon = _goalChipIcon[i];
+                if (icon == null) continue;
+
+                bool drawn = ArtLibrary.Get(iconId) != null;
+                if (drawn)
+                {
+                    ArtLibrary.ApplyTo(icon, iconId);
+                    icon.color = done ? Color.white : new Color(1f, 1f, 1f, 0.86f);
+                }
+                else
+                {
+                    icon.sprite = null;
+                    icon.color = done ? Tokens.Gold : ColorFor(goal.Piece);
+                }
             }
-            return _goalsText.ToString();
         }
 
-        static string PieceWord(PieceKind kind)
+        // ---- the hint line --------------------------------------------------------------------------
+
+        void ShowHint(string text, float seconds)
         {
-            switch (kind)
-            {
-                case PieceKind.Firouzeh: return "فیروزه";
-                case PieceKind.Lajvard: return "لاجورد";
-                case PieceKind.Aqiq: return "عقیق";
-                case PieceKind.Zomorrod: return "زمرد";
-                case PieceKind.Morvarid: return "مروارید";
-                default: return "مهره";
-            }
+            _hint = text;
+            _hintUntil = Time.unscaledTime + seconds;
+            RtlText.Set(_hintLabel, text);
         }
 
-        static string ObstacleWord(ObstacleKind kind)
+        void ClearHint()
         {
-            switch (kind)
-            {
-                case ObstacleKind.Crate: return "جعبه";
-                case ObstacleKind.Frost: return "یخ";
-                case ObstacleKind.Ivy: return "پیچک";
-                case ObstacleKind.Vial: return "شیشهٔ معجون";
-                case ObstacleKind.Samovar: return "سماور";
-                case ObstacleKind.FlowerPot: return "گلدان";
-                case ObstacleKind.Chain: return "زنجیر";
-                case ObstacleKind.Seal: return "مُهر";
-                default: return "مانع";
-            }
+            if (_hint == null) return;
+
+            _hint = null;
+            _hintUntil = 0f;
+            RtlText.Set(_hintLabel, "");
         }
 
         public override string ToString() => "BoardScreen(" + _levelNumber + ")";

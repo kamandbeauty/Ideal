@@ -67,7 +67,8 @@ instead of breaking, which is what makes art additive.
 | Top bar | `icon_coin`, `icon_potion`, `icon_life` at 26 px | no icon; numbers only |
 | Home | `home_palace` (1024×768) plate behind the level card | two bands of `surface` |
 | Districts | `district_ch01_d1..d3` plates, `prop_ch01_*` (12) | surface card, task pills |
-| Result | `reward_chest`, `icon_star` | text only |
+| Result | `result_win` / `result_lose` (720×200) behind the title, `icon_star` ×3 for the score | text only |
+| Moves pill | `icon_moves` at 22 px | the word alone |
 | Store | `app_icon` (512×512) | — (nothing to draw in-game) |
 
 ## 4. The brief
@@ -128,7 +129,7 @@ lists exactly what a human should replace first, so nobody mistakes this for fin
 
 ## 7. What is drawn, and what a human should replace first
 
-All 43 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
+All 46 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
 --strict` is green. The set was drawn in this order of care:
 
 1. **The five stones** — one bezel language, five silhouettes that survive 48 px and greyscale
@@ -139,6 +140,12 @@ All 43 assets in the contract exist, at the exact sizes the manifest asks for; `
    left third stays calm for the level card, as the brief asks.
 4. **The three district plates** — one camera, one light, one palette, so "built" reads as progress.
 5. **The twelve task props, the chest, the nine-slice frames and the app icon.**
+6. **The two result plaques and the moves icon** — one silhouette in two moods: gold keyline and a warm
+   halo for a win, silver and a crescent for a loss. The middle of the plate is deliberately quiet,
+   because the title, the three stars and the reward are drawn over it in code.
+7. **Still to draw** (each one goes in the manifest before it is drawn): the open chest state, the
+   gate states for a built district, the level-node markers on the map, the booster and settings icons
+   (`sound`, `music`, `vibration`, `push`), the task-card frame, and the day/night plate variants.
 
 Left for a human artist, in the order that would improve the game most:
 
@@ -148,8 +155,10 @@ Left for a human artist, in the order that would improve the game most:
 - **The district plates**: they are stage sets, not paintings. The arches read, the ground does not.
 - **`reward_chest`**: one closed sprite. The open state is a tint/scale in code today; it wants a
   second drawing.
+- **The result plaques**: they are ornaments, not illustration. A win screen wants the palace lit up
+  behind the card, which is a painted asset and not a garnish.
 - **`prop_ch01_gate`**: drawn closed only; the "built" plate needs the open state.
 - **No animation**: idle, swap, cascade and chest reveal all remain unimplemented. The motion tokens
   exist; the clips do not.
-- **No atlas**: 43 sprites is small enough to let Unity pack them, and doing it by hand now would
+- **No atlas**: 46 sprites is small enough to let Unity pack them, and doing it by hand now would
   cost more than it saves.

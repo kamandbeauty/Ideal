@@ -113,7 +113,7 @@ python3 tools/text/check_font.py       # glyph coverage, no Unity needed
 | `Assets/Game/Ui/UiScreen.cs` | a screen: build once, refresh on change |
 | `Assets/Game/Ui/TopBar.cs` | coins, potions, lives — on every screen |
 | `Assets/Game/Ui/HomeScreen.cs` | palace header, level card, play, districts |
-| `Assets/Game/Ui/BoardScreen.cs` | the board (real engine), moves, goals in Persian, result overlay |
+| `Assets/Game/Ui/BoardScreen.cs` | the board (real engine), swipe + tap input, animated turns, per-goal chips, result card with stars — see `docs/gameplay.md` |
 | `Assets/Game/Ui/DistrictScreen.cs` | districts, task prices, "build all", chest |
 | `Assets/Game/Ui/PersianCheckView.cs` | the specimen scene that isolates font / shaper / layout problems |
 | `Assets/Game/Ui/RtlText.cs` | the only door text goes through |
@@ -124,8 +124,9 @@ python3 tools/text/check_font.py       # glyph coverage, no Unity needed
 
 ## 5. What M2 does not have yet
 
-- **Art and animation.** Pieces are still coloured squares; there is no build animation, no chest
-  reveal, no particles. `replica/design/art-direction.md` is the spec; shipping graphics at the level
+- **Animation beyond the turn.** The swap, the clear and the settle are animated from the engine's
+  event list (`docs/gameplay.md` §1), but there is no build animation, no chest reveal and no
+  particles. `replica/design/art-direction.md` is the spec; shipping graphics at the level
   of the original is the acceptance criterion, and none of it exists yet. The pipeline that will
   consume it is `docs/art.md`.
 - **A world map.** Districts are a list, not a map.

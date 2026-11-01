@@ -68,6 +68,12 @@ namespace Shazdeh.Core
         public bool cleared;
         public long firstClearedAtUnix;
         public string lastReplayHash = "";
+
+        /// <summary>
+        /// Stars for this level, derived rather than stored: the same rule the server applies to the
+        /// replay, and the reason adding stars to the game did not need a save migration.
+        /// </summary>
+        public int Stars(int moveLimit) => StarRating.FromRecord(this, moveLimit);
     }
 
     /// <summary>What a chest or a level pays out. Small struct so it cannot be half-applied.</summary>
