@@ -57,7 +57,11 @@ function campaignLinks() {
   const links = [];
   const paper = '/motion/kamand-paper';
   const eye = '/motion/kamand-eye';
+  const vox = '/motion/kamand-vox';
   const cands = [
+    ['VOX 1080p', `${vox}/exports/kamand-vox-1080p.mp4`],
+    ['VOX 4K', `${vox}/exports/kamand-vox-4k.mp4`],
+    ['VOX contact sheet', `${vox}/stills/contact-sheet.jpg`],
     ['PAPER 1080p', `${paper}/exports/kamand-paper-1080p.mp4`],
     ['PAPER 4K', `${paper}/exports/kamand-paper-4k.mp4`],
     ['PAPER contact sheet', `${paper}/stills/contact-sheet.jpg`],

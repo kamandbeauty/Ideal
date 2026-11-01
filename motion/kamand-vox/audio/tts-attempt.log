@@ -1,0 +1,14 @@
+# Persian_tts voiceover attempt — 2026-11-01T22:56:41.566867+00:00
+# engine: third_party/persian_tts/scripts/tts_onnx.py (OnnxTts)
+# voice:  third_party/persian_tts/voices/female_narration.wav
+STATUS: ONNX package unavailable in this sandbox.
+  missing: /home/user/Ideal/third_party/persian_tts/model/onnx/manifest.json
+  missing: /home/user/Ideal/third_party/persian_tts/model/onnx/weights.npz
+  missing: /home/user/Ideal/third_party/persian_tts/model/onnx/decode_state_init.npz
+  missing: /home/user/Ideal/third_party/persian_tts/model/v2/normalize_fa.py
+  missing: /home/user/Ideal/third_party/persian_tts/model/v2/tokenizer_ph.model
+  reason : huggingface.co is blocked by the build sandbox network policy;
+           the ~469 MB weights cannot be downloaded here.
+  action : keeping the 10 fallback narrator clips already in vo/.
+  to use : hf download Nimaone/pocket-tts-farsi-v2-onnx --local-dir third_party/persian_tts/model/onnx
+           then re-run this script. Nothing else changes.

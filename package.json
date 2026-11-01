@@ -23,7 +23,12 @@
     "kamand-eye:vo:persian-tts": "python3 motion/kamand-eye/audio/generate-vo-persian-tts.py",
     "kamand-paper:audio": "python3 motion/kamand-paper/audio/make-audio.py",
     "kamand-paper:sample": "node motion/kamand-paper/render.mjs --sample",
-    "kamand-paper:render": "node motion/kamand-paper/render.mjs"
+    "kamand-paper:render": "node motion/kamand-paper/render.mjs",
+    "kamand-vox:audio": ".venv/bin/python motion/kamand-vox/audio/make-audio.py",
+    "kamand-vox:timeline": ".venv/bin/python motion/kamand-vox/audio/build-timeline.py",
+    "kamand-vox:vo:persian-tts": ".venv/bin/python motion/kamand-vox/audio/generate-vo-persian-tts.py",
+    "kamand-vox:sample": "node motion/kamand-vox/render.mjs --sample",
+    "kamand-vox:render": "node motion/kamand-vox/render.mjs"
   },
   "devDependencies": {
     "@ffmpeg-installer/linux-x64": "^4.1.0",

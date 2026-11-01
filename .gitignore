@@ -10,6 +10,7 @@ __pycache__/
 # Generated motion graphics (keep only editable sources and briefs)
 out/
 motion/*/frames/
+motion/*/audio/vo-timed/
 motion/*/*.mp4
 motion/*/*.webm
 motion/*/*.mov
@@ -19,6 +20,7 @@ motion/*/*.gif
 !motion/kamand-eyebrow-gel/exports/*.mp4
 !motion/kamand-eye/exports/*.mp4
 !motion/kamand-paper/exports/*.mp4
+!motion/kamand-vox/exports/*.mp4
 
 # Vendored TTS model weights are large and fetched separately
 third_party/persian_tts/model/*
