@@ -1,0 +1,48 @@
+feature,area,priority,original,clone,notes
+Guest play with no signup,onboarding,must,yes,no,first session must not need an account
+Sign in with Google or Facebook to keep progress,onboarding,must,yes,no,public OAuth only; no account sharing
+Restore progress on a new device,onboarding,must,yes,no,"help article ""Saving Game Progress""; conflict resolution is ours"
+Guided first-time tutorial board,onboarding,must,yes,no,Royal Kingdom starts harder than most match-3 - we pace ours gently
+Kingdom home hub with currencies and a play button,home,must,yes,no,S04
+Level card with goals preview and difficulty badge,levels,must,yes,no,Normal / Hard / Super Hard
+Swap-two match-3 board with cascades,board,must,yes,no,the engine - the hard part
+Goal tracking (clear items / collect / break layers),board,must,yes,no,chips in the upper middle of the board
+Fixed move count per level,board,must,yes,no,moves are the level's clock
+Power-ups from 4 and 5 matches,board,must,yes,no,Rocket / Spinner / Dynamite / Electro Ball
+Power-up combinations,board,must,yes,no,combo matrix is content in itself
+Obstacles with layers and health,board,must,yes,no,box / snow / ivy / potion tube / steam bomb and more
+Level win reward sequence,progression,must,yes,no,potions and coins
+Offer 5 extra moves for coins when moves run out,monetisation,must,yes,no,the main coin sink - price rises within a level
+"Lives: max 5, one refills every 30 minutes, lose one on failure",economy,must,yes,no,Kingdom Pass raises the cap to 8 in the original
+Potions as the only currency for building tasks,economy,must,yes,no,the bridge between the puzzle and the meta
+District task list with potion costs,meta,must,yes,no,plus a ""Do it"" button for the whole district
+Spend potions on a task with a build animation,meta,must,yes,no,the payoff moment - needs real art
+District chest on completion,meta,must,yes,no,coins / boosters / cards
+World map with kingdom progression,meta,must,yes,no,track current kingdom and revisit old ones
+Server-authoritative wallet and attempt validation,systems,must,yes,no,otherwise a modified client prints currency
+Settings: sound / music / haptics / notifications,systems,must,yes,no,
+Hard and Super Hard cadence every 10 levels,levels,should,yes,no,public guides report Hard at 24 and Super Hard at 28
+Boss board: destroy castle towers and walls,board,should,yes,no,inverted gravity - pieces fall upward toward the castle
+Multi-stage boards inside one level,board,should,yes,no,stage counter under the move count
+Dark Kingdom boss variant,board,should,yes,no,same engine different art and item set
+Pre-level boosters placed on the board,boosters,should,yes,no,rocket / dynamite / electro ball
+In-game boosters that cost no move,boosters,should,yes,no,hammer / battle ram / drill / wizard hat / bomber plane
+Magic Pots: power-ups at the start of a level,boosters,should,yes,no,unlocks at level 32 in the original
+Story episodes on kingdom unlock,story,should,yes,no,1-2 minute scenes - our own cast and script
+Revisit completed kingdoms,meta,should,yes,no,from the world map
+Level chests and streak rewards,progression,should,yes,no,
+Coin packs and bundles via in-app purchase,monetisation,should,yes,no,server-side receipt validation
+Booster shop priced in coins,monetisation,should,yes,no,
+New level batches released on a schedule,content,should,yes,no,every two weeks in the original - ours monthly
+Profile with avatar and username,profile,could,yes,no,
+Stats page,profile,could,yes,no,levels played / win rate
+Episode replay,story,could,yes,no,
+Ask team members for lives,social,could,yes,no,blocked until teams exist
+Notifications for lives refilled and events,systems,could,yes,no,push or email - needs a sending domain
+Licensed art characters audio and animation,content,skip,yes,skip,King Richard / Princess Bella / Wizard / Dark King and all art and sound are Dream Games IP - we design our own
+The hand-authored level catalogue,content,skip,yes,skip,thousands of tuned boards - we author our own starter set
+Teams team chat and life gifting,social,skip,yes,skip,needs a player population and moderation
+Live-ops event calendar and seasons,liveops,skip,yes,skip,21 events plus Kingdom Pass and Richard's Journey - a service and an economy team
+Leaderboards and PvP matchmaking,liveops,skip,yes,skip,needs real players and an anti-cheat and ranking service
+Exact economy tuning values,economy,skip,yes,skip,not published and copying them would copy their tuning - we set and test our own
+The Royal Match universe tie-in,content,skip,yes,skip,not a feature of this product
