@@ -39,6 +39,7 @@ namespace Shazdeh.Game.Ui
         Sprite _square;
         SpriteRenderer[] _tiles;
         SpriteRenderer[] _overlays;
+        SpriteRenderer _frame;
 
         LevelDefinition _level;
         LevelRun _run;
@@ -212,7 +213,8 @@ namespace Shazdeh.Game.Ui
             _resultOverlay = dim;
 
             float cardWidth = UiKit.CanvasWidth - 40f;
-            var card = UiKit.Panel(dim, "card", 20f, 176f, cardWidth, 386f, Tokens.Surface, (int)Tokens.Radius.Panel);
+            var card = UiKit.PanelArt(dim, "card", 20f, 176f, cardWidth, 386f,
+                "panel_frame", 22, Tokens.Surface, (int)Tokens.Radius.Panel);
 
             // The plaque is drawn art (result_win / result_lose, 720×200 at the same 3.6:1 ratio) and
             // the title sits on its dark middle. When the sprite is missing the title still reads on
@@ -246,6 +248,7 @@ namespace Shazdeh.Game.Ui
             _primary = UiKit.Button(card, "primary", "", 24f, 250f, cardWidth - 48f, 54f,
                 Tokens.Accent, Tokens.OnAccent, () => _primaryAction?.Invoke(), (int)Tokens.Radius.Md);
             _primaryLabel = _primary.GetComponentInChildren<TextMeshProUGUI>();
+            UiKit.StyleButton(_primary, "button_primary", 18);
 
             _secondary = UiKit.Button(card, "secondary", "خانه", 24f, 314f, cardWidth - 48f, 46f,
                 Tokens.SurfaceRaised, Tokens.Text, () => _secondaryAction?.Invoke(), (int)Tokens.Radius.Md);
@@ -316,6 +319,28 @@ namespace Shazdeh.Game.Ui
                     _overlays[index] = overlay;
                 }
             }
+
+            BuildFrame();
+        }
+
+        /// <summary>
+        /// The board's frame: one nine-sliced sprite stretched to the grid, behind every piece. It is a
+        /// SpriteRenderer rather than a canvas image because the board is drawn by the camera, and a
+        /// canvas image over it would either cover the pieces or land behind the camera's clear colour.
+        /// </summary>
+        void BuildFrame()
+        {
+            var sprite = ArtLibrary.GetSliced("board_frame", 28);
+            if (sprite == null || _level == null) return;
+
+            var go = new GameObject("board_frame");
+            go.transform.SetParent(_boardRoot.transform, false);
+
+            _frame = go.AddComponent<SpriteRenderer>();
+            _frame.sprite = sprite;
+            _frame.drawMode = SpriteDrawMode.Sliced;
+            _frame.sortingOrder = -1;
+            _frame.size = new Vector2(_level.Width + 0.34f, _level.Height + 0.34f);
         }
 
         void ClearTiles()
@@ -330,6 +355,9 @@ namespace Shazdeh.Game.Ui
 
             _tiles = null;
             _overlays = null;
+
+            if (_frame != null && _frame.gameObject != null) Destroy(_frame.gameObject);
+            _frame = null;
         }
 
         void FrameCamera()

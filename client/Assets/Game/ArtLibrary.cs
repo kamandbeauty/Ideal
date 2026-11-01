@@ -20,6 +20,7 @@ namespace Shazdeh.Game
         public const string ResourceFolder = "art/";
 
         static readonly Dictionary<string, Sprite> Cache = new Dictionary<string, Sprite>(64);
+        static readonly Dictionary<string, Sprite> SlicedCache = new Dictionary<string, Sprite>(8);
         static readonly List<string> MissingRequired = new List<string>(8);
 
         /// <summary>The sprite, or null when the art does not exist yet. Never throws.</summary>
@@ -40,7 +41,58 @@ namespace Shazdeh.Game
         public static bool IsKnown(string id) => ArtCatalog.TryGet(id, out _);
 
         /// <summary>Drops the cache; the editor menu uses it after art is imported.</summary>
-        public static void ResetCache() => Cache.Clear();
+        public static void ResetCache()
+        {
+            Cache.Clear();
+            SlicedCache.Clear();
+            MissingRequired.Clear();
+        }
+
+        /// <summary>
+        /// The sprite as a nine-slice: the same texture, with a border, built once and cached.
+        ///
+        /// The border cannot live in the PNG — Unity stores it in the .meta the importer writes — and
+        /// this project does not hand-write .meta files. Rebuilding the sprite at runtime keeps the art
+        /// pipeline exactly as it is (a PNG per id, nothing else) while still letting a 96 px frame
+        /// stretch to a 375 dp card without a smeared corner.
+        /// </summary>
+        public static Sprite GetSliced(string id, int borderPixels)
+        {
+            if (string.IsNullOrEmpty(id) || borderPixels <= 0) return null;
+
+            string key = id + "#" + borderPixels;
+            if (SlicedCache.TryGetValue(key, out var cached)) return cached;
+
+            var sprite = Get(id);
+            Sprite sliced = null;
+
+            if (sprite != null && sprite.texture != null)
+            {
+                var rect = sprite.textureRect;
+                float border = Mathf.Min(borderPixels, Mathf.Min(rect.width, rect.height) * 0.49f);
+                sliced = Sprite.Create(sprite.texture, rect, new Vector2(0.5f, 0.5f), sprite.pixelsPerUnit,
+                    0, SpriteMeshType.FullRect, new Vector4(border, border, border, border));
+                sliced.name = key;
+            }
+
+            SlicedCache[key] = sliced; // null is a valid, cached answer: the art does not exist
+            return sliced;
+        }
+
+        /// <summary>Puts a nine-slice sprite on an Image. False means "keep your placeholder".</summary>
+        public static bool ApplyToNineSlice(UnityEngine.UI.Image image, string id, int borderPixels)
+        {
+            if (image == null) return false;
+
+            var sprite = GetSliced(id, borderPixels);
+            if (sprite == null) return false;
+
+            image.sprite = sprite;
+            image.type = UnityEngine.UI.Image.Type.Sliced;
+            image.pixelsPerUnitMultiplier = 1f;
+            image.color = Color.white;
+            return true;
+        }
 
         /// <summary>
         /// Required ids that have no file yet, computed once and cached. The editor menu prints it; a

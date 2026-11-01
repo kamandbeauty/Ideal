@@ -98,6 +98,26 @@ namespace Shazdeh.Game.Ui
             return Place(go.GetComponent<RectTransform>(), x, y, width, height);
         }
 
+        /// <summary>
+        /// A panel drawn with a nine-slice sprite when it exists, and as a rounded rect when it does not.
+        /// Screens call this exactly like <see cref="Panel"/>; the only difference is that a missing
+        /// sprite degrades to the placeholder instead of throwing or leaving a hole.
+        /// </summary>
+        public static RectTransform PanelArt(Transform parent, string name, float x, float y, float width, float height,
+            string artId, int borderPixels, Color fallback, int radius = 0)
+        {
+            var rect = Panel(parent, name, x, y, width, height, fallback, radius);
+            ArtLibrary.ApplyToNineSlice(rect.GetComponent<Image>(), artId, borderPixels);
+            return rect;
+        }
+
+        /// <summary>Turns a button's face into the drawn nine-slice, when that art exists.</summary>
+        public static bool StyleButton(Button button, string artId, int borderPixels)
+        {
+            if (button == null || button.targetGraphic == null) return false;
+            return ArtLibrary.ApplyToNineSlice(button.targetGraphic as Image, artId, borderPixels);
+        }
+
         /// <summary>A hit-testable panel with a label: the only kind of button this game has.</summary>
         public static Button Button(Transform parent, string name, string label, float x, float y, float width, float height, Color face, Color labelColor, Action onClick, int radius = 0)
         {

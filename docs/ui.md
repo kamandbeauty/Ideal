@@ -102,6 +102,10 @@ python3 tools/text/check_font.py       # glyph coverage, no Unity needed
 - **Tokens only**: colours, type sizes, spacing and radius come from `Tokens.gen.cs`. No hex in a
   screen file — `DesignSystemView` and the `design` CI job both enforce that.
 - **Rounded corners without art**: `UiKit.Rounded(radius)` generates a 9-sliced sprite once per radius.
+- **Art-backed chrome**: `UiKit.PanelArt` and `UiKit.StyleButton` swap in `panel_frame`, `button_primary`
+  and friends when those PNGs exist, and fall back to the rounded rect when they do not. The border
+  a nine-slice needs lives in a `.meta` this project does not hand-write, so `ArtLibrary.GetSliced`
+  rebuilds the sprite with its border at runtime — one PNG per id stays the whole contract.
 
 ## 4. Files
 

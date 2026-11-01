@@ -63,11 +63,11 @@ instead of breaking, which is what makes art additive.
 
 | screen | art it uses | what it was before |
 | --- | --- | --- |
-| Board | `piece_*` (5) at 94 % of a cell, `obstacle_*` (8) at 90 %, `powerup_*` (5) at 80 % | token colours, no shape |
+| Board | `piece_*` (5) at 94 % of a cell, `obstacle_*` (8) at 90 %, `powerup_*` (5) at 80 %, `board_frame` nine-sliced behind the grid | token colours, no shape |
 | Top bar | `icon_coin`, `icon_potion`, `icon_life` at 26 px | no icon; numbers only |
-| Home | `home_palace` (1024×768) plate behind the level card | two bands of `surface` |
+| Home | `home_palace` (1024×768) plate behind the level card, `panel_frame` as the card, `button_primary` as the play button | two bands of `surface` |
 | Districts | `district_ch01_d1..d3` plates, `prop_ch01_*` (12) | surface card, task pills |
-| Result | `result_win` / `result_lose` (720×200) behind the title, `icon_star` ×3 for the score | text only |
+| Result | `result_win` / `result_lose` (720×200) behind the title, `icon_star` ×3 for the score, `panel_frame` as the card, `button_primary` as the primary button | text only |
 | Moves pill | `icon_moves` at 22 px | the word alone |
 | Settings (screen pending) | `icon_sound`, `icon_music`, `icon_vibration`, `icon_push`, `icon_settings` at 26 px | — (nothing to draw yet) |
 | Store | `app_icon` (512×512) | — (nothing to draw in-game) |

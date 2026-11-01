@@ -63,6 +63,10 @@ namespace Shazdeh.Game.Ui
                 Tokens.Accent, Tokens.OnAccent, () => PlayRequested?.Invoke(), (int)Tokens.Radius.Md);
             _playLabel = _playButton.GetComponentInChildren<TextMeshProUGUI>();
 
+            // The drawn enamel face, when it exists: same button, better material. The label stays a
+            // TMP child, so a missing sprite costs nothing but the flat colour underneath.
+            UiKit.StyleButton(_playButton, "button_primary", 18);
+
             UiKit.Button(Root, "districts", "ناحیه‌ها", 20f, 596f, UiKit.CanvasWidth - 40f, 48f,
                 Tokens.SurfaceRaised, Tokens.Text, () => DistrictsRequested?.Invoke(), (int)Tokens.Radius.Md);
 
@@ -75,8 +79,8 @@ namespace Shazdeh.Game.Ui
 
         void BuildLevelCard()
         {
-            var card = UiKit.Panel(Root, "level_card", 20f, 208f, UiKit.CanvasWidth - 40f, 288f,
-                Tokens.Surface, (int)Tokens.Radius.Panel);
+            var card = UiKit.PanelArt(Root, "level_card", 20f, 208f, UiKit.CanvasWidth - 40f, 288f,
+                "panel_frame", 22, Tokens.Surface, (int)Tokens.Radius.Panel);
             card.GetComponent<Image>().raycastTarget = false;
 
             var caption = UiKit.LabelRight(card, "caption", "مرحلهٔ بعدی", Tokens.Type.Sm, Tokens.TextMuted);
