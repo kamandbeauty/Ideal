@@ -522,6 +522,61 @@
       "required": false,
       "description": "The same plaque after a loss: steel and silver instead of lapis and gold, a crescent at one end and three dim stars.",
       "brief": "Quiet, not punishing. No red, no broken glass, no skulls — the retry button does the work."
+    },
+    {
+      "id": "icon_sound",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "A speaker with one wave: the sound-effects switch. Firouzeh, because it is a channel, not a reward.",
+      "brief": "Reads as a speaker at 22 px. One wave only; two turns into a smudge."
+    },
+    {
+      "id": "icon_music",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "A single eighth note in ivory: the music switch.",
+      "brief": "Distinguishable from icon_sound at 22 px by silhouette alone — one solid blob at the bottom left, no cone."
+    },
+    {
+      "id": "icon_vibration",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "A phone with a ring either side: the haptics switch.",
+      "brief": "The phone is a solid slab, the rings are open; no lettering on the screen."
+    },
+    {
+      "id": "icon_push",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "A bell in gold: the notifications switch, and the only icon allowed to look like an invitation.",
+      "brief": "One clapper, one shoulder. No badge, no exclamation mark."
+    },
+    {
+      "id": "icon_settings",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "Three sliders with turquoise knobs: the settings entry point.",
+      "brief": "Survives 22 px, where a cog would be a smudge. Knobs at three different positions so it reads as sliders."
     }
   ]
 }

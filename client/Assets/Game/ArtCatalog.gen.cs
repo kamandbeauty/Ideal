@@ -78,6 +78,11 @@ namespace Shazdeh.Game
             new Entry("icon_moves", 64, 64, "hud", false),
             new Entry("result_win", 720, 200, "ui", false),
             new Entry("result_lose", 720, 200, "ui", false),
+            new Entry("icon_sound", 64, 64, "hud", false),
+            new Entry("icon_music", 64, 64, "hud", false),
+            new Entry("icon_vibration", 64, 64, "hud", false),
+            new Entry("icon_push", 64, 64, "hud", false),
+            new Entry("icon_settings", 64, 64, "hud", false),
         };
 
         static readonly Dictionary<string, Entry> ById = BuildIndex();

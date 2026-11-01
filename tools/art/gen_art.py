@@ -80,6 +80,16 @@ def glow(w, h, shape, colour, softness=6, alpha=190) -> Image.Image:
     return fill_masked(w, h, with_alpha(colour, 255), soft)
 
 
+def arc_mask(w, h, cx, cy, r, start, end, weight) -> Image.Image:
+    """A circular stroke in fraction space, corrected so it stays round on a non-square canvas."""
+    layer = mask(w, h)
+    ry = r * w / h
+    ImageDraw.Draw(layer).arc(
+        ((cx - r) * w * SS, (cy - ry) * h * SS, (cx + r) * w * SS, (cy + ry) * h * SS),
+        start=start, end=end, fill=255, width=int(weight * w * SS))
+    return layer
+
+
 def starfield(w, h, count, seed, min_y=0.0, max_y=1.0, max_x=1.0, alpha=210) -> Image.Image:
     layer = mask(w, h)
     d = ImageDraw.Draw(layer)
@@ -672,6 +682,93 @@ def hud_icon(w, h, asset_id):
             rim_light(w, h, left, with_alpha((255, 255, 255, 255), 110), 1.6),
             outline(w, h, right, with_alpha(INK, 200), 1.4),
             outline(w, h, left, with_alpha(INK, 200), 1.4)), w, h)
+
+    accent = rgba(PALETTE["accent"])
+
+    if asset_id == "icon_sound":
+        # A speaker, not a music note: this is the switch that turns the channel on and off.
+        box = polygon_mask(w, h, [(0.10, 0.38), (0.28, 0.38), (0.28, 0.62), (0.10, 0.62)])
+        cone = polygon_mask(w, h, [(0.26, 0.36), (0.52, 0.16), (0.52, 0.84), (0.26, 0.64)])
+        body = add(box, cone)
+        waves = add(arc_mask(w, h, 0.50, 0.50, 0.20, -52, 52, 0.055),
+                    arc_mask(w, h, 0.50, 0.50, 0.32, -46, 46, 0.050))
+        return finish(layering(
+            soft_shadow(w, h, body, (0, 3), 3, 100),
+            gradient_masked(w, h, shade(accent, 0.26), shade(accent, -0.22), body),
+            fill_masked(w, h, with_alpha(shade(accent, -0.30), 255), waves),
+            rim_light(w, h, body, with_alpha((255, 255, 255, 255), 120), 1.6),
+            outline(w, h, body, with_alpha(INK, 200), 1.4)), w, h)
+
+    if asset_id == "icon_music":
+        # One eighth note: a head, a stem, a flag. Ivory, because it is a note and not a resource.
+        head = ellipse_mask(w, h, (0.16, 0.62, 0.46, 0.88))
+        stem = polygon_mask(w, h, [(0.40, 0.12), (0.47, 0.12), (0.47, 0.76), (0.40, 0.76)])
+        flag = polygon_mask(w, h, [(0.47, 0.12), (0.76, 0.22), (0.72, 0.40), (0.47, 0.34)])
+        note = add(add(head, stem), flag)
+        return finish(layering(
+            soft_shadow(w, h, note, (0, 3), 3, 100),
+            gradient_masked(w, h, IVORY, shade(IVORY, -0.22), note),
+            fill_masked(w, h, with_alpha(shade(IVORY, -0.30), 120),
+                        clip(ellipse_mask(w, h, (0.18, 0.76, 0.44, 0.92)), head)),
+            rim_light(w, h, note, with_alpha((255, 255, 255, 255), 110), 1.5),
+            outline(w, h, note, with_alpha(INK, 200), 1.3)), w, h)
+
+    if asset_id == "icon_vibration":
+        # A narrow phone and two short strokes either side. Rings wide enough to hug the phone read
+        # as a mug, which is exactly what the first draft of this icon looked like.
+        phone = mask(w, h)
+        ImageDraw.Draw(phone).rounded_rectangle(
+            (0.365 * w * SS, 0.10 * h * SS, 0.635 * w * SS, 0.90 * h * SS),
+            radius=0.055 * w * SS, fill=255)
+        screen = mask(w, h)
+        ImageDraw.Draw(screen).rounded_rectangle(
+            (0.400 * w * SS, 0.155 * h * SS, 0.600 * w * SS, 0.845 * h * SS),
+            radius=0.030 * w * SS, fill=255)
+        buzz = mask(w, h)
+        for span in [(132, 228), (312, 408)]:  # left of the phone, then right of it
+            for radius in (0.185, 0.255):
+                buzz = add(buzz, arc_mask(w, h, 0.5, 0.5, radius, span[0], span[1], 0.045))
+        return finish(layering(
+            fill_masked(w, h, with_alpha(shade(accent, -0.18), 235), buzz),
+            gradient_masked(w, h, shade(STONE, 0.22), STONE_DARK, phone),
+            fill_masked(w, h, with_alpha(shade(accent, -0.42), 225), screen),
+            rim_light(w, h, phone, with_alpha((255, 255, 255, 255), 120), 1.5),
+            outline(w, h, phone, with_alpha(INK, 200), 1.4)), w, h)
+
+    if asset_id == "icon_push":
+        # A bell: gold, because it is a reward channel and the player is being asked to allow it.
+        dome = ellipse_mask(w, h, (0.14, 0.10, 0.86, 0.72))
+        bell = clip(dome, polygon_mask(w, h, [(0.0, 0.10), (1.0, 0.10), (1.0, 0.60), (0.0, 0.60)]))
+        bell = add(bell, polygon_mask(w, h, [(0.14, 0.56), (0.86, 0.56), (0.94, 0.70), (0.06, 0.70)]))
+        clapper = ellipse_mask(w, h, (0.42, 0.72, 0.58, 0.88))
+        return finish(layering(
+            soft_shadow(w, h, add(bell, clapper), (0, 3), 3, 105),
+            gradient_masked(w, h, GOLD_LIGHT, GOLD_MID, bell),
+            fill_masked(w, h, with_alpha(shade(GOLD_MID, -0.30), 255), clapper),
+            fill_masked(w, h, with_alpha((255, 255, 255, 255), 95),
+                        clip(ellipse_mask(w, h, (0.28, 0.16, 0.46, 0.34)), bell)),
+            rim_light(w, h, bell, with_alpha((255, 255, 255, 255), 120), 1.6),
+            outline(w, h, bell, with_alpha(INK, 200), 1.4),
+            outline(w, h, clapper, with_alpha(INK, 200), 1.2)), w, h)
+
+    if asset_id == "icon_settings":
+        # Three sliders rather than a cog: it survives 22 px, and a cog at this size is a smudge.
+        rows = []
+        knobs = []
+        for i, (y, kx) in enumerate([(0.22, 0.34), (0.50, 0.66), (0.78, 0.44)]):
+            rows.append(polygon_mask(w, h, [(0.10, y - 0.045), (0.90, y - 0.045), (0.90, y + 0.045), (0.10, y + 0.045)]))
+            knobs.append(ellipse_mask(w, h, (kx - 0.11, y - 0.11 * w / h, kx + 0.11, y + 0.11 * w / h)))
+        track = rows[0]
+        for row in rows[1:]:
+            track = add(track, row)
+        knob = knobs[0]
+        for k in knobs[1:]:
+            knob = add(knob, k)
+        return finish(layering(
+            fill_masked(w, h, with_alpha(shade(IVORY, -0.42), 255), track),
+            gradient_masked(w, h, shade(accent, 0.22), shade(accent, -0.20), knob),
+            rim_light(w, h, knob, with_alpha((255, 255, 255, 255), 120), 1.5),
+            outline(w, h, knob, with_alpha(INK, 200), 1.3)), w, h)
 
     # icon_star: no baked glow, three sizes come from one sprite
     star = polygon_mask(w, h, star_points(0.5, 0.53, 0.45, 0.19))
