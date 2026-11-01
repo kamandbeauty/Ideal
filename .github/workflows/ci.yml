@@ -1,0 +1,113 @@
+name: ci
+
+on:
+  push:
+    branches: [main, "arena/**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # The database is the part of this project that can be fully verified without Unity,
+  # so it is verified on every push: the schema applies clean, and the eight rules that
+  # protect the wallet actually hold.
+  schema:
+    name: postgres schema + constraint smoke
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shazdeh
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGPASSWORD: postgres
+      PGHOST: localhost
+      PGUSER: postgres
+      PGDATABASE: shazdeh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: psql version
+        run: psql --version
+
+      - name: apply replica/schema.sql
+        run: psql -v ON_ERROR_STOP=1 -q -f replica/schema.sql
+
+      - name: constraints smoke test
+        run: psql -v ON_ERROR_STOP=1 -f replica/db/smoke.sql
+
+      - name: the schema must apply to an empty database only once
+        run: |
+          if psql -v ON_ERROR_STOP=1 -q -f replica/schema.sql >/dev/null 2>&1; then
+            echo "schema.sql re-applied cleanly onto an existing schema — use idempotent migrations instead"
+            exit 1
+          fi
+          echo "ok: schema.sql is a create-once baseline"
+
+  # Tokens are code: the palette must pass WCAG AA and the generated C# must match the JSON.
+  design:
+    name: design tokens
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: contrast gate (WCAG AA, exits 1 on any failure)
+        run: python3 .claude/skills/replica-design/contrast.py replica/design/tokens.json
+
+      - name: tokens.json -> Tokens.gen.cs is in sync
+        run: |
+          python3 replica/design/gen_tokens.py
+          git diff --exit-code -- client/Assets/Core/Generated/Tokens.gen.cs
+
+      - name: feature matrix parses and scores
+        run: python3 .claude/skills/replica-diff/parity.py replica/features.csv --json > /dev/null
+
+  # Placeholder that wakes up when the API exists. Keeps the pipeline honest from day one.
+  server:
+    name: api tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: detect
+        run: |
+          if [ -f server/package.json ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; fi
+
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.present == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: server/package-lock.json
+
+      - name: install
+        if: steps.detect.outputs.present == 'true'
+        run: npm ci --prefix server
+
+      - name: typecheck + test
+        if: steps.detect.outputs.present == 'true'
+        run: |
+          npm run --prefix server typecheck --if-present
+          npm test --prefix server --if-present
+
+      - name: nothing to test yet
+        if: steps.detect.outputs.present == 'false'
+        run: echo "server/ not built yet — job is a no-op"

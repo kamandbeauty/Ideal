@@ -1,0 +1,184 @@
+name: unity
+
+# Builds کاخ شازده with GameCI. Dormant until client/ProjectSettings/ProjectVersion.txt
+# exists, so the repo stays green while the Unity project is being laid down.
+# Secrets and one-time activation: docs/ci.md
+
+on:
+  push:
+    branches: [main, "arena/**"]
+    paths:
+      - "client/**"
+      - ".github/workflows/unity.yml"
+  pull_request:
+    paths:
+      - "client/**"
+      - ".github/workflows/unity.yml"
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "android, ios or both"
+        type: choice
+        options: [android, ios, both]
+        default: android
+      release:
+        description: "mark the build as a candidate release"
+        type: boolean
+        default: false
+
+concurrency:
+  group: unity-${{ github.ref }}-${{ github.event.inputs.target || 'android' }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  UNITY_VERSION: "6000.0.32f1"
+
+jobs:
+  detect:
+    name: detect unity project
+    runs-on: ubuntu-latest
+    outputs:
+      has_unity: ${{ steps.check.outputs.has_unity }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if [ -f client/ProjectSettings/ProjectVersion.txt ]; then
+            echo "has_unity=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_unity=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Unity project missing::client/ProjectSettings/ProjectVersion.txt not found — build jobs skipped"
+          fi
+      - name: the project's Unity version must match the CI pin
+        if: steps.check.outputs.has_unity == 'true'
+        run: |
+          grep -q "$UNITY_VERSION" client/ProjectSettings/ProjectVersion.txt \
+            || { echo "::error::client was last opened with a different Unity version than $UNITY_VERSION"; cat client/ProjectSettings/ProjectVersion.txt; exit 1; }
+
+  test:
+    name: edit + play mode tests
+    needs: detect
+    if: needs.detect.outputs.has_unity == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: cache Library
+        uses: actions/cache@v4
+        with:
+          path: client/Library
+          key: Library-${{ runner.os }}-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: Library-${{ runner.os }}-
+
+      - uses: game-ci/unity-test-runner@v4
+        id: tests
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: client
+          unityVersion: ${{ env.UNITY_VERSION }}
+          testMode: all
+          artifactsPath: test-results
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: board engine + play mode
+          coverageOptions: "generateAdditionalMetrics;generateTestReferences"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unity-test-results
+          path: ${{ steps.tests.outputs.artifactsPath }}
+          retention-days: 14
+
+  build-android:
+    name: android (aab)
+    needs: [detect, test]
+    if: needs.detect.outputs.has_unity == 'true' && (github.event.inputs.target == 'android' || github.event.inputs.target == 'both' || github.event.inputs.target == null)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: cache Library
+        uses: actions/cache@v4
+        with:
+          path: client/Library
+          key: Library-Android-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: Library-Android-
+
+      - name: build
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: client
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: Android
+          androidExportType: androidAppBundle
+          androidKeystoreName: user.keystore
+          androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+          androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
+          androidKeyaliasPass: ${{ secrets.ANDROID_KEYALIAS_PASS }}
+          versioning: Custom
+          version: 0.${{ github.run_number }}
+          allowDirtyBuild: false
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shazdeh-android-${{ github.run_number }}
+          path: build/Android
+          retention-days: 30
+
+  build-ios:
+    name: ios (xcode project)
+    needs: [detect, test]
+    if: needs.detect.outputs.has_unity == 'true' && (github.event.inputs.target == 'ios' || github.event.inputs.target == 'both')
+    runs-on: macos-14
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: cache Library
+        uses: actions/cache@v4
+        with:
+          path: client/Library
+          key: Library-iOS-${{ hashFiles('client/Packages/packages-lock.json', 'client/ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: Library-iOS-
+
+      - name: build
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        with:
+          projectPath: client
+          unityVersion: ${{ env.UNITY_VERSION }}
+          targetPlatform: iOS
+          versioning: Custom
+          version: 0.${{ github.run_number }}
+          allowDirtyBuild: false
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: shazdeh-ios-xcode-${{ github.run_number }}
+          path: build/iOS
+          retention-days: 14
