@@ -3,7 +3,10 @@
     "rootNamespace": "Shazdeh.Game",
     "references": [
         "Shazdeh.Core",
-        "Shazdeh.Content"
+        "Shazdeh.Content",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

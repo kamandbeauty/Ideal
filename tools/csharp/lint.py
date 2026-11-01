@@ -38,6 +38,11 @@ except ImportError:  # pragma: no cover - CI installs this
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ROOT = ROOT / "client" / "Assets"
 
+# Members every value has, so a name that collides with a class called `Type` is never a mistake.
+OBJECT_MEMBERS = {
+    "GetType", "ToString", "Equals", "GetHashCode", "MemberwiseClone", "ReferenceEquals",
+}
+
 TYPE_NODES = {
     "class_declaration",
     "struct_declaration",
@@ -180,6 +185,8 @@ def main(argv: list[str]) -> int:
             member_name = decode(source, name)
             if type_name not in members or member_name in members[type_name]:
                 continue
+            if member_name in OBJECT_MEMBERS:
+                continue  # GetType/ToString/... exist on everything, whatever the class is called
             line = node.start_point[0] + 1
             member_errors.append(
                 f"{rel(path)}:{line}: {type_name} has no member `{member_name}`"

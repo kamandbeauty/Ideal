@@ -1,6 +1,6 @@
-# Build and test — M0
+# Build and test
 
-Two ways to run the engine and the levels, and what each one proves.
+Two ways to run the game, and what each one proves.
 
 ## 1. On your machine (fastest loop)
 
@@ -8,8 +8,9 @@ Two ways to run the engine and the levels, and what each one proves.
 # open the project
 # Unity Hub → Add → client/   (Unity 6 LTS, Android module)
 
-# menu: کاخ شازده → Create M0 scenes
-# open Assets/Scenes/M0_Greybox.unity, press Play
+# menu: کاخ شازده → Create scenes
+# then: put a Persian TTF in Assets/Fonts/ and run کاخ شازده → Build UI font (docs/ui.md)
+# open Assets/Scenes/App.unity, press Play
 ```
 
 EditMode tests: Test Runner window, or
@@ -63,6 +64,12 @@ python3 tools/content/check_meta.py
 pip install -r tools/csharp/requirements.txt
 python3 tools/csharp/lint.py
 
+# Persian: letter tables vs the Unicode database, our shaping vs arabic-reshaper, golden vectors
+pip install -r tools/text/requirements.txt
+python3 tools/text/gen_persian_table.py --check
+python3 tools/text/persian_ref.py --check
+python3 tools/text/persian_ref.py --emit && git diff --exit-code -- client/Assets/Core.Tests/Generated
+
 # design tokens: WCAG + generated C# in sync
 python3 .claude/skills/replica-design/contrast.py replica/design/tokens.json
 python3 replica/design/gen_tokens.py && git diff --exit-code -- client/Assets/Game/Generated/Tokens.gen.cs
@@ -73,7 +80,7 @@ engine tests are written and reviewed here, syntax-checked by `tools/csharp/lint
 CI (or by your editor) — that is the honest status, not a claim that they passed. The lint is a
 grammar check plus a shallow static-member check; it is not a type checker.
 
-## 4. Gates before a build is called good (M0 exit)
+## 4. Gates before a build is called good (M0 exit — engine)
 
 - EditMode tests green, including the 40-seed × 60-move invariant run.
 - Every level loads, validates, and has a legal opening move on 5 seeds.
@@ -95,3 +102,16 @@ grammar check plus a shallow static-member check; it is not a type checker.
 - Deleting `shazdeh-save.json` starts a new save; corrupting it recovers `.bak`; corrupting both
   starts a new save with both failures logged. The game never crashes on a save.
 - `docs/decisions/0001-offline-first.md` still holds: nothing above needs a server.
+
+## 6. Gates before a build is called good (M2 exit: screens + Persian)
+
+- Every string a player reads is Persian, right to left, shaped — and the shaping is byte-identical to
+  `arabic-reshaper` on all 29 shipped strings (`tools/text/persian_ref.py --check`).
+- Numbers are Persian numerals with Persian separators (`۱٬۲۳۴`), counts read `۳ از ۵`, and a countdown
+  reads `۲۹:۵۹` — never ASCII digits in the UI.
+- The home → play → result → home loop works with the network off, and a loss costs exactly one life.
+- A district can be built from potions earned on the board, and its chest opens once.
+- No screen contains a hex colour, a raw font size or a duration: they come from `Tokens.gen.cs`.
+- `_PersianCheck.unity` reads correctly with the real UI font on a real device, at both 16:9 and 19.5:9.
+- The board still runs at 60 fps with the canvas on top (Profiler: no per-frame allocations from the
+  HUD; `Refresh` runs on change, not per frame).

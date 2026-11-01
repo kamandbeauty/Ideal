@@ -42,7 +42,7 @@ namespace Shazdeh.EditorTools
 
         static void Run(BuildTarget target, string output)
         {
-            string scenePath = ShazdehMenu.EnsureGreyBoxScene();
+            string scenePath = ShazdehMenu.EnsureAppScene();
             Directory.CreateDirectory(Path.GetDirectoryName(output) ?? "build");
 
             var options = new BuildPlayerOptions

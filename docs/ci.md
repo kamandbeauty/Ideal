@@ -4,16 +4,18 @@ Two workflows, both dormant-until-needed:
 
 | workflow | runs | what it proves |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | every push and PR | `replica/schema.sql` applies to a real Postgres 16, the 8 wallet-protecting constraints actually hold, the palette passes WCAG AA, `Tokens.gen.cs` matches `tokens.json`, level + district JSON validates, and every C# file parses with no unknown static members |
+| `.github/workflows/ci.yml` | every push and PR | `replica/schema.sql` applies to a real Postgres 16, the 8 wallet-protecting constraints actually hold, the palette passes WCAG AA, `Tokens.gen.cs` matches `tokens.json`, level + district JSON validates, every C# file parses with no unknown static members, and the Persian shaper agrees with a second implementation |
 | `.github/workflows/unity.yml` | pushes touching `client/**`, manual dispatch | EditMode + PlayMode tests, then an Android `.aab`; iOS Xcode project on manual dispatch |
 
 The Unity jobs check for `client/ProjectSettings/ProjectVersion.txt` first and skip with a notice
 until the project exists — the repo stays green while M0 is being built.
 
-`ci.yml` runs five jobs: `schema`, `design`, `content` (levels + chapter meta), `csharp`
-(`tools/csharp/lint.py`, pinned grammar in `tools/csharp/requirements.txt`) and `server`. The `csharp`
-job is not a substitute for Unity's compiler — it is what catches a broken brace or a renamed member
-on a machine that cannot build the game.
+`ci.yml` runs six jobs: `schema`, `design`, `content` (levels + chapter meta), `csharp`
+(`tools/csharp/lint.py`, pinned grammar in `tools/csharp/requirements.txt`), `text` (Persian letter
+tables, shaping vs `arabic-reshaper`, golden vectors — `tools/text/requirements.txt`) and `server`. The
+`csharp` job is not a substitute for Unity's compiler — it is what catches a broken brace or a renamed
+member on a machine that cannot build the game. The `text` job is what stops a shaper regression from
+reaching a phone: Persian is the product.
 
 ## One-time setup
 

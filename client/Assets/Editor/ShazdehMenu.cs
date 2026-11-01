@@ -10,31 +10,38 @@ using UnityEngine;
 namespace Shazdeh.EditorTools
 {
     /// <summary>
-    /// Project menu for the things a human should not do by hand: building the M0 scenes from code
-    /// (so no .unity file has to be hand-edited) and validating every level.
+    /// Project menu for the things a human should not do by hand: building the scenes from code (so no
+    /// .unity file has to be hand-edited), validating content, and building the UI font asset.
     /// </summary>
     public static class ShazdehMenu
     {
         public const string ScenesFolder = "Assets/Scenes";
-        public const string GreyBoxScenePath = ScenesFolder + "/M0_Greybox.unity";
+        public const string AppScenePath = ScenesFolder + "/App.unity";
         public const string DesignScenePath = ScenesFolder + "/_DesignSystem.unity";
+        public const string PersianCheckScenePath = ScenesFolder + "/_PersianCheck.unity";
 
-        [MenuItem("کاخ شازده/Create M0 scenes")]
+        [MenuItem("کاخ شازده/Create scenes")]
         public static void CreateScenes()
         {
-            var grey = CreateScene<GreyBoxGame>(GreyBoxScenePath);
+            var app = CreateScene<AppRoot>(AppScenePath);
             var design = CreateScene<DesignSystemView>(DesignScenePath);
+            var persian = CreateScene<Game.Ui.PersianCheckView>(PersianCheckScenePath);
 
             EditorBuildSettings.scenes = new[]
             {
-                new EditorBuildSettingsScene(grey, true),
-                new EditorBuildSettingsScene(design, false)
+                new EditorBuildSettingsScene(app, true),
+                new EditorBuildSettingsScene(design, false),
+                new EditorBuildSettingsScene(persian, false)
             };
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 
-            Debug.Log("M0 scenes ready: " + GreyBoxScenePath + " (build), " + DesignScenePath + " (design check)");
+            if (!Game.Ui.ShazdehFonts.IsPersianFontInstalled)
+                Debug.LogWarning("No Persian UI font yet: run کاخ شازده → Build UI font, or Persian text will draw with the fallback font. See docs/ui.md.");
+
+            Debug.Log("Scenes ready: " + AppScenePath + " (build), " + DesignScenePath + " (design check), " +
+                      PersianCheckScenePath + " (Persian check)");
         }
 
         [MenuItem("کاخ شازده/Validate levels")]
@@ -60,6 +67,18 @@ namespace Shazdeh.EditorTools
             Debug.LogError("Level validation failed with " + errors.Count + " error(s).");
         }
 
+        [MenuItem("کاخ شازده/Check Persian text")]
+        public static void CheckPersianText()
+        {
+            var samples = Game.Ui.PersianCheckView.Samples();
+            for (int i = 0; i < samples.Length; i++)
+            {
+                string shaped = Shazdeh.Core.Text.PersianText.Shape(samples[i]);
+                string visual = Shazdeh.Core.Text.PersianText.ToVisualOrder(shaped);
+                Debug.Log("[text] " + samples[i] + " → shaped " + shaped + " → drawn " + visual);
+            }
+        }
+
         static List<LevelDefinition> LoadLevelsFromResources(List<string> errors)
         {
             var levels = new List<LevelDefinition>();
@@ -72,11 +91,11 @@ namespace Shazdeh.EditorTools
         }
 
         /// <summary>Used by CI as well: creates the boot scene if the repo has never been opened in the editor.</summary>
-        public static string EnsureGreyBoxScene()
+        public static string EnsureAppScene()
         {
-            if (!File.Exists(GreyBoxScenePath)) CreateScenes();
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(GreyBoxScenePath) == null) CreateScenes();
-            return GreyBoxScenePath;
+            if (!File.Exists(AppScenePath)) CreateScenes();
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(AppScenePath) == null) CreateScenes();
+            return AppScenePath;
         }
 
         static string CreateScene<T>(string path) where T : MonoBehaviour

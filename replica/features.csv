@@ -3,11 +3,11 @@ Guest play with no signup,onboarding,must,yes,no,first session must not need an 
 Sign in with Google or Facebook to keep progress,onboarding,must,yes,no,public OAuth only; no account sharing
 Restore progress on a new device,onboarding,must,yes,no,"help article ""Saving Game Progress""; conflict resolution is ours"
 Guided first-time tutorial board,onboarding,must,yes,no,Royal Kingdom starts harder than most match-3 - we pace ours gently
-Kingdom home hub with currencies and a play button,home,must,yes,no,S04
-Level card with goals preview and difficulty badge,levels,must,yes,no,Normal / Hard / Super Hard
+Kingdom home hub with currencies and a play button,home,must,yes,partial,"UI/HomeScreen.cs: palace header, level card, top bar (coins/potions/lives), play button, RTL Persian; header art pending"
+Level card with goals preview and difficulty badge,levels,must,yes,partial,level card shows number and chapter progress; goals preview and Hard/Super Hard badge still to do
 Swap-two match-3 board with cascades,board,must,yes,partial,"the engine - the hard part — engine done in M0 (client/Assets/Core): swaps, cascades, gravity, dead-board reshuffle; no art, no animation"
-Goal tracking (clear items / collect / break layers),board,must,yes,partial,chips in the upper middle of the board — engine + goal chips data done; UI and art pending
-Fixed move count per level,board,must,yes,partial,moves are the level's clock — engine enforces it; HUD pending
+Goal tracking (clear items / collect / break layers),board,must,yes,partial,"engine + Persian goal chips (""عقیق ۳/۸"") done; no chips above the board yet, no art"
+Fixed move count per level,board,must,yes,partial,engine enforces it and the HUD prints it in Persian numerals; no animation on the counter
 Power-ups from 4 and 5 matches,board,must,yes,partial,Rocket / Spinner / Dynamite / Electro Ball — rocket / spinner / dynamite / electro ball rules + unit tests done; FX pending
 Power-up combinations,board,must,yes,partial,combo matrix is content in itself — explicit combo table done (M0 scope); FX pending
 Obstacles with layers and health,board,must,yes,partial,box / snow / ivy / potion tube / steam bomb and more — layer damage + goals done; 8 obstacle art sets pending

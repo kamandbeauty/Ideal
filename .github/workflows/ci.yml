@@ -124,6 +124,33 @@ jobs:
       - name: parse + static member check
         run: python3 tools/csharp/lint.py
 
+  # Persian is the product, so the shaper gets its own gate: the generated letter tables must match the
+  # Unicode data, our shaping must agree with a second implementation, and the golden vectors the C#
+  # tests compare against must be current.
+  text:
+    name: persian text
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: install shaper reference
+        run: pip install -r tools/text/requirements.txt
+
+      - name: letter tables must match the Unicode database
+        run: python3 tools/text/gen_persian_table.py --check
+
+      - name: our shaping vs arabic-reshaper
+        run: python3 tools/text/persian_ref.py --check
+
+      - name: golden vectors must not drift
+        run: |
+          python3 tools/text/persian_ref.py --emit
+          git diff --exit-code -- client/Assets/Core.Tests/Generated/PersianGoldenVectors.gen.cs
+
   # Placeholder that wakes up when the API exists. Keeps the pipeline honest from day one.
   server:
     name: api tests
