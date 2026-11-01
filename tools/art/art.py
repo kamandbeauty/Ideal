@@ -35,6 +35,10 @@ CATALOG = ROOT / "client" / "Assets" / "Game" / "ArtCatalog.gen.cs"
 MAX_FILE_KB = 1024          # a single sprite has no business being bigger than a megabyte
 REQUIRED_GROUPS = {"piece", "hud", "scene", "brand"}
 
+# Groups the sprite atlas will eventually be split by: everything a screen draws at the same time
+# should share one, so a new group is a decision, not a typo.
+GROUPS = REQUIRED_GROUPS | {"powerup", "obstacle", "district", "prop", "ui", "booster", "map"}
+
 
 # --------------------------------------------------------------------------------------------------
 # manifest
@@ -71,7 +75,7 @@ def validate(manifest: dict) -> list[str]:
 
         if not asset.get("group"):
             errors.append(f"{where}: no group")
-        elif asset["group"] not in REQUIRED_GROUPS | {"powerup", "obstacle", "district", "prop", "ui"}:
+        elif asset["group"] not in GROUPS:
             errors.append(f"{where}: unknown group {asset['group']}")
 
         size = asset.get("size")

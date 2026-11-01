@@ -83,6 +83,21 @@ namespace Shazdeh.Game
             new Entry("icon_vibration", 64, 64, "hud", false),
             new Entry("icon_push", 64, 64, "hud", false),
             new Entry("icon_settings", 64, 64, "hud", false),
+            new Entry("booster_mallet", 128, 128, "booster", false),
+            new Entry("booster_ram", 128, 128, "booster", false),
+            new Entry("booster_auger", 128, 128, "booster", false),
+            new Entry("booster_whirlwind", 128, 128, "booster", false),
+            new Entry("booster_falcon", 128, 128, "booster", false),
+            new Entry("node_cleared", 128, 128, "map", false),
+            new Entry("node_current", 128, 128, "map", false),
+            new Entry("node_locked", 128, 128, "map", false),
+            new Entry("task_card", 128, 128, "ui", false),
+            new Entry("reward_chest_open", 384, 384, "scene", false),
+            new Entry("prop_ch01_gate_open", 256, 256, "prop", false),
+            new Entry("prop_ch01_gate_building", 256, 256, "prop", false),
+            new Entry("district_ch01_d1_lit", 720, 480, "district", false),
+            new Entry("district_ch01_d2_lit", 720, 480, "district", false),
+            new Entry("district_ch01_d3_lit", 720, 480, "district", false),
         };
 
         static readonly Dictionary<string, Entry> ById = BuildIndex();

@@ -39,7 +39,7 @@ from draw import (  # noqa: E402
     GOLD_DARK, GOLD_LIGHT, GOLD_MID, INK, INK_SOFT, IVORY, NIGHT_DEEP, PALETTE, SS, add, arch_points,
     blur, drop_points, eight_point_star, ellipse_mask, fill_masked, finish, gradient_masked, grow, layering,
     linear_band, mask, new, outline, polygon_mask, radial, regular_polygon, rgba, ring, rim_light, rounded_mask,
-    scale, shade, soft_shadow, star_points, tile_band, with_alpha,
+    scale, shade, shrink, soft_shadow, star_points, tile_band, with_alpha,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -88,6 +88,17 @@ def arc_mask(w, h, cx, cy, r, start, end, weight) -> Image.Image:
         ((cx - r) * w * SS, (cy - ry) * h * SS, (cx + r) * w * SS, (cy + ry) * h * SS),
         start=start, end=end, fill=255, width=int(weight * w * SS))
     return layer
+
+
+def box(cx, cy, half_len, half_wid, angle_deg):
+    """Four corners of a rectangle centred on (cx, cy), rotated by angle_deg in fraction space."""
+    a = math.radians(angle_deg)
+    ux, uy = math.cos(a), math.sin(a)
+    vx, vy = -uy, ux
+    return [(cx + ux * half_len + vx * half_wid, cy + uy * half_len + vy * half_wid),
+            (cx + ux * half_len - vx * half_wid, cy + uy * half_len - vy * half_wid),
+            (cx - ux * half_len - vx * half_wid, cy - uy * half_len - vy * half_wid),
+            (cx - ux * half_len + vx * half_wid, cy - uy * half_len + vy * half_wid)]
 
 
 def starfield(w, h, count, seed, min_y=0.0, max_y=1.0, max_x=1.0, alpha=210) -> Image.Image:
@@ -809,6 +820,19 @@ def nine_slice(w, h, asset_id):
             fill_masked(w, h, with_alpha((255, 255, 255, 255), 40),
                         ring(body, rounded_mask(w, h, 0.038, 0.145)))), w, h)
 
+    if asset_id == "task_card":
+        # A listed task: a card with a firouzeh stripe on its right edge, because the eye starts
+        # there. The stripe sits inside the border so a 9-slice keeps it 1:1.
+        body = rounded_mask(w, h, 0.010, 0.095)
+        stripe = clip(polygon_mask(w, h, [(0.845, 0.120), (0.884, 0.120), (0.884, 0.880), (0.845, 0.880)]), body)
+        return finish(layering(
+            fill_masked(w, h, with_alpha(rgba(PALETTE["surface"]), 242), body),
+            fill_masked(w, h, with_alpha(GOLD_MID, 150),
+                        ring(body, rounded_mask(w, h, 0.030, 0.075))),
+            fill_masked(w, h, with_alpha(rgba(PALETTE["accent"]), 235), stripe),
+            fill_masked(w, h, with_alpha((255, 255, 255, 255), 16),
+                        clip(polygon_mask(w, h, [(0.0, 0.0), (1.0, 0.0), (1.0, 0.070), (0.0, 0.070)]), body))), w, h)
+
     # board_frame: dark lapis, one gold keyline, quiet enough not to compete with the pieces
     body = rounded_mask(w, h, 0.014, 0.055)
     return finish(layering(
@@ -1013,7 +1037,8 @@ def home_palace(w, h):
     return finish(layering(*layers), w, h)
 
 
-def district_plate(w, h, asset_id):
+def district_plate(w, h, asset_id, lit=False):
+    kind = asset_id[:-4] if asset_id.endswith("_lit") else asset_id
     horizon = 0.560
     layers = [sky(w, h, horizon)]
     layers.append(fill_masked(w, h, with_alpha(rgba("#12253D"), 255), polygon_mask(w, h, [
@@ -1038,13 +1063,21 @@ def district_plate(w, h, asset_id):
     for i in range(5):
         nx = 0.13 + i * 0.185
         niche = polygon_mask(w, h, arch_points(nx, 0.560, 0.105, 0.150, 0.62))
-        layers.append(fill_masked(w, h, with_alpha(shade(wall_dark, -0.20), 210), niche))
+        if lit:
+            # the restored wall: the niches stay recesses, with a lamp burning inside them. A flat
+            # gold arch here read as a hanging bell, which is exactly what the first draft looked like.
+            layers.append(fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.45), 240), niche))
+            layers.append(masked(glow(w, h, ellipse_mask(w, h, (nx - 0.042, 0.428, nx + 0.042, 0.522)),
+                                      GOLD_LIGHT, 9, 175), niche))
+            layers.append(glow(w, h, niche, GOLD_MID, 6, 42))
+        else:
+            layers.append(fill_masked(w, h, with_alpha(shade(wall_dark, -0.20), 210), niche))
         layers.append(fill_masked(w, h, with_alpha(wall_light, 120), ring(grow(niche, 1.6), niche)))
     layers.append(gradient_masked(w, h, shade(STONE_DARK, -0.20), shade(STONE_DARK, -0.55),
                                   polygon_mask(w, h, [(0.03, 0.585), (0.97, 0.585),
                                                       (0.97, 0.615), (0.03, 0.615)])))
 
-    if asset_id == "district_ch01_d1":
+    if kind == "district_ch01_d1":
         # Firouzeh Square: paving, a dry octagonal pool, two column stumps
         for i in range(7):
             y = 0.60 + i * 0.055
@@ -1073,7 +1106,7 @@ def district_plate(w, h, asset_id):
                                       polygon_mask(w, h, [(sx - 0.008, 0.600), (sx + 0.044, 0.600),
                                                           (sx + 0.044, 0.614), (sx - 0.008, 0.614)])))
 
-    elif asset_id == "district_ch01_d2":
+    elif kind == "district_ch01_d2":
         # Lapis Garden: bare earth, a broken canal, one cypress stump
         earth = polygon_mask(w, h, [(0.02, 0.600), (0.72, 0.600), (0.80, 0.980), (0.0, 0.980)])
         layers.append(fill_masked(w, h, with_alpha(shade(WOOD_DARK, -0.72), 235), earth))
@@ -1124,7 +1157,30 @@ def district_plate(w, h, asset_id):
                                       polygon_mask(w, h, [(rx, ry), (rx + rw, ry - rh * 0.6),
                                                           (rx + rw, ry), (rx, ry + rh * 0.5)])))
 
-    layers.append(vfade(w, h, 0.86, 1.0, NIGHT_DEEP, 0, 210))
+    if lit:
+        # Warm light on the ground, not a gold floor: radial() and linear() both paint at full alpha
+        # whatever colour they are handed, so every soft light here is a blurred mask through glow().
+        layers.append(masked(glow(w, h, ellipse_mask(w, h, (0.00, 0.560, 1.00, 1.00)), GOLD_MID, 26, 76),
+                             ground))
+        for i in range(5):
+            nx = 0.13 + i * 0.185
+            layers.append(fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.05), 235),
+                                      polygon_mask(w, h, [(nx - 0.004, 0.298), (nx + 0.004, 0.298),
+                                                          (nx + 0.004, 0.378), (nx - 0.004, 0.378)])))
+            layers.append(glow(w, h, ellipse_mask(w, h, (nx - 0.020, 0.368, nx + 0.020, 0.414)),
+                               GOLD_LIGHT, 7, 195))
+            layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 255),
+                                      ellipse_mask(w, h, (nx - 0.013, 0.372, nx + 0.013, 0.404))))
+            layers.append(fill_masked(w, h, with_alpha(IVORY, 235),
+                                      ellipse_mask(w, h, (nx - 0.005, 0.377, nx + 0.004, 0.389))))
+            layers.append(masked(glow(w, h, ellipse_mask(w, h, (nx - 0.095, 0.600, nx + 0.095, 0.730)),
+                                      GOLD_MID, 16, 72), ground))
+        layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 70),
+                                  polygon_mask(w, h, [(0.03, 0.360), (0.97, 0.360),
+                                                      (0.97, 0.367), (0.03, 0.367)])))
+        layers.append(vfade(w, h, 0.88, 1.0, NIGHT_DEEP, 0, 170))
+    else:
+        layers.append(vfade(w, h, 0.86, 1.0, NIGHT_DEEP, 0, 210))
     return finish(layering(*layers), w, h)
 
 
@@ -1339,6 +1395,80 @@ def prop(w, h, asset_id):
                                       ellipse_mask(w, h, (sx - 0.018, 0.615, sx + 0.018, 0.650))))
         layers.append(outline(w, h, door, with_alpha(INK, 195), 2))
 
+    elif asset_id == "prop_ch01_gate_open":
+        # the same gate, doors back and light coming through: what a finished task looks like
+        outer = polygon_mask(w, h, arch_points(0.5, 0.90, 0.620, 0.760, 0.72))
+        inner = polygon_mask(w, h, arch_points(0.5, 0.885, 0.560, 0.700, 0.72))
+        recess = polygon_mask(w, h, arch_points(0.5, 0.882, 0.470, 0.640, 0.72))
+        layers = [
+            soft_shadow(w, h, outer, (0, 8), 8, 115),
+            glow(w, h, recess, GOLD_LIGHT, 14, 150),
+            gradient_masked(w, h, shade(STONE, 0.22), shade(STONE_DARK, -0.30), outer),
+            fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.60), 255), inner),
+            # light in the doorway: dark at the arch head, ivory where it meets the floor
+            gradient_masked(w, h, with_alpha(shade(GOLD_MID, -0.30), 255), with_alpha(IVORY, 255), recess),
+        ]
+        for side in (-1, 1):
+            inner_x = 0.5 + side * 0.158
+            outer_x = 0.5 + side * 0.238
+            leaf = polygon_mask(w, h, [(outer_x, 0.222), (outer_x, 0.885),
+                                       (inner_x, 0.885), (inner_x, 0.268)])
+            layers.append(gradient_masked(w, h, shade(WOOD, 0.24), shade(WOOD_DARK, -0.12), leaf))
+            for offset in (0.026, 0.052):
+                plank = side * (0.158 + offset)
+                layers.append(fill_masked(w, h, with_alpha(shade(WOOD_DARK, -0.30), 120),
+                                          clip(polygon_mask(w, h, [(0.5 + plank, 0.230), (0.5 + plank + 0.004, 0.230),
+                                                                   (0.5 + plank + 0.004, 0.885), (0.5 + plank, 0.885)]),
+                                               leaf)))
+            layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 235),
+                                      clip(polygon_mask(w, h, [(min(inner_x, outer_x), 0.598),
+                                                               (max(inner_x, outer_x), 0.598),
+                                                               (max(inner_x, outer_x), 0.620),
+                                                               (min(inner_x, outer_x), 0.620)]), leaf)))
+            layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 240),
+                                      ellipse_mask(w, h, (inner_x + side * 0.016 - 0.012, 0.648,
+                                                          inner_x + side * 0.016 + 0.012, 0.672))))
+            layers.append(outline(w, h, leaf, with_alpha(INK, 190), 1.6))
+        # light on the threshold, and a little of it outside the arch
+        layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 95),
+                                  polygon_mask(w, h, [(0.245, 0.884), (0.755, 0.884),
+                                                      (0.815, 0.952), (0.185, 0.952)])))
+        layers.append(outline(w, h, outer, with_alpha(INK, 195), 2))
+
+    elif asset_id == "prop_ch01_gate_building":
+        # the gate before the task is paid: a stone arch, scaffolding, half a wall
+        arch = polygon_mask(w, h, arch_points(0.5, 0.90, 0.600, 0.740, 0.72))
+        hole = polygon_mask(w, h, arch_points(0.5, 0.885, 0.480, 0.640, 0.72))
+        half = polygon_mask(w, h, [(0.26, 0.520), (0.74, 0.520), (0.74, 0.900), (0.26, 0.900)])
+        layers = [
+            soft_shadow(w, h, arch, (0, 8), 8, 105),
+            gradient_masked(w, h, shade(STONE, 0.10), shade(STONE_DARK, -0.40), arch),
+            fill_masked(w, h, with_alpha(shade(rgba(PALETTE["bg"]), -0.25), 255), hole),
+            gradient_masked(w, h, shade(rgba(PALETTE["surface-raised"]), 0.16),
+                            shade(rgba(PALETTE["surface-raised"]), -0.30), half),
+            fill_masked(w, h, with_alpha(shade(rgba(PALETTE["bg"]), -0.10), 120),
+                        brick(w, h, half, row=0.052, col=0.085)),
+            fill_masked(w, h, with_alpha(shade(STONE, 0.20), 235),
+                        polygon_mask(w, h, [(0.26, 0.508), (0.74, 0.508), (0.74, 0.532), (0.26, 0.532)])),
+        ]
+        pole = shade(WOOD, -0.15)
+        for x in (0.195, 0.330, 0.655, 0.790):
+            layers.append(fill_masked(w, h, with_alpha(pole, 245),
+                                      polygon_mask(w, h, [(x, 0.185), (x + 0.018, 0.185),
+                                                          (x + 0.018, 0.930), (x, 0.930)])))
+            layers.append(fill_masked(w, h, with_alpha(shade(WOOD, 0.22), 150),
+                                      polygon_mask(w, h, [(x, 0.185), (x + 0.006, 0.185),
+                                                          (x + 0.006, 0.930), (x, 0.930)])))
+        for y in (0.300, 0.452):
+            layers.append(fill_masked(w, h, with_alpha(pole, 235),
+                                      polygon_mask(w, h, [(0.180, y), (0.820, y),
+                                                          (0.820, y + 0.016), (0.180, y + 0.016)])))
+        for rx, ry, rw, rh in [(0.255, 0.905, 0.098, 0.058), (0.370, 0.930, 0.072, 0.042),
+                               (0.700, 0.912, 0.062, 0.036)]:
+            layers.append(fill_masked(w, h, with_alpha(shade(STONE, -0.05), 255),
+                                      polygon_mask(w, h, [(rx, ry), (rx + rw, ry - rh * 0.7),
+                                                          (rx + rw, ry), (rx, ry + rh * 0.6)])))
+
     elif asset_id == "prop_ch01_naghareh":
         platform = polygon_mask(w, h, [(0.08, 0.62), (0.92, 0.62), (0.86, 0.86), (0.14, 0.86)])
         layers = [soft_shadow(w, h, platform, (0, 8), 8, 105),
@@ -1381,6 +1511,251 @@ def prop(w, h, asset_id):
 
 # ------------------------------------------------------------------------------------------------
 # reward chest and the store icon
+
+
+def booster_badge(w, h, asset_id):
+    """An in-level booster: a lapis badge with a gold rim and one tool, drawn to fit the disc."""
+    disc = ellipse_mask(w, h, (0.045, 0.045, 0.955, 0.955))
+    rim = ellipse_mask(w, h, (0.115, 0.115, 0.885, 0.885))
+
+    layers = [
+        soft_shadow(w, h, disc, (0, 4), 4, 120),
+        gradient_masked(w, h, shade(rgba(PALETTE["surface-raised"]), 0.14),
+                        shade(rgba(PALETTE["bg"]), -0.10), disc),
+        fill_masked(w, h, with_alpha(GOLD_MID, 205), ring(disc, rim)),
+    ]
+
+    if asset_id == "booster_mallet":
+        # a mallet at 50 degrees: a cylinder head across the top of a straight handle
+        head = polygon_mask(w, h, box(0.365, 0.370, 0.200, 0.092, 140))
+        for dx, dy in [(-0.150 * math.cos(math.radians(140)), -0.150 * math.sin(math.radians(140))),
+                       (0.150 * math.cos(math.radians(140)), 0.150 * math.sin(math.radians(140)))]:
+            head = add(head, ellipse_mask(w, h, (0.365 + dx - 0.092, 0.370 + dy - 0.092,
+                                                 0.365 + dx + 0.092, 0.370 + dy + 0.092)))
+        handle = polygon_mask(w, h, box(0.520, 0.545, 0.250, 0.040, 50))
+        layers += [
+            fill_masked(w, h, with_alpha(shade(WOOD, -0.10), 255), handle),
+            fill_masked(w, h, with_alpha(shade(WOOD, 0.18), 120),
+                        polygon_mask(w, h, box(0.512, 0.537, 0.230, 0.014, 50))),
+            gradient_masked(w, h, shade(WOOD, 0.24), shade(WOOD_DARK, -0.15), head),
+            fill_masked(w, h, with_alpha(GOLD_MID, 235),
+                        add(polygon_mask(w, h, box(0.283, 0.467, 0.024, 0.100, 140)),
+                            polygon_mask(w, h, box(0.447, 0.273, 0.024, 0.100, 140)))),
+            fill_masked(w, h, with_alpha(GOLD_LIGHT, 110),
+                        polygon_mask(w, h, box(0.365, 0.352, 0.180, 0.026, 140))),
+            outline(w, h, add(handle, head), with_alpha(INK, 200), 2),
+        ]
+
+    elif asset_id == "booster_ram":
+        # a battering beam pointing right: a row goes with it
+        beam = polygon_mask(w, h, [(0.175, 0.492), (0.610, 0.492), (0.610, 0.588), (0.175, 0.588)])
+        wedge = polygon_mask(w, h, [(0.585, 0.452), (0.760, 0.452), (0.865, 0.540),
+                                    (0.760, 0.628), (0.585, 0.628)])
+        layers += [
+            gradient_masked(w, h, shade(WOOD, 0.20), shade(WOOD_DARK, -0.20), beam),
+            fill_masked(w, h, with_alpha(GOLD_MID, 235),
+                        polygon_mask(w, h, [(0.245, 0.484), (0.285, 0.484), (0.285, 0.596), (0.245, 0.596)])),
+            fill_masked(w, h, with_alpha(shade(WOOD_DARK, -0.30), 140),
+                        polygon_mask(w, h, [(0.175, 0.572), (0.610, 0.572), (0.610, 0.588), (0.175, 0.588)])),
+            gradient_masked(w, h, shade(STONE, 0.30), shade(STONE_DARK, -0.18), wedge),
+            fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.10), 150),
+                        polygon_mask(w, h, [(0.700, 0.452), (0.760, 0.452), (0.865, 0.540),
+                                            (0.760, 0.628), (0.700, 0.628)])),
+            fill_masked(w, h, with_alpha(GOLD_MID, 220),
+                        polygon_mask(w, h, [(0.598, 0.470), (0.618, 0.470), (0.618, 0.610), (0.598, 0.610)])),
+        ]
+        horns = add(arc_mask(w, h, 0.780, 0.540, 0.140, 258, 312, 0.040),
+                    arc_mask(w, h, 0.780, 0.540, 0.140, 48, 102, 0.040))
+        layers += [
+            fill_masked(w, h, with_alpha(shade(STONE, -0.05), 240), horns),
+            outline(w, h, add(add(beam, wedge), horns), with_alpha(INK, 200), 2),
+        ]
+
+    elif asset_id == "booster_auger":
+        # a drill: one whole column, pointing down
+        shaft = polygon_mask(w, h, [(0.465, 0.170), (0.535, 0.170), (0.535, 0.600), (0.465, 0.600)])
+        handle = polygon_mask(w, h, [(0.320, 0.115), (0.680, 0.115), (0.680, 0.180), (0.320, 0.180)])
+        bit = polygon_mask(w, h, [(0.440, 0.590), (0.560, 0.590), (0.500, 0.860)])
+        flutes = []
+        for i in range(3):
+            y = 0.620 + i * 0.062
+            flutes.append(polygon_mask(w, h, [(0.372, y), (0.628, y), (0.612, y + 0.030), (0.388, y + 0.030)]))
+        auger = add(add(shaft, handle), add(bit, flutes[0]))
+        for flute in flutes[1:]:
+            auger = add(auger, flute)
+        layers += [
+            gradient_masked(w, h, shade(STONE, 0.20), shade(STONE_DARK, -0.30), add(shaft, handle)),
+            gradient_masked(w, h, GOLD_LIGHT, GOLD_DARK, bit),
+            fill_masked(w, h, with_alpha(GOLD_MID, 210), add(flutes[0], flutes[1])),
+            outline(w, h, auger, with_alpha(INK, 200), 2),
+        ]
+
+    elif asset_id == "booster_whirlwind":
+        # a spiral: shuffle. Three arcs, each shorter than the last, so it reads as turning.
+        spiral = mask(w, h)
+        for radius, start, end, weight in [(0.320, 300, 620, 0.070), (0.215, 330, 640, 0.062),
+                                           (0.118, 20, 300, 0.055)]:
+            spiral = add(spiral, arc_mask(w, h, 0.5, 0.5, radius, start, end, weight))
+        layers += [
+            fill_masked(w, h, with_alpha(shade(rgba(PALETTE["accent"]), -0.10), 255), spiral),
+            fill_masked(w, h, with_alpha(shade(rgba(PALETTE["accent"]), 0.35), 200),
+                        clip(arc_mask(w, h, 0.5, 0.5, 0.320, 300, 420, 0.030),
+                             ellipse_mask(w, h, (0.06, 0.06, 0.94, 0.94)))),
+        ]
+
+    else:  # booster_falcon: a perched falcon, plus the three sparks that are the actual meaning
+        body = polygon_mask(w, h, oval(0.505, 0.560, 0.150, 0.205, math.radians(6)))
+        tail = polygon_mask(w, h, [(0.560, 0.690), (0.760, 0.860), (0.660, 0.870), (0.510, 0.760)])
+        head = ellipse_mask(w, h, (0.360, 0.230, 0.570, 0.440))
+        beak = polygon_mask(w, h, [(0.385, 0.310), (0.245, 0.352), (0.390, 0.386)])
+        bird = add(add(add(body, tail), head), beak)
+        layers += [
+            gradient_masked(w, h, shade(GOLD_LIGHT, 0.08), shade(GOLD_MID, -0.25), body),
+            gradient_masked(w, h, shade(GOLD_MID, 0.05), shade(GOLD_DARK, -0.20), tail),
+            fill_masked(w, h, with_alpha(GOLD_LIGHT, 255), head),
+            fill_masked(w, h, with_alpha(shade(GOLD_LIGHT, -0.28), 255), beak),
+            # folded wing, darker, so the bird has a near side and a far side
+            fill_masked(w, h, with_alpha(shade(GOLD_MID, -0.30), 190),
+                        polygon_mask(w, h, oval(0.535, 0.575, 0.100, 0.155, math.radians(14)))),
+            fill_masked(w, h, with_alpha(INK, 225), ellipse_mask(w, h, (0.398, 0.300, 0.428, 0.330))),
+            outline(w, h, bird, with_alpha(INK, 200), 2),
+        ]
+        for cx, cy, r in [(0.235, 0.640, 0.046), (0.760, 0.330, 0.038), (0.300, 0.820, 0.030)]:
+            layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 220),
+                                      ellipse_mask(w, h, (cx - r, cy - r, cx + r, cy + r))))
+
+    layers.append(outline(w, h, disc, with_alpha(INK, 205), 2))
+    layers.append(rim_light(w, h, disc, with_alpha((255, 255, 255, 255), 40), 3))
+    return finish(layering(*layers), w, h)
+
+
+def map_node(w, h, asset_id):
+    """A level node on the world map: cleared, current, locked. One disc, three states."""
+    disc = ellipse_mask(w, h, (0.055, 0.055, 0.945, 0.945))
+    rim = ellipse_mask(w, h, (0.125, 0.125, 0.875, 0.875))
+
+    if asset_id == "node_cleared":
+        layers = [
+            soft_shadow(w, h, disc, (0, 4), 4, 120),
+            gradient_masked(w, h, shade(GOLD_LIGHT, 0.10), shade(GOLD_MID, -0.22), disc),
+            fill_masked(w, h, with_alpha(GOLD_DARK, 150), ring(disc, rim)),
+            fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.40), 255),
+                        clip(polygon_mask(w, h, star_points(0.5, 0.52, 0.300, 0.125)), disc)),
+            fill_masked(w, h, with_alpha(IVORY, 245),
+                        clip(polygon_mask(w, h, star_points(0.5, 0.52, 0.270, 0.112)), disc)),
+        ]
+
+    elif asset_id == "node_current":
+        layers = [
+            soft_shadow(w, h, disc, (0, 4), 5, 130),
+            glow(w, h, grow(disc, 3), rgba(PALETTE["accent"]), 8, 120),
+            gradient_masked(w, h, shade(rgba(PALETTE["accent"]), 0.24),
+                            shade(rgba(PALETTE["accent"]), -0.35), disc),
+            fill_masked(w, h, with_alpha(GOLD_MID, 245), ring(disc, rim)),
+            # a play triangle: on a level map, the one node that glows is the one you press
+            fill_masked(w, h, with_alpha(IVORY, 240),
+                        polygon_mask(w, h, [(0.400, 0.285), (0.400, 0.715), (0.700, 0.500)])),
+        ]
+
+    else:  # node_locked
+        body = polygon_mask(w, h, [(0.30, 0.470), (0.70, 0.470), (0.70, 0.760), (0.30, 0.760)])
+        shackle = arc_mask(w, h, 0.50, 0.470, 0.175, 180, 360, 0.055)
+        layers = [
+            soft_shadow(w, h, disc, (0, 4), 4, 90),
+            gradient_masked(w, h, shade(rgba(PALETTE["surface-raised"]), 0.06),
+                            shade(rgba(PALETTE["bg"]), -0.20), disc),
+            fill_masked(w, h, with_alpha(rgba(PALETTE["border"]), 200), ring(disc, rim)),
+            fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.10), 235), add(body, shackle)),
+            fill_masked(w, h, with_alpha(shade(rgba(PALETTE["bg"]), -0.30), 235),
+                        ellipse_mask(w, h, (0.472, 0.560, 0.528, 0.616))),
+            fill_masked(w, h, with_alpha(shade(rgba(PALETTE["bg"]), -0.30), 235),
+                        polygon_mask(w, h, [(0.488, 0.600), (0.512, 0.600), (0.508, 0.700), (0.492, 0.700)])),
+        ]
+
+    layers.append(outline(w, h, disc, with_alpha(INK, 205), 2))
+    layers.append(rim_light(w, h, disc, with_alpha((255, 255, 255, 255), 36), 3))
+    return finish(layering(*layers), w, h)
+
+
+def chest_open(w, h):
+    """The same chest, open. One object in two states: same wood, same bands, same camera.
+
+    The box's top edge *is* the opening: the front face is a rectangle unioned with the lower half of
+    the mouth ellipse, so there is no straight line across the box and the ellipse reads as a hole
+    rather than as a stripe between two props. It took four drafts to see that.
+    """
+    mouth = ellipse_mask(w, h, (0.070, 0.230, 0.930, 0.400))
+    centre = 0.315
+    lower_half = clip(mouth, polygon_mask(w, h, [(0.0, centre), (1.0, centre), (1.0, 1.0), (0.0, 1.0)]))
+    front = add(clip(polygon_mask(w, h, [(0.070, centre), (0.930, centre), (0.930, 0.930), (0.070, 0.930)]),
+                     rounded_mask(w, h, 0.055, 0.075)),
+                lower_half)
+    lid = mask(w, h)
+    d = ImageDraw.Draw(lid)
+    d.pieslice((0.095 * w * SS, 0.055 * h * SS, 0.905 * w * SS, 0.300 * h * SS), 180, 360, fill=255)
+    d.rectangle((0.095 * w * SS, 0.170 * h * SS, 0.905 * w * SS, 0.250 * h * SS), fill=255)
+
+    layers = [
+        soft_shadow(w, h, add(front, lid), (0, 10), 9, 125),
+        glow(w, h, ellipse_mask(w, h, (0.010, 0.030, 0.990, 0.470)), GOLD_LIGHT, 22, 115),
+        # lid, tilted back and behind the box
+        gradient_masked(w, h, shade(WOOD, 0.30), shade(WOOD_DARK, -0.05), lid),
+        fill_masked(w, h, with_alpha(GOLD_MID, 235),
+                    clip(polygon_mask(w, h, [(0.095, 0.232), (0.905, 0.232),
+                                             (0.905, 0.262), (0.095, 0.262)]), lid)),
+        fill_masked(w, h, with_alpha(shade(WOOD_DARK, -0.50), 80),
+                    clip(polygon_mask(w, h, [(0.095, 0.055), (0.905, 0.055),
+                                             (0.905, 0.100), (0.095, 0.100)]), lid)),
+        # the box, with the mouth as its top edge
+        gradient_masked(w, h, shade(WOOD, 0.20), shade(WOOD_DARK, -0.35), front),
+        # the opening: warm light, darkest under the lid
+        gradient_masked(w, h, with_alpha(shade(GOLD_MID, -0.15), 255), with_alpha(IVORY, 255), mouth),
+        fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.60), 200),
+                    clip(mouth, polygon_mask(w, h, [(0.0, 0.230), (1.0, 0.230), (1.0, 0.290), (0.0, 0.290)]))),
+    ]
+
+    # coins heaped in the opening
+    for cx, cy, r in [(0.305, 0.352, 0.055), (0.425, 0.334, 0.063), (0.548, 0.348, 0.057),
+                      (0.668, 0.338, 0.051), (0.365, 0.300, 0.044), (0.612, 0.302, 0.040)]:
+        layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 255),
+                                  ellipse_mask(w, h, (cx - r, cy - r, cx + r, cy + r))))
+        layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 195),
+                                  ellipse_mask(w, h, (cx - r * 0.55, cy - r * 0.75,
+                                                      cx + r * 0.20, cy - r * 0.15))))
+
+    # the lip the coins lean on, and the shadow it casts into the box
+    layers.append(fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.30), 150),
+                              clip(ring(mouth, shrink(mouth, 3.0)),
+                                   polygon_mask(w, h, [(0.0, centre - 0.004), (1.0, centre - 0.004),
+                                                       (1.0, centre + 0.018), (0.0, centre + 0.018)]))))
+    layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 245),
+                              clip(ring(mouth, shrink(mouth, 2.0)),
+                                   polygon_mask(w, h, [(0.0, centre), (1.0, centre),
+                                                       (1.0, 1.0), (0.0, 1.0)]))))
+
+    for x in (0.165, 0.790):
+        layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 235),
+                                  clip(polygon_mask(w, h, [(x, 0.330), (x + 0.045, 0.330),
+                                                           (x + 0.045, 0.925), (x, 0.925)]), front)))
+        layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 90),
+                                  clip(polygon_mask(w, h, [(x, 0.330), (x + 0.014, 0.330),
+                                                           (x + 0.014, 0.925), (x, 0.925)]), front)))
+
+    layers += [
+        fill_masked(w, h, with_alpha(GOLD_MID, 255),
+                    clip(polygon_mask(w, h, [(0.070, 0.402), (0.930, 0.402),
+                                             (0.930, 0.432), (0.070, 0.432)]), front)),
+        fill_masked(w, h, with_alpha(shade(WOOD_DARK, -0.35), 110),
+                    clip(polygon_mask(w, h, [(0.070, 0.432), (0.930, 0.432),
+                                             (0.930, 0.452), (0.070, 0.452)]), front)),
+        # the hasp hangs open on the front face
+        fill_masked(w, h, with_alpha(GOLD_MID, 245),
+                    polygon_mask(w, h, [(0.458, 0.444), (0.542, 0.444), (0.542, 0.570), (0.458, 0.570)])),
+        fill_masked(w, h, with_alpha(INK, 210), ellipse_mask(w, h, (0.486, 0.480, 0.514, 0.514))),
+        outline(w, h, add(front, lid), with_alpha(INK, 210), 2),
+        rim_light(w, h, front, with_alpha((255, 255, 255, 255), 40), 3),
+    ]
+    return finish(layering(*layers), w, h)
 
 
 def chest(w, h):
@@ -1567,12 +1942,18 @@ def _draw_asset(asset_id: str, width: int, height: int) -> Image.Image:
         return obstacle(width, height, asset_id)
     if asset_id.startswith("icon_"):
         return hud_icon(width, height, asset_id)
-    if asset_id in ("panel_frame", "button_primary", "board_frame"):
+    if asset_id in ("panel_frame", "button_primary", "board_frame", "task_card"):
         return nine_slice(width, height, asset_id)
+    if asset_id.startswith("booster_"):
+        return booster_badge(width, height, asset_id)
+    if asset_id.startswith("node_"):
+        return map_node(width, height, asset_id)
+    if asset_id == "reward_chest_open":
+        return chest_open(width, height)
     if asset_id == "home_palace":
         return home_palace(width, height)
     if asset_id.startswith("district_"):
-        return district_plate(width, height, asset_id)
+        return district_plate(width, height, asset_id, asset_id.endswith("_lit"))
     if asset_id.startswith("prop_"):
         return prop(width, height, asset_id)
     if asset_id == "reward_chest":

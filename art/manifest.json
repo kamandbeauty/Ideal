@@ -577,6 +577,171 @@
       "required": false,
       "description": "Three sliders with turquoise knobs: the settings entry point.",
       "brief": "Survives 22 px, where a cog would be a smudge. Knobs at three different positions so it reads as sliders."
+    },
+    {
+      "id": "booster_mallet",
+      "group": "booster",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The in-level mallet: a lapis badge with a gold rim and a wooden mallet, for clearing one tile.",
+      "brief": "Tool inside the disc at 0.62 of its radius. The five boosters must be told apart at 56 dp by tool silhouette alone."
+    },
+    {
+      "id": "booster_ram",
+      "group": "booster",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The in-level ram: a beam with a stone head, for clearing a whole row.",
+      "brief": "Horizontal on purpose — the auger is the vertical one, and the pair must not need a label."
+    },
+    {
+      "id": "booster_auger",
+      "group": "booster",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The in-level auger: a T-handle drill, for clearing a whole column.",
+      "brief": "Vertical, pointing down. Same badge as the rest of the set."
+    },
+    {
+      "id": "booster_whirlwind",
+      "group": "booster",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The in-level whirlwind: a spiral, for reshuffling the board.",
+      "brief": "A spiral only — no arrows, no tiles, nothing that could be read as a direction."
+    },
+    {
+      "id": "booster_falcon",
+      "group": "booster",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The in-level falcon: a bird over three sparks, for three small blasts.",
+      "brief": "The three sparks are the meaning; the bird is the character. Keep the sparks out of the wings."
+    },
+    {
+      "id": "node_cleared",
+      "group": "map",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "A finished level on the world map: a gold medallion with an ivory star.",
+      "brief": "Must read at 24 px on a dark map. Star, not a number: numbers are drawn in code."
+    },
+    {
+      "id": "node_current",
+      "group": "map",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The next level to play: a firouzeh medallion with a gold rim and two ivory chevrons.",
+      "brief": "The only node allowed a glow, because it is the only one that is a call to action."
+    },
+    {
+      "id": "node_locked",
+      "group": "map",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "A level that is not unlocked yet: a dark disc with a padlock.",
+      "brief": "Low contrast on purpose, but the padlock silhouette must still be legible at 24 px."
+    },
+    {
+      "id": "task_card",
+      "group": "ui",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The frame for one task in a district list: a lapis card with a firouzeh stripe on its right edge.",
+      "brief": "Nine-slice with a 24 px border; the stripe lives inside the border so it never stretches. Flat middle: the middle holds type."
+    },
+    {
+      "id": "reward_chest_open",
+      "group": "scene",
+      "size": [
+        384,
+        384
+      ],
+      "required": false,
+      "description": "The reward chest, open: lid back, warm light out of the box, coins over the lip.",
+      "brief": "Same camera, same wood and bands as reward_chest — the two must read as one object in two states."
+    },
+    {
+      "id": "prop_ch01_gate_open",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "The chapter-1 gate with its doors swung back and light coming through: the finished state of the gate task.",
+      "brief": "Doors read as thin wedges in perspective, not as open rectangles."
+    },
+    {
+      "id": "prop_ch01_gate_building",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "The chapter-1 gate half built: a stone arch, scaffolding and half a wall.",
+      "brief": "Three states must be distinguishable at 96 px: closed (prop_ch01_gate), building (this), open (prop_ch01_gate_open)."
+    },
+    {
+      "id": "district_ch01_d1_lit",
+      "group": "district",
+      "size": [
+        720,
+        480
+      ],
+      "required": false,
+      "description": "Firouzeh Square restored: lit niches, hanging lamps, warm pools on the paving.",
+      "brief": "Same camera, horizon, wall and palette as district_ch01_d1 — only the light changes."
+    },
+    {
+      "id": "district_ch01_d2_lit",
+      "group": "district",
+      "size": [
+        720,
+        480
+      ],
+      "required": false,
+      "description": "The bazaar street restored: lit niches, hanging lamps, warm pools.",
+      "brief": "Pairs with district_ch01_d2 and must line up with it pixel for pixel at the horizon."
+    },
+    {
+      "id": "district_ch01_d3_lit",
+      "group": "district",
+      "size": [
+        720,
+        480
+      ],
+      "required": false,
+      "description": "The canal quarter restored: lit niches, hanging lamps, warm pools.",
+      "brief": "Pairs with district_ch01_d3, as the other two do."
     }
   ]
 }

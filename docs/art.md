@@ -70,6 +70,11 @@ instead of breaking, which is what makes art additive.
 | Result | `result_win` / `result_lose` (720×200) behind the title, `icon_star` ×3 for the score, `panel_frame` as the card, `button_primary` as the primary button | text only |
 | Moves pill | `icon_moves` at 22 px | the word alone |
 | Settings (screen pending) | `icon_sound`, `icon_music`, `icon_vibration`, `icon_push`, `icon_settings` at 26 px | — (nothing to draw yet) |
+| In-level boosters | `booster_mallet`, `booster_ram`, `booster_auger`, `booster_whirlwind`, `booster_falcon` at 56 dp | text buttons |
+| World map (screen pending) | `node_cleared`, `node_current`, `node_locked` at 48 dp | — (map is a list today) |
+| District tasks | `task_card` nine-sliced, plus the task props and the three gate states | plain pills |
+| Chest reveal | `reward_chest` → `reward_chest_open` | a button label |
+| Restored district | `district_ch01_d1..d3_lit` — the same plate with its niches lit and lamps hung | the unlit plate only |
 | Store | `app_icon` (512×512) | — (nothing to draw in-game) |
 
 ## 4. The brief
@@ -89,6 +94,19 @@ The four rules that decide whether a set looks like a game or like a mockup:
    (`BoardScreen`, `UiKit`); a baked glow cannot be animated, tinted or reused.
 4. **Respect the layout.** The home plate leaves its left third calm for the level card; the board
    frame must not compete with the pieces. The layout is `docs/ui.md` §3 and it does not bend for art.
+
+## 4a. Two things the generator does that will surprise you
+
+Both cost a draft of a sprite each, so they are written down:
+
+- **`linear()` and `radial()` paint at full alpha** no matter what alpha the colours they are handed
+  carry. A "soft gold wash" built with `gradient_masked(w, h, gold_at_58, gold_at_0, mask)` comes out
+  as opaque gold and covers whatever was under it. Soft light is a *blurred mask* through `glow()` or
+  an alpha ramp through `vfade()`, never a gradient over a mask. This is how the win plaque turned
+  solid gold and how the first lit district plate got a gold floor.
+- **Textures have to be one object in two states**, not two drawings that look similar: the open chest
+  is the closed chest with the lid moved and the mouth drawn as the box's top edge. When the two
+  drawings were built independently they read as two different props.
 
 ## 5. Review gates
 
@@ -130,7 +148,7 @@ lists exactly what a human should replace first, so nobody mistakes this for fin
 
 ## 7. What is drawn, and what a human should replace first
 
-All 51 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
+All 66 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
 --strict` is green. The set was drawn in this order of care:
 
 1. **The five stones** — one bezel language, five silhouettes that survive 48 px and greyscale
@@ -146,9 +164,11 @@ All 51 assets in the contract exist, at the exact sizes the manifest asks for; `
    because the title, the three stars and the reward are drawn over it in code.
 7. **The five settings icons** — one silhouette each, checked at 22 px, where a cog would be a smudge
    and a phone with wide rings read as a mug.
-8. **Still to draw** (each one goes in the manifest before it is drawn): the open chest state, the gate
-   states for a built district, the level-node markers on the map, the in-level booster icons, the
-   task-card frame, and the day/night plate variants.
+8. **The rest of the loop's furniture** — the five booster badges, the three map nodes, the task card,
+   the open chest, the open and half-built gate, and the three lit district plates.
+9. **Still to draw** (each one goes in the manifest before it is drawn): the world-map backdrop and its
+   paths, a per-district board skin, the tutorial hand and pointer, the power-up "charged" variants,
+   and the store screenshots for brand and launch.
 
 Left for a human artist, in the order that would improve the game most:
 
@@ -163,5 +183,5 @@ Left for a human artist, in the order that would improve the game most:
 - **`prop_ch01_gate`**: drawn closed only; the "built" plate needs the open state.
 - **No animation**: idle, swap, cascade and chest reveal all remain unimplemented. The motion tokens
   exist; the clips do not.
-- **No atlas**: 51 sprites is small enough to let Unity pack them, and doing it by hand now would
+- **No atlas**: 66 sprites is small enough to let Unity pack them, and doing it by hand now would
   cost more than it saves.
