@@ -1015,19 +1015,28 @@ def prop(w, h, asset_id):
     layers = []
 
     if asset_id == "prop_ch01_pool":
-        basin = regular_polygon(0.5, 0.55, 0.42, 0.30, 8, math.pi / 8)
-        water = regular_polygon(0.5, 0.52, 0.33, 0.21, 8, math.pi / 8)
+        # the square's fountain pool: an octagonal stone rim, water inside, a paving apron
+        apron = regular_polygon(0.5, 0.60, 0.47, 0.34, 8, math.pi / 8)
+        rim_outer = regular_polygon(0.5, 0.57, 0.38, 0.26, 8, math.pi / 8)
+        rim_inner = regular_polygon(0.5, 0.57, 0.30, 0.19, 8, math.pi / 8)
+        water = regular_polygon(0.5, 0.57, 0.285, 0.175, 8, math.pi / 8)
         layers = [
-            soft_shadow(w, h, polygon_mask(w, h, basin), (0, 8), 8, 115),
-            gradient_masked(w, h, with_alpha(STONE, 255), with_alpha(shade(STONE_DARK, -0.35), 255),
-                            polygon_mask(w, h, basin)),
-            gradient_masked(w, h, with_alpha(shade(WATER, 0.30), 255), with_alpha(shade(WATER, -0.45), 255),
-                            polygon_mask(w, h, water)),
-            fill_masked(w, h, with_alpha((255, 255, 255, 255), 70),
-                        clip(polygon_mask(w, h, [(0.28, 0.46), (0.70, 0.46), (0.70, 0.475), (0.28, 0.475)]),
+            soft_shadow(w, h, polygon_mask(w, h, apron), (0, 9), 9, 115),
+            fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.55), 255), polygon_mask(w, h, apron)),
+            fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.25), 255), polygon_mask(w, h, apron)),
+            gradient_masked(w, h, with_alpha(shade(STONE, 0.16), 255),
+                            with_alpha(shade(STONE_DARK, -0.30), 255), polygon_mask(w, h, rim_outer)),
+            fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.62), 255), polygon_mask(w, h, rim_inner)),
+            gradient_masked(w, h, with_alpha(shade(WATER, 0.22), 255),
+                            with_alpha(shade(WATER, -0.55), 255), polygon_mask(w, h, water)),
+            fill_masked(w, h, with_alpha(rgba(PALETTE["accent"]), 70),
+                        clip(polygon_mask(w, h, [(0.24, 0.53), (0.76, 0.53), (0.76, 0.545), (0.24, 0.545)]),
                              polygon_mask(w, h, water))),
-            fill_masked(w, h, with_alpha(GOLD_MID, 130),
-                        ring(polygon_mask(w, h, basin), polygon_mask(w, h, water))),
+            fill_masked(w, h, with_alpha(IVORY, 60),
+                        clip(polygon_mask(w, h, [(0.30, 0.61), (0.62, 0.61), (0.62, 0.618), (0.30, 0.618)]),
+                             polygon_mask(w, h, water))),
+            fill_masked(w, h, with_alpha(GOLD_MID, 110),
+                        ring(polygon_mask(w, h, rim_outer), polygon_mask(w, h, rim_inner))),
         ]
 
     elif asset_id == "prop_ch01_wall":
@@ -1089,19 +1098,23 @@ def prop(w, h, asset_id):
             ]
 
     elif asset_id == "prop_ch01_canal":
-        bed = polygon_mask(w, h, [(0.06, 0.48), (0.94, 0.48), (0.99, 0.80), (0.01, 0.80)])
-        water = polygon_mask(w, h, [(0.10, 0.53), (0.90, 0.53), (0.94, 0.76), (0.06, 0.76)])
+        # brick banks on both sides, flat water between them, one ripple line
+        bank_top = polygon_mask(w, h, [(0.06, 0.34), (0.94, 0.34), (0.97, 0.46), (0.03, 0.46)])
+        water = polygon_mask(w, h, [(0.03, 0.46), (0.97, 0.46), (0.97, 0.68), (0.03, 0.68)])
+        bank_bottom = polygon_mask(w, h, [(0.03, 0.68), (0.97, 0.68), (0.94, 0.80), (0.06, 0.80)])
         layers = [
-            soft_shadow(w, h, bed, (0, 6), 6, 105),
-            fill_masked(w, h, shade(STONE_DARK, -0.30), bed),
+            soft_shadow(w, h, bank_bottom, (0, 7), 7, 105),
+            fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.20), 255), bank_top),
+            fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.20), 255), bank_bottom),
+            fill_masked(w, h, with_alpha(shade(rgba("#0F2033"), 0.10), 150), brick(w, h, bank_top, row=0.05, col=0.08)),
+            fill_masked(w, h, with_alpha(shade(rgba("#0F2033"), 0.10), 150), brick(w, h, bank_bottom, row=0.05, col=0.08)),
+            gradient_masked(w, h, with_alpha(shade(WATER, 0.15), 255), with_alpha(shade(WATER, -0.55), 255), water),
+            fill_masked(w, h, with_alpha((255, 255, 255, 255), 70),
+                        clip(polygon_mask(w, h, [(0.12, 0.53), (0.86, 0.53), (0.86, 0.542), (0.12, 0.542)]), water)),
+            fill_masked(w, h, with_alpha((255, 255, 255, 255), 34),
+                        clip(polygon_mask(w, h, [(0.20, 0.61), (0.72, 0.61), (0.72, 0.62), (0.20, 0.62)]), water)),
             fill_masked(w, h, with_alpha(shade(STONE, 0.10), 235),
-                        ring(bed, polygon_mask(w, h, [(0.05, 0.500), (0.95, 0.500),
-                                                      (0.97, 0.535), (0.03, 0.535)]))),
-            gradient_masked(w, h, with_alpha(shade(WATER, 0.30), 255), with_alpha(shade(WATER, -0.35), 255), water),
-            fill_masked(w, h, with_alpha((255, 255, 255, 255), 60),
-                        clip(polygon_mask(w, h, [(0.16, 0.60), (0.84, 0.60), (0.85, 0.615), (0.15, 0.615)]), water)),
-            fill_masked(w, h, with_alpha((255, 255, 255, 255), 35),
-                        clip(polygon_mask(w, h, [(0.22, 0.68), (0.72, 0.68), (0.73, 0.695), (0.21, 0.695)]), water)),
+                        polygon_mask(w, h, [(0.03, 0.455), (0.97, 0.455), (0.97, 0.470), (0.03, 0.470)])),
         ]
 
     elif asset_id == "prop_ch01_cypress":
