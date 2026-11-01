@@ -13,9 +13,16 @@
     "skills:validate": "bash scripts/validate-skills.sh",
     "motion:new": "node .agents/skills/motion-graphics/scripts/new-motion.mjs",
     "motion:render": "node .agents/skills/motion-graphics/scripts/render.mjs",
-    "motion:preview": "node scripts/preview.mjs"
+    "motion:preview": "node scripts/preview.mjs",
+    "kamand:sample": "node motion/kamand-eyebrow-gel/render.mjs --sample",
+    "kamand:render": "node motion/kamand-eyebrow-gel/render.mjs",
+    "kamand:render:no-text": "node motion/kamand-eyebrow-gel/render.mjs --no-text"
   },
   "devDependencies": {
+    "@ffmpeg-installer/linux-x64": "^4.1.0",
+    "@fontsource/vazirmatn": "^5.3.0",
+    "@sparticuz/chromium": "^153.0.0",
+    "playwright-core": "^1.64.1",
     "skills": "^1.7.4"
   }
 }

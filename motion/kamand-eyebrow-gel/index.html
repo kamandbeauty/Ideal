@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KAMAND Eyebrow Lift Gel — 9:16 commercial</title>
+<style>
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');font-weight:400;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-600-normal.woff2') format('woff2');font-weight:600;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');font-weight:700;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-800-normal.woff2') format('woff2');font-weight:800;font-display:block}
+
+  :root{
+    --cream:#f8f1e2; --sand:#e9dcc0; --gold:#d9b56b; --emerald:#0c3b2c;
+    --ink:#05150f; --muted:#c9ddd0;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  #stage{
+    position:absolute;left:50%;top:50%;width:1080px;height:1920px;
+    transform-origin:center;overflow:hidden;background:var(--ink);
+    font-family:Vazirmatn,system-ui,sans-serif;color:var(--cream);
+  }
+
+  /* ---------- scenes ---------- */
+  .scene{position:absolute;inset:0;opacity:0;visibility:hidden;will-change:opacity}
+  .plate,.plate-reveal{
+    position:absolute;inset:-7%;background-size:cover;background-position:center;
+    will-change:transform;transform-origin:50% 50%;
+  }
+  .plate-reveal{will-change:clip-path}
+  .plate-blur{position:absolute;inset:-7%;background-size:cover;background-position:center;opacity:.34;transform:scale(1.12)}
+  .vignette{
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 44%,transparent 25%,rgba(3,16,11,.55) 100%),
+      linear-gradient(to bottom,rgba(3,16,11,.42) 0%,transparent 26%,transparent 64%,rgba(3,16,11,.72) 100%);
+  }
+  .halo{
+    position:absolute;width:900px;height:900px;left:50%;top:50%;
+    transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+    background:radial-gradient(circle,rgba(255,242,214,.30) 0%,rgba(233,220,192,.12) 38%,transparent 70%);
+    mix-blend-mode:screen;
+  }
+  .halo-dark{background:radial-gradient(circle,rgba(2,18,12,.68) 0%,rgba(2,18,12,.28) 46%,transparent 72%);mix-blend-mode:normal}
+  .product{
+    position:absolute;left:50%;width:660px;height:auto;
+    transform:translate(-50%,-50%);transform-origin:center;
+    filter:drop-shadow(0 34px 44px rgba(0,0,0,.60));
+    will-change:transform,opacity;
+  }
+
+  /* ---------- typography ---------- */
+  .copy{position:absolute;inset:0;pointer-events:none;direction:rtl;text-align:center}
+  body.no-text .copy,body.no-text .steps{display:none}
+  .copy-item{position:absolute;left:0;right:0;opacity:0;will-change:opacity,transform}
+  .kicker{
+    font-size:30px;font-weight:600;letter-spacing:.32em;color:var(--gold);
+    text-shadow:0 2px 18px rgba(0,0,0,.7);
+  }
+  .title{
+    font-size:104px;font-weight:800;line-height:1.35;color:#fff8e8;
+    text-shadow:0 6px 42px rgba(0,0,0,.78),0 0 60px rgba(217,181,107,.22);
+  }
+  .sub{
+    font-size:50px;font-weight:400;line-height:1.7;color:var(--muted);
+    text-shadow:0 3px 24px rgba(0,0,0,.8);
+  }
+  .feature{
+    font-size:78px;font-weight:700;line-height:1.55;color:#fff6e2;
+    text-shadow:0 4px 34px rgba(0,0,0,.8),0 0 50px rgba(217,181,107,.18);
+  }
+  .rule{
+    position:absolute;left:50%;width:220px;height:3px;transform:translateX(-50%);
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .tagline{
+    font-size:70px;font-weight:800;line-height:1.5;
+    background:linear-gradient(180deg,#fff8e8 10%,var(--gold) 95%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 26px rgba(0,0,0,.75));
+  }
+  .latin{font-family:Georgia,'Times New Roman',serif;letter-spacing:.42em;font-size:26px;color:var(--gold);direction:ltr}
+
+  /* ---------- step cards ---------- */
+  .steps{position:absolute;left:80px;right:80px;top:820px;direction:rtl}
+  .step{
+    display:flex;align-items:center;gap:28px;margin:0 0 26px;padding:18px 26px;
+    border-radius:22px;opacity:0;will-change:opacity,transform;
+    background:linear-gradient(100deg,rgba(255,248,230,.10),rgba(12,59,44,.30));
+    border:1px solid rgba(217,181,107,.22);
+    box-shadow:0 12px 34px rgba(0,0,0,.30);
+  }
+  .step.active{border-color:rgba(217,181,107,.85);box-shadow:0 0 40px rgba(217,181,107,.22),0 12px 34px rgba(0,0,0,.35)}
+  .step .num{
+    flex:0 0 86px;height:86px;border-radius:50%;display:grid;place-items:center;
+    font-size:44px;font-weight:800;color:#2a1c05;
+    background:radial-gradient(circle at 32% 28%,#fff3cf,var(--gold) 58%,#a8813c);
+    box-shadow:inset 0 3px 8px rgba(255,255,255,.6),0 6px 18px rgba(0,0,0,.4);
+  }
+  .step .label{font-size:40px;font-weight:600;line-height:1.5;color:#fff7e7;text-align:right}
+
+  /* ---------- effects ---------- */
+  .lift-glow{
+    position:absolute;width:520px;height:220px;border-radius:50%;pointer-events:none;
+    background:radial-gradient(ellipse,rgba(255,229,166,.55),rgba(217,181,107,.18) 45%,transparent 72%);
+    filter:blur(18px);mix-blend-mode:screen;opacity:0;will-change:transform,opacity;
+  }
+  .powder{position:absolute;inset:0;pointer-events:none}
+  .powder i{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.7);will-change:opacity,transform}
+
+  /* ---------- particles ---------- */
+  #particles{position:absolute;inset:0;pointer-events:none}
+  .p{position:absolute;left:0;top:0;will-change:transform,opacity}
+  .p-drop{border-radius:50%;
+    background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.96),rgba(196,235,214,.38) 42%,rgba(18,84,62,.18) 68%,transparent 76%);
+    box-shadow:inset -4px -6px 10px rgba(6,40,28,.35),0 0 14px rgba(255,255,255,.20)}
+  .p-leaf{border-radius:2% 78% 2% 78%;
+    background:linear-gradient(135deg,#3c8d63 0%,#174a35 55%,#0a2b1e 100%);
+    box-shadow:inset 0 0 12px rgba(0,0,0,.35)}
+  .p-gold{border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff6d5,var(--gold) 52%,rgba(150,110,40,.2) 78%);
+    box-shadow:0 0 16px rgba(230,190,110,.75)}
+  .p-powder{border-radius:50%;background:rgba(255,255,255,.92);box-shadow:0 0 10px rgba(255,255,255,.7)}
+
+  /* ---------- transition sweep ---------- */
+  #sweep{
+    position:absolute;inset:-20% -60%;pointer-events:none;opacity:0;
+    background:linear-gradient(112deg,transparent 42%,rgba(255,246,222,.30) 50%,transparent 58%);
+    transform:translateX(-70%);mix-blend-mode:screen;will-change:transform,opacity;
+  }
+  #grain{display:none;
+    position:absolute;inset:0;pointer-events:none;opacity:.055;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- SCENE 1 — PRODUCT REVEAL -->
+  <section class="scene" id="s1">
+    <div class="plate" style="background-image:url('./plates/s1-stage.jpg')"></div>
+    <div class="vignette"></div>
+    <div class="halo" id="s1-halo"></div>
+    <img class="product" id="s1-product" src="./assets/product-open.png" alt="Kamand eyebrow lift gel" style="top:1120px" />
+    <div class="copy">
+      <div class="copy-item latin" data-in="0.10" data-out="0.94" style="top:250px">KAMAND BEAUTY</div>
+      <div class="copy-item title" data-in="0.16" data-out="0.94" style="top:330px">ژل لیفت ابرو کمند</div>
+      <div class="copy-item rule" data-in="0.26" data-out="0.94" style="top:520px"></div>
+      <div class="copy-item sub" data-in="0.30" data-out="0.94" style="top:570px">کاملاً گیاهی</div>
+    </div>
+  </section>
+
+  <!-- SCENE 2 — BOTANICAL FORMULA -->
+  <section class="scene" id="s2">
+    <div class="plate" style="background-image:url('./plates/s2-botanical.jpg')"></div>
+    <div class="vignette"></div>
+    <div class="halo halo-dark" id="s2-halo"></div>
+    <img class="product" id="s2-product" src="./assets/product-open.png" alt="Kamand eyebrow lift gel" style="top:1080px;width:520px" />
+    <div class="copy">
+      <div class="copy-item feature" data-in="0.12" data-out="0.94" style="top:310px">کاملاً گیاهی</div>
+      <div class="copy-item sub" data-in="0.26" data-out="0.94" style="top:470px">عصارههای طبیعی، درخشش ابریشمی</div>
+      <div class="copy-item feature" data-in="0.50" data-out="0.94" style="top:1510px">بدون ریزش</div>
+    </div>
+  </section>
+
+  <!-- SCENE 3 — NO WHITE RESIDUE -->
+  <section class="scene" id="s3">
+    <div class="plate-blur" style="background-image:url('./plates/s3-glass-gel-blur.jpg')"></div>
+    <div class="plate-reveal" id="s3-reveal" style="background-image:url('./plates/s3-glass-gel.jpg')"></div>
+    <div class="vignette"></div>
+    <div class="powder" id="s3-powder"></div>
+    <div class="copy">
+      <div class="copy-item feature" data-in="0.10" data-out="0.94" style="top:260px">بدون سفیدک</div>
+      <div class="copy-item sub" data-in="0.22" data-out="0.94" style="top:420px">شفاف، سبک و درخشان</div>
+      <div class="copy-item sub" data-in="0.62" data-out="0.94" style="top:1600px">پایانی کاملاً شفاف</div>
+    </div>
+  </section>
+
+  <!-- SCENE 4 — NATURAL EYEBROW STYLING -->
+  <section class="scene" id="s4">
+    <div class="plate" style="background-image:url('./plates/s4-brow-sculpture.jpg')"></div>
+    <div class="vignette"></div>
+    <div class="lift-glow" id="s4-glow"></div>
+    <div class="copy">
+      <div class="copy-item feature" data-in="0.10" data-out="0.94" style="top:230px">حالتدهی طبیعی و زیبا</div>
+      <div class="copy-item sub" data-in="0.24" data-out="0.94" style="top:390px">تار به تار، رو به بالا</div>
+    </div>
+  </section>
+
+  <!-- SCENE 5 — HOW TO USE -->
+  <section class="scene" id="s5">
+    <div class="plate" style="background-image:url('./plates/s5-steps.jpg')"></div>
+    <div class="vignette"></div>
+    <div class="halo" id="s5-halo"></div>
+    <img class="product" id="s5-closed" src="./assets/product-closed.png" alt="Kamand eyebrow lift gel" style="top:430px;width:400px" />
+    <img class="product" id="s5-open" src="./assets/product-open.png" alt="Kamand eyebrow lift gel" style="top:430px;width:430px;opacity:0" />
+    <div class="copy">
+      <div class="copy-item feature" data-in="0.06" data-out="0.98" style="top:670px;font-size:62px">استفاده آسان، نتیجه جذاب</div>
+    </div>
+    <div class="steps" id="steps">
+      <div class="step" data-step="0"><div class="num">۱</div><div class="label">درِ محصول را باز کنید</div></div>
+      <div class="step" data-step="1"><div class="num">۲</div><div class="label">مقدار کمی ژل با براش بردارید</div></div>
+      <div class="step" data-step="2"><div class="num">۳</div><div class="label">تارها را رو به بالا و بیرون برس بزنید</div></div>
+      <div class="step" data-step="3"><div class="num">۴</div><div class="label">ابروها را به فرم دلخواه حالت دهید</div></div>
+      <div class="step" data-step="4"><div class="num">۵</div><div class="label">اجازه دهید ژل تثبیت شود</div></div>
+    </div>
+  </section>
+
+  <!-- SCENE 6 — FINAL HERO SHOT -->
+  <section class="scene" id="s6">
+    <div class="plate" style="background-image:url('./plates/s6-hero.jpg')"></div>
+    <div class="vignette"></div>
+    <div class="halo" id="s6-halo"></div>
+    <img class="product" id="s6-product" src="./assets/product-open.png" alt="Kamand eyebrow lift gel" style="top:830px;width:560px" />
+    <div class="copy">
+      <div class="copy-item tagline" data-in="0.20" data-out="1.02" style="top:300px">«کمند؛ زیبایی طبیعی ابروها»</div>
+      <div class="copy-item sub" data-in="0.40" data-out="1.02" style="top:430px">کاملاً گیاهی · بدون سفیدک · بدون ریزش</div>
+      <div class="copy-item latin" data-in="0.60" data-out="1.02" style="top:1700px">KAMAND</div>
+    </div>
+  </section>
+
+  <div id="particles"></div>
+  <div id="sweep"></div>
+  <div id="grain"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---- Master timeline (24 fps, vertical 1080x1920, rendered at DPR 2 = 4K) ----
+  const WIDTH = 1080, HEIGHT = 1920, FPS = 24;
+  const OVERLAP = 14, FADE = 14;
+  const LENGTHS = [108, 108, 108, 120, 156, 132];
+  const SCENES = [];
+  let cursor = 0;
+  for (let i = 0; i < LENGTHS.length; i++) {
+    const start = cursor, len = LENGTHS[i], end = start + len;
+    SCENES.push({ id: 's' + (i + 1), start, end, len, fade: FADE, el: document.getElementById('s' + (i + 1)) });
+    cursor = end - OVERLAP;
+  }
+  const FRAMES = SCENES[SCENES.length - 1].end;
+
+  const params = new URLSearchParams(location.search);
+  const still = params.has('frame');
+  if (params.has('noText')) document.body.classList.add('no-text');
+
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smooth = (a, b, x) => { const t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
+  const easeOut = (t) => 1 - Math.pow(1 - clamp(t, 0, 1), 3);
+
+  // ---- Scale the fixed stage to the viewport (renderer uses an exact viewport) ----
+  const stage = $('stage');
+  function fit() {
+    const s = Math.min(innerWidth / WIDTH, innerHeight / HEIGHT);
+    stage.style.transform = `translate(-50%,-50%) scale(${s})`;
+  }
+  addEventListener('resize', fit);
+  fit();
+
+  // ---- Seeded pseudo-random for reproducible particles ----------------------
+  let seed = 0x4b414d41;
+  function rnd() {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  // ---- Particle field ------------------------------------------------------
+  const PARTICLES = [];
+  const types = ['drop', 'leaf', 'gold', 'powder'];
+  const sceneMask = {
+    drop:   [0, 1, 2, 5],
+    leaf:   [0, 1],
+    gold:   [0, 5],
+    powder: [2],
+  };
+  const holder = $('particles');
+  const counts = { drop: 26, leaf: 14, gold: 30, powder: 22 };
+  for (const type of types) {
+    for (let i = 0; i < counts[type]; i++) {
+      const el = document.createElement('i');
+      el.className = 'p p-' + type;
+      const size = type === 'leaf' ? 26 + rnd() * 56
+                 : type === 'gold' ? 4 + rnd() * 9
+                 : type === 'powder' ? 3 + rnd() * 8
+                 : 12 + rnd() * 34;
+      el.style.width = size + 'px';
+      el.style.height = (type === 'leaf' ? size * 0.52 : size) + 'px';
+      holder.appendChild(el);
+      PARTICLES.push({
+        el, type,
+        x0: 40 + rnd() * (WIDTH - 80),
+        y0: 240 + rnd() * (HEIGHT - 300),
+        amp: 12 + rnd() * 54,
+        speed: 0.25 + rnd() * 0.65,
+        rise: 0.035 + rnd() * 0.075,
+        phase: rnd() * 6.28,
+        offset: rnd(),
+        rot: rnd() * 360,
+        mask: sceneMask[type],
+      });
+    }
+  }
+
+  // ---- White powder specks (scene 3) --------------------------------------
+  const powder = [];
+  const powderHolder = $('s3-powder');
+  for (let i = 0; i < 34; i++) {
+    const el = document.createElement('i');
+    const s = 3 + rnd() * 9;
+    el.style.width = s + 'px'; el.style.height = s + 'px';
+    el.style.left = (120 + rnd() * 840) + 'px';
+    el.style.top = (500 + rnd() * 900) + 'px';
+    powderHolder.appendChild(el);
+    powder.push({ el, phase: rnd(), x: rnd() * 40 - 20 });
+  }
+
+  // ---- Copy items ----------------------------------------------------------
+  for (const s of SCENES) {
+    s.copy = [...s.el.querySelectorAll('.copy-item')].map((el) => ({
+      el,
+      inAt: parseFloat(el.dataset.in || '0.1'),
+      outAt: parseFloat(el.dataset.out || '0.95'),
+    }));
+    s.plate = s.el.querySelector('.plate');
+    s.product = s.el.querySelector('.product');
+    s.halo = s.el.querySelector('.halo');
+  }
+  const stepEls = [...document.querySelectorAll('.step')];
+
+  // ---- Camera / per-scene animation ---------------------------------------
+  function productTransform(el, x, y, scale, rot, opacity) {
+    if (!el) return;
+    el.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px) scale(${scale}) rotate(${rot}deg)`;
+    if (opacity !== undefined) el.style.opacity = opacity.toFixed(3);
+  }
+  function camera(el, u, s) {
+    if (!el) return;
+    const p = easeOut(u);
+    let sc, x, y, rot;
+    switch (s.id) {
+      case 's1': sc = lerp(1.20, 1.03, p); x = lerp(-18, 10, p); y = lerp(-26, 12, p); rot = lerp(-0.7, 0.3, p); break;
+      case 's2': sc = lerp(1.02, 1.20, p); x = lerp(16, -18, p); y = lerp(-14, 18, p); rot = lerp(0.4, -0.3, p); break;
+      case 's3': sc = lerp(1.14, 1.02, p); x = lerp(-14, 12, p); y = lerp(18, -10, p); rot = lerp(-0.4, 0.2, p); break;
+      case 's4': sc = lerp(1.04, 1.16, p); x = lerp(24, -22, p); y = lerp(-10, 14, p); rot = lerp(0.5, -0.4, p); break;
+      case 's5': sc = lerp(1.00, 1.09, p); x = lerp(0, 0, p); y = lerp(22, -22, p); rot = 0; break;
+      default:   sc = lerp(1.13, 1.00, p); x = lerp(-34, 34, p); y = lerp(-18, 6, p); rot = lerp(-0.5, 0.5, p); break;
+    }
+    el.style.transform = `translate(${x}px,${y}px) scale(${sc}) rotate(${rot}deg)`;
+  }
+
+  function updateScene(s, u, f) {
+    camera(s.plate, u, s);
+    if (s.id === 's3') {
+      const p = smooth(0.04, 0.78, u);
+      $('s3-reveal').style.clipPath = `inset(0 ${((1 - p) * 100).toFixed(2)}% 0 0)`;
+      const fade = 1 - smooth(0.30, 0.72, u);
+      for (const q of powder) {
+        q.el.style.opacity = (fade * (0.35 + 0.65 * Math.abs(Math.sin(q.phase * 9 + u * 4)))).toFixed(3);
+        q.el.style.transform = `translate(${q.x * (1 - p)}px,${-40 * (1 - p)}px) scale(${(0.4 + 0.6 * fade).toFixed(2)})`;
+      }
+    }
+
+    // Product motion, per scene.
+    const bob = Math.sin((f / FPS) * 1.15) * 10;
+    if (s.id === 's1') {
+      const p = easeOut(clamp((u - 0.02) / 0.55, 0, 1));
+      productTransform(s.product, lerp(-40, 0, p), lerp(150, 0, p) + bob, lerp(0.72, 1, p), lerp(-9, 1.5, p), p);
+      if (s.halo) s.halo.style.opacity = (0.35 + 0.65 * p).toFixed(3);
+    } else if (s.id === 's2') {
+      productTransform(s.product, Math.sin((f / FPS) * 0.7) * 16, bob * 0.6, lerp(0.88, 1.02, u), Math.sin((f / FPS) * 0.5) * 2, 0.96);
+      if (s.halo) s.halo.style.opacity = (0.45 + 0.3 * Math.sin((f / FPS) * 1.2)).toFixed(3);
+    } else if (s.id === 's5') {
+      const open = smooth(0.16, 0.28, u);
+      productTransform($('s5-closed'), 0, Math.sin((f / FPS) * 0.9) * 8, 1, -2, 1 - open);
+      productTransform($('s5-open'), 0, Math.sin((f / FPS) * 0.9) * 8, 1.03, 1.5, open);
+      if (s.halo) s.halo.style.opacity = '0.55';
+    } else if (s.id === 's6') {
+      productTransform(s.product, Math.sin((f / FPS) * 0.35) * 12, bob * 0.45, lerp(0.94, 1.03, u), Math.sin((f / FPS) * 0.3) * 1.5, 1);
+      if (s.halo) s.halo.style.opacity = (0.5 + 0.4 * easeOut(u)).toFixed(3);
+    }
+
+    if (s.id === 's4') {
+      const p = smooth(0.10, 0.82, u);
+      const g = $('s4-glow');
+      const x = lerp(160, 690, p), y = lerp(1320, 520, p);
+      g.style.transform = `translate(${x}px,${y}px) rotate(-32deg)`;
+      g.style.opacity = (Math.sin(Math.PI * clamp((u - 0.08) / 0.86, 0, 1)) * 0.85).toFixed(3);
+    }
+
+    // Copy reveals.
+    for (const c of s.copy) {
+      const fi = smooth(c.inAt, c.inAt + 0.07, u);
+      const fo = 1 - smooth(c.outAt - 0.07, c.outAt, u);
+      const op = fi * fo;
+      c.el.style.opacity = op.toFixed(3);
+      c.el.style.transform = `translateY(${((1 - fi) * 46).toFixed(1)}px)`;
+    }
+
+    // Numbered steps.
+    if (s.id === 's5') {
+      const active = clamp(Math.floor((u - 0.10) / 0.155), 0, 4);
+      stepEls.forEach((el, k) => {
+        const at = 0.10 + k * 0.155;
+        const fi = smooth(at, at + 0.05, u);
+        el.style.opacity = fi.toFixed(3);
+        el.style.transform = `translateY(${((1 - fi) * 34).toFixed(1)}px)`;
+        el.classList.toggle('active', k === active && fi > 0.55);
+      });
+    }
+  }
+
+  // ---- Global particles + transition sweep --------------------------------
+  const activeScenes = new Array(SCENES.length).fill(0);
+  function updateParticles(f, gt) {
+    for (const p of PARTICLES) {
+      let visible = 0;
+      for (const idx of p.mask) visible = Math.max(visible, activeScenes[idx]);
+      if (visible < 0.02) { p.el.style.display = 'none'; continue; }
+      p.el.style.display = 'block';
+      const cycle = (gt * p.rise + p.offset) % 1;
+      const range = p.type === 'gold' ? 620 : 780;
+      const x = p.x0 + Math.sin(gt * p.speed + p.phase) * p.amp;
+      const y = p.y0 - cycle * range;
+      const rot = p.rot + Math.sin(gt * p.speed * 0.8 + p.phase) * 26;
+      const alpha = Math.sin(Math.PI * cycle) * (p.type === 'gold' ? 0.95 : 0.72) * visible;
+      p.el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
+      p.el.style.opacity = alpha.toFixed(3);
+    }
+  }
+  function updateSweep(f) {
+    let power = 0;
+    for (let i = 1; i < SCENES.length; i++) {
+      const start = SCENES[i].start, mid = start + FADE / 2;
+      const d = Math.abs(f - mid) / (FADE / 2);
+      if (d < 1) power = Math.max(power, 1 - d);
+    }
+    const sw = $('sweep');
+    sw.style.opacity = (power * 0.9).toFixed(3);
+    sw.style.transform = `translateX(${lerp(-70, 70, clamp((f % (FADE * 2)) / (FADE * 2), 0, 1)).toFixed(1)}%)`;
+  }
+
+  // ---- Public contract -----------------------------------------------------
+  const motion = {
+    fps: FPS, frames: FRAMES, width: WIDTH, height: HEIGHT,
+    duration: FRAMES / FPS,
+    seek(frame) {
+      const f = clamp(Math.round(frame), 0, FRAMES - 1);
+      const gt = f / FPS;
+      let dominant = 0;
+      SCENES.forEach((s, i) => {
+        const local = f - s.start;
+        const fi = clamp(local / FADE, 0, 1);
+        const fo = clamp((s.end - f) / FADE, 0, 1);
+        const op = Math.min(fi, fo);
+        activeScenes[i] = op;
+        if (op > dominant) dominant = op;
+        s.el.style.opacity = op.toFixed(4);
+        s.el.style.visibility = op > 0.001 ? 'visible' : 'hidden';
+        if (op > 0.001) updateScene(s, clamp(local / s.len, 0, 1), f);
+      });
+      updateParticles(f, gt);
+      updateSweep(f);
+      document.documentElement.dataset.frame = String(f);
+      return f;
+    },
+    ready: false,
+  };
+  window.__MOTION__ = motion;
+
+  // ---- Preload everything before declaring ready ---------------------------
+  const urls = [
+    './plates/s1-stage.jpg','./plates/s2-botanical.jpg','./plates/s3-glass-gel.jpg','./plates/s3-glass-gel-blur.jpg',
+    './plates/s4-brow-sculpture.jpg','./plates/s5-steps.jpg','./plates/s6-hero.jpg',
+    './assets/product-open.png',
+    './assets/product-closed.png',
+  ];
+  const loads = urls.map((src) => new Promise((res) => {
+    const im = new Image(); im.onload = im.onerror = res; im.src = src;
+  }));
+  Promise.all(loads)
+    .then(() => document.fonts ? document.fonts.ready : Promise.resolve())
+    .then(() => {
+      motion.ready = true;
+      if (still) {
+        motion.seek(Number(params.get('frame') || 0));
+      } else {
+        const t0 = performance.now();
+        const tick = (now) => {
+          motion.seek(Math.floor(((now - t0) / 1000) * FPS) % FRAMES);
+          requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    });
+})();
+</script>
+</body>
+</html>

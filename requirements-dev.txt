@@ -1,3 +1,6 @@
 # Reference validator for the Agent Skills specification
 # https://github.com/agentskills/agentskills/tree/main/skills-ref
 skills-ref==0.1.1
+
+# Product photo cutouts and review contact sheets
+Pillow>=10.0

@@ -14,6 +14,15 @@ Code and other clients that read `.claude/skills/`.
 When a request matches, read `.agents/skills/motion-graphics/SKILL.md` in full
 before writing code, and load only the `references/*.md` files the task needs.
 
+## Active campaign: KAMAND Eyebrow Lift Gel
+
+The commercial lives in `motion/kamand-eyebrow-gel/`. Read its `brief.md`
+before editing. Key facts: vertical 9:16, six scenes, 662 deterministic frames
+at 24 fps, `window.__MOTION__.seek(frame)`, official product cutouts in
+`assets/` (never redesign the packaging or logo), bundled Vazirmatn font,
+and an isolated `.copy` text layer (`?noText=1` for post-production masters).
+Render with `npm run kamand:render`; review stills are in `stills/`.
+
 ## Motion graphics workflow
 
 ```bash

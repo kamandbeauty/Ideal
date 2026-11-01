@@ -1,91 +1,129 @@
-# Ideal — موشن گرافی با Agent Skills
+# Ideal — استودیوی موشن گرافی کمند
 
-پروژه برای ساخت موشن گرافی آماده شده است. اسکیل `motion-graphics` طبق استاندارد
-باز [Agent Skills](https://github.com/agentskills/agentskills) نصب شده و ابزارهای
-ساخت و رندر هم همراهش هستند.
+این ریپو دو بخش دارد: **کمپین فعلی ژل لیفت ابرو کمند** و **زیرساخت Agent Skills**
+که مرحله قبل نصب شد.
 
-> **نکته مهم درباره لینکی که فرستادید:** مخزن `agentskills/agentskills` خودِ
-> «استاندارد» است، نه یک اسکیل قابل نصب. داخلش هیچ `SKILL.md` وجود ندارد و دستور
-> `npx skills add agentskills/agentskills --list` خروجی «No skills found» میدهد.
-> داخل آن مشخصات فرمت، مستندات و کتابخانه `skills-ref` (اعتبارسنج) قرار دارد.
-> بنابراین به جای کپی کردن یک مخزن مستندات، **پشتیبانی استاندارد + نصب ابزار
-> مدیریت اسکیل + ساخت اسکیل موشن گرافی منطبق بر همان استاندارد** را انجام دادیم.
-> اگر منظورتان یک اسکیل آماده خاص (مثلاً از مخزن دیگری) بود، لینکش را بدهید تا
-> همان را با `npx skills add` نصب کنیم.
+---
 
-## چی نصب شد؟
+## ۱. کمپین فعلی: KAMAND Eyebrow Lift Gel
 
-| بخش | مسیر | کارش |
-| --- | --- | --- |
-| اسکیل موشن گرافی | `.agents/skills/motion-graphics/` | `SKILL.md` + منابع + قالب + اسکریپت‌ها |
-| لینک برای کلاینت‌ها | `.claude/skills/motion-graphics` | همان اسکیل برای Claude Code و سایر کلاینت‌ها |
-| مدیریت اسکیل | `package.json` → `skills` CLI | نصب/لیست کردن اسکیل‌های دیگر |
-| اعتبارسنج استاندارد | `requirements-dev.txt` → `skills-ref` | چک کردن فرانت‌متر `SKILL.md` |
-| اسکریپت اعتبارسنجی | `scripts/validate-skills.sh` | `npm run skills:validate` |
-| سرور پیشنمایش | `scripts/preview.mjs` | `npm run motion:preview` → پورت 8080 |
-| راهنمای ایجنت | `AGENTS.md` | چه وقت کدام اسکیل فعال شود |
+تیزر عمودی ۹:۱۶، شش صحنه، با خروجی **4K (2160×3840)** ساخته شده است
+(مستر 1080×1920 با آپاسکیل lanczos؛ پلیتهای منبع 768×1376 هستند).
+هیچ انسان، چهره، پوست، دست یا بخشی از بدن در هیچ فریمی وجود ندارد؛ همهچیز
+از بستهبندی واقعی محصول، پلیتهای CGI گیاهی/شیشهای/طلایی و انیمیشن فریمبهفریم
+ساخته شده است.
 
-درون اسکیل:
+### خروجیها
 
+| فایل | توضیح |
+| --- | --- |
+| `motion/kamand-eyebrow-gel/exports/kamand-eyebrow-gel-4k.mp4` | مستر 2160×3840، 24fps، H.264 |
+| `motion/kamand-eyebrow-gel/exports/kamand-eyebrow-gel-1080p.mp4` | نسخه سبک 1080×1920 |
+| `motion/kamand-eyebrow-gel/exports/kamand-eyebrow-gel-4k-no-text.mp4` | مستر تمیز بدون هیچ متن/کارت شمارهدار |
+| `motion/kamand-eyebrow-gel/exports/kamand-eyebrow-gel-1080p-no-text.mp4` | نسخه سبک مستر تمیز |
+| `motion/kamand-eyebrow-gel/stills/contact-sheet.jpg` | کانتکتشیت شش صحنه |
+| `motion/kamand-eyebrow-gel/stills/s1.jpg … s6.jpg` | استیل هر صحنه |
+| `motion/kamand-eyebrow-gel/index.html` | صحنه قابل ویرایش، تایمline قطعی `seek(frame)` |
+| `motion/kamand-eyebrow-gel/brief.md` | بریف، بیتشیت و متنهای فارسی |
+
+### نقشه صحنهها (جمعاً ۶۶۲ فریم ≈ ۲۷٫۶ ثانیه)
+
+| # | صحنه | فریمها | متن فارسی |
+| --- | --- | --- | --- |
+| 1 | Product Reveal — استیج بژ/زمردی، محصول شناور، برگها و قطرات | 0–108 | ژل لیفت ابرو کمند · کاملاً گیاهی |
+| 2 | Botanical Formula — عصارهها، قطرات، ذرات درخشان | 94–202 | کاملاً گیاهی · بدون ریزش |
+| 3 | No White Residue — ژل شفاف روی شیشه، محو شدن ذرات سفید | 188–296 | بدون سفیدک |
+| 4 | Natural Styling — مجسمه تاربهتار ابرو + برس اسپولی | 282–402 | حالتدهی طبیعی و زیبا |
+| 5 | How to Use — ۵ مرحله شمارهدار سهبعدی | 388–544 | استفاده آسان، نتیجه جذاب |
+| 6 | Final Hero — پایه سنگی، برگها، ذرات طلایی، اوربیت آرام | 530–662 | «کمند؛ زیبایی طبیعی ابروها» |
+
+بین صحنهها ۱۴ فریم کراسفید + یک sweep نوری وجود دارد.
+
+### متن فارسی (لایه جدا برای پستپروداکشن)
+
+تمام متنهای درخواستی در ویدیو هستند، ولی در لایه `.copy` جدا نگه داشته شدهاند:
+`ژل لیفت ابرو کمند` · `کاملاً گیاهی` · `بدون سفیدک` · `بدون ریزش` ·
+`حالتدهی طبیعی و زیبا` · `استفاده آسان، نتیجه جذاب` ·
+`«کمند؛ زیبایی طبیعی ابروها»`.
+
+برای تحویل **مستر تمیز بدون هیچ اورلی** (متنها و کارتهای شمارهدار در
+پستپروداکشن اضافه شوند):
+
+```bash
+npm run kamand:render:no-text      # → exports/*-no-text.mp4
+# یا در مرورگر: index.html?frame=120&noText=1
 ```
-.agents/skills/motion-graphics/
-├── SKILL.md                     # فراداده + گردش کار (فعالسازی خودکار)
-├── references/
-│   ├── motion-design.md         # تایمینگ، ایزینگ، تایپوگرافی، ترکیب‌بندی
-│   ├── stacks.md                # انتخاب بین HTML/WAAPI و Remotion و Manim و Lottie
-│   └── rendering.md             # رندر فریم به فریم، ffmpeg، خروجی شفاف
-├── assets/
-│   └── starter.html             # صحنه 1920x1080 بدون وابستگی، با seek(frame)
-└── scripts/
-    ├── new-motion.mjs           # ساخت صحنه جدید
-    └── render.mjs               # خروجی MP4 / WebM شفاف
-```
 
-نکته فنی کلیدی: صحنه‌ها **قطعی (deterministic)** هستند؛ یعنی هر فریم فقط از
-شماره فریم محاسبه میشود (`window.__MOTION__.seek(frame)`) نه از ساعت سیستم.
-همین باعث میشود رندر با Chromium + ffmpeg همیشه یک خروجی بدهد.
+### بستهبندی و لوگوی اصلی — بدون تغییر
 
-## راهاندازی
+عکسهای محصول مستقیماً از سایت رسمی
+[kamandbeauty.com](https://kamandbeauty.com/shop/cosmetic/eyebrow-cosmetics/eyebrow-lift-gel/kamand-eyebrow-lift-gel/)
+گرفته شدهاند (ظرف گرد سفید، درپوش با لوگوی `K Kamand`، ژل شفاف و برس قرمز).
+هیچ بستهبندی، لوگو یا تایپوگرافی جدیدی طراحی نشده است؛ فقط بکگراند سفید با
+`scripts/make-cutout.py` حذف و همان پیکسلها روی پلیتها کامپوزیت شدهاند.
+فایلها در `assets/kamand/` (اصلی) و
+`motion/kamand-eyebrow-gel/assets/` (کپی self-contained صحنه) هستند.
+
+### مشخصات فنی
+
+- طراحی و کپچر روی `1080×1920`، آپاسکیل `lanczos + unsharp` → **2160×3840 (4K)**
+  (پلیتهای CGI منبع 768×1376 هستند، بنابراین جزئیات نیتیو 4K وجود ندارد)
+- `24 fps`، ۶۶۲ فریم، `H.264 / yuv420p / CRF 20 / +faststart`، بدون صدا
+- فونت فارسی **وزیرمتن** (Vazirmatn) بهصورت لوکال، بدون وابستگی شبکه
+- انیمیشن کاملاً قطعی: هر فریم فقط از شماره فریم محاسبه میشود
+  (`window.__MOTION__.seek(frame)`)؛ هیچ `setTimeout`، `rAF`، `Math.random()`
+  زنده یا CDN در رندر وجود ندارد
+- رندر بدون نیاز به نصب سیستمی: Chromium همراه `@sparticuz/chromium`،
+  ffmpeg همراه `@ffmpeg-installer/linux-x64`
+
+### دستورات
 
 ```bash
 npm install
-python3 -m pip install -r requirements-dev.txt   # برای اعتبارسنجی اسکیل
-npm run skills:validate                         # باید Valid skill بدهد
-npm run skills:list                             # اسکیل شناسایی شده را نشان میدهد
+python3 -m pip install -r requirements-dev.txt   # skills-ref + Pillow
 
-# فقط برای خروجی گرفتن ویدیو (اختیاری):
-npm i -D playwright && npx playwright install chromium
-# ffmpeg هم باید روی PATH باشد: apt install ffmpeg / brew install ffmpeg
+npm run kamand:sample          # ۶ استیل مرور سریع (۱۰۸۰×۱۹۲۰)
+npm run kamand:render          # مستر 4K + نسخه 1080p
+npm run kamand:render:no-text  # مستر بدون لایه متن
+npm run motion:preview         # پیشنمایش زنده روی پورت 8080
+python3 scripts/make-contact-sheet.py
 ```
 
-## ساخت اولین موشن گرافی
+> **شفافسازی:** این یک موشن گرافیک **۲٫۵بعدی سینمایی** است: پلیتهای CGI
+> فوقواقعی (تولیدشده با هوش مصنوعی) + کامپوزیت عکس واقعی محصول + انیمیشن
+> فریمبهفریم دوربین، پارالاکس، ذرات و نور. مواردی که بهصورت «پلیت + افکت»
+> شبیهسازی شدند (نه شبیهسازی بلادرنگ): سیال ژل، پخش شدن ژل روی شیشه،
+> حرکت فیزیکی برس لابهلای تارها، لیفت شدن تکتک موها و اوربیت واقعی
+> دوربین سهبعدی. برای آن سطح، مرحله بعد انتقال صحنهها به
+> Blender / Remotion + Three.js است؛ ساختار `seek(frame)` و بریف اینجا
+> همان نقشه راه را نگه میدارد.
+
+---
+
+## ۲. زیرساخت Agent Skills (مرحله قبل)
+
+لینک `agentskills/agentskills` **خود استاندارد** است، نه یک اسکیل قابل نصب
+(`npx skills add agentskills/agentskills --list` → «No skills found»). برای
+همین پشتیبانی استاندارد نصب شد و یک اسکیل `motion-graphics` مطابق همان
+مشخصات ساخته شد:
+
+| بخش | مسیر |
+| --- | --- |
+| اسکیل | `.agents/skills/motion-graphics/` (+ لینک `.claude/skills/`) |
+| مدیریت و اعتبارسنجی | `package.json` → `skills` CLI، `requirements-dev.txt` → `skills-ref` |
+| اعتبارسنجی | `npm run skills:validate` → `Valid skill` |
+| راهنمای ایجنت | `AGENTS.md` |
+| پیشنمایش | `scripts/preview.mjs` → پورت 8080 |
+
+اسکیل شامل `SKILL.md`، منابع `motion-design / stacks / rendering`، قالب
+`starter.html` و اسکریپتهای `new-motion` و `render` است. مستندات کاملتر
+در `AGENTS.md` و `.agents/skills/motion-graphics/SKILL.md`.
+
+نصب اسکیل دیگر:
 
 ```bash
-npm run motion:preview                          # پیشنمایش زنده روی پورت 8080
-npm run motion:new -- brand-intro
-# ویرایش: motion/brand-intro/index.html  و  motion/brand-intro/brief.md
-# پیشنمایش تکفریم: /motion/brand-intro/index.html?frame=90
-npm run motion:render -- brand-intro            # → out/brand-intro.mp4
-npm run motion:render -- brand-intro --alpha    # → out/brand-intro.webm شفاف
+npx skills add <owner>/<repo> --skill <name> -a '*' -y
 ```
 
-سرور پیشنمایش فقط پوشههای `motion/`، `out/` و `assets/` اسکیل را سرو میکند و
-بدون هیچ وابستهای روی `0.0.0.0` بالا میآید، پس داخل محیط Preview هم کار میکند.
-
-پیشفرضها: `1920x1080`، `30 fps`، `6 ثانیه (180 فریم)`، بدون صدا. متن حتماً داخل
-حاشیه امن ۱۰٪ نگه داشته میشود تا برای خروجی عمودی ۹:۱۶ هم قابل برش باشد.
-برای جزئیات طراحی و تایمینگ، `SKILL.md` و `references/` را ببینید.
-
-## نصب اسکیل‌های دیگر
-
-```bash
-npx skills add <owner>/<repo> --skill <skill-name> -a '*' -y
-npx skills add <owner>/<repo> --list            # دیدن اسکیل‌های موجود در مخزن
-```
-
-بعد از اضافه شدن، `npm run skills:validate` را دوباره اجرا کنید.
-
-## یادداشت
-
-ویدیوها، دنباله فریم‌های PNG و `node_modules/` داخل گیت نمیآیند (`.gitignore`)؛
-فقط فایل‌های قابل ویرایش و `brief.md` نگهداری میشوند.
+فایلهای حجیم (`node_modules/`، فریمهای میانی در `/tmp`، `out/`) داخل گیت
+نمیآیند؛ فقط منابع قابل ویرایش، استیلها و خروجی MP4 نگهداری میشوند.

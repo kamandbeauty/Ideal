@@ -52,6 +52,25 @@ function scenes() {
     .map((e) => e.name);
 }
 
+function campaignLinks() {
+  const base = '/motion/kamand-eyebrow-gel';
+  const links = [];
+  const cands = [
+    ['1080p MP4', `${base}/exports/kamand-eyebrow-gel-1080p.mp4`],
+    ['4K MP4', `${base}/exports/kamand-eyebrow-gel-4k.mp4`],
+    ['Contact sheet', `${base}/stills/contact-sheet.jpg`],
+    ['Clean 1080p', `${base}/exports/kamand-eyebrow-gel-1080p-no-text.mp4`],
+    ['Clean 4K', `${base}/exports/kamand-eyebrow-gel-4k-no-text.mp4`],
+  ];
+  for (const [label, href] of cands) {
+    const rel = href.replace('/motion/', '');
+    if (existsSync(join(ROOT, 'motion', rel))) links.push(`<a href="${href}">${label}</a>`);
+  }
+  return links.length
+    ? `<h2>KAMAND campaign</h2><p>${links.join(' · ')}</p>`
+    : '';
+}
+
 function indexPage() {
   const items = scenes();
   const list = items.length
@@ -63,8 +82,8 @@ function indexPage() {
 a{color:#ff5c8a}code{background:#141828;padding:2px 6px;border-radius:4px}li{margin:8px 0}span{color:#a6adbf}</style>
 </head><body><h1>Ideal · motion preview</h1>
 <p>Starter template: <a href="/starter.html">starter.html</a> (plays in real time; append <code>?frame=90</code> for a single frame).</p>
-<h2>Scenes</h2><ul>${list}</ul>
-<p>Exports live in <code>out/</code> once rendered. Frames are driven by <code>window.__MOTION__.seek(frame)</code>.</p>
+${campaignLinks()}<h2>Scenes</h2><ul>${list}</ul>
+<p>Exports live in <code>motion/&lt;slug&gt;/exports/</code>. Frames are driven by <code>window.__MOTION__.seek(frame)</code>.</p>
 </body></html>`;
 }
 
