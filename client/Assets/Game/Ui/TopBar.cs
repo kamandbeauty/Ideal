@@ -48,18 +48,21 @@ namespace Shazdeh.Game.Ui
 
             // coins — left end
             var coinsPill = UiKit.Panel(root, "coins", Pad, 0f, pillWidth, pillHeight, Tokens.SurfaceRaised, (int)Tokens.Radius.Md);
+            AddIcon(coinsPill, "icon_coin", 0f);
             _coins = UiKit.Label(coinsPill, "value", "", Tokens.Hud.Currency, Tokens.Gold, TextAlignmentOptions.Center);
-            UiKit.Stretch(_coins.rectTransform, Tokens.Space.S3, 0f);
+            UiKit.Stretch(_coins.rectTransform, Tokens.Space.S4, 0f);
 
             // potions — next to the coins
             float potionsX = Pad + pillWidth + Tokens.Space.S2;
             var potionsPill = UiKit.Panel(root, "potions", potionsX, 0f, pillWidth, pillHeight, Tokens.SurfaceRaised, (int)Tokens.Radius.Md);
+            AddIcon(potionsPill, "icon_potion", 0f);
             _potions = UiKit.Label(potionsPill, "value", "", Tokens.Hud.Currency, Tokens.Accent, TextAlignmentOptions.Center);
-            UiKit.Stretch(_potions.rectTransform, Tokens.Space.S3, 0f);
+            UiKit.Stretch(_potions.rectTransform, Tokens.Space.S4, 0f);
 
             // lives — right end
             float livesX = width - Pad - pillWidth;
             var livesPill = UiKit.Panel(root, "lives", livesX, 0f, pillWidth, pillHeight, Tokens.SurfaceRaised, (int)Tokens.Radius.Md);
+            AddIcon(livesPill, "icon_life", 2f);
             _lives = UiKit.Label(livesPill, "value", "", Tokens.Hud.Currency, Tokens.Text, TextAlignmentOptions.Center);
             UiKit.Place(_lives.rectTransform, 0f, Tokens.Space.S1, pillWidth, 20f);
 
@@ -67,6 +70,18 @@ namespace Shazdeh.Game.Ui
             UiKit.Place(_timer.rectTransform, 0f, Height - 20f, pillWidth, 16f);
 
             Refresh();
+        }
+
+        /// <summary>Puts an icon at one end of a pill. Absent art means the pill is just text.</summary>
+        static void AddIcon(RectTransform pill, string id, float edge)
+        {
+            const float size = 26f;
+            float x = edge <= 0f ? 8f : pill.sizeDelta.x - size - 8f;
+
+            var icon = UiKit.Panel(pill, id, x, (pill.sizeDelta.y - size) * 0.5f, size, size, new Color(1f, 1f, 1f, 0f));
+            var image = icon.GetComponent<UnityEngine.UI.Image>();
+            image.raycastTarget = false;
+            if (!ArtLibrary.ApplyTo(image, id)) icon.gameObject.SetActive(false);
         }
 
         public void Refresh()

@@ -59,16 +59,36 @@ What is *not* covered, stated plainly: Hebrew, Arabic-Indic digits in the middle
 bidi bracket pairs nested inside numbers, and Arabic justification (`kashida`). The game does not show
 those, and a test that pretends otherwise would be a lie.
 
-## 2. The font
+## 2. The font: Vazir, shipped
 
-The repository ships no font binary. `client/Assets/Fonts/README.md` explains the one-time step:
-download Vazirmatn (SIL OFL), drop it in that folder, run **کاخ شازده → Build UI font**. That writes
-`Assets/Game/Resources/fonts/shazdeh-ui.asset` with a dynamic SDF atlas — glyphs rasterise on demand, so
-a level title with an unusual word still renders.
+The typeface is **Vazir** (SIL OFL 1.1, v30.1.0) and it ships with the game:
 
-Until then `ShazdehFonts.Ui` falls back to the TMP default, logs one warning, and Persian looks wrong.
-That is a missing asset in your checkout, not a bug in the game: `Assets/Scenes/_PersianCheck.unity`
-exists to tell those two apart at a glance.
+```
+Assets/Game/Resources/fonts/Vazir-Medium.ttf   body, buttons, numbers (500)
+Assets/Game/Resources/fonts/Vazir-Bold.ttf     titles, big counters (700)
+Assets/Fonts/OFL.txt, AUTHORS.txt              the licence, verbatim
+```
+
+Vazir is not an arbitrary choice: it contains the Arabic Presentation Forms (U+FB50–U+FEFF) that the
+shaper emits. Most Arabic-script fonts do not, and would show boxes. That claim is checked, not assumed
+— `tools/text/check_font.py` reads the font's character map and CI fails if a single form, digit or
+punctuation mark the UI can print is absent. (It is also how we found that Vazir has no check mark, so
+the finished-task label says «ساخته شد».)
+
+At runtime `ShazdehFonts` does one of two things:
+
+1. if `Resources/fonts/shazdeh-ui(.asset)` exists — built by the optional menu item
+   **کاخ شازده → Build UI font assets** — it loads that, with the atlas baked at build time;
+2. otherwise it builds a dynamic SDF asset from the TTF on first use. That is the default path, which is
+   why a fresh clone shows correct Persian with no setup step and why CI never needs a font asset in
+   git (it is a binary only Unity can produce).
+
+If neither exists — someone deleted the TTFs — labels fall back to the TMP default, one warning is
+logged, and `Assets/Scenes/_PersianCheck.unity` shows exactly which layer is broken.
+
+```bash
+python3 tools/text/check_font.py       # glyph coverage, no Unity needed
+```
 
 ## 3. Layout
 
@@ -99,12 +119,15 @@ exists to tell those two apart at a glance.
 | `Assets/Game/Ui/RtlText.cs` | the only door text goes through |
 | `Assets/Core/Text/PersianText.cs` | shaping + reordering + digits (no UnityEngine) |
 | `Assets/Core/Text/PersianForms.gen.cs` | generated letter tables |
+| `Assets/Game/Ui/ShazdehFonts.cs` | Vazir: prebuilt asset, else a dynamic asset from the TTF |
+| `tools/text/check_font.py` | does the shipped font contain what the shaper emits |
 
 ## 5. What M2 does not have yet
 
 - **Art and animation.** Pieces are still coloured squares; there is no build animation, no chest
   reveal, no particles. `replica/design/art-direction.md` is the spec; shipping graphics at the level
-  of the original is the acceptance criterion, and none of it exists yet.
+  of the original is the acceptance criterion, and none of it exists yet. The pipeline that will
+  consume it is `docs/art.md`.
 - **A world map.** Districts are a list, not a map.
 - **Settings, shop, tutorial, audio.** All later milestones.
 - **A tablet/landscape layout.** The canvas scales but the layout is portrait-first.

@@ -151,6 +151,26 @@ jobs:
           python3 tools/text/persian_ref.py --emit
           git diff --exit-code -- client/Assets/Core.Tests/Generated/PersianGoldenVectors.gen.cs
 
+      # The shaper emits presentation forms, so the typeface must contain them. Most Arabic-script
+      # fonts do not; this is the check that keeps the game from shipping a wall of boxes.
+      - name: shipped font covers everything the shaper emits
+        run: python3 tools/text/check_font.py
+
+  # The art contract has to be valid even when no art exists, and any file that does exist must obey it.
+  # --strict (every required asset present) is the release gate, not a per-push gate.
+  art:
+    name: art contract
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: contract, catalog and every committed sprite
+        run: python3 tools/art/art.py --check
+
   # Placeholder that wakes up when the API exists. Keeps the pipeline honest from day one.
   server:
     name: api tests

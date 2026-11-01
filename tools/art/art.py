@@ -1,0 +1,307 @@
+#!/usr/bin/env python3
+"""The art contract: validate it, generate the C# catalog, and check what actually exists.
+
+Art arrives over weeks, from a person, one file at a time. Three things have to stay true while that
+happens, and none of them can be checked by looking at the game on a good day:
+
+  1. **The contract is valid.** Unique ids, sane sizes, a description and a brief for every asset, and
+     no id that the code would have to guess.
+  2. **The code knows the ids.** client/Assets/Game/ArtCatalog.gen.cs is generated from the manifest, so
+     a rename cannot leave a screen asking for a sprite nobody will ever draw.
+  3. **A file that exists obeys the contract.** Right size, real alpha channel, under the budget. A
+     wrong-sized sprite is worse than a missing one: it looks like a bug in the layout.
+
+Missing art is expected this early, so it is reported, not fatal. `--strict` makes the "required"
+assets fatal, and that is the release gate.
+
+Usage:
+    python3 tools/art/art.py                 # report: contract + what exists + what is missing
+    python3 tools/art/art.py --emit          # regenerate ArtCatalog.gen.cs, then report
+    python3 tools/art/art.py --check         # CI: contract valid, catalog current, existing files valid
+    python3 tools/art/art.py --check --strict  # release: every required asset must exist and be valid
+"""
+from __future__ import annotations
+
+import json
+import struct
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+MANIFEST = ROOT / "art" / "manifest.json"
+ART_DIR = ROOT / "client" / "Assets" / "Game" / "Resources" / "art"
+CATALOG = ROOT / "client" / "Assets" / "Game" / "ArtCatalog.gen.cs"
+
+MAX_FILE_KB = 1024          # a single sprite has no business being bigger than a megabyte
+REQUIRED_GROUPS = {"piece", "hud", "scene", "brand"}
+
+
+# --------------------------------------------------------------------------------------------------
+# manifest
+
+
+def load_manifest() -> dict:
+    return json.loads(MANIFEST.read_text(encoding="utf-8"))
+
+
+def validate(manifest: dict) -> list[str]:
+    errors: list[str] = []
+
+    if not isinstance(manifest.get("assets"), list) or not manifest["assets"]:
+        return ["manifest has no assets"]
+
+    seen: set[str] = set()
+    for i, asset in enumerate(manifest["assets"]):
+        where = f"assets[{i}]"
+        if not isinstance(asset, dict):
+            errors.append(f"{where}: not an object")
+            continue
+
+        asset_id = asset.get("id") or ""
+        where = asset_id or where
+
+        if not asset_id:
+            errors.append(f"{where}: no id")
+        elif not asset_id.replace("_", "").isalnum() or asset_id != asset_id.lower():
+            errors.append(f"{where}: id must be lowercase letters, digits and underscores (it is a file name)")
+        elif asset_id in seen:
+            errors.append(f"{where}: duplicate id")
+        else:
+            seen.add(asset_id)
+
+        if not asset.get("group"):
+            errors.append(f"{where}: no group")
+        elif asset["group"] not in REQUIRED_GROUPS | {"powerup", "obstacle", "district", "prop", "ui"}:
+            errors.append(f"{where}: unknown group {asset['group']}")
+
+        size = asset.get("size")
+        if not isinstance(size, list) or len(size) != 2 or not all(isinstance(n, int) for n in size):
+            errors.append(f"{where}: size must be [width, height] in pixels")
+        else:
+            width, height = size
+            if width <= 0 or height <= 0:
+                errors.append(f"{where}: size must be positive")
+            if width > 2048 or height > 2048:
+                errors.append(f"{where}: {width}x{height} is over the 2048 texture limit")
+            if width % 4 or height % 4:
+                errors.append(f"{where}: {width}x{height} must be a multiple of 4 (GPU block compression)")
+
+        if not asset.get("description"):
+            errors.append(f"{where}: no description")
+        if not asset.get("brief"):
+            errors.append(f"{where}: no brief — an artist cannot draw an instruction that is not there")
+
+        required = asset.get("required")
+        if not isinstance(required, bool):
+            errors.append(f"{where}: required must be true or false")
+        elif required and asset.get("group") not in REQUIRED_GROUPS:
+            errors.append(f"{where}: group {asset.get('group')} is never required")
+
+    return errors
+
+
+# --------------------------------------------------------------------------------------------------
+# generated catalog
+
+
+def emit_catalog(manifest: dict) -> str:
+    rows = []
+    for asset in manifest["assets"]:
+        width, height = asset["size"]
+        rows.append(
+            f'            new Entry("{asset["id"]}", {width}, {height}, "{asset["group"]}", '
+            f'{"true" if asset["required"] else "false"}),'
+        )
+
+    body = "\n".join(rows)
+    return f'''// <auto-generated>
+//   Generated by tools/art/art.py --emit from art/manifest.json.
+//   Do not edit by hand. CI (`art.py --check`) fails if this file drifts.
+//
+//   The catalog is the list of sprites the game may ask for. ArtLibrary answers with a sprite when the
+//   file exists and with null when it does not, so every screen has to have a placeholder — that is
+//   what lets the game be playable while the art is still being drawn.
+// </auto-generated>
+using System.Collections.Generic;
+
+namespace Shazdeh.Game
+{{
+    public static class ArtCatalog
+    {{
+        public struct Entry
+        {{
+            public readonly string Id;
+            public readonly int Width;
+            public readonly int Height;
+            public readonly string Group;
+            public readonly bool Required;
+
+            public Entry(string id, int width, int height, string group, bool required)
+            {{
+                Id = id;
+                Width = width;
+                Height = height;
+                Group = group;
+                Required = required;
+            }}
+        }}
+
+        public static readonly Entry[] All = new Entry[]
+        {{
+{body}
+        }};
+
+        static readonly Dictionary<string, Entry> ById = BuildIndex();
+
+        static Dictionary<string, Entry> BuildIndex()
+        {{
+            var index = new Dictionary<string, Entry>(All.Length);
+            for (int i = 0; i < All.Length; i++) index[All[i].Id] = All[i];
+            return index;
+        }}
+
+        public static int Count => All.Length;
+
+        public static bool TryGet(string id, out Entry entry) => ById.TryGetValue(id, out entry);
+
+        /// <summary>Every required asset the game is allowed to expect.</summary>
+        public static IEnumerable<Entry> Required()
+        {{
+            for (int i = 0; i < All.Length; i++)
+                if (All[i].Required) yield return All[i];
+        }}
+    }}
+}}
+'''
+
+
+# --------------------------------------------------------------------------------------------------
+# files on disk
+
+
+def png_size_and_alpha(path: Path) -> tuple[int, int, int]:
+    """Minimal PNG reader: size from IHDR, colour type to tell whether there is an alpha channel."""
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise ValueError("not a PNG")
+
+    width = height = 0
+    colour_type = 0
+    offset = 8
+    while offset < len(data):
+        length = struct.unpack(">I", data[offset:offset + 4])[0]
+        kind = data[offset + 4:offset + 8]
+        chunk = data[offset + 8:offset + 8 + length]
+        if kind == b"IHDR":
+            width, height, _depth, colour_type = struct.unpack(">IIBB", chunk[:10])
+            break
+        offset += 12 + length
+
+    if not width or not height:
+        raise ValueError("no IHDR")
+
+    # 4 = grey+alpha, 6 = RGBA. Palette images can carry a tRNS chunk; treat them as having alpha.
+    # Only the header is parsed: the pixels are not decoded, so this stays fast on a 1024x768 plate.
+    has_alpha = colour_type in (4, 6) or (colour_type == 3 and b"tRNS" in data)
+    return width, height, 1 if has_alpha else 0
+
+
+def check_files(manifest: dict, strict: bool) -> tuple[list[str], list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    present: list[str] = []
+
+    for asset in manifest["assets"]:
+        asset_id = asset["id"]
+        path = ART_DIR / f"{asset_id}.png"
+        required = asset["required"]
+        expected = tuple(asset["size"])
+
+        if not path.exists():
+            message = f"missing art: {asset_id} (expected {expected[0]}x{expected[1]})"
+            (errors if (strict and required) else warnings).append(message)
+            continue
+
+        try:
+            width, height, alpha = png_size_and_alpha(path)
+        except (ValueError, OSError) as exc:
+            errors.append(f"{asset_id}.png is not a readable PNG: {exc}")
+            continue
+
+        if (width, height) != expected:
+            errors.append(f"{asset_id}.png is {width}x{height}, the manifest says {expected[0]}x{expected[1]}")
+        if not alpha:
+            errors.append(f"{asset_id}.png has no alpha channel")
+        size_kb = path.stat().st_size // 1024
+        if size_kb > MAX_FILE_KB:
+            errors.append(f"{asset_id}.png is {size_kb} KB, over the {MAX_FILE_KB} KB budget")
+
+        present.append(asset_id)
+
+    unexpected = sorted(p.stem for p in ART_DIR.glob("*.png") if p.stem not in {a["id"] for a in manifest["assets"]})
+    for stray in unexpected:
+        warnings.append(f"{stray}.png is not in the manifest — it will never be loaded; add it or delete it")
+
+    return errors, warnings, present
+
+
+# --------------------------------------------------------------------------------------------------
+
+
+def main(argv: list[str]) -> int:
+    manifest = load_manifest()
+
+    errors = validate(manifest)
+    if errors:
+        for error in errors:
+            print("  - " + error, file=sys.stderr)
+        print(f"\nart: manifest is invalid ({len(errors)} problem(s))", file=sys.stderr)
+        return 1
+
+    if "--emit" in argv:
+        catalog = emit_catalog(manifest)
+        CATALOG.parent.mkdir(parents=True, exist_ok=True)
+        CATALOG.write_text(catalog, encoding="utf-8")
+        print(f"wrote {CATALOG.relative_to(ROOT)}: {len(manifest['assets'])} assets")
+
+    if "--check" in argv:
+        expected = emit_catalog(manifest)
+        current = CATALOG.read_text(encoding="utf-8") if CATALOG.exists() else ""
+        if current != expected:
+            print("art: ArtCatalog.gen.cs is stale. Run: python3 tools/art/art.py --emit", file=sys.stderr)
+            return 1
+
+    strict = "--strict" in argv
+    file_errors, warnings, present = check_files(manifest, strict)
+
+    for warning in warnings:
+        print("  ! " + warning)
+    for error in file_errors:
+        print("  x " + error, file=sys.stderr)
+
+    assets = manifest["assets"]
+    required = [a for a in assets if a["required"]]
+    required_present = [a for a in required if a["id"] in present]
+    missing_required = len(required) - len(required_present)
+
+    print(
+        f"\nart: {len(assets)} assets in the contract, {len(present)} on disk, "
+        f"{len(required)} required ({len(required_present)} done), {len(warnings)} warning(s)"
+    )
+
+    if file_errors:
+        print(f"art: {len(file_errors)} problem(s) — invalid files, or required art missing under --strict",
+              file=sys.stderr)
+        return 1
+
+    if strict and missing_required:
+        print(f"art: --strict and {missing_required} required asset(s) are still missing", file=sys.stderr)
+        return 1
+
+    if not present:
+        print("art: no artwork yet — the game draws token placeholders (see docs/art.md)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

@@ -147,7 +147,7 @@ namespace Shazdeh.Game.Ui
             var card = UiKit.Panel(dim, "card", 20f, 210f, UiKit.CanvasWidth - 40f, 318f,
                 Tokens.Surface, (int)Tokens.Radius.Panel);
 
-            _resultTitle = UiKit.Label(card, "title", "", Tokens.Type.Xl, Tokens.Gold, TextAlignmentOptions.Center);
+            _resultTitle = UiKit.LabelBold(card, "title", "", Tokens.Type.Xl, Tokens.Gold, TextAlignmentOptions.Center);
             UiKit.Place(_resultTitle.rectTransform, 16f, 28f, card.sizeDelta.x - 32f, 34f);
 
             _resultBody = UiKit.Label(card, "body", "", Tokens.Type.Base, Tokens.Text, TextAlignmentOptions.Center);
@@ -214,7 +214,7 @@ namespace Shazdeh.Game.Ui
 
                     var overlayGo = new GameObject("overlay");
                     overlayGo.transform.SetParent(go.transform, false);
-                    overlayGo.transform.localScale = Vector3.one * 0.74f;
+                    overlayGo.transform.localScale = Vector3.one * OverlayScale;
                     var overlay = overlayGo.AddComponent<SpriteRenderer>();
                     overlay.sprite = _square;
                     overlay.sortingOrder = 1;
@@ -388,29 +388,81 @@ namespace Shazdeh.Game.Ui
                     var overlay = _overlays[index];
                     var overlayColor = new Color(0f, 0f, 0f, 0f);
 
+                    // Reset both renderers to the placeholder state; art opts in below. Redrawing from a
+                    // known state is what keeps this function honest after a sprite swap.
+                    baseRenderer.sprite = _square;
+                    baseRenderer.transform.localScale = Vector3.one;
+                    overlay.sprite = _square;
+                    overlay.transform.localScale = Vector3.one * OverlayScale;
+
                     if (cell.Blocked)
                     {
                         baseRenderer.color = Tokens.Border;
+                        overlay.color = overlayColor;
+                        continue;
                     }
-                    else
-                    {
-                        baseRenderer.color = ColorFor(cell.Piece);
 
-                        if (cell.HasObstacle)
-                        {
-                            baseRenderer.color = Color.Lerp(baseRenderer.color, Tokens.Bg, 0.45f);
-                            overlayColor = cell.ObstacleLayers > 1 ? Tokens.BorderInput : Tokens.Border;
-                        }
+                    // The piece: art if the file exists, a token colour if not.
+                    bool pieceArt = ArtLibrary.ApplyTo(baseRenderer, PieceId(cell.Piece), Cell * 0.94f);
+                    if (!pieceArt) baseRenderer.color = ColorFor(cell.Piece);
+                    else if (cell.HasObstacle) baseRenderer.color = Color.Lerp(Color.white, Tokens.Bg, 0.45f);
 
-                        if (cell.PowerUp != PowerUpKind.None)
-                            overlayColor = new Color(Tokens.Gold.r, Tokens.Gold.g, Tokens.Gold.b, 0.8f);
+                    if (cell.HasObstacle && !ArtLibrary.ApplyTo(overlay, ObstacleId(cell.Obstacle), Cell * 0.9f))
+                        overlayColor = cell.ObstacleLayers > 1 ? Tokens.BorderInput : Tokens.Border;
 
-                        if (_selected.HasValue && _selected.Value.X == x && _selected.Value.Y == y)
-                            overlayColor = Tokens.Accent;
-                    }
+                    if (cell.PowerUp != PowerUpKind.None && !ArtLibrary.ApplyTo(overlay, PowerUpId(cell.PowerUp), Cell * 0.8f))
+                        overlayColor = new Color(Tokens.Gold.r, Tokens.Gold.g, Tokens.Gold.b, 0.8f);
+
+                    if (_selected.HasValue && _selected.Value.X == x && _selected.Value.Y == y)
+                        overlayColor = Tokens.Accent;
 
                     overlay.color = overlayColor;
                 }
+            }
+        }
+
+        const float OverlayScale = 0.74f;
+
+        static string PieceId(PieceKind kind)
+        {
+            switch (kind)
+            {
+                case PieceKind.Firouzeh: return "piece_firouzeh";
+                case PieceKind.Lajvard: return "piece_lajvard";
+                case PieceKind.Aqiq: return "piece_aqiq";
+                case PieceKind.Zomorrod: return "piece_zomorrod";
+                case PieceKind.Morvarid: return "piece_morvarid";
+                default: return "";
+            }
+        }
+
+        static string ObstacleId(ObstacleKind kind)
+        {
+            switch (kind)
+            {
+                case ObstacleKind.Crate: return "obstacle_crate";
+                case ObstacleKind.Frost: return "obstacle_frost";
+                case ObstacleKind.Ivy: return "obstacle_ivy";
+                case ObstacleKind.Vial: return "obstacle_vial";
+                case ObstacleKind.Samovar: return "obstacle_samovar";
+                case ObstacleKind.FlowerPot: return "obstacle_flowerpot";
+                case ObstacleKind.Chain: return "obstacle_chain";
+                case ObstacleKind.Seal: return "obstacle_seal";
+                default: return "";
+            }
+        }
+
+        static string PowerUpId(PowerUpKind kind)
+        {
+            switch (kind)
+            {
+                case PowerUpKind.RocketVertical: return "powerup_rocket_col";
+                case PowerUpKind.RocketHorizontal: return "powerup_rocket_row";
+                case PowerUpKind.Spinner: return "powerup_spinner";
+                case PowerUpKind.Dynamite: return "powerup_dynamite";
+                case PowerUpKind.ElectroBall: return "powerup_electro";
+                case PowerUpKind.SuperElectroBall: return "powerup_electro";
+                default: return "";
             }
         }
 

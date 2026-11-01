@@ -121,13 +121,14 @@ namespace Shazdeh.Game.Ui
             return button;
         }
 
-        public static TextMeshProUGUI Label(Transform parent, string name, string text, float size, Color color, TextAlignmentOptions alignment = TextAlignmentOptions.Center)
+        public static TextMeshProUGUI Label(Transform parent, string name, string text, float size, Color color,
+            TextAlignmentOptions alignment = TextAlignmentOptions.Center, TMP_FontAsset font = null)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
 
             var label = go.AddComponent<TextMeshProUGUI>();
-            label.font = ShazdehFonts.Ui;
+            label.font = font != null ? font : ShazdehFonts.Ui;
             label.fontSize = size;
             label.color = color;
             label.alignment = alignment;
@@ -146,6 +147,11 @@ namespace Shazdeh.Game.Ui
         /// <summary>A right-aligned label, which in a Persian layout is the "reading" side.</summary>
         public static TextMeshProUGUI LabelRight(Transform parent, string name, string text, float size, Color color)
             => Label(parent, name, text, size, color, TextAlignmentOptions.Right);
+
+        /// <summary>A title: the bold weight of the same font, for headings and the big counters.</summary>
+        public static TextMeshProUGUI LabelBold(Transform parent, string name, string text, float size, Color color,
+            TextAlignmentOptions alignment = TextAlignmentOptions.Center)
+            => Label(parent, name, text, size, color, alignment, ShazdehFonts.Bold);
 
         public static TextMeshProUGUI LabelLeft(Transform parent, string name, string text, float size, Color color)
             => Label(parent, name, text, size, color, TextAlignmentOptions.Left);

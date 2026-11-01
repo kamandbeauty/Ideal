@@ -28,12 +28,28 @@ namespace Shazdeh.Game.Ui
         {
             UiKit.Background(Root, Tokens.Bg);
 
-            // The palace silhouette: bands of surface colour, no art, RTL-neutral.
+            // The palace plate. Until the illustration exists (art/manifest.json → home_palace) this is
+            // two bands of surface colour: the layout is identical, so replacing the art cannot move a
+            // single button.
             var sky = UiKit.Panel(Root, "sky", 0f, 0f, UiKit.CanvasWidth, 300f, Tokens.Surface);
             sky.GetComponent<Image>().raycastTarget = false;
-            UiKit.Panel(Root, "sky_lower", 0f, 300f, UiKit.CanvasWidth, 60f, Tokens.Surface);
+            var skyLower = UiKit.Panel(Root, "sky_lower", 0f, 300f, UiKit.CanvasWidth, 60f, Tokens.Surface);
+            skyLower.GetComponent<Image>().raycastTarget = false;
 
-            var title = UiKit.Label(Root, "title", "کاخِ شازده", Tokens.Type.Display, Tokens.Text, TextAlignmentOptions.Center);
+            var palace = UiKit.Panel(Root, "home_palace", 0f, 0f, UiKit.CanvasWidth, 300f, Color.white);
+            var palaceImage = palace.GetComponent<Image>();
+            palaceImage.raycastTarget = false;
+            if (ArtLibrary.ApplyTo(palaceImage, "home_palace"))
+            {
+                sky.gameObject.SetActive(false);
+                skyLower.gameObject.SetActive(false);
+            }
+            else
+            {
+                palace.gameObject.SetActive(false);
+            }
+
+            var title = UiKit.LabelBold(Root, "title", "کاخِ شازده", Tokens.Type.Display, Tokens.Text, TextAlignmentOptions.Center);
             UiKit.Place(title.rectTransform, 0f, 96f, UiKit.CanvasWidth, 48f);
 
             UiKit.Rule(Root, (UiKit.CanvasWidth - 96f) * 0.5f, 150f, 96f, Tokens.Gold, 2f);
@@ -66,7 +82,7 @@ namespace Shazdeh.Game.Ui
             var caption = UiKit.LabelRight(card, "caption", "مرحلهٔ بعدی", Tokens.Type.Sm, Tokens.TextMuted);
             UiKit.Place(caption.rectTransform, 20f, 16f, card.sizeDelta.x - 40f, 22f);
 
-            _levelNumber = UiKit.LabelRight(card, "level", "", Tokens.Type.Display, Tokens.Gold);
+            _levelNumber = UiKit.LabelBold(card, "level", "", Tokens.Type.Display, Tokens.Gold, TextAlignmentOptions.Right);
             UiKit.Place(_levelNumber.rectTransform, 20f, 40f, card.sizeDelta.x - 40f, 52f);
 
             var track = UiKit.Panel(card, "progress_track", 20f, 108f, card.sizeDelta.x - 40f, 10f,

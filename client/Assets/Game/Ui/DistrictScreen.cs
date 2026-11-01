@@ -39,7 +39,7 @@ namespace Shazdeh.Game.Ui
         {
             UiKit.Background(Root, Tokens.Bg);
 
-            var title = UiKit.Label(Root, "title", "ناحیه‌های فصل یک", Tokens.Type.Xl, Tokens.Text, TextAlignmentOptions.Center);
+            var title = UiKit.LabelBold(Root, "title", "ناحیه‌های فصل یک", Tokens.Type.Xl, Tokens.Text, TextAlignmentOptions.Center);
             UiKit.Place(title.rectTransform, 0f, 100f, UiKit.CanvasWidth, 32f);
 
             _potions = UiKit.Label(Root, "potions", "", Tokens.Type.Sm, Tokens.Accent, TextAlignmentOptions.Center);
@@ -75,6 +75,21 @@ namespace Shazdeh.Game.Ui
         {
             var card = UiKit.Panel(Root, "district_" + row.District.Id, 20f, y, cardWidth, 176f,
                 Tokens.Surface, (int)Tokens.Radius.Panel);
+
+            // The district plate (art/district_<id>.png) sits under the tasks when it exists. Its
+            // colours are the artist's; the tasks stay on a dimmed band so the labels keep their contrast.
+            var plate = UiKit.Panel(card, "plate", 0f, 0f, cardWidth, 176f, new Color(1f, 1f, 1f, 0f), (int)Tokens.Radius.Panel);
+            var plateImage = plate.GetComponent<Image>();
+            plateImage.raycastTarget = false;
+            if (ArtLibrary.ApplyTo(plateImage, "district_" + row.District.Id.Replace('-', '_')))
+            {
+                plateImage.color = new Color(1f, 1f, 1f, 0.35f);
+                plate.SetAsFirstSibling();
+            }
+            else
+            {
+                plate.gameObject.SetActive(false);
+            }
 
             row.Title = UiKit.LabelRight(card, "title", row.District.Title, Tokens.Type.Lg, Tokens.Text);
             UiKit.Place(row.Title.rectTransform, 16f, 12f, cardWidth - 100f, 26f);
@@ -161,6 +176,6 @@ namespace Shazdeh.Game.Ui
             }
         }
 
-        const string DoneWord = "✓";
+        const string DoneWord = "ساخته شد";
     }
 }

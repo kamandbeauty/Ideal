@@ -1,0 +1,494 @@
+{
+  "$comment": "The art contract. Every sprite the game can draw is listed here with the size it must be, whether the game needs it to ship, and what it is for. tools/art/art.py validates this file and generates client/Assets/Game/ArtCatalog.gen.cs from it; the game loads a sprite by id from Assets/Game/Resources/art/<id>.png and draws a token-coloured placeholder when it is missing. No artwork is listed here yet because none exists: see docs/art.md for the brief and the rules (no AI-generated art ships).",
+  "version": 1,
+  "palette": {
+    "note": "Roles, not hex. The renderer tints and the art must sit inside this palette; replica/design/tokens.json is the source of truth.",
+    "bg": "lapis night",
+    "accent": "firouzeh",
+    "gold": "gold",
+    "text": "ivory"
+  },
+  "rules": {
+    "format": "png",
+    "alpha": true,
+    "pixels_per_unit": 100,
+    "max_texture_size": 2048,
+    "no_text": "Art must not contain baked Persian text: it cannot be translated, scaled or read by accessibility.",
+    "no_ai": "AI-generated imagery is a concept reference only and is never shipped (replica/design/concepts/)."
+  },
+  "assets": [
+    {
+      "id": "piece_firouzeh",
+      "group": "piece",
+      "size": [
+        128,
+        128
+      ],
+      "required": true,
+      "description": "The turquoise stone: a ridged firouzeh cabochon with a thin gold bezel. The silhouette must stay readable at 48 px.",
+      "brief": "One accent, one ridge highlight, no gloss beyond one specular dot. Five pieces must be distinguishable in greyscale by silhouette alone."
+    },
+    {
+      "id": "piece_lajvard",
+      "group": "piece",
+      "size": [
+        128,
+        128
+      ],
+      "required": true,
+      "description": "Lapis lazuli: a deep blue hexagonal tile with a carved edge.",
+      "brief": "Deepest value of the five. Silhouette: hexagon."
+    },
+    {
+      "id": "piece_aqiq",
+      "group": "piece",
+      "size": [
+        128,
+        128
+      ],
+      "required": true,
+      "description": "Carnelian: a warm red-orange drop with banded striations.",
+      "brief": "Warmest value. Silhouette: teardrop."
+    },
+    {
+      "id": "piece_zomorrod",
+      "group": "piece",
+      "size": [
+        128,
+        128
+      ],
+      "required": true,
+      "description": "Emerald: a green octagon with a faceted centre.",
+      "brief": "Silhouette: octagon; must not read as the turquoise at small sizes."
+    },
+    {
+      "id": "piece_morvarid",
+      "group": "piece",
+      "size": [
+        128,
+        128
+      ],
+      "required": true,
+      "description": "Pearl: an ivory circle with a soft rim and a single highlight.",
+      "brief": "Lightest value; the one piece that must survive on a light panel."
+    },
+    {
+      "id": "powerup_dynamite",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Dynamite on a piece: the L/T match reward.",
+      "brief": "Must read as a different object on top of any of the five pieces."
+    },
+    {
+      "id": "powerup_spinner",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Spinner: the square-match reward.",
+      "brief": "Rotational symmetry; a separate FX layer spins it."
+    },
+    {
+      "id": "powerup_electro",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Electro ball: the five-in-a-line reward.",
+      "brief": "Bright core, no bloom baked in."
+    },
+    {
+      "id": "powerup_rocket_row",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Horizontal rocket: the four-in-a-row reward.",
+      "brief": "Direction is part of the silhouette, not a colour."
+    },
+    {
+      "id": "powerup_rocket_col",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Vertical rocket: the four-in-a-column reward.",
+      "brief": "Same object as powerup_rocket_row, rotated 90° — draw once, ship twice if that is cheaper."
+    },
+    {
+      "id": "obstacle_crate",
+      "group": "obstacle",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Wooden crate, one layer.",
+      "brief": "Damage state is a tint/scale in code; a second sprite is optional."
+    },
+    {
+      "id": "obstacle_frost",
+      "group": "obstacle",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Frost on a piece, up to three layers.",
+      "brief": "Semi-transparent; the piece underneath must stay readable."
+    },
+    {
+      "id": "obstacle_ivy",
+      "group": "obstacle",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Ivy binding a piece.",
+      "brief": "Thin, no cast shadow, so it never hides the piece colour."
+    },
+    {
+      "id": "obstacle_vial",
+      "group": "obstacle",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Potion vial: a goal object.",
+      "brief": "Matches the potion icon in the HUD."
+    },
+    {
+      "id": "obstacle_samovar",
+      "group": "obstacle",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Samovar: the Persian-flavoured obstacle.",
+      "brief": "Silhouette first: spout, tap, lid. Reads at 48 px."
+    },
+    {
+      "id": "obstacle_flowerpot",
+      "group": "obstacle",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Flower pot: a goal object.",
+      "brief": "Two colours maximum."
+    },
+    {
+      "id": "obstacle_chain",
+      "group": "obstacle",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Chain locking a piece until its neighbours are cleared.",
+      "brief": "Draw the links, not a bar."
+    },
+    {
+      "id": "obstacle_seal",
+      "group": "obstacle",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Wax seal: the royal lock used in the harder levels.",
+      "brief": "Gold on deep red; the one obstacle allowed to look expensive."
+    },
+    {
+      "id": "icon_coin",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": true,
+      "description": "Coin icon for the top bar.",
+      "brief": "Flat gold, no outline; it sits on a dark pill."
+    },
+    {
+      "id": "icon_potion",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": true,
+      "description": "Potion icon for the top bar.",
+      "brief": "Firouzeh liquid, ivory glass."
+    },
+    {
+      "id": "icon_life",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": true,
+      "description": "Heart/life icon.",
+      "brief": "Must survive both states: full and empty (empty is a tint in code)."
+    },
+    {
+      "id": "icon_star",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "Level-clear star, used by the result overlay.",
+      "brief": "Three sizes come from one sprite; do not bake a glow."
+    },
+    {
+      "id": "home_palace",
+      "group": "scene",
+      "size": [
+        1024,
+        768
+      ],
+      "required": true,
+      "description": "The palace illustration behind the home hub: a courtyard wall and a tiled gate at dusk. 4:3, cropped by the canvas.",
+      "brief": "Composed for a right-to-left layout: the visual weight sits right and leaves the left third calm for the level card. Persian-royal, not Disney: muqarnas, turquoise tile, brick, no characters."
+    },
+    {
+      "id": "district_ch01_d1",
+      "group": "district",
+      "size": [
+        720,
+        480
+      ],
+      "required": false,
+      "description": "Firouzeh Square before it is built: an empty plaza with a dry pool.",
+      "brief": "Built and unbuilt must share one camera and one light, so the change reads as progress."
+    },
+    {
+      "id": "district_ch01_d2",
+      "group": "district",
+      "size": [
+        720,
+        480
+      ],
+      "required": false,
+      "description": "Lapis Garden before it is built: bare earth, one cypress stump, a broken canal.",
+      "brief": "Same camera and light as d1."
+    },
+    {
+      "id": "district_ch01_d3",
+      "group": "district",
+      "size": [
+        720,
+        480
+      ],
+      "required": false,
+      "description": "The Prince's Gate: a half-finished arch with scaffolding.",
+      "brief": "Same camera and light; the arch is the chapter's payoff shot."
+    },
+    {
+      "id": "prop_ch01_pool",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the fountain pool of Firouzeh Square.",
+      "brief": "One object per task, drawn to sit on the district plate."
+    },
+    {
+      "id": "prop_ch01_wall",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the tiled wall.",
+      "brief": "Tile pattern must be drawn, not a texture photo."
+    },
+    {
+      "id": "prop_ch01_portico",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the entrance portico.",
+      "brief": "Reads as an archway from the district camera distance."
+    },
+    {
+      "id": "prop_ch01_bazaar",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the bazaar stalls.",
+      "brief": "Three stalls, one colour family."
+    },
+    {
+      "id": "prop_ch01_canal",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the garden canal.",
+      "brief": "Water is flat colour plus one line, no realism."
+    },
+    {
+      "id": "prop_ch01_cypress",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the cypress row.",
+      "brief": "Silhouette-first; the cypress is the chapter's signature shape."
+    },
+    {
+      "id": "prop_ch01_pavilion",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the garden pavilion.",
+      "brief": "Chahar-taq: four arches, one dome."
+    },
+    {
+      "id": "prop_ch01_fountain",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the garden fountain.",
+      "brief": "Water again flat; the shape does the work."
+    },
+    {
+      "id": "prop_ch01_arch",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the gate arch.",
+      "brief": "Full muqarnas suggested with three bands, not modelled."
+    },
+    {
+      "id": "prop_ch01_gate",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the gate doors.",
+      "brief": "Closed in the unbuilt plate, open in the built one — draw both or make it a cut-out."
+    },
+    {
+      "id": "prop_ch01_naghareh",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the naqqareh (kettledrum) platform.",
+      "brief": "The one prop allowed a figural element: drums, no people."
+    },
+    {
+      "id": "prop_ch01_banner",
+      "group": "prop",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Task prop: the prince's banner.",
+      "brief": "No readable text on the banner. Emblem only."
+    },
+    {
+      "id": "reward_chest",
+      "group": "scene",
+      "size": [
+        384,
+        384
+      ],
+      "required": false,
+      "description": "The district chest, closed and open.",
+      "brief": "Two sprites (closed/open) or one cut-out; gold fittings, wood body."
+    },
+    {
+      "id": "panel_frame",
+      "group": "ui",
+      "size": [
+        96,
+        96
+      ],
+      "required": false,
+      "description": "Nine-slice frame for cards. Border 24 px.",
+      "brief": "Borders must tile without a seam at any size."
+    },
+    {
+      "id": "button_primary",
+      "group": "ui",
+      "size": [
+        96,
+        96
+      ],
+      "required": false,
+      "description": "Nine-slice face for the primary button. Border 24 px.",
+      "brief": "Flat firouzeh enamel with a 2 px inner highlight; no gradient banding."
+    },
+    {
+      "id": "board_frame",
+      "group": "ui",
+      "size": [
+        256,
+        256
+      ],
+      "required": false,
+      "description": "Nine-slice frame behind the board. Border 32 px.",
+      "brief": "Dark lapis, one gold keyline; must not compete with the pieces."
+    },
+    {
+      "id": "app_icon",
+      "group": "brand",
+      "size": [
+        512,
+        512
+      ],
+      "required": true,
+      "description": "Store and launcher icon: the palace gate in a gold ring.",
+      "brief": "Reads at 48 px. No text. Must not resemble Royal Kingdom's icon in composition or colour balance (replica-brand/sweep.py checks the sweep, a human checks this)."
+    }
+  ]
+}

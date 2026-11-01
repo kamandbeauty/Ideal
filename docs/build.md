@@ -64,11 +64,16 @@ python3 tools/content/check_meta.py
 pip install -r tools/csharp/requirements.txt
 python3 tools/csharp/lint.py
 
-# Persian: letter tables vs the Unicode database, our shaping vs arabic-reshaper, golden vectors
+# Persian: letter tables vs the Unicode database, our shaping vs arabic-reshaper, golden vectors,
+# and whether the shipped font can draw what the shaper emits
 pip install -r tools/text/requirements.txt
 python3 tools/text/gen_persian_table.py --check
 python3 tools/text/persian_ref.py --check
+python3 tools/text/check_font.py
 python3 tools/text/persian_ref.py --emit && git diff --exit-code -- client/Assets/Core.Tests/Generated
+
+# art: the contract, its generated catalog, and every committed sprite
+python3 tools/art/art.py --check
 
 # design tokens: WCAG + generated C# in sync
 python3 .claude/skills/replica-design/contrast.py replica/design/tokens.json
@@ -115,3 +120,14 @@ grammar check plus a shallow static-member check; it is not a type checker.
 - `_PersianCheck.unity` reads correctly with the real UI font on a real device, at both 16:9 and 19.5:9.
 - The board still runs at 60 fps with the canvas on top (Profiler: no per-frame allocations from the
   HUD; `Refresh` runs on change, not per frame).
+
+## 7. Gates before a build is called good (M3 exit: art pipeline)
+
+- The manifest is valid, `ArtCatalog.gen.cs` is current, and every committed PNG has the size, alpha
+  channel and weight budget the contract asks for (`art.py --check`).
+- `art.py --check --strict` passes: every required sprite exists. **This is the gate that is currently
+  red, by design — no artwork has been drawn yet.**
+- Every screen still runs with zero art files present (the placeholder path is the default path).
+- The board is readable at 48 px with real art: five stones distinguishable in greyscale by silhouette.
+- One light, one camera across the three district plates; no baked text, no baked glow.
+- 60 fps with the art in place: the pieces batch into one atlas per group, ≤ 150 draw calls.

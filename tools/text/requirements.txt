@@ -1,3 +1,4 @@
-# The shaper used to cross-check ours (tools/text/persian_ref.py --check).
-# Pinned: a release could reshape differently and silently move the golden vectors.
+# Cross-checks for the Persian text pipeline (CI job "text").
+# Pinned: a shaper or font-tool release could change results and silently move the golden vectors.
 arabic-reshaper==3.0.1
+fonttools==4.68.0

@@ -11,7 +11,7 @@ Assets/
   Game/          Shazdeh.Game     AppRoot, GameSession, screens (Ui/), tokens (generated), save file.
   Editor/        Shazdeh.Editor   menu, scene creation, font build, headless CI build.
   Core.Tests/    EditMode tests   engine + content + Persian text tests (NUnit).
-  Fonts/         (empty in git)   drop a Persian TTF here, then build the font asset — see docs/ui.md
+  Fonts/         licences         Vazir's OFL + AUTHORS; the TTFs live in Game/Resources/fonts
 Packages/manifest.json
 ```
 
@@ -25,9 +25,9 @@ Packages/manifest.json
    `Assets/Scenes/_DesignSystem.unity` (tokens) and `Assets/Scenes/_PersianCheck.unity` (the Persian
    specimen) **from code** and puts the app scene in Build Settings. Nothing in this repo hand-edits a
    `.unity` file.
-5. Persian text needs a font: put a Persian TTF in `Assets/Fonts/` and run **کاخ شازده → Build UI
-   font** (`docs/ui.md` §2). Without it every label falls back to the TMP default and warns once.
-6. Open `Assets/Scenes/App.unity`, press Play. You land on the home screen.
+5. Open `Assets/Scenes/App.unity`, press Play. You land on the home screen, in Persian, with no font
+   step: Vazir ships in `Assets/Game/Resources/fonts` and a dynamic TMP asset is built at first use
+   (`docs/ui.md` §2). The optional menu item **Build UI font assets** bakes it for faster starts.
 
 The first time Unity opens the project it generates `ProjectSettings/` — commit that. It is also the
 file the Unity CI workflow waits for (`ProjectSettings/ProjectVersion.txt`): until it exists, the
@@ -66,6 +66,18 @@ The game is playable with the network off, and its save is the source of truth
 ```bash
 python3 tools/content/check_meta.py     # districts/tasks/chests, no Unity needed
 ```
+
+## What M3 adds (art pipeline)
+
+Art is additive: every screen asks `ArtLibrary.Get("piece_firouzeh")` and falls back to a token
+placeholder when the file is missing, so sprites can arrive one at a time.
+
+- `art/manifest.json` — 43 assets with an id, exact size, group, required flag, description and brief.
+- `tools/art/art.py` — validates the contract, generates `Assets/Game/ArtCatalog.gen.cs`, and checks any
+  committed PNG (size, alpha, weight). `--strict` is the release gate.
+- `Editor/ArtImportSettings.cs` — import rules for `Assets/Game/Resources/art/` (Sprite, ASTC, no mips).
+- **No artwork is drawn yet.** `docs/art.md` is the brief and the rules (including why generated art is
+  not shipped).
 
 ## What M2 adds (screens, RTL, Persian numerals)
 
