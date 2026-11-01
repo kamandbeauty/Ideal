@@ -482,6 +482,7 @@ namespace Shazdeh.Game.Ui
 
             // Push the two pieces towards each other and let them spring back: the cheapest way to
             // say "that is not a move" without a modal, and it cannot be misread as a hint.
+            _tweenDone = null;
             int a = Index(from), b = Index(to);
             if (a < 0 || b < 0) return;
 
@@ -491,7 +492,6 @@ namespace Shazdeh.Game.Ui
 
             AddTween(a, pa + push, pa, Vector3.one, Vector3.one, 0f, RejectSeconds);
             AddTween(b, pb - push, pb, Vector3.one, Vector3.one, 0f, RejectSeconds);
-            _tweenDone = null;
         }
 
         void PlaySwap(CellPos from, CellPos to, MoveResult result)
@@ -563,6 +563,7 @@ namespace Shazdeh.Game.Ui
                 {
                     int falling = y * width + column;
                     if (_tiles[falling] == null) continue;
+                    if (AlreadyDropping(falling)) continue;
 
                     int steps = y - lowest;
                     Vector3 rest = WorldOf(new CellPos(column, y));
@@ -581,8 +582,22 @@ namespace Shazdeh.Game.Ui
                 SettleTurn();
             };
 
-            // Nothing to drop (a clear at the very top row): finish the turn now.
-            if (_tweens.Count == 0) _tweenDone();
+            // Nothing to drop (a clear at the very top row): finish the turn now, without leaving a
+            // callback behind for the next tween to trip over.
+            if (_tweens.Count == 0)
+            {
+                var done = _tweenDone;
+                _tweenDone = null;
+                done?.Invoke();
+            }
+        }
+
+        /// <summary>Two clears in one column would otherwise queue the same cell twice.</summary>
+        bool AlreadyDropping(int index)
+        {
+            for (int i = 0; i < _tweens.Count; i++)
+                if (_tweens[i].Index == index) return true;
+            return false;
         }
 
         void SettleTurn()
