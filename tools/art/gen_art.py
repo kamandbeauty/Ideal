@@ -654,6 +654,25 @@ def hud_icon(w, h, asset_id):
             rim_light(w, h, heart, with_alpha((255, 255, 255, 255), 115), 1.8),
             outline(w, h, heart, with_alpha(INK, 195), 1.3)), w, h)
 
+    if asset_id == "icon_moves":
+        # Two opposing arrows: the counter's icon and the game's only gesture. Chunky on purpose —
+        # at 22 px the arrowheads are the only thing the eye resolves.
+        right = add(polygon_mask(w, h, [(0.17, 0.24), (0.66, 0.24), (0.66, 0.43), (0.17, 0.43)]),
+                    polygon_mask(w, h, [(0.62, 0.12), (0.96, 0.335), (0.62, 0.55)]))
+        left = add(polygon_mask(w, h, [(0.34, 0.57), (0.83, 0.57), (0.83, 0.76), (0.34, 0.76)]),
+                   polygon_mask(w, h, [(0.38, 0.45), (0.04, 0.665), (0.38, 0.88)]))
+        accent = rgba(PALETTE["accent"])
+        return finish(layering(
+            soft_shadow(w, h, add(right, left), (0, 3), 3, 105),
+            gradient_masked(w, h, GOLD_LIGHT, GOLD_MID, right),
+            gradient_masked(w, h, shade(accent, 0.24), shade(accent, -0.20), left),
+            fill_masked(w, h, with_alpha((255, 255, 255, 255), 70),
+                        clip(right, polygon_mask(w, h, [(0.0, 0.0), (1.0, 0.0), (1.0, 0.30), (0.0, 0.30)]))),
+            rim_light(w, h, right, with_alpha((255, 255, 255, 255), 125), 1.6),
+            rim_light(w, h, left, with_alpha((255, 255, 255, 255), 110), 1.6),
+            outline(w, h, right, with_alpha(INK, 200), 1.4),
+            outline(w, h, left, with_alpha(INK, 200), 1.4)), w, h)
+
     # icon_star: no baked glow, three sizes come from one sprite
     star = polygon_mask(w, h, star_points(0.5, 0.53, 0.45, 0.19))
     return finish(layering(
@@ -1345,6 +1364,84 @@ def app_icon(w, h):
 # dispatch
 
 
+# ------------------------------------------------------------------------------------------------
+# the result plaques: one silhouette, two moods, and a quiet middle for the title and the stars
+
+
+def chamfer(w, h, inset_x, inset_y, cut=0.018):
+    """A rectangle with its corners cut on the diagonal, square in pixels, not in fractions."""
+    cx = cut
+    cy = cut * w / h
+    return polygon_mask(w, h, [
+        (inset_x + cx, inset_y), (1.0 - inset_x - cx, inset_y),
+        (1.0 - inset_x, inset_y + cy), (1.0 - inset_x, 1.0 - inset_y - cy),
+        (1.0 - inset_x - cx, 1.0 - inset_y), (inset_x + cx, 1.0 - inset_y),
+        (inset_x, 1.0 - inset_y - cy), (inset_x, inset_y + cy),
+    ])
+
+
+def finial(w, h, cx, cy, r, colour, alpha=255):
+    """A lozenge: the ornament that reads correctly on a 3.6:1 plate, where a circle would squash."""
+    shape = polygon_mask(w, h, [(cx, cy - r * w / h), (cx + r, cy), (cx, cy + r * w / h), (cx - r, cy)])
+    return fill_masked(w, h, with_alpha(colour, alpha), shape)
+
+
+def result_plate(w, h, won: bool) -> Image.Image:
+    body = chamfer(w, h, 0.030, 0.085)
+    keyline = ring(chamfer(w, h, 0.030, 0.085), chamfer(w, h, 0.042, 0.135))
+    hairline = ring(chamfer(w, h, 0.052, 0.165), chamfer(w, h, 0.056, 0.180))
+
+    if won:
+        light = with_alpha(GOLD_LIGHT, 255)
+        rim = with_alpha(GOLD_MID, 215)
+        fill_top = shade(rgba(PALETTE["bg"]), 0.16)
+        fill_bottom = shade(rgba(PALETTE["bg"]), -0.06)
+    else:
+        light = with_alpha(SILVER, 230)
+        rim = with_alpha(SILVER, 95)
+        fill_top = shade(desaturate(rgba(PALETTE["bg"])), 0.16)
+        fill_bottom = shade(desaturate(rgba(PALETTE["bg"])), -0.22)
+
+    halo = glow(w, h, ellipse_mask(w, h, (0.06, 0.02, 0.94, 0.98)),
+                GOLD_MID if won else SILVER, softness=9, alpha=120 if won else 46)
+
+    layers = [
+        halo,
+        gradient_masked(w, h, fill_top, fill_bottom, body),
+        # light gathering at the top edge: an alpha ramp clipped to the plate, so no seam lands on it.
+        # (`linear` paints an opaque gradient regardless of the colours' alpha, hence vfade here.)
+        masked(vfade(w, h, 0.0, 0.85, light, 58 if won else 30, 0), body),
+        fill_masked(w, h, rim, keyline),
+        fill_masked(w, h, with_alpha(light, 90 if won else 40), hairline),
+    ]
+
+    if won:
+        # A lozenge with a bead above and below it: the simplest ornament that still reads as
+        # deliberate at 335 dp wide, where a drawn rosette would turn to mush.
+        for left in (True, False):
+            cx = 0.062 if left else 0.938
+            layers.append(finial(w, h, cx, 0.5, 0.020, GOLD_MID, 245))
+            for cy in (0.30, 0.70):
+                layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 200),
+                                          clip(ellipse_mask(w, h, (cx - 0.006, cy - 0.006 * w / h,
+                                                                   cx + 0.006, cy + 0.006 * w / h)), body)))
+    else:
+        layers.append(fill_masked(w, h, with_alpha(SILVER, 215), crescent(w, h, 0.088, 0.5, 0.030)))
+        for cx, cy, r in [(0.895, 0.36, 0.006), (0.915, 0.53, 0.009), (0.888, 0.68, 0.005)]:
+            layers.append(fill_masked(w, h, with_alpha(SILVER, 115),
+                                      clip(ellipse_mask(w, h, (cx - r, cy - r * w / h, cx + r, cy + r * w / h)), body)))
+
+    layers.append(outline(w, h, body, with_alpha(INK, 170), 1.4))
+    return finish(layering(*layers), w, h)
+
+
+def desaturate(colour):
+    """The loss plate is the same lapis with the blue pulled out, not a different material."""
+    r, g, b, a = colour
+    grey = int(0.55 * r + 0.30 * g + 0.15 * b)
+    return (int(0.55 * r + 0.45 * grey), int(0.55 * g + 0.45 * grey), int(0.70 * b + 0.30 * grey), a)
+
+
 def draw_asset(asset: dict) -> Image.Image:
     asset_id = asset["id"]
     width, height = asset["size"]
@@ -1385,6 +1482,10 @@ def _draw_asset(asset_id: str, width: int, height: int) -> Image.Image:
         return chest(width, height)
     if asset_id == "app_icon":
         return app_icon(width, height)
+    if asset_id == "result_win":
+        return result_plate(width, height, True)
+    if asset_id == "result_lose":
+        return result_plate(width, height, False)
 
     raise SystemExit(f"gen_art: no drawing for {asset_id} — write one before adding it to the manifest")
 

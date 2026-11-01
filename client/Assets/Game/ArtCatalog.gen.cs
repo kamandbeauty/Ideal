@@ -75,6 +75,9 @@ namespace Shazdeh.Game
             new Entry("button_primary", 96, 96, "ui", false),
             new Entry("board_frame", 256, 256, "ui", false),
             new Entry("app_icon", 512, 512, "brand", true),
+            new Entry("icon_moves", 64, 64, "hud", false),
+            new Entry("result_win", 720, 200, "ui", false),
+            new Entry("result_lose", 720, 200, "ui", false),
         };
 
         static readonly Dictionary<string, Entry> ById = BuildIndex();

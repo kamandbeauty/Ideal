@@ -489,6 +489,39 @@
       "required": true,
       "description": "Store and launcher icon: the palace gate in a gold ring.",
       "brief": "Reads at 48 px. No text. Must not resemble Royal Kingdom's icon in composition or colour balance (replica-brand/sweep.py checks the sweep, a human checks this)."
+    },
+    {
+      "id": "icon_moves",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "Two opposing arrows: the icon for the move counter, and the one gesture the whole game is played with.",
+      "brief": "Must read at 22 px beside a number. Two colours, chunky shafts, no thin strokes and no letterforms."
+    },
+    {
+      "id": "result_win",
+      "group": "ui",
+      "size": [
+        720,
+        200
+      ],
+      "required": false,
+      "description": "The win plaque: a lapis banner with a gold keyline, rosettes at both ends and a warm light behind it.",
+      "brief": "The middle two thirds stay quiet — the title, the stars and the reward are drawn over it in code."
+    },
+    {
+      "id": "result_lose",
+      "group": "ui",
+      "size": [
+        720,
+        200
+      ],
+      "required": false,
+      "description": "The same plaque after a loss: steel and silver instead of lapis and gold, a crescent at one end and three dim stars.",
+      "brief": "Quiet, not punishing. No red, no broken glass, no skulls — the retry button does the work."
     }
   ]
 }
