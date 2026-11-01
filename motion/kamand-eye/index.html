@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KAMAND EYE — 45s Persian kinetic typography commercial</title>
+<style>
+  @font-face{font-family:Estedad;src:url('./fonts/estedad-arabic-400-normal.woff2') format('woff2');font-weight:400;font-display:block}
+  @font-face{font-family:Estedad;src:url('./fonts/estedad-arabic-700-normal.woff2') format('woff2');font-weight:700;font-display:block}
+  @font-face{font-family:Estedad;src:url('./fonts/estedad-arabic-800-normal.woff2') format('woff2');font-weight:800;font-display:block}
+  @font-face{font-family:Estedad;src:url('./fonts/estedad-arabic-900-normal.woff2') format('woff2');font-weight:900;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');font-weight:400;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-600-normal.woff2') format('woff2');font-weight:600;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');font-weight:700;font-display:block}
+
+  :root{
+    --cream:#f7f0e0; --emerald:#10a06e; --deep:#052017; --ink:#03110c;
+    --gold:#ddb877; --white:#ffffff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  #stage{
+    position:absolute;left:50%;top:50%;width:1080px;height:1920px;
+    transform-origin:center;overflow:hidden;background:var(--ink);
+    font-family:Estedad,Vazirmatn,system-ui,sans-serif;color:var(--cream);
+    direction:rtl;
+  }
+  .scene{position:absolute;inset:0;opacity:0;visibility:hidden;will-change:opacity}
+  .bg{position:absolute;inset:0;background:radial-gradient(ellipse 75% 55% at 50% 45%,#0b3c2a 0%,#04150e 58%,#020b07 100%)}
+  .vignette{position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse 70% 60% at 50% 45%,transparent 35%,rgba(1,8,5,.72) 100%)}
+  .plate{position:absolute;inset:-8%;background-size:cover;background-position:center;will-change:transform;transform-origin:center}
+
+  /* ---------- typography ---------- */
+  .word{
+    position:absolute;left:0;right:0;text-align:center;direction:rtl;
+    font-family:Estedad,sans-serif;font-weight:900;white-space:nowrap;
+    opacity:0;will-change:transform,opacity,clip-path;
+    text-shadow:0 10px 60px rgba(0,0,0,.9);
+  }
+  .word.cream{color:var(--cream)}
+  .word.green{color:var(--emerald)}
+  .word.white{color:var(--white)}
+  .word.gold{
+    background:linear-gradient(180deg,#fff7e3 8%,var(--gold) 62%,#a97c34 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 8px 32px rgba(221,184,119,.35));
+  }
+  .kicker{font-family:Vazirmatn,sans-serif;font-weight:600;letter-spacing:.18em}
+  body.no-text .word,body.no-text .step,body.no-text .chip{display:none}
+
+  .half{position:absolute;left:0;right:0;text-align:center;white-space:nowrap;will-change:transform}
+  .half-a{clip-path:inset(0 50% 0 0)}
+  .half-b{clip-path:inset(0 0 0 50%)}
+
+  /* ---------- hook ---------- */
+  #hook-wrap{position:absolute;left:0;right:0;top:700px;height:360px}
+  #w-hook{font-size:180px;line-height:1.25;top:0}
+  #s1 .small-words .word{font-size:96px;top:0}
+
+  /* ---------- solution / liquid ---------- */
+  .scattered{position:absolute;inset:0;pointer-events:none}
+  .scattered span{position:absolute;font-family:Estedad;font-weight:800;font-size:38px;color:rgba(247,240,224,.32)}
+  .liquid{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .liquid svg{position:absolute;top:0;left:0;width:1600px;height:1920px;will-change:transform}
+  #w-solution{font-size:88px;top:560px}
+  #s2-product{
+    position:absolute;left:50%;top:1250px;width:620px;height:auto;
+    transform:translate(-50%,-50%);transform-origin:center;
+    filter:drop-shadow(0 40px 50px rgba(0,0,0,.6));will-change:transform,opacity;
+  }
+  #s2-shine{position:absolute;left:50%;top:1250px;width:660px;height:660px;border-radius:50%;
+    transform:translate(-50%,-50%);pointer-events:none;opacity:0;mix-blend-mode:screen;
+    background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.55) 50%,transparent 60%)}
+
+  /* ---------- benefits ---------- */
+  .benefit{position:absolute;inset:0;opacity:0;visibility:hidden;will-change:opacity}
+  .benefit .plate{opacity:.20}
+  .benefit-word{font-size:168px;top:760px}
+  .leaves{position:absolute;inset:0;pointer-events:none}
+  .leaf{position:absolute;width:74px;height:38px;border-radius:2% 80% 2% 80%;
+    background:linear-gradient(135deg,#6fe0aa,#169a66 58%,#0a5137);
+    box-shadow:inset 0 0 14px rgba(0,0,0,.4);will-change:transform,opacity}
+  .specks{position:absolute;inset:0;pointer-events:none}
+  .specks i{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 14px rgba(255,255,255,.85);will-change:opacity,transform}
+  #b2-ripple{position:absolute;left:50%;top:960px;width:920px;height:920px;border-radius:50%;
+    transform:translate(-50%,-50%) scale(.2);pointer-events:none;opacity:0;
+    background:radial-gradient(circle,rgba(255,255,255,.30) 0%,rgba(120,220,180,.14) 40%,transparent 68%);
+    box-shadow:inset 0 0 90px rgba(255,255,255,.25)}
+  .wave-band{position:absolute;left:-20%;right:-20%;top:0;height:100%;pointer-events:none;will-change:transform}
+  .wave-band svg{width:100%;height:100%}
+  #b3-lock{position:absolute;left:50%;top:1010px;width:520px;height:8px;transform:translateX(-50%) scaleX(0);
+    transform-origin:center;border-radius:8px;background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    box-shadow:0 0 30px rgba(221,184,119,.6)}
+
+  /* ---------- tutorial ---------- */
+  #hair-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  #brush{position:absolute;left:0;top:0;width:340px;height:340px;pointer-events:none;will-change:transform,opacity}
+  #s4-jar{position:absolute;left:50%;top:1560px;width:330px;height:auto;
+    transform:translate(-50%,-50%);opacity:0;filter:drop-shadow(0 24px 34px rgba(0,0,0,.55));will-change:opacity,transform}
+  .step{
+    position:absolute;left:90px;right:90px;top:1230px;
+    display:flex;align-items:center;gap:28px;direction:rtl;
+    padding:22px 30px;border-radius:34px;opacity:0;will-change:transform,opacity;
+    background:linear-gradient(105deg,rgba(247,240,224,.12),rgba(6,48,32,.55));
+    border:2px solid rgba(221,184,119,.35);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
+  }
+  .step .num{
+    flex:0 0 130px;height:130px;border-radius:50%;display:grid;place-items:center;
+    font-family:Estedad;font-weight:900;font-size:76px;color:#2a1a05;
+    background:radial-gradient(circle at 32% 26%,#fff5d6,var(--gold) 58%,#a97c34);
+    box-shadow:inset 0 4px 10px rgba(255,255,255,.65),0 8px 24px rgba(0,0,0,.45);
+  }
+  .step .txt{font-family:Estedad;font-weight:800;font-size:44px;line-height:1.45;color:#fff8e9;text-align:right}
+  #step-label{position:absolute;left:0;right:0;top:240px;text-align:center;
+    font-family:Vazirmatn;font-weight:700;font-size:34px;letter-spacing:.3em;color:var(--gold)}
+
+  /* ---------- final ---------- */
+  .chip{position:absolute;font-family:Estedad;font-weight:800;font-size:56px;color:var(--cream);
+    white-space:nowrap;opacity:0;will-change:transform,opacity;text-shadow:0 6px 30px rgba(0,0,0,.6)}
+  #s5-product{position:absolute;left:50%;top:930px;width:560px;height:auto;
+    transform:translate(-50%,-50%);opacity:0;will-change:transform,opacity;
+    filter:drop-shadow(0 40px 50px rgba(0,0,0,.62))}
+  #w-line1{font-size:66px;top:340px}
+  #w-line2{font-size:88px;top:470px}
+  #w-slogan{font-size:62px;top:1520px;white-space:normal;padding:0 70px;line-height:1.4}
+  #logo-ring{position:absolute;left:50%;top:960px;width:640px;height:640px;border-radius:50%;
+    transform:translate(-50%,-50%) scale(.4);opacity:0;pointer-events:none;
+    border:3px solid rgba(221,184,119,.65);box-shadow:0 0 90px rgba(221,184,119,.35),inset 0 0 90px rgba(221,184,119,.18);
+    will-change:transform,opacity}
+  #logo-product{position:absolute;left:50%;top:960px;width:480px;height:auto;
+    transform:translate(-50%,-50%) scale(.5);opacity:0;will-change:transform,opacity;
+    filter:drop-shadow(0 26px 40px rgba(0,0,0,.6))}
+
+  /* ---------- overlays ---------- */
+  #particles{position:absolute;inset:0;pointer-events:none}
+  .p{position:absolute;left:0;top:0;will-change:transform,opacity}
+  .p-drop{border-radius:50%;
+    background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.95),rgba(190,235,210,.35) 42%,rgba(10,80,55,.18) 68%,transparent 76%);
+    box-shadow:inset -4px -6px 10px rgba(4,40,26,.35)}
+  .p-leaf{border-radius:2% 78% 2% 78%;
+    background:linear-gradient(135deg,#3c9d6d,#124a33 58%,#082c1e);box-shadow:inset 0 0 12px rgba(0,0,0,.35)}
+  .p-gold{border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff7da,var(--gold) 52%,rgba(150,110,40,.2) 78%);
+    box-shadow:0 0 18px rgba(230,190,110,.8)}
+  #beat-flash{position:absolute;inset:0;pointer-events:none;opacity:0;mix-blend-mode:screen;
+    background:radial-gradient(ellipse at 50% 50%,rgba(255,246,220,.5),transparent 70%);will-change:opacity}
+  #transition{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  #transition .bar{position:absolute;left:-20%;width:140%;height:200px;will-change:transform}
+  #sweep{position:absolute;inset:-20% -60%;pointer-events:none;opacity:0;mix-blend-mode:screen;
+    background:linear-gradient(112deg,transparent 42%,rgba(255,246,222,.35) 50%,transparent 58%);will-change:transform,opacity}
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- SCENE 1 — THE HOOK -->
+  <section class="scene" id="s1">
+    <div class="bg"></div>
+    <div class="vignette"></div>
+    <div id="hook-wrap">
+      <div id="w-hook" class="word cream">ابروهات؟!</div>
+    </div>
+    <div class="small-words">
+      <div id="w1" class="word white" style="top:1150px">نامرتب؟</div>
+      <div id="w2" class="word green" style="top:1310px">بدحالت؟</div>
+      <div id="w3" class="word gold" style="top:1470px">سرکش؟!</div>
+    </div>
+  </section>
+
+  <!-- SCENE 2 — THE SOLUTION -->
+  <section class="scene" id="s2">
+    <div class="bg"></div>
+    <div class="scattered" id="scattered"></div>
+    <div class="liquid">
+      <svg id="wave1" viewBox="0 0 1600 1920" preserveAspectRatio="none">
+        <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#0b6b48"/><stop offset=".55" stop-color="#10a06e"/><stop offset="1" stop-color="#0a4a34"/>
+        </linearGradient></defs>
+        <path d="M0,300 C260,180 520,430 800,300 C1080,170 1340,430 1600,300 L1600,1920 L0,1920 Z" fill="url(#g1)" opacity=".92"/>
+      </svg>
+      <svg id="wave2" viewBox="0 0 1600 1920" preserveAspectRatio="none">
+        <path d="M0,420 C300,300 560,560 860,420 C1160,280 1380,540 1600,420 L1600,1920 L0,1920 Z" fill="#15c188" opacity=".45"/>
+      </svg>
+    </div>
+    <div class="vignette"></div>
+    <div id="w-solution" class="word cream">وقت یه تغییر قشنگه!</div>
+    <img id="s2-product" src="./assets/product-open.png" alt="KAMAND eyebrow lift gel" />
+    <div id="s2-shine"></div>
+  </section>
+
+  <!-- SCENE 3 — PRODUCT BENEFITS -->
+  <section class="scene" id="s3">
+    <div class="bg"></div>
+    <div class="benefit" id="b1">
+      <div class="plate" style="background-image:url('./plates/s2-botanical.jpg')"></div>
+      <div class="vignette"></div>
+      <div class="leaves" id="b1-leaves"></div>
+      <div id="b1-word" class="word benefit-word cream">کاملاً گیاهی</div>
+    </div>
+    <div class="benefit" id="b2">
+      <div class="plate" style="background-image:url('./plates/s3-glass-gel.jpg')"></div>
+      <div class="vignette"></div>
+      <div id="b2-ripple"></div>
+      <div class="specks" id="b2-specks"></div>
+      <div id="b2-word" class="word benefit-word white">بدون سفیدک</div>
+    </div>
+    <div class="benefit" id="b3">
+      <div class="vignette"></div>
+      <div class="wave-band" id="b3-wave1">
+        <svg viewBox="0 0 1400 400" preserveAspectRatio="none"><path d="M0,200 C175,80 350,320 525,200 C700,80 875,320 1050,200 C1225,80 1400,320 1400,200" fill="none" stroke="#10a06e" stroke-width="10" opacity=".55"/></svg>
+      </div>
+      <div class="wave-band" id="b3-wave2">
+        <svg viewBox="0 0 1400 400" preserveAspectRatio="none"><path d="M0,220 C175,340 350,100 525,220 C700,340 875,100 1050,220 C1225,340 1400,100 1400,220" fill="none" stroke="#7dd9ae" stroke-width="6" opacity=".35"/></svg>
+      </div>
+      <div id="b3-word" class="word benefit-word cream">بدون ریزش</div>
+      <div id="b3-lock"></div>
+    </div>
+  </section>
+
+  <!-- SCENE 4 — HOW TO USE -->
+  <section class="scene" id="s4">
+    <div class="bg"></div>
+    <div class="plate" style="background-image:url('./plates/s4-brow-sculpture.jpg');opacity:.13"></div>
+    <div class="vignette"></div>
+    <svg id="hair-svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+      <defs><linearGradient id="hairGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#4a3320"/><stop offset=".55" stop-color="#9c7a48"/><stop offset="1" stop-color="#e3c58b"/>
+      </linearGradient></defs>
+      <g id="hair"></g>
+    </svg>
+    <svg id="brush" viewBox="0 0 340 340">
+      <g transform="translate(170,170)">
+        <rect x="-13" y="-6" width="26" height="220" rx="12" fill="#d9c9a4"/>
+        <rect x="-13" y="120" width="26" height="90" rx="10" fill="#1b1b1b"/>
+        <g id="bristles" stroke="#2a2118" stroke-width="5" stroke-linecap="round"></g>
+      </g>
+    </svg>
+    <img id="s4-jar" src="./assets/product-open.png" alt="KAMAND gel" />
+    <div id="step-label" class="kicker">طرز استفاده</div>
+    <div class="step" data-step="0"><div class="num">۱</div><div class="txt">ابروها رو تمیز و خشک کن</div></div>
+    <div class="step" data-step="1"><div class="num">۲</div><div class="txt">مقدار مناسبی ژل بردار</div></div>
+    <div class="step" data-step="2"><div class="num">۳</div><div class="txt">به سمت بالا و بیرون شانه کن</div></div>
+    <div class="step" data-step="3"><div class="num">۴</div><div class="txt">فرم دلخواهت رو بساز!</div></div>
+  </section>
+
+  <!-- SCENE 5 — FINAL BRANDING -->
+  <section class="scene" id="s5">
+    <div class="plate" id="s5-plate" style="background-image:url('./plates/s6-hero.jpg')"></div>
+    <div class="vignette"></div>
+    <div id="chips"></div>
+    <div id="w-line1" class="word cream">ابروهای مرتب، بدون دردسر!</div>
+    <div id="w-line2" class="word green">ژل لیفت ابرو کمند</div>
+    <div id="w-slogan" class="word gold">کمند؛ زیبایی طبیعی، هر روز!</div>
+    <img id="s5-product" src="./assets/product-open.png" alt="KAMAND eyebrow lift gel" />
+    <div id="logo-ring"></div>
+    <img id="logo-product" src="./assets/product-open.png" alt="KAMAND logo" />
+  </section>
+
+  <div id="particles"></div>
+  <div id="beat-flash"></div>
+  <div id="transition"></div>
+  <div id="sweep"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---- Master timeline: 45 s @ 24 fps, vertical 1080x1920 -----------------
+  const W = 1080, H = 1920, FPS = 24, FRAMES = 1080;
+  const S = [
+    { id: 's1', start: 0,   end: 120 },
+    { id: 's2', start: 120, end: 288 },
+    { id: 's3', start: 288, end: 600 },
+    { id: 's4', start: 600, end: 888 },
+    { id: 's5', start: 888, end: 1080 },
+  ];
+  const B = [ {start:288,end:384}, {start:384,end:480}, {start:480,end:600} ];
+  const STEP_AT = [600, 672, 744, 840];
+
+  const params = new URLSearchParams(location.search);
+  const still = params.has('frame');
+  if (params.has('noText')) document.body.classList.add('no-text');
+  const $ = (id) => document.getElementById(id);
+  const clamp = (v,a,b) => Math.min(b,Math.max(a,v));
+  const lerp = (a,b,t) => a + (b-a)*t;
+  const smooth = (a,b,x) => { const t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); };
+  const easeOut = (t) => 1-Math.pow(1-clamp(t,0,1),3);
+  const easeIn  = (t) => Math.pow(clamp(t,0,1),3);
+  const elastic = (t) => { t=clamp(t,0,1); return 1 - Math.pow(2,-9*t)*Math.cos(t*Math.PI*2.2); };
+
+  // ---- Fit the fixed stage -------------------------------------------------
+  const stage = $('stage');
+  function fit(){ const s=Math.min(innerWidth/W,innerHeight/H); stage.style.transform=`translate(-50%,-50%) scale(${s})`; }
+  addEventListener('resize',fit); fit();
+
+  // ---- Seeded PRNG ---------------------------------------------------------
+  let seed = 0x4b414d45;
+  function rnd(){ seed|=0; seed=(seed+0x6D2B79F5)|0;
+    let t=Math.imul(seed^(seed>>>15),1|seed);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;
+    return ((t^(t>>>14))>>>0)/4294967296; }
+
+  // ---- Beat helpers (120 BPM => 12 frames per beat) ------------------------
+  const pulse = (f) => Math.exp(-5*((f%12)/12));
+  const beat = (f) => Math.floor(f/12);
+
+  // ---- Split a word into two clipped halves (shaping stays intact) --------
+  function makeHalves(el, size){
+    const wrap = document.createElement('div');
+    wrap.className = 'word ' + (el.classList.contains('gold') ? 'gold' : 'cream');
+    wrap.style.cssText = el.style.cssText;
+    wrap.style.opacity = '0';
+    wrap.style.fontSize = size + 'px';
+    ['a','b'].forEach((k)=>{
+      const h=document.createElement('div');
+      h.className='half half-'+k; h.textContent=el.textContent;
+      h.style.fontSize=size+'px'; h.style.lineHeight=el.style.lineHeight||'1.25';
+      wrap.appendChild(h);
+    });
+    el.parentNode.insertBefore(wrap, el.nextSibling);
+    return { wrap, a: wrap.children[0], b: wrap.children[1] };
+  }
+  const halves = makeHalves($('w-hook'), 180);
+  function setHalves(f, at, dur, amount){
+    const p = clamp((f-at)/dur,0,1);
+    const e = easeOut(p);
+    halves.wrap.style.opacity = (p>0?1:0).toFixed(3);
+    halves.a.style.transform = `translate(${-amount*e}px,${-18*e}px) rotate(${-5*e}deg)`;
+    halves.b.style.transform = `translate(${ amount*e}px,${ 18*e}px) rotate(${ 5*e}deg)`;
+  }
+
+  // ---- Generic word transform helper --------------------------------------
+  function put(el, o){
+    el.style.opacity = clamp(o.op,0,1).toFixed(3);
+    el.style.transform = `translate(${o.x||0}px,${o.y||0}px) scale(${(o.sx??o.s??1)},${(o.sy??o.s??1)}) rotate(${o.r||0}deg) skewX(${o.k||0}deg)`;
+    if (o.clip !== undefined) el.style.clipPath = `inset(0 ${((1-o.clip)*100).toFixed(2)}% 0 0)`;
+  }
+
+  // ---- Scattered words (scene 2) ------------------------------------------
+  const scattered = $('scattered');
+  const scatterWords = ['ابروهات؟!','نامرتب؟','بدحالت؟','سرکش؟!'];
+  const scatterEls = scatterWords.map((t,i)=>{
+    const e=document.createElement('span'); e.textContent=t;
+    e.style.left=(120+(i%2)*560)+'px'; e.style.top=(300+Math.floor(i/2)*1180)+'px';
+    e.style.transform=`rotate(${(i%2?12:-14)}deg)`;
+    scattered.appendChild(e); return e;
+  });
+
+  // ---- Benefit 1: leaves ---------------------------------------------------
+  const b1leaves=[];
+  for(let i=0;i<20;i++){
+    const e=document.createElement('i'); e.className='leaf';
+    const a=(i/20)*Math.PI*2, rx=300+rnd()*230, ry=180+rnd()*140;
+    e.dataset.x=(540+Math.cos(a)*rx).toFixed(1);
+    e.dataset.y=(960+Math.sin(a)*ry).toFixed(1);
+    e.dataset.r=(rnd()*360).toFixed(1); e.dataset.d=(rnd()*.45).toFixed(3);
+    e.dataset.s=(.6+rnd()*.9).toFixed(2);
+    $('b1-leaves').appendChild(e); b1leaves.push(e);
+  }
+  // ---- Benefit 2: powder specks -------------------------------------------
+  const b2specks=[];
+  for(let i=0;i<46;i++){
+    const e=document.createElement('i'); const s=4+rnd()*10;
+    e.style.width=s+'px'; e.style.height=s+'px';
+    e.style.left=(140+rnd()*800)+'px'; e.style.top=(660+rnd()*620)+'px';
+    e.dataset.d=(rnd()*.5).toFixed(3);
+    $('b2-specks').appendChild(e); b2specks.push(e);
+  }
+
+  // ---- Hair strands (scene 4) ---------------------------------------------
+  const hairG = $('hair');
+  const strands=[];
+  for(let i=0;i<74;i++){
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('fill','none'); p.setAttribute('stroke','url(#hairGrad)');
+    p.setAttribute('stroke-width',(2+rnd()*2.4).toFixed(1)); p.setAttribute('stroke-linecap','round');
+    hairG.appendChild(p);
+    const t=i/73, ex=200+t*680;
+    const ey=1080-170*Math.sin(Math.PI*t)+(rnd()-.5)*26;
+    strands.push({
+      el:p,
+      x0:140+rnd()*800, y0:860+rnd()*400,
+      a0:-70+rnd()*150, l0:60+rnd()*110,
+      x1:ex, y1:ey,
+      a1:66+rnd()*42, l1:95+rnd()*85,
+      delay:rnd()*.35,
+    });
+  }
+  const bristles=$('bristles');
+  for(let i=0;i<15;i++){
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    const y=-95+i*13;
+    l.setAttribute('x1',(-30-Math.sin(i/14*Math.PI)*12).toFixed(1)); l.setAttribute('y1',y);
+    l.setAttribute('x2',( 30+Math.sin(i/14*Math.PI)*12).toFixed(1)); l.setAttribute('y2',y);
+    bristles.appendChild(l);
+  }
+  function strandPath(s,p){
+    const x=lerp(s.x0,s.x1,p), y=lerp(s.y0,s.y1,p);
+    const a=lerp(s.a0,s.a1,p)*Math.PI/180, L=lerp(s.l0,s.l1,p);
+    const tx=x+Math.cos(a)*L, ty=y-Math.sin(a)*L;
+    const cx=x+Math.cos(a)*L*.45+Math.sin(a)*22, cy=y-Math.sin(a)*L*.45+Math.cos(a)*22;
+    return `M${x.toFixed(1)},${y.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}`;
+  }
+
+  // ---- Final chips ---------------------------------------------------------
+  const CHIP_WORDS=['ابروهات؟!','نامرتب؟','بدحالت؟','سرکش؟!','گیاهی','بدون سفیدک','بدون ریزش','تغییر','طبیعی','قشنگ'];
+  const chips=CHIP_WORDS.map((t,i)=>{
+    const e=document.createElement('div'); e.className='chip'; e.textContent=t;
+    const a=(i/CHIP_WORDS.length)*Math.PI*2;
+    e.dataset.x0=(540+Math.cos(a)*760).toFixed(1);
+    e.dataset.y0=(960+Math.sin(a)*1150).toFixed(1);
+    e.dataset.r=(rnd()*50-25).toFixed(1);
+    $('chips').appendChild(e); return e;
+  });
+
+  // ---- Global particle field ----------------------------------------------
+  const PARTICLES=[];
+  const masks={drop:[1,2,4],leaf:[1,2,4],gold:[1,4]};
+  const counts={drop:26,leaf:16,gold:36};
+  const holder=$('particles');
+  for(const type of ['drop','leaf','gold']){
+    for(let i=0;i<counts[type];i++){
+      const e=document.createElement('i'); e.className='p p-'+type;
+      const sz=type==='leaf'?24+rnd()*50:type==='gold'?4+rnd()*9:12+rnd()*30;
+      e.style.width=sz+'px'; e.style.height=(type==='leaf'?sz*.5:sz)+'px';
+      holder.appendChild(e);
+      PARTICLES.push({el:e,type,x0:40+rnd()*(W-80),y0:200+rnd()*(H-260),
+        amp:12+rnd()*60,speed:.25+rnd()*.65,rise:.035+rnd()*.075,
+        phase:rnd()*6.28,offset:rnd(),rot:rnd()*360,mask:masks[type]});
+    }
+  }
+
+  // ---- Transition bars -----------------------------------------------------
+  const bars=[];
+  const colors=['#f7f0e0','#10a06e','#ddb877','#0b6b48','#ffffff'];
+  for(let i=0;i<10;i++){
+    const e=document.createElement('div'); e.className='bar';
+    e.style.top=(i*192)+'px'; e.style.background=colors[i%colors.length];
+    e.style.opacity='.92'; $('transition').appendChild(e); bars.push(e);
+  }
+
+  // ---- Preload -------------------------------------------------------------
+  const urls=['./assets/product-open.png','./plates/s2-botanical.jpg','./plates/s3-glass-gel.jpg',
+    './plates/s4-brow-sculpture.jpg','./plates/s6-hero.jpg'];
+
+  // ---- Per-scene animation -------------------------------------------------
+  function scene1(f){
+    const u=f/120, p=pulse(f);
+    // Giant hook word: crash, stretch, shake, split.
+    if(f<8){ put($('w-hook'),{op:0}); halves.wrap.style.opacity='0'; }
+    else if(f<46){
+      const t=clamp((f-8)/22,0,1), e=elastic(t);
+      const jx=(f<34)?Math.sin(f*2.3)*10*(1-t):0;
+      const jy=(f<34)?Math.cos(f*1.9)*7*(1-t):0;
+      put($('w-hook'),{op:Math.min(1,t*3),x:jx,y:jy,sx:lerp(3.4,1,e)+Math.sin(f*.8)*.06*p,
+        sy:lerp(.35,1,e),r:lerp(-16,0,e)+Math.sin(f*1.7)*3*(1-t),k:Math.sin(f*1.1)*4*(1-t)});
+      halves.wrap.style.opacity='0';
+    } else {
+      $('w-hook').style.opacity='0';
+      setHalves(f,46,30,320);
+      halves.wrap.style.transform=`scale(${1+.05*p})`;
+    }
+    // Three rapid words, each a different direction.
+    const ws=[[$('w1'),55,-620,0,-18,96],[$('w2'),68,620,-120,16,96],[$('w3'),81,0,-560,24,96]];
+    for(const [el,at,dx,dy,rot,size] of ws){
+      if(f<at){ put(el,{op:0}); continue; }
+      const t=clamp((f-at)/16,0,1), e=elastic(t);
+      const settle=smooth(at+18,at+40,f);
+      const bx=Math.sin(f*.55+at)*5*(1-settle), by=Math.cos(f*.42+at)*4*(1-settle);
+      put(el,{op:Math.min(1,t*4),x:lerp(dx,0,e)+bx,y:lerp(dy,0,e)+by,
+        s:lerp(.35,1,e)*(1+.06*p*(1-settle)),r:lerp(rot,0,e)+bx*.4,k:Math.sin(f*.9+at)*5*(1-settle)});
+    }
+    // Freeze everything at the end.
+    if(f>104){
+      for(const [el] of ws){ el.style.transform=el.style.transform.replace(/scale\([^)]*\)/,'scale(1)'); }
+    }
+    $('s1').style.setProperty('--glow',String(.3+.25*p));
+  }
+
+  function scene2(f){
+    const u=(f-120)/168, p=pulse(f);
+    // frozen scattered words
+    scatterEls.forEach((e,i)=>{ e.style.opacity=(.28+.12*Math.sin(f*.05+i)).toFixed(3);
+      e.style.transform=`translate(${Math.sin(f*.02+i)*6}px,0) rotate(${(i%2?12:-14)}deg)`; });
+    // liquid wave sweep
+    const w=smooth(.02,.55,u);
+    $('wave1').style.transform=`translateX(${lerp(1500,-500,w)}px)`;
+    $('wave2').style.transform=`translateX(${lerp(1750,-260,smooth(.10,.72,u))}px)`;
+    $('wave1').style.opacity=(.9-.35*smooth(.6,1,u)).toFixed(3);
+    $('wave2').style.opacity=(.5-.3*smooth(.6,1,u)).toFixed(3);
+    // solution word with mask reveal + bounce
+    const t=smooth(.18,.42,u);
+    put($('w-solution'),{op:Math.min(1,(u-.18)*8),clip:t,
+      s:lerp(.8,1,easeOut(clamp((u-.18)/.3,0,1)))*(1+.035*p),
+      y:lerp(70,0,easeOut(clamp((u-.18)/.3,0,1))),k:Math.sin(u*14)*3*(1-t)});
+    // product 3D rotation entrance
+    const pe=easeOut(clamp((u-.3)/.42,0,1));
+    const ry=lerp(-95,0,pe)+Math.sin(f/26)*9*pe;
+    const rx=Math.sin(f/34)*4*pe;
+    $('s2-product').style.opacity=pe.toFixed(3);
+    $('s2-product').style.transform=`translate(-50%,-50%) perspective(1400px) rotateY(${ry}deg) rotateX(${rx}deg) scale(${lerp(.55,1,pe)})`;
+    $('s2-shine').style.opacity=(Math.sin(Math.PI*clamp((u-.35)/.5,0,1))*.55).toFixed(3);
+    $('s2-shine').style.transform=`translate(-50%,-50%) rotate(${lerp(-40,40,clamp((u-.35)/.5,0,1))}deg)`;
+  }
+
+  function benefits(f){
+    // sub-scene visibility
+    const active = f<384?0 : f<480?1 : 2;
+    B.forEach((b,i)=>{
+      const el=$('b'+(i+1));
+      const local=f-b.start, len=b.end-b.start;
+      const op=Math.min(1,local/6,(b.end-f)/6);
+      el.style.opacity=op.toFixed(3);
+      el.style.visibility=op>.001?'visible':'hidden';
+      if(op<=.001) return;
+      const u=clamp(local/len,0,1), p=pulse(f);
+      const word=$('b'+(i+1)+'-word');
+      const plate=el.querySelector('.plate');
+      if(plate) plate.style.transform=`scale(${lerp(1.1,1.02,u)}) translateX(${Math.sin(u*3)*14}px)`;
+      if(i===0){
+        // leaves grow around the typography
+        b1leaves.forEach((e,k)=>{
+          const d=parseFloat(e.dataset.d), g=easeOut(clamp((u-d)/.42,0,1));
+          e.style.opacity=(g*.92).toFixed(3);
+          e.style.transform=`translate(${e.dataset.x}px,${e.dataset.y}px) rotate(${parseFloat(e.dataset.r)+Math.sin(f*.03+k)*8}deg) scale(${(parseFloat(e.dataset.s)*g).toFixed(3)})`;
+        });
+        put(word,{op:Math.min(1,u*7),s:lerp(.5,1,easeOut(clamp(u/.35,0,1)))*(1+.03*p),
+          y:lerp(80,0,easeOut(clamp(u/.35,0,1))),k:Math.sin(u*12)*4*(1-u)});
+      } else if(i===1){
+        // powder appears then dissolves into transparent liquid
+        b2specks.forEach((e,k)=>{
+          const d=parseFloat(e.dataset.d);
+          const appear=smooth(d,d+.18,u), dissolve=1-smooth(.38+d*.3,.72+d*.2,u);
+          e.style.opacity=(appear*dissolve*.9).toFixed(3);
+          e.style.transform=`translate(${Math.sin(k*2.1+f*.04)*22*(1-dissolve)}px,${-30*(1-dissolve)}px) scale(${(.5+.5*dissolve).toFixed(2)})`;
+        });
+        const rp=smooth(.3,.85,u);
+        $('b2-ripple').style.opacity=(Math.sin(Math.PI*rp)*.8).toFixed(3);
+        $('b2-ripple').style.transform=`translate(-50%,-50%) scale(${(.25+rp*1.15).toFixed(3)})`;
+        put(word,{op:Math.min(1,u*7),s:lerp(.7,1,easeOut(clamp(u/.3,0,1)))*(1+.025*p),
+          y:lerp(-50,0,easeOut(clamp(u/.3,0,1))),clip:smooth(.08,.4,u)});
+      } else {
+        // bold, stable typography with green waves behind
+        $('b3-wave1').style.transform=`translateY(${lerp(520,760,u)}px) translateX(${Math.sin(f*.035)*90}px)`;
+        $('b3-wave2').style.transform=`translateY(${lerp(760,980,u)}px) translateX(${Math.cos(f*.03)*110}px)`;
+        const e=easeOut(clamp(u/.32,0,1));
+        put(word,{op:Math.min(1,u*7),s:lerp(.6,1.06,e)*(1+.012*p),y:lerp(60,0,e)});
+        $('b3-lock').style.transform=`translateX(-50%) scaleX(${smooth(.35,.72,u).toFixed(3)})`;
+      }
+    });
+    return active;
+  }
+
+  function steps(f){
+    const u=(f-600)/288, p=pulse(f);
+    // hair strands gradually align
+    const align=easeOut(clamp((u-.12)/.72,0,1));
+    for(const s of strands){
+      const sp=easeOut(clamp((align-s.delay)/(1-s.delay||1),0,1));
+      s.el.setAttribute('d',strandPath(s,sp));
+      s.el.setAttribute('opacity',(.35+.65*sp).toFixed(2));
+    }
+    // brush moves through strands during step 3
+    const bp=smooth(.48,.88,u);
+    const bx=lerp(230,830,bp), by=1080-170*Math.sin(Math.PI*((bx-200)/680))-70;
+    $('brush').style.opacity=(Math.sin(Math.PI*clamp((u-.42)/.52,0,1))*1).toFixed(3);
+    $('brush').style.transform=`translate(${bx-170}px,${by-170}px) rotate(${lerp(28,-24,bp)}deg) scale(${lerp(.85,1.05,bp)})`;
+    // gel jar
+    $('s4-jar').style.opacity=smooth(.05,.2,u).toFixed(3);
+    $('s4-jar').style.transform=`translate(-50%,-50%) translateY(${Math.sin(f*.04)*8}px)`;
+    // step cards
+    const els=[...document.querySelectorAll('.step')];
+    els.forEach((el,k)=>{
+      const at=STEP_AT[k], next=STEP_AT[k+1]||888;
+      if(f<at){ put(el,{op:0,s:.6,y:60}); return; }
+      const t=clamp((f-at)/14,0,1), e=elastic(t);
+      if(f<next){
+        put(el,{op:Math.min(1,t*4),s:lerp(.4,1,e)*(1+.02*p),y:lerp(90,0,e),r:lerp(-6,0,e)});
+      } else {
+        put(el,{op:.38,s:.26,x:lerp(0,260-k*130,smooth(next,next+14,f)),
+          y:lerp(0,-900,smooth(next,next+14,f)),r:0});
+      }
+    });
+  }
+
+  function finalScene(f){
+    const u=(f-888)/192, p=pulse(f);
+    const plate=$('s5-plate');
+    plate.style.transform=`translate(${lerp(-34,34,u)}px,${lerp(-18,8,u)}px) scale(${lerp(1.14,1.0,u)})`;
+    // chips converge
+    const c=smooth(0,.34,u);
+    chips.forEach((e,i)=>{
+      const x0=parseFloat(e.dataset.x0), y0=parseFloat(e.dataset.y0);
+      e.style.opacity=((1-smooth(.18,.36,u))*.85).toFixed(3);
+      e.style.transform=`translate(${lerp(x0,540,c)}px,${lerp(y0,960,c)}px) rotate(${lerp(parseFloat(e.dataset.r),0,c)}deg) scale(${lerp(1,.15,c)})`;
+    });
+    // product on pedestal
+    const pe=smooth(.12,.32,u);
+    $('s5-product').style.opacity=(pe*(1-smooth(.72,.86,u))).toFixed(3);
+    $('s5-product').style.transform=`translate(-50%,-50%) translateY(${Math.sin(f*.035)*9}px) scale(${lerp(.82,1,pe)})`;
+    // three text lines, each with its own animation
+    const l1=smooth(.16,.3,u), l2=smooth(.34,.48,u), l3=smooth(.54,.68,u);
+    put($('w-line1'),{op:l1,s:lerp(.7,1,l1)*(1+.025*p),y:lerp(70,0,l1),clip:l1});
+    put($('w-line2'),{op:l2,s:lerp(.6,1.04,l2)*(1+.02*p),y:lerp(-50,0,l2),k:Math.sin(u*18)*3*(1-l2)});
+    put($('w-slogan'),{op:l3,s:lerp(.75,1,l3)*(1+.03*p),y:lerp(60,0,l3),clip:l3});
+    // clean logo reveal
+    const lr=smooth(.78,.94,u);
+    $('logo-ring').style.opacity=(lr*.9).toFixed(3);
+    $('logo-ring').style.transform=`translate(-50%,-50%) scale(${lerp(.45,1,lr)})`;
+    $('logo-product').style.opacity=lr.toFixed(3);
+    $('logo-product').style.transform=`translate(-50%,-50%) scale(${lerp(.5,1,lr)})`;
+    // hide the three lines once the logo takes over
+    if(u>.80){ ['w-line1','w-line2','w-slogan'].forEach(id=>{ $(id).style.opacity=(1-smooth(.80,.88,u)).toFixed(3); }); }
+  }
+
+  // ---- Global overlays -----------------------------------------------------
+  function updateParticles(f, activeScenes){
+    const gt=f/FPS;
+    for(const q of PARTICLES){
+      let vis=0; for(const i of q.mask) vis=Math.max(vis,activeScenes[i]);
+      if(vis<.02){ q.el.style.display='none'; continue; }
+      q.el.style.display='block';
+      const cyc=(gt*q.rise+q.offset)%1, range=q.type==='gold'?620:780;
+      const x=q.x0+Math.sin(gt*q.speed+q.phase)*q.amp;
+      const y=q.y0-cyc*range;
+      const rot=q.rot+Math.sin(gt*q.speed*.8+q.phase)*26;
+      const a=Math.sin(Math.PI*cyc)*(q.type==='gold'?.95:.7)*vis;
+      q.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${rot.toFixed(1)}deg)`;
+      q.el.style.opacity=a.toFixed(3);
+    }
+  }
+  function updateTransitions(f){
+    let power=0, phase=0;
+    for(let i=1;i<S.length;i++){
+      const d=Math.abs(f-S[i].start);
+      if(d<9){ power=Math.max(power,1-d/9); phase=(f-S[i].start+9)/18; }
+    }
+    $('beat-flash').style.opacity=(power*.22+.035*pulse(f)).toFixed(3);
+    bars.forEach((b,i)=>{
+      const dir=i%2?1:-1;
+      const off=(1-power)*1500*dir;
+      b.style.transform=`translateX(${off.toFixed(1)}px)`;
+      b.style.opacity=(power*.9).toFixed(3);
+    });
+    const sw=$('sweep');
+    sw.style.opacity=(power*.85).toFixed(3);
+    sw.style.transform=`translateX(${lerp(-70,70,phase).toFixed(1)}%)`;
+  }
+
+  // ---- Public contract -----------------------------------------------------
+  const motion={
+    fps:FPS,frames:FRAMES,width:W,height:H,duration:45,
+    seek(frame){
+      const f=clamp(Math.round(frame),0,FRAMES-1);
+      const act=[0,0,0,0,0];
+      S.forEach((s,i)=>{
+        const local=f-s.start, op=Math.min(1,local/4,(s.end-f)/4);
+        act[i]=Math.max(0,op);
+        const el=$(s.id);
+        el.style.opacity=act[i].toFixed(3);
+        el.style.visibility=act[i]>.001?'visible':'hidden';
+      });
+      if(act[0]>.001) scene1(f);
+      if(act[1]>.001) scene2(f);
+      if(act[2]>.001) benefits(f);
+      if(act[3]>.001) steps(f);
+      if(act[4]>.001) finalScene(f);
+      updateParticles(f,act);
+      updateTransitions(f);
+      document.documentElement.dataset.frame=String(f);
+      return f;
+    },
+    ready:false,
+  };
+  window.__MOTION__=motion;
+
+  Promise.all(urls.map(src=>new Promise(res=>{const im=new Image();im.onload=im.onerror=res;im.src=src;})))
+    .then(()=>document.fonts?document.fonts.ready:Promise.resolve())
+    .then(()=>{
+      motion.ready=true;
+      if(still){ motion.seek(Number(params.get('frame')||0)); }
+      else { const t0=performance.now();
+        const tick=(now)=>{ motion.seek(Math.floor(((now-t0)/1000)*FPS)%FRAMES); requestAnimationFrame(tick); };
+        requestAnimationFrame(tick); }
+    });
+})();
+</script>
+</body>
+</html>

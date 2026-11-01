@@ -1,123 +1,92 @@
 # Ideal — استودیوی موشن گرافی کمند
 
-این ریپو دو بخش دارد: **کمپین فعلی ژل لیفت ابرو کمند** و **زیرساخت Agent Skills**
-که مرحله قبل نصب شد.
+این ریپو شامل **دو کمپین موشن گرافی** و **زیرساخت استاندارد Agent Skills**
+است. هر دو ویدیو واقعاً رندر و با صدا/بدون صدا تحویل شدهاند، نه استوریبرد.
 
 ---
 
-## ۱. کمپین فعلی: KAMAND Eyebrow Lift Gel
+## ۱. کمپین فعلی: `kamand eye` — تیزر ۴۵ ثانیهای
 
-تیزر عمودی ۹:۱۶، شش صحنه، با خروجی **4K (2160×3840)** ساخته شده است
-(مستر 1080×1920 با آپاسکیل lanczos؛ پلیتهای منبع 768×1376 هستند).
-هیچ انسان، چهره، پوست، دست یا بخشی از بدن در هیچ فریمی وجود ندارد؛ همهچیز
-از بستهبندی واقعی محصول، پلیتهای CGI گیاهی/شیشهای/طلایی و انیمیشن فریمبهفریم
-ساخته شده است.
+تیزر عمودی ۹:۱۶ تماماً انیمیشن، فارسی، با **محوریت تایپوگرافی جنبشی**،
+صداگذاری کامل فارسی (گوینده زن ایرانی) و بستر موسیقی الکترونیک.
 
-### خروجیها
-
-| فایل | توضیح |
+| خروجی | توضیح |
 | --- | --- |
-| `motion/kamand-eyebrow-gel/exports/kamand-eyebrow-gel-4k.mp4` | مستر 2160×3840، 24fps، H.264 |
-| `motion/kamand-eyebrow-gel/exports/kamand-eyebrow-gel-1080p.mp4` | نسخه سبک 1080×1920 |
-| `motion/kamand-eyebrow-gel/exports/kamand-eyebrow-gel-4k-no-text.mp4` | مستر تمیز بدون هیچ متن/کارت شمارهدار |
-| `motion/kamand-eyebrow-gel/exports/kamand-eyebrow-gel-1080p-no-text.mp4` | نسخه سبک مستر تمیز |
-| `motion/kamand-eyebrow-gel/stills/contact-sheet.jpg` | کانتکتشیت شش صحنه |
-| `motion/kamand-eyebrow-gel/stills/s1.jpg … s6.jpg` | استیل هر صحنه |
-| `motion/kamand-eyebrow-gel/index.html` | صحنه قابل ویرایش، تایمline قطعی `seek(frame)` |
-| `motion/kamand-eyebrow-gel/brief.md` | بریف، بیتشیت و متنهای فارسی |
+| `motion/kamand-eye/exports/kamand-eye-4k.mp4` | 2160×3840 · 24fps · H.264 + AAC · **با ویساور و موزیک** |
+| `motion/kamand-eye/exports/kamand-eye-1080p.mp4` | نسخه سبک 1080×1920، همان صدا |
+| `motion/kamand-eye/stills/contact-sheet.jpg` | کانتکتشیت ۱۰ فریم |
+| `motion/kamand-eye/index.html` | صحنه قابل ویرایش، تایمline قطعی `seek(frame)` |
+| `motion/kamand-eye/audio/mix.wav` | میکس نهایی ۴۵٫۵ ثانیه |
+| `motion/kamand-eye/audio/vo-script.md` | اسکریپت ویساور با اعراب کامل + تایمکدها |
+| `motion/kamand-eye/brief.md` | استوریبرد، مشخصات فنی و محدودیتها |
 
-### نقشه صحنهها (جمعاً ۶۶۲ فریم ≈ ۲۷٫۶ ثانیه)
+### استوریبرد (۱۰۸۰ فریم)
 
-| # | صحنه | فریمها | متن فارسی |
-| --- | --- | --- | --- |
-| 1 | Product Reveal — استیج بژ/زمردی، محصول شناور، برگها و قطرات | 0–108 | ژل لیفت ابرو کمند · کاملاً گیاهی |
-| 2 | Botanical Formula — عصارهها، قطرات، ذرات درخشان | 94–202 | کاملاً گیاهی · بدون ریزش |
-| 3 | No White Residue — ژل شفاف روی شیشه، محو شدن ذرات سفید | 188–296 | بدون سفیدک |
-| 4 | Natural Styling — مجسمه تاربهتار ابرو + برس اسپولی | 282–402 | حالتدهی طبیعی و زیبا |
-| 5 | How to Use — ۵ مرحله شمارهدار سهبعدی | 388–544 | استفاده آسان، نتیجه جذاب |
-| 6 | Final Hero — پایه سنگی، برگها، ذرات طلایی، اوربیت آرام | 530–662 | «کمند؛ زیبایی طبیعی ابروها» |
+| صحنه | زمان | اتفاق |
+| --- | --- | --- |
+| 1 — Hook | 0–5s | «ابروهات؟!» میکوبد داخل کادر، کش میآید، میلرزد، به دو نیمه split میشود؛ «نامرتب؟» «بدحالت؟» «سرکش؟!» از جهتهای مختلف میآیند |
+| 2 — Solution | 5–12s | موج مایع زمردی، «وقت یه تغییر قشنگه!» با ماسک ریویل، محصول با چرخش سهبعدی وارد میشود |
+| 3 — Benefits | 12–25s | «کاملاً گیاهی» (برگها رشد میکنند) · «بدون سفیدک» (پودر سفید در مایع شفاف حل میشود) · «بدون ریزش» (تایپ پایدار + امواج سبز) |
+| 4 — How to use | 25–37s | ۷۴ تار موی SVG کمکم مرتب میشوند، برس اسپولی از میانشان عبور میکند، ۴ کارت شمارهدار |
+| 5 — Final | 37–45s | کلمات به مرکز همگرا میشوند، محصول روی پایه سنگی، متنها، لوگوریویل تمیز با حلقه طلایی |
 
-بین صحنهها ۱۴ فریم کراسفید + یک sweep نوری وجود دارد.
-
-### متن فارسی (لایه جدا برای پستپروداکشن)
-
-تمام متنهای درخواستی در ویدیو هستند، ولی در لایه `.copy` جدا نگه داشته شدهاند:
-`ژل لیفت ابرو کمند` · `کاملاً گیاهی` · `بدون سفیدک` · `بدون ریزش` ·
-`حالتدهی طبیعی و زیبا` · `استفاده آسان، نتیجه جذاب` ·
-`«کمند؛ زیبایی طبیعی ابروها»`.
-
-برای تحویل **مستر تمیز بدون هیچ اورلی** (متنها و کارتهای شمارهدار در
-پستپروداکشن اضافه شوند):
-
-```bash
-npm run kamand:render:no-text      # → exports/*-no-text.mp4
-# یا در مرورگر: index.html?frame=120&noText=1
-```
-
-### بستهبندی و لوگوی اصلی — بدون تغییر
-
-عکسهای محصول مستقیماً از سایت رسمی
-[kamandbeauty.com](https://kamandbeauty.com/shop/cosmetic/eyebrow-cosmetics/eyebrow-lift-gel/kamand-eyebrow-lift-gel/)
-گرفته شدهاند (ظرف گرد سفید، درپوش با لوگوی `K Kamand`، ژل شفاف و برس قرمز).
-هیچ بستهبندی، لوگو یا تایپوگرافی جدیدی طراحی نشده است؛ فقط بکگراند سفید با
-`scripts/make-cutout.py` حذف و همان پیکسلها روی پلیتها کامپوزیت شدهاند.
-فایلها در `assets/kamand/` (اصلی) و
-`motion/kamand-eyebrow-gel/assets/` (کپی self-contained صحنه) هستند.
-
-### مشخصات فنی
-
-- طراحی و کپچر روی `1080×1920`، آپاسکیل `lanczos + unsharp` → **2160×3840 (4K)**
-  (پلیتهای CGI منبع 768×1376 هستند، بنابراین جزئیات نیتیو 4K وجود ندارد)
-- `24 fps`، ۶۶۲ فریم، `H.264 / yuv420p / CRF 20 / +faststart`، بدون صدا
-- فونت فارسی **وزیرمتن** (Vazirmatn) بهصورت لوکال، بدون وابستگی شبکه
-- انیمیشن کاملاً قطعی: هر فریم فقط از شماره فریم محاسبه میشود
-  (`window.__MOTION__.seek(frame)`)؛ هیچ `setTimeout`، `rAF`، `Math.random()`
-  زنده یا CDN در رندر وجود ندارد
-- رندر بدون نیاز به نصب سیستمی: Chromium همراه `@sparticuz/chromium`،
-  ffmpeg همراه `@ffmpeg-installer/linux-x64`
-
-### دستورات
+- **فونت نمایشی:** Estedad 900/800 (مدرن فارسی، همرده Peyda ExtraBold / Morabba) + وزیرمتن برای متنهای فرعی؛ همه لوکال، بدون CDN.
+- **بدون** انسان، چهره، دست، فیلم لایواکشن یا کاراکتر کارتونی.
+- **بستهبندی و لوگوی اصلی کمند دستنخورده** (عکس رسمی سایت، فقط بکگراند سفید حذف شد).
+- ویساور ۱۰ کلیپ با اعراب کامل برای تلفظ صحیح؛ متن روی صفحه بدون اعراب اضافی.
+- **بکاند گفتار فارسی:** ریپوی [`nimaone/persian_tts`](https://github.com/nimaone/persian_tts)
+  در `third_party/persian_tts/` وندور و به پایپلاین وصل شده (صدای مرجع زن
+  `female_narration.wav`). وزنهای ONNX مدل (~469MB) روی HuggingFaceاند و این
+  سندباکس به `huggingface.co` دسترسی ندارد، بنابراین MP4های تحویلی فعلاً با
+  صدای جایگزین `voice-00` ساخته شدند؛ `third_party/persian_tts/model/README.md`
+  دستور یکباره دانلود و `npm run kamand-eye:vo:persian-tts` مسیر تعویض صدا را
+  دارد. نکته لایسنس: مدل پایه CC-BY-NC-4.0 است، پیش از انتشار تجاری بررسی شود.
+- موزیک 120 BPM الکترونیک + افکتهای impact/riser + امضای پایانی، با ducking زیر صدا.
 
 ```bash
-npm install
-python3 -m pip install -r requirements-dev.txt   # skills-ref + Pillow
-
-npm run kamand:sample          # ۶ استیل مرور سریع (۱۰۸۰×۱۹۲۰)
-npm run kamand:render          # مستر 4K + نسخه 1080p
-npm run kamand:render:no-text  # مستر بدون لایه متن
-npm run motion:preview         # پیشنمایش زنده روی پورت 8080
-python3 scripts/make-contact-sheet.py
+npm run kamand-eye:audio        # ساخت mix.wav
+npm run kamand-eye:sample       # ۱۰ استیل مرور
+npm run kamand-eye:render       # خروجی 1080p + 4K همراه صدا
+npm run motion:preview          # پیشنمایش زنده پورت 8080
 ```
 
-> **شفافسازی:** این یک موشن گرافیک **۲٫۵بعدی سینمایی** است: پلیتهای CGI
-> فوقواقعی (تولیدشده با هوش مصنوعی) + کامپوزیت عکس واقعی محصول + انیمیشن
-> فریمبهفریم دوربین، پارالاکس، ذرات و نور. مواردی که بهصورت «پلیت + افکت»
-> شبیهسازی شدند (نه شبیهسازی بلادرنگ): سیال ژل، پخش شدن ژل روی شیشه،
-> حرکت فیزیکی برس لابهلای تارها، لیفت شدن تکتک موها و اوربیت واقعی
-> دوربین سهبعدی. برای آن سطح، مرحله بعد انتقال صحنهها به
-> Blender / Remotion + Three.js است؛ ساختار `seek(frame)` و بریف اینجا
-> همان نقشه راه را نگه میدارد.
+> **شفافسازی:** فیلم تماماً انیمیشن 2D/2.5D است (تایپوگرافی، SVG، چرخش CSS 3D،
+> پلیتهای CGI و کاتاوت واقعی محصول)، نه شبیهسازی بلادرنگ سیال/مو. موزیک بهصورت
+> برنامهنویسیشده سنتز شده (تراک لایسنسشده نیست) و ویساور TTS است؛ هر دو در پست
+> قابل تعویضاند بدون تغییر تایمline. خروجی 4K از مستر 1080×1920 با lanczos
+> آپاسکیل شده (پلیتهای منبع 768×1376اند).
 
 ---
 
-## ۲. زیرساخت Agent Skills (مرحله قبل)
+## ۲. کمپین قبلی: ژل لیفت ابرو کمند (۶ صحنه، ۲۷٫۶ ثانیه)
+
+تیزر عمودی ۹:۱۶ شش صحنهای با پلیتهای CGI فوقواقعی و عکس واقعی محصول.
+مستر 4K + 1080p + دو نسخه «بدون متن» برای پستپروداکشن:
+
+`motion/kamand-eyebrow-gel/exports/` · کانتکتشیت:
+`motion/kamand-eyebrow-gel/stills/contact-sheet.jpg` · بریف:
+`motion/kamand-eyebrow-gel/brief.md`.
+
+```bash
+npm run kamand:render
+npm run kamand:render:no-text
+```
+
+---
+
+## ۳. زیرساخت Agent Skills
 
 لینک `agentskills/agentskills` **خود استاندارد** است، نه یک اسکیل قابل نصب
-(`npx skills add agentskills/agentskills --list` → «No skills found»). برای
-همین پشتیبانی استاندارد نصب شد و یک اسکیل `motion-graphics` مطابق همان
-مشخصات ساخته شد:
+(`npx skills add agentskills/agentskills --list` → «No skills found»). به همین
+دلیل پشتیبانی استاندارد نصب شد و اسکیل `motion-graphics` مطابق همان مشخصات
+ساخته شد:
 
 | بخش | مسیر |
 | --- | --- |
 | اسکیل | `.agents/skills/motion-graphics/` (+ لینک `.claude/skills/`) |
-| مدیریت و اعتبارسنجی | `package.json` → `skills` CLI، `requirements-dev.txt` → `skills-ref` |
-| اعتبارسنجی | `npm run skills:validate` → `Valid skill` |
+| مدیریت / اعتبارسنجی | `skills` CLI، `skills-ref` (`npm run skills:validate` → `Valid skill`) |
 | راهنمای ایجنت | `AGENTS.md` |
 | پیشنمایش | `scripts/preview.mjs` → پورت 8080 |
-
-اسکیل شامل `SKILL.md`، منابع `motion-design / stacks / rendering`، قالب
-`starter.html` و اسکریپتهای `new-motion` و `render` است. مستندات کاملتر
-در `AGENTS.md` و `.agents/skills/motion-graphics/SKILL.md`.
 
 نصب اسکیل دیگر:
 
@@ -125,5 +94,5 @@ python3 scripts/make-contact-sheet.py
 npx skills add <owner>/<repo> --skill <name> -a '*' -y
 ```
 
-فایلهای حجیم (`node_modules/`، فریمهای میانی در `/tmp`، `out/`) داخل گیت
+وابستگیها (`node_modules/`، `venv/`) و فریمهای میانی (`/tmp`) داخل گیت
 نمیآیند؛ فقط منابع قابل ویرایش، استیلها و خروجی MP4 نگهداری میشوند.

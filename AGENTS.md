@@ -14,14 +14,22 @@ Code and other clients that read `.claude/skills/`.
 When a request matches, read `.agents/skills/motion-graphics/SKILL.md` in full
 before writing code, and load only the `references/*.md` files the task needs.
 
-## Active campaign: KAMAND Eyebrow Lift Gel
+## Active campaign: `kamand eye` (45 s Persian kinetic typography ad)
 
-The commercial lives in `motion/kamand-eyebrow-gel/`. Read its `brief.md`
-before editing. Key facts: vertical 9:16, six scenes, 662 deterministic frames
-at 24 fps, `window.__MOTION__.seek(frame)`, official product cutouts in
-`assets/` (never redesign the packaging or logo), bundled Vazirmatn font,
-and an isolated `.copy` text layer (`?noText=1` for post-production masters).
-Render with `npm run kamand:render`; review stills are in `stills/`.
+The current ad lives in `motion/kamand-eye/` — read its `brief.md` before
+editing. Key facts: vertical 9:16, 45 s, 1080 deterministic frames at 24 fps,
+`window.__MOTION__.seek(frame)`, Estedad 900 + Vazirmatn fonts bundled locally,
+10 Persian voiceover clips + synthesized 120 BPM music mixed into
+`audio/mix.wav`, official KAMAND product cutouts in `assets/`
+(**never redesign the packaging or logo**), and `?noText=1` support.
+Render with `npm run kamand-eye:render` (adds AAC audio); review stills in
+`stills/`. VO timecodes are in `audio/vo-script.md`. The requested Persian TTS
+backend `nimaone/persian_tts` is vendored in `third_party/persian_tts/` and
+wired through `npm run kamand-eye:vo:persian-tts`; its HF weights are absent
+here (`huggingface.co` blocked), so shipped audio uses the `voice-00` fallback.
+
+An earlier six-scene 27.6 s commercial remains in
+`motion/kamand-eyebrow-gel/` (`npm run kamand:render`).
 
 ## Motion graphics workflow
 

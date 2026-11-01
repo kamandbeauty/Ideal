@@ -55,19 +55,23 @@ function scenes() {
 function campaignLinks() {
   const base = '/motion/kamand-eyebrow-gel';
   const links = [];
+  const eye = '/motion/kamand-eye';
   const cands = [
-    ['1080p MP4', `${base}/exports/kamand-eyebrow-gel-1080p.mp4`],
-    ['4K MP4', `${base}/exports/kamand-eyebrow-gel-4k.mp4`],
-    ['Contact sheet', `${base}/stills/contact-sheet.jpg`],
-    ['Clean 1080p', `${base}/exports/kamand-eyebrow-gel-1080p-no-text.mp4`],
-    ['Clean 4K', `${base}/exports/kamand-eyebrow-gel-4k-no-text.mp4`],
+    ['KAMAND EYE 1080p', `${eye}/exports/kamand-eye-1080p.mp4`],
+    ['KAMAND EYE 4K', `${eye}/exports/kamand-eye-4k.mp4`],
+    ['EYE contact sheet', `${eye}/stills/contact-sheet.jpg`],
+    ['Prev. 1080p MP4', `${base}/exports/kamand-eyebrow-gel-1080p.mp4`],
+    ['Prev. 4K MP4', `${base}/exports/kamand-eyebrow-gel-4k.mp4`],
+    ['Prev. contact sheet', `${base}/stills/contact-sheet.jpg`],
+    ['Prev. clean 1080p', `${base}/exports/kamand-eyebrow-gel-1080p-no-text.mp4`],
+    ['Prev. clean 4K', `${base}/exports/kamand-eyebrow-gel-4k-no-text.mp4`],
   ];
   for (const [label, href] of cands) {
     const rel = href.replace('/motion/', '');
     if (existsSync(join(ROOT, 'motion', rel))) links.push(`<a href="${href}">${label}</a>`);
   }
   return links.length
-    ? `<h2>KAMAND campaign</h2><p>${links.join(' · ')}</p>`
+    ? `<h2>Campaign exports</h2><p>${links.join(' · ')}</p>`
     : '';
 }
 
