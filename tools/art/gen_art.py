@@ -786,13 +786,18 @@ def home_palace(w, h):
     layers.append(gradient_masked(w, h, shade(wall_light, 0.16), shade(wall_dark, 0.10), frame))
     layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 150), ring(grow(frame, 2.0), frame)))
     # muqarnas: three nested arches stepping up out of the frame — a corbel, not three floating bars
-    for i, (half_w, y0) in enumerate([(0.092, 0.352), (0.077, 0.368), (0.062, 0.384)]):
-        step = polygon_mask(w, h, [(cx - half_w, y0), (cx + half_w, y0),
-                                   (cx + half_w, y0 + 0.016), (cx - half_w, y0 + 0.016)])
-        layers.append(fill_masked(w, h, with_alpha(shade(GOLD_MID, 0.28 - i * 0.10), 235), step))
-        layers.append(fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.25), 140),
-                                  polygon_mask(w, h, [(cx - half_w, y0 + 0.015), (cx + half_w, y0 + 0.015),
-                                                      (cx + half_w, y0 + 0.0175), (cx - half_w, y0 + 0.0175)])))
+    # muqarnas: three nested arch crowns stepping up out of the frame, widening as they rise
+    for i, (half_w, y0, height) in enumerate([(0.060, 0.378, 0.030), (0.082, 0.366, 0.036),
+                                              (0.104, 0.354, 0.042)]):
+        crown = polygon_mask(w, h, arch_points(cx, y0 + height, half_w * 2, height, 0.72))
+        crown = clip(crown, polygon_mask(w, h, [(cx - half_w, 0), (cx + half_w, 0),
+                                                 (cx + half_w, y0 + height), (cx - half_w, y0 + height)]))
+        layers.append(fill_masked(w, h, with_alpha(shade(GOLD_MID, 0.30 - i * 0.09), 240), crown))
+        layers.append(fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.30), 130),
+                                  polygon_mask(w, h, [(cx - half_w, y0 + height - 0.004),
+                                                      (cx + half_w, y0 + height - 0.004),
+                                                      (cx + half_w, y0 + height),
+                                                      (cx - half_w, y0 + height)])))
     opening = polygon_mask(w, h, arch_points(cx, arch_base, arch_w, arch_h, 0.60))
     layers.append(fill_masked(w, h, with_alpha(rgba("#08131F"), 255), opening))
     layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 55),
@@ -877,8 +882,8 @@ def home_palace(w, h):
     layers.append(fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.35), 255), basin))
     layers.append(fill_masked(w, h, with_alpha(shade(WATER, -0.25), 235), ellipse_mask(w, h, (0.410, 0.752, 0.870, 0.832))))
     layers.append(fill_masked(w, h, with_alpha(IVORY, 80), ellipse_mask(w, h, (0.700, 0.772, 0.760, 0.782))))
-    layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 50), ellipse_mask(w, h, (0.560, 0.778, 0.700, 0.806))))
-    layers.append(fill_masked(w, h, with_alpha(rgba(PALETTE["accent"]), 40), ellipse_mask(w, h, (0.470, 0.788, 0.545, 0.812))))
+    layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 32), ellipse_mask(w, h, (0.560, 0.778, 0.700, 0.806))))
+    layers.append(fill_masked(w, h, with_alpha(rgba(PALETTE["accent"]), 28), ellipse_mask(w, h, (0.470, 0.788, 0.545, 0.812))))
     layers.append(fill_masked(w, h, with_alpha(shade(STONE_DARK, 0.15), 235),
                               ring(ellipse_mask(w, h, (0.395, 0.742, 0.885, 0.842)),
                                    ellipse_mask(w, h, (0.402, 0.748, 0.878, 0.837)))))
@@ -1348,13 +1353,15 @@ def draw_asset(asset: dict) -> Image.Image:
     # 1024×768 at 4× means 50 MB per layer and a hundred layers, which is how this process runs out
     # of memory. At 2× a flat illustration loses nothing that a LANCZOS downsample keeps.
     big = width * height >= 512 * 512
-    previous = _draw.SS
+    previous = globals()["SS"]
     if big:
-        _draw.SS = 2
+        # `SS` is a module-level name in both modules: draw.py's shapes and this file's coordinate
+        # maths must agree, or a dome lands at twice its intended position. Patch both.
+        _draw.SS = globals()["SS"] = 2
     try:
         return _draw_asset(asset_id, width, height)
     finally:
-        _draw.SS = previous
+        _draw.SS = globals()["SS"] = previous
 
 
 def _draw_asset(asset_id: str, width: int, height: int) -> Image.Image:
