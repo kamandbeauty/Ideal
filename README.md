@@ -30,8 +30,12 @@ See [`.claude/skills/README.md`](.claude/skills/README.md) for the map and the t
 | --- | --- | --- |
 | recon | `replica/recon.md`, `replica/features.csv` | done — 28 screens, 10 flows, 47 features |
 | architect | `replica/architecture.md`, `replica/schema.sql` | done — 29 tables, 33 routes, validated SQL |
-| design | `replica/design/` | next |
-| build · backend · test · diff · entrepreneur · brand · launch · deploy | | pending |
+| design | `replica/design/` — tokens, art direction, components, locked concepts | done |
+| build (M0) | `client/Assets/Core` + `Content` + `Game`, `tools/levels/` | done — engine + 10 levels + grey box |
+| backend | `replica/schema.sql`, `replica/architecture.md` | schema validated; API not written |
+| test | EditMode suite in `client/Assets/Core.Tests` | written; runs in CI (no Unity here) |
+| diff | `replica/features.csv` | **10.8 / 100** — 7 features partial, 0 must-haves done |
+| entrepreneur · brand · launch · deploy | | pending |
 
 ## Ground rules
 

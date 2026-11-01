@@ -1,0 +1,16 @@
+{
+    "name": "Shazdeh.Content",
+    "rootNamespace": "Shazdeh.Content",
+    "references": [
+        "Shazdeh.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

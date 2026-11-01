@@ -5,17 +5,17 @@ Restore progress on a new device,onboarding,must,yes,no,"help article ""Saving G
 Guided first-time tutorial board,onboarding,must,yes,no,Royal Kingdom starts harder than most match-3 - we pace ours gently
 Kingdom home hub with currencies and a play button,home,must,yes,no,S04
 Level card with goals preview and difficulty badge,levels,must,yes,no,Normal / Hard / Super Hard
-Swap-two match-3 board with cascades,board,must,yes,no,the engine - the hard part
-Goal tracking (clear items / collect / break layers),board,must,yes,no,chips in the upper middle of the board
-Fixed move count per level,board,must,yes,no,moves are the level's clock
-Power-ups from 4 and 5 matches,board,must,yes,no,Rocket / Spinner / Dynamite / Electro Ball
-Power-up combinations,board,must,yes,no,combo matrix is content in itself
-Obstacles with layers and health,board,must,yes,no,box / snow / ivy / potion tube / steam bomb and more
-Level win reward sequence,progression,must,yes,no,potions and coins
+Swap-two match-3 board with cascades,board,must,yes,partial,"the engine - the hard part — engine done in M0 (client/Assets/Core): swaps, cascades, gravity, dead-board reshuffle; no art, no animation"
+Goal tracking (clear items / collect / break layers),board,must,yes,partial,chips in the upper middle of the board — engine + goal chips data done; UI and art pending
+Fixed move count per level,board,must,yes,partial,moves are the level's clock — engine enforces it; HUD pending
+Power-ups from 4 and 5 matches,board,must,yes,partial,Rocket / Spinner / Dynamite / Electro Ball — rocket / spinner / dynamite / electro ball rules + unit tests done; FX pending
+Power-up combinations,board,must,yes,partial,combo matrix is content in itself — explicit combo table done (M0 scope); FX pending
+Obstacles with layers and health,board,must,yes,partial,box / snow / ivy / potion tube / steam bomb and more — layer damage + goals done; 8 obstacle art sets pending
+Level win reward sequence,progression,must,yes,partial,potions and coins — outcome and reward numbers computed server-side later; screen pending
 Offer 5 extra moves for coins when moves run out,monetisation,must,yes,no,the main coin sink - price rises within a level
 "Lives: max 5, one refills every 30 minutes, lose one on failure",economy,must,yes,no,Kingdom Pass raises the cap to 8 in the original
 Potions as the only currency for building tasks,economy,must,yes,no,the bridge between the puzzle and the meta
-District task list with potion costs,meta,must,yes,no,plus a ""Do it"" button for the whole district
+District task list with potion costs,meta,must,yes,no,"plus a """"Do it"""" button for the whole district"
 Spend potions on a task with a build animation,meta,must,yes,no,the payoff moment - needs real art
 District chest on completion,meta,must,yes,no,coins / boosters / cards
 World map with kingdom progression,meta,must,yes,no,track current kingdom and revisit old ones

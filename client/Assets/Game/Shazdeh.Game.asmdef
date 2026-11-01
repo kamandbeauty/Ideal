@@ -1,0 +1,17 @@
+{
+    "name": "Shazdeh.Game",
+    "rootNamespace": "Shazdeh.Game",
+    "references": [
+        "Shazdeh.Core",
+        "Shazdeh.Content"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

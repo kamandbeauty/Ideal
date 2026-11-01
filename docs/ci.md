@@ -71,6 +71,13 @@ depend on that until M2.
 - **Secrets are never printed.** GameCI masks the licence; do not add `set -x` around anything that
   touches a keystore or a token.
 
+## The custom build method
+
+Both builds call `Shazdeh.EditorTools.CiBuild`, not GameCI's default builder. Reason: the default
+needs a scene in Build Settings, and no `.unity` file is committed before the project is opened in the
+editor once. `CiBuild` creates the boot scene from code (`ShazdehMenu.EnsureGreyBoxScene`) and then
+builds, so a fresh clone is buildable. Details and the local equivalent: `docs/build.md`.
+
 ## What is deliberately not here yet
 
 - No store publishing step (Google Play / App Store) — that arrives with `/replica-deploy`, together

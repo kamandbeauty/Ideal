@@ -246,7 +246,7 @@ used on    S18
 ## Where these get built
 
 Unity UI (UGUI + TextMeshPro) in `Shazdeh.Meta` / `Shazdeh.Game`, driven by
-`client/Assets/Core/Generated/Tokens.gen.cs` (generated from `tokens.json` by
+`client/Assets/Game/Generated/Tokens.gen.cs` (generated from `tokens.json` by
 `replica/design/gen_tokens.py`). Before any screen is built, M0 ships a `_DesignSystem` scene that
 renders every variant and state above with grey-box art — that scene is the design-system check, and
 it is rebuilt with real art at M2. No screen is allowed to invent a control that is not in this file.

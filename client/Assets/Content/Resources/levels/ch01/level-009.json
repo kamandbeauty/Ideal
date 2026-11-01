@@ -1,0 +1,67 @@
+{
+  "id": "ch01-009",
+  "chapter": "ch01",
+  "number": 9,
+  "type": "super_hard",
+  "width": 9,
+  "height": 9,
+  "gravity": "down",
+  "move_limit": 18,
+  "pieces": [
+    "firouzeh",
+    "lajvard",
+    "aqiq",
+    "zomorrod",
+    "morvarid"
+  ],
+  "goals": [
+    {
+      "kind": "clear_obstacle",
+      "obstacle": "crate",
+      "target": 12
+    }
+  ],
+  "obstacles": [
+    {
+      "x": 2,
+      "y": 6,
+      "kind": "crate",
+      "layers": 2
+    },
+    {
+      "x": 6,
+      "y": 6,
+      "kind": "crate",
+      "layers": 2
+    },
+    {
+      "x": 2,
+      "y": 2,
+      "kind": "crate",
+      "layers": 2
+    },
+    {
+      "x": 6,
+      "y": 2,
+      "kind": "crate",
+      "layers": 2
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "kind": "crate",
+      "layers": 2
+    },
+    {
+      "x": 4,
+      "y": 7,
+      "kind": "crate",
+      "layers": 2
+    }
+  ],
+  "blocked": [],
+  "reward_potions": 14,
+  "reward_coins": 20,
+  "stages": 1,
+  "notes": "six double-layer crates: 18 moves, no slack"
+}

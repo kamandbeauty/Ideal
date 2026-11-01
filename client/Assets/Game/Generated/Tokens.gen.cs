@@ -4,7 +4,7 @@
 // </auto-generated>
 using UnityEngine;
 
-namespace Shazdeh.Core
+namespace Shazdeh.Game
 {
     public static class Tokens
     {
@@ -25,6 +25,16 @@ namespace Shazdeh.Core
         public static readonly Color Success = new Color(0.3451f, 0.7882f, 0.5412f, 1f); // #58C98A
         public static readonly Color Warning = new Color(0.9412f, 0.7059f, 0.1608f, 1f); // #F0B429
         public static readonly Color DangerStrong = new Color(0.702f, 0.2275f, 0.1412f, 1f); // #B33A24
+
+        public static class Piece
+        {
+            public static readonly Color Firouzeh = new Color(0.1804f, 0.7686f, 0.7137f, 1f); // #2EC4B6
+            public static readonly Color Lajvard = new Color(0.1843f, 0.3725f, 0.8157f, 1f); // #2F5FD0
+            public static readonly Color Aqiq = new Color(0.8235f, 0.3333f, 0.2471f, 1f); // #D2553F
+            public static readonly Color Zomorrod = new Color(0.1804f, 0.6196f, 0.3569f, 1f); // #2E9E5B
+            public static readonly Color Morvarid = new Color(0.9373f, 0.8902f, 0.7843f, 1f); // #EFE3C8
+        }
+
 
         public static class Type
         {

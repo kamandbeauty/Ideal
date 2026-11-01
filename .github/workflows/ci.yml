@@ -75,10 +75,30 @@ jobs:
       - name: tokens.json -> Tokens.gen.cs is in sync
         run: |
           python3 replica/design/gen_tokens.py
-          git diff --exit-code -- client/Assets/Core/Generated/Tokens.gen.cs
+          git diff --exit-code -- client/Assets/Game/Generated/Tokens.gen.cs
 
       - name: feature matrix parses and scores
         run: python3 .claude/skills/replica-diff/parity.py replica/features.csv --json > /dev/null
+
+  # Levels are content, and content is validated like code: the committed JSON must be exactly what the
+  # generator produces, and it must pass the same rules the C# LevelValidator enforces.
+  content:
+    name: level content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: validate committed levels
+        run: python3 tools/levels/gen_levels.py --check
+
+      - name: generator and committed JSON must not drift
+        run: |
+          python3 tools/levels/gen_levels.py
+          git diff --exit-code -- client/Assets/Content/Resources/levels
 
   # Placeholder that wakes up when the API exists. Keeps the pipeline honest from day one.
   server:

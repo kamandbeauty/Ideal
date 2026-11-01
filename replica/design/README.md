@@ -5,7 +5,7 @@
 | `tokens.json` | the single source of truth: colour roles, type scale, spacing, radius, motion, HUD sizes |
 | `art-direction.md` | the art brief: pillars, palette, gems, obstacles, power-ups, chapters, cast, UI skin, motion, audio, asset rules, quality gate, honest cost |
 | `components.md` | every component from the recon list: variants, sizes, states, tokens, accessibility, which screens, plus the RTL checklist |
-| `gen_tokens.py` | generator: `tokens.json` → `client/Assets/Core/Generated/Tokens.gen.cs` |
+| `gen_tokens.py` | generator: `tokens.json` → `client/Assets/Game/Generated/Tokens.gen.cs` |
 | `concepts/` | the two generated concept frames (direction only, never shipped) |
 
 ## Gates

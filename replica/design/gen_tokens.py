@@ -7,7 +7,8 @@ writes them into a single C# class that the game imports:
 
     python3 replica/design/gen_tokens.py
 
-Writes client/Assets/Core/Generated/Tokens.gen.cs (create the folder if missing).
+Writes client/Assets/Game/Generated/Tokens.gen.cs (the Game assembly is the first
+one allowed to touch UnityEngine; Shazdeh.Core stays engine-free). (create the folder if missing).
 Standard library only. Exit code 1 if tokens.json is missing a role.
 """
 
@@ -18,7 +19,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TOKENS = os.path.join(ROOT, "replica", "design", "tokens.json")
-OUT = os.path.join(ROOT, "client", "Assets", "Core", "Generated", "Tokens.gen.cs")
+OUT = os.path.join(ROOT, "client", "Assets", "Game", "Generated", "Tokens.gen.cs")
 
 REQUIRED = ["bg", "surface", "border", "border-input", "text", "text-muted",
             "accent", "on-accent", "danger", "success"]
@@ -67,7 +68,7 @@ def main():
         "// </auto-generated>",
         "using UnityEngine;",
         "",
-        "namespace Shazdeh.Core",
+        "namespace Shazdeh.Game",
         "{",
         "    public static class Tokens",
         "    {",
@@ -82,6 +83,16 @@ def main():
                 "        public static readonly Color %s = new Color(%sf, %sf, %sf, 1f); // %s"
                 % (ident(name), round(r / 255.0, 4), round(g / 255.0, 4), round(b / 255.0, 4), value)
             )
+
+    if "piece" in t:
+        lines += ["", "        public static class Piece", "        {"]
+        for name, value in t["piece"].items():
+            r, g, b = hex_to_rgb(value)
+            lines.append(
+                "            public static readonly Color %s = new Color(%sf, %sf, %sf, 1f); // %s"
+                % (ident(name), round(r / 255.0, 4), round(g / 255.0, 4), round(b / 255.0, 4), value)
+            )
+        lines += ["        }", ""]
 
     lines += ["", "        public static class Type", "        {"]
     for name, spec in t.get("type", {}).items():
