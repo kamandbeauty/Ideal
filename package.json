@@ -1,0 +1,21 @@
+{
+  "name": "ideal-motion",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Ideal motion-graphics workspace with Agent Skills support",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "skills:list": "skills list",
+    "skills:add": "skills add",
+    "skills:validate": "bash scripts/validate-skills.sh",
+    "motion:new": "node .agents/skills/motion-graphics/scripts/new-motion.mjs",
+    "motion:render": "node .agents/skills/motion-graphics/scripts/render.mjs",
+    "motion:preview": "node scripts/preview.mjs"
+  },
+  "devDependencies": {
+    "skills": "^1.7.4"
+  }
+}

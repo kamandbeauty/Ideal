@@ -1,0 +1,20 @@
+# Node / skills CLI
+node_modules/
+.npm/
+
+# Python validator
+.venv/
+__pycache__/
+*.pyc
+
+# Generated motion graphics (keep only editable sources and briefs)
+out/
+motion/*/frames/
+motion/*/*.mp4
+motion/*/*.webm
+motion/*/*.mov
+motion/*/*.gif
+
+# OS
+.DS_Store
+Thumbs.db
