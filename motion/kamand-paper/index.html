@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KAMAND — paper kinetic reel (30s)</title>
+<style>
+  @font-face{font-family:Estedad;src:url('./fonts/estedad-arabic-400-normal.woff2') format('woff2');font-weight:400;font-display:block}
+  @font-face{font-family:Estedad;src:url('./fonts/estedad-arabic-700-normal.woff2') format('woff2');font-weight:700;font-display:block}
+  @font-face{font-family:Estedad;src:url('./fonts/estedad-arabic-800-normal.woff2') format('woff2');font-weight:800;font-display:block}
+  @font-face{font-family:Estedad;src:url('./fonts/estedad-arabic-900-normal.woff2') format('woff2');font-weight:900;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-400-normal.woff2') format('woff2');font-weight:400;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-600-normal.woff2') format('woff2');font-weight:600;font-display:block}
+  @font-face{font-family:Vazirmatn;src:url('./fonts/vazirmatn-arabic-700-normal.woff2') format('woff2');font-weight:700;font-display:block}
+
+  :root{
+    --paper:#f7f5ef; --ink:#1c1c1a; --orange:#ff5a1f; --orange-deep:#e8480d;
+    --grey:#e6e4dc; --muted:#8b887f; --white:#fff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#000;overflow:hidden}
+  #stage{
+    position:absolute;left:50%;top:50%;width:1080px;height:1920px;
+    transform-origin:center;overflow:hidden;background:var(--paper);
+    font-family:Estedad,Vazirmatn,system-ui,sans-serif;color:var(--ink);direction:rtl;
+  }
+  /* ---------- paper / background ---------- */
+  #paper{position:absolute;inset:0;background:
+    radial-gradient(ellipse 90% 60% at 50% 35%,#fffdf7 0%,var(--paper) 58%,#efece3 100%)}
+  #grain{position:absolute;inset:0;opacity:.055;pointer-events:none;
+    background-image:url('./assets/grain.png');background-repeat:repeat;mix-blend-mode:multiply}
+  #arc{position:absolute;inset:0;pointer-events:none;will-change:transform}
+  #arc svg{width:100%;height:100%}
+  #grid{position:absolute;left:8%;right:8%;bottom:20%;height:620px;pointer-events:none;opacity:.5;
+    background-image:linear-gradient(rgba(140,136,126,.16) 1px,transparent 1px),linear-gradient(90deg,rgba(140,136,126,.16) 1px,transparent 1px);
+    background-size:74px 74px;
+    -webkit-mask-image:radial-gradient(ellipse 60% 60% at 50% 50%,#000 10%,transparent 75%);
+    mask-image:radial-gradient(ellipse 60% 60% at 50% 50%,#000 10%,transparent 75%);
+    will-change:transform,opacity}
+  #barcode{position:absolute;top:88px;right:70px;height:74px;display:flex;align-items:stretch;gap:3px;opacity:.85;direction:ltr}
+  #barcode i{display:block;background:var(--ink);height:100%}
+  #watermark{position:absolute;left:70px;bottom:96px;font-family:Vazirmatn;font-weight:600;
+    font-size:22px;letter-spacing:.22em;color:#a5a198;direction:ltr;display:flex;align-items:center;gap:12px}
+  #watermark .hd{border:2px solid #a5a198;border-radius:5px;padding:2px 6px;font-size:16px}
+  #progress{position:absolute;left:0;right:0;bottom:0;height:6px;background:rgba(28,28,26,.10)}
+  #progress i{display:block;height:100%;width:0;background:var(--orange);box-shadow:0 0 14px rgba(255,90,31,.6)}
+
+  /* ---------- typography ---------- */
+  .beat{position:absolute;inset:0;opacity:0;visibility:hidden;will-change:opacity}
+  .kicker{position:absolute;left:0;right:0;text-align:center;font-family:Estedad;font-weight:800;
+    font-size:62px;color:var(--ink);opacity:0;will-change:transform,opacity}
+  .big{position:absolute;left:0;right:0;text-align:center;font-family:Estedad;font-weight:900;
+    font-size:150px;line-height:1.28;white-space:nowrap;opacity:0;will-change:transform,opacity,clip-path}
+  .big .ink{color:var(--ink)}
+  .big .orange{color:var(--orange);filter:drop-shadow(0 8px 20px rgba(255,90,31,.30))}
+  .big.sm{font-size:112px}
+  .sub{position:absolute;left:0;right:0;text-align:center;font-family:Vazirmatn;font-weight:600;
+    font-size:40px;color:#6f6c64;opacity:0;will-change:transform,opacity}
+  .slogan{position:absolute;left:0;right:0;text-align:center;font-family:Estedad;font-weight:800;
+    font-size:56px;color:var(--ink);opacity:0;will-change:transform,opacity}
+
+  /* ---------- white card ---------- */
+  .card{position:absolute;left:90px;right:90px;top:560px;background:var(--white);border-radius:44px;
+    padding:48px 52px;box-shadow:0 34px 80px rgba(60,52,38,.14),0 4px 14px rgba(60,52,38,.06);
+    direction:rtl;opacity:0;will-change:transform,opacity}
+  .card-top{display:flex;align-items:center;gap:30px;direction:rtl}
+  .card-icon{flex:0 0 132px;height:132px;border-radius:30px;background:#fff;
+    display:grid;place-items:center;overflow:hidden;box-shadow:inset 0 0 0 2px rgba(0,0,0,.05)}
+  .card-icon img{width:118px;height:118px;object-fit:contain}
+  .card-title{font-family:Estedad;font-weight:900;font-size:58px;line-height:1.3;color:var(--ink)}
+  .card-sub{font-family:Vazirmatn;font-weight:600;font-size:30px;color:#8b887f;margin-top:8px;direction:rtl}
+  .card-div{height:2px;background:#eeeae1;margin:38px 0 30px}
+  .card-for{font-family:Vazirmatn;font-weight:700;font-size:38px;color:#4a4841;display:flex;align-items:center;gap:16px;direction:rtl}
+  .card-for .dot{flex:0 0 30px;height:30px;border-radius:50%;background:var(--orange);box-shadow:0 0 18px rgba(255,90,31,.45)}
+  .card-for b{font-family:Estedad;font-weight:900;font-size:42px;color:var(--ink)}
+
+  /* ---------- orange pill ---------- */
+  .pill{position:absolute;left:50%;transform:translateX(-50%);opacity:0;will-change:transform,opacity;
+    background:var(--orange);color:#fff;border-radius:999px;padding:26px 62px;
+    font-family:Estedad;font-weight:900;font-size:56px;white-space:nowrap;
+    box-shadow:0 22px 50px rgba(255,90,31,.38),inset 0 3px 10px rgba(255,255,255,.28);
+    display:flex;align-items:center;gap:22px;direction:rtl}
+  .pill small{font-family:Georgia,serif;font-weight:400;font-size:26px;letter-spacing:.12em;opacity:.92;direction:ltr}
+
+  /* ---------- 3D box + product ---------- */
+  .box{position:absolute;left:50%;top:1160px;width:720px;height:auto;
+    transform:translate(-50%,-50%);opacity:0;
+    will-change:transform,opacity}
+  .product{position:absolute;left:50%;width:520px;height:auto;
+    transform:translate(-50%,-50%);opacity:0;will-change:transform,opacity;
+    filter:drop-shadow(0 26px 34px rgba(70,55,35,.28))}
+
+  /* ---------- benefit effects ---------- */
+  .specks{position:absolute;inset:0;pointer-events:none}
+  .specks i{position:absolute;border-radius:50%;background:#d8d4c9;box-shadow:0 0 10px rgba(120,110,95,.25);will-change:opacity,transform}
+  .ripple{position:absolute;left:50%;top:960px;width:880px;height:880px;border-radius:50%;
+    transform:translate(-50%,-50%) scale(.2);opacity:0;pointer-events:none;
+    background:radial-gradient(circle,rgba(255,255,255,.85) 0%,rgba(200,225,205,.28) 42%,transparent 70%);
+    box-shadow:inset 0 0 80px rgba(255,255,255,.7)}
+
+  /* ---------- steps / eyebrow ---------- */
+  .steps{position:absolute;left:80px;right:80px;top:1180px;display:flex;gap:22px;direction:rtl}
+  .step-pill{flex:1;background:#fff;border:2px solid rgba(28,28,26,.08);border-radius:30px;
+    padding:24px 10px;text-align:center;opacity:0;will-change:transform,opacity;
+    box-shadow:0 16px 36px rgba(60,52,38,.10)}
+  .step-pill .n{font-family:Estedad;font-weight:900;font-size:64px;color:var(--orange);line-height:1}
+  .step-pill .t{font-family:Vazirmatn;font-weight:700;font-size:30px;color:var(--ink);margin-top:10px}
+  #hair-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;will-change:opacity}
+  #brush{position:absolute;left:0;top:0;width:300px;height:300px;pointer-events:none;opacity:0;will-change:transform,opacity}
+
+  /* ---------- final ---------- */
+  .ring{position:absolute;left:50%;top:1010px;width:660px;height:660px;border-radius:50%;
+    transform:translate(-50%,-50%) scale(.4);opacity:0;pointer-events:none;
+    border:3px solid rgba(255,90,31,.45);box-shadow:0 0 80px rgba(255,90,31,.20);will-change:transform,opacity}
+
+  /* ---------- overlays ---------- */
+  #particles{position:absolute;inset:0;pointer-events:none}
+  .p{position:absolute;left:0;top:0;border-radius:50%;will-change:transform,opacity}
+  .p-o{background:var(--orange);box-shadow:0 0 16px rgba(255,90,31,.55)}
+  .p-g{background:#c9c5ba}
+  .p-k{background:var(--ink)}
+  #flash{position:absolute;inset:0;background:#fffaf0;pointer-events:none;opacity:0;will-change:opacity}
+  #wipe{position:absolute;top:-30%;bottom:-30%;left:-60%;width:60%;pointer-events:none;opacity:0;
+    background:linear-gradient(100deg,transparent,rgba(255,90,31,.16) 45%,rgba(230,228,220,.85) 55%,transparent);
+    transform:rotate(14deg) translateX(-120%);will-change:transform,opacity}
+  #grain-top{position:absolute;inset:0;pointer-events:none;opacity:.03;mix-blend-mode:multiply;
+    background-image:url('./assets/grain.png');background-repeat:repeat}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="paper"></div>
+  <div id="arc">
+    <svg viewBox="0 0 1080 1920" preserveAspectRatio="none">
+      <path d="M 1180 -260 C 980 260, 700 560, 300 900 C -40 1190, -80 1600, -260 2100"
+        fill="none" stroke="#e7e5dd" stroke-width="230" stroke-linecap="round" opacity=".92"/>
+      <path d="M 1240 -160 C 1080 320, 820 620, 460 940 C 120 1240, 40 1620, -120 2040"
+        fill="none" stroke="#f0eee7" stroke-width="90" stroke-linecap="round" opacity=".9"/>
+    </svg>
+  </div>
+  <div id="grid"></div>
+  <div id="barcode"></div>
+  <div id="watermark"><span class="hd">HD</span> KAMAND · MOTION 03</div>
+  <div id="progress"><i></i></div>
+
+  <!-- BEAT 1 — HOOK -->
+  <section class="beat" id="b1">
+    <div class="kicker" id="b1-k" style="top:520px">ابروهات هنوز</div>
+    <div class="big" id="b1-big" style="top:620px"><span class="orange">سرکشن؟!</span></div>
+    <div class="sub" id="b1-sub" style="top:920px">هر کدوم یه طرف میرن؟</div>
+  </section>
+
+  <!-- BEAT 2 — NAME / CARD -->
+  <section class="beat" id="b2">
+    <div class="kicker" id="b2-k" style="top:290px">اسمش</div>
+    <div class="card" id="b2-card">
+      <div class="card-top">
+        <div class="card-icon"><img src="./assets/product-closed.png" alt="Kamand" /></div>
+        <div>
+          <div class="card-title">ژل لیفت ابرو کمند</div>
+          <div class="card-sub">۳۰ میل · گیاهی · بدون سفیدک</div>
+        </div>
+      </div>
+      <div class="card-div"></div>
+      <div class="card-for">برای <span class="dot"></span> <b>ابروهای تو</b></div>
+    </div>
+    <div class="big sm" id="b2-big" style="top:1160px"><span class="ink">یه ژل</span> <span class="orange">کمند</span></div>
+  </section>
+
+  <!-- BEAT 3 — GIFT BOX / HERBAL -->
+  <section class="beat" id="b3">
+    <img class="box" id="b3-box" src="./assets/box.png" alt="" />
+    <img class="product" id="b3-product" src="./assets/product-open.png" alt="KAMAND" style="top:940px" />
+    <div class="big" id="b3-big" style="top:330px"><span class="ink">کاملاً</span> <span class="orange">گیاهی</span></div>
+    <div class="pill" id="b3-pill" style="top:1500px">کاملاً گیاهی <small>· HERBAL 100%</small></div>
+  </section>
+
+  <!-- BEAT 4 — NO WHITE RESIDUE -->
+  <section class="beat" id="b4">
+    <div class="ripple" id="b4-ripple"></div>
+    <div class="specks" id="b4-specks"></div>
+    <div class="big" id="b4-big" style="top:560px"><span class="ink">بدون</span> <span class="orange">سفیدک</span></div>
+    <div class="big sm" id="b4-big2" style="top:820px"><span class="ink">بدون ریزش</span></div>
+    <div class="pill" id="b4-pill" style="top:1420px">شفاف و تمیز <small>· CLEAR</small></div>
+  </section>
+
+  <!-- BEAT 5 — 3 STEPS -->
+  <section class="beat" id="b5">
+    <div class="kicker" id="b5-k" style="top:270px">حالتدهی طبیعی</div>
+    <div class="big sm" id="b5-big" style="top:380px"><span class="orange">فقط ۳ قدم</span></div>
+    <svg id="hair-svg" viewBox="0 0 1080 1920" preserveAspectRatio="xMidYMid slice">
+      <defs><linearGradient id="hairGrad2" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0" stop-color="#5a4732"/><stop offset=".6" stop-color="#9a7a4d"/><stop offset="1" stop-color="#d9b57e"/>
+      </linearGradient></defs>
+      <g id="hair2"></g>
+    </svg>
+    <svg id="brush" viewBox="0 0 300 300">
+      <g transform="translate(150,150)">
+        <rect x="-11" y="-6" width="22" height="200" rx="10" fill="#e2d7bd"/>
+        <rect x="-11" y="110" width="22" height="82" rx="9" fill="#2a2723"/>
+        <g id="bristles2" stroke="#3a332a" stroke-width="4" stroke-linecap="round"></g>
+      </g>
+    </svg>
+    <div class="steps" id="b5-steps">
+      <div class="step-pill" data-s="0"><div class="n">۱</div><div class="t">تمیز و خشک</div></div>
+      <div class="step-pill" data-s="1"><div class="n">۲</div><div class="t">برس بزن</div></div>
+      <div class="step-pill" data-s="2"><div class="n">۳</div><div class="t">فرم بده</div></div>
+    </div>
+  </section>
+
+  <!-- BEAT 6 — FINAL -->
+  <section class="beat" id="b6">
+    <div class="ring" id="b6-ring"></div>
+    <img class="box" id="b6-box" src="./assets/box.png" alt="" />
+    <img class="product" id="b6-product" src="./assets/product-open.png" alt="KAMAND" style="top:1000px;width:480px" />
+    <div class="big" id="b6-big" style="top:200px;font-size:88px;white-space:normal;padding:0 40px;line-height:1.35"><span class="ink">ابروهای مرتب،</span><br><span class="orange">بدون دردسر!</span></div>
+    <div class="slogan" id="b6-slogan" style="top:470px;font-size:50px">کمند؛ زیبایی طبیعی، هر روز!</div>
+    <div class="pill" id="b6-pill" style="top:1540px">همین حالا <small>· KAMAND</small></div>
+  </section>
+
+  <div id="particles"></div>
+  <div id="flash"></div>
+  <div id="wipe"></div>
+  <div id="grain-top"></div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const W=1080,H=1920,FPS=24,FRAMES=720;
+  const BEATS=[
+    {id:'b1',start:0,end:120},{id:'b2',start:120,end:240},
+    {id:'b3',start:240,end:360},{id:'b4',start:360,end:480},
+    {id:'b5',start:480,end:600},{id:'b6',start:600,end:720},
+  ];
+  const params=new URLSearchParams(location.search);
+  const still=params.has('frame');
+  const $=id=>document.getElementById(id);
+  const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a),0,1);return t*t*(3-2*t)};
+  const easeOut=t=>1-Math.pow(1-clamp(t,0,1),3);
+  const elastic=t=>{t=clamp(t,0,1);return 1-Math.pow(2,-9*t)*Math.cos(t*Math.PI*2.1)};
+  const pulse=f=>Math.exp(-5*((f%12)/12));
+
+  const stage=$('stage');
+  function fit(){const s=Math.min(innerWidth/W,innerHeight/H);stage.style.transform=`translate(-50%,-50%) scale(${s})`}
+  addEventListener('resize',fit);fit();
+
+  let seed=0x50415045;
+  function rnd(){seed|=0;seed=(seed+0x6D2B79F5)|0;let t=Math.imul(seed^(seed>>>15),1|seed);
+    t=(t+Math.imul(t^(t>>>7),61|t))^t;return ((t^(t>>>14))>>>0)/4294967296}
+
+  function put(el,o){
+    if(!el)return;
+    el.style.opacity=clamp(o.op,0,1).toFixed(3);
+    el.style.transform=`translate(${o.x||0}px,${o.y||0}px) scale(${(o.sx??o.s??1)},${(o.sy??o.s??1)}) rotate(${o.r||0}deg) skewX(${o.k||0}deg)`;
+    if(o.clip!==undefined)el.style.clipPath=`inset(0 ${((1-o.clip)*100).toFixed(2)}% 0 0)`;
+  }
+
+  /* barcode */
+  const bc=$('barcode');
+  for(let i=0;i<44;i++){
+    const e=document.createElement('i');
+    e.style.width=(2+rnd()*7).toFixed(1)+'px';
+    e.style.opacity=(0.35+rnd()*0.65).toFixed(2);
+    bc.appendChild(e);
+  }
+
+  /* particles */
+  const PARTS=[],holder=$('particles');
+  for(let i=0;i<34;i++){
+    const e=document.createElement('i');
+    const kind=i%5===0?'p-o':(i%3===0?'p-k':'p-g');
+    e.className='p '+kind;
+    const sz=4+rnd()*13;e.style.width=sz+'px';e.style.height=sz+'px';
+    holder.appendChild(e);
+    PARTS.push({el:e,x0:50+rnd()*(W-100),y0:200+rnd()*(H-400),amp:10+rnd()*46,
+      speed:.22+rnd()*.55,rise:.03+rnd()*.06,phase:rnd()*6.28,offset:rnd()});
+  }
+
+  /* powder specks */
+  const SPECKS=[],sw=$('b4-specks');
+  for(let i=0;i<46;i++){
+    const e=document.createElement('i'),s=4+rnd()*11;
+    e.style.width=s+'px';e.style.height=s+'px';
+    e.style.left=(140+rnd()*800)+'px';e.style.top=(520+rnd()*760)+'px';
+    sw.appendChild(e);SPECKS.push({el:e,d:rnd()*.5});
+  }
+
+  /* eyebrow strands */
+  const hairG=$('hair2'),STRANDS=[];
+  for(let i=0;i<52;i++){
+    const p=document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('fill','none');p.setAttribute('stroke','url(#hairGrad2)');
+    p.setAttribute('stroke-width',(2+rnd()*2.2).toFixed(1));p.setAttribute('stroke-linecap','round');
+    hairG.appendChild(p);
+    const t=i/51,ex=210+t*660,ey=1010-150*Math.sin(Math.PI*t)+(rnd()-.5)*22;
+    STRANDS.push({el:p,x0:150+rnd()*780,y0:820+rnd()*380,a0:-60+rnd()*130,l0:55+rnd()*100,
+      x1:ex,y1:ey,a1:68+rnd()*38,l1:90+rnd()*80,delay:rnd()*.35});
+  }
+  const br=$('bristles2');
+  for(let i=0;i<13;i++){
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line'),y=-82+i*12;
+    l.setAttribute('x1',(-28-Math.sin(i/12*Math.PI)*11).toFixed(1));l.setAttribute('y1',y);
+    l.setAttribute('x2',(28+Math.sin(i/12*Math.PI)*11).toFixed(1));l.setAttribute('y2',y);
+    br.appendChild(l);
+  }
+  function strandPath(s,p){
+    const x=lerp(s.x0,s.x1,p),y=lerp(s.y0,s.y1,p),a=lerp(s.a0,s.a1,p)*Math.PI/180,L=lerp(s.l0,s.l1,p);
+    const tx=x+Math.cos(a)*L,ty=y-Math.sin(a)*L;
+    const cx=x+Math.cos(a)*L*.45+Math.sin(a)*18,cy=y-Math.sin(a)*L*.45+Math.cos(a)*18;
+    return `M${x.toFixed(1)},${y.toFixed(1)} Q${cx.toFixed(1)},${cy.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}`;
+  }
+
+  const stepEls=[...document.querySelectorAll('.step-pill')];
+
+  /* ---------- beat animations ---------- */
+  function beat1(f){
+    const u=f/120,p=pulse(f);
+    const e=elastic(clamp((f-6)/22,0,1));
+    put($('b1-k'),{op:smooth(.02,.18,u),s:lerp(.7,1,easeOut(clamp(u/.3,0,1))),y:lerp(50,0,easeOut(clamp(u/.3,0,1)))});
+    put($('b1-big'),{op:Math.min(1,(f-8)*.22),s:lerp(2.6,1,e)*(1+.045*p),
+      y:lerp(-120,0,e),r:lerp(-12,0,e)+Math.sin(f*.9)*2*(1-e),k:Math.sin(f*1.3)*5*(1-e),clip:smooth(.06,.35,u)});
+    put($('b1-sub'),{op:smooth(.32,.5,u),s:lerp(.8,1,smooth(.32,.5,u)),y:lerp(40,0,smooth(.32,.5,u))});
+  }
+  function beat2(f){
+    const u=(f-120)/120,p=pulse(f);
+    put($('b2-k'),{op:smooth(.02,.14,u),s:lerp(.75,1,easeOut(u/.25)),y:lerp(40,0,easeOut(u/.25))});
+    const cardIn=easeOut(clamp((u-.05)/.3,0,1));
+    const cardOut=1-smooth(.55,.72,u);
+    const c=$('b2-card');
+    c.style.opacity=(cardIn*cardOut).toFixed(3);
+    c.style.transform=`translate(${lerp(760,0,elastic(clamp((u-.05)/.34,0,1)))}px,${lerp(0,-250,smooth(.55,.72,u))}px) scale(${lerp(.9,1,cardIn)*lerp(1,.62,smooth(.55,.72,u))}) rotate(${lerp(6,0,cardIn)}deg)`;
+    put($('b2-big'),{op:smooth(.62,.78,u),s:lerp(.55,1,elastic(clamp((u-.62)/.28,0,1)))*(1+.03*p),
+      y:lerp(90,0,elastic(clamp((u-.62)/.28,0,1))),clip:smooth(.62,.82,u)});
+  }
+  function beat3(f){
+    const u=(f-240)/120,p=pulse(f);
+    const bin=easeOut(clamp((u-.02)/.34,0,1));
+    const box=$('b3-box');
+    box.style.opacity=bin.toFixed(3);
+    box.style.transform=`translate(-50%,-50%) translateY(${lerp(360,0,bin)}px) perspective(1400px) rotateY(${lerp(-45,0,bin)+Math.sin(f/28)*4}deg) scale(${lerp(.62,1,bin)})`;
+    const pin=smooth(.18,.4,u);
+    const prod=$('b3-product');
+    prod.style.opacity=pin.toFixed(3);
+    prod.style.transform=`translate(-50%,-50%) translateY(${lerp(220,0,pin)+Math.sin(f*.05)*8}px) scale(${lerp(.7,1,pin)}) rotate(${Math.sin(f*.035)*3}deg)`;
+    put($('b3-big'),{op:smooth(.05,.2,u),s:lerp(.65,1,elastic(clamp((u-.05)/.3,0,1)))*(1+.03*p),
+      y:lerp(70,0,elastic(clamp((u-.05)/.3,0,1))),clip:smooth(.05,.28,u)});
+    const pl=smooth(.55,.72,u);
+    const pill=$('b3-pill');
+    pill.style.opacity=pl.toFixed(3);
+    pill.style.transform=`translateX(-50%) translateY(${lerp(70,0,elastic(clamp((u-.55)/.26,0,1)))}px) scale(${lerp(.7,1,elastic(clamp((u-.55)/.26,0,1)))*(1+.035*p)})`;
+  }
+  function beat4(f){
+    const u=(f-360)/120,p=pulse(f);
+    const a=smooth(.02,.2,u),b=1-smooth(.42,.56,u);
+    put($('b4-big'),{op:a*b,s:lerp(.68,1,elastic(clamp((u-.02)/.28,0,1)))*(1+.025*p),
+      y:lerp(60,0,easeOut(clamp((u-.02)/.28,0,1))),k:Math.sin(u*16)*3*(1-a),clip:smooth(.02,.24,u)});
+    SPECKS.forEach((q,i)=>{
+      const appear=smooth(q.d,q.d+.16,u),diss=1-smooth(.24+q.d*.3,.55+q.d*.2,u);
+      q.el.style.opacity=(appear*diss*.85).toFixed(3);
+      q.el.style.transform=`translate(${Math.sin(i*2.3+f*.04)*24*(1-diss)}px,${-36*(1-diss)}px) scale(${(.5+.5*diss).toFixed(2)})`;
+    });
+    const rp=smooth(.28,.6,u);
+    $('b4-ripple').style.opacity=(Math.sin(Math.PI*rp)*.85).toFixed(3);
+    $('b4-ripple').style.transform=`translate(-50%,-50%) scale(${(.25+rp*1.1).toFixed(3)})`;
+    const c=smooth(.58,.74,u);
+    put($('b4-big2'),{op:c,s:lerp(.7,1.02,elastic(clamp((u-.58)/.26,0,1))),y:lerp(50,0,elastic(clamp((u-.58)/.26,0,1)))});
+    const pl=smooth(.72,.86,u);
+    const pill=$('b4-pill');
+    pill.style.opacity=pl.toFixed(3);
+    pill.style.transform=`translateX(-50%) translateY(${lerp(60,0,easeOut(clamp((u-.72)/.2,0,1)))}px) scale(${lerp(.8,1,easeOut(clamp((u-.72)/.2,0,1)))})`;
+  }
+  function beat5(f){
+    const u=(f-480)/120,p=pulse(f);
+    put($('b5-k'),{op:smooth(.02,.16,u),s:lerp(.75,1,easeOut(u/.25)),y:lerp(40,0,easeOut(u/.25))});
+    put($('b5-big'),{op:smooth(.08,.24,u),s:lerp(.6,1,elastic(clamp((u-.08)/.3,0,1)))*(1+.03*p),
+      y:lerp(70,0,elastic(clamp((u-.08)/.3,0,1))),clip:smooth(.08,.3,u)});
+    const align=easeOut(clamp((u-.2)/.62,0,1));
+    $('hair-svg').style.opacity=smooth(.16,.34,u).toFixed(3);
+    for(const s of STRANDS){
+      const sp=easeOut(clamp((align-s.delay)/(1-s.delay||1),0,1));
+      s.el.setAttribute('d',strandPath(s,sp));
+      s.el.setAttribute('opacity',(.3+.7*sp).toFixed(2));
+    }
+    const bp=smooth(.3,.78,u);
+    const bx=lerp(250,820,bp),by=1010-150*Math.sin(Math.PI*((bx-210)/660))-70;
+    $('brush').style.opacity=(Math.sin(Math.PI*clamp((u-.26)/.6,0,1))).toFixed(3);
+    $('brush').style.transform=`translate(${bx-150}px,${by-150}px) rotate(${lerp(26,-22,bp)}deg) scale(${lerp(.8,1,bp)})`;
+    stepEls.forEach((el,k)=>{
+      const at=.42+k*.14,fi=smooth(at,at+.06,u);
+      el.style.opacity=fi.toFixed(3);
+      el.style.transform=`translateY(${lerp(70,0,elastic(clamp((u-at)/.2,0,1)))}px) scale(${lerp(.75,1,elastic(clamp((u-at)/.2,0,1)))})`;
+    });
+  }
+  function beat6(f){
+    const u=(f-600)/120,p=pulse(f);
+    put($('b6-big'),{op:smooth(.02,.2,u),s:lerp(.7,1,elastic(clamp((u-.02)/.3,0,1)))*(1+.025*p),
+      y:lerp(70,0,elastic(clamp((u-.02)/.3,0,1))),clip:smooth(.02,.24,u)});
+    put($('b6-slogan'),{op:smooth(.2,.36,u),s:lerp(.85,1,smooth(.2,.36,u)),y:lerp(40,0,smooth(.2,.36,u))});
+    const box=$('b6-box');
+    const bi=smooth(.16,.4,u);
+    box.style.opacity=(bi*.9).toFixed(3);
+    box.style.transform=`translate(-50%,-50%) translateY(${lerp(220,0,bi)}px) scale(${lerp(.72,1,bi)}) rotateY(${Math.sin(f/30)*7}deg)`;
+    const prod=$('b6-product'),pi=smooth(.3,.52,u);
+    prod.style.opacity=pi.toFixed(3);
+    prod.style.transform=`translate(-50%,-50%) translateY(${lerp(160,0,pi)+Math.sin(f*.05)*7}px) scale(${lerp(.75,1,pi)})`;
+    const lr=smooth(.5,.72,u);
+    $('b6-ring').style.opacity=(lr*.7).toFixed(3);
+    $('b6-ring').style.transform=`translate(-50%,-50%) scale(${lerp(.5,1,lr)})`;
+    const pill=$('b6-pill'),pl=smooth(.62,.8,u);
+    pill.style.opacity=pl.toFixed(3);
+    pill.style.transform=`translateX(-50%) translateY(${lerp(70,0,elastic(clamp((u-.62)/.26,0,1)))}px) scale(${lerp(.7,1,elastic(clamp((u-.62)/.26,0,1)))*(1+.04*p)})`;
+  }
+
+  /* ---------- global ---------- */
+  function updateGlobal(f){
+    const gt=f/FPS;
+    for(const q of PARTS){
+      const cyc=(gt*q.rise+q.offset)%1;
+      const x=q.x0+Math.sin(gt*q.speed+q.phase)*q.amp;
+      const y=q.y0-cyc*620;
+      q.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`;
+      q.el.style.opacity=(Math.sin(Math.PI*cyc)*.42).toFixed(3);
+    }
+    $('progress').firstElementChild.style.width=((f/(FRAMES-1))*100).toFixed(2)+'%';
+    const ar=$('arc');
+    ar.style.transform=`translate(${Math.sin(f*.006)*26}px,${Math.cos(f*.005)*18}px) rotate(${Math.sin(f*.004)*1.5}deg)`;
+    $('grid').style.transform=`translateY(${Math.sin(f*.02)*10}px)`;
+    // fast cut flash + diagonal wipe
+    let power=0,phase=0;
+    for(let i=1;i<BEATS.length;i++){
+      const d=Math.abs(f-BEATS[i].start);
+      if(d<9){power=Math.max(power,1-d/9);phase=(f-BEATS[i].start+9)/18}
+    }
+    $('flash').style.opacity=(power*.55).toFixed(3);
+    const wp=$('wipe');
+    wp.style.opacity=(power*.85).toFixed(3);
+    wp.style.transform=`rotate(14deg) translateX(${lerp(-120,180,phase).toFixed(1)}%)`;
+  }
+
+  const motion={
+    fps:FPS,frames:FRAMES,width:W,height:H,duration:30,
+    seek(frame){
+      const f=clamp(Math.round(frame),0,FRAMES-1);
+      const act=[0,0,0,0,0,0];
+      BEATS.forEach((b,i)=>{
+        const local=f-b.start,op=Math.min(1,local/3,(b.end-f)/3);
+        act[i]=Math.max(0,op);
+        const el=$(b.id);
+        el.style.opacity=act[i].toFixed(3);
+        el.style.visibility=act[i]>.001?'visible':'hidden';
+      });
+      if(act[0]>.001)beat1(f);
+      if(act[1]>.001)beat2(f);
+      if(act[2]>.001)beat3(f);
+      if(act[3]>.001)beat4(f);
+      if(act[4]>.001)beat5(f);
+      if(act[5]>.001)beat6(f);
+      updateGlobal(f);
+      document.documentElement.dataset.frame=String(f);
+      return f;
+    },
+    ready:false,
+  };
+  window.__MOTION__=motion;
+
+  const urls=['./assets/box.png','./assets/product-open.png','./assets/product-closed.png','./assets/grain.png'];
+  Promise.all(urls.map(src=>new Promise(res=>{const im=new Image();im.onload=im.onerror=res;im.src=src})))
+    .then(()=>document.fonts?document.fonts.ready:Promise.resolve())
+    .then(()=>{
+      motion.ready=true;
+      if(still){motion.seek(Number(params.get('frame')||0))}
+      else{const t0=performance.now();
+        const tick=n=>{motion.seek(Math.floor(((n-t0)/1000)*FPS)%FRAMES);requestAnimationFrame(tick)};
+        requestAnimationFrame(tick)}
+    });
+})();
+</script>
+</body>
+</html>

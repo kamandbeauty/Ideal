@@ -14,7 +14,19 @@ Code and other clients that read `.claude/skills/`.
 When a request matches, read `.agents/skills/motion-graphics/SKILL.md` in full
 before writing code, and load only the `references/*.md` files the task needs.
 
-## Active campaign: `kamand eye` (45 s Persian kinetic typography ad)
+## Active campaign: `kamand paper` (30 s paper kinetic reel)
+
+The newest film lives in `motion/kamand-paper/` — read its `brief.md`.
+Reference style: `reference/reel-DfNkAVNNVBu.md` + the two client screenshots
+(cream paper, black/orange giant Persian type, 3D kraft gift box, white card,
+ barcode, orange CTA pill). 720 deterministic frames at 24 fps, `seek(frame)`,
+ Estedad/Vazirmatn, bundled audio. Render: `npm run kamand-paper:render`.
+
+An earlier 45 s Persian kinetic ad lives in `motion/kamand-eye/`
+(`npm run kamand-eye:render`) and a six-scene CGI commercial in
+`motion/kamand-eyebrow-gel/` (`npm run kamand:render`).
+
+### Prior campaign: `kamand eye` (45 s)
 
 The current ad lives in `motion/kamand-eye/` — read its `brief.md` before
 editing. Key facts: vertical 9:16, 45 s, 1080 deterministic frames at 24 fps,

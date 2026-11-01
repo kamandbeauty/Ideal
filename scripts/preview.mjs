@@ -55,8 +55,12 @@ function scenes() {
 function campaignLinks() {
   const base = '/motion/kamand-eyebrow-gel';
   const links = [];
+  const paper = '/motion/kamand-paper';
   const eye = '/motion/kamand-eye';
   const cands = [
+    ['PAPER 1080p', `${paper}/exports/kamand-paper-1080p.mp4`],
+    ['PAPER 4K', `${paper}/exports/kamand-paper-4k.mp4`],
+    ['PAPER contact sheet', `${paper}/stills/contact-sheet.jpg`],
     ['KAMAND EYE 1080p', `${eye}/exports/kamand-eye-1080p.mp4`],
     ['KAMAND EYE 4K', `${eye}/exports/kamand-eye-4k.mp4`],
     ['EYE contact sheet', `${eye}/stills/contact-sheet.jpg`],

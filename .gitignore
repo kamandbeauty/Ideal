@@ -18,6 +18,7 @@ motion/*/*.gif
 # Deliverable videos are kept (not generated intermediates)
 !motion/kamand-eyebrow-gel/exports/*.mp4
 !motion/kamand-eye/exports/*.mp4
+!motion/kamand-paper/exports/*.mp4
 
 # Vendored TTS model weights are large and fetched separately
 third_party/persian_tts/model/*
