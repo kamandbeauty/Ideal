@@ -171,6 +171,14 @@ jobs:
       - name: contract, catalog and every committed sprite
         run: python3 tools/art/art.py --check
 
+      - name: the sprites the repo has are the sprites the generator draws
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pillow numpy
+          python3 tools/art/gen_art.py --check
+
+      - name: the five stones stay distinct at 48 px in greyscale
+        run: python3 tools/art/preview.py --check
+
   # Placeholder that wakes up when the API exists. Keeps the pipeline honest from day one.
   server:
     name: api tests

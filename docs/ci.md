@@ -13,7 +13,8 @@ until the project exists — the repo stays green while M0 is being built.
 `ci.yml` runs seven jobs: `schema`, `design`, `content` (levels + chapter meta), `csharp`
 (`tools/csharp/lint.py`, pinned grammar in `tools/csharp/requirements.txt`), `text` (Persian letter
 tables, shaping vs `arabic-reshaper`, golden vectors, font coverage — `tools/text/requirements.txt`),
-`art` (the sprite contract, its generated catalog, and every committed PNG) and `server`. The
+`art` (the sprite contract, its generated catalog, every committed PNG, the generator that draws them,
+and the 48 px silhouette gate) and `server`. The
 `csharp` job is not a substitute for Unity's compiler — it is what catches a broken brace or a renamed
 member on a machine that cannot build the game. The `text` job is what stops a shaper regression from
 reaching a phone: Persian is the product.
@@ -92,5 +93,5 @@ builds, so a fresh clone is buildable. Details and the local equivalent: `docs/b
   with the preflight gate: tests green, parity scored, `sweep.py` clean, listing linted.
 - No nightly build. If a nightly is wanted later, add a `schedule:` trigger to `unity.yml` with
   `target: android` and a 30-day artifact retention.
-- No art pipeline in CI. Addressables are built inside Unity; validating them needs the editor, so it
-  happens in the same job as the test run once there is art to pack.
+- No Addressables build in CI. Sprites are drawn and validated here, but packing them into an atlas is
+  an editor step, so it happens in the same job as the test run.

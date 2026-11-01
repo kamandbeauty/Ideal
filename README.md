@@ -34,7 +34,7 @@ See [`.claude/skills/README.md`](.claude/skills/README.md) for the map and the t
 | build (M0) | `client/Assets/Core` + `Content` + `Game`, `tools/levels/` | done — engine + 10 levels + grey box |
 | build (M1) | `Core/{Wallet,Lives,Progression,SaveData}`, `Content/{DistrictParser,SaveCodec}`, `Game/SaveStore` | done — offline economy, save/recover, 3 districts (not yet compiled here) |
 | build (M2) | `Core/Text/`, `Game/{AppRoot,GameSession}`, `Game/Ui/` | done — home/board/districts screens, Persian shaping + numerals, Vazir shipped (not yet compiled here) |
-| build (M3) | `art/manifest.json`, `tools/art/`, `Game/ArtLibrary.cs`, `Editor/ArtImportSettings.cs` | pipeline done — 43-asset contract, placeholders, gates; **no artwork drawn yet** |
+| build (M3) | `art/manifest.json`, `tools/art/`, `Game/ArtLibrary.cs`, `Editor/ArtImportSettings.cs` | **done** — 43-asset contract, all 43 sprites drawn by `tools/art/gen_art.py`, `art.py --check --strict` green |
 | backend | `replica/schema.sql`, `replica/architecture.md` | schema validated; API not written |
 | test | EditMode suite in `client/Assets/Core.Tests` | 132 tests written; runs in CI (no Unity here) |
 | diff | `replica/features.csv` | **21.6 / 100** — 16 features partial, 0 must-haves done |
