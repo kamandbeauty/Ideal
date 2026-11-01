@@ -4,7 +4,9 @@ Scope: **the single-player core loop** — kingdom home → match-3 level (goals
 power-ups, boosters) → win/lose → potions & coins → district tasks → district chest →
 next district. Plus lives, save/restore and settings. Social, PvP, collection and
 live-ops events are mapped but marked out of scope for v1.
-For: our own product (working name Ideal). Not affiliated with Dream Games.
+For: our own product — **کاخ شازده** / *Prince's Palace* — native Android + iOS, no web client
+(user decisions, 2026-11-01). Not affiliated with Dream Games.
+Scope confirmed: core-loop slice only; social and live-ops stay `skip` for v1.
 Date: 2026-11-01
 Sources: public only — help center, Play Store listing, public guides. No account was
 used, no binary or asset was touched, no network calls were logged.
