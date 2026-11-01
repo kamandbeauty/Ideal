@@ -41,6 +41,22 @@ namespace Shazdeh.Game
             return level;
         }
 
+        /// <summary>Districts, tasks and chests for a chapter: the meta layer the potions feed.</summary>
+        public static ChapterMeta LoadChapterMeta(string chapter, List<string> errors)
+        {
+            string path = "meta/" + chapter + "-districts";
+            var asset = Resources.Load<TextAsset>(path);
+            if (asset == null)
+            {
+                if (errors != null) errors.Add("chapter meta not found: " + path);
+                return null;
+            }
+
+            var meta = DistrictParser.Parse(asset.text, errors);
+            if (meta != null && errors != null) errors.AddRange(DistrictParser.Validate(meta));
+            return meta;
+        }
+
         public static List<LevelDefinition> LoadChapter(string chapter, int count, List<string> errors)
         {
             var levels = new List<LevelDefinition>();

@@ -1,0 +1,41 @@
+{
+  "chapter": "ch01",
+  "districts": [
+    {
+      "id": "ch01-d1",
+      "title": "میدانِ فیروزه",
+      "title_en": "Firouzeh Square",
+      "tasks": [
+        { "key": "ch01-d1-t1", "title": "حوضِ فیروزه", "title_en": "Turquoise pool", "build_asset": "ch01_pool", "potion_cost": 25 },
+        { "key": "ch01-d1-t2", "title": "کاشی‌کاریِ دیوار", "title_en": "Tiled wall", "build_asset": "ch01_wall", "potion_cost": 30 },
+        { "key": "ch01-d1-t3", "title": "رواقِ ورودی", "title_en": "Entry portico", "build_asset": "ch01_portico", "potion_cost": 35 },
+        { "key": "ch01-d1-t4", "title": "حجره‌های بازار", "title_en": "Bazaar stalls", "build_asset": "ch01_bazaar", "potion_cost": 40 }
+      ],
+      "chest": { "coins": 120, "potions": 20 }
+    },
+    {
+      "id": "ch01-d2",
+      "title": "باغِ لاجورد",
+      "title_en": "Lapis Garden",
+      "tasks": [
+        { "key": "ch01-d2-t1", "title": "جویِ آب", "title_en": "Water channel", "build_asset": "ch01_canal", "potion_cost": 45 },
+        { "key": "ch01-d2-t2", "title": "سروِ باغ", "title_en": "Cypresses", "build_asset": "ch01_cypress", "potion_cost": 50 },
+        { "key": "ch01-d2-t3", "title": "فنجان‌خانه", "title_en": "Tea pavilion", "build_asset": "ch01_pavilion", "potion_cost": 55 },
+        { "key": "ch01-d2-t4", "title": "آبنمای شمسه", "title_en": "Shamse fountain", "build_asset": "ch01_fountain", "potion_cost": 65 }
+      ],
+      "chest": { "coins": 180, "potions": 30 }
+    },
+    {
+      "id": "ch01-d3",
+      "title": "دروازهٔ شازده",
+      "title_en": "The Prince's Gate",
+      "tasks": [
+        { "key": "ch01-d3-t1", "title": "طاقِ مقرنس", "title_en": "Muqarnas arch", "build_asset": "ch01_arch", "potion_cost": 70 },
+        { "key": "ch01-d3-t2", "title": "دروازهٔ چوبی", "title_en": "Wooden gate", "build_asset": "ch01_gate", "potion_cost": 80 },
+        { "key": "ch01-d3-t3", "title": "نقاره‌خانه", "title_en": "Naghareh house", "build_asset": "ch01_naghareh", "potion_cost": 90 },
+        { "key": "ch01-d3-t4", "title": "پرچمِ شازده", "title_en": "The prince's banner", "build_asset": "ch01_banner", "potion_cost": 100 }
+      ],
+      "chest": { "coins": 260, "potions": 40 }
+    }
+  ]
+}

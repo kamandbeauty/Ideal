@@ -4,6 +4,7 @@
     "references": [
         "Shazdeh.Core",
         "Shazdeh.Content",
+        "Shazdeh.Game",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

@@ -6,8 +6,9 @@ The game. Native Android + iOS, no web build.
 Assets/
   Core/          Shazdeh.Core     the engine: board, matches, power-ups, goals, level run.
                                   No UnityEngine anywhere — pure C#, unit tested, replayable.
-  Content/       Shazdeh.Content  level JSON → LevelDefinition, the validator, the level files.
-  Game/          Shazdeh.Game     grey-box view, HUD, tokens (generated), level source.
+  Content/       Shazdeh.Content  level JSON → LevelDefinition, the validator, the level files;
+                                  chapter meta (districts/tasks/chests) and the save codec.
+  Game/          Shazdeh.Game     grey-box view, HUD, tokens (generated), level source, save file.
   Editor/        Shazdeh.Editor   menu, scene creation, headless CI build.
   Core.Tests/    EditMode tests   engine + content tests (NUnit).
 Packages/manifest.json
@@ -38,7 +39,30 @@ build jobs intentionally skip.
   Whirlwind / Falcon. **R** restarts, **N** goes to the next level.
 
 It is meant to feel bad to look at and right to play. Screens, real art, animation and the Persian UI
-come in M1/M2 (`replica/design/components.md` is the spec).
+come later (`replica/design/components.md` is the spec).
+
+## What M1 adds (offline economy)
+
+The game is playable with the network off, and its save is the source of truth
+(`docs/decisions/0001-offline-first.md`).
+
+- **Save** — `Game/SaveStore.cs` writes `shazdeh-save.json` next to the app (temp file + `.bak`, one
+  kept generation). `Content/SaveCodec.cs` migrates older versions, clamps impossible numbers, and
+  turns a corrupt file into a fresh save instead of a crash.
+- **Wallet** — coins and potions, never negative, all-or-nothing spends.
+- **Lives** — 5, one back every 30 minutes, computed from `livesUpdatedAtUnix` (no timers, so closing
+  the app for two days is handled by arithmetic). A loss spends one; a win does not.
+- **Progression** — first clear pays the level's potions/coins and unlocks the next level; replays pay
+  nothing but are recorded (`plays`, `bestMovesLeft`, replay hash).
+- **Districts** — `Assets/Content/Resources/meta/ch01-districts.json`: 3 districts, 12 tasks, 685
+  potions to build everything, one chest each. Press **T** in play mode: buy tasks one at a time or
+  all at once ("Do it"), then open the chest when the district is built.
+- **Autosave** — every state change writes immediately; the save is small enough that debouncing
+  would add risk for no gain.
+
+```bash
+python3 tools/content/check_meta.py     # districts/tasks/chests, no Unity needed
+```
 
 ## Tests
 
@@ -75,8 +99,8 @@ goals; the board itself is generated from a seed, which is what makes replays ve
 
 - `Shazdeh.Core` has `noEngineReferences: true`. If you need UnityEngine in the engine, the engine is
   wrong.
-- No screen reads or writes currency; the wallet is the server's (M1). The client animates numbers it
-  was given.
+- Currency changes go through `Shazdeh.Core.Wallet` only. When purchases arrive the server mirrors
+  those rules (`replica/architecture.md`); it does not replace them.
 - No hard-coded colour, font size or duration: everything comes from `Tokens.gen.cs`, generated from
   `replica/design/tokens.json` by `replica/design/gen_tokens.py`. CI fails if the two drift.
 - Art is ours: Persian-royal direction, no traced or recoloured assets from the original.

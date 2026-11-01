@@ -100,6 +100,30 @@ jobs:
           python3 tools/levels/gen_levels.py
           git diff --exit-code -- client/Assets/Content/Resources/levels
 
+      # The meta layer (districts, tasks, chests) is content too, and it is validated with the same
+      # rules Shazdeh.Content.DistrictParser.Validate enforces on device.
+      - name: validate chapter meta
+        run: python3 tools/content/check_meta.py
+
+  # C# cannot be compiled here without a Unity licence, but it can be read. The grammar check catches
+  # the syntax error a reviewer's eye misses; the static member check catches the member a rename left
+  # behind. Neither replaces Unity's compiler — the EditMode suite in unity.yml does that.
+  csharp:
+    name: c# lint (no unity)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: install grammar
+        run: pip install -r tools/csharp/requirements.txt
+
+      - name: parse + static member check
+        run: python3 tools/csharp/lint.py
+
   # Placeholder that wakes up when the API exists. Keeps the pipeline honest from day one.
   server:
     name: api tests

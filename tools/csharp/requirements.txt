@@ -1,0 +1,3 @@
+# Grammar-only C# lint for CI. Pinned: a grammar bump can change what counts as a syntax error.
+tree-sitter==0.26.0
+tree-sitter-c-sharp==0.23.5

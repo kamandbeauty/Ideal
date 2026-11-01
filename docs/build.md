@@ -56,14 +56,22 @@ psql -v ON_ERROR_STOP=1 -f replica/db/smoke.sql
 # levels: regenerate + validate against the same rules the C# validator enforces
 python3 tools/levels/gen_levels.py --check
 
+# chapter meta: districts, tasks, chests (mirrors DistrictParser.Validate)
+python3 tools/content/check_meta.py
+
+# C#: parse every file and check static member access (needs tree-sitter, see requirements.txt)
+pip install -r tools/csharp/requirements.txt
+python3 tools/csharp/lint.py
+
 # design tokens: WCAG + generated C# in sync
 python3 .claude/skills/replica-design/contrast.py replica/design/tokens.json
 python3 replica/design/gen_tokens.py && git diff --exit-code -- client/Assets/Game/Generated/Tokens.gen.cs
 ```
 
-The C# itself needs Unity or the .NET SDK. This sandbox has neither, so the engine tests are written
-and reviewed here and executed by CI (or by your editor) — that is the honest status, not a claim that
-they passed.
+Compiling and running the C# needs Unity or the .NET SDK, and this sandbox has neither. So the
+engine tests are written and reviewed here, syntax-checked by `tools/csharp/lint.py`, and executed by
+CI (or by your editor) — that is the honest status, not a claim that they passed. The lint is a
+grammar check plus a shallow static-member check; it is not a type checker.
 
 ## 4. Gates before a build is called good (M0 exit)
 
@@ -74,3 +82,16 @@ they passed.
   (Profiler → GC Alloc: 0 B in `RefreshTiles`/engine calls; the grey box allocates on purpose, the
   real view will not).
 - People who play match-3 say the swap feels right. That gate is not automated and never will be.
+
+## 5. Gates before a build is called good (M1 exit: offline economy)
+
+- A fresh install starts at level 1 with 5 lives, 0 coins, 0 potions, and no network.
+- Losing an attempt costs exactly one life; killing the app mid-refill and reopening it restores
+  lives from `livesUpdatedAtUnix` (no timers, no background job).
+- The first clear of a level pays its `RewardCoins`/`RewardPotions` once, unlocks `number + 1`, and a
+  replay pays nothing.
+- A district task is charged once, "Do it" is all-or-nothing, and its chest opens only after every
+  task is built.
+- Deleting `shazdeh-save.json` starts a new save; corrupting it recovers `.bak`; corrupting both
+  starts a new save with both failures logged. The game never crashes on a save.
+- `docs/decisions/0001-offline-first.md` still holds: nothing above needs a server.

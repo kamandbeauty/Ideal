@@ -13,11 +13,11 @@ Power-up combinations,board,must,yes,partial,combo matrix is content in itself �
 Obstacles with layers and health,board,must,yes,partial,box / snow / ivy / potion tube / steam bomb and more — layer damage + goals done; 8 obstacle art sets pending
 Level win reward sequence,progression,must,yes,partial,potions and coins — outcome and reward numbers computed server-side later; screen pending
 Offer 5 extra moves for coins when moves run out,monetisation,must,yes,no,the main coin sink - price rises within a level
-"Lives: max 5, one refills every 30 minutes, lose one on failure",economy,must,yes,no,Kingdom Pass raises the cap to 8 in the original
-Potions as the only currency for building tasks,economy,must,yes,no,the bridge between the puzzle and the meta
-District task list with potion costs,meta,must,yes,no,"plus a """"Do it"""" button for the whole district"
-Spend potions on a task with a build animation,meta,must,yes,no,the payoff moment - needs real art
-District chest on completion,meta,must,yes,no,coins / boosters / cards
+"Lives: max 5, one refills every 30 minutes, lose one on failure",economy,must,yes,partial,Lives + timestamp refill done and unit-tested; Kingdom Pass cap of 8 is out of scope; HUD art pending
+Potions as the only currency for building tasks,economy,must,yes,partial,Wallet + 3 districts x 4 tasks (685 potions) done in the grey box; real screens pending
+District task list with potion costs,meta,must,yes,partial,"ch01-districts.json, validator and ""Do it"" bulk build done; real UI pending"
+Spend potions on a task with a build animation,meta,must,yes,partial,spend is atomic and charged once; build animation and art pending
+District chest on completion,meta,must,yes,partial,"chest opens only when every task is built, pays once; reveal animation pending"
 World map with kingdom progression,meta,must,yes,no,track current kingdom and revisit old ones
 Server-authoritative wallet and attempt validation,systems,must,yes,no,otherwise a modified client prints currency
 Settings: sound / music / haptics / notifications,systems,must,yes,no,

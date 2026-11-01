@@ -254,6 +254,8 @@ Player 1-n Transaction; Team 1-n TeamMember; Event 1-n EventEntry.
 
 See `features.csv` (47 rows). Must: 22, should: 13, could: 5, skip: 7.
 Parity at day 0: `parity.py` reports 0.0 / 100, not shippable, 0 of 22 must-haves.
+After M0 + M1 (engine, 10 levels, offline economy): **18.6 / 100**, 12 features partial, still
+0 of 22 must-haves done — every must-have left needs a real screen, art or a server.
 
 ## Out of scope (cannot or should not be cloned)
 
