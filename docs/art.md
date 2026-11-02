@@ -200,9 +200,13 @@ All 85 assets in the contract exist, at the exact sizes the manifest asks for; `
 Left for a human artist, in the order that would improve the game most:
 
 - **`home_palace`**: the strongest asset in the set and still the weakest thing on the home screen at
-  full size. It wants painted light (a glow behind the gate, dust in the air) that a vector generator
-  cannot honestly fake.
-- **The district plates**: they are stage sets, not paintings. The arches read, the ground does not.
+  full size. A later pass gave it a floor (paving bands and joints under the camera), the arch's light
+  landing on the ground, a column of ripples where the pool answers, and dust around the lamps — all of
+  it stacked blurred masks, not painting. What it still wants is painted light: a soft volumetric glow
+  through the gate, and air that a vector generator cannot honestly fake.
+- **The district plates**: they are stage sets, not paintings — the ground reads now (paving, the
+  frieze's turquoise landing at the foot of the wall, a near-edge vignette), but it is still a wall and
+  a floor at one camera angle. They want a horizon, weather and props with depth.
 - **`reward_chest`**: one closed sprite. The open state is a tint/scale in code today; it wants a
   second drawing.
 - **The result plaques**: they are ornaments, not illustration. A win screen wants the palace lit up

@@ -1223,6 +1223,7 @@ def sky(w, h, horizon=0.66):
     layers = [linear_band(w, h, 0.0, horizon, NIGHT_DEEP, rgba("#26456A"))]
     layers.append(starfield(w, h, 150, seed=3, min_y=0.02, max_y=horizon * 0.80, max_x=0.97, alpha=185))
     moon = crescent(w, h, 0.155, 0.155, 0.040)
+    layers.append(glow(w, h, grow(moon, 30), IVORY, 40, 48))  # the air around it, not the moon itself
     layers.append(glow(w, h, grow(moon, 5), IVORY, 10, 90))
     layers.append(fill_masked(w, h, with_alpha(IVORY, 240), moon))
     return layering(*layers)
@@ -1386,6 +1387,42 @@ def home_palace(w, h, lit=False):
                               ring(ellipse_mask(w, h, (0.395, 0.742, 0.885, 0.842)),
                                    ellipse_mask(w, h, (0.402, 0.748, 0.878, 0.837)))))
 
+    # The courtyard floor under the camera. Flat, low alpha on purpose: the bottom band is the
+    # calmest part of the plate and the level card sits on the left third, so this is texture the eye
+    # reads as stone and not detail it has to sort out.
+    for i in range(4):
+        y = 0.858 + i * 0.034
+        layers.append(fill_masked(w, h, with_alpha(rgba("#223A55"), 26 + i * 7),
+                                  polygon_mask(w, h, [(0.0, y), (1.0, y), (1.0, y + 0.005), (0.0, y + 0.005)])))
+    joints = random.Random(0x51AD)
+    for _ in range(30):
+        jx = joints.uniform(0.02, 0.98)
+        jy = joints.uniform(0.862, 0.992)
+        jw = joints.uniform(0.006, 0.016)
+        layers.append(fill_masked(w, h, with_alpha(rgba("#08131F"), joints.randint(45, 85)),
+                                  polygon_mask(w, h, [(jx, jy), (jx + jw, jy), (jx + jw, jy + 0.004), (jx, jy + 0.004)])))
+
+    # the light in the arch lands on the ground in front of it, and the pool answers with one streak
+    apron = ellipse_mask(w, h, (0.540, 0.668, 0.740, 0.712))
+    layers.append(glow(w, h, apron, GOLD_LIGHT, 16, 70))
+    # The reflection is drawn the way vector landscapes draw water: a column of flattened ripples
+    # under the arch, each one smaller and fainter than the last. A single blurred polygon reads as a
+    # stain on the water rather than as light in it.
+    water = ellipse_mask(w, h, (0.410, 0.752, 0.870, 0.832))
+    warm_water = rgba("#F2DFB4")
+    for y, half, alpha in ((0.762, 0.048, 74), (0.779, 0.039, 58), (0.795, 0.030, 44),
+                           (0.810, 0.021, 30), (0.822, 0.013, 18)):
+        ripple = blur(clip(ellipse_mask(w, h, (0.635 - half, y - 0.004, 0.635 + half, y + 0.004)), water), 1.2)
+        layers.append(fill_masked(w, h, with_alpha(warm_water, alpha), ripple))
+
+    # dust where the lamps are: nine motes, not a fog
+    motes = random.Random(0x0D05)
+    for _ in range(9):
+        mx, my = motes.uniform(0.470, 0.800), motes.uniform(0.520, 0.670)
+        r = motes.uniform(0.0016, 0.0032)
+        layers.append(fill_masked(w, h, with_alpha(IVORY, motes.randint(28, 62)),
+                                  ellipse_mask(w, h, (mx - r, my - r, mx + r, my + r))))
+
     # cypresses at the edges only: the left third stays calm for the level card
     for tx, th, tw in [(0.075, 0.145, 0.030), (0.115, 0.115, 0.024), (0.955, 0.130, 0.028)]:
         layers.append(cypress(w, h, tx, 0.672, th, tw, rgba(PALETTE["success"])))
@@ -1441,6 +1478,10 @@ def district_plate(w, h, asset_id, lit=False):
     wall_light, wall_dark = rgba("#2A4867"), rgba("#152740")
     ground = polygon_mask(w, h, [(0.0, 0.560), (1.0, 0.560), (1.0, 1.0), (0.0, 1.0)])
     layers.append(gradient_masked(w, h, rgba("#22384F"), rgba("#101C2C"), ground))
+    # the frieze's turquoise lands on the paving at the foot of the wall: one cheap cue that the
+    # ground is in the same light as the building, which is what a stage set is missing
+    layers.append(fill_masked(w, h, with_alpha(rgba(PALETTE["accent"]), 30),
+                              polygon_mask(w, h, [(0.03, 0.585), (0.97, 0.585), (0.97, 0.602), (0.03, 0.602)])))
 
     wall = polygon_mask(w, h, [(0.03, 0.330), (0.97, 0.330), (0.97, 0.585), (0.03, 0.585)])
     layers.append(gradient_masked(w, h, wall_light, wall_dark, wall))
@@ -1457,12 +1498,21 @@ def district_plate(w, h, asset_id, lit=False):
         nx = 0.13 + i * 0.185
         niche = polygon_mask(w, h, arch_points(nx, 0.560, 0.105, 0.150, 0.62))
         if lit:
-            # the restored wall: the niches stay recesses, with a lamp burning inside them. A flat
-            # gold arch here read as a hanging bell, which is exactly what the first draft looked like.
-            layers.append(fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.45), 240), niche))
-            layers.append(masked(glow(w, h, ellipse_mask(w, h, (nx - 0.042, 0.428, nx + 0.042, 0.522)),
-                                      GOLD_LIGHT, 9, 175), niche))
-            layers.append(glow(w, h, niche, GOLD_MID, 6, 42))
+            # A niche is a recess first and a lamp second. Filling the whole arch with glow read as a
+            # brown blob with a bright middle — what a hanging bell looks like, not a doorway with a
+            # light in it. So: dark recess, one cord, one small bulb, and the light where it lands.
+            layers.append(gradient_masked(w, h, with_alpha(shade(wall_dark, -0.30), 246),
+                                         with_alpha(shade(wall_dark, -0.58), 252), niche))
+            cord = polygon_mask(w, h, [(nx - 0.0016, 0.412), (nx + 0.0016, 0.412),
+                                       (nx + 0.0016, 0.448), (nx - 0.0016, 0.448)])
+            layers.append(fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.25), 225), cord))
+            bulb = ellipse_mask(w, h, (nx - 0.012, 0.446, nx + 0.012, 0.470))
+            layers.append(glow(w, h, bulb, GOLD_LIGHT, 7, 195))
+            layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 245), bulb))
+            layers.append(fill_masked(w, h, with_alpha(IVORY, 235),
+                                      ellipse_mask(w, h, (nx - 0.005, 0.450, nx + 0.005, 0.464))))
+            layers.append(masked(glow(w, h, ellipse_mask(w, h, (nx - 0.052, 0.583, nx + 0.052, 0.625)),
+                                      GOLD_LIGHT, 9, 66), ground))
         else:
             layers.append(fill_masked(w, h, with_alpha(shade(wall_dark, -0.20), 210), niche))
         layers.append(fill_masked(w, h, with_alpha(wall_light, 120), ring(grow(niche, 1.6), niche)))
@@ -1489,8 +1539,12 @@ def district_plate(w, h, asset_id, lit=False):
                                        polygon_mask(w, h, regular_polygon(0.66, 0.815, 0.158, 0.068, 8, math.pi / 8)))))
         layers.append(fill_masked(w, h, with_alpha(shade(WATER, -0.45), 235),
                                   polygon_mask(w, h, regular_polygon(0.66, 0.815, 0.150, 0.062, 8, math.pi / 8))))
-        layers.append(fill_masked(w, h, with_alpha(shade(STONE_DARK, -0.70), 200),
-                                  polygon_mask(w, h, regular_polygon(0.66, 0.815, 0.090, 0.035, 8, math.pi / 8))))
+        layers.append(fill_masked(w, h, with_alpha(shade(WATER, -0.30), 235),
+                                  polygon_mask(w, h, regular_polygon(0.66, 0.815, 0.128, 0.052, 8, math.pi / 8))))
+        layers.append(fill_masked(w, h, with_alpha(shade(WATER, -0.55), 200),
+                                  polygon_mask(w, h, regular_polygon(0.66, 0.828, 0.062, 0.024, 8, math.pi / 8))))
+        layers.append(fill_masked(w, h, with_alpha(IVORY, 46),
+                                  polygon_mask(w, h, regular_polygon(0.625, 0.798, 0.042, 0.012, 8, math.pi / 8))))
         for sx in (0.17, 0.30):
             stub = polygon_mask(w, h, [(sx, 0.610), (sx + 0.036, 0.610), (sx + 0.036, 0.740), (sx, 0.740)])
             layers.append(soft_shadow(w, h, stub, (6, 4), 5, 100))
@@ -1550,11 +1604,19 @@ def district_plate(w, h, asset_id, lit=False):
                                       polygon_mask(w, h, [(rx, ry), (rx + rw, ry - rh * 0.6),
                                                           (rx + rw, ry), (rx, ry + rh * 0.5)])))
 
+    layers.append(vfade(w, h, 0.900, 1.0, NIGHT_DEEP, 0, 120))
+
     if lit:
         # Warm light on the ground, not a gold floor: radial() and linear() both paint at full alpha
         # whatever colour they are handed, so every soft light here is a blurred mask through glow().
         layers.append(masked(glow(w, h, ellipse_mask(w, h, (0.00, 0.560, 1.00, 1.00)), GOLD_MID, 26, 76),
                              ground))
+        # and the wall itself is warmer than the unlit plate: one wide, weak wash, so "restored"
+        # reads as the same building at a different hour rather than a different building
+        layers.append(masked(glow(w, h, wall, GOLD_MID, 34, 40), wall))
+        layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 120),
+                                  polygon_mask(w, h, [(0.03, 0.583), (0.97, 0.583),
+                                                      (0.97, 0.586), (0.03, 0.586)])))
         for i in range(5):
             nx = 0.13 + i * 0.185
             layers.append(fill_masked(w, h, with_alpha(shade(GOLD_DARK, -0.05), 235),
