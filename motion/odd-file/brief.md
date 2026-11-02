@@ -198,17 +198,30 @@ motion/odd-file/
   exports/                deliverables
 ```
 
+### Stacking order (do not break this)
+
+Photography sits at the bottom, then grade, then scrim, then glow, and **all type
+on top**. Absolute-positioned plates paint above static in-flow text, so the type
+layer is lifted with `position: relative; z-index: 3`. If a kicker, rule or
+footnote ever looks greyed out, this rule is what broke.
+
 ### Commands
 
 ```bash
 npm run odd-file:audio    # timeline + mix (after VO clips exist)
-npm run odd-file:srt      # subtitles/ep-001.srt, generated from timeline.js
+npm run odd-file:srt      # subtitles/ep-00X.srt, generated from timeline.js
 npm run odd-file:sample   # 10 review stills
 npm run odd-file:render   # 1080p + 4K MP4 with audio
 ```
 
 ### Shipped episodes
 
-| File | Episode | Runtime | Package |
-| --- | --- | --- | --- |
-| 001 | Your Memory Is Not Real | 28.8 s | `episodes/ep-001/package.md` |
+| File | Episode | Format | Runtime | Package |
+| --- | --- | --- | --- | --- |
+| 001 | Your Memory Is Not Real | 9:16 | 28.8 s | `episodes/ep-001/package.md` |
+| 002 | The Spotlight Effect | **16:9** | 29.0 s | `episodes/ep-002/package.md` |
+
+Set the frame in `content/episode.js` with `format: 'vertical' | 'landscape'`.
+The engine sizes the stage (1080×1920 or 1920×1080), switches the type scale,
+padding, HUD and scrim behaviour, and the renderer writes `file-00X-1080p.mp4`
+plus a 4K master in the same aspect.

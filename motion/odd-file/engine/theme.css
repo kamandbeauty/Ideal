@@ -23,9 +23,10 @@ html, body {
 }
 
 #stage {
+  /* size is set inline by the engine (1080x1920 or 1920x1080) */
   position: relative;
-  width: 1080px;
-  height: 1920px;
+  width: 1920px;
+  height: 1080px;
   overflow: hidden;
   background:
     radial-gradient(120% 70% at 50% 18%, #150b2e 0%, rgba(9, 6, 19, 0) 62%),
@@ -221,7 +222,7 @@ h1.display.xl { font-size: 152px; }
   font-size: 40px;
   line-height: 1.22;
   letter-spacing: -0.01em;
-  color: rgba(244, 242, 249, 0.74);
+  color: rgba(244, 242, 249, 0.86);
   max-width: 780px;
 }
 
@@ -317,4 +318,51 @@ h1.display.xl { font-size: 152px; }
 }
 .scrim.bottom {
   background: linear-gradient(0deg, rgba(4, 4, 10, 0.92) 0%, rgba(4, 4, 10, 0.55) 38%, rgba(4, 4, 10, 0) 72%);
+}
+
+/* ===================== LANDSCAPE 16:9 =====================
+   YouTube horizontal. Same identity, different grammar: the type
+   block sits left of centre, images hold the right two thirds. */
+#stage.landscape .scene {
+  padding: 176px 132px 122px;
+  align-items: flex-start;
+}
+#stage.landscape h1.display { font-size: 104px; letter-spacing: -0.032em; }
+#stage.landscape h1.display.small { font-size: 92px; }
+#stage.landscape h1.display.xl { font-size: 116px; }
+#stage.landscape .serif-line { font-size: 168px; }
+#stage.landscape .figure { font-size: 196px; }
+#stage.landscape .figure-unit { font-size: 30px; margin-top: 16px; }
+#stage.landscape .kicker { font-size: 22px; letter-spacing: 0.26em; margin-bottom: 40px; }
+#stage.landscape .sub { font-size: 32px; max-width: 760px; margin-top: 32px; }
+#stage.landscape .caption-body { font-size: 23px; max-width: 560px; }
+
+#stage.landscape #hud { padding: 46px 118px; font-size: 21px; }
+#stage.landscape #hud-bottom {
+  left: 118px;
+  right: 118px;
+  bottom: 44px;
+  gap: 22px;
+}
+#stage.landscape #hud-count { font-size: 20px; }
+
+/* landscape plates: keep the right side photographic, darken the left for type */
+#stage.landscape .scrim {
+  background: linear-gradient(90deg, rgba(4, 4, 10, 0.94) 0%, rgba(4, 4, 10, 0.72) 34%, rgba(4, 4, 10, 0.18) 62%, rgba(4, 4, 10, 0) 100%);
+}
+#stage.landscape .scrim.bottom {
+  background: linear-gradient(0deg, rgba(4, 4, 10, 0.96) 0%, rgba(4, 4, 10, 0.6) 30%, rgba(4, 4, 10, 0.2) 58%, rgba(4, 4, 10, 0) 80%);
+}
+
+/* ---------- stacking order ----------
+   Plates and scrims are absolutely positioned, so they would otherwise paint
+   over static in-flow text (kickers, rules, footnotes). Fix the order once:
+   photography at the bottom, glow above it, all type on top. */
+.plate { z-index: 0; }
+.plate-grade { z-index: 1; }
+.scrim { z-index: 2; }
+.glowpool { z-index: 1; }
+.scene > :not(.plate):not(.plate-grade):not(.scrim):not(.glowpool) {
+  position: relative;
+  z-index: 3;
 }

@@ -15,6 +15,10 @@ import { EPISODE } from '../content/episode.js';
 import { TIMELINE } from '../timeline.js';
 
 const FPS = EPISODE.fps || 30;
+const LANDSCAPE = (EPISODE.format || 'vertical') === 'landscape';
+const W = LANDSCAPE ? 1920 : 1080;
+const H = LANDSCAPE ? 1080 : 1920;
+const SAFE = LANDSCAPE ? 132 : 88;
 const clamp = (v, a = 0, b = 1) => (v < a ? a : v > b ? b : v);
 const seg = (t, a, b) => clamp((t - a) / (b - a || 1e-6));
 const easeOutExpo = (t) => (t >= 1 ? 1 : 1 - Math.pow(2, -10 * t));
@@ -48,6 +52,9 @@ const FRAMES = Math.round(TOTAL * FPS);
 /* ------------------------------------------------------------- DOM set-up */
 
 const stage = document.getElementById('stage');
+stage.style.width = `${W}px`;
+stage.style.height = `${H}px`;
+stage.classList.toggle('landscape', LANDSCAPE);
 const camera = document.getElementById('camera');
 const sceneRoot = document.getElementById('scene-root');
 const hudTop = document.getElementById('hud-top');
@@ -59,6 +66,7 @@ const railFill = document.getElementById('rail-fill');
 const sweep = document.getElementById('sweep');
 
 if (EPISODE.code) hudFile.textContent = EPISODE.code;
+document.getElementById('hud-tag').textContent = LANDSCAPE ? '16:9' : '9:16';
 if (EPISODE.category) hudCat.textContent = EPISODE.category;
 
 /* ------------------------------------------------------------- primitives */
@@ -124,7 +132,7 @@ function buildLines(host, lines, { tag = 'h1', className = 'display' } = {}) {
  * Shrinks a heading just enough that no line overflows the safe area.
  * Runs synchronously after layout, before the first capture.
  */
-function fitHeading(heading, maxWidth = (1080 - 88 * 2) * 0.985) {
+function fitHeading(heading, maxWidth = (W - SAFE * 2) * 0.985) {
   const lines = [...heading.querySelectorAll('.line')];
   if (!lines.length) return;
   let ratio = 1;
@@ -150,7 +158,7 @@ function revealWords(words, t, { stagger = 0.055, dur = 0.62, lead = 0.06, mark 
     const lift = accent ? focus * -3 : 0;
     const grow = accent ? 1 + focus * 0.014 : 1;
     el.style.transform = `translate3d(0, ${(1 - local) * 118 + lift}px, 0) scale(${grow})`;
-    el.style.opacity = local > 0.02 ? String(accent ? 1 : 1 - focus * 0.4) : '0';
+    el.style.opacity = local > 0.02 ? String(accent ? 1 : 1 - focus * 0.26) : '0';
     if (mk) mk.style.width = `${easeOutExpo(seg(t, markStart, markStart + 0.45)) * 100}%`;
   });
 }
@@ -205,7 +213,9 @@ const SCENES = {
   code(beat) {
     const el = makeEl('div', 'scene');
     el.style.justifyContent = 'center';
-    const glow = addGlow(el, 1250);
+    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.8, grade: 0.75 });
+    if (plate) addScrim(el);
+    const glow = plate ? null : addGlow(el, 1250);
 
     const kicker = makeEl('div', 'kicker', beat.kicker || 'THE ODD FILE');
     el.appendChild(kicker);
@@ -232,8 +242,11 @@ const SCENES = {
         revealWords(words, t, { stagger: 0.06, dur: 0.7, lead: 0.1 });
         kicker.style.opacity = String(easeOutCubic(seg(t, 0, 0.4)));
         rule.style.width = `${easeOutExpo(seg(t, 0.35, 1.15)) * 100}%`;
-        glow.style.opacity = String(easeInOutCubic(seg(t, 0, 0.9)));
-        glow.style.transform = `scale(${0.86 + 0.14 * easeOutCubic(seg(t, 0, 1.4))})`;
+        if (glow) {
+          glow.style.opacity = String(easeInOutCubic(seg(t, 0, 0.9)));
+          glow.style.transform = `scale(${0.86 + 0.14 * easeOutCubic(seg(t, 0, 1.4))})`;
+        }
+        if (plate) plate.style.transform = `scale(${1.06 - 0.05 * clamp(t / 3)})`;
       },
     };
   },
@@ -331,7 +344,9 @@ const SCENES = {
   figure(beat) {
     const el = makeEl('div', 'scene');
     el.style.justifyContent = 'center';
-    const glow = addGlow(el, 1150);
+    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.7, grade: 0.72 });
+    if (plate) addScrim(el);
+    const glow = plate ? null : addGlow(el, 1150);
 
     if (beat.kicker) el.appendChild(makeEl('div', 'kicker', beat.kicker));
 
@@ -362,7 +377,8 @@ const SCENES = {
         fig.style.opacity = String(clamp(seg(t, 0, 0.25)));
         fig.style.transform = `translate3d(0,${(1 - easeOutExpo(seg(t, 0, 0.5))) * 30}px,0)`;
         unit.style.opacity = String(easeOutCubic(seg(t, 0.45, 1)));
-        glow.style.opacity = String(0.4 + 0.35 * p);
+        if (glow) glow.style.opacity = String(0.4 + 0.35 * p);
+        if (plate) plate.style.transform = `scale(${1.05 - 0.04 * p}) translate3d(${p * -14}px,0,0)`;
         if (subEl) subEl.style.opacity = String(easeOutCubic(seg(t, 0.7, 1.3)));
       },
     };
@@ -373,7 +389,12 @@ const SCENES = {
     const el = makeEl('div', 'scene');
     el.style.justifyContent = 'flex-end';
     const plate = addPlate(el, beat.plate, { opacity: 1, grade: 0.72 });
-    if (plate) { plate.style.opacity = '1'; addScrim(el, 'bottom'); }
+    if (plate) {
+      plate.style.opacity = '1';
+      // landscape needs both: left for the type column, bottom for the caption edge
+      addScrim(el);
+      addScrim(el, 'bottom');
+    }
 
     if (beat.kicker) {
       const k = makeEl('div', 'kicker', beat.kicker);
@@ -533,8 +554,8 @@ function driftGrain(frame) {
 window.__MOTION__ = {
   fps: FPS,
   frames: FRAMES,
-  width: 1080,
-  height: 1920,
+  width: W,
+  height: H,
   ready: false,
   duration: TOTAL,
   seek(frame) {

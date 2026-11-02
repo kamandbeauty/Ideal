@@ -74,7 +74,8 @@ for (const beat of EPISODE.beats) {
 
 const outDir = join(ODDFILE, 'subtitles');
 mkdirSync(outDir, { recursive: true });
-const out = join(outDir, 'ep-001.srt');
+const slug = `ep-${String(EPISODE.code).replace(/[^0-9]/g, '').padStart(3, '0')}`;
+const out = join(outDir, `${slug}.srt`);
 writeFileSync(out, blocks.join('\n'));
 console.log(`${out} — ${blocks.length} captions, ${TIMELINE.total.toFixed(2)} s`);
 void font;

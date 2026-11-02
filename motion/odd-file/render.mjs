@@ -23,6 +23,8 @@ const limitIdx = argv.indexOf('--limit');
 const limit = limitIdx !== -1 ? Number(argv[limitIdx + 1]) : null;
 
 const FRAME_DIR = '/tmp/odd-file-frames';
+const { EPISODE } = await import(pathToFileURL(join(HERE, 'content', 'episode.js')).href);
+const SLUG = `file-${String(EPISODE.code || '000').replace(/[^0-9]/g, '').padStart(3, '0')}`;
 const EXPORTS = join(HERE, 'exports');
 const STILLS = join(HERE, 'stills');
 const AUDIO = join(HERE, 'audio', 'mix.wav');
@@ -54,7 +56,7 @@ async function browser() {
 }
 
 async function openScene(b) {
-  const context = await b.newContext({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
+  const context = await b.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
   const page = await context.newPage();
   page.on('pageerror', (e) => console.error(`[page error] ${e.message}`));
   page.on('console', (m) => {
@@ -66,6 +68,8 @@ async function openScene(b) {
     const m = window.__MOTION__;
     return { fps: m.fps, frames: m.frames, width: m.width, height: m.height, duration: m.duration };
   });
+  // the scene declares its own format; resize the page to match
+  await page.setViewportSize({ width: meta.width, height: meta.height });
   const cdp = await context.newCDPSession(page);
   await cdp.send('Emulation.setDeviceMetricsOverride', {
     width: meta.width,
@@ -128,8 +132,9 @@ async function fullRender(b) {
 
   const ff = ffmpegPath();
   const input = join(FRAME_DIR, 'f_%05d.jpg');
-  const small = join(EXPORTS, 'odd-file-1080p.mp4');
-  const big = join(EXPORTS, 'odd-file-4k.mp4');
+  const small = join(EXPORTS, `${SLUG}-1080p.mp4`);
+  const big = join(EXPORTS, `${SLUG}-4k.mp4`);
+  const upscale = meta.width > meta.height ? 'scale=3840:2160:flags=lanczos' : 'scale=2160:3840:flags=lanczos';
   const audioArgs = useAudio ? ['-i', AUDIO] : [];
   const common = [
     '-c:v', 'libx264', '-preset', 'slow', '-pix_fmt', 'yuv420p',
@@ -137,17 +142,17 @@ async function fullRender(b) {
     ...(useAudio ? ['-c:a', 'aac', '-b:a', '192k', '-shortest'] : []),
   ];
 
-  console.log('Encoding 1080x1920…');
+  console.log(`Encoding ${meta.width}x${meta.height}…`);
   let r = spawnSync(ff, [
     '-y', '-framerate', String(meta.fps), '-i', input, ...audioArgs,
     '-crf', '18', ...common, small,
   ], { stdio: 'inherit' });
   if (r.status !== 0) { console.error('1080p encode failed; frames kept in', FRAME_DIR); process.exit(r.status || 1); }
 
-  console.log('Encoding 2160x3840…');
+  console.log(`Encoding 4K (${meta.width > meta.height ? '3840x2160' : '2160x3840'})…`);
   r = spawnSync(ff, [
     '-y', '-framerate', String(meta.fps), '-i', input, ...audioArgs,
-    '-vf', 'scale=2160:3840:flags=lanczos,unsharp=5:5:0.4:5:5:0.0',
+    '-vf', `${upscale},unsharp=5:5:0.4:5:5:0.0`,
     '-crf', '23', ...common, big,
   ], { stdio: 'inherit' });
   if (r.status !== 0) { console.error('4K encode failed; frames kept in', FRAME_DIR); process.exit(r.status || 1); }

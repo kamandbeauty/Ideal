@@ -19,7 +19,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../../..');
 const ODDFILE = resolve(HERE, '..');
-const VO = join(HERE, 'vo');
+const VO_ROOT = join(HERE, 'vo');
+// narration is scoped per file so episodes never overwrite each other
+const { EPISODE: EP } = await import(pathToFileURL(join(ODDFILE, 'content', 'episode.js')).href);
+const EP_NUM = String(EP.code || '').replace(/[^0-9]/g, '').padStart(3, '0');
+const VO = existsSync(join(VO_ROOT, EP_NUM)) ? join(VO_ROOT, EP_NUM) : VO_ROOT;
 const FF = join(ROOT, 'node_modules', '@ffmpeg-installer', 'linux-x64', 'ffmpeg');
 
 const LEAD = 0.3;      // silence before the first word

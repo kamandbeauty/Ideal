@@ -28,6 +28,12 @@ Only one file changes per episode: `motion/odd-file/content/episode.js`. Beats
 cut impacts, sidechain-ducked, −14 LUFS). Picture duration is derived from that
 timeline, so re-recording a line re-cuts the film automatically.
 
+Frames are per-episode: `format: 'vertical' | 'landscape'` in
+`motion/odd-file/content/episode.js` switches the engine between 9:16 Shorts and
+16:9 YouTube posts (stage size, type scale, padding, HUD, scrims), and the
+renderer writes `exports/file-00X-1080p.mp4` + a 4K master. Narration is scoped
+to `audio/vo/<file-number>/bXX.mp3` so episodes never overwrite each other.
+
 ```bash
 npm run odd-file:audio     # timeline.js + mix.wav (needs the VO clips)
 npm run odd-file:sample    # review stills

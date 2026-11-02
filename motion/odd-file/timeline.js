@@ -2,55 +2,55 @@
 // Beat starts/durations come from the narration clips, so picture and word
 // are locked together. Re-run after re-recording any VO.
 export const TIMELINE = {
-  "total": 28.82,
+  "total": 28.97,
   "beats": [
     {
       "id": "b01",
       "start": 0.3,
-      "dur": 2.74,
-      "voDur": 2.32
+      "dur": 4.04,
+      "voDur": 3.62
     },
     {
       "id": "b02",
-      "start": 3.04,
-      "dur": 4.33,
-      "voDur": 3.91
+      "start": 4.34,
+      "dur": 2.78,
+      "voDur": 2.36
     },
     {
       "id": "b03",
-      "start": 7.37,
-      "dur": 2.46,
-      "voDur": 2.04
+      "start": 7.12,
+      "dur": 2.89,
+      "voDur": 2.47
     },
     {
       "id": "b04",
-      "start": 9.83,
-      "dur": 2.48,
-      "voDur": 2.06
+      "start": 10.01,
+      "dur": 2.98,
+      "voDur": 2.56
     },
     {
       "id": "b05",
-      "start": 12.31,
-      "dur": 4.83,
-      "voDur": 4.41
+      "start": 12.99,
+      "dur": 4.11,
+      "voDur": 3.69
     },
     {
       "id": "b06",
-      "start": 17.14,
-      "dur": 4.6,
-      "voDur": 4.18
+      "start": 17.1,
+      "dur": 4.4,
+      "voDur": 3.98
     },
     {
       "id": "b07",
-      "start": 21.74,
-      "dur": 3.29,
-      "voDur": 2.87
+      "start": 21.5,
+      "dur": 3.82,
+      "voDur": 3.4
     },
     {
       "id": "b08",
-      "start": 25.03,
-      "dur": 3.79,
-      "voDur": 3.37
+      "start": 25.32,
+      "dur": 3.65,
+      "voDur": 3.23
     }
   ]
 };
