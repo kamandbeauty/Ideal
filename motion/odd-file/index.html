@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <title>THE ODD FILE</title>
+    <link rel="stylesheet" href="engine/fonts.css" />
+    <link rel="stylesheet" href="engine/theme.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <div id="camera">
+        <div id="scene-root"></div>
+        <div class="sweep" id="sweep"></div>
+        <div class="scan"></div>
+        <div class="grain"></div>
+        <div class="vignette"></div>
+      </div>
+
+      <div id="hud" aria-hidden="true">
+        <div id="hud-top">
+          <div class="hud-left">
+            <span class="hud-mark"></span>
+            <span class="hud-file" id="hud-file">FILE 001</span>
+            <span class="hud-cat" id="hud-cat">THE ODD FILE</span>
+          </div>
+          <span id="hud-tag">9:16</span>
+        </div>
+        <div id="hud-bottom">
+          <span id="hud-count">01 / 04</span>
+          <div id="rail"><div id="rail-fill"></div></div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="engine/motion.js"></script>
+  </body>
+</html>

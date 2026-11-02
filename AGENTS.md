@@ -14,7 +14,33 @@ Code and other clients that read `.claude/skills/`.
 When a request matches, read `.agents/skills/motion-graphics/SKILL.md` in full
 before writing code, and load only the `references/*.md` files the task needs.
 
-## Active campaign: `kamand vox` (37 s Vox paper-collage scroll)
+## Channel system: `odd-file` (THE ODD FILE)
+
+`motion/odd-file/` is a separate, English-language brand: a premium faceless
+YouTube Shorts channel (9:16, 25–35 s, dark cinema + editorial type + electric
+purple). Read `motion/odd-file/brief.md` first — it is the brand bible, the scene
+vocabulary and the QC checklist.
+
+Only one file changes per episode: `motion/odd-file/content/episode.js`. Beats
+(`b01…`) map 1:1 to narration clips in `motion/odd-file/audio/vo/bXX.mp3`;
+`npm run odd-file:audio` trims and peak-normalises them, then writes
+`timeline.js` (beat starts/durations) and `mix.wav` (VO + synthesised drone bed +
+cut impacts, sidechain-ducked, −14 LUFS). Picture duration is derived from that
+timeline, so re-recording a line re-cuts the film automatically.
+
+```bash
+npm run odd-file:audio     # timeline.js + mix.wav (needs the VO clips)
+npm run odd-file:sample    # review stills
+npm run odd-file:render    # 1080x1920 + 2160x3840 MP4 with audio
+```
+
+Engine rules: every frame is `window.__MOTION__.seek(frame)`; no CSS animations,
+no Math.random, no network fonts (faces are bundled from `@fontsource*`). Scene
+types are `code`, `statement`, `serif`, `figure`, `plate`, `tagline`; use at least
+four per episode and never repeat one twice in a row. Purple is an event, not a
+wash — one highlighted phrase per scene.
+
+## Prior campaign: `kamand vox` (37 s Vox paper-collage scroll)
 
 The newest film lives in `motion/kamand-vox/` — read its `brief.md` first.
 Only `assets/product-open.png` was carried over; every other visual, VO clip,
