@@ -206,7 +206,24 @@ function addGlow(sceneEl, size = 1100) {
   return glow;
 }
 
+
+/* Line icons for the call-to-action card. Drawn inline so the render never
+   depends on a colour-emoji font being installed in headless Chromium. */
+const ICONS = {
+  like:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" ' +
+    'stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/>' +
+    '<path d="M7 22h9.6a3 3 0 0 0 2.94-2.4l1.4-6.6a3 3 0 0 0-2.94-3.6H14V5a3 3 0 0 0-3-3l-4 9z"/></svg>',
+  bell:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" ' +
+    'stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>' +
+    '<path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+};
+
 /* ---------------------------------------------------------------- scenes */
+
 
 const SCENES = {
   /* Cold open: the "file" is opened. Editorial title card. */
@@ -434,6 +451,52 @@ const SCENES = {
           capEl.style.opacity = String(l);
           capEl.style.transform = `translate3d(0,${(1 - l) * 22}px,0)`;
         }
+      },
+    };
+  },
+
+  /* Call to action: like + subscribe rows, one icon each. */
+  cta(beat) {
+    const el = makeEl('div', 'scene');
+    el.style.justifyContent = 'center';
+    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.5, grade: 0.72 });
+    if (plate) addScrim(el);
+    const glow = addGlow(el, 1300);
+
+    if (beat.kicker) {
+      const k = makeEl('div', 'kicker', beat.kicker);
+      el.appendChild(k);
+      var kickerEl = k;
+    }
+
+    const host = makeEl('div', 'cta');
+    el.appendChild(host);
+    const rows = (beat.items || []).map((item) => {
+      const row = makeEl('div', 'cta-row');
+      const badge = makeEl('div', 'cta-badge', ICONS[item.icon] || '');
+      const label = makeEl('div', 'cta-label', item.label);
+      row.appendChild(badge);
+      row.appendChild(label);
+      host.appendChild(row);
+      return { row, badge, at: item.at || 0 };
+    });
+
+    return {
+      el,
+      update(t) {
+        if (kickerEl) kickerEl.style.opacity = String(easeOutCubic(seg(t, 0, 0.35)));
+        rows.forEach((r) => {
+          const p = easeOutCubic(seg(t, r.at, r.at + 0.7));
+          r.row.style.opacity = String(p);
+          r.row.style.transform = `translate3d(0,${(1 - p) * 30}px,0)`;
+          const pulse = 1 + 0.03 * Math.sin(Math.max(0, t - r.at) * 2.1);
+          r.badge.style.transform = `scale(${(0.9 + 0.1 * p) * pulse})`;
+        });
+        if (glow) {
+          glow.style.opacity = String(0.4 + 0.2 * Math.sin(clamp(t / 7) * Math.PI));
+          glow.style.transform = `scale(${1 + 0.05 * clamp(t / 7)})`;
+        }
+        if (plate) plate.style.transform = `scale(${1.05 - 0.04 * clamp(t / 9)})`;
       },
     };
   },

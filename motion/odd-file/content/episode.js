@@ -20,8 +20,11 @@ export const EPISODE = {
   audio: {
     ambienceTo: 26,
     hole: [5.0, 5.44],
-    duckFromEnd: 18,
-    signatureFromEnd: 2.9,
+    duckFromEnd: 25,
+    signatureFromEnd: 5.5,
+    // c10 finishes on "…our minds never stop listening."; the brand line is
+    // re-recorded as its own outro clip, so the CTA can sit before it.
+    clipCuts: { c10: 24.31 },
   },
 
   beats: [
@@ -265,12 +268,26 @@ export const EPISODE = {
       plate: 'assets/ep03/web/s24.jpg', plateOpacity: 0.8,
       text: ['Our minds', 'never stop', '*listening.*'],
     },
+    /* ---------------- OUTRO — CTA, then the fixed brand card ---------------- */
     {
       id: 'b25',
-      clip: 'c10', from: 24.31, to: 26.67,
+      clip: 'c11', from: 0, to: 9.04,
+      vo:
+        "If you enjoyed this video, I'd really appreciate it if you hit the like button " +
+        'and subscribed to the channel. Thanks for watching, and see you in the next file.',
+      scene: 'cta',
+      kicker: 'ONE LAST THING',
+      plate: 'assets/ep03/web/s25.jpg', plateOpacity: 0.5,
+      items: [
+        { icon: 'like', label: 'LIKE THIS VIDEO', at: 0.5 },
+        { icon: 'bell', label: 'SUBSCRIBE TO THE ODD FILE', at: 2.6 },
+      ],
+    },
+    {
+      id: 'b26',
+      clip: 'c12', from: 0, to: 3.84,
       vo: 'THE ODD FILE. Not everything is what it seems.',
       scene: 'tagline',
-      plate: 'assets/ep03/web/s25.jpg', plateOpacity: 0.75,
       text: ['Not everything', 'is what it *seems.*'],
       brand: 'THE ODD FILE',
       handle: 'NOT EVERYTHING IS WHAT IT SEEMS',

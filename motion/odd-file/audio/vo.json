@@ -1,5 +1,5 @@
 {
-  "total": 170.43,
+  "total": 182.75,
   "clips": [
     {
       "id": "c01",
@@ -49,7 +49,17 @@
     {
       "id": "c10",
       "file": "/home/user/Ideal/motion/odd-file/audio/vo/003/trim/c10.wav",
-      "dur": 26.33
+      "dur": 24.24
+    },
+    {
+      "id": "c11",
+      "file": "/home/user/Ideal/motion/odd-file/audio/vo/003/trim/c11.wav",
+      "dur": 8.79
+    },
+    {
+      "id": "c12",
+      "file": "/home/user/Ideal/motion/odd-file/audio/vo/003/trim/c12.wav",
+      "dur": 3.52
     }
   ],
   "beats": [
@@ -199,9 +209,15 @@
     },
     {
       "id": "b25",
-      "start": 166.51,
-      "dur": 2.36,
-      "voDur": 2.24
+      "start": 167.49,
+      "dur": 9.04,
+      "voDur": 8.92
+    },
+    {
+      "id": "b26",
+      "start": 177.33,
+      "dur": 3.84,
+      "voDur": 3.72
     }
   ]
 }

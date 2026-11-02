@@ -2,7 +2,7 @@
 // Clip starts and beat starts come from the narration, so picture and word are
 // locked together. Re-run after re-recording any line.
 export const TIMELINE = {
-  "total": 170.43,
+  "total": 182.75,
   "clips": [
     {
       "id": "c01",
@@ -52,7 +52,17 @@ export const TIMELINE = {
     {
       "id": "c10",
       "start": 142.2,
-      "dur": 26.33
+      "dur": 24.24
+    },
+    {
+      "id": "c11",
+      "start": 167.49,
+      "dur": 8.79
+    },
+    {
+      "id": "c12",
+      "start": 177.33,
+      "dur": 3.52
     }
   ],
   "beats": [
@@ -202,9 +212,15 @@ export const TIMELINE = {
     },
     {
       "id": "b25",
-      "start": 166.51,
-      "dur": 2.36,
-      "voDur": 2.24
+      "start": 167.49,
+      "dur": 9.04,
+      "voDur": 8.92
+    },
+    {
+      "id": "b26",
+      "start": 177.33,
+      "dur": 3.84,
+      "voDur": 3.72
     }
   ]
 };

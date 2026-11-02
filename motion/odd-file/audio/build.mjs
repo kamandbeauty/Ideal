@@ -59,7 +59,7 @@ function peak(file) {
  * Trims dead air at both ends and peak-normalises, so every clip starts exactly
  * on its first phoneme at the same perceived level as every other clip.
  */
-function trim(file, id) {
+function trim(file, id, endAt = null) {
   const raw = join(VO, 'trim', `${id}.raw.wav`);
   const out = join(VO, 'trim', `${id}.wav`);
   const filter =
@@ -67,7 +67,7 @@ function trim(file, id) {
     'areverse,' +
     'silenceremove=start_periods=1:start_threshold=-45dB:start_silence=0.10,' +
     'areverse';
-  execFileSync(FF, ['-y', '-loglevel', 'error', '-i', file, '-af', filter, '-ar', '48000', '-ac', '2', raw], {
+  execFileSync(FF, ['-y', '-loglevel', 'error', '-i', file, ...(endAt ? ['-t', String(endAt)] : []), '-af', filter, '-ar', '48000', '-ac', '2', raw], {
     stdio: ['ignore', 'ignore', 'ignore'],
   });
   const gain = Math.max(-6, Math.min(30, -3 - peak(raw)));
@@ -96,7 +96,7 @@ for (const id of clipIds) {
     missing.push(id);
     continue;
   }
-  const trimmed = trim(file, id);
+  const trimmed = trim(file, id, (EPISODE.audio?.clipCuts || {})[id] ?? null);
   clips.push({ id, file: trimmed, dur: probe(trimmed) });
 }
 if (missing.length) {

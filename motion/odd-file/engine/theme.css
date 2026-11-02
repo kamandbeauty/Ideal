@@ -273,6 +273,40 @@ h1.display.xl { font-size: 152px; }
   will-change: transform, opacity;
 }
 
+/* call-to-action card: icon badge + label, one row per ask */
+.cta { display: flex; flex-direction: column; gap: 34px; }
+.cta-row { display: flex; align-items: center; gap: 34px; }
+.cta-badge {
+  width: 110px;
+  height: 110px;
+  flex: 0 0 auto;
+  border-radius: 28px;
+  border: 2px solid rgba(124, 58, 255, 0.55);
+  background: rgba(124, 58, 255, 0.13);
+  box-shadow: 0 0 46px rgba(124, 58, 255, 0.32), inset 0 0 34px rgba(124, 58, 255, 0.18);
+  color: #e9dcff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+.cta-badge svg { width: 58px; height: 58px; display: block; }
+.cta-label {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 70px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: #f4f2f9;
+  text-shadow: 0 6px 40px rgba(4, 4, 10, 0.85);
+  white-space: nowrap;
+}
+#stage.landscape .cta { gap: 30px; }
+#stage.landscape .cta-badge { width: 104px; height: 104px; border-radius: 26px; }
+#stage.landscape .cta-badge svg { width: 54px; height: 54px; }
+#stage.landscape .cta-label { font-size: 66px; }
+
 /* brand lockup */
 .lockup { margin-top: auto; }
 .lockup-tag {
