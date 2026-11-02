@@ -78,7 +78,11 @@ let crowd = [];           // [{root, def}]
 const subA = { el: $('sub'), text: '', opacity: 1 };
 
 async function build() {
-  const { applyPose, moodPose, puppetMarkup } = await import('./engine/rig.js');
+  const { preloadSprites, spriteGroup, poseSprite, silhouetteGroup, poseSilhouette } = await import('./engine/sprites.js');
+  await preloadSprites();
+
+  // painted sprites exist for these; everything else borrows the closest cast
+  const CAST = { hero: 'hero', man: 'townsman', official: 'official', musician: 'musician' };
 
   const setScene = (i) => {
     const sc = DATA.SCENES[i];
@@ -93,11 +97,11 @@ async function build() {
     const ag = $('actorsG');
     ag.innerHTML = '';
     actors = (sc.actors || []).map((def, k) => {
-      const wrap = document.createElementNS(NS, 'g');
-      wrap.innerHTML = puppetMarkup(def.type, `${i}-${k}`);
-      ag.appendChild(wrap);
-      const root = wrap.querySelector('.pup');
-      return { root, def };
+      const char = CAST[def.type] || 'hero';
+      const root = spriteGroup(char);
+      if (def.dark) root.setAttribute('style', 'filter: brightness(.3) saturate(.6)');
+      ag.appendChild(root);
+      return { root, def, char };
     });
 
     // crowd: distance puppets, drawn behind the cast
@@ -109,18 +113,16 @@ async function build() {
       const f = (k * 0.61803398875) % 1;                 // deterministic spread
       const g = ((k * 0.38196601125) % 1);
       const def = {
-        type: 'ghost',
         x: 0.04 + f * 0.92,
-        y: 0.775 + g * 0.085,
-        scale: 0.36 + g * 0.26,
+        y: 0.742 + g * 0.062,
+        scale: 0.30 + g * 0.20,
         mood: 'dance',
         seed: (f * 7.3 + g * 3.1) % 1,
         energy: 0.55 + g * 0.5,
       };
-      const wrap = document.createElementNS(NS, 'g');
-      wrap.innerHTML = puppetMarkup('ghost', `c${i}-${k}`);
-      cg.appendChild(wrap);
-      crowd.push({ root: wrap.querySelector('.pup'), def });
+      const root = silhouetteGroup(f > 0.62 ? 'townsman' : 'hero');
+      cg.appendChild(root);
+      crowd.push({ root, def });
     }
   };
 
@@ -151,12 +153,12 @@ async function build() {
     const shadowFor = (def) => -1;
 
     for (const a of actors) {
-      const pose = moodPose(a.def.mood, t, a.def.seed ?? 0.3, 1);
       const rootX = a.def.x * 1080 + par;
-      const rootY = a.def.y * 1920;
-      const sc = (a.def.scale ?? 1) * PS;
-      const tr = applyPose(a.root, pose, sc);
-      a.root.setAttribute('transform', `translate(${rootX} ${rootY}) ${tr}${a.def.flip ? ' scale(-1 1)' : ''}`);
+      const scale = a.def.scale ?? 1;
+      // the feet stay on their stone whatever the scale: growing the character
+      // must not slide her off the ground
+      const footY = a.def.y * 1920 + 300;
+      poseSprite(a.root, a.def, t, rootX, footY);
       if (!a.shadow) {
         const el = document.createElementNS(NS, 'ellipse');
         el.setAttribute('fill', 'url(#shadowG)');
@@ -164,17 +166,12 @@ async function build() {
         a.shadow = el;
       }
       a.shadow.setAttribute('cx', String(rootX));
-      a.shadow.setAttribute('cy', String(rootY + 236 * sc));
-      a.shadow.setAttribute('rx', String(120 * sc));
-      a.shadow.setAttribute('ry', String(26 * sc));
+      a.shadow.setAttribute('cy', String(footY - 6 * scale));
+      a.shadow.setAttribute('rx', String(150 * scale));
+      a.shadow.setAttribute('ry', String(24 * scale));
     }
     for (const c of crowd) {
-      const pose = moodPose(c.def.mood, t, c.def.seed, c.def.energy);
-      const rootX = c.def.x * 1080 + par * 1.25;
-      const rootY = c.def.y * 1920;
-      const tr = applyPose(c.root, pose, c.def.scale);
-      c.root.setAttribute('transform', `translate(${rootX} ${rootY}) ${tr}`);
-      c.root.setAttribute('opacity', String(0.46 + 0.18 * c.def.energy));
+      poseSilhouette(c.root, c.def, t, c.def.x * 1080 + par * 1.25, c.def.y * 1920 + 120 * c.def.scale);
     }
 
     const cue = cueAt(t);

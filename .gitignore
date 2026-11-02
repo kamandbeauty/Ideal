@@ -16,6 +16,10 @@ motion/*/*.webm
 motion/*/*.mov
 motion/*/*.gif
 
+# review artefacts: frame stills, loop GIFs, preview slices
+motion/*/stills/
+motion/*/loops/
+
 # Deliverable videos are kept (not generated intermediates)
 !motion/kamand-eyebrow-gel/exports/*.mp4
 !motion/kamand-eye/exports/*.mp4

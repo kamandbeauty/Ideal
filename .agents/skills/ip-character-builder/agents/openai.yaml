@@ -1,0 +1,4 @@
+interface:
+  display_name: "IP Character Builder"
+  short_description: "Create portable IP character packs from user-owned references"
+  default_prompt: "Use $ip-character-builder to turn my character references into a consistent turnaround and portable IP pack."
