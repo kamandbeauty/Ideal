@@ -119,7 +119,9 @@ jobs:
           coverageOptions: "generateAdditionalMetrics;generateTestReferences"
 
       - uses: actions/upload-artifact@v4
-        if: always()
+        # Nothing to upload when the tests never started (no licence, for instance): a second red step
+        # for the same cause makes the first one harder to read.
+        if: always() && steps.tests.outputs.artifactsPath != ''
         with:
           name: unity-test-results
           path: ${{ steps.tests.outputs.artifactsPath }}
