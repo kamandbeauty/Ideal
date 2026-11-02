@@ -112,6 +112,10 @@ namespace Shazdeh.Game
             new Entry("icon_check", 64, 64, "hud", false),
             new Entry("icon_crown", 64, 64, "hud", false),
             new Entry("store_feature", 1024, 500, "brand", false),
+            new Entry("powerup_dynamite_super", 128, 128, "powerup", false),
+            new Entry("powerup_rocket_row_super", 128, 128, "powerup", false),
+            new Entry("powerup_rocket_col_super", 128, 128, "powerup", false),
+            new Entry("powerup_spinner_super", 128, 128, "powerup", false),
         };
 
         static readonly Dictionary<string, Entry> ById = BuildIndex();

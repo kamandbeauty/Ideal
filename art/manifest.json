@@ -896,6 +896,50 @@
       "required": false,
       "description": "The Play Store feature graphic: the lit palace on the night sky, no text.",
       "brief": "Store listings set their own title over it, so the left third stays quiet."
+    },
+    {
+      "id": "powerup_dynamite_super",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Charged dynamite: the same bundle, inside the gold collar.",
+      "brief": "The 3x3 blast. Reads as the plain bundle, smaller, so the pair is never confused."
+    },
+    {
+      "id": "powerup_rocket_row_super",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Charged horizontal rocket: the same shell, inside the gold collar.",
+      "brief": "Clears a row and the row above it; the collar is what says so at 40 px."
+    },
+    {
+      "id": "powerup_rocket_col_super",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Charged vertical rocket: the same shell turned, inside the gold collar.",
+      "brief": "Clears a column and the column beside it."
+    },
+    {
+      "id": "powerup_spinner_super",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "Charged spinner: the same two arcs, inside the gold collar.",
+      "brief": "Reshuffles the board and keeps the power-ups in place."
     }
   ]
 }

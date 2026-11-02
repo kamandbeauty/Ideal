@@ -54,7 +54,7 @@ python3 tools/art/art.py --check         # CI: contract valid, catalog current, 
 python3 tools/art/art.py --check --strict  # release gate: every required asset exists and is valid
 ```
 
-Today: **80 assets in the contract, 80 on disk, 10 required — all present.** They are produced by
+Today: **84 assets in the contract, 84 on disk, 10 required — all present.** They are produced by
 `python3 tools/art/gen_art.py` and must match it byte for byte (`gen_art.py --check`). The placeholder
 path still exists and is still tested: delete any PNG and the screen falls back to token colours
 instead of breaking, which is what makes art additive.
@@ -74,7 +74,7 @@ instead of breaking, which is what makes art additive.
 | World map (screen pending) | `map_backdrop` (1024×768), `node_cleared`, `node_current`, `node_locked` at 48 dp | — (map is a list today) |
 | Onboarding | `tutorial_hand`, `tutorial_tap` | — (no tutorial yet) |
 | Board effects | `fx_spark` on every cleared cell, `fx_ring` for a power-up going off | the sprite's own colour, scaled and faded in code |
-| Charged power-up | `powerup_electro_super` | the plain electro sprite at a larger scale |
+| Charged power-up | `powerup_*_super` (5) — the plain icon at 78 % inside one gold collar | the plain sprite at a larger scale |
 | District tasks | `task_card` nine-sliced, plus the task props and the three gate states | plain pills |
 | Chest reveal | `reward_chest` → `reward_chest_open`, then `fx_coins` thrown over the button | a button label |
 | Restored district | `district_ch01_d1..d3_lit` — the same plate with its niches lit and lamps hung | the unlit plate only |
@@ -153,7 +153,7 @@ lists exactly what a human should replace first, so nobody mistakes this for fin
 
 ## 7. What is drawn, and what a human should replace first
 
-All 80 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
+All 84 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
 --strict` is green. The set was drawn in this order of care:
 
 1. **The five stones** — one bezel language, five silhouettes that survive 48 px and greyscale
@@ -177,8 +177,14 @@ All 80 assets in the contract exist, at the exact sizes the manifest asks for; `
    what the screens can use today: `board_tile` under every cell, `fx_coins` thrown out of the chest,
    `home_palace_lit` as the second state of the same building, `icon_back` / `icon_close` / `icon_check`
    / `icon_crown`, and `store_feature` for the listing.
-11. **Still to draw** (each one goes in the manifest before it is drawn): the charged variants for the
-   other four power-ups, a per-district board skin, and the five store screenshots.
+11. **The four remaining charged power-ups** — `powerup_dynamite_super`, `powerup_rocket_row_super`,
+   `powerup_rocket_col_super`, `powerup_spinner_super`. They are the plain sprites composited at 78 %
+   into the collar that `powerup_electro_super` established, so all five say "charged" the same way.
+   The board engine only knows `PowerUpKind.SuperElectroBall` today, so four of these five are drawn
+   ahead of the merge rule that will use them — the manifest marks them optional and nothing in the
+   code asks for them yet.
+12. **Still to draw** (each one goes in the manifest before it is drawn): a per-district board skin, and
+   the five store screenshots.
 
 Left for a human artist, in the order that would improve the game most:
 
@@ -193,5 +199,5 @@ Left for a human artist, in the order that would improve the game most:
 - **`prop_ch01_gate`**: drawn closed only; the "built" plate needs the open state.
 - **No animation**: idle, swap, cascade and chest reveal all remain unimplemented. The motion tokens
   exist; the clips do not.
-- **No atlas**: 80 sprites is small enough to let Unity pack them, and doing it by hand now would
+- **No atlas**: 84 sprites is small enough to let Unity pack them, and doing it by hand now would
   cost more than it saves.

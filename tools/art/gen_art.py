@@ -348,8 +348,38 @@ def piece(w, h, asset_id):
 # power-ups: read as an object sitting on top of a stone, in any colour
 
 
+def powerup_super(w, h, asset_id):
+    """A charged power-up: the plain icon, 78 % size, inside one gold collar.
+
+    The pair has to be recognisable as a pair, so the charged version is literally the plain sprite
+    re-drawn smaller rather than a second illustration of the same idea. The collar is the same
+    geometry every time — the outer ring, a white rim on it, and one accent arc over the top — which
+    is what makes "charged" a language instead of a colour change.
+    """
+    plain = powerup(w, h, asset_id[: -len("_super")])
+
+    ring_outer = ring(ellipse_mask(w, h, (0.055, 0.055, 0.945, 0.945)),
+                      ellipse_mask(w, h, (0.185, 0.185, 0.815, 0.815)))
+    ring_inner = arc_mask(w, h, 0.50, 0.50, 0.305, 200, 340, 0.052)
+    loop = ellipse_mask(w, h, (0.055, 0.055, 0.945, 0.945))
+    collar = finish(layering(
+        fill_masked(w, h, with_alpha(GOLD_LIGHT, 200), ring_outer),
+        fill_masked(w, h, with_alpha((255, 255, 255, 255), 120),
+                    ring(ring_outer, shrink(ring_outer, 1.2))),
+        fill_masked(w, h, with_alpha(rgba(PALETTE["accent"]), 225), ring_inner),
+        # the collar has to survive on the pale stone, where a gold ring is nearly the same value
+        outline(w, h, loop, with_alpha(INK, 150), 1.2)), w, h)
+
+    inner = (int(round(w * 0.78)), int(round(h * 0.78)))
+    icon = plain.resize(inner, Image.LANCZOS)
+    collar.alpha_composite(icon, ((w - inner[0]) // 2, (h - inner[1]) // 2))
+    return collar
+
+
 def powerup(w, h, asset_id):
     """A small object that must read on top of any of the five stones."""
+    if asset_id.endswith("_super"):
+        return powerup_super(w, h, asset_id)
     if asset_id == "powerup_dynamite":
         body = mask(w, h)
         bd = ImageDraw.Draw(body)
@@ -419,25 +449,6 @@ def powerup(w, h, asset_id):
             gradient_masked(w, h, (255, 252, 226, 255), GOLD_MID, bolt),
             fill_masked(w, h, with_alpha(IVORY, 210), clip(core, bolt)),
             outline(w, h, bolt, with_alpha(INK, 130), 1.2)), w, h)
-
-    if asset_id == "powerup_electro_super":
-        # The electro ball, charged: the same bolt, a ring around it and a second inner arc. Same
-        # silhouette family as the plain one, unmistakably louder.
-        bolt = polygon_mask(w, h, [(0.62, 0.05), (0.24, 0.54), (0.46, 0.54),
-                                   (0.36, 0.95), (0.78, 0.38), (0.54, 0.38)])
-        core = polygon_mask(w, h, [(0.575, 0.16), (0.35, 0.48), (0.47, 0.48), (0.40, 0.74)])
-        ring_outer = ring(ellipse_mask(w, h, (0.06, 0.06, 0.94, 0.94)),
-                          ellipse_mask(w, h, (0.19, 0.19, 0.81, 0.81)))
-        ring_inner = arc_mask(w, h, 0.50, 0.50, 0.300, 200, 340, 0.055)
-        return finish(layering(
-            glow(w, h, bolt, GOLD_LIGHT, 6, 150),
-            fill_masked(w, h, with_alpha(GOLD_LIGHT, 205), ring_outer),
-            fill_masked(w, h, with_alpha((255, 255, 255, 255), 120),
-                        ring(ring_outer, shrink(ring_outer, 1.2))),
-            fill_masked(w, h, with_alpha(rgba(PALETTE["accent"]), 225), ring_inner),
-            gradient_masked(w, h, (255, 252, 226, 255), GOLD_MID, bolt),
-            fill_masked(w, h, with_alpha(IVORY, 215), clip(core, bolt)),
-            outline(w, h, bolt, with_alpha(INK, 140), 1.3)), w, h)
 
     if asset_id in ("powerup_rocket_row", "powerup_rocket_col"):
         horizontal = asset_id == "powerup_rocket_row"
