@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<title>Terminal 1988 — plate + vector character</title>
+<style>
+  @font-face { font-family: "Vazirmatn"; src: url("assets/fonts/vazirmatn-arabic-700-normal.woff2") format("woff2"); font-weight: 700; font-display: block; }
+  @font-face { font-family: "Vazirmatn"; src: url("assets/fonts/vazirmatn-arabic-600-normal.woff2") format("woff2"); font-weight: 600; font-display: block; }
+  @font-face { font-family: "Vazirmatn"; src: url("assets/fonts/vazirmatn-arabic-400-normal.woff2") format("woff2"); font-weight: 400; font-display: block; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0b0d10; }
+  #root { position: relative; width: 1080px; height: 1920px; }
+  #stage { position: absolute; inset: 0; width: 100%; height: 100%; }
+  /* The caption: white, bold, dark outline, soft shadow — the reference's only text. */
+  #caption {
+    position: absolute; left: 70px; right: 70px; bottom: 168px;
+    font-family: "Vazirmatn"; font-weight: 700; font-size: 58px; line-height: 1.42;
+    color: #fff; text-align: center; direction: rtl;
+    paint-order: stroke fill; -webkit-text-stroke: 7px #101318;
+    text-shadow: 0 6px 18px rgba(0,0,0,.55);
+  }
+  #caption span { display: inline; }
+  #progress {
+    position: absolute; left: 0; bottom: 0; height: 6px; width: 0%;
+    background: #d8b25e;
+  }
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="terminal" data-start="0" data-duration="51.6"
+     data-width="1080" data-height="1920">
+  <svg id="stage" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div id="caption"></div>
+  <div id="progress"></div>
+</div>
+
+<script>
+// =====================================================================
+// A plate + a vector character. Everything is a function of time only.
+// =====================================================================
+const NS = "http://www.w3.org/2000/svg";
+const svg = document.getElementById("stage");
+const el = (n, a = {}) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+const T = (t) => (Number.isFinite(t) ? t : 0).toFixed(2);
+
+// ------------------------------------------------------------------ plate
+// An airport hall drawn flat: perspective floor, glass wall, gate signs.
+// This stands in for a real photo; drop a photo in and delete this block.
+function buildPlate() {
+  const g = el("g", { id: "plate" });
+  // ceiling
+  g.appendChild(el("rect", { x: 0, y: 0, width: 1080, height: 300, fill: "#182028" }));
+  // back glass wall
+  g.appendChild(el("rect", { x: 0, y: 300, width: 1080, height: 560, fill: "#2b3a45" }));
+  for (let i = 0; i < 7; i++) {
+    g.appendChild(el("rect", { x: 40 + i * 152, y: 320, width: 128, height: 520,
+      fill: "#33434f", opacity: 0.55 }));
+    g.appendChild(el("rect", { x: 40 + i * 152, y: 320, width: 128, height: 520,
+      fill: "none", stroke: "#111820", "stroke-width": 6 }));
+  }
+  // floor
+  g.appendChild(el("rect", { x: 0, y: 860, width: 1080, height: 1060, fill: "#39434c" }));
+  // floor perspective lines
+  const floor = el("g", { stroke: "#3c4750", "stroke-width": 4, opacity: 0.8 });
+  for (let i = -6; i <= 6; i++) {
+    floor.appendChild(el("path", { d: `M${540 + i * 70} 860 L${540 + i * 300} 1920`, fill: "none" }));
+  }
+  for (let i = 1; i <= 6; i++) {
+    const y = 860 + Math.pow(i / 6, 1.9) * 1060;
+    floor.appendChild(el("path", { d: `M0 ${T(y)} L1080 ${T(y)}`, fill: "none" }));
+  }
+  g.appendChild(floor);
+  // departure board glow on the far wall
+  const board = el("g", { id: "board" });
+  board.appendChild(el("rect", { x: 690, y: 210, width: 320, height: 96, fill: "#0e1a16" }));
+  board.appendChild(el("rect", { x: 690, y: 210, width: 320, height: 96, fill: "none", stroke: "#2b4a3e", "stroke-width": 4 }));
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 7; c++) {
+      board.appendChild(el("rect", { x: 704 + c * 42, y: 224 + r * 28, width: 28, height: 12,
+        fill: "#4ee8a8", opacity: 0.5 + 0.4 * Math.sin(r * 3 + c) }));
+    }
+  }
+  g.appendChild(board);
+  return g;
+}
+const plate = buildPlate();
+svg.appendChild(plate);
+
+// ------------------------------------------------------------------ figure
+// Proportions taken from the reference: a large round head, a soft oval body,
+// thin arms. No neck — the head sits on the body.
+const P = { headR: 150, bodyRx: 96, bodyRy: 146, armW: 14 };
+
+const figure = el("g", { id: "figure" });
+svg.appendChild(figure);
+
+const ink = "#141414";
+const paper = "#fdfdfb";
+
+const head = el("ellipse", { rx: P.headR, ry: P.headR * 1.06, fill: paper, stroke: ink, "stroke-width": 9 });
+const body = el("path", { fill: paper, stroke: ink, "stroke-width": 9 });
+const armL = el("path", { stroke: ink, "stroke-width": P.armW, fill: "none", "stroke-linecap": "round" });
+const armR = el("path", { stroke: ink, "stroke-width": P.armW, fill: "none", "stroke-linecap": "round" });
+const legL = el("path", { stroke: ink, "stroke-width": P.armW, fill: "none", "stroke-linecap": "round" });
+const legR = el("path", { stroke: ink, "stroke-width": P.armW, fill: "none", "stroke-linecap": "round" });
+
+// face
+const eyeWhiteL = el("ellipse", { fill: "#fff", stroke: ink, "stroke-width": 5 });
+const eyeWhiteR = el("ellipse", { fill: "#fff", stroke: ink, "stroke-width": 5 });
+const eyePupilL = el("ellipse", { fill: ink });
+const eyePupilR = el("ellipse", { fill: ink });
+const browL = el("path", { stroke: ink, "stroke-width": 8, fill: "none", "stroke-linecap": "round" });
+const browR = el("path", { stroke: ink, "stroke-width": 8, fill: "none", "stroke-linecap": "round" });
+const mouth = el("path", { stroke: ink, "stroke-width": 8, fill: "none", "stroke-linecap": "round" });
+
+for (const n of [armL, armR, legL, legR, body, head,
+                 eyeWhiteL, eyeWhiteR, eyePupilL, eyePupilR, browL, browR, mouth]) figure.appendChild(n);
+
+// --------------------------------------------------------------------- ik
+function ik(root, target, len, bendSign) {
+  const dx = target.x - root.x, dy = target.y - root.y;
+  const d = Math.max(1, Math.hypot(dx, dy));
+  const a = Math.atan2(dy, dx);
+  const bend = Math.min(0.55, 90 / d);            // a soft elbow/knee, not a hinge
+  const j = { x: root.x + Math.cos(a - bend * bendSign) * len * 0.55,
+              y: root.y + Math.sin(a - bend * bendSign) * len * 0.55 };
+  return { joint: j, end: { x: root.x + dx, y: root.y + dy } };
+}
+const chain = (a, b, c) => `M${T(a.x)} ${T(a.y)} L${T(b.x)} ${T(b.y)} L${T(c.x)} ${T(c.y)}`;
+
+// ------------------------------------------------------------------- pose
+// expr: neutral | worry | shock | happy | sad | flat | side
+const EXPR = {
+  neutral: { eyeW: 62, eyeH: 66, pupil: 15, brow: 0.10, gaze: 0, mouth: "line" },
+  worry:   { eyeW: 66, eyeH: 70, pupil: 13, brow: 0.42, gaze: 0.2, mouth: "smallO" },
+  shock:   { eyeW: 76, eyeH: 84, pupil: 9,  brow: 0.62, gaze: 0, mouth: "bigO" },
+  sad:     { eyeW: 60, eyeH: 56, pupil: 14, brow: 0.55, gaze: -0.3, mouth: "frown" },
+  flat:    { eyeW: 62, eyeH: 34, pupil: 12, brow: 0.05, gaze: 0, mouth: "flat" },
+  happy:   { eyeW: 62, eyeH: 30, pupil: 12, brow: 0.08, gaze: 0, mouth: "smile" },
+};
+
+function draw(p, t) {
+  const g = figure;
+  const cx = p.x, hipY = p.y;
+  const headY = hipY - P.bodyRy - P.headR * 0.62;
+
+  // --- body: a rounded blob, squashed and leaned by the pose
+  const sx = p.squash, sy = 2 - p.squash;
+  const rx = P.bodyRx * sx, ry = P.bodyRy * sy;
+  body.setAttribute("d",
+    `M${T(cx - rx)} ${T(hipY)} Q${T(cx - rx)} ${T(hipY - ry * 1.55)} ${T(cx)} ${T(hipY - ry * 1.62)} ` +
+    `Q${T(cx + rx)} ${T(hipY - ry * 1.55)} ${T(cx + rx)} ${T(hipY)} ` +
+    `Q${T(cx + rx * 0.9)} ${T(hipY + ry * 0.42)} ${T(cx)} ${T(hipY + ry * 0.42)} ` +
+    `Q${T(cx - rx * 0.9)} ${T(hipY + ry * 0.42)} ${T(cx - rx)} ${T(hipY)} Z`);
+
+  // --- head
+  head.setAttribute("cx", T(cx + p.lean * 46));
+  head.setAttribute("cy", T(headY));
+  head.setAttribute("ry", T(P.headR * 1.06 * (p.squash > 1 ? 1 / p.squash : 1)));
+
+  // --- face
+  const e = EXPR[p.expr] || EXPR.neutral;
+  const hx = cx + p.lean * 46, hy = headY;
+  const ex = hx + e.gaze * 22;
+  const eyeDx = 46, eyeY = hy - 12;
+  const openY = (e.eyeH / 2) * (1 - p.blink * 0.94);
+  for (const [w, px, side] of [[eyeWhiteL, eyePupilL, -1], [eyeWhiteR, eyePupilR, 1]]) {
+    w.setAttribute("cx", T(ex + side * eyeDx));
+    w.setAttribute("cy", T(eyeY));
+    w.setAttribute("rx", T(e.eyeW / 2));
+    w.setAttribute("ry", T(Math.max(2, openY)));
+    px.setAttribute("cx", T(ex + side * eyeDx + e.gaze * 8));
+    px.setAttribute("cy", T(eyeY + 2));
+    px.setAttribute("rx", T(e.pupil));
+    px.setAttribute("ry", T(Math.max(1.6, Math.min(e.pupil, openY * 0.9))));
+  }
+  // brows: an inner lift reads as worry, a flat line as surprise
+  const lift = e.brow * 34, tilt = e.brow * 16;
+  // Inner ends up, outer ends down = worry. The reverse reads as surprise.
+  browL.setAttribute("d", `M${T(ex - eyeDx - 26)} ${T(eyeY - 58 - lift + tilt)} Q${T(ex - eyeDx)} ${T(eyeY - 72 - lift + tilt * 0.4)} ${T(ex - eyeDx + 26)} ${T(eyeY - 70 - lift)}`);
+  browR.setAttribute("d", `M${T(ex + eyeDx - 26)} ${T(eyeY - 70 - lift)} Q${T(ex + eyeDx)} ${T(eyeY - 72 - lift + tilt * 0.4)} ${T(ex + eyeDx + 26)} ${T(eyeY - 58 - lift + tilt)}`);
+  // mouth
+  const my = hy + 58;
+  const mouthPath = {
+    line:   `M${T(hx - 26)} ${T(my)} L${T(hx + 26)} ${T(my)}`,
+    flat:   `M${T(hx - 30)} ${T(my)} L${T(hx + 30)} ${T(my)}`,
+    smallO: `M${T(hx - 16)} ${T(my)} Q${T(hx)} ${T(my + 34)} ${T(hx + 16)} ${T(my)} Q${T(hx)} ${T(my - 10)} ${T(hx - 16)} ${T(my)} Z`,
+    bigO:   `M${T(hx - 26)} ${T(my - 4)} Q${T(hx)} ${T(my + 58)} ${T(hx + 26)} ${T(my - 4)} Q${T(hx)} ${T(my - 22)} ${T(hx - 26)} ${T(my - 4)} Z`,
+    frown:  `M${T(hx - 26)} ${T(my + 12)} Q${T(hx)} ${T(my - 16)} ${T(hx + 26)} ${T(my + 12)}`,
+    smile:  `M${T(hx - 30)} ${T(my - 6)} Q${T(hx)} ${T(my + 34)} ${T(hx + 30)} ${T(my - 6)}`,
+  }[e.mouth] || `M${T(hx - 26)} ${T(my)} L${T(hx + 26)} ${T(my)}`;
+  mouth.setAttribute("d", mouthPath);
+
+  // --- limbs
+  const sh = { x: cx, y: hipY - P.bodyRy * 1.05 };
+  const aL = ik(sh, { x: cx + p.handL.x, y: sh.y + p.handL.y }, 210, 1);
+  const aR = ik(sh, { x: cx + p.handR.x, y: sh.y + p.handR.y }, 210, -1);
+  armL.setAttribute("d", chain(sh, aL.joint, aL.end));
+  armR.setAttribute("d", chain(sh, aR.joint, aR.end));
+
+  const base = { x: cx, y: hipY + P.bodyRy * 0.3 };
+  const lL = ik(base, { x: cx + p.footL.x, y: hipY + p.footL.y }, 190, 1);
+  const lR = ik(base, { x: cx + p.footR.x, y: hipY + p.footR.y }, 190, -1);
+  legL.setAttribute("d", chain(base, lL.joint, lL.end));
+  legR.setAttribute("d", chain(base, lR.joint, lR.end));
+}
+
+// ----------------------------------------------------------------- timeline
+// time in seconds -> what the character is doing and what the caption says.
+const REST = { x: 540, y: 1270, lean: 0, squash: 1, blink: 0, expr: "neutral",
+               handL: { x: -120, y: 260 }, handR: { x: 120, y: 260 },
+               footL: { x: -74, y: 290 }, footR: { x: 74, y: 290 } };
+
+// Shot 1: 0.0-3.65   stand, look around
+// Shot 2: 3.65-7.62  shrug, worried
+// Shot 3: 8.87-15.86 tired, slump
+// Shot 4: 16.47-22.82 walking with a bag
+// Shot 5: 23.16-30.39 writing in a notebook
+// Shot 6: 31.09-38.45 shocked
+// Shot 7: 38.77-51.28 resigned, hands out
+const CAPTIONS = [
+  [0.00, 3.65, "تصور کن ۱۸ سال توی فرودگاه گیر افتاده باشی..."],
+  [3.65, 7.62, "نه بتونی بری بیرون، نه بتونی سوار هواپیما بشی!"],
+  [7.62, 13.39, "سال ۱۹۸۸، مردی به اسم مهران کریمی ناصری وارد فرودگاه شارل دوگل پاریس شد."],
+  [13.39, 17.81, "اما یه مشکل بزرگ داشت؛ مدارک هویتی معتبری نداشت"],
+  [17.81, 22.82, "و نمی‌تونست وارد فرانسه بشه یا به کشور دیگه‌ای سفر کنه."],
+  [22.82, 28.27, "برای همین مجبور شد توی همون فرودگاه بمونه... نزدیک به ۱۸ سال!"],
+  [28.27, 32.90, "همون‌جا می‌خوابید، غذا می‌خورد"],
+  [32.90, 38.45, "و حتی خاطراتش رو می‌نوشت."],
+  [38.45, 44.11, "داستان عجیب زندگیش الهام‌بخش فیلم «ترمینال» شد."],
+  [44.11, 51.60, "بیش از دو دهه، فرودگاه خونه‌ی اون مرد شده بود!"],
+];
+
+const cap = document.getElementById("caption");
+const prog = document.getElementById("progress");
+
+function render(t) {
+  // caption: the line whose span contains t
+  let text = "";
+  for (const [a, b, s] of CAPTIONS) if (t >= a && t < b) { text = s; break; }
+  if (cap.textContent !== text) cap.textContent = text;
+  prog.style.width = (100 * Math.min(1, t / 51.6)) + "%";
+
+  // a slow push-in on the whole frame, then per-shot character work
+  const z = 1 + 0.04 * Math.min(1, t / 51.6);
+  svg.setAttribute("viewBox", `${T(540 - 540 / z)} ${T(960 - 960 / z)} ${T(1080 / z)} ${T(1920 / z)}`);
+
+  const p = JSON.parse(JSON.stringify(REST));
+  p.blink = (t % 3.1) < 0.11 ? 1 : 0;         // deterministic blink
+
+  if (t < 3.65) {                              // look around, hands loose
+    p.expr = t < 1.8 ? "neutral" : "worry";
+    p.handL = { x: -130, y: 250 };
+    p.handR = { x: 130, y: 250 };
+  } else if (t < 7.62) {                        // shrug
+    p.expr = "worry";
+    p.handL = { x: -190, y: 150 };
+    p.handR = { x: 190, y: 150 };
+    p.lean = -0.03;
+  } else if (t < 15.86) {                       // tired slump
+    p.expr = "sad";
+    p.y = 1290; p.squash = 0.96;
+    p.handL = { x: -110, y: 285 };
+    p.handR = { x: 110, y: 285 };
+  } else if (t < 22.82) {                       // walking with a bag
+    p.expr = "flat";
+    const step = Math.sin((t - 16.47) * 5.2);
+    p.footL = { x: -74 + step * 46, y: 290 - Math.max(0, step) * 26 };
+    p.footR = { x: 74 - step * 46, y: 290 - Math.max(0, -step) * 26 };
+    p.handL = { x: -128 - step * 18, y: 255 };
+    p.handR = { x: 128 + step * 18, y: 255 };
+    p.lean = step * 0.02;
+  } else if (t < 30.39) {                       // writing in a notebook
+    p.expr = "neutral"; p.squash = 0.98;
+    p.handL = { x: -70, y: 190 };
+    p.handR = { x: 30 + Math.sin((t - 23.16) * 9) * 16, y: 205 };
+  } else if (t < 38.45) {                       // shock
+    p.expr = "shock"; p.squash = 1.06;
+    p.handL = { x: -215, y: 120 };
+    p.handR = { x: 215, y: 120 };
+    p.y = 1250;
+  } else {                                      // resigned, hands out
+    p.expr = "worry"; p.squash = 0.97;
+    p.handL = { x: -180, y: 235 };
+    p.handR = { x: 180, y: 235 };
+    p.lean = 0.02;
+  }
+  draw(p, t);
+}
+
+// A paused timeline, registered under the composition id.
+const tl = window.gsap ? window.gsap.timeline({ paused: true }) : null;
+if (tl) {
+  tl.to({}, { duration: 51.6 }, 0);
+  tl.eventCallback("onUpdate", () => render(tl.time()));
+  window.__timelines = window.__timelines || {};
+  window.__timelines["terminal"] = tl;
+  tl.seek(0);
+}
+window.__render = render;
+render(0);
+</script>
+</body>
+</html>
