@@ -30,6 +30,11 @@ namespace Shazdeh.Game.Ui
             public TextMeshProUGUI BuildAllLabel;
             public Button Chest;
             public TextMeshProUGUI ChestLabel;
+            public Image ChestIcon;
+            public Image Plate;
+            public string PlateKey;
+            public bool ChestWasOpen;
+            public float ChestPopAt = -1f;
         }
 
         readonly List<Row> _rows = new List<Row>(3);
@@ -79,17 +84,10 @@ namespace Shazdeh.Game.Ui
             // The district plate (art/district_<id>.png) sits under the tasks when it exists. Its
             // colours are the artist's; the tasks stay on a dimmed band so the labels keep their contrast.
             var plate = UiKit.Panel(card, "plate", 0f, 0f, cardWidth, 176f, new Color(1f, 1f, 1f, 0f), (int)Tokens.Radius.Panel);
-            var plateImage = plate.GetComponent<Image>();
-            plateImage.raycastTarget = false;
-            if (ArtLibrary.ApplyTo(plateImage, "district_" + row.District.Id.Replace('-', '_')))
-            {
-                plateImage.color = new Color(1f, 1f, 1f, 0.35f);
-                plate.SetAsFirstSibling();
-            }
-            else
-            {
-                plate.gameObject.SetActive(false);
-            }
+            row.Plate = plate.GetComponent<Image>();
+            row.Plate.raycastTarget = false;
+            row.PlateKey = "district_" + row.District.Id.Replace('-', '_');
+            plate.SetAsFirstSibling();
 
             row.Title = UiKit.LabelRight(card, "title", row.District.Title, Tokens.Type.Lg, Tokens.Text);
             UiKit.Place(row.Title.rectTransform, 16f, 12f, cardWidth - 100f, 26f);
@@ -125,6 +123,14 @@ namespace Shazdeh.Game.Ui
             row.Chest = UiKit.Button(card, "chest", "صندوق", cardWidth - 16f - 127f, 132f, 127f, 34f,
                 Tokens.Gold, Tokens.OnGold, () => Session.OpenChest(row.District), (int)Tokens.Radius.Sm);
             row.ChestLabel = row.Chest.GetComponentInChildren<TextMeshProUGUI>();
+
+            // The chest is an object, not a word: the sprite sits inside the button and becomes the
+            // open chest the moment the district is finished, with one pop.
+            var icon = UiKit.Panel(row.Chest.transform, "chest_icon", 127f - 26f - 6f, 4f, 26f, 26f,
+                new Color(1f, 1f, 1f, 0f));
+            row.ChestIcon = icon.GetComponent<Image>();
+            row.ChestIcon.raycastTarget = false;
+            UiKit.Place(row.ChestLabel.rectTransform, 6f, 0f, 127f - 38f, 34f);
         }
 
         static string TaskText(TaskDefinition task) =>
@@ -173,6 +179,58 @@ namespace Shazdeh.Game.Ui
                 if (chestOpen) RtlText.Set(row.ChestLabel, "باز شد");
                 else if (built) RtlText.Set(row.ChestLabel, "باز کن");
                 else RtlText.Set(row.ChestLabel, "صندوق");
+
+                if (chestOpen && !row.ChestWasOpen)
+                {
+                    row.ChestWasOpen = true;
+                    row.ChestPopAt = Time.unscaledTime;
+                }
+
+                RefreshChestIcon(row, chestOpen);
+                RefreshPlate(row, built);
+            }
+        }
+
+        void RefreshChestIcon(Row row, bool chestOpen)
+        {
+            if (row.ChestIcon == null) return;
+
+            string id = chestOpen ? "reward_chest_open" : "reward_chest";
+            if (ArtLibrary.ApplyTo(row.ChestIcon, id)) return;
+
+            // No chest art: the button keeps its word, and the icon takes itself out of the layout.
+            row.ChestIcon.gameObject.SetActive(false);
+        }
+
+        /// <summary>
+        /// A finished district switches to its lit plate — same camera, same wall, lamps on. The plate
+        /// stays dimmed so the task labels keep their contrast; only the alpha moves, by a little.
+        /// </summary>
+        void RefreshPlate(Row row, bool built)
+        {
+            if (row.Plate == null) return;
+
+            string id = built ? row.PlateKey + "_lit" : row.PlateKey;
+            if (!ArtLibrary.ApplyTo(row.Plate, id) && built && !ArtLibrary.ApplyTo(row.Plate, row.PlateKey))
+            {
+                row.Plate.gameObject.SetActive(false);
+                return;
+            }
+
+            row.Plate.color = built ? new Color(1f, 1f, 1f, 0.46f) : new Color(1f, 1f, 1f, 0.35f);
+        }
+
+        /// <summary>One pop when a chest opens: 350 ms, no coroutine, nothing allocated.</summary>
+        void Update()
+        {
+            for (int i = 0; i < _rows.Count; i++)
+            {
+                var row = _rows[i];
+                if (row.ChestPopAt < 0f || row.ChestIcon == null) continue;
+
+                float t = Mathf.Clamp01((Time.unscaledTime - row.ChestPopAt) / 0.35f);
+                row.ChestIcon.rectTransform.localScale = Vector3.one * (1f + 0.45f * Mathf.Sin(t * Mathf.PI));
+                if (t >= 1f) row.ChestPopAt = -1f;
             }
         }
 
