@@ -98,6 +98,12 @@ namespace Shazdeh.Game
             new Entry("district_ch01_d1_lit", 720, 480, "district", false),
             new Entry("district_ch01_d2_lit", 720, 480, "district", false),
             new Entry("district_ch01_d3_lit", 720, 480, "district", false),
+            new Entry("map_backdrop", 1024, 768, "scene", false),
+            new Entry("tutorial_hand", 128, 128, "ui", false),
+            new Entry("tutorial_tap", 128, 128, "ui", false),
+            new Entry("fx_spark", 64, 64, "ui", false),
+            new Entry("fx_ring", 64, 64, "ui", false),
+            new Entry("powerup_electro_super", 128, 128, "powerup", false),
         };
 
         static readonly Dictionary<string, Entry> ById = BuildIndex();

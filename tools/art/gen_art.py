@@ -383,13 +383,15 @@ def powerup(w, h, asset_id):
 
     if asset_id == "powerup_spinner":
         # two arcs with an arrowhead on each end: instantly "rotate", and symmetric enough to spin
-        def arc_mask(start_deg, end_deg):
+        # named arc_part, not arc_mask: a nested def would shadow the module-level arc_mask for the
+        # whole function body, and the electro-super block below needs that one.
+        def arc_part(start_deg, end_deg):
             m = mask(w, h)
             ImageDraw.Draw(m).arc((0.14 * w * SS, 0.14 * h * SS, 0.86 * w * SS, 0.86 * h * SS),
                                   start_deg, end_deg, fill=255, width=int(0.095 * w * SS))
             return m
 
-        arcs = add(arc_mask(208, 330), arc_mask(28, 150))
+        arcs = add(arc_part(208, 330), arc_part(28, 150))
         heads = mask(w, h)
         hd = ImageDraw.Draw(heads)
         for angle_deg in (150, 330):
@@ -417,6 +419,25 @@ def powerup(w, h, asset_id):
             gradient_masked(w, h, (255, 252, 226, 255), GOLD_MID, bolt),
             fill_masked(w, h, with_alpha(IVORY, 210), clip(core, bolt)),
             outline(w, h, bolt, with_alpha(INK, 130), 1.2)), w, h)
+
+    if asset_id == "powerup_electro_super":
+        # The electro ball, charged: the same bolt, a ring around it and a second inner arc. Same
+        # silhouette family as the plain one, unmistakably louder.
+        bolt = polygon_mask(w, h, [(0.62, 0.05), (0.24, 0.54), (0.46, 0.54),
+                                   (0.36, 0.95), (0.78, 0.38), (0.54, 0.38)])
+        core = polygon_mask(w, h, [(0.575, 0.16), (0.35, 0.48), (0.47, 0.48), (0.40, 0.74)])
+        ring_outer = ring(ellipse_mask(w, h, (0.06, 0.06, 0.94, 0.94)),
+                          ellipse_mask(w, h, (0.19, 0.19, 0.81, 0.81)))
+        ring_inner = arc_mask(w, h, 0.50, 0.50, 0.300, 200, 340, 0.055)
+        return finish(layering(
+            glow(w, h, bolt, GOLD_LIGHT, 6, 150),
+            fill_masked(w, h, with_alpha(GOLD_LIGHT, 205), ring_outer),
+            fill_masked(w, h, with_alpha((255, 255, 255, 255), 120),
+                        ring(ring_outer, shrink(ring_outer, 1.2))),
+            fill_masked(w, h, with_alpha(rgba(PALETTE["accent"]), 225), ring_inner),
+            gradient_masked(w, h, (255, 252, 226, 255), GOLD_MID, bolt),
+            fill_masked(w, h, with_alpha(IVORY, 215), clip(core, bolt)),
+            outline(w, h, bolt, with_alpha(INK, 140), 1.3)), w, h)
 
     if asset_id in ("powerup_rocket_row", "powerup_rocket_col"):
         horizontal = asset_id == "powerup_rocket_row"
@@ -633,6 +654,75 @@ def obstacle(w, h, asset_id):
 
 # ------------------------------------------------------------------------------------------------
 # HUD icons: drawn for a dark pill, one colour each
+
+
+def tutorial_mark(w, h, asset_id):
+    """The onboarding marks: a pointing hand and the ripple it leaves behind."""
+    if asset_id == "tutorial_hand":
+        # A fist with one finger out, seen from the back. The knuckle lines do the reading: without
+        # them the shapes melt into a white blob, which is what the first draft looked like.
+        finger = polygon_mask(w, h, box(0.470, 0.300, 0.120, 0.055, 96))
+        finger = add(finger, ellipse_mask(w, h, (0.415, 0.070, 0.525, 0.180)))
+        fist = mask(w, h)
+        ImageDraw.Draw(fist).rounded_rectangle(
+            (0.300 * w * SS, 0.400 * h * SS, 0.700 * w * SS, 0.860 * h * SS),
+            radius=0.085 * w * SS, fill=255)
+        thumb = polygon_mask(w, h, box(0.318, 0.610, 0.115, 0.058, 168))
+        thumb = add(thumb, ellipse_mask(w, h, (0.268, 0.545, 0.360, 0.660)))
+        hand = add(add(finger, fist), thumb)
+        cuff = mask(w, h)
+        ImageDraw.Draw(cuff).rounded_rectangle(
+            (0.288 * w * SS, 0.820 * h * SS, 0.712 * w * SS, 0.930 * h * SS),
+            radius=0.035 * w * SS, fill=255)
+        layers = [
+            soft_shadow(w, h, add(hand, cuff), (0, 5), 5, 110),
+            gradient_masked(w, h, (255, 250, 238, 255), shade(IVORY, -0.26), hand),
+            # knuckles: three short grooves on the back of the fist
+            fill_masked(w, h, with_alpha(shade(IVORY, -0.55), 150),
+                        add(add(polygon_mask(w, h, [(0.470, 0.520), (0.482, 0.520), (0.482, 0.700), (0.470, 0.700)]),
+                                polygon_mask(w, h, [(0.560, 0.520), (0.572, 0.520), (0.572, 0.700), (0.560, 0.700)])),
+                            polygon_mask(w, h, [(0.648, 0.540), (0.660, 0.540), (0.660, 0.700), (0.648, 0.700)]))),
+            fill_masked(w, h, with_alpha((255, 255, 255, 255), 120),
+                        clip(polygon_mask(w, h, box(0.455, 0.275, 0.095, 0.016, 96)), finger)),
+            gradient_masked(w, h, GOLD_LIGHT, GOLD_DARK, cuff),
+            fill_masked(w, h, with_alpha(GOLD_LIGHT, 170),
+                        clip(polygon_mask(w, h, [(0.288, 0.820), (0.712, 0.820),
+                                                  (0.716, 0.866), (0.290, 0.866)]), cuff)),
+            rim_light(w, h, add(hand, cuff), with_alpha((255, 255, 255, 255), 110), 1.6),
+            outline(w, h, add(hand, cuff), with_alpha(INK, 205), 1.8),
+        ]
+        return finish(layering(*layers), w, h)
+
+    # tutorial_tap: a ripple, two rings and a dot, drawn to be scaled up in code
+    outer = ring(ellipse_mask(w, h, (0.070, 0.070, 0.930, 0.930)),
+                 ellipse_mask(w, h, (0.170, 0.170, 0.830, 0.830)))
+    inner = ring(ellipse_mask(w, h, (0.270, 0.270, 0.730, 0.730)),
+                 ellipse_mask(w, h, (0.350, 0.350, 0.650, 0.650)))
+    return finish(layering(
+        fill_masked(w, h, with_alpha((255, 255, 255, 255), 190), outer),
+        fill_masked(w, h, with_alpha(GOLD_LIGHT, 220), inner),
+        fill_masked(w, h, with_alpha(IVORY, 245), ellipse_mask(w, h, (0.420, 0.420, 0.580, 0.580))),
+        glow(w, h, ellipse_mask(w, h, (0.400, 0.400, 0.600, 0.600)), GOLD_LIGHT, 6, 120)), w, h)
+
+
+def fx_sprite(w, h, asset_id):
+    """Particles: draw the shape, let the view do the scaling, fading and timing."""
+    if asset_id == "fx_spark":
+        # a four-point spark: wide enough to read at 16 px, thin enough to look like light
+        spark = polygon_mask(w, h, [(0.500, 0.030), (0.585, 0.415), (0.970, 0.500), (0.585, 0.585),
+                                    (0.500, 0.970), (0.415, 0.585), (0.030, 0.500), (0.415, 0.415)])
+        return finish(layering(
+            glow(w, h, spark, GOLD_LIGHT, 7, 150),
+            gradient_masked(w, h, (255, 255, 255, 255), GOLD_LIGHT, spark),
+            fill_masked(w, h, with_alpha((255, 255, 255, 255), 220),
+                        ellipse_mask(w, h, (0.430, 0.430, 0.570, 0.570)))), w, h)
+
+    # fx_ring: a burst ring, soft on both edges
+    ring_shape = ring(ellipse_mask(w, h, (0.070, 0.070, 0.930, 0.930)),
+                      ellipse_mask(w, h, (0.250, 0.250, 0.750, 0.750)))
+    return finish(layering(
+        fill_masked(w, h, with_alpha(GOLD_LIGHT, 190), blur(ring_shape, 4)),
+        fill_masked(w, h, with_alpha((255, 255, 255, 255), 165), ring_shape)), w, h)
 
 
 def hud_icon(w, h, asset_id):
@@ -1182,6 +1272,103 @@ def district_plate(w, h, asset_id, lit=False):
     else:
         layers.append(vfade(w, h, 0.86, 1.0, NIGHT_DEEP, 0, 210))
     return finish(layering(*layers), w, h)
+
+
+# ------------------------------------------------------------------------------------------------
+# the world map plate: dark on purpose, because the nodes are drawn on top of it
+
+
+def map_backdrop(w, h):
+    horizon = 0.500
+    layers = [sky(w, h, horizon)]
+    layers.append(vfade(w, h, horizon - 0.18, horizon + 0.02, shade(rgba(PALETTE["bg"]), 0.20), 0, 130))
+
+    # hills: two far silhouettes, then the ground the road runs on
+    layers.append(fill_masked(w, h, with_alpha(rgba("#1B3350"), 255),
+                              polygon_mask(w, h, [(0.0, 0.500), (0.10, 0.430), (0.26, 0.470),
+                                                  (0.40, 0.420), (0.56, 0.470), (0.72, 0.425),
+                                                  (0.86, 0.468), (1.0, 0.440), (1.0, 0.560), (0.0, 0.560)])))
+    layers.append(fill_masked(w, h, with_alpha(rgba("#14263C"), 255),
+                              polygon_mask(w, h, [(0.0, 0.560), (0.18, 0.512), (0.38, 0.548),
+                                                  (0.60, 0.506), (0.82, 0.545), (1.0, 0.520),
+                                                  (1.0, 0.700), (0.0, 0.700)])))
+    ground = polygon_mask(w, h, [(0.0, 0.560), (1.0, 0.560), (1.0, 1.0), (0.0, 1.0)])
+    layers.append(gradient_masked(w, h, rgba("#20374D"), rgba("#0E1B2A"), ground))
+
+    # the palace on the skyline: a silhouette with a warm halo and lit windows, so it reads as the
+    # thing being rebuilt rather than as a black block on the horizon
+    pal_x, pal_top, pal_bottom = 0.795, 0.325, 0.570
+    halo = ellipse_mask(w, h, (pal_x - 0.150, pal_top - 0.120, pal_x + 0.150, pal_bottom + 0.020))
+    layers.append(glow(w, h, halo, GOLD_MID, 22, 58))
+
+    body = []
+    body.append(polygon_mask(w, h, [(0.700, pal_top + 0.075), (0.890, pal_top + 0.075),
+                                    (0.890, pal_bottom), (0.700, pal_bottom)]))
+    body.append(polygon_mask(w, h, dome_shape(pal_x, pal_top + 0.078, 0.095, 0.070)))
+    body.append(polygon_mask(w, h, [(0.700, pal_top + 0.128), (0.890, pal_top + 0.128),
+                                    (0.890, pal_top + 0.150), (0.700, pal_top + 0.150)]))
+    for mx in (0.706, 0.884):
+        body.append(polygon_mask(w, h, [(mx - 0.009, pal_top - 0.010), (mx + 0.009, pal_top - 0.010),
+                                        (mx + 0.009, pal_bottom), (mx - 0.009, pal_bottom)]))
+        body.append(ellipse_mask(w, h, (mx - 0.013, pal_top - 0.030, mx + 0.013, pal_top + 0.002)))
+    silhouette = body[0]
+    for shape in body[1:]:
+        silhouette = add(silhouette, shape)
+    layers.append(fill_masked(w, h, with_alpha(shade(rgba(PALETTE["bg"]), -0.30), 255), silhouette))
+    layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 60), ring(grow(silhouette, 1.4), silhouette)))
+    for i in range(4):
+        wx = 0.722 + i * 0.041
+        layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 205),
+                                  ellipse_mask(w, h, (wx - 0.008, pal_top + 0.168,
+                                                      wx + 0.008, pal_top + 0.196))))
+    layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 190),
+                              polygon_mask(w, h, arch_points(pal_x, pal_bottom, 0.040, 0.070, 0.66))))
+
+    # the road: one S from the bottom of the plate to the palace gate, gold hairline either side
+    steps = 30
+    left, right = [], []
+    for i in range(steps + 1):
+        t = i / steps
+        y = 1.0 - t * 0.486
+        x = 0.300 + 0.130 * math.sin(t * math.pi * 1.15) + 0.330 * t
+        half = 0.050 - 0.017 * t
+        left.append((x - half, y))
+        right.append((x + half, y))
+    road = polygon_mask(w, h, left + list(reversed(right)))
+    layers.append(fill_masked(w, h, with_alpha(rgba("#31445C"), 235), road))
+    layers.append(fill_masked(w, h, with_alpha(rgba("#3E5470"), 140),
+                              clip(grow(road, 2.0), shrink(road, 1.0))))
+    layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 78), ring(grow(road, 1.2), road)))
+
+    # cypresses, all of them lower contrast than a node
+    for tx, base, height, width in [(0.145, 0.760, 0.180, 0.062), (0.212, 0.800, 0.135, 0.048),
+                                    (0.862, 0.735, 0.190, 0.066), (0.918, 0.780, 0.140, 0.050),
+                                    (0.640, 0.700, 0.115, 0.042)]:
+        tree = polygon_mask(w, h, cypress_points(tx, base, height, width * 0.5))
+        layers.append(fill_masked(w, h, with_alpha(rgba("#22453A"), 245), tree))
+        layers.append(fill_masked(w, h, with_alpha(rgba("#2F5E4B"), 190),
+                                  clip(polygon_mask(w, h, [(tx - width * 0.5, base), (tx - width * 0.18, base),
+                                                           (tx - width * 0.10, base - height), (tx, base - height)]),
+                                       tree)))
+
+    layers.append(vfade(w, h, 0.84, 1.0, NIGHT_DEEP, 0, 200))
+    return finish(layering(*layers), w, h)
+
+
+def dome_shape(cx, base, rx, ry):
+    """A dome outline as a polygon: half an ellipse on a straight base."""
+    points = []
+    steps = 26
+    for i in range(steps + 1):
+        angle = math.pi + math.pi * i / steps
+        points.append((cx + math.cos(angle) * rx, base + math.sin(angle) * ry))
+    return points
+
+
+def cypress_points(cx, base, height, half_width):
+    return [(cx, base - height), (cx + half_width, base - height * 0.55),
+            (cx + half_width * 0.7, base), (cx - half_width * 0.7, base),
+            (cx - half_width, base - height * 0.55)]
 
 
 # ------------------------------------------------------------------------------------------------
@@ -1950,6 +2137,12 @@ def _draw_asset(asset_id: str, width: int, height: int) -> Image.Image:
         return map_node(width, height, asset_id)
     if asset_id == "reward_chest_open":
         return chest_open(width, height)
+    if asset_id.startswith("tutorial_"):
+        return tutorial_mark(width, height, asset_id)
+    if asset_id.startswith("fx_"):
+        return fx_sprite(width, height, asset_id)
+    if asset_id == "map_backdrop":
+        return map_backdrop(width, height)
     if asset_id == "home_palace":
         return home_palace(width, height)
     if asset_id.startswith("district_"):

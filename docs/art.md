@@ -71,7 +71,10 @@ instead of breaking, which is what makes art additive.
 | Moves pill | `icon_moves` at 22 px | the word alone |
 | Settings (screen pending) | `icon_sound`, `icon_music`, `icon_vibration`, `icon_push`, `icon_settings` at 26 px | — (nothing to draw yet) |
 | In-level boosters | `booster_mallet`, `booster_ram`, `booster_auger`, `booster_whirlwind`, `booster_falcon` at 56 dp | text buttons |
-| World map (screen pending) | `node_cleared`, `node_current`, `node_locked` at 48 dp | — (map is a list today) |
+| World map (screen pending) | `map_backdrop` (1024×768), `node_cleared`, `node_current`, `node_locked` at 48 dp | — (map is a list today) |
+| Onboarding | `tutorial_hand`, `tutorial_tap` | — (no tutorial yet) |
+| Board effects | `fx_spark` on every cleared cell, `fx_ring` for a power-up going off | the sprite's own colour, scaled and faded in code |
+| Charged power-up | `powerup_electro_super` | the plain electro sprite at a larger scale |
 | District tasks | `task_card` nine-sliced, plus the task props and the three gate states | plain pills |
 | Chest reveal | `reward_chest` → `reward_chest_open` | a button label |
 | Restored district | `district_ch01_d1..d3_lit` — the same plate with its niches lit and lamps hung | the unlit plate only |
@@ -148,7 +151,7 @@ lists exactly what a human should replace first, so nobody mistakes this for fin
 
 ## 7. What is drawn, and what a human should replace first
 
-All 66 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
+All 72 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
 --strict` is green. The set was drawn in this order of care:
 
 1. **The five stones** — one bezel language, five silhouettes that survive 48 px and greyscale
@@ -166,9 +169,11 @@ All 66 assets in the contract exist, at the exact sizes the manifest asks for; `
    and a phone with wide rings read as a mug.
 8. **The rest of the loop's furniture** — the five booster badges, the three map nodes, the task card,
    the open chest, the open and half-built gate, and the three lit district plates.
-9. **Still to draw** (each one goes in the manifest before it is drawn): the world-map backdrop and its
-   paths, a per-district board skin, the tutorial hand and pointer, the power-up "charged" variants,
-   and the store screenshots for brand and launch.
+9. **The map plate, the onboarding marks, the two particles and the charged electro** — the art the
+   world map, the tutorial and the board's clear animation will need.
+10. **Still to draw** (each one goes in the manifest before it is drawn): a per-district board skin, the
+   charged variants for the other four power-ups, the chest's coin burst, and the store screenshots for
+   brand and launch.
 
 Left for a human artist, in the order that would improve the game most:
 
@@ -183,5 +188,5 @@ Left for a human artist, in the order that would improve the game most:
 - **`prop_ch01_gate`**: drawn closed only; the "built" plate needs the open state.
 - **No animation**: idle, swap, cascade and chest reveal all remain unimplemented. The motion tokens
   exist; the clips do not.
-- **No atlas**: 66 sprites is small enough to let Unity pack them, and doing it by hand now would
+- **No atlas**: 72 sprites is small enough to let Unity pack them, and doing it by hand now would
   cost more than it saves.

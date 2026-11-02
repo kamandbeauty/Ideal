@@ -72,7 +72,18 @@ namespace Shazdeh.Game.Ui
             public float Duration;
         }
 
+        struct Spark
+        {
+            public GameObject Go;
+            public SpriteRenderer Renderer;
+            public float Born;
+            public float Size;
+        }
+
         readonly List<TileTween> _tweens = new List<TileTween>(48);
+        readonly List<Spark> _sparks = new List<Spark>(24);
+        const float SparkSeconds = 0.34f;
+        const int MaxSparks = 40;
         readonly List<int> _clearedCells = new List<int>(24);
         float _tweenClock;
         Action _tweenDone;
@@ -358,6 +369,8 @@ namespace Shazdeh.Game.Ui
 
             if (_frame != null && _frame.gameObject != null) Destroy(_frame.gameObject);
             _frame = null;
+
+            ClearSparks();
         }
 
         void FrameCamera()
@@ -394,6 +407,7 @@ namespace Shazdeh.Game.Ui
             // Motion runs even when the level is over: the last cascade still has to play, and the
             // overlay is shown when it finishes rather than on top of it.
             AdvanceTweens();
+            UpdateSparks();
             AnimateResultStars();
 
             Session.RefreshLives();
@@ -566,6 +580,7 @@ namespace Shazdeh.Game.Ui
                 Vector3 rest = RestOf(index);
                 // A cleared piece rises a little as it shrinks, so the eye reads "taken" not "gone".
                 AddTween(index, rest, rest + Vector3.up * 0.14f, Vector3.one, Vector3.one * 0.08f, 0f, ClearSeconds);
+                SpawnSpark(index);
             }
 
             _tweenDone = () =>
@@ -718,6 +733,69 @@ namespace Shazdeh.Game.Ui
             var done = _tweenDone;
             _tweenDone = null;
             done?.Invoke();
+        }
+
+        // ---- sparks ---------------------------------------------------------------------------------
+
+        /// <summary>
+        /// One spark per cleared piece. It is a sprite the view owns and throws away, with no pool and
+        /// no coroutine: at most MaxSparks alive, each living 340 ms, so a cascade cannot nibble at the
+        /// frame budget. Missing art means no sparks and nothing else changes.
+        /// </summary>
+        void SpawnSpark(int index)
+        {
+            if (_sparks.Count >= MaxSparks) return;
+
+            var sprite = ArtLibrary.Get("fx_spark");
+            if (sprite == null || _tiles == null || index < 0 || index >= _tiles.Length) return;
+
+            var go = new GameObject("spark");
+            go.transform.SetParent(_boardRoot.transform, false);
+            go.transform.localPosition = RestOf(index);
+
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprite;
+            renderer.sortingOrder = 2;
+
+            _sparks.Add(new Spark
+            {
+                Go = go,
+                Renderer = renderer,
+                Born = Time.unscaledTime,
+                Size = Mathf.Max(0.001f, Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y))
+            });
+        }
+
+        void UpdateSparks()
+        {
+            if (_sparks.Count == 0) return;
+
+            for (int i = _sparks.Count - 1; i >= 0; i--)
+            {
+                var spark = _sparks[i];
+                float age = Time.unscaledTime - spark.Born;
+                float progress = age / SparkSeconds;
+
+                if (spark.Go == null || progress >= 1f)
+                {
+                    if (spark.Go != null) Destroy(spark.Go);
+                    _sparks.RemoveAt(i);
+                    continue;
+                }
+
+                // grows outward, fades out, and turns a little so a group of them never lines up
+                float size = Cell * (0.30f + 0.85f * progress) / spark.Size;
+                spark.Go.transform.localScale = Vector3.one * size;
+                spark.Go.transform.localRotation = Quaternion.Euler(0f, 0f, 45f * progress);
+                spark.Renderer.color = new Color(1f, 1f, 1f, 1f - progress * progress);
+            }
+        }
+
+        void ClearSparks()
+        {
+            for (int i = 0; i < _sparks.Count; i++)
+                if (_sparks[i].Go != null) Destroy(_sparks[i].Go);
+            _sparks.Clear();
         }
 
         static float EaseOutCubic(float t)
@@ -936,7 +1014,7 @@ namespace Shazdeh.Game.Ui
                 case PowerUpKind.Spinner: return "powerup_spinner";
                 case PowerUpKind.Dynamite: return "powerup_dynamite";
                 case PowerUpKind.ElectroBall: return "powerup_electro";
-                case PowerUpKind.SuperElectroBall: return "powerup_electro";
+                case PowerUpKind.SuperElectroBall: return "powerup_electro_super";
                 default: return "";
             }
         }

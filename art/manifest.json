@@ -742,6 +742,72 @@
       "required": false,
       "description": "The canal quarter restored: lit niches, hanging lamps, warm pools.",
       "brief": "Pairs with district_ch01_d3, as the other two do."
+    },
+    {
+      "id": "map_backdrop",
+      "group": "scene",
+      "size": [
+        1024,
+        768
+      ],
+      "required": false,
+      "description": "The world map plate: hills at dusk, the palace on the skyline as a silhouette, and one road running up to its gate.",
+      "brief": "Deliberately dark and low contrast: the level nodes and their stars are drawn on top and must win. No text, no numbers, no labels."
+    },
+    {
+      "id": "tutorial_hand",
+      "group": "ui",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The onboarding hand: an ivory hand with the index finger out and a gold cuff.",
+      "brief": "Points to the upper left in art space; the view rotates it. No skin texture, no fingernails at this size."
+    },
+    {
+      "id": "tutorial_tap",
+      "group": "ui",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The tap ripple: two thin rings and a dot, drawn to be scaled up and faded by code.",
+      "brief": "Transparent outside the rings so it can sit over a piece without hiding it."
+    },
+    {
+      "id": "fx_spark",
+      "group": "ui",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "The clear spark: a four-point star of light, used when a piece is taken off the board.",
+      "brief": "Must read at 16 px. No baked rotation: the view spins it."
+    },
+    {
+      "id": "fx_ring",
+      "group": "ui",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "The burst ring: a soft-edged circle of light for a power-up going off.",
+      "brief": "Soft on both edges so it can be scaled without banding."
+    },
+    {
+      "id": "powerup_electro_super",
+      "group": "powerup",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The electro ball, charged: the same bolt inside one bright ring and a firouzeh arc.",
+      "brief": "Must be tellable from powerup_electro at cell size: the ring is the difference, not the bolt."
     }
   ]
 }

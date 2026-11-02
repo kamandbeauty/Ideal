@@ -15,7 +15,7 @@ press ──► release ──► TrySwap ──► (accepted?) ──► swap �
 | phase | what moves | duration | where |
 | --- | --- | --- | --- |
 | swap | the two tiles trade cells | 120 ms | `BoardScreen.PlaySwap` |
-| clear | every `PieceClearedEvent` cell rises 0.14 of a cell and shrinks to 8 % | 140 ms | `PlayClear` |
+| clear | every `PieceClearedEvent` cell rises 0.14 of a cell, shrinks to 8 %, and leaves an `fx_spark` that grows, turns 45° and fades | 140 ms + a 340 ms spark | `PlayClear`, `SpawnSpark` |
 | settle | every cell above a cleared cell falls back into place, staggered by row distance | 190 ms + 12 ms per row | `PlaySettle` |
 | push-back | a rejected pair leans 0.16 of a cell toward each other and springs back | 160 ms | `PlayRejected` |
 
@@ -83,6 +83,9 @@ place in the game where the player is told the rule.
   not. Boosters are still pre-level inventory.
 - **No power-up tap-to-fire.** Power-ups are created and triggered by swaps only (`MoveResolver`).
 - **No sound, no haptics on a match**, though `SaveData.sfxOn`/`hapticsOn` already gate them.
+- **Particles are one sprite per clear** (`fx_spark`), capped at 40 alive. There is no pool and no
+  `ParticleSystem`: a cascade of 20 clears allocates 20 short-lived GameObjects, which the profiler
+  will eventually ask us to fix, and not before.
 - **No cascade-stagger pacing beyond settle**: each cascade step reuses one clear+settle pair rather
   than a longer choreography, because the event list gives positions, not distances fallen.
 - **No "level complete" chest reveal**: the chest sprite is drawn but the reward is still text.
