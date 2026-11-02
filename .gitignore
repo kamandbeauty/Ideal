@@ -25,6 +25,14 @@ client/*.aab
 client/*.keystore
 client/*.jks
 
+# MCP / editor tooling config: local to a machine, never part of the game
+client/.mcp.json
+client/.cursor/
+client/.vscode/
+client/.opencode.json
+client/opencode.json
+client/.codex/
+
 # Crash and profile dumps
 *.stackdump
 sysinfo.txt
