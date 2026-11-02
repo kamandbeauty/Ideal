@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<title>style-v3 PoC — 2D cutout rig</title>
+<style>
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-700-normal.woff2') format('woff2'); font-weight: 700; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #0b0908; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  svg#scene { position: absolute; inset: 0; }
+  #sub {
+    position: absolute; left: 54px; right: 54px; bottom: 150px;
+    font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 62px; line-height: 1.55;
+    color: #fff; text-align: center; direction: rtl;
+    text-shadow: 0 4px 18px rgba(0,0,0,.85), 0 0 8px rgba(0,0,0,.9);
+    -webkit-text-stroke: 2px rgba(0,0,0,.55);
+    paint-order: stroke fill;
+  }
+  .grain {
+    position: absolute; inset: -50px; pointer-events: none; opacity: .10; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.55'/></svg>");
+  }
+  #vig { position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 42%, rgba(0,0,0,0) 42%, rgba(20,12,6,.55) 100%); }
+</style>
+</head>
+<body>
+<div id="stage">
+<svg id="scene" viewBox="0 0 1080 1920" width="1080" height="1920" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#93aab2"/><stop offset=".45" stop-color="#c2bba4"/><stop offset="1" stop-color="#e3cfa6"/>
+    </linearGradient>
+    <linearGradient id="cobble" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a08b6d"/><stop offset="1" stop-color="#6b5a45"/>
+    </linearGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b08a5c"/><stop offset="1" stop-color="#8d6d48"/>
+    </linearGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="16"/></filter>
+    <radialGradient id="shadowG"><stop offset="0" stop-color="#1d160f" stop-opacity=".55"/><stop offset="65%" stop-color="#1d160f" stop-opacity=".22"/><stop offset="100%" stop-color="#1d160f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="poolG"><stop offset="0" stop-color="#ffd9a0" stop-opacity=".30"/><stop offset="100%" stop-color="#ffd9a0" stop-opacity="0"/></radialGradient>
+    <linearGradient id="fogG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efe3c8" stop-opacity="0"/><stop offset="45%" stop-color="#efe3c8" stop-opacity=".26"/><stop offset="100%" stop-color="#efe3c8" stop-opacity="0"/></linearGradient>
+  </defs>
+
+  <g id="bgWrap">
+    <rect x="-60" y="-60" width="1200" height="2040" fill="url(#sky)"/>
+    <!-- distant cathedral + houses (silhouette, atmospheric) -->
+    <g opacity=".48" fill="#7f765f">
+      <path d="M520 720 V430 l34 -70 34 70 V720 Z"/>
+      <path d="M300 760 V540 h120 V760 Z M660 760 V520 h150 V760 Z"/>
+      <path d="M120 800 V600 h160 V800 Z M830 790 V590 h170 V790 Z"/>
+    </g>
+    <!-- half-timbered buildings -->
+    <g stroke="#2a211a" stroke-width="7" stroke-linejoin="round">
+      <path d="M-40 1280 V620 h330 V1280 Z" fill="url(#wall)"/>
+      <path d="M790 1280 V560 h340 V1280 Z" fill="url(#wall)"/>
+      <g stroke-width="5" opacity=".8" fill="none">
+        <path d="M-40 760 h330 M-40 940 h330 M-40 1120 h330"/>
+        <path d="M790 700 h340 M790 880 h340 M790 1060 h340"/>
+        <path d="M60 620 v140 M180 620 v140 M880 560 v140 M1010 560 v140"/>
+      </g>
+    </g>
+    <!-- windows -->
+    <g fill="#3d3226" stroke="#241c16" stroke-width="5">
+      <rect x="30" y="800" width="70" height="96" rx="6"/><rect x="170" y="800" width="70" height="96" rx="6"/>
+      <rect x="850" y="740" width="74" height="100" rx="6"/><rect x="990" y="740" width="74" height="100" rx="6"/>
+      <rect x="850" y="920" width="74" height="100" rx="6"/><rect x="990" y="920" width="74" height="100" rx="6"/>
+    </g>
+    <g fill="#f0d9a4" opacity=".85">
+      <rect x="38" y="808" width="54" height="80" rx="4" opacity=".5"/>
+      <rect x="858" y="748" width="58" height="84" rx="4"/>
+      <rect x="998" y="928" width="58" height="84" rx="4" opacity=".55"/>
+    </g>
+    <!-- street-level haze -->
+    <rect x="-60" y="1060" width="1200" height="330" fill="url(#fogG)"/>
+    <!-- street -->
+    <path d="M0 1250 H1080 V1920 H0 Z" fill="url(#cobble)"/>
+    <g stroke="#6b5a45" stroke-width="4" opacity=".55" fill="none">
+      <path d="M0 1330 Q270 1322 540 1330 T1080 1330"/>
+      <path d="M0 1420 Q270 1410 540 1420 T1080 1420"/>
+      <path d="M0 1520 Q270 1508 540 1520 T1080 1520"/>
+      <path d="M0 1640 Q270 1626 540 1640 T1080 1640"/>
+      <path d="M0 1770 Q270 1754 540 1770 T1080 1770"/>
+    </g>
+    <g stroke="#6b5a45" stroke-width="3" opacity=".35">
+      <path d="M120 1250 V1920 M340 1250 V1920 M560 1250 V1920 M780 1250 V1920 M980 1250 V1920"/>
+    </g>
+    <!-- warm light pool on the cobbles, right side -->
+    <ellipse cx="880" cy="1500" rx="320" ry="150" fill="url(#poolG)"/>
+  </g>
+
+  <!-- contact shadow -->
+  <ellipse id="shadow" cx="540" cy="1560" rx="118" ry="26" fill="url(#shadowG)" opacity="1"/>
+
+  <g id="puppet">
+    <!-- ================= legs (behind the skirt) ================= -->
+    <g id="legL">
+      <g fill="#2f2822" stroke="#1e1712" stroke-width="6" stroke-linejoin="round">
+        <rect x="-19" y="0" width="38" height="112" rx="19" fill="#40362c"/>
+      </g>
+      <g id="shinL">
+        <g fill="#4a4034" stroke="#1e1712" stroke-width="6">
+          <rect x="-17" y="0" width="34" height="104" rx="17"/>
+          <circle cx="0" cy="4" r="17" fill="#40362c"/>
+          <path d="M-17 96 h34 q26 6 26 22 h-60 q0 -16 0 -22 Z" fill="#2a231c"/>
+        </g>
+      </g>
+    </g>
+    <g id="legR">
+      <g fill="#2f2822" stroke="#1e1712" stroke-width="6" stroke-linejoin="round">
+        <rect x="-19" y="0" width="38" height="112" rx="19" fill="#3a3128"/>
+      </g>
+      <g id="shinR">
+        <g fill="#443a2f" stroke="#1e1712" stroke-width="6">
+          <rect x="-17" y="0" width="34" height="104" rx="17"/>
+          <circle cx="0" cy="4" r="17" fill="#3a3128"/>
+          <path d="M-17 96 h34 q26 6 26 22 h-60 q0 -16 0 -22 Z" fill="#241e18"/>
+        </g>
+      </g>
+    </g>
+
+    <!-- ================= torso ================= -->
+    <g id="torso">
+      <!-- skirt -->
+      <path d="M-48 -6 L-112 168 Q0 196 112 168 L48 -6 Z" fill="#3d342b" stroke="#1e1712" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M-48 -6 L-112 168 Q-56 182 -20 184 L-14 -6 Z" fill="#332b23" opacity=".9"/>
+      <!-- apron -->
+      <g id="apron">
+        <path d="M-34 6 L-52 160 Q0 176 52 160 L34 6 Z" fill="#cdc0a2" stroke="#1e1712" stroke-width="5" stroke-linejoin="round"/>
+        <path d="M-34 6 L-52 160 Q-26 168 -8 170 L-6 6 Z" fill="#b9ab8d" opacity=".85"/>
+        <path d="M-40 26 Q0 40 40 26" fill="none" stroke="#8e7f65" stroke-width="4"/>
+        <path d="M-52 160 Q0 176 52 160 L50 172 Q0 188 -50 172 Z" fill="#a99b7d" opacity=".55"/>
+      </g>
+      <!-- bodice -->
+      <path d="M-46 8 L-52 -118 Q-54 -186 -30 -200 L30 -200 Q54 -186 52 -118 L46 8 Z"
+            fill="#3a3229" stroke="#1e1712" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M-46 8 L-52 -118 Q-54 -186 -30 -200 L-14 -200 L-12 8 Z" fill="#2f2921" opacity=".95"/>
+      <!-- belt -->
+      <path d="M-50 -6 Q0 12 50 -6" fill="none" stroke="#241d17" stroke-width="10" stroke-linecap="round"/>
+      <!-- pouch -->
+      <path d="M30 -4 q22 2 24 22 t-24 22 q-16 -22 0 -44 Z" fill="#6b5136" stroke="#1e1712" stroke-width="5"/>
+
+      <!-- ================= arms ================= -->
+      <g id="armL">
+        <g stroke="#1e1712" stroke-width="6" stroke-linejoin="round">
+          <rect x="-17" y="-8" width="34" height="100" rx="17" fill="#3f362a"/>
+          <circle cx="0" cy="0" r="20" fill="#3f362a"/>
+          <path d="M-17 78 h34 v8 h-34 Z" fill="#d8caa8" stroke-width="5"/>
+        </g>
+        <g id="foreL">
+          <g stroke="#1e1712" stroke-width="6" stroke-linejoin="round">
+            <rect x="-15" y="-10" width="30" height="94" rx="15" fill="#3f362a"/>
+            <circle cx="0" cy="0" r="18" fill="#3f362a"/>
+            <ellipse cx="0" cy="98" rx="20" ry="23" fill="#eecba6"/>
+            <path d="M-13 89 q13 7 26 0" fill="none" stroke="#c79a72" stroke-width="4"/>
+          </g>
+        </g>
+      </g>
+      <g id="armR">
+        <g stroke="#1e1712" stroke-width="6" stroke-linejoin="round">
+          <rect x="-17" y="-8" width="34" height="100" rx="17" fill="#372f25"/>
+          <circle cx="0" cy="0" r="20" fill="#372f25"/>
+          <path d="M-17 78 h34 v8 h-34 Z" fill="#c9bb9c" stroke-width="5"/>
+        </g>
+        <g id="foreR">
+          <g stroke="#1e1712" stroke-width="6" stroke-linejoin="round">
+            <rect x="-15" y="-10" width="30" height="94" rx="15" fill="#372f25"/>
+            <circle cx="0" cy="0" r="18" fill="#372f25"/>
+            <ellipse cx="0" cy="98" rx="20" ry="23" fill="#e3c09c"/>
+            <path d="M-13 89 q13 7 26 0" fill="none" stroke="#bd9169" stroke-width="4"/>
+          </g>
+        </g>
+      </g>
+
+      <!-- ================= head ================= -->
+      <g id="headG">
+        <!-- hair -->
+        <path d="M-58 -26 Q-66 -96 -22 -112 Q28 -128 58 -84 Q66 -54 54 -30 Z" fill="#4a3427" stroke="#1e1712" stroke-width="6"/>
+        <path d="M-52 -40 q-6 26 2 44 M-40 -52 q-4 30 4 52 M44 -46 q8 24 2 46" fill="none" stroke="#31221a" stroke-width="4" stroke-linecap="round"/>
+        <!-- face -->
+        <ellipse cx="0" cy="-38" rx="50" ry="58" fill="#f2d5b6" stroke="#1e1712" stroke-width="6"/>
+        <path d="M-50 -38 Q-52 -100 0 -104 Q52 -100 50 -38 Q30 -66 0 -66 Q-30 -66 -50 -38 Z" fill="#4a3427" stroke="#1e1712" stroke-width="5"/>
+        <!-- headscarf -->
+        <path d="M-56 -50 Q-64 -124 0 -130 Q64 -124 56 -50 Q40 -84 0 -84 Q-40 -84 -56 -50 Z"
+              fill="#e9dfc7" stroke="#1e1712" stroke-width="6" stroke-linejoin="round"/>
+        <path d="M-56 -50 Q-70 -30 -62 -6 Q-46 -26 -40 -46 Z" fill="#d8cdb2" stroke="#1e1712" stroke-width="5"/>
+        <!-- eyes -->
+        <g id="eyes">
+          <ellipse cx="-20" cy="-40" rx="12" ry="14" fill="#fff" stroke="#1e1712" stroke-width="4"/>
+          <ellipse cx="20" cy="-40" rx="12" ry="14" fill="#fff" stroke="#1e1712" stroke-width="4"/>
+          <circle id="pupilL" cx="-20" cy="-38" r="6" fill="#231a13"/>
+          <circle id="pupilR" cx="20" cy="-38" r="6" fill="#231a13"/>
+          <path d="M-32 -60 q12 -8 24 -2" fill="none" stroke="#3b2a1e" stroke-width="5" stroke-linecap="round"/>
+          <path d="M8 -62 q12 -6 24 2" fill="none" stroke="#3b2a1e" stroke-width="5" stroke-linecap="round"/>
+        </g>
+        <!-- mouth: open, breathing hard -->
+        <ellipse id="mouth" cx="0" cy="-8" rx="11" ry="8" fill="#5c2b25" stroke="#1e1712" stroke-width="4"/>
+      </g>
+    </g>
+  </g>
+</svg>
+
+<div id="sub">تابستون ۱۵۱۸ توی استراسبورگ، یه اتفاق عجیب افتاد</div>
+<div id="vig"></div>
+<div class="grain"></div>
+</div>
+
+<script>
+const FPS = 30, DURATION = 4, FRAMES = FPS * DURATION;
+const $ = (id) => document.getElementById(id);
+const P = {
+  puppet: $('puppet'), torso: $('torso'), headG: $('headG'), apron: $('apron'),
+  armL: $('armL'), armR: $('armR'), foreL: $('foreL'), foreR: $('foreR'),
+  legL: $('legL'), legR: $('legR'), shinL: $('shinL'), shinR: $('shinR'),
+  shadow: $('shadow'), bg: $('bgWrap'), pupilL: $('pupilL'), pupilR: $('pupilR'), mouth: $('mouth'),
+};
+const DEG = (d) => (d * Math.PI) / 180;
+const SCALE = 1.42;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+// one dance cycle = 1 s; everything is a closed-form function of time so any
+// frame can be captured independently (deterministic, no CSS animation).
+function pose(frame) {
+  const t = frame / FPS;
+  const w = (2 * Math.PI) / 1.0;     // 1 Hz beat
+  const s = Math.sin(w * t), c = Math.cos(w * t);
+  const s2 = Math.sin(2 * w * t), c2 = Math.cos(2 * w * t);
+
+  const bob = -16 * Math.abs(s2);          // 2 bobs per beat, both feet leaving the floor
+  const swayX = 20 * s;
+  const lean = 5.5 * Math.sin(w * t + 0.5);
+
+  // arms: alternate, with the forearm lagging like real weight
+  const armL = 34 + 52 * s;
+  const armR = -(34 - 52 * s);
+  const foreL = -(16 + 34 * Math.sin(w * t + 1.1));
+  const foreR = (16 + 34 * Math.sin(w * t + Math.PI + 1.1));
+
+  // legs: small kicks, knee bends on the way down
+  const thighL = 12 * s + 3;
+  const thighR = -12 * s - 3;
+  const shinL = -Math.max(0, 26 * s2) - 4;
+  const shinR = -Math.max(0, -26 * s2) - 4;
+
+  // head: counter-sway + a little nod
+  const head = -6 * s + 2 * c2;
+
+  return { t, bob, swayX, lean, armL, armR, foreL, foreR, thighL, thighR, shinL, shinR, head, c, s };
+}
+
+function apply(frame) {
+  const p = pose(frame);
+
+  P.puppet.setAttribute('transform', `translate(${540 + p.swayX} ${1196 + p.bob}) rotate(${p.lean}) scale(${SCALE})`);
+  P.torso.setAttribute('transform', `rotate(${1.6 * Math.sin(2 * Math.PI * p.t * 0.5)})`);
+  P.headG.setAttribute('transform', `translate(0 -212) rotate(${p.head}) scale(1.06)`);
+  P.armL.setAttribute('transform', `translate(-44 -172) rotate(${p.armL})`);
+  P.armR.setAttribute('transform', `translate(44 -172) rotate(${p.armR})`);
+  P.foreL.setAttribute('transform', `translate(0 90) rotate(${p.foreL})`);
+  P.foreR.setAttribute('transform', `translate(0 90) rotate(${p.foreR})`);
+  P.legL.setAttribute('transform', `translate(-24 6) rotate(${p.thighL})`);
+  P.legR.setAttribute('transform', `translate(24 6) rotate(${p.thighR})`);
+  P.shinL.setAttribute('transform', `translate(0 112) rotate(${p.shinL})`);
+  P.shinR.setAttribute('transform', `translate(0 112) rotate(${p.shinR})`);
+  P.apron.setAttribute('transform', `rotate(${2.4 * Math.sin(2 * Math.PI * p.t + 0.8)})`);
+  P.shadow.setAttribute('transform', `translate(${p.swayX} 0) scale(${SCALE * (1 - 0.12 * Math.abs(Math.sin(2 * Math.PI * p.t * 2)))} ${SCALE})`);
+  P.shadow.setAttribute('opacity', `${0.95 - 0.25 * Math.abs(p.bob) / 16}`);
+  P.pupilL.setAttribute('cx', `${-20 + 3 * Math.sin(Math.PI * p.t * 0.7)}`);
+  P.pupilR.setAttribute('cx', `${20 + 3 * Math.sin(Math.PI * p.t * 0.7)}`);
+  P.mouth.setAttribute('ry', `${8 + 3 * Math.abs(Math.sin(2 * Math.PI * p.t))}`);
+
+  // slow camera push on the street behind her
+  const k = 1.075 - 0.055 * (frame / FRAMES);
+  P.bg.setAttribute('transform', `translate(540 900) scale(${k}) translate(-540 -900) translate(${-6 * Math.sin(2 * Math.PI * p.t * 0.3)} 0)`);
+}
+
+window.__MOTION__ = {
+  fps: FPS, frames: FRAMES, width: 1080, height: 1920, duration: DURATION, ready: false,
+  seek(frame) { apply(clamp(frame, 0, FRAMES - 1)); },
+};
+apply(0);
+window.__MOTION__.ready = true;
+</script>
+</body>
+</html>
