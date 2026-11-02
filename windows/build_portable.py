@@ -54,6 +54,13 @@ SDIST_ONLY = ("proxy_tools",)
 PBS_REPO = "astral-sh/python-build-standalone"
 PBS_ASSET = "cpython-{ver}.*-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 
+# Known-good 3.11 build, used when the GitHub API is rate-limited or offline
+# (shared CI runner IPs hit the 60-requests/hour anonymous limit routinely).
+PBS_FALLBACK = {
+    "3.11": "https://github.com/astral-sh/python-build-standalone/releases/download/"
+            "20261026/cpython-3.11.18+20261026-x86_64-pc-windows-msvc-install_only_stripped.tar.gz",
+}
+
 
 def _read_version() -> str:
     try:
@@ -108,7 +115,11 @@ def target_flags(py_ver: str) -> list[str]:
 # CPython for Windows
 # --------------------------------------------------------------------------- #
 def _github_json(url: str) -> dict:
-    req = urllib.request.Request(url, headers={"User-Agent": "parsigo-build"})
+    headers = {"User-Agent": "parsigo-build"}
+    token = os.environ.get("GITHUB_TOKEN", "").strip()
+    if token:  # raises the API limit from 60/h to 5000/h on CI runners
+        headers["Authorization"] = f"Bearer {token}"
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=60) as r:  # noqa: S310 — fixed host
         import json
 
@@ -118,14 +129,23 @@ def _github_json(url: str) -> dict:
 def find_cpython_asset(py_ver: str) -> tuple[str, str]:
     """(name, url) of the stripped, install-only CPython archive."""
     pattern = re.compile(PBS_ASSET.format(ver=re.escape(py_ver)))
-    release = _github_json(f"https://api.github.com/repos/{PBS_REPO}/releases/latest")
-    for asset in release.get("assets", []):
-        if pattern.fullmatch(asset["name"]):
-            log(f"• CPython {py_ver}: {asset['name']}")
-            return asset["name"], asset["browser_download_url"]
+    try:
+        release = _github_json(f"https://api.github.com/repos/{PBS_REPO}/releases/latest")
+        for asset in release.get("assets", []):
+            if pattern.fullmatch(asset["name"]):
+                log(f"• CPython {py_ver}: {asset['name']}")
+                return asset["name"], asset["browser_download_url"]
+        reason = f"no matching asset in release {release.get('tag_name')}"
+    except Exception as exc:  # noqa: BLE001 — rate limit, proxy, offline
+        reason = f"GitHub API unavailable ({exc})"
+
+    fallback = PBS_FALLBACK.get(py_ver)
+    if fallback:
+        warn(f"{reason}; using the pinned CPython {py_ver} build instead")
+        return fallback.rsplit("/", 1)[-1], fallback
     raise SystemExit(
-        f"no CPython {py_ver} x86_64-pc-windows-msvc build in {PBS_REPO} "
-        f"(release {release.get('tag_name')}) — try --python-version 3.11"
+        f"cannot locate a CPython {py_ver} x86_64-pc-windows-msvc build ({reason}). "
+        "Try --python-version 3.11, or set GITHUB_TOKEN to lift the API rate limit."
     )
 
 

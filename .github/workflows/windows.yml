@@ -33,6 +33,8 @@ jobs:
 
       - name: Build the portable app
         shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $args = @()
           if ("${{ inputs.with_model }}" -eq "true") { $args += "--with-model" }

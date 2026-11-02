@@ -615,6 +615,12 @@ function renderHistory() {
 addEventListener("resize", () => draw(au.currentTime / (curDur || 1)));
 loadVoices();
 
+// inside the desktop shell the download button becomes a native save dialog
+window.addEventListener("pywebviewready", () => {
+  const dl = $("dl");
+  if (dl) dl.title = "ذخیره با نام… (دیالوگ ویندوز)";
+});
+
 /* ---------- system state: model installed? engine loaded? ---------- */
 let sysTimer = null, sysSettled = false, sysSig = null;
 const sysbar = $("sysbar");

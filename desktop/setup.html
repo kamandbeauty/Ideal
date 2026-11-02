@@ -232,22 +232,31 @@ $("close").onclick = () => {
   if (api) api.cancel_setup();
 };
 
-/* tell the user where the files land, and offer the folder picker when the
-   download path is clearly hopeless (no bridge => plain browser) */
-(async () => {
+/* The bridge (`window.pywebview.api`) is injected by the host, sometimes
+   after this script runs — pywebview signals that with `pywebviewready`.
+   Waiting for it avoids telling the user "open the app" inside the app. */
+let booted = false;
+function boot() {
   const api = bridge();
-  if (!api) {
-    $("pick").hidden = true;
-    $("foot").textContent = "این صفحه از طریق برنامه باز نشده است؛ برای نصب، پارسی‌گو را اجرا کنید.";
-    return;
-  }
+  if (!api || booted) return Boolean(api);
+  booted = true;
   $("pick").hidden = false;
-  try {
-    const info = await api.app_info();
+  api.app_info().then(info => {
     if (info && info.model_dir) $("modeldir").textContent = info.model_dir;
-  } catch (e) {}
+  }).catch(() => {});
   poll();
-})();
+  return true;
+}
+
+window.addEventListener("pywebviewready", boot);
+if (!boot()) {
+  setTimeout(() => {
+    if (boot()) return;
+    $("pick").hidden = true;
+    $("foot").textContent =
+      "این صفحه از طریق برنامه باز نشده است؛ برای نصب مدل، پارسی‌گو را اجرا کنید.";
+  }, 1500);
+}
 </script>
 </body>
 </html>

@@ -309,7 +309,12 @@ def run_window(app: App, debug: bool) -> None:
     )
     app.window = window
 
-    webview.settings["ALLOW_DOWNLOADS"] = True  # fallback if the bridge is absent
+    try:  # pywebview 6 keeps settings immutable — the native save dialog is
+        # the real download path anyway, this is only a fallback
+        webview.settings["ALLOW_DOWNLOADS"] = True  # noqa: SIM401
+    except (TypeError, KeyError):
+        pass
+
     gui = "edgechromium" if paths.is_windows() else None
     try:
         webview.start(

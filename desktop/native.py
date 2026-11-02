@@ -100,6 +100,8 @@ class DesktopBridge:
         target = self._ask_save(name)
         if not target:
             return {"cancelled": True}
+        if not str(target).lower().endswith(".wav"):
+            target = f"{target}.wav"  # the dialog lets the extension be deleted
         try:
             Path(target).write_bytes(data)
         except OSError as exc:
@@ -122,23 +124,19 @@ class DesktopBridge:
 
     # --------------------------------------------------------------- helpers #
     def _ask_save(self, filename: str) -> str | None:
-        import webview
-
         window = self._app.window
         try:
             result = window.create_file_dialog(
-                webview.SAVE_DIALOG, save_filename=filename, file_types=("فایل WAV (*.wav)",)
+                _dialog_type("SAVE"), save_filename=filename, file_types=("فایل WAV (*.wav)",)
             )
         except Exception:  # noqa: BLE001 — dialog failure must not lose the audio
             return None
         return _first(result)
 
     def _ask_folder(self) -> str | None:
-        import webview
-
         window = self._app.window
         try:
-            result = window.create_file_dialog(webview.FOLDER_DIALOG, directory=str(paths.data_dir()))
+            result = window.create_file_dialog(_dialog_type("FOLDER"), directory=str(paths.data_dir()))
         except Exception:  # noqa: BLE001
             return None
         return _first(result)
@@ -156,6 +154,18 @@ class DesktopBridge:
             return {"ok": True, "path": str(p)}
         except Exception as exc:  # noqa: BLE001
             return {"error": str(exc), "path": str(p)}
+
+
+def _dialog_type(name: str) -> int:
+    """pywebview 6 moved the dialog constants into a FileDialog enum; the
+    module-level SAVE_DIALOG/FOLDER_DIALOG still work but log a deprecation
+    warning, which would end up in the user's log file."""
+    import webview
+
+    dialog = getattr(webview, "FileDialog", None)
+    if dialog is not None:
+        return int(getattr(dialog, name))
+    return int(getattr(webview, f"{name}_DIALOG"))
 
 
 def _first(result) -> str | None:
