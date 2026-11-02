@@ -39,13 +39,45 @@ What CI needs is the `.ulf` file itself, as base64.
 
 **Personal / Plus — the short path (a licence already activated in your Hub):**
 
-The Hub already wrote the file. Find it, encode it, paste it:
+*Step 0, and this is where most people lose an afternoon:* **a licence listed in the Hub does not
+prove the file exists.** `Unity Hub → Preferences (gear) → Licenses` can happily show "Unity Personal"
+while nothing has ever been written to disk, because the Hub is showing an entitlement in your Unity
+account, not a file on your machine. The `.ulf` is written when the Hub *activates*, i.e.:
+
+`Preferences → Licenses → Add → Get a free personal license → Agree and get personal edition license`
+
+Do that even if the licence already looks present, and let it finish — then go looking for the file.
+If nothing appears:
+
+- **Windows:** the Hub must be able to write to `C:\ProgramData`, which needs admin. Quit the Hub, start
+  it **as Administrator**, activate again. If UAC redirected the write, look in
+  `C:\Users\<you>\AppData\Local\VirtualStore\ProgramData\Unity\`.
+- **macOS:** `/Library/Application Support/Unity/` is not user-writable; the file appears only if the
+  activation step completed with permission — check with `sudo ls -l "/Library/Application Support/Unity/"`.
+- **Hidden folders:** `C:\ProgramData` and `~/Library` are hidden by default in Explorer/Finder.
+- **Unity 6 also stores named-user entitlements as XML** (`%LOCALAPPDATA%\Unity\licenses\UnityEntitlementLicense.xml`,
+  `~/Library/Unity/licenses/`, `~/.config/unity3d/Unity/licenses/`). That is the newer licensing client's
+  own copy and **is not what CI wants** — GameCI reads the `.ulf`. If only the XML exists, use the long
+  path below.
+
+Then find the file and encode it:
 
 | OS | path |
 | --- | --- |
 | Windows | `C:\ProgramData\Unity\Unity_lic.ulf` |
 | macOS | `/Library/Application Support/Unity/Unity_lic.ulf` |
 | Linux | `~/.local/share/unity3d/Unity/Unity_lic.ulf` |
+
+Before pasting anything, confirm it is a licence and not a stub — the file is XML and a real one is
+several kilobytes, not a few hundred bytes:
+
+```bash
+ls -l Unity_lic.ulf && grep -c "Unity_lic\|DeveloperData" Unity_lic.ulf
+```
+
+```powershell
+Get-Item C:\ProgramData\Unity\Unity_lic.ulf | Select-Object Length   # expect > 5000
+```
 
 ```bash
 # Linux / macOS
@@ -57,8 +89,14 @@ base64 -w0 Unity_lic.ulf        # macOS: base64 -i Unity_lic.ulf -o license.b64
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\ProgramData\Unity\Unity_lic.ulf")) | Set-Clipboard
 ```
 
-Then **Settings → Secrets and variables → Actions → New repository secret**, name `UNITY_LICENSE`,
-value = that base64 string (one line, no wrapping, no quotes).
+Then **Settings → Secrets and variables → Actions → New repository secret**, name `UNITY_LICENSE`
+(exactly that — the workflow reads `secrets.UNITY_LICENSE`), value = that base64 string (one line, no
+wrapping, no quotes, no `data:` prefix).
+
+Two ways to know it landed, without waiting for a two-minute Unity run: the precheck step
+`is there a licence to run Unity with?` prints `licence: .ulf (UNITY_LICENSE)` when the secret reached
+the runner, and the error message when it did not. A secret's *value* cannot be read back after saving —
+not by you in the UI, not by an agent — so the precheck line is the only honest confirmation.
 
 **Personal / Plus — the long path (if the runner rejects the `.ulf` above):**
 1. Run the helper action once in a scratch branch: `game-ci/unity-request-activation-file@v2`
