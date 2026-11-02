@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Terminal — 2D figures, photographic airport</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+  #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; }
+  .shot { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+  .shot canvas { position: absolute; inset: 0; display: block; }
+  #grade {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(ellipse 86% 70% at 50% 42%, rgba(0,0,0,0) 50%, rgba(0,0,0,.28) 84%, rgba(0,0,0,.54) 100%),
+      linear-gradient(to bottom, rgba(0,0,0,.12) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 80%, rgba(0,0,0,.14) 100%);
+  }
+</style>
+</head>
+<body>
+<div id="root"><div id="shots"></div><div id="grade"></div></div>
+<script>
+// =====================================================================
+// Terminal — photographic plates, flat 2D figures glued into them.
+//
+//   scene 1   0.0 - 18.0   the concourse: the crowd, then just him
+//   scene 2  18.0 - 37.0   passport control: a problem with the papers
+//
+// No text anywhere. Every pixel is a function of t.
+//
+// Character sheet lock:
+//   round white head · huge eyes · white body · heavy ink outline · thin
+//   limbs. The man: dark-brown jacket (collar + zip), dark trousers, a
+//   hair tuft, black shoes, an old suitcase. The officer: navy shirt,
+//   white collar band, ink bob.
+// =====================================================================
+const W = 1080, H = 1920, FPS = 30;
+
+const INK = "#111114";
+const PAPER = "#ffffff";
+const COL = {
+  jacket: "#6b4527", jacketInk: "#2a1a0e",
+  trousers: "#2b2b31", shoe: "#141418",
+  shirt: "#2c4a70", shirtInk: "#152436",
+  coat2: "#39404b", coat3: "#4c3a30", coat4: "#33403c",
+};
+
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, u) => a + (b - a) * u;
+const smooth = (u) => { u = clamp(u); return u * u * (3 - 2 * u); };
+const ease = (u) => { u = clamp(u); return u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2; };
+const ramp = (t, a, b) => smooth((t - a) / (b - a));
+const win = (t, a, b, c, d) => ramp(t, a, b) - ramp(t, c, d);
+const blinkAt = (t, p, at) => (Math.abs((((t - at) % p) + p) % p) < 0.10 ? 1 : 0);
+const lp = (a, b, u) => ({ x: lerp(a.x, b.x, clamp(u)), y: lerp(a.y, b.y, clamp(u)) });
+
+// ------------------------------------------------------------------ plates
+const PLATES = {};
+function plate(name) {
+  if (!PLATES[name]) { const im = new Image(); im.src = `../assets/plates/sh/${name}.jpg`; PLATES[name] = im; }
+  return PLATES[name];
+}
+
+// ------------------------------------------------------------------ rig
+// A real skeleton, in units where the feet are at 0 and "up" is negative.
+// Total height ≈ 1035: legs 390, torso 310, head 310.
+const RIG = {
+  hipY: -390,
+  shoulderY: -700,
+  headCy: -884, headRx: 140, headRy: 146,
+  bodyRx: 126, bodyRy: 182,
+  armU: 168, armL: 166,
+  legU: 196, legL: 196,
+  armW: 22, legW: 26,
+  outline: 14,
+};
+
+function ik(root, end, a, b, side = 1) {
+  let dx = end.x - root.x, dy = end.y - root.y;
+  let d = Math.hypot(dx, dy) || 1e-6;
+  const reach = (a + b) * 0.985;
+  if (d > reach) { const k = reach / d; dx *= k; dy *= k; d = reach; }
+  const c = clamp((a * a + d * d - b * b) / (2 * a * d), -1, 1);
+  const th = Math.acos(c) * side;
+  const ux = dx / d, uy = dy / d;
+  return {
+    j: { x: root.x + a * (ux * Math.cos(th) - uy * Math.sin(th)),
+         y: root.y + a * (ux * Math.sin(th) + uy * Math.cos(th)) },
+    end: { x: root.x + dx, y: root.y + dy },
+  };
+}
+
+// ------------------------------------------------------------------ face
+const FACE = {
+  neutral:  { eyeW: 58, eyeH: 66, pupil: 18, gaze: 0.00, look: 0,  lift: 8,  tilt: 0.00, mLift: 0,  mouthW: 42, mouthH: 8,  curve: 0.22, solid: 0 },
+  worry:    { eyeW: 62, eyeH: 70, pupil: 16, gaze: 0.20, look: 0,  lift: 22, tilt: 0.95, mLift: 4,  mouthW: 34, mouthH: 12, curve: -0.34, solid: 0 },
+  shock:    { eyeW: 72, eyeH: 84, pupil: 12, gaze: 0.00, look: 0,  lift: 28, tilt: -0.50, mLift: 6, mouthW: 32, mouthH: 44, curve: 0, solid: 1 },
+  sad:      { eyeW: 56, eyeH: 54, pupil: 16, gaze: -0.26, look: 5, lift: 18, tilt: 0.88, mLift: -2, mouthW: 36, mouthH: 9,  curve: -0.80, solid: 0 },
+  flat:     { eyeW: 58, eyeH: 28, pupil: 15, gaze: 0.06, look: 0,  lift: 5,  tilt: 0.10, mLift: 0,  mouthW: 44, mouthH: 7,  curve: 0.00, solid: 0 },
+  happy:    { eyeW: 58, eyeH: 32, pupil: 15, gaze: 0.00, look: 0,  lift: 9,  tilt: -0.30, mLift: 2, mouthW: 56, mouthH: 12, curve: 0.95, solid: 0 },
+  tired:    { eyeW: 56, eyeH: 32, pupil: 15, gaze: -0.12, look: 6, lift: 12, tilt: 0.90, mLift: 1,  mouthW: 38, mouthH: 10, curve: -0.42, solid: 0 },
+  doubt:    { eyeW: 60, eyeH: 44, pupil: 16, gaze: -0.30, look: 5, lift: 13, tilt: -0.65, mLift: 0, mouthW: 36, mouthH: 8,  curve: 0.18, solid: 0 },
+  stern:    { eyeW: 58, eyeH: 38, pupil: 15, gaze: 0.00, look: 0,  lift: 4,  tilt: -0.85, mLift: 0, mouthW: 42, mouthH: 7,  curve: -0.10, solid: 0 },
+  announce: { eyeW: 60, eyeH: 64, pupil: 16, gaze: 0.00, look: 0,  lift: 15, tilt: 0.30, mLift: 8,  mouthW: 36, mouthH: 26, curve: 0, solid: 1 },
+};
+function mixFace(a, b, u) {
+  const A = FACE[a] || FACE.neutral, B = FACE[b] || FACE.neutral;
+  const o = {}; for (const k in A) o[k] = lerp(A[k], B[k], clamp(u)); return o;
+}
+
+// ------------------------------------------------------------------ draw
+// feet at (x, y); every anchor is measured up from there, so a character
+// never floats and its head never sinks into its hips.
+function drawFigure(ctx, s) {
+  const f = s.face || FACE.neutral;
+  const blink = clamp(s.blink || 0, 0, 1);
+  const squash = s.squash ?? 1;
+  const sc = s.scale || 1;
+  const R = RIG;
+  const bodyRx = R.bodyRx * squash;
+  const bodyRy = R.bodyRy * (1 - (1 - squash) * 0.45);
+
+  ctx.save();
+  ctx.translate(s.x, s.y);
+  ctx.rotate(s.rot || 0);
+  ctx.scale(sc * (s.flip ? -1 : 1), sc);
+
+  // --- contact shadow, in the plate's floor plane
+  if (s.shadow !== false) {
+    const g = ctx.createRadialGradient(0, 0, 6, 0, 0, R.bodyRx * 1.5);
+    g.addColorStop(0, "rgba(0,0,0,.52)");
+    g.addColorStop(0.5, "rgba(0,0,0,.20)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.save(); ctx.scale(1, 0.17);
+    ctx.beginPath(); ctx.arc(0, 0, R.bodyRx * 1.45, 0, Math.PI * 2);
+    ctx.fillStyle = g; ctx.fill(); ctx.restore();
+  }
+
+  // --- legs
+  if (!s.noLegs) for (const [foot, side] of [[s.footL, -1], [s.footR, 1]]) {
+    const r = ik({ x: side * 26, y: R.hipY }, foot, R.legU, R.legL, side);
+    ctx.beginPath();
+    ctx.moveTo(side * 26, R.hipY); ctx.lineTo(r.j.x, r.j.y); ctx.lineTo(foot.x, foot.y);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.lineWidth = R.legW * 1.5; ctx.strokeStyle = s.trousers || INK; ctx.stroke();
+    ctx.lineWidth = R.legW * 0.86; ctx.strokeStyle = INK; ctx.stroke();
+    if (s.shoes !== false) {
+      ctx.save(); ctx.translate(foot.x, foot.y);
+      ctx.beginPath();
+      ctx.ellipse(side * 8, -4, 30, 14, 0, 0, Math.PI * 2);
+      ctx.fillStyle = COL.shoe; ctx.fill();
+      ctx.lineWidth = 7; ctx.strokeStyle = INK; ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // --- torso
+  const bodyCy = (R.shoulderY + R.hipY) / 2 + 10;
+  const bodyPath = () => {
+    ctx.beginPath();
+    ctx.moveTo(-bodyRx, bodyCy + bodyRy * 0.62);
+    ctx.bezierCurveTo(-bodyRx * 1.04, bodyCy - bodyRy * 1.30, bodyRx * 1.04, bodyCy - bodyRy * 1.30, bodyRx, bodyCy + bodyRy * 0.62);
+    ctx.bezierCurveTo(bodyRx * 0.96, bodyCy + bodyRy * 0.92, -bodyRx * 0.96, bodyCy + bodyRy * 0.92, -bodyRx, bodyCy + bodyRy * 0.62);
+    ctx.closePath();
+  };
+  bodyPath(); ctx.fillStyle = PAPER; ctx.fill();
+  ctx.lineWidth = R.outline; ctx.strokeStyle = INK; ctx.lineJoin = "round"; ctx.stroke();
+
+  if (s.torso) {
+    bodyPath(); ctx.fillStyle = s.torso; ctx.fill();
+    ctx.lineWidth = R.outline; ctx.strokeStyle = INK; ctx.stroke();
+  }
+  if (s.zip) {
+    ctx.beginPath();
+    ctx.moveTo(0, bodyCy + bodyRy * 0.62); ctx.lineTo(0, bodyCy - bodyRy * 1.02);
+    ctx.lineWidth = 7; ctx.strokeStyle = "rgba(0,0,0,.55)"; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-bodyRx * 0.70, bodyCy - bodyRy * 1.16);
+    ctx.quadraticCurveTo(0, bodyCy - bodyRy * 0.62, bodyRx * 0.70, bodyCy - bodyRy * 1.16);
+    ctx.lineWidth = 13; ctx.strokeStyle = INK; ctx.stroke();
+  }
+  if (s.collarBand) {
+    // an open shirt collar: two short ink strokes forming a V at the neck base
+    const cy = bodyCy - bodyRy * 1.02;
+    ctx.beginPath();
+    ctx.moveTo(-bodyRx * 0.34, cy - 6);
+    ctx.lineTo(-bodyRx * 0.10, cy + bodyRy * 0.22);
+    ctx.moveTo(bodyRx * 0.34, cy - 6);
+    ctx.lineTo(bodyRx * 0.10, cy + bodyRy * 0.22);
+    ctx.lineWidth = 11; ctx.strokeStyle = PAPER; ctx.lineCap = "round"; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-bodyRx * 0.34, cy - 6);
+    ctx.lineTo(-bodyRx * 0.10, cy + bodyRy * 0.22);
+    ctx.moveTo(bodyRx * 0.34, cy - 6);
+    ctx.lineTo(bodyRx * 0.10, cy + bodyRy * 0.22);
+    ctx.lineWidth = 4; ctx.strokeStyle = INK; ctx.stroke();
+  }
+
+  // --- arms, drawn over the torso so a gesture always reads
+  const handPts = [];
+  for (const [hand, side] of [[s.handL, -1], [s.handR, 1]]) {
+    const root = { x: side * bodyRx * 0.86, y: R.shoulderY + 30 };
+    const r = ik(root, hand, R.armU, R.armL, side);
+    ctx.beginPath();
+    ctx.moveTo(root.x, root.y); ctx.lineTo(r.j.x, r.j.y); ctx.lineTo(hand.x, hand.y);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.lineWidth = s.sleeve ? R.armW + 10 : R.armW;
+    ctx.strokeStyle = s.sleeve || INK; ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(root.x, root.y); ctx.lineTo(r.j.x, r.j.y); ctx.lineTo(hand.x, hand.y);
+    ctx.lineWidth = R.armW * 0.5; ctx.strokeStyle = INK; ctx.stroke();
+    handPts.push(hand);
+  }
+
+  // --- head
+  const headX = (s.lean || 0) * 34;
+  const headY = R.headCy;
+  ctx.save();
+  ctx.translate(headX, headY);
+  ctx.rotate(s.headRot || 0);
+
+
+  if (s.hair === "bob") {
+    ctx.beginPath();
+    ctx.ellipse(0, -6, R.headRx * 1.14, R.headRy * 1.10, 0, Math.PI * 0.93, Math.PI * 2.07);
+    ctx.fillStyle = INK; ctx.fill();
+  }
+  ctx.beginPath();
+  ctx.ellipse(0, 0, R.headRx, R.headRy, 0, 0, Math.PI * 2);
+  ctx.fillStyle = PAPER; ctx.fill();
+  ctx.lineWidth = R.outline; ctx.strokeStyle = INK; ctx.stroke();
+
+  drawFace(ctx, f, blink);
+
+  if (s.hair === "tuft") {
+    ctx.beginPath();
+    ctx.moveTo(-28, -R.headRy * 0.90);
+    ctx.quadraticCurveTo(-38, -R.headRy * 1.30, -12, -R.headRy * 1.06);
+    ctx.quadraticCurveTo(-2, -R.headRy * 1.44, 10, -R.headRy * 1.06);
+    ctx.quadraticCurveTo(28, -R.headRy * 1.32, 26, -R.headRy * 0.90);
+    ctx.closePath(); ctx.fillStyle = INK; ctx.fill();
+  }
+  if (s.hair === "bob") {
+    ctx.beginPath();
+    ctx.moveTo(-R.headRx * 0.99, -R.headRy * 0.24);
+    ctx.quadraticCurveTo(-R.headRx * 0.72, -R.headRy * 1.12, 0, -R.headRy * 1.04);
+    ctx.quadraticCurveTo(R.headRx * 0.72, -R.headRy * 1.12, R.headRx * 0.99, -R.headRy * 0.24);
+    ctx.quadraticCurveTo(R.headRx * 0.58, -R.headRy * 0.78, 0, -R.headRy * 0.80);
+    ctx.quadraticCurveTo(-R.headRx * 0.58, -R.headRy * 0.78, -R.headRx * 0.99, -R.headRy * 0.24);
+    ctx.closePath(); ctx.fillStyle = INK; ctx.fill();
+  }
+  ctx.restore();
+
+  // --- hands on top of the sleeves
+  for (const hand of handPts) {
+    ctx.beginPath();
+    ctx.arc(hand.x, hand.y, R.armW * 1.15, 0, Math.PI * 2);
+    ctx.fillStyle = PAPER; ctx.fill();
+    ctx.lineWidth = R.outline * 0.75; ctx.strokeStyle = INK; ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFace(ctx, f, blink) {
+  const ex = 54, ey = -10 + (f.look || 0);
+  const eyeH = f.eyeH * (1 - blink * 0.93);
+
+  for (const side of [-1, 1]) {
+    const cx = side * ex + f.gaze * 13;
+    ctx.beginPath();
+    ctx.ellipse(cx, ey, f.eyeW / 2, Math.max(3, eyeH / 2), 0, 0, Math.PI * 2);
+    ctx.fillStyle = "#fff"; ctx.fill();
+    ctx.lineWidth = 8; ctx.strokeStyle = INK; ctx.stroke();
+    if (eyeH > 10) {
+      const pr = Math.min(f.pupil, Math.max(5, eyeH / 2 - 5));
+      const px = cx + f.gaze * 12, py = ey + 3;
+      ctx.beginPath(); ctx.ellipse(px, py, pr, pr * 1.05, 0, 0, Math.PI * 2);
+      ctx.fillStyle = INK; ctx.fill();
+      if (pr > 6) {
+        ctx.beginPath(); ctx.arc(px - pr * 0.36, py - pr * 0.38, Math.max(2, pr * 0.28), 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,255,255,.92)"; ctx.fill();
+      }
+    }
+  }
+  for (const side of [-1, 1]) {
+    const bx = side * ex + f.gaze * 13;
+    const by = ey - f.eyeH * 0.64 - f.lift;
+    const lift = f.tilt * 17;
+    const inner = { x: bx - side * 30, y: by + lift };
+    const outer = { x: bx + side * 30, y: by - lift * 0.45 };
+    ctx.beginPath();
+    ctx.moveTo(outer.x, outer.y);
+    ctx.quadraticCurveTo((inner.x + outer.x) / 2, by - 8 + lift * 0.2, inner.x, inner.y);
+    ctx.lineWidth = 10; ctx.strokeStyle = INK; ctx.lineCap = "round"; ctx.stroke();
+  }
+  const my = 72 + f.mLift, mw = f.mouthW, mh = f.mouthH, cv = f.curve;
+  if (!f.solid) {
+    ctx.beginPath();
+    ctx.moveTo(-mw / 2, my - cv * 9);
+    ctx.quadraticCurveTo(0, my + cv * 26, mw / 2, my - cv * 9);
+    ctx.lineWidth = 10; ctx.strokeStyle = INK; ctx.lineCap = "round"; ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.ellipse(0, my + mh * 0.06, mw / 2, mh / 2, 0, 0, Math.PI * 2);
+    ctx.fillStyle = INK; ctx.fill();
+    if (mh > 20) {
+      ctx.beginPath();
+      ctx.ellipse(0, my + mh * 0.38, mw / 3.4, mh * 0.22, 0, 0, Math.PI * 2);
+      ctx.fillStyle = "#8f3b3b"; ctx.fill();
+    }
+  }
+}
+
+// the world position of a hand, for props that follow it
+function handWorld(s, key) {
+  const h = s[key], sc = s.scale || 1;
+  return { x: s.x + (s.flip ? -h.x : h.x) * sc, y: s.y + h.y * sc };
+}
+
+// costumes, written once so nobody drifts
+const HIM = { torso: COL.jacket, trousers: COL.trousers, sleeve: COL.jacket, shoes: true, hair: "tuft", zip: true };
+const OFFICER = { torso: COL.shirt, trousers: null, sleeve: COL.shirt, shoes: false, hair: "bob", collarBand: true };
+
+// ------------------------------------------------------------------ props
+function drawSuitcase(ctx, x, y, w = 150, h = 104, rot = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.beginPath(); ctx.roundRect(-w / 2, -h, w, h, 12);
+  ctx.fillStyle = "#3a2312"; ctx.fill();
+  ctx.lineWidth = 10; ctx.strokeStyle = INK; ctx.stroke();
+  ctx.beginPath(); ctx.roundRect(-26, -h - 26, 52, 28, 10);
+  ctx.lineWidth = 10; ctx.strokeStyle = INK; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-w * 0.26, -h + 8); ctx.lineTo(-w * 0.26, -8);
+  ctx.moveTo(w * 0.26, -h + 8); ctx.lineTo(w * 0.26, -8);
+  ctx.lineWidth = 9; ctx.strokeStyle = "rgba(0,0,0,.6)"; ctx.stroke();
+  ctx.restore();
+}
+
+function drawPassport(ctx, at, angle = 0, sc = 1) {
+  ctx.save(); ctx.translate(at.x, at.y); ctx.rotate(angle); ctx.scale(sc, sc);
+  ctx.beginPath(); ctx.roundRect(-52, -34, 104, 68, 8);
+  ctx.fillStyle = "#e9e5dc"; ctx.fill();
+  ctx.lineWidth = 8; ctx.strokeStyle = INK; ctx.stroke();
+  // a second sheet peeking out
+  ctx.beginPath(); ctx.roundRect(-46, -40, 96, 14, 5);
+  ctx.fillStyle = "#f4f1ea"; ctx.fill();
+  ctx.lineWidth = 6; ctx.strokeStyle = INK; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-32, -14); ctx.lineTo(34, -14);
+  ctx.moveTo(-32, 2); ctx.lineTo(18, 2);
+  ctx.moveTo(-32, 18); ctx.lineTo(28, 18);
+  ctx.lineWidth = 5; ctx.strokeStyle = "rgba(17,17,20,.45)"; ctx.stroke();
+  ctx.restore();
+}
+
+// a thin inked lip that ties the figures to the counter's top edge
+function drawCounterLip(ctx, y) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(-40, y);
+  ctx.lineTo(1120, y);
+  ctx.lineWidth = 12; ctx.strokeStyle = "rgba(17,17,20,.55)"; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(-40, y - 22);
+  ctx.lineTo(1120, y - 22);
+  ctx.lineWidth = 22; ctx.strokeStyle = "rgba(255,252,245,.35)"; ctx.stroke();
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ camera
+// The plate is drawn as one homography; figures use the same homography,
+// so they are welded to the floor and the walls at any zoom.
+function plateTransform(cam) {
+  return { dw: 1080 * cam.z, dh: 1920 * cam.z,
+           ox: (W - 1080 * cam.z) * (cam.px / W),
+           oy: (H - 1920 * cam.z) * (cam.py / H) };
+}
+function withPlate(ctx, cam, fn) {
+  const m = plateTransform(cam);
+  ctx.save();
+  ctx.translate(m.ox, m.oy);
+  ctx.scale(cam.z, cam.z);
+  fn();
+  ctx.restore();
+}
+function camAt(shot, t) {
+  const u = clamp((t - shot.start) / (shot.end - shot.start));
+  const c = shot.cam, e = ease(u);
+  return { z: lerp(c.from, c.to, e), px: lerp(c.px0, c.px1, e), py: lerp(c.py0, c.py1, e) };
+}
+
+// ------------------------------------------------------------------ crowd
+// Passers-by in the same language: filled coats, ink outlines, blank faces.
+const CROWD = [
+  { y: 1500, sc: 0.56, dur: 6.2,  off: 0.0, dir: 1,  coat: COL.coat2, case: true },
+  { y: 1440, sc: 0.47, dur: 8.0,  off: 3.1, dir: -1, coat: COL.coat3, case: false },
+  { y: 1390, sc: 0.39, dur: 10.4, off: 1.4, dir: 1,  coat: COL.coat4, case: true },
+];
+
+function drawCrowd(ctx, t) {
+  for (const c of CROWD) {
+    const u = ((((t + c.off) % c.dur) + c.dur) % c.dur) / c.dur;
+    if (u > 0.94) continue;
+    const x = c.dir > 0 ? lerp(-360, 1460, u) : lerp(1460, -360, u);
+    const step = Math.sin((t + c.off) * 6.4);
+    drawFigure(ctx, {
+      x, y: c.y, scale: c.sc, flip: c.dir < 0,
+      torso: c.coat, trousers: "#242730", sleeve: c.coat, shoes: true, hair: "tuft",
+      squash: 1 - Math.abs(step) * 0.016,
+      lean: 0.04 * c.dir,
+      headRot: 0.03 * Math.sin(t * 2 + c.off),
+      face: FACE.flat, blink: 0,
+      handL: { x: -118 - step * 20, y: -258 },
+      handR: { x: 118 + step * 20, y: -258 },
+      footL: { x: -54 + step * 34, y: -Math.max(0, step) * 30 },
+      footR: { x: 54 - step * 34, y: -Math.max(0, -step) * 30 },
+    });
+    if (c.case) {
+      const bx = x - c.dir * 170 * c.sc;
+      drawSuitcase(ctx, bx, c.y, 120 * c.sc, 84 * c.sc, -0.04);
+    }
+  }
+}
+
+// ------------------------------------------------------------------ shots
+const SHOTS = [];
+const addShot = (o) => SHOTS.push(o);
+
+function drawPlateImage(ctx, img, cam) {
+  const iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  const dw = W * cam.z, dh = H * cam.z;
+  const ox = (W - dw) * (cam.px / W), oy = (H - dh) * (cam.py / H);
+  ctx.drawImage(img, ox, oy, dw, dh);
+}
+
+// =====================================================================
+// SCENE 1 — the concourse.  0.0 -> 18.0
+// =====================================================================
+
+// --- 1a  wide: the hall, the crowd, one small man who is not moving
+addShot({
+  id: "s1a", start: 0.0, end: 5.6, plate: "scene-10",
+  cam: { from: 1.02, to: 1.10, px0: 560, px1: 600, py0: 980, py1: 940 },
+  draw(ctx, t, cam) {
+    withPlate(ctx, cam, () => {
+      drawCrowd(ctx, t);
+      const look = ramp(t, 2.6, 4.0);
+      drawFigure(ctx, {
+        ...HIM, x: 620, y: 1740, scale: 0.92,
+        squash: 1 + Math.sin(t * 1.6) * 0.006,
+        lean: -0.02, headRot: -0.04 - look * 0.10,
+        face: mixFace("tired", "worry", look),
+        blink: blinkAt(t, 3.4, 2.2),
+        handL: { x: -152, y: -246 }, handR: { x: 152, y: -246 },
+        footL: { x: -54, y: 0 }, footR: { x: 54, y: 0 },
+      });
+      drawSuitcase(ctx, 810, 1740, 132, 92, -0.03);
+    });
+  },
+});
+
+// --- 1b  he turns from the crowd to the empty hall, then looks up
+addShot({
+  id: "s1b", start: 5.6, end: 10.4, plate: "scene-10",
+  cam: { from: 1.12, to: 1.24, px0: 620, px1: 640, py0: 1090, py1: 1010 },
+  draw(ctx, t, cam) {
+    const tt = t - 5.6;
+    withPlate(ctx, cam, () => {
+      const look = ramp(tt, 0.3, 1.4);
+      const up = ramp(tt, 2.4, 3.4);
+      drawFigure(ctx, {
+        ...HIM, x: 620, y: 1740, scale: 0.92,
+        squash: 1 + Math.sin(t * 1.6) * 0.008,
+        lean: 0.02 - up * 0.04,
+        headRot: -look * 0.06 - up * 0.20,
+        face: mixFace(mixFace("tired", "worry", look), "sad", up * 0.35),
+        blink: blinkAt(t, 3.1, 6.6),
+        handL: { x: -152, y: -246 }, handR: { x: 152, y: -246 },
+        footL: { x: -54, y: 0 }, footR: { x: 54, y: 0 },
+      });
+      drawSuitcase(ctx, 810, 1740, 132, 92, -0.03);
+    });
+  },
+});
+
+// --- 1c  push in on him: the eyes go from the hall to us, and drop
+addShot({
+  id: "s1c", start: 10.4, end: 14.6, plate: "scene-10",
+  cam: { from: 1.34, to: 1.70, px0: 640, px1: 650, py0: 940, py1: 880 },
+  draw(ctx, t, cam) {
+    const tt = t - 10.4;
+    withPlate(ctx, cam, () => {
+      const toUs = ramp(tt, 0.6, 1.6);
+      const drop = ramp(tt, 2.6, 3.6);
+      drawFigure(ctx, {
+        ...HIM, x: 620, y: 1740, scale: 0.92,
+        squash: 1 + Math.sin(t * 1.5) * 0.008,
+        lean: 0.01,
+        headRot: 0.18 + drop * 0.10,
+        face: mixFace(mixFace("sad", "tired", toUs * 0.4), "sad", drop),
+        blink: blinkAt(t, 3.0, 11.4) + (drop > 0.2 ? 0.25 : 0),
+        handL: { x: -152, y: -246 }, handR: { x: 152, y: -246 },
+        footL: { x: -50, y: 0 }, footR: { x: 50, y: 0 },
+      });
+    });
+  },
+});
+
+// --- 1d  he picks the case up and walks toward passport control
+addShot({
+  id: "s1d", start: 14.6, end: 18.0, plate: "scene-11",
+  cam: { from: 1.04, to: 1.14, px0: 560, px1: 600, py0: 900, py1: 860 },
+  draw(ctx, t, cam) {
+    const tt = t - 14.6;
+    const w = clamp(tt / 2.6);
+    withPlate(ctx, cam, () => {
+      const step = Math.sin(tt * 6.8);
+      drawFigure(ctx, {
+        ...HIM, x: lerp(380, 470, ease(w)), y: 1610, scale: 0.98,
+        squash: 1 - Math.abs(step) * 0.02,
+        lean: 0.02, headRot: 0.02,
+        face: mixFace("tired", "worry", w),
+        blink: blinkAt(t, 2.6, 15.4),
+        handL: { x: -124 - step * 22, y: -248 },
+        handR: { x: 124 + step * 22, y: -248 },
+        footL: { x: -50 + step * 32, y: -Math.max(0, step) * 24 },
+        footR: { x: 50 - step * 32, y: -Math.max(0, -step) * 24 },
+      });
+      drawSuitcase(ctx, lerp(560, 640, ease(w)), 1610, 132, 92, -0.03 + step * 0.02);
+    });
+  },
+});
+
+// =====================================================================
+// SCENE 2 — passport control.  18.0 -> 37.0
+// Counter top edge in the plate sits at y ≈ 800.
+// =====================================================================
+// the plate (scene-09) puts the counter's top edge at y ≈ 1490
+const COUNTER = 1492;
+
+function passportState(tt) {
+  const give = win(tt, 0.3, 1.1, 1.7, 2.4);
+  const held = ramp(tt, 1.5, 2.2);
+  const recheck = win(tt, 4.6, 4.9, 5.4, 6.0);
+  const refuse = ramp(tt, 6.6, 7.2);
+  const announce = ramp(tt, 8.4, 8.9);
+  const takeBack = ramp(tt, 9.4, 10.4);
+  const sag = ramp(tt, 10.0, 11.6);
+  const droop = ramp(tt, 12.6, 14.4);
+
+  // the officer stands behind the counter: only head, neck and hands clear it
+  const officer = {
+    ...OFFICER,
+    x: 742, y: 1770, scale: 1.06, flip: false,
+    lean: -0.02,
+    headRot: 0.03 - held * 0.10 + recheck * 0.12 + announce * 0.03,
+    face: mixFace(mixFace(mixFace(mixFace("neutral", "doubt", held), "doubt", recheck),
+                          "stern", refuse * 0.8), "announce", announce),
+    blink: blinkAt(tt, 4.4, 3.0),
+    handL: lp({ x: -132, y: -300 }, { x: -170, y: -366 }, held),
+    handR: lp(lp({ x: 132, y: -300 }, { x: 196, y: -330 }, refuse), { x: 214, y: -392 }, announce),
+    footL: { x: -44, y: 0 }, footR: { x: 44, y: 0 },
+    shadow: false,
+  };
+
+  const him = {
+    ...HIM,
+    x: 246, y: 1852, scale: 1.12,
+    squash: 1 + Math.sin(tt * 1.9) * 0.006 - droop * 0.02,
+    lean: -0.03 + droop * 0.10,
+    headRot: -0.03 + sag * 0.14 + droop * 0.30,
+    face: mixFace(mixFace(mixFace("worry", "shock", win(tt, 2.6, 2.9, 3.6, 4.2)),
+                          "sad", ramp(tt, 5.6, 7.0)), "sad", droop * 0.5),
+    blink: blinkAt(tt, 3.2, 1.6),
+    handL: { x: -150, y: -244 },
+    handR: lp({ x: 150, y: -290 }, { x: 214, y: -420 }, clamp(give - takeBack * 0.92)),
+    footL: { x: -50, y: 0 }, footR: { x: 50, y: 0 },
+  };
+
+  const himHand = handWorld(him, "handR");
+  const offHand = handWorld(officer, "handL");
+  const papers =
+    tt < 1.1 ? himHand :
+    tt < 2.2 ? lp(himHand, offHand, ramp(tt, 1.1, 2.2)) :
+    tt < 9.4 ? offHand : lp(offHand, himHand, ramp(tt, 9.4, 10.6));
+
+  return { officer, him, papers };
+}
+
+function passportShot(ctx, t, cam, tt) {
+  const st = passportState(tt);
+  const img = plate("scene-09");
+  withPlate(ctx, cam, () => {
+    // the officer stands BEHIND the counter: draw him, then paint the plate's
+    // counter band back over his lower body. That is the occlusion.
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(-400, -900, 1900, COUNTER + 900);
+    ctx.clip();
+    drawFigure(ctx, { ...st.officer, noLegs: true });
+    ctx.restore();
+    if (img.naturalWidth) {
+      const ih = img.naturalHeight, iw = img.naturalWidth;
+      const sy = (COUNTER / 1920) * ih;
+      ctx.drawImage(img, 0, sy, iw, ih - sy, 0, COUNTER, 1080, 1920 - COUNTER);
+    }
+    // his hands live above the counter, so they are drawn after the clip
+
+    drawFigure(ctx, st.him);
+    drawPassport(ctx, st.papers, -0.12 + 0.10 * Math.sin(tt * 0.7), 0.72);
+  });
+}
+
+// --- 2a  medium: the papers cross the counter
+addShot({
+  id: "s2a", start: 18.0, end: 24.2, plate: "scene-09",
+  cam: { from: 1.0, to: 1.05, px0: 540, px1: 560, py0: 1010, py1: 980 },
+  draw(ctx, t, cam) { passportShot(ctx, t, cam, t - 18.0); },
+});
+
+// --- 2b  push in on the papers in the officer's hands
+addShot({
+  id: "s2b", start: 24.2, end: 28.4, plate: "scene-09",
+  cam: { from: 1.06, to: 1.26, px0: 660, px1: 690, py0: 1000, py1: 940 },
+  draw(ctx, t, cam) { passportShot(ctx, t, cam, t - 18.0); },
+});
+
+// --- 2c  the "there is a problem" and the man's face
+addShot({
+  id: "s2c", start: 28.4, end: 32.8, plate: "scene-09",
+  cam: { from: 1.10, to: 1.34, px0: 390, px1: 340, py0: 1010, py1: 940 },
+  draw(ctx, t, cam) { passportShot(ctx, t, cam, t - 18.0); },
+});
+
+// --- 2d  out again: he lowers his head to his own papers
+addShot({
+  id: "s2d", start: 32.8, end: 37.0, plate: "scene-09",
+  cam: { from: 1.26, to: 1.04, px0: 460, px1: 520, py0: 980, py1: 1040 },
+  draw(ctx, t, cam) { passportShot(ctx, t, cam, t - 18.0); },
+});
+
+// ------------------------------------------------------------------ stage
+const DURATION = 37.0;
+const host = document.getElementById("shots");
+const layers = new Map();
+function layerFor(shot) {
+  let L = layers.get(shot.id);
+  if (L) return L;
+  const wrap = document.createElement("div");
+  wrap.className = "shot";
+  const cv = document.createElement("canvas");
+  cv.width = W; cv.height = H;
+  wrap.appendChild(cv);
+  host.appendChild(wrap);
+  L = { wrap, ctx: cv.getContext("2d"), img: plate(shot.plate) };
+  layers.set(shot.id, L);
+  return L;
+}
+function shotAt(t) { for (const s of SHOTS) if (t >= s.start && t < s.end) return s; return SHOTS[SHOTS.length - 1]; }
+
+function renderer(t) {
+  const shot = shotAt(t);
+  const cam = camAt(shot, t);
+  const L = layerFor(shot);
+  for (const s of SHOTS) { const M = layers.get(s.id); if (M) M.wrap.style.opacity = s === shot ? "1" : "0"; }
+  const ctx = L.ctx;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  if (L.img.complete && L.img.naturalWidth) drawPlateImage(ctx, L.img, cam);
+  else { ctx.fillStyle = "#0b0d10"; ctx.fillRect(0, 0, W, H); }
+  shot.draw(ctx, t, cam);
+  ctx.save();
+  ctx.globalCompositeOperation = "source-atop";
+  ctx.fillStyle = "rgba(30,24,16,0.05)";
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
+window.__shots = SHOTS;
+window.__duration = DURATION;
+window.__render = (t) => { window.__t = t; renderer(t); };
+renderer(0);
+window.__ready = Promise.all([...new Set(SHOTS.map((s) => s.plate))].map((p) => plate(p)).map((img) => new Promise((res) => {
+  if (img.complete) return res(); img.onload = res; img.onerror = res;
+}))).then(() => { renderer(window.__t || 0); return true; });
+</script>
+</body>
+</html>

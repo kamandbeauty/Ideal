@@ -38,6 +38,11 @@ motion/painted-story/inputs/**/*.mp3
 motion/painted-story/inputs/**/*.m4a
 motion/painted-story/inputs/**/*.mov
 motion/painted-story/inputs/**/*.mkv
+# The 18 MB style reference and the 152 s narration are real inputs, so they are
+# tracked on purpose; this pattern exists for anything heavier that arrives later.
+motion/painted-story/inputs/**/*.mp4
+motion/painted-story/inputs/**/*.webm
+!motion/painted-story/inputs/reference/style-reference.mp4
 motion/painted-story/exports/*.mp4
 motion/painted-story/exports/*.mov
 motion/painted-story/exports/*.webm
