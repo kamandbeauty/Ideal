@@ -4,6 +4,22 @@ This is the document that turns "the repo contains a game" into "a game is runni
 It exists because everything before M5 was written, drawn and gated *without a single run*: no C# in
 this repository has ever been compiled by the compiler that will ship it.
 
+## Where it stands, as of the first real pipeline run
+
+The first push after `ProjectVersion.txt` landed (run
+[`41415848971`](https://github.com/kamandbeauty/Ideal/actions/runs/41415848971)) is the first one that
+did not take the "no Unity project" escape hatch:
+
+| job | result | why |
+| --- | --- | --- |
+| `detect unity project` | **success** | the project is found and its version matches the pipeline pin |
+| `edit + play mode tests` | **failure** | `game-ci/unity-test-runner` has no `UNITY_LICENSE` — the one thing only the account owner can add |
+| `android` / `ios` | skipped | they wait on `test` |
+
+`ci.yml` stayed green on the same push, including its new `unity project pin` job. So the failure is
+not the code: it is the licence secret. Add it (below), push, and the next run either passes the tests
+or finally shows a real compile error.
+
 Two paths, in order of how fast they get you a screen:
 
 | | what you get | what it costs | how long |
