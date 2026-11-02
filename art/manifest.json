@@ -808,6 +808,94 @@
       "required": false,
       "description": "The electro ball, charged: the same bolt inside one bright ring and a firouzeh arc.",
       "brief": "Must be tellable from powerup_electro at cell size: the ring is the difference, not the bolt."
+    },
+    {
+      "id": "board_tile",
+      "group": "ui",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The empty cell of the board: a quiet square of stone under every piece.",
+      "brief": "Darker than any piece and never above 30 alpha of gold, so it never reads as content."
+    },
+    {
+      "id": "fx_coins",
+      "group": "ui",
+      "size": [
+        128,
+        128
+      ],
+      "required": false,
+      "description": "The chest payoff: three coins and a scatter of sparks.",
+      "brief": "Fits inside the letterbox of a 128 tile box; reads at 40 px."
+    },
+    {
+      "id": "home_palace_lit",
+      "group": "scene",
+      "size": [
+        1024,
+        768
+      ],
+      "required": false,
+      "description": "Home: the palace with the district rebuilt — lamps lit, iwan full of light, the pool reflecting it.",
+      "brief": "Same geometry as home_palace, one overlay pass of warm light; the two plates are the same building."
+    },
+    {
+      "id": "icon_back",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "Back chevron, pointing right because the interface runs right to left.",
+      "brief": "Solid ivory with a dark hairline so it holds on the night sky and on panels."
+    },
+    {
+      "id": "icon_close",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "Dismiss: a two-stroke cross.",
+      "brief": "Equal arms, 45 degrees, 6 percent stroke; no circle around it."
+    },
+    {
+      "id": "icon_check",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "Confirmation tick, green.",
+      "brief": "Two strokes with a rounded weight; reads at 24 px."
+    },
+    {
+      "id": "icon_crown",
+      "group": "hud",
+      "size": [
+        64,
+        64
+      ],
+      "required": false,
+      "description": "Rank: the kingdom level crown, gold with a red bead.",
+      "brief": "Three points and a band; the band keeps it from reading as a flame."
+    },
+    {
+      "id": "store_feature",
+      "group": "brand",
+      "size": [
+        1024,
+        500
+      ],
+      "required": false,
+      "description": "The Play Store feature graphic: the lit palace on the night sky, no text.",
+      "brief": "Store listings set their own title over it, so the left third stays quiet."
     }
   ]
 }

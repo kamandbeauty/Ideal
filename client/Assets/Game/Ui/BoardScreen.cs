@@ -314,6 +314,15 @@ namespace Shazdeh.Game.Ui
                     go.transform.SetParent(_boardRoot.transform, false);
                     go.transform.localPosition = WorldOf(new CellPos(x, y));
 
+                    // The stone the cell sits on. Separate from the piece renderer, because the piece
+                    // renderer is the thing that gets swapped every clear — a background that moves
+                    // with it would blink on every cascade.
+                    var bgGo = new GameObject("cell_bg");
+                    bgGo.transform.SetParent(go.transform, false);
+                    var bg = bgGo.AddComponent<SpriteRenderer>();
+                    bg.sortingOrder = -2;
+                    bgGo.SetActive(ArtLibrary.ApplyTo(bg, "board_tile", Cell * 0.98f));
+
                     var baseRenderer = go.AddComponent<SpriteRenderer>();
                     baseRenderer.sprite = _square;
                     baseRenderer.sortingOrder = 0;

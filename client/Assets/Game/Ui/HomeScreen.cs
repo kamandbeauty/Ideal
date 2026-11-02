@@ -39,7 +39,13 @@ namespace Shazdeh.Game.Ui
             var palace = UiKit.Panel(Root, "home_palace", 0f, 0f, UiKit.CanvasWidth, 300f, Color.white);
             var palaceImage = palace.GetComponent<Image>();
             palaceImage.raycastTarget = false;
-            if (ArtLibrary.ApplyTo(palaceImage, "home_palace"))
+            // Two plates of the same building: the district rebuilt lights the palace, so the home
+            // screen itself says what the player just did. Falls back to the night plate whenever the
+            // lit one is not in the build.
+            string plate = Session != null && Session.IsChapterBuilt && ArtLibrary.Has("home_palace_lit")
+                ? "home_palace_lit"
+                : "home_palace";
+            if (ArtLibrary.ApplyTo(palaceImage, plate))
             {
                 sky.gameObject.SetActive(false);
                 skyLower.gameObject.SetActive(false);

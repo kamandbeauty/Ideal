@@ -40,6 +40,12 @@ namespace Shazdeh.Game.Ui
         readonly List<Row> _rows = new List<Row>(3);
         TextMeshProUGUI _potions;
 
+        // The chest's payoff. One burst object for the whole screen: a second chest opening while the
+        // first is still in the air restarts the same burst instead of stacking a second one.
+        Image _coinBurst;
+        float _coinBurstAt = -1f;
+        const float CoinBurstSeconds = 0.90f;
+
         protected override void Build()
         {
             UiKit.Background(Root, Tokens.Bg);
@@ -184,6 +190,7 @@ namespace Shazdeh.Game.Ui
                 {
                     row.ChestWasOpen = true;
                     row.ChestPopAt = Time.unscaledTime;
+                    SpawnCoinBurst(row);
                 }
 
                 RefreshChestIcon(row, chestOpen);
@@ -220,6 +227,37 @@ namespace Shazdeh.Game.Ui
             row.Plate.color = built ? new Color(1f, 1f, 1f, 0.46f) : new Color(1f, 1f, 1f, 0.35f);
         }
 
+        /// <summary>
+        /// The coins the chest paid out, thrown once over the chest button. Built on first use, hidden
+        /// when the art is missing, and animated by the same unscaled clock as the pop.
+        /// </summary>
+        void SpawnCoinBurst(Row row)
+        {
+            if (row.ChestIcon == null) return;
+
+            if (_coinBurst == null)
+            {
+                var go = UiKit.Panel(Root, "coin_burst", 0f, 0f, 96f, 96f, Color.white);
+                _coinBurst = go.GetComponent<Image>();
+                _coinBurst.raycastTarget = false;
+                if (!ArtLibrary.ApplyTo(_coinBurst, "fx_coins"))
+                {
+                    go.SetActive(false);
+                    _coinBurst = null;
+                    return;
+                }
+            }
+
+            var anchor = row.ChestIcon.rectTransform;
+            var rt = _coinBurst.rectTransform;
+            rt.SetParent(anchor.parent, false);
+            rt.SetAsLastSibling();
+            rt.anchoredPosition = anchor.anchoredPosition;
+            rt.sizeDelta = new Vector2(96f, 96f);
+            _coinBurst.gameObject.SetActive(true);
+            _coinBurstAt = Time.unscaledTime;
+        }
+
         /// <summary>One pop when a chest opens: 350 ms, no coroutine, nothing allocated.</summary>
         void Update()
         {
@@ -231,6 +269,20 @@ namespace Shazdeh.Game.Ui
                 float t = Mathf.Clamp01((Time.unscaledTime - row.ChestPopAt) / 0.35f);
                 row.ChestIcon.rectTransform.localScale = Vector3.one * (1f + 0.45f * Mathf.Sin(t * Mathf.PI));
                 if (t >= 1f) row.ChestPopAt = -1f;
+            }
+
+            if (_coinBurst != null && _coinBurstAt >= 0f)
+            {
+                float t = Mathf.Clamp01((Time.unscaledTime - _coinBurstAt) / CoinBurstSeconds);
+                float grow = 1f - (1f - t) * (1f - t);           // fast out, then settle
+                _coinBurst.rectTransform.localScale = Vector3.one * (0.55f + 0.75f * grow);
+                float fade = Mathf.Clamp01((1f - t) / 0.45f);     // hold, then fall away
+                _coinBurst.color = new Color(1f, 1f, 1f, fade);
+                if (t >= 1f)
+                {
+                    _coinBurstAt = -1f;
+                    _coinBurst.gameObject.SetActive(false);
+                }
             }
         }
 

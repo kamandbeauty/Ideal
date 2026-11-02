@@ -54,7 +54,7 @@ python3 tools/art/art.py --check         # CI: contract valid, catalog current, 
 python3 tools/art/art.py --check --strict  # release gate: every required asset exists and is valid
 ```
 
-Today: **43 assets in the contract, 43 on disk, 10 required — all present.** They are produced by
+Today: **80 assets in the contract, 80 on disk, 10 required — all present.** They are produced by
 `python3 tools/art/gen_art.py` and must match it byte for byte (`gen_art.py --check`). The placeholder
 path still exists and is still tested: delete any PNG and the screen falls back to token colours
 instead of breaking, which is what makes art additive.
@@ -63,9 +63,9 @@ instead of breaking, which is what makes art additive.
 
 | screen | art it uses | what it was before |
 | --- | --- | --- |
-| Board | `piece_*` (5) at 94 % of a cell, `obstacle_*` (8) at 90 %, `powerup_*` (5) at 80 %, `board_frame` nine-sliced behind the grid | token colours, no shape |
+| Board | `piece_*` (5) at 94 % of a cell, `obstacle_*` (8) at 90 %, `powerup_*` (5) at 80 %, `board_tile` under every empty cell, `board_frame` nine-sliced behind the grid | token colours, no shape |
 | Top bar | `icon_coin`, `icon_potion`, `icon_life` at 26 px | no icon; numbers only |
-| Home | `home_palace` (1024×768) plate behind the level card, `panel_frame` as the card, `button_primary` as the play button | two bands of `surface` |
+| Home | `home_palace` (1024×768) plate behind the level card, `home_palace_lit` once every district of the chapter is built, `panel_frame` as the card, `button_primary` as the play button | two bands of `surface` |
 | Districts | `district_ch01_d1..d3` plates, `prop_ch01_*` (12) | surface card, task pills |
 | Result | `result_win` / `result_lose` (720×200) behind the title, `icon_star` ×3 for the score, `panel_frame` as the card, `button_primary` as the primary button | text only |
 | Moves pill | `icon_moves` at 22 px | the word alone |
@@ -76,8 +76,10 @@ instead of breaking, which is what makes art additive.
 | Board effects | `fx_spark` on every cleared cell, `fx_ring` for a power-up going off | the sprite's own colour, scaled and faded in code |
 | Charged power-up | `powerup_electro_super` | the plain electro sprite at a larger scale |
 | District tasks | `task_card` nine-sliced, plus the task props and the three gate states | plain pills |
-| Chest reveal | `reward_chest` → `reward_chest_open` | a button label |
+| Chest reveal | `reward_chest` → `reward_chest_open`, then `fx_coins` thrown over the button | a button label |
 | Restored district | `district_ch01_d1..d3_lit` — the same plate with its niches lit and lamps hung | the unlit plate only |
+| Icons in hand (screens pending) | `icon_back`, `icon_close`, `icon_check`, `icon_crown` | the word alone |
+| Store listing (launch) | `store_feature` (1024×500), `app_icon` | — (no listing yet) |
 | Store | `app_icon` (512×512) | — (nothing to draw in-game) |
 
 ## 4. The brief
@@ -151,7 +153,7 @@ lists exactly what a human should replace first, so nobody mistakes this for fin
 
 ## 7. What is drawn, and what a human should replace first
 
-All 72 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
+All 80 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
 --strict` is green. The set was drawn in this order of care:
 
 1. **The five stones** — one bezel language, five silhouettes that survive 48 px and greyscale
@@ -171,9 +173,12 @@ All 72 assets in the contract exist, at the exact sizes the manifest asks for; `
    the open chest, the open and half-built gate, and the three lit district plates.
 9. **The map plate, the onboarding marks, the two particles and the charged electro** — the art the
    world map, the tutorial and the board's clear animation will need.
-10. **Still to draw** (each one goes in the manifest before it is drawn): a per-district board skin, the
-   charged variants for the other four power-ups, the chest's coin burst, and the store screenshots for
-   brand and launch.
+10. **The cell, the payoff, the lit palace, four interface marks and the store banner** — the last of
+   what the screens can use today: `board_tile` under every cell, `fx_coins` thrown out of the chest,
+   `home_palace_lit` as the second state of the same building, `icon_back` / `icon_close` / `icon_check`
+   / `icon_crown`, and `store_feature` for the listing.
+11. **Still to draw** (each one goes in the manifest before it is drawn): the charged variants for the
+   other four power-ups, a per-district board skin, and the five store screenshots.
 
 Left for a human artist, in the order that would improve the game most:
 
@@ -188,5 +193,5 @@ Left for a human artist, in the order that would improve the game most:
 - **`prop_ch01_gate`**: drawn closed only; the "built" plate needs the open state.
 - **No animation**: idle, swap, cascade and chest reveal all remain unimplemented. The motion tokens
   exist; the clips do not.
-- **No atlas**: 72 sprites is small enough to let Unity pack them, and doing it by hand now would
+- **No atlas**: 80 sprites is small enough to let Unity pack them, and doing it by hand now would
   cost more than it saves.

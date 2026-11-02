@@ -104,6 +104,14 @@ namespace Shazdeh.Game
             new Entry("fx_spark", 64, 64, "ui", false),
             new Entry("fx_ring", 64, 64, "ui", false),
             new Entry("powerup_electro_super", 128, 128, "powerup", false),
+            new Entry("board_tile", 128, 128, "ui", false),
+            new Entry("fx_coins", 128, 128, "ui", false),
+            new Entry("home_palace_lit", 1024, 768, "scene", false),
+            new Entry("icon_back", 64, 64, "hud", false),
+            new Entry("icon_close", 64, 64, "hud", false),
+            new Entry("icon_check", 64, 64, "hud", false),
+            new Entry("icon_crown", 64, 64, "hud", false),
+            new Entry("store_feature", 1024, 500, "brand", false),
         };
 
         static readonly Dictionary<string, Entry> ById = BuildIndex();
