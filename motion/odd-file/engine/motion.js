@@ -163,20 +163,22 @@ function fitHeading(heading, maxWidth = (W - SAFE * 2) * 0.985) {
  */
 function wordTransform(mode, p) {
   const inv = 1 - p;
+  // a small overshoot makes the landing read as weight rather than a fade
+  const pop = 1 + 0.045 * Math.sin(p * Math.PI);
   switch (mode) {
     case 'flip':
-      return `rotateX(${(inv * -78).toFixed(2)}deg) translate3d(0,${(inv * 16).toFixed(2)}px,0)`;
+      return `rotateX(${(inv * -96).toFixed(2)}deg) translate3d(0,${(inv * 34).toFixed(2)}px,0)`;
     case 'wipe':
-      return `scaleX(${(0.04 + 0.96 * p).toFixed(3)})`;
+      return `scaleX(${(0.03 + 0.97 * p).toFixed(3)}) scaleY(${pop.toFixed(3)})`;
     case 'drop':
-      return `translate3d(0,${(-inv * 104).toFixed(2)}px,0) scale(${(1 - inv * 0.04).toFixed(3)})`;
+      return `translate3d(0,${(-inv * 152).toFixed(2)}px,0) scale(${(pop * 0.98).toFixed(3)})`;
     case 'slide':
-      return `translate3d(${(-inv * 86).toFixed(2)}px,0,0)`;
+      return `translate3d(${(-inv * 124).toFixed(2)}px,0,0) scale(${pop.toFixed(3)})`;
     case 'settle':
-      return `translate3d(0,${(inv * 118).toFixed(2)}px,0) scale(${(1 - inv * 0.035).toFixed(3)})`;
+      return `translate3d(0,${(inv * 150).toFixed(2)}px,0) scale(${(pop * (1 - inv * 0.05)).toFixed(3)})`;
     case 'rise':
     default:
-      return `translate3d(0,${(inv * 118).toFixed(2)}px,0)`;
+      return `translate3d(0,${(inv * 162).toFixed(2)}px,0) scale(${pop.toFixed(3)})`;
   }
 }
 
@@ -185,8 +187,8 @@ function revealWords(words, t, { stagger = 0.055, dur = 0.62, lead = 0.06, mark 
   const markStart = Math.max(mark, lastLand * 0.72);
   words.forEach(({ el, index, mk, accent }) => {
     const local = easeOutExpo(seg(t, lead + index * stagger, lead + index * stagger + dur));
-    const lift = accent ? focus * -3 : 0;
-    const grow = accent ? 1 + focus * 0.014 : 1;
+    const lift = accent ? focus * -4 : 0;
+    const grow = accent ? 1 + focus * 0.02 + 0.014 * Math.sin(t * 3.1) : 1;
     let tr = wordTransform(mode, local);
     if (lift || grow !== 1) tr += ` translate3d(0,${lift}px,0) scale(${grow})`;
     el.style.transform = tr;
@@ -233,8 +235,8 @@ function addScrim(sceneEl, pos = 'center') {
  * A single band of light crossing the frame once, right after the cut. It reads
  * as the plate being lit, not as a transition — the cut stays hard.
  */
-function addSweep(sceneEl, { dur = 1.9, angle = 0 } = {}) {
-  const el = makeEl('div', 'sweep');
+function addSweep(sceneEl, { dur = 1.25, angle = 0 } = {}) {
+  const el = makeEl('div', 'lightrake');
   el.style.transform = `rotate(${angle}deg)`;
   sceneEl.appendChild(el);
   return { el, dur, angle };
@@ -248,8 +250,21 @@ function sweepAt(sweep, t) {
     return;
   }
   const e = easeInOutCubic(p);
-  sweep.el.style.opacity = String(Math.sin(p * Math.PI));
-  sweep.el.style.transform = `translate3d(${(-70 + 140 * e).toFixed(2)}%,0,0) rotate(${sweep.angle || 0}deg)`;
+  sweep.el.style.opacity = String(Math.pow(Math.sin(p * Math.PI), 0.7));
+  sweep.el.style.transform = `translate3d(${(-96 + 192 * e).toFixed(2)}%,0,0) rotate(${sweep.angle || 0}deg)`;
+}
+
+/** One and a half frames of light as the cut lands, so the cut is felt. */
+function addFlash(sceneEl) {
+  const el = makeEl('div', 'flash');
+  sceneEl.appendChild(el);
+  return el;
+}
+
+function flashAt(flash, t) {
+  if (!flash) return;
+  const p = seg(t, 0, 0.3);
+  flash.style.opacity = String(p >= 1 ? 0 : (1 - easeOutCubic(p)) * 0.5);
 }
 
 /**
@@ -261,22 +276,22 @@ function platePose(plate, t, dur, kind = 'push') {
   const p = clamp(t / Math.max(dur, 1));
   switch (kind) {
     case 'drift':
-      plate.style.transform = `scale(1.055) translate3d(${((0.5 - p) * 46).toFixed(2)}px,0,0)`;
+      plate.style.transform = `scale(1.075) translate3d(${((0.5 - p) * 96).toFixed(2)}px,0,0)`;
       break;
     case 'pull':
-      plate.style.transform = `scale(${(1.004 + 0.062 * p).toFixed(4)}) translate3d(0,${(p * -12).toFixed(2)}px,0)`;
+      plate.style.transform = `scale(${(1.004 + 0.1 * p).toFixed(4)}) translate3d(0,${(p * -20).toFixed(2)}px,0)`;
       break;
     case 'tilt':
-      plate.style.transform = `scale(${(1.055 - 0.03 * p).toFixed(4)}) rotate(${(-0.7 + 0.6 * p).toFixed(3)}deg)`;
+      plate.style.transform = `scale(${(1.075 - 0.05 * p).toFixed(4)}) rotate(${(-1.5 + 1.3 * p).toFixed(3)}deg)`;
       break;
     case 'push':
     default:
-      plate.style.transform = `scale(${(1.06 - 0.05 * p).toFixed(4)}) translate3d(0,${(p * -18).toFixed(2)}px,0)`;
+      plate.style.transform = `scale(${(1.1 - 0.08 * p).toFixed(4)}) translate3d(0,${(p * -30).toFixed(2)}px,0)`;
   }
 }
 
 /** Scrim breathing: a few percent of density, enough to keep the frame alive. */
-function scrimBreath(scrim, t, amount = 0.07, rate = 0.62) {
+function scrimBreath(scrim, t, amount = 0.14, rate = 0.72) {
   if (!scrim) return;
   scrim.style.opacity = String(1 - amount * 0.5 + amount * 0.5 * Math.sin(t * rate));
 }
@@ -356,10 +371,11 @@ const SCENES = {
   statement(beat) {
     const el = makeEl('div', 'scene');
     el.style.justifyContent = 'center';
-    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.55, grade: 0.78 });
+    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.9, grade: 0.82 });
     const scrim = plate ? addScrim(el) : null;
     const glow = beat.plate ? null : addGlow(el, 1180);
-    const sweep = beat.sweep === false ? null : addSweep(el, { dur: beat.sweepDur || 1.9 });
+    const sweep = beat.sweep === false ? null : addSweep(el, { dur: beat.sweepDur || 1.15 });
+    const flash = addFlash(el);
     const mode = beat.fx || 'rise';
 
     if (beat.kicker) {
@@ -384,14 +400,15 @@ const SCENES = {
       el,
       update(t) {
         revealWords(words, t, {
-          stagger: beat.stagger || 0.05,
-          dur: mode === 'flip' ? 0.75 : 0.6,
+          stagger: beat.stagger || 0.045,
+          dur: mode === 'flip' ? 0.62 : 0.46,
+          lead: 0.02,
           mode,
           focus: focusAmount(t, beat.dur),
         });
         if (kickerEl) kickerEl.style.opacity = String(easeOutCubic(seg(t, 0, 0.35)));
         if (subEl) {
-          const l = easeOutCubic(seg(t, 0.34, 0.86));
+          const l = easeOutCubic(seg(t, 0.2, 0.62));
           subEl.style.opacity = String(l);
           subEl.style.transform = `translate3d(0,${(1 - l) * 26}px,0)`;
         }
@@ -402,6 +419,7 @@ const SCENES = {
         platePose(plate, t, Math.max(beat.dur, 3), beat.camera || 'push');
         scrimBreath(scrim, t);
         sweepAt(sweep, t);
+        flashAt(flash, t);
       },
     };
   },
@@ -552,10 +570,11 @@ const SCENES = {
   cta(beat) {
     const el = makeEl('div', 'scene');
     el.style.justifyContent = 'center';
-    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.5, grade: 0.72 });
+    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.7, grade: 0.78 });
     const scrim = plate ? addScrim(el) : null;
     const glow = addGlow(el, 1300);
-    const sweep = addSweep(el, { dur: 2.4 });
+    const sweep = addSweep(el, { dur: 1.4 });
+    const flash = addFlash(el);
 
     if (beat.kicker) {
       const k = makeEl('div', 'kicker', beat.kicker);
@@ -596,8 +615,9 @@ const SCENES = {
           glow.style.transform = `scale(${1 + 0.05 * clamp(t / 7)})`;
         }
         platePose(plate, t, Math.max(beat.dur, 4), beat.camera || 'pull');
-        scrimBreath(scrim, t, 0.05, 0.55);
+        scrimBreath(scrim, t, 0.1, 0.6);
         sweepAt(sweep, t);
+        flashAt(flash, t);
       },
     };
   },
@@ -606,10 +626,11 @@ const SCENES = {
   sequence(beat) {
     const el = makeEl('div', 'scene');
     el.style.justifyContent = 'center';
-    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.55, grade: 0.75 });
+    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.82, grade: 0.8 });
     const scrim = plate ? addScrim(el) : null;
     const glow = plate ? null : addGlow(el, 1200);
-    const sweep = beat.sweep === false ? null : addSweep(el, { dur: 1.7 });
+    const sweep = beat.sweep === false ? null : addSweep(el, { dur: 1.1 });
+    const flash = addFlash(el);
     const mode = beat.fx || 'rise';
 
     if (beat.kicker) {
@@ -642,7 +663,7 @@ const SCENES = {
             g.words.forEach((w) => { w.el.style.opacity = '0'; });
             return;
           }
-          revealWords(g.words, t - g.at, { stagger: 0.05, dur: 0.55, mode });
+          revealWords(g.words, t - g.at, { stagger: 0.045, dur: 0.42, lead: 0.02, mode });
           const next = groups[i + 1];
           const dim = next ? 1 - 0.68 * easeInOutCubic(seg(t, next.at, next.at + 0.55)) : 1;
           if (dim < 1) {
@@ -657,8 +678,9 @@ const SCENES = {
           glow.style.transform = `scale(${1 + 0.05 * clamp(t / 6)})`;
         }
         platePose(plate, t, Math.max(beat.dur, 3), beat.camera || 'drift');
-        scrimBreath(scrim, t, 0.05, 0.5);
+        scrimBreath(scrim, t, 0.1, 0.6);
         sweepAt(sweep, t);
+        flashAt(flash, t);
         const rp = easeOutCubic(seg(t, 0.1, Math.max(0.9, lastAt + 0.72)));
         rule.style.transform = `scaleY(${rp.toFixed(3)})`;
         rule.style.opacity = String(0.18 + 0.32 * rp);
@@ -694,7 +716,7 @@ const SCENES = {
     return {
       el,
       update(t) {
-        revealWords(words, t, { stagger: 0.06, dur: 0.7, lead: 0.08, mode: beat.fx || 'settle' });
+        revealWords(words, t, { stagger: 0.055, dur: 0.5, lead: 0.04, mode: beat.fx || 'settle' });
         rule.style.transform = `scaleX(${easeOutExpo(seg(t, 0.5, 1.3)).toFixed(4)})`;
         const l = easeOutCubic(seg(t, 0.8, 1.5));
         lock.style.opacity = String(l);

@@ -50,7 +50,7 @@ export const EPISODE = {
       plate: 'assets/ep03/web/s02.jpg', plateOpacity: 0.75,
       items: [
         { text: ['A few', '*seconds.*'], first: true, at: 0 },
-        { text: ['They feel like', '*minutes.*'], at: 2.3 },
+        { text: ['They feel like', '*minutes.*'], at: 2.1 },
       ],
     },
     {
@@ -63,8 +63,8 @@ export const EPISODE = {
       plate: 'assets/ep03/web/s03.jpg', plateOpacity: 0.7,
       items: [
         { text: ['Did I say', 'something *wrong?*'], first: true, at: 0 },
-        { text: ['Are they', '*bored?*'], at: 2.3 },
-        { text: ['Should I say', '*something?*'], at: 4.6 },
+        { text: ['Are they', '*bored?*'], at: 2.18 },
+        { text: ['Should I say', '*something?*'], at: 3.17 },
       ],
     },
     {
@@ -100,8 +100,8 @@ export const EPISODE = {
       camera: 'drift',
       plate: 'assets/ep03/web/s06.jpg', plateOpacity: 0.78,
       items: [
-        { text: ['Not just', '*information.*'], first: true, at: 0 },
-        { text: ['Do I', '*belong?*'], at: 4.2 },
+        { text: ['Not just', '*information.*'], first: true, at: 1.97 },
+        { text: ['Do I', '*belong?*'], at: 5.3 },
       ],
     },
     {
@@ -148,8 +148,8 @@ export const EPISODE = {
       plate: 'assets/ep03/web/s10.jpg', plateOpacity: 0.68,
       items: [
         { text: ['Did someone', '*disagree?*'], first: true, at: 0 },
-        { text: ['Did I make things', '*awkward?*'], at: 2.2 },
-        { text: ['Is something', '*wrong?*'], at: 4.4 },
+        { text: ['Did I make things', '*awkward?*'], at: 1.55 },
+        { text: ['Is something', '*wrong?*'], at: 2.82 },
       ],
     },
     {
@@ -176,7 +176,7 @@ export const EPISODE = {
       plate: 'assets/ep03/web/s12.jpg', plateOpacity: 0.7,
       items: [
         { text: ['Someone', 'studied this.'], first: true, at: 0 },
-        { text: ['Brief silences.', 'Group *conversations.*'], at: 3.4 },
+        { text: ['Brief silences.', 'Group *conversations.*'], at: 3.25 },
       ],
     },
     {
@@ -190,8 +190,8 @@ export const EPISODE = {
       plate: 'assets/ep03/web/s13.jpg', plateOpacity: 0.7,
       items: [
         { text: ['Less connected.'], first: true, at: 0 },
-        { text: ['Less validated.'], at: 2.7 },
-        { text: ['Even *rejected.*'], at: 5.4 },
+        { text: ['Less validated.'], at: 2.4 },
+        { text: ['Even *rejected.*'], at: 4.8 },
       ],
     },
     {
@@ -214,7 +214,7 @@ export const EPISODE = {
       plate: 'assets/ep03/web/s15.jpg', plateOpacity: 0.75,
       items: [
         { text: ['No clear signal.'], first: true, at: 0 },
-        { text: ['So we fill', 'the gap with', '*assumptions.*'], at: 4.3 },
+        { text: ['So we fill', 'the gap with', '*assumptions.*'], at: 3.72 },
       ],
     },
 
@@ -261,7 +261,7 @@ export const EPISODE = {
       plate: 'assets/ep03/web/s19.jpg', plateOpacity: 0.72,
       items: [
         { text: ['With a stranger:', '*uncertainty.*'], first: true, at: 0 },
-        { text: ['With someone you love:', '*comfort.*'], at: 2.7 },
+        { text: ['With someone you love:', '*comfort.*'], at: 2.89 },
       ],
     },
     {
@@ -331,8 +331,8 @@ export const EPISODE = {
       kicker: 'ONE LAST THING',
       plate: 'assets/ep03/web/s25.jpg', plateOpacity: 0.5,
       items: [
-        { icon: 'like', label: 'LIKE THIS VIDEO', at: 0.5 },
-        { icon: 'bell', label: 'SUBSCRIBE TO THE ODD FILE', at: 2.6 },
+        { icon: 'like', label: 'LIKE THIS VIDEO', at: 3.3 },
+        { icon: 'bell', label: 'SUBSCRIBE TO THE ODD FILE', at: 6.35 },
       ],
     },
     {

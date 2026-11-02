@@ -3,12 +3,23 @@
 ### Long-form landscape 16:9 · 1920×1080 · 24 fps · 3:02
 
 **Status: rendered and shippable.** 182.75 s · 26 scenes · 12 narration clips · 350 spoken words.
-Deliverable: `exports/file-003-1080p.mp4` — 1920×1080, 24 fps, H.264 High, 3.7 Mbit/s, **84.9 MB**, AAC 192 kb/s, faststart.
+Deliverable: `exports/file-003-1080p.mp4` — 1920×1080, 24 fps, H.264 High, 3.3 Mbit/s, **71.5 MB**, AAC 189 kb/s, faststart.
 Plus `audio/mix.wav`, `subtitles/ep-003.srt`, 25 graded stills in `assets/ep03/`, and `images-sheet.jpg` in this folder.
 
 ---
 
-## 0. How this episode is built
+## 0. Revision R2 — brighter, bolder, tighter
+
+Three notes came back from the review pass: *too dark*, *effects too subtle*, *type not locked to the voice*. What changed:
+
+1. **Exposure.** Plates are graded up (`brightness +0.075`, `gamma 1.08`, `saturation 1.02` instead of `0.88`), the grade overlay dropped from 0.92/0.42/0.78 alpha to 0.58/0.14/0.46, the scrim from 0.72 to 0.44, the vignette from 0.72 to 0.5, and every plate now sits at 82–90 % opacity instead of 50–55 %.
+2. **Motion.** Word travel is 35–45 % larger with a small overshoot on landing, plate moves are 2× the amplitude (1.10 push, 96 px drift, ±1.5° tilt), the light rake is twice as bright and 40 % faster, every cut now opens on a 0.3 s flash, the scrim breathes ±14 %, the sequence rail is 3 px with a glow, and accent words breathe at 3.1 rad/s.
+3. **Sync.** Reveals start on the first phoneme (`lead 0.02`, `dur 0.46`) instead of 0.06/0.6, and every timed list item was re-derived from the silencedetect map of its clip — several were 1–2 s late before (b03's second question, b10's second and third, b15's second, both CTA asks).
+4. **HUD off.** No file number, no category, no `16:9` badge, no `01 / 26` counter and no progress rail. The frame is just picture and type.
+
+---
+
+## 0b. How this episode is built
 
 Long form is a different timing model from Files 001–002. There is **one recording per script section** (12 clips: `c01`…`c12`), and each scene declares which clip it belongs to plus its in-clip `from`/`to` seconds. The cuts were placed on the silences that already exist in the recording, so picture changes land in the gaps between sentences instead of on top of a word. Nothing about the narration was rewritten: the script is verbatim, and so are the 12 clips.
 
@@ -25,7 +36,7 @@ The only structural addition is the **outro**: the closing brand line was re-rec
 | Format | **16:9 landscape, 1920×1080** |
 | Runtime | **182.75 s** = 3:02.75 · 4386 frames at 24 fps |
 | Frame rate | 24 fps (no 4K master for this file — see §0) |
-| Scenes | 26, one unique still each (the brand card is intentionally plate-free) |
+| Scenes | 26 beats over 25 unique stills — the last beat (`b26`) deliberately re-uses the File 003 brand plate (`s25`) |
 | Narration | 12 clips, 350 words, ≈ 171 s of speech |
 | Loudness | −14 LUFS integrated, −1.2 dBTP peak |
 | Captions | `subtitles/ep-003.srt` — 50 cues, generated from the same timeline |
@@ -221,7 +232,8 @@ Every effect is transform or opacity only — no filters, no blurs, no animated 
 **Atmosphere**, on every photographic scene:
 - **Light rake** — a 20 %-wide violet band crosses the frame once, 1.7–2.4 s after the cut, opacity following `sin(p·π)`. It reads as the plate being lit; the cut itself stays hard.
 - **Scrim breathing** — the vignette changes density by ±5–7 % on a slow sine, so a held frame is never dead. (Promoted with `will-change: opacity`; without it this one effect cost 30 % of the render speed.)
-- **Sequence rail** — a hairline at the left of every list, growing down as each fragment lands (`scaleY`), so the list is visibly filling.
+- **Sequence rail** — a 3 px violet hairline just outside the text column, growing down as each fragment lands (`scaleY`), so the list is visibly filling and stays on the same grid as the statements.
+- **Cut flash** — every scene opens on 1.5 frames of light (0.5 → 0 over 0.3 s), so a hard cut is felt as a flash rather than a dissolve.
 - **Arrival rings** — on the CTA, a violet ring expands out of each icon badge once as it lands.
 - **Cut punch** — every scene opens 2.2 % over-scale and settles in 0.42 s, and the head/tail fade is 0.12 s / 0.18 s so cuts don't strobe.
 
@@ -369,16 +381,19 @@ node motion/odd-file/render.mjs --fast --no-4k --encode-only  # re-encode kept f
 ```
 
 Encode notes for this file: `--fast` hides the CSS grain layer and adds
-`noise=alls=6:allf=t` at encode instead. At `-crf 18` that noise alone pushed
+`noise=alls=5:allf=t` at encode instead. At `-crf 18` that noise alone pushed
 the bitrate to ~90 Mbit/s (a 2 GB file), so the long form encodes at **crf 22**,
-which lands at 3.7 Mbit/s and 84.9 MB — grain preserved, YouTube-friendly.
+which lands at ~3.3 Mbit/s and **71.5 MB** — 1920x1080, 24 fps, 182.77 s,
+AAC 189 kb/s, grain preserved, YouTube-friendly. Capture alone is ~29 min on
+this 2 vCPU box (4386 frames); the encode adds ~10 min.
 
 ---
 
 ## 16. QC checklist
 
 - [x] Every scene's type matches the line being spoken at that second
-- [x] 26 unique stills, no reuse, no text inside any image
+- [x] 25 unique AI stills, no repeat between scenes (only the intentional brand-plate return at `b26`), no text inside any image
+- [x] No HUD anywhere in the delivered frame: no file number, no category, no `16:9` badge, no scene counter, no progress rail
 - [x] All six typography pillars present at display size
 - [x] Runtime 3:02.75, inside the ~3-minute target
 - [x] Cuts land on measured silences, not mid-word
@@ -388,5 +403,5 @@ which lands at 3.7 Mbit/s and 84.9 MB — grain preserved, YouTube-friendly.
 - [x] 50 SRT cues generated from the same timeline
 - [x] Left third of every plate kept clean for type
 - [x] 4386 frames = 182.75 s: picture length equals the mix exactly, so `-shortest` cuts nothing
-- [x] 84.9 MB · 3.7 Mbit/s · true peak −1.2 dBTP after AAC
+- [x] 71.5 MB · 3.3 Mbit/s · 182.77 s · true peak −1.2 dBTP after AAC
 - [x] CTA card and brand card both present in the delivered MP4 (checked at 2:48 and 2:59)

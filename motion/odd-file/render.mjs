@@ -191,7 +191,7 @@ async function fullRender(b) {
   console.log(`Encoding ${meta.width}x${meta.height}…`);
   let r = spawnSync(ff, [
     '-y', '-framerate', String(meta.fps), '-i', input, ...audioArgs,
-    ...(fast ? ['-vf', 'noise=alls=6:allf=t'] : []),
+    ...(fast ? ['-vf', 'noise=alls=5:allf=t'] : []),
     '-crf', fast ? '22' : '18', ...common, small,
   ], { stdio: 'inherit' });
   if (r.status !== 0) { console.error('1080p encode failed; frames kept in', FRAME_DIR); process.exit(r.status || 1); }
