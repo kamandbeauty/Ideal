@@ -18,13 +18,13 @@ export const RIG_H = 791;            // rig px, top of head → sole
 export const STAGE_H = 726;          // on-stage height at scale 1.0
 const SOLE = 405.0;                  // hip → sole, rig px
 
-const K = { head: 0.92, bodice: 0.95, apron: 1.0, skirt: 0.92, arm: 0.85, fore: 0.85, leg: 1.0 };
+const K = { head: 0.92, bodice: 0.95, apron: 0.88, skirt: 0.92, arm: 0.85, fore: 0.85, leg: 1.0 };
 const TILT = { arm: 1.1, fore: 1.6, leg: -8.4 };
 
 // bodice-local px (the frame children of the bodice inherit)
 const NECK = [88.5, 26.0];
-const SHOULDERS = { L: [48.0, 22.0], R: [128.0, 22.0] };
-const APRON_AT = [89.0, 168.0];
+const SHOULDERS = { L: [26.0, 28.0], R: [150.0, 28.0] };
+const APRON_AT = [89.0, 172.0];
 const ELBOW = 106.0;                       // arm-local px: shoulder cap → elbow cap
 // rig px (hip = 0,0)
 const SKIRT_AT = [0.0, 8.0];
@@ -85,15 +85,19 @@ function pieceNode(root, name) {
 export function buildRig() {
   const root = document.createElementNS(NS, 'g');
   root.setAttribute('class', 'partrig');
+  // Draw order is doing real work here:
+  //   upper arms sit BEHIND the bodice, so their shoulder caps are hidden and
+  //   there is no seam at the joint; forearms sit IN FRONT of the apron so the
+  //   hands are never swallowed by the cloth.
   root.__nodes = {
     legL: pieceNode(root, 'leg'),
     legR: pieceNode(root, 'leg'),
     skirt: pieceNode(root, 'skirt'),
+    armL: pieceNode(root, 'arm'),
+    armR: pieceNode(root, 'arm'),
     bodice: pieceNode(root, 'bodice'),
     apron: pieceNode(root, 'apron'),
-    armL: pieceNode(root, 'arm'),
     foreL: pieceNode(root, 'fore'),
-    armR: pieceNode(root, 'arm'),
     foreR: pieceNode(root, 'fore'),
     head: pieceNode(root, 'head'),
   };
@@ -138,10 +142,10 @@ export function poseValues(mood, t, seed = 0.3, energy = 1) {
     v.apron = -3.4 * swayLag2 * e;
     const rise = Math.sin(armW * t + ph);
     const riseLag = Math.sin(armW * (t - LAG * 1.6) + ph);
-    v.armL = 2 + 20 * e * (0.5 + 0.5 * rise);
-    v.armR = -2 - 20 * e * (0.5 + 0.5 * rise);
-    v.foreL = 4 + 16 * e * (0.5 + 0.5 * riseLag);
-    v.foreR = -4 - 16 * e * (0.5 + 0.5 * riseLag);
+    v.armL = 8 + 30 * e * (0.5 + 0.5 * rise);
+    v.armR = -8 - 30 * e * (0.5 + 0.5 * rise);
+    v.foreL = 10 + 24 * e * (0.5 + 0.5 * riseLag);
+    v.foreR = -10 - 24 * e * (0.5 + 0.5 * riseLag);
     const sL = Math.sin(stepW * t + ph);
     const sR = Math.sin(stepW * t + ph + Math.PI);
     v.legL = 11 * Math.max(0, sL) * e;
