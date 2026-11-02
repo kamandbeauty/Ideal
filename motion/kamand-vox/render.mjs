@@ -52,7 +52,11 @@ async function openScene(b) {
     const m = window.__MOTION__;
     return { fps: m.fps, frames: m.frames, width: m.width, height: m.height };
   });
-  return { context, page, meta };
+  const cdp = await context.newCDPSession(page);
+  await cdp.send('Emulation.setDeviceMetricsOverride', {
+    width: meta.width, height: meta.height, deviceScaleFactor: 1, mobile: false,
+  });
+  return { context, page, cdp, meta };
 }
 
 async function sampleStills(b) {
@@ -73,34 +77,32 @@ async function fullRender(b) {
   if (!existsSync(AUDIO)) throw new Error(`Missing audio: ${AUDIO}. Run audio/make-audio.py first.`);
   rmSync(FRAME_DIR, { recursive: true, force: true });
   mkdirSync(FRAME_DIR, { recursive: true });
-  const { context, page, meta } = await openScene(b);
+  const first = await openScene(b);
+  const meta = first.meta;
   const total = limit ? Math.min(limit, meta.frames) : meta.frames;
   console.log(`Rendering ${total} frames at ${meta.width}x${meta.height} / ${meta.fps} fps`);
-  const cdp = await context.newCDPSession(page);
-  await cdp.send('Emulation.setDeviceMetricsOverride', {
-    width: meta.width, height: meta.height, deviceScaleFactor: 1, mobile: false,
-  });
+
   const t0 = Date.now();
+  // one worker: the headless single-process Chromium is not stable with
+  // concurrent CDP capture sessions, and 888 frames still finish in ~8 min.
   for (let i = 0; i < total; i++) {
-    await page.evaluate((fr) => window.__MOTION__.seek(fr), i);
-    const { data } = await cdp.send('Page.captureScreenshot', {
-      format: 'jpeg', quality: 93, captureBeyondViewport: false, fromSurface: true,
+    await first.page.evaluate((fr) => window.__MOTION__.seek(fr), i);
+    const { data } = await first.cdp.send('Page.captureScreenshot', {
+      format: 'jpeg', quality: 91, captureBeyondViewport: false, fromSurface: true,
     });
     writeFileSync(join(FRAME_DIR, `f_${String(i).padStart(5,'0')}.jpg`), Buffer.from(data,'base64'));
-    if ((i+1)%24===0 || i+1===total) {
-      process.stdout.write(`  ${i+1}/${total} frames (${((Date.now()-t0)/1000).toFixed(0)}s)\r`);
-    }
+    if ((i+1)%120===0 || i+1===total) console.log(`  ${i+1}/${total} frames (${((Date.now()-t0)/1000).toFixed(0)}s)`);
   }
-  process.stdout.write('\n');
-  await context.close();
-  if (limit) { console.log(`Benchmark done: ${total} frames in ${((Date.now()-t0)/1000).toFixed(1)}s`); return; }
+  await first.context.close();
+  console.log(`  ${total}/${total} frames in ${((Date.now()-t0)/1000).toFixed(0)}s`);
+  if (limit) { console.log(`Benchmark done`); return; }
 
   const ff = ffmpegPath();
   const input = join(FRAME_DIR, 'f_%05d.jpg');
   const small = join(EXPORTS, 'kamand-vox-1080p.mp4');
   const big = join(EXPORTS, 'kamand-vox-4k.mp4');
-  const common = ['-c:v','libx264','-preset','medium','-pix_fmt','yuv420p',
-    '-c:a','aac','-b:a','192k','-movflags','+faststart','-shortest'];
+  const common = ['-c:v','libx264','-preset','veryfast','-pix_fmt','yuv420p',
+    '-c:a','aac','-b:a','160k','-movflags','+faststart','-shortest'];
 
   console.log('Encoding 1080p with audio…');
   let r = spawnSync(ff, ['-y','-framerate',String(meta.fps),'-i',input,'-i',AUDIO,
@@ -110,7 +112,7 @@ async function fullRender(b) {
   console.log('Encoding 4K (2160x3840) with audio…');
   r = spawnSync(ff, ['-y','-framerate',String(meta.fps),'-i',input,'-i',AUDIO,
     '-vf','scale=2160:3840:flags=lanczos,unsharp=5:5:0.4:5:5:0.0',
-    '-crf','24',...common,big], { stdio:'inherit' });
+    '-crf','25',...common,big], { stdio:'inherit' });
   if (r.status !== 0) { console.error('4K encode failed; frames kept in', FRAME_DIR); process.exit(r.status||1); }
 
   console.log(`1080p ${small}  ${(statSync(small).size/1048576).toFixed(1)} MB`);
