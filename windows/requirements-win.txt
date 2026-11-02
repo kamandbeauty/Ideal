@@ -1,0 +1,30 @@
+# Parsigo — runtime dependencies for the Windows desktop build.
+#
+# No torch, no GPU: the whole pipeline (Persian text -> phonemes -> speech)
+# runs on onnxruntime + numpy. `onnx` / `onnxscript` are NOT here — they are
+# only needed to re-export the model package (scripts/export_unified.py).
+#
+# pythonnet is what pywebview uses to host the Edge WebView2 control in a
+# real window; it publishes Windows-only wheels, which is why this file is
+# Windows-specific. `windows/build_portable.py` folds the same set into the
+# self-contained bundle, so keep the two in sync.
+
+# ---- engine ----
+onnxruntime>=1.19
+numpy>=2,<3
+scipy>=1.5          # only for resampling an uploaded reference voice
+soundfile>=0.12
+sentencepiece>=0.2.1
+pedalboard>=0.9     # speech pace (time-stretch)
+
+# ---- demo server ----
+fastapi>=0.100
+uvicorn>=0.13
+pydantic>=2.0
+typer>=0.12              # imported by model/v2/normalize_fa.py
+python-multipart>=0.0.6  # voice upload
+
+# ---- desktop shell / first-run installer ----
+huggingface_hub>=0.24
+pywebview>=6.0
+pythonnet>=3.0
