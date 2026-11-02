@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import base64
 import json
+import random
 import sys
 from io import BytesIO
 from pathlib import Path
@@ -35,6 +36,17 @@ PIECES = ["piece_firouzeh", "piece_lajvard", "piece_aqiq", "piece_zomorrod", "pi
 
 # 48 px is the smallest a piece is ever drawn: seven columns on a phone-width board.
 SMALL = 48
+# The board, composed the way BoardScreen composes it — offline, so a human can judge the floor
+# under the pieces without an 8 GB editor install. Every number here mirrors the C#: the frame is
+# nine-sliced at 28 px, the frame is 0.34 of a cell wider than the grid, pieces sit at 94 % of a cell.
+MOCK_SIZE = (480, 768)
+MOCK_CELL = 40
+MOCK_COLS = 9
+FRAME_BORDER = 28
+PIECE_SCALE = 0.94
+OBSTACLE_SCALE = 0.90
+POWERUP_SCALE = 0.80
+
 # Two outlines must differ by at least this much (as a fraction of the radius) at some angle.
 # Area overlap is the wrong test — two filled blobs always overlap — so the gate compares the
 # *outline*: the distance from the centre to the edge, sampled all the way round.
@@ -131,13 +143,123 @@ def silhouette_row(assets: list[dict], height: int = 96) -> Image.Image:
     return canvas
 
 
+def fit(image: Image.Image, size: tuple[int, int]) -> Image.Image:
+    """Cover: scale by the larger ratio, then centre-crop. What the camera does to the floor."""
+    target_w, target_h = size
+    scale = max(target_w / image.width, target_h / image.height)
+    resized = image.resize((max(1, round(image.width * scale)), max(1, round(image.height * scale))),
+                           Image.LANCZOS)
+    left = (resized.width - target_w) // 2
+    top = (resized.height - target_h) // 2
+    return resized.crop((left, top, left + target_w, top + target_h))
+
+
+def nine_slice(sprite: Image.Image, size: tuple[int, int], border: int) -> Image.Image:
+    """`SpriteDrawMode.Sliced`, by hand: corners 1:1, edges stretched on one axis, centre on both."""
+    width, height = size
+    b = min(border, sprite.width // 2, sprite.height // 2)
+    sw, sh = sprite.size
+    out = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+
+    for sx, sy, dx, dy in ((0, 0, 0, 0), (1, 0, width - b, 0), (0, 1, 0, height - b), (1, 1, width - b, height - b)):
+        corner = sprite.crop((sx * (sw - b), sy * (sh - b), sx * (sw - b) + b, sy * (sh - b) + b))
+        out.alpha_composite(corner, (dx, dy))
+
+    out.alpha_composite(sprite.crop((b, 0, sw - b, b)).resize((width - 2 * b, b), Image.LANCZOS), (b, 0))
+    out.alpha_composite(sprite.crop((b, sh - b, sw - b, sh)).resize((width - 2 * b, b), Image.LANCZOS), (b, height - b))
+    out.alpha_composite(sprite.crop((0, b, b, sh - b)).resize((b, height - 2 * b), Image.LANCZOS), (0, b))
+    out.alpha_composite(sprite.crop((sw - b, b, sw, sh - b)).resize((b, height - 2 * b), Image.LANCZOS), (width - b, b))
+    out.alpha_composite(sprite.crop((b, b, sw - b, sh - b)).resize((width - 2 * b, height - 2 * b), Image.LANCZOS),
+                        (b, b))
+    return out
+
+
+def place(canvas: Image.Image, art: Image.Image, centre: tuple[int, int], side: float) -> None:
+    size = max(2, round(side))
+    scaled = art.resize((size, size), Image.LANCZOS)
+    canvas.alpha_composite(scaled, (centre[0] - size // 2, centre[1] - size // 2))
+
+
+def board_layout() -> list[list[int]]:
+    """A plausible board: no three of a stone in a row, so it reads as a real level and not a pattern."""
+    rng = random.Random(20261103)
+    stones = len(PIECES)
+    layout = [[-1] * MOCK_COLS for _ in range(MOCK_COLS)]
+    for row in range(MOCK_COLS):
+        for col in range(MOCK_COLS):
+            choices = list(range(stones))
+            rng.shuffle(choices)
+            for choice in choices:
+                if col >= 2 and layout[row][col - 1] == choice and layout[row][col - 2] == choice:
+                    continue
+                if row >= 2 and layout[row - 1][col] == choice and layout[row - 2][col] == choice:
+                    continue
+                layout[row][col] = choice
+                break
+            if layout[row][col] < 0:
+                layout[row][col] = 0
+    return layout
+
+
+def board_mock() -> Image.Image:
+    """One frame of the board screen, assembled from the same PNGs the game loads.
+
+    This is the review that a contact sheet cannot give: the floor under the pieces, the frame's
+    nine-slice at a real stretch, and every stone at the size it is actually played at.
+    """
+    width, height = MOCK_SIZE
+    canvas = Image.new("RGBA", MOCK_SIZE, (11, 26, 47, 255))
+    canvas.alpha_composite(fit(load("board_backdrop_ch01"), MOCK_SIZE))
+
+    grid = MOCK_COLS * MOCK_CELL
+    x0 = (width - grid) // 2
+    y0 = 120
+    margin = round(MOCK_CELL * 0.34)
+    canvas.alpha_composite(nine_slice(load("board_frame"), (grid + margin * 2, grid + margin * 2), FRAME_BORDER),
+                           (x0 - margin, y0 - margin))
+
+    tile = load("board_tile")
+    layout = board_layout()
+    obstacles = {(1, 1): "obstacle_frost", (7, 2): "obstacle_crate", (5, 6): "obstacle_ivy"}
+    powerups = {(4, 4): "powerup_electro", (2, 7): "powerup_rocket_row"}
+
+    for row in range(MOCK_COLS):
+        for col in range(MOCK_COLS):
+            cx = x0 + col * MOCK_CELL + MOCK_CELL // 2
+            cy = y0 + row * MOCK_CELL + MOCK_CELL // 2
+            place(canvas, tile, (cx, cy), MOCK_CELL * 0.98)
+
+            if (col, row) in obstacles:
+                place(canvas, load(obstacles[(col, row)]), (cx, cy), MOCK_CELL * OBSTACLE_SCALE)
+            elif (col, row) in powerups:
+                place(canvas, load(powerups[(col, row)]), (cx, cy), MOCK_CELL * POWERUP_SCALE)
+            else:
+                place(canvas, load(PIECES[layout[row][col]]), (cx, cy), MOCK_CELL * PIECE_SCALE)
+
+    # the booster bar: five chips, the same 48 dp the game reserves at the bottom of the canvas
+    chip, gap = 56, 10
+    total = chip * 5 + gap * 4
+    left = (width - total) // 2
+    bar = Image.new("RGBA", MOCK_SIZE, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(bar)
+    for i, booster in enumerate(["booster_mallet", "booster_ram", "booster_auger", "booster_whirlwind", "booster_falcon"]):
+        x = left + i * (chip + gap)
+        y = height - 84
+        draw.rounded_rectangle((x, y, x + chip, y + chip), radius=14, fill=(20, 41, 74, 255),
+                               outline=(196, 154, 62, 255), width=2)
+        place(bar, load(booster), (x + chip // 2, y + chip // 2), 40)
+    canvas.alpha_composite(bar)
+
+    return canvas
+
+
 def data_uri(image: Image.Image) -> str:
     buffer = BytesIO()
     image.convert("RGB").save(buffer, "PNG", optimize=True)
     return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode("ascii")
 
 
-def write_html(assets: list[dict], small_row: Image.Image, path: Path) -> None:
+def write_html(assets: list[dict], small_row: Image.Image, mock: Image.Image, path: Path) -> None:
     cards = []
     for asset in assets:
         image = load(asset["id"])
@@ -174,6 +296,13 @@ def write_html(assets: list[dict], small_row: Image.Image, path: Path) -> None:
     سیلوئت ۴۸ پیکسلی، سیاه روی سفید.</p>
 </header>
 <div class="row"><img alt="48 px silhouettes" src="{data_uri(small_row)}"></div>
+<header>
+ <h1>تخته، همان‌طور که بازی می‌سازدش</h1>
+ <p>زمینِ فصل، قابِ نُه‌تکه با کششِ واقعی، مهره‌ها در ۹۴٪ خانه و نوار بوسترها — همه از همان
+    فایل‌هایی که بازی لود می‌کند، بدون یونیتی. اگر این تصویر شلوغ یا کم‌کنتراست به نظر برسد،
+    روی دستگاه هم همین‌طور خواهد بود.</p>
+</header>
+<div class="row"><img alt="board mock" src="{data_uri(mock)}"></div>
 <div class="grid">
 {''.join(cards)}
 </div>
@@ -201,8 +330,10 @@ def main(argv: list[str]) -> int:
     sheet(assets).convert("RGB").save(OUT / "contact-sheet.png", "PNG", optimize=True)
     row = silhouette_row(assets)
     row.save(OUT / "silhouettes.png", "PNG", optimize=True)
-    write_html(assets, row, OUT / "index.html")
-    print(f"preview: wrote {OUT.relative_to(ROOT)}/contact-sheet.png, silhouettes.png, index.html")
+    mock = board_mock()
+    mock.convert("RGB").save(OUT / "board-mock.png", "PNG", optimize=True)
+    write_html(assets, row, mock, OUT / "index.html")
+    print(f"preview: wrote {OUT.relative_to(ROOT)}/contact-sheet.png, silhouettes.png, board-mock.png, index.html")
     return 0
 
 

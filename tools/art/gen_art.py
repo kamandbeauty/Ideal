@@ -1184,16 +1184,23 @@ def nine_slice(w, h, asset_id):
             fill_masked(w, h, with_alpha((255, 255, 255, 255), 16),
                         clip(polygon_mask(w, h, [(0.0, 0.0), (1.0, 0.0), (1.0, 0.070), (0.0, 0.070)]), body))), w, h)
 
-    # board_frame: dark lapis, one gold keyline, quiet enough not to compete with the pieces
+    # board_frame: a lapis border with a window in it, not a tray. The window is the point — the
+    # chapter's floor is drawn behind the board, and a frame that fills its own middle hides it. The
+    # band is 0.092 of the sprite, inside the 28 px nine-slice border, so corners stay 1:1.
     body = rounded_mask(w, h, 0.014, 0.055)
+    window = rounded_mask(w, h, 0.092, 0.022)
+    band = ring(body, window)
     return finish(layering(
-        fill_masked(w, h, with_alpha(shade(rgba(PALETTE["bg"]), 0.06), 242), body),
+        fill_masked(w, h, with_alpha(shade(rgba(PALETTE["bg"]), 0.06), 238), band),
         fill_masked(w, h, with_alpha(rgba(PALETTE["border"]), 90),
-                    ring(body, rounded_mask(w, h, 0.040, 0.045))),
+                    clip(ring(body, rounded_mask(w, h, 0.040, 0.045)), band)),
         fill_masked(w, h, with_alpha(GOLD_MID, 165),
-                    ring(rounded_mask(w, h, 0.026, 0.050), rounded_mask(w, h, 0.034, 0.048))),
+                    clip(ring(rounded_mask(w, h, 0.026, 0.050), rounded_mask(w, h, 0.034, 0.048)), band)),
         fill_masked(w, h, with_alpha((255, 255, 255, 255), 18),
-                    ring(body, rounded_mask(w, h, 0.020, 0.053)))), w, h)
+                    clip(ring(body, rounded_mask(w, h, 0.020, 0.053)), band)),
+        # the window's own bevel: the floor sits *into* the frame rather than behind a hole in it
+        fill_masked(w, h, with_alpha(NIGHT_DEEP, 120), clip(ring(grow(window, 5.0), grow(window, 2.0)), band)),
+        fill_masked(w, h, with_alpha(GOLD_MID, 130), clip(ring(grow(window, 2.0), window), band))), w, h)
 
 
 # ------------------------------------------------------------------------------------------------

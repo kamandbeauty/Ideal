@@ -121,6 +121,11 @@ Both cost a draft of a sprite each, so they are written down:
 - `preview.py --check` in CI: the five stones are compared as 48 px greyscale outlines and the job
   fails if any two are the same shape in practice. `preview.py` also writes the review sheet
   (`art/preview/index.html`, images inlined) that a human looks at.
+- `art/preview/board-mock.png`, written by the same script: one frame of the board screen assembled
+  from the real PNGs — the chapter floor cropped to the camera, the frame nine-sliced at 28 px the way
+  `SpriteDrawMode.Sliced` does it, nine by nine stones at 94 % of a cell, the obstacles, and the
+  booster chips. It is the only review that shows the floor *under* the pieces without a Unity install,
+  and it is how the frame was caught hiding the floor it sits on.
 - `ArtTools → Report missing art` in the editor for the artist's own loop.
 - A `_PersianCheck`-style visual pass is **not** enough: every sprite is checked for size and alpha in
   the file itself, and the board is checked at 48 px and at cell size.

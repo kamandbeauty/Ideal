@@ -476,8 +476,8 @@
         256
       ],
       "required": false,
-      "description": "Nine-slice frame behind the board. Border 32 px.",
-      "brief": "Dark lapis, one gold keyline; must not compete with the pieces."
+      "description": "Nine-slice frame around the board. Border 28 px, which is what ArtLibrary.GetSliced is called with. Its middle is a window, not a fill: the chapter's floor is drawn behind the board and a tray would hide it.",
+      "brief": "A dark lapis band with one gold keyline and a bevel on the window's inner edge; the band is 0.092 of the sprite so it stays inside the nine-slice border. Must not compete with the pieces."
     },
     {
       "id": "app_icon",
