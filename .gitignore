@@ -1,3 +1,31 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# ---- Unity (client/) -------------------------------------------------------------------------
+# The generated half of a Unity project. Everything here is rebuilt from Assets/, Packages/ and
+# ProjectSettings/ProjectVersion.txt — which is the point of committing so little of it.
+client/Library/
+client/Temp/
+client/Logs/
+client/Obj/
+client/Build/
+client/Builds/
+client/UserSettings/
+client/MemoryCaptures/
+client/Recordings/
+client/*.csproj
+client/*.sln
+client/*.unityproj
+client/*.user
+client/.vs/
+client/.idea/
+client/*.apk
+client/*.aab
+client/*.keystore
+client/*.jks
+
+# Crash and profile dumps
+*.stackdump
+sysinfo.txt
+crashlytics-build.properties

@@ -124,6 +124,18 @@ jobs:
       - name: parse + static member check
         run: python3 tools/csharp/lint.py
 
+  # The Unity half cannot be compiled without a licence, but the gate that decides whether a build may
+  # even start can be checked here: the project's editor version, the pipeline's pin, and whether every
+  # package is pinned to an exact version. See docs/m5-run.md.
+  unity-project:
+    name: unity project pin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: project version, pipeline pin and package pins agree
+        run: python3 tools/ci/check_unity_pin.py
+
   # Persian is the product, so the shaper gets its own gate: the generated letter tables must match the
   # Unicode data, our shaping must agree with a second implementation, and the golden vectors the C#
   # tests compare against must be current.

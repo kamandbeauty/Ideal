@@ -1,6 +1,7 @@
 using System.IO;
 using Shazdeh.Game;
 using UnityEditor;
+using UnityEditor.Build;            // NamedBuildTarget — PlayerSettings.SetScriptingBackend takes it
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -18,6 +19,9 @@ namespace Shazdeh.EditorTools
     public static class CiBuild
     {
         const string AndroidOutput = "build/Android/Shazdeh.aab";
+        // An .aab cannot be installed on a phone: it is a store format. Testing on a device needs an
+        // .apk, which is why the two entry points exist side by side rather than one behind a flag.
+        const string AndroidApkOutput = "build/Android/Shazdeh.apk";
         const string IosOutput = "build/iOS";
 
         [MenuItem("کاخ شازده/Build/Android (AAB)")]
@@ -29,6 +33,18 @@ namespace Shazdeh.EditorTools
             EditorUserBuildSettings.buildAppBundle = true;
             EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
             Run(BuildTarget.Android, AndroidOutput);
+        }
+
+        /// <summary>The installable build: what goes on a test phone, signed with the debug key.</summary>
+        [MenuItem("کاخ شازده/Build/Android (APK, for a phone)")]
+        public static void BuildAndroidApkMenu() => BuildAndroidApk();
+
+        public static void BuildAndroidApk()
+        {
+            ApplyPlayerSettings();
+            EditorUserBuildSettings.buildAppBundle = false;
+            EditorUserBuildSettings.exportAsGoogleAndroidProject = false;
+            Run(BuildTarget.Android, AndroidApkOutput);
         }
 
         [MenuItem("کاخ شازده/Build/iOS (Xcode project)")]

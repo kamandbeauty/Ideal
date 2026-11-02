@@ -1,17 +1,22 @@
 # CI and builds (GitHub Actions + GameCI)
 
-Two workflows, both dormant-until-needed:
+Two workflows. `ci.yml` runs on every push and needs nothing; `unity.yml` runs when the Unity half of
+the repo changes, and now that `client/ProjectSettings/ProjectVersion.txt` exists it builds for real:
 
 | workflow | runs | what it proves |
 | --- | --- | --- |
-| `.github/workflows/ci.yml` | every push and PR | `replica/schema.sql` applies to a real Postgres 16, the 8 wallet-protecting constraints actually hold, the palette passes WCAG AA, `Tokens.gen.cs` matches `tokens.json`, level + district JSON validates, every C# file parses with no unknown static members, the Persian shaper agrees with a second implementation and the shipped font can draw its output, and the art manifest matches its generated catalog |
-| `.github/workflows/unity.yml` | pushes touching `client/**`, manual dispatch | EditMode + PlayMode tests, then an Android `.aab`; iOS Xcode project on manual dispatch |
+| `.github/workflows/ci.yml` | every push and PR | `replica/schema.sql` applies to a real Postgres 16, the 8 wallet-protecting constraints actually hold, the palette passes WCAG AA, `Tokens.gen.cs` matches `tokens.json`, level + district JSON validates, every C# file parses, every static member it names exists, and no Unity/TMP/UI type is named without the `using` that brings it into scope, the Persian shaper agrees with a second implementation and the shipped font can draw its output, and the art manifest matches its generated catalog |
+| `.github/workflows/unity.yml` | pushes touching `client/**`, manual dispatch | EditMode + PlayMode tests (the compile gate), then an Android `.apk` — dispatch can ask for the store `.aab` instead; iOS Xcode project on dispatch |
 
-The Unity jobs check for `client/ProjectSettings/ProjectVersion.txt` first and skip with a notice
-until the project exists — the repo stays green while M0 is being built.
+The Unity jobs still check for `client/ProjectSettings/ProjectVersion.txt` first and skip with a
+notice if it ever goes missing. It exists now, so they do not skip: the project pins `6000.0.32f1`
+(`b2e806cf271c`) and `unity.yml` installs exactly that. Running the game locally, and what the first
+compile is expected to cost, is [`docs/m5-run.md`](m5-run.md).
 
-`ci.yml` runs seven jobs: `schema`, `design`, `content` (levels + chapter meta), `csharp`
-(`tools/csharp/lint.py`, pinned grammar in `tools/csharp/requirements.txt`), `text` (Persian letter
+`ci.yml` runs eight jobs: `schema`, `design`, `content` (levels + chapter meta), `csharp`
+(`tools/csharp/lint.py`, pinned grammar in `tools/csharp/requirements.txt`), `unity-project` (the
+project's editor version, the pipeline's pin and every package version must agree —
+`tools/ci/check_unity_pin.py`), `text` (Persian letter
 tables, shaping vs `arabic-reshaper`, golden vectors, font coverage — `tools/text/requirements.txt`),
 `art` (the sprite contract, its generated catalog, every committed PNG, the generator that draws them,
 and the 48 px silhouette gate) and `server`. The

@@ -1,8 +1,9 @@
 name: unity
 
-# Builds کاخ شازده with GameCI. Dormant until client/ProjectSettings/ProjectVersion.txt
-# exists, so the repo stays green while the Unity project is being laid down.
-# Secrets and one-time activation: docs/ci.md
+# Builds کاخ شازده with GameCI. The `detect` job still guards against the project not existing, but it
+# does: client/ProjectSettings/ProjectVersion.txt pins 6000.0.32f1, the same string as env below.
+# Pushes build an installable .apk (a .aab cannot be installed on a phone); dispatch can ask for the
+# store bundle instead. Secrets and one-time activation: docs/ci.md. How to run it: docs/m5-run.md
 
 on:
   push:
@@ -25,6 +26,11 @@ on:
         description: "mark the build as a candidate release"
         type: boolean
         default: false
+      android_output:
+        description: "apk installs on a phone; aab is the store bundle"
+        type: choice
+        options: [apk, aab]
+        default: apk
 
 concurrency:
   group: unity-${{ github.ref }}-${{ github.event.inputs.target || 'android' }}
@@ -128,9 +134,14 @@ jobs:
           projectPath: client
           unityVersion: ${{ env.UNITY_VERSION }}
           targetPlatform: Android
-          buildMethod: Shazdeh.EditorTools.CiBuild.BuildAndroid
-          androidExportType: androidAppBundle
-          androidKeystoreName: user.keystore
+          # Two entry points rather than a flag: an .apk for a phone, an .aab for the store. A push
+          # with no inputs gets the installable one, because the first thing anyone wants is to play it.
+          buildMethod: ${{ (github.event.inputs.android_output == 'aab') && 'Shazdeh.EditorTools.CiBuild.BuildAndroid' || 'Shazdeh.EditorTools.CiBuild.BuildAndroidApk' }}
+          androidExportType: ${{ (github.event.inputs.android_output == 'aab') && 'androidAppBundle' || 'androidPackage' }}
+          # The upload key is only needed for a store build. If the secrets are absent GameCI falls back
+          # to Unity's debug keystore, which installs fine on a test phone — so a first build does not
+          # wait on a keystore that only matters at release time.
+          androidKeystoreName: ${{ secrets.ANDROID_KEYSTORE_BASE64 && 'user.keystore' || '' }}
           androidKeystoreBase64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           androidKeystorePass: ${{ secrets.ANDROID_KEYSTORE_PASS }}
           androidKeyaliasName: ${{ secrets.ANDROID_KEYALIAS_NAME }}
@@ -142,7 +153,10 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: shazdeh-android-${{ github.run_number }}
-          path: build/Android
+          path: |
+            build/Android/*.apk
+            build/Android/*.aab
+            build/Android/*.symbols.zip
           retention-days: 30
 
   build-ios:
