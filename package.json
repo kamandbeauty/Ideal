@@ -28,7 +28,8 @@
     "kamand-vox:timeline": ".venv/bin/python motion/kamand-vox/audio/build-timeline.py",
     "kamand-vox:vo:persian-tts": ".venv/bin/python motion/kamand-vox/audio/generate-vo-persian-tts.py",
     "kamand-vox:sample": "node motion/kamand-vox/render.mjs --sample",
-    "kamand-vox:render": "node motion/kamand-vox/render.mjs"
+    "kamand-vox:render": "node motion/kamand-vox/render.mjs",
+    "painted-story:inputs": "node scripts/inspect-inputs.mjs"
   },
   "devDependencies": {
     "@ffmpeg-installer/linux-x64": "^4.1.0",

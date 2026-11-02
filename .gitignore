@@ -30,3 +30,14 @@ third_party/persian_tts/output/
 # OS
 .DS_Store
 Thumbs.db
+
+# painted-story uploads: the voice and the reference clip stay local.
+# Only a small reference (under ~50 MB) should ever be committed.
+motion/painted-story/inputs/**/*.wav
+motion/painted-story/inputs/**/*.mp3
+motion/painted-story/inputs/**/*.m4a
+motion/painted-story/inputs/**/*.mov
+motion/painted-story/inputs/**/*.mkv
+motion/painted-story/exports/*.mp4
+motion/painted-story/exports/*.mov
+motion/painted-story/exports/*.webm
