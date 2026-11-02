@@ -1,0 +1,31 @@
+# ---- python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ---- model & generated audio (never committed) ----
+model/
+output/
+uploads/
+data/
+*.wav
+!voices/*.wav
+
+# ---- build artifacts ----
+dist/
+build/
+.build-cache/
+Parsigo-*-windows-x64/
+
+# ---- desktop runtime ----
+.hf-cache/
+*.log
+portable.txt
+
+# ---- os noise ----
+.DS_Store
+Thumbs.db
+desktop.ini

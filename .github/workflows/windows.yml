@@ -1,0 +1,107 @@
+name: Windows build
+
+# Produces the two things a Windows user actually wants:
+#   Parsigo-<ver>-windows-x64.zip   portable, no Python install required
+#   Parsigo-Setup-<ver>.exe         classic per-user installer
+#
+# Run it manually (Actions ▸ Windows build ▸ Run workflow) or push a v* tag.
+
+on:
+  workflow_dispatch:
+    inputs:
+      with_model:
+        description: "Bundle the 470MB model (offline installer, slow upload)"
+        type: boolean
+        default: false
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build the portable app
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $args = @()
+          if ("${{ inputs.with_model }}" -eq "true") { $args += "--with-model" }
+          python windows/build_portable.py @args
+          if ($LASTEXITCODE -ne 0) { throw "build failed" }
+
+      - name: Sanity-check the bundle
+        shell: pwsh
+        run: |
+          $dir = Get-ChildItem dist -Directory -Filter "Parsigo-*-windows-x64" | Select-Object -First 1
+          if (-not $dir) { throw "no build folder" }
+          $must = @(
+            "$($dir.FullName)\Parsigo.exe",
+            "$($dir.FullName)\python\pythonw.exe",
+            "$($dir.FullName)\python\Lib\site-packages\onnxruntime",
+            "$($dir.FullName)\python\Lib\site-packages\webview",
+            "$($dir.FullName)\desktop\main.py",
+            "$($dir.FullName)\web\index.html",
+            "$($dir.FullName)\voices\male_hello.wav"
+          )
+          foreach ($p in $must) {
+            if (-not (Test-Path $p)) { throw "missing from the bundle: $p" }
+          }
+          # the launcher must be a GUI-subsystem exe, or a console flashes on start
+          $bytes = [IO.File]::ReadAllBytes("$($dir.FullName)\Parsigo.exe")
+          $pe = [BitConverter]::ToInt32($bytes, 0x3C)
+          $subsystem = [BitConverter]::ToUInt16($bytes, $pe + 24 + 68)
+          Write-Host "PE subsystem: $subsystem (2 = GUI)"
+          if ($subsystem -ne 2) { throw "Parsigo.exe is not a GUI-subsystem binary" }
+          $size = (Get-ChildItem $dir.FullName -Recurse -File | Measure-Object Length -Sum).Sum / 1MB
+          Write-Host ("bundle size: {0:N0} MB" -f $size)
+
+      - name: Build the installer (Inno Setup, if present)
+        id: inno
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $iscc = @(
+            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+            "C:\Program Files\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { choco install innosetup -y --no-progress; $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" }
+          & $iscc "windows\installer.iss"
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: parsigo-windows
+          path: |
+            dist/*.zip
+            dist/Parsigo-Setup-*.exe
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.zip
+            dist/Parsigo-Setup-*.exe
+          body: |
+            پارسی‌گو — نسخهٔ ویندوز (۶۴بیتی، ویندوز ۱۰/۱۱)
+
+            * `Parsigo-Setup-*.exe` — نصب‌کنندهٔ معمول (نصب برای کاربر جاری، بدون نیاز به دسترسی مدیر)
+            * `Parsigo-*-windows-x64.zip` — نسخهٔ قابل حمل؛ از حالت فشرده خارج کنید و `Parsigo.exe` را اجرا کنید
+
+            بار اول، پنجرهٔ «نصب مدل» باز می‌شود و حدود ۴۷۰ مگابایت دانلود می‌کند.
+            بعد از آن برنامه بدون اینترنت کار می‌کند. جزئیات: `docs/WINDOWS.md`
