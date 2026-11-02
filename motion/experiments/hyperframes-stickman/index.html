@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="assets/lib/gsap.min.js"></script>
+    <style>
+      /* Rule 9 of the HyperFrames contract: a family resolves only if it is
+         declared here and points at a file in assets/fonts/. */
+      @font-face {
+        font-family: "Vazirmatn";
+        src: url("assets/fonts/vazirmatn-700.woff2") format("woff2");
+        font-weight: 700;
+        font-display: block;
+      }
+      @font-face {
+        font-family: "Vazirmatn";
+        src: url("assets/fonts/vazirmatn-arabic-400-normal.woff2") format("woff2");
+        font-weight: 400;
+        font-display: block;
+      }
+      :root {
+        --paper: #f4efe4;
+        --ink: #1d1b1a;
+        --accent: #c8452f;
+        --font-fa: "Vazirmatn", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body {
+        width: 1080px; height: 1920px; overflow: hidden;
+        background: var(--paper);
+        font-family: var(--font-fa);
+      }
+      #root { width: 100%; height: 100%; position: relative; }
+      #stage { position: absolute; inset: 0; }
+      #caption {
+        position: absolute; left: 0; right: 0; bottom: 150px;
+        text-align: center; font-size: 74px; font-weight: 700;
+        color: var(--ink); letter-spacing: 0;
+      }
+      #eyebrow {
+        position: absolute; top: 120px; right: 90px;
+        font-size: 34px; color: var(--accent); font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="stickman"
+      data-start="0"
+      data-duration="6"
+      data-width="1080"
+      data-height="1920"
+    >
+      <svg id="stage" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="eyebrow">ایده‌آل · تست</div>
+      <div id="caption" class="clip" data-start="0" data-duration="6" data-track-index="1">سلام</div>
+    </div>
+
+    <script>
+      // ---------------------------------------------------------------------
+      // A stick figure rig drawn in SVG. Deterministic: every value is a
+      // function of the timeline's time, so seeking gives the same frame.
+      // ---------------------------------------------------------------------
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.getElementById("stage");
+
+      const el = (name, attrs = {}) => {
+        const n = document.createElementNS(NS, name);
+        for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+        return n;
+      };
+
+      // Palette: warm paper, ink, one accent — the "hand-drawn" family.
+      const INK = "#1d1b1a";
+      const ACCENT = "#c8452f";
+
+      const rig = {
+        hip: { x: 540, y: 1120 },
+        torso: 260,          // hip to neck
+        headR: 96,
+        upper: 155,          // upper arm / thigh
+        lower: 145,          // forearm / shin
+      };
+
+      // Ground line so the figure has a floor to stand on.
+      const ground = el("path", {
+        d: "M120 1420 Q 400 1406 540 1412 T 960 1420",
+        stroke: INK, "stroke-width": 5, fill: "none",
+        "stroke-linecap": "round", opacity: 0.55,
+      });
+      svg.appendChild(ground);
+
+      // The figure: one <g> holding everything, so it can translate as a whole.
+      const figure = el("g", { id: "figure" });
+      svg.appendChild(figure);
+
+      const parts = {
+        head: el("circle", { r: rig.headR, fill: "var(--paper)", stroke: INK, "stroke-width": 7 }),
+        spine: el("path", { stroke: INK, "stroke-width": 8, fill: "none", "stroke-linecap": "round" }),
+        armL: el("path", { stroke: INK, "stroke-width": 8, fill: "none", "stroke-linecap": "round" }),
+        armR: el("path", { stroke: ACCENT, "stroke-width": 8, fill: "none", "stroke-linecap": "round" }),
+        legL: el("path", { stroke: INK, "stroke-width": 8, fill: "none", "stroke-linecap": "round" }),
+        legR: el("path", { stroke: INK, "stroke-width": 8, fill: "none", "stroke-linecap": "round" }),
+        eyeL: el("circle", { r: 11, fill: INK }),
+        eyeR: el("circle", { r: 11, fill: INK }),
+      };
+      for (const p of Object.values(parts)) figure.appendChild(p);
+
+      // Two-bone IK: place the end effector on a target, bending the joint the
+      // natural way. Returns the joint and end positions.
+      function ik(root, target, a, b, bend) {
+        const dx = target.x - root.x, dy = target.y - root.y;
+        let d = Math.hypot(dx, dy);
+        d = Math.min(d, a + b - 0.01);
+        d = Math.max(d, Math.abs(a - b) + 0.01);
+        const cosA = (a * a + d * d - b * b) / (2 * a * d);
+        const ang = Math.atan2(dy, dx) - Math.acos(Math.max(-1, Math.min(1, cosA))) * bend;
+        const joint = { x: root.x + Math.cos(ang) * a, y: root.y + Math.sin(ang) * a };
+        const t = { x: root.x + Math.cos(Math.atan2(dy, dx)) * d, y: root.y + Math.sin(Math.atan2(dy, dx)) * d };
+        return { joint, end: t };
+      }
+
+      const P = (a, b) => `M${a.x.toFixed(2)} ${a.y.toFixed(2)} L${b.x.toFixed(2)} ${b.y.toFixed(2)}`;
+      // A limb is root -> joint -> end in one path, so the bend is always drawn.
+      const chain = (a, b, c) =>
+        `M${a.x.toFixed(2)} ${a.y.toFixed(2)} L${b.x.toFixed(2)} ${b.y.toFixed(2)} L${c.x.toFixed(2)} ${c.y.toFixed(2)}`;
+
+      // Deterministic jitter: the "boiling line" of hand-drawn animation.
+      // Seeded by the 12 fps step of the clock, so every render matches.
+      function jitter(seed, i) {
+        const s = Math.sin(seed * 12.9898 + i * 78.233) * 43758.5453;
+        return (s - Math.floor(s) - 0.5) * 3.4;
+      }
+
+      // Draw the figure for a given pose and time.
+      function draw(pose, t) {
+        const step = Math.floor(t * 12);              // 12 drawings a second
+        const j = (i) => jitter(step, i);
+
+        const hip = { x: rig.hip.x + pose.x + j(1), y: rig.hip.y + pose.y + j(2) };
+        const neck = { x: hip.x + Math.sin(pose.lean) * rig.torso, y: hip.y - Math.cos(pose.lean) * rig.torso };
+        const head = { x: neck.x + Math.sin(pose.lean + pose.headTilt) * (rig.headR + 12),
+                       y: neck.y - Math.cos(pose.lean + pose.headTilt) * (rig.headR + 12) };
+
+        parts.spine.setAttribute("d", P(hip, neck) + ` L${head.x.toFixed(2)} ${head.y.toFixed(2)}`);
+        parts.head.setAttribute("cx", head.x.toFixed(2));
+        parts.head.setAttribute("cy", head.y.toFixed(2));
+
+        // Eyes look where the gaze says; a face never snaps, it slides.
+        const ex = head.x + pose.gaze * 30, ey = head.y - 8;
+        parts.eyeL.setAttribute("cx", (ex - 30 + j(3)).toFixed(2));
+        parts.eyeL.setAttribute("cy", ey.toFixed(2));
+        parts.eyeR.setAttribute("cx", (ex + 30 + j(4)).toFixed(2));
+        parts.eyeR.setAttribute("cy", ey.toFixed(2));
+
+        // Shoulders sit a little below the neck, across the spine.
+        const sh = { x: hip.x + Math.sin(pose.lean) * (rig.torso - 34), y: hip.y - Math.cos(pose.lean) * (rig.torso - 34) };
+
+        const armL = ik(sh, { x: sh.x + pose.handL.x + j(5), y: sh.y + pose.handL.y + j(6) }, rig.upper, rig.lower, -1);
+        const armR = ik(sh, { x: sh.x + pose.handR.x + j(7), y: sh.y + pose.handR.y + j(8) }, rig.upper, rig.lower, 1);
+        parts.armL.setAttribute("d", chain(sh, armL.joint, armL.end));
+        parts.armR.setAttribute("d", chain(sh, armR.joint, armR.end));
+
+        const legL = ik(hip, { x: hip.x + pose.footL.x + j(9), y: hip.y + pose.footL.y + j(10) }, rig.upper, rig.lower, -1);
+        const legR = ik(hip, { x: hip.x + pose.footR.x + j(11), y: hip.y + pose.footR.y + j(12) }, rig.upper, rig.lower, 1);
+        parts.legL.setAttribute("d", chain(hip, legL.joint, legL.end));
+        parts.legR.setAttribute("d", chain(hip, legR.joint, legR.end));
+      }
+
+      // ---------------------------------------------------------------------
+      // Poses. Every animation is these numbers over time, nothing else.
+      // ---------------------------------------------------------------------
+      const REST = {
+        x: 0, y: 0, lean: 0, headTilt: 0, gaze: 0,
+        handL: { x: -120, y: 190 }, handR: { x: 120, y: 190 },
+        footL: { x: -78, y: 300 }, footR: { x: 78, y: 300 },
+      };
+      const WAVE = {
+        ...REST, lean: -0.04, headTilt: 0.06, gaze: -1,
+        handR: { x: 250, y: -180 },
+      };
+      const POINT = {
+        ...REST, lean: 0.05, gaze: 1,
+        handL: { x: 235, y: -175 },
+      };
+
+      // A scratch pose object the timeline mutates; draw() is called on every tick.
+      const current = JSON.parse(JSON.stringify(REST));
+      const lerp = (a, b, k) => a + (b - a) * k;
+
+      // ---------------------------------------------------------------------
+      // The timeline. Everything registers on window.__timelines["stickman"].
+      // ---------------------------------------------------------------------
+      const tl = gsap.timeline({ paused: true });
+
+      // 0.0–1.4  stand
+      // 1.4–2.6  raise the arm and wave (three quick shakes)
+      // 2.6–3.6  settle
+      // 3.6–4.8  point to the caption
+      // 4.8–6.0  back to rest
+      const target = JSON.parse(JSON.stringify(REST));
+
+      // GSAP: nested objects in `vars` are extra targets, not property paths. Name the
+      // leaf properties explicitly — `handR: {x, y}` silently animates a detached object.
+      tl.to(target, {
+        duration: 0.55, ease: "power2.inOut",
+        lean: WAVE.lean, headTilt: WAVE.headTilt, gaze: WAVE.gaze,
+        "handR.x": WAVE.handR.x, "handR.y": WAVE.handR.y,
+      }, 1.4);
+
+      // The wave: the hand oscillates, the body follows a little later.
+      tl.to(target.handR, { duration: 0.14, ease: "sine.inOut", x: 300 }, 1.95);
+      tl.to(target.handR, { duration: 0.14, ease: "sine.inOut", x: 210 }, 2.09);
+      tl.to(target.handR, { duration: 0.14, ease: "sine.inOut", x: 300 }, 2.23);
+      tl.to(target.handR, { duration: 0.14, ease: "sine.inOut", x: 225 }, 2.37);
+
+      tl.to(target, {
+        duration: 0.6, ease: "power2.inOut",
+        lean: REST.lean, headTilt: REST.headTilt, gaze: REST.gaze,
+        "handR.x": REST.handR.x, "handR.y": REST.handR.y,
+      }, 2.75);
+
+      tl.to(target, {
+        duration: 0.5, ease: "power3.out",
+        lean: POINT.lean, gaze: POINT.gaze,
+        "handL.x": POINT.handL.x, "handL.y": POINT.handL.y,
+      }, 3.7);
+
+      tl.to(target, {
+        duration: 0.5, ease: "power2.inOut",
+        lean: REST.lean, gaze: REST.gaze,
+        "handL.x": REST.handL.x, "handL.y": REST.handL.y,
+      }, 4.9);
+
+      // One driver redraws from the timeline's own time on every seek.
+      tl.eventCallback("onUpdate", () => draw(target, tl.time()));
+
+      // Caption swap: a face swaps, it does not morph.
+      for (const [at, text] of [[0, "سلام"], [1.5, "این یک استیکمن است"], [3.7, "ساخته‌شده با کد"]]) {
+        tl.set("#caption", { textContent: text }, at);
+        tl.set("#caption", { textContent: text }, at);
+      }
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["stickman"] = tl;
+      tl.seek(0);
+      draw(target, 0);
+    </script>
+  </body>
+</html>
