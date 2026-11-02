@@ -40,6 +40,7 @@ namespace Shazdeh.Game.Ui
         SpriteRenderer[] _tiles;
         SpriteRenderer[] _overlays;
         SpriteRenderer _frame;
+        SpriteRenderer _backdrop;
 
         LevelDefinition _level;
         LevelRun _run;
@@ -143,9 +144,12 @@ namespace Shazdeh.Game.Ui
             _camera.depth = -1;
             _camera.enabled = false;
 
+            // One unit in front of the camera, not on its plane: an orthographic camera clips anything
+            // at or behind its near plane (0.3 by default), and the board root sitting at the camera's
+            // own z is exactly that. It never showed because no Unity run had drawn a frame yet.
             _boardRoot = new GameObject("Board");
             _boardRoot.transform.SetParent(go.transform, false);
-            _boardRoot.transform.localPosition = new Vector3(0f, BoardDropWorld, 0f);
+            _boardRoot.transform.localPosition = new Vector3(0f, BoardDropWorld, 1f);
 
             _square = MakeSquareSprite();
         }
@@ -440,6 +444,9 @@ namespace Shazdeh.Game.Ui
             if (_frame != null && _frame.gameObject != null) Destroy(_frame.gameObject);
             _frame = null;
 
+            if (_backdrop != null && _backdrop.gameObject != null) Destroy(_backdrop.gameObject);
+            _backdrop = null;
+
             ClearSparks();
         }
 
@@ -459,8 +466,41 @@ namespace Shazdeh.Game.Ui
                 float barTopWorld = halfWorld - (BoosterBarTop / UiKit.CanvasHeight) * 2f * halfWorld;
                 float boardBottom = BoardDropWorld - _level.Height * Cell * 0.5f;
                 float lift = barTopWorld + 0.25f - boardBottom;
-                _boardRoot.transform.localPosition = new Vector3(0f, BoardDropWorld + (lift > 0f ? lift : 0f), 0f);
+                _boardRoot.transform.localPosition = new Vector3(0f, BoardDropWorld + (lift > 0f ? lift : 0f), 1f);
             }
+
+            PlaceBackdrop();
+        }
+
+        /// <summary>
+        /// The chapter's floor, behind the frame. Optional art: a chapter with no skin keeps the
+        /// camera's clear colour, which is what every board drew before this existed.
+        ///
+        /// It is parented to the camera rather than to the board so the board's lift, the aspect and the
+        /// booster bar's strip are all already accounted for. Scaled to the longer side of the view plus
+        /// a margin, so a portrait phone crops the sides of the plate instead of showing clear colour at
+        /// the top and bottom.
+        /// </summary>
+        void PlaceBackdrop()
+        {
+            if (_backdrop != null && _backdrop.gameObject != null) Destroy(_backdrop.gameObject);
+            _backdrop = null;
+
+            if (_level == null || _camera == null) return;
+
+            string id = "board_backdrop_" + _level.Chapter;
+            if (!ArtLibrary.IsKnown(id) || !ArtLibrary.Has(id)) return;
+
+            var go = new GameObject("board_backdrop");
+            go.transform.SetParent(_camera.transform, false);
+            go.transform.localPosition = new Vector3(0f, 0f, 2f);
+
+            _backdrop = go.AddComponent<SpriteRenderer>();
+            _backdrop.sortingOrder = -8; // under the frame (-1) and under the cell stones (-2)
+
+            float half = _camera.orthographicSize;
+            float aspect = _camera.aspect <= 0.01f ? 0.56f : _camera.aspect;
+            go.SetActive(ArtLibrary.ApplyTo(_backdrop, id, 2f * Mathf.Max(half, half * aspect) * 1.06f));
         }
 
         Vector3 WorldOf(CellPos pos)

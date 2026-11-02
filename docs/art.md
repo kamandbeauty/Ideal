@@ -54,7 +54,7 @@ python3 tools/art/art.py --check         # CI: contract valid, catalog current, 
 python3 tools/art/art.py --check --strict  # release gate: every required asset exists and is valid
 ```
 
-Today: **84 assets in the contract, 84 on disk, 10 required — all present.** They are produced by
+Today: **85 assets in the contract, 85 on disk, 10 required — all present.** They are produced by
 `python3 tools/art/gen_art.py` and must match it byte for byte (`gen_art.py --check`). The placeholder
 path still exists and is still tested: delete any PNG and the screen falls back to token colours
 instead of breaking, which is what makes art additive.
@@ -63,7 +63,7 @@ instead of breaking, which is what makes art additive.
 
 | screen | art it uses | what it was before |
 | --- | --- | --- |
-| Board | `piece_*` (5) at 94 % of a cell, `obstacle_*` (8) at 90 %, `powerup_*` (5) at 80 %, `board_tile` under every empty cell, `board_frame` nine-sliced behind the grid | token colours, no shape |
+| Board | `piece_*` (5) at 94 % of a cell, `obstacle_*` (8) at 90 %, `powerup_*` (5) at 80 %, `board_tile` under every empty cell, `board_frame` nine-sliced behind the grid, `board_backdrop_ch01` behind all of it — scaled to the camera and cropped, so it has no frame to cut | token colours, no shape, then the camera's clear colour |
 | Top bar | `icon_coin`, `icon_potion`, `icon_life` at 26 px | no icon; numbers only |
 | Home | `home_palace` (1024×768) plate behind the level card, `home_palace_lit` once every district of the chapter is built, `panel_frame` as the card, `button_primary` as the play button | two bands of `surface` |
 | Districts | `district_ch01_d1..d3` plates, `prop_ch01_*` (12) | surface card, task pills |
@@ -153,7 +153,7 @@ lists exactly what a human should replace first, so nobody mistakes this for fin
 
 ## 7. What is drawn, and what a human should replace first
 
-All 84 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
+All 85 assets in the contract exist, at the exact sizes the manifest asks for; `art.py --check
 --strict` is green. The set was drawn in this order of care:
 
 1. **The five stones** — one bezel language, five silhouettes that survive 48 px and greyscale
@@ -183,8 +183,14 @@ All 84 assets in the contract exist, at the exact sizes the manifest asks for; `
    The board engine only knows `PowerUpKind.SuperElectroBall` today, so four of these five are drawn
    ahead of the merge rule that will use them — the manifest marks them optional and nothing in the
    code asks for them yet.
-12. **Still to draw** (each one goes in the manifest before it is drawn): a per-district board skin, and
-   the five store screenshots.
+12. **The chapter floor** — `board_backdrop_ch01`, 512×512: a lapis field lit from the middle, under a
+   shamse medallion and a lattice of eight-point stars, every line below 45 alpha so it cannot compete
+   with a piece. It is the one asset scaled to the camera and cropped rather than placed at a size,
+   which is why it carries no border — a border would be cut off at one aspect and doubled at another.
+13. **Still to draw** (each one goes in the manifest before it is drawn): per-district board skins
+   (`board_backdrop_ch01_d1..d3`) — the floor is per chapter today, and per district needs the level
+   JSON to carry a district id, which it does not yet — and the five store screenshots, which come
+   from a real device once there is a build.
 
 Left for a human artist, in the order that would improve the game most:
 
@@ -199,5 +205,5 @@ Left for a human artist, in the order that would improve the game most:
 - **`prop_ch01_gate`**: drawn closed only; the "built" plate needs the open state.
 - **No animation**: idle, swap, cascade and chest reveal all remain unimplemented. The motion tokens
   exist; the clips do not.
-- **No atlas**: 84 sprites is small enough to let Unity pack them, and doing it by hand now would
+- **No atlas**: 85 sprites is small enough to let Unity pack them, and doing it by hand now would
   cost more than it saves.

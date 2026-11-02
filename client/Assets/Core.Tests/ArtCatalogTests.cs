@@ -107,6 +107,15 @@ namespace Shazdeh.Core.Tests
             }
         }
 
+        [Test]
+        public void TheChapterWeShipHasABoardFloorInTheContract()
+        {
+            // BoardScreen asks for "board_backdrop_" + level.Chapter. A chapter without a skin is legal —
+            // the board keeps the camera's clear colour — but chapter one is what ships, and its floor
+            // is drawn. A rename in the manifest must fail here instead of going quietly dark on device.
+            Assert.IsTrue(ArtLibrary.IsKnown("board_backdrop_ch01"), "board_backdrop_ch01 left the contract");
+        }
+
         static string PieceName(Core.PieceKind kind) => kind.ToString().ToLowerInvariant();
     }
 }

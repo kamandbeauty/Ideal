@@ -821,6 +821,17 @@
       "brief": "Darker than any piece and never above 30 alpha of gold, so it never reads as content."
     },
     {
+      "id": "board_backdrop_ch01",
+      "group": "scene",
+      "size": [
+        512,
+        512
+      ],
+      "required": false,
+      "description": "The floor the board sits on in chapter one: a lapis field lit from the middle under a shamse medallion, drawn behind the board frame.",
+      "brief": "Scaled to the camera and cropped, so no frame and no border - the centre is the light and the edges fall to near black. Every line below 45 alpha of gold: a floor that reads as content steals the silhouette of the piece standing on it."
+    },
+    {
       "id": "fx_coins",
       "group": "ui",
       "size": [

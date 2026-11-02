@@ -691,6 +691,52 @@ def board_tile(w, h):
                     clip(polygon_mask(w, h, [(0.05, 0.05), (0.95, 0.05), (0.95, 0.14), (0.05, 0.14)]), body))), w, h)
 
 
+def board_backdrop(w, h):
+    """The floor the board sits on: a lapis field lit from the middle, with a shamse medallion.
+
+    This is the only asset that is **scaled to the camera and cropped** rather than placed at a size,
+    so it carries no frame and no border — a border would be cut off at one aspect and doubled at
+    another. The light is the centre, the corners fall towards black, and a crop at any aspect loses
+    nothing but more dark.
+
+    The discipline is contrast. Every line here stays below the gold ring of `board_tile` (alpha 40),
+    because a floor that reads as content steals the silhouette of the piece standing on it, and the
+    five stones are only distinguishable at 48 px by silhouette.
+    """
+    base = rgba(PALETTE["bg"])
+    cx, cy = 0.5, 0.5
+
+    layers = [radial(w, h, (0.5, 0.46), 0.70, shade(base, 0.34), shade(NIGHT_DEEP, -0.20))]
+
+    # the medallion: nested diamond hairlines, brightest at the middle where the board is emptiest
+    for r, alpha, weight in ((0.132, 44, 1.6), (0.238, 30, 1.6), (0.352, 20, 1.4), (0.474, 13, 1.4)):
+        diamond = polygon_mask(w, h, [(cx, cy - r), (cx + r, cy), (cx, cy + r), (cx - r, cy)])
+        layers.append(fill_masked(w, h, with_alpha(GOLD_MID, alpha), ring(grow(diamond, weight), shrink(diamond, weight))))
+
+    # eight-point shamse on a diagonal lattice: the mosaic the courtyard would be paved with
+    for row in range(4):
+        for col in range(4):
+            sx = 0.128 + col * 0.248 + (0.124 if row % 2 else 0.0)
+            sy = 0.128 + row * 0.248
+            if sx > 0.94 or sy > 0.94:
+                continue
+            star = polygon_mask(w, h, eight_point_star(sx, sy, 0.058, 0.024))
+            layers.append(fill_masked(w, h, with_alpha(GOLD_MID, 22), ring(grow(star, 1.4), shrink(star, 1.4))))
+            layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, 46), ellipse_mask(
+                w, h, (sx - 0.007, sy - 0.007, sx + 0.007, sy + 0.007))))
+
+    # gold dust, seeded: the floor of a courtyard that has been swept, not rendered
+    spread = random.Random(0x5A2DE1)
+    for _ in range(46):
+        dx = spread.uniform(0.03, 0.97)
+        dy = spread.uniform(0.03, 0.97)
+        r = spread.uniform(0.0018, 0.0044)
+        layers.append(fill_masked(w, h, with_alpha(GOLD_LIGHT, spread.randint(24, 62)),
+                                  ellipse_mask(w, h, (dx - r, dy - r, dx + r, dy + r))))
+
+    return finish(layering(*layers), w, h)
+
+
 def fx_coins(w, h):
     """The chest's payoff: three coins and a scatter of sparks, on nothing.
 
@@ -2375,6 +2421,8 @@ def _draw_asset(asset_id: str, width: int, height: int) -> Image.Image:
     # home_palace_lit -> home_palace). Order here is dispatch, not decoration.
     if asset_id == "board_tile":
         return board_tile(width, height)
+    if asset_id.startswith("board_backdrop"):
+        return board_backdrop(width, height)
     if asset_id == "fx_coins":
         return fx_coins(width, height)
     if asset_id == "store_feature":

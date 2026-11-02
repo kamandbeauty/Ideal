@@ -105,6 +105,7 @@ namespace Shazdeh.Game
             new Entry("fx_ring", 64, 64, "ui", false),
             new Entry("powerup_electro_super", 128, 128, "powerup", false),
             new Entry("board_tile", 128, 128, "ui", false),
+            new Entry("board_backdrop_ch01", 512, 512, "scene", false),
             new Entry("fx_coins", 128, 128, "ui", false),
             new Entry("home_palace_lit", 1024, 768, "scene", false),
             new Entry("icon_back", 64, 64, "hud", false),

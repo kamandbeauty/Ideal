@@ -58,7 +58,12 @@ the `ci.yml` `unity-project` job if it disagrees with the `UNITY_VERSION` the pi
    - `Assets/Scenes/_DesignSystem.unity` — every token, button and frame on one page,
    - `Assets/Scenes/_PersianCheck.unity` — shaping, numerals, mirroring, the font's own coverage.
 4. Open `App.unity` and press **Play**. Expect the home screen: the palace plate, the level card,
-   «شروع», the top bar with coins/potions/lives.
+   «شروع», the top bar with coins/potions/lives. Then «شروع» into the board: the chapter floor under a
+   nine-sliced frame, nine by nine stones, the moves pill, the booster bar.
+
+   If a screen comes up with its text and buttons but an **empty** rectangle where the board should be,
+   that is the camera, not the art: the board is drawn by a real `Camera` one unit in front of its near
+   plane, and anything placed on the camera's own plane is culled before it is drawn.
 5. Read the Console. The boot log is designed to be the first thing a human reads:
 
    ```
