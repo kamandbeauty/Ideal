@@ -2,14 +2,18 @@
 /**
  * THE ODD FILE — audio + timeline builder.
  *
- * 1. Probes every VO clip in audio/vo/<beat-id>.mp3
- * 2. Writes ../timeline.js  (per-beat start/dur, drives every frame of video)
- * 3. Writes audio/mix.wav   (VO + synthesized bed + cut impacts, ducked)
+ * 1. Probes every narration clip in audio/vo/<file-number>/<clip>.mp3
+ * 2. Writes ../timeline.js  (clip starts, beat starts/durations)
+ * 3. Writes audio/mix.wav   (VO + synthesised bed, ducking, impacts, signature)
  *
  *   node audio/build.mjs
  *
- * The edit is locked to the words: a beat's duration IS its narration duration.
- * No word-level guessing, no drift.
+ * Two timing models, both locked to the recorded words:
+ *   short form  — one clip per beat (beat.id is the clip name)
+ *   long form   — one clip holds several beats; each beat declares `clip`,
+ *                 `from` and `to` in seconds inside that clip.
+ * Episode-level `audio` block places the bed hole, the pre-ending duck and the
+ * brand signature.
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -20,42 +24,28 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../../..');
 const ODDFILE = resolve(HERE, '..');
 const VO_ROOT = join(HERE, 'vo');
-// narration is scoped per file so episodes never overwrite each other
-const { EPISODE: EP } = await import(pathToFileURL(join(ODDFILE, 'content', 'episode.js')).href);
-const EP_NUM = String(EP.code || '').replace(/[^0-9]/g, '').padStart(3, '0');
-const VO = existsSync(join(VO_ROOT, EP_NUM)) ? join(VO_ROOT, EP_NUM) : VO_ROOT;
 const FF = join(ROOT, 'node_modules', '@ffmpeg-installer', 'linux-x64', 'ffmpeg');
 
-const LEAD = 0.3;      // silence before the first word
-const TAIL = 0.42;     // breathing room after the last word of a beat
-const MIN_BEAT = 1.15; // never cut faster than this
+const LEAD = 0.35;    // silence before the first word
+const CLIP_GAP = 1.05; // breath between narration clips
+const TAIL = 1.9;     // held picture after the last word
 
 const { EPISODE } = await import(pathToFileURL(join(ODDFILE, 'content', 'episode.js')).href);
 
+const EP_NUM = String(EPISODE.code || '').replace(/[^0-9]/g, '').padStart(3, '0');
+const VO = existsSync(join(VO_ROOT, EP_NUM)) ? join(VO_ROOT, EP_NUM) : VO_ROOT;
+mkdirSync(join(VO, 'trim'), { recursive: true });
+
 /* ---------------------------------------------------------------- probing */
 
-function duration(file) {
-  const out = execFileSync(FF, ['-hide_banner', '-i', file], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
-  return out;
-}
-
 function probe(file) {
-  let log = '';
-  try {
-    log = duration(file);
-  } catch (e) {
-    log = String(e.stderr || '');
-  }
+  const r = spawnSync(FF, ['-hide_banner', '-i', file], { encoding: 'utf8' });
+  const log = `${r.stderr || ''}${r.stdout || ''}`;
   const m = log.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
   if (!m) throw new Error(`Could not probe ${file}`);
   return Number(m[1]) * 3600 + Number(m[2]) * 60 + Number(m[3]);
 }
 
-/* --------------------------------------------------------------- timeline */
-
-mkdirSync(join(VO, 'trim'), { recursive: true });
-
-/** Peak level in dB (ffmpeg volumedetect) — used to normalise each VO line. */
 function peak(file) {
   const r = spawnSync(FF, ['-hide_banner', '-i', file, '-af', 'volumedetect', '-f', 'null', '-'], {
     encoding: 'utf8',
@@ -66,8 +56,8 @@ function peak(file) {
 }
 
 /**
- * Trims dead air at both ends and peak-normalises, so every beat starts exactly
- * on its first phoneme at the same perceived level as every other beat.
+ * Trims dead air at both ends and peak-normalises, so every clip starts exactly
+ * on its first phoneme at the same perceived level as every other clip.
  */
 function trim(file, id) {
   const raw = join(VO, 'trim', `${id}.raw.wav`);
@@ -90,49 +80,74 @@ function trim(file, id) {
   return out;
 }
 
+/* ------------------------------------------------------------------ clips */
+
+const clipIds = [];
+for (const beat of EPISODE.beats) {
+  const id = beat.clip || beat.id;
+  if (!clipIds.includes(id)) clipIds.push(id);
+}
+
 const missing = [];
 const clips = [];
-for (const beat of EPISODE.beats) {
-  const candidates = ['mp3', 'wav', 'm4a'].map((ext) => join(VO, `${beat.id}.${ext}`));
-  const file = candidates.find(existsSync);
+for (const id of clipIds) {
+  const file = ['mp3', 'wav', 'm4a'].map((ext) => join(VO, `${id}.${ext}`)).find(existsSync);
   if (!file) {
-    missing.push(beat.id);
+    missing.push(id);
     continue;
   }
-  const trimmed = trim(file, beat.id);
-  clips.push({ id: beat.id, file: trimmed, dur: probe(trimmed) });
+  const trimmed = trim(file, id);
+  clips.push({ id, file: trimmed, dur: probe(trimmed) });
 }
 if (missing.length) {
-  console.error(`Missing VO clips: ${missing.join(', ')}`);
-  console.error(`Expected files like ${join(VO, 'b01.mp3')}`);
+  console.error(`Missing narration clips: ${missing.join(', ')}`);
+  console.error(`Expected files like ${join(VO, 'c01.mp3')}`);
 }
 
 let cursor = LEAD;
-const timeline = clips.map((c) => {
-  const dur = Math.max(MIN_BEAT, c.dur + TAIL);
-  const entry = { id: c.id, start: Number(cursor.toFixed(3)), dur: Number(dur.toFixed(3)), voDur: Number(c.dur.toFixed(3)) };
-  cursor += dur;
-  return entry;
+const clipStart = new Map();
+for (const c of clips) {
+  clipStart.set(c.id, Number(cursor.toFixed(3)));
+  cursor += c.dur + CLIP_GAP;
+}
+const total = Number((cursor - CLIP_GAP + TAIL).toFixed(3));
+
+/* ------------------------------------------------------------------ beats */
+
+const beats = EPISODE.beats.map((beat) => {
+  const id = beat.clip || beat.id;
+  const c = clips.find((x) => x.id === id);
+  const base = clipStart.get(id) ?? 0;
+  const from = beat.from || 0;
+  const to = beat.to != null ? beat.to : c ? c.dur : from + 3;
+  return {
+    id: beat.id,
+    start: Number((base + from).toFixed(3)),
+    dur: Number(Math.max(0.8, to - from).toFixed(3)),
+    voDur: Number(Math.max(0.5, to - from - 0.12).toFixed(3)),
+  };
 });
-const total = Number(cursor.toFixed(3));
 
 const timelineJs = `// GENERATED by audio/build.mjs — do not edit by hand.
-// Beat starts/durations come from the narration clips, so picture and word
-// are locked together. Re-run after re-recording any VO.
-export const TIMELINE = ${JSON.stringify({ total, beats: timeline }, null, 2)};
+// Clip starts and beat starts come from the narration, so picture and word are
+// locked together. Re-run after re-recording any line.
+export const TIMELINE = ${JSON.stringify(
+  { total, clips: clips.map((c) => ({ id: c.id, start: clipStart.get(c.id), dur: Number(c.dur.toFixed(3)) })), beats },
+  null,
+  2,
+)};
 `;
 writeFileSync(join(ODDFILE, 'timeline.js'), timelineJs);
-writeFileSync(join(HERE, 'vo.json'), JSON.stringify({ total, beats: timeline }, null, 2));
+writeFileSync(join(HERE, 'vo.json'), JSON.stringify({ total, clips, beats }, null, 2));
 
-console.log(`timeline.js — ${timeline.length} beats, ${total.toFixed(2)} s`);
-timeline.forEach((b) => console.log(`  ${b.id}  ${b.start.toFixed(2)}s  (${b.dur.toFixed(2)}s)`));
+console.log(`timeline.js — ${beats.length} beats in ${clips.length} clips, ${total.toFixed(2)} s`);
+beats.forEach((b) => console.log(`  ${b.id}  ${b.start.toFixed(2)}s  (${b.dur.toFixed(2)}s)`));
 
 if (missing.length) process.exit(1);
 
-/* ------------------------------------------------------------------- bed */
+/* -------------------------------------------------------------------- bed */
 
-// A bed built from oscillators, not a licensed track: sub drone, a slowly
-// breathing fifth, filtered air, a soft 120 BPM pulse.
+const PLAN = EPISODE.audio || {};
 const BED = [
   `sine=frequency=55:sample_rate=48000:duration=${total},volume=0.16,lowpass=f=180`,
   `sine=frequency=82.4:sample_rate=48000:duration=${total},tremolo=f=0.16:d=0.55,volume=0.055`,
@@ -141,32 +156,66 @@ const BED = [
   `aevalsrc='0.20*exp(-11*mod(t,0.5))*sin(2*PI*49*t)':s=48000:d=${total},lowpass=f=140`,
 ];
 
-// One low impact per cut, so the edit has a physical pulse.
+// Room tone that only exists in the first act (the "faint room ambience").
+if (PLAN.ambienceTo) {
+  BED.push(
+    `anoisesrc=color=pink:sample_rate=48000:duration=${total}:amplitude=0.10,` +
+      `lowpass=f=1200,highpass=f=180,volume='if(lt(t,${PLAN.ambienceTo}),1,0)':eval=frame`,
+  );
+}
+
+// Bed level automation: a hole under the opening silence, a duck before the
+// last act, silence under the logo line so the signature can speak.
+const hole = PLAN.hole || null;
+const duckFrom = PLAN.duckFromEnd ? Number((total - PLAN.duckFromEnd).toFixed(2)) : PLAN.duckFrom || null;
+const signatureAt = PLAN.signatureFromEnd
+  ? Number((total - PLAN.signatureFromEnd).toFixed(2))
+  : PLAN.signatureAt ?? null;
+const levelExpr = [
+  hole ? `if(between(t,${hole[0]},${hole[1]}),0.04,1)` : '1',
+  duckFrom ? `if(gt(t,${duckFrom}),0.34,1)` : '1',
+  signatureAt ? `if(gt(t,${signatureAt}),0.22,1)` : '1',
+].reduce((acc, e) => `(${acc})*(${e})`);
+
 const IMPACT = `aevalsrc='0.55*exp(-13*t)*sin(2*PI*(78-34*t)*t)':s=48000:d=0.9`;
 const impactFile = join(HERE, 'impact.wav');
 execFileSync(FF, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', IMPACT, '-ar', '48000', '-ac', '2', impactFile], {
   stdio: ['ignore', 'ignore', 'inherit'],
 });
 
+/* -------------------------------------------------------------- signature */
+
+const signatureFile = join(HERE, 'signature.wav');
+if (signatureAt != null) {
+  const motif =
+    `aevalsrc='0.42*exp(-2.6*t)*sin(2*PI*110*t)*(gt(t,0))` +
+    `+0.34*exp(-2.6*max(t-0.5,0))*sin(2*PI*146.83*max(t-0.5,0))*gt(t,0.5)` +
+    `+0.30*exp(-1.9*max(t-1.15,0))*sin(2*PI*220*max(t-1.15,0))*gt(t,1.15)` +
+    `+0.10*exp(-1.2*max(t-1.15,0))*sin(2*PI*329.6*max(t-1.15,0))*gt(t,1.15)':s=48000:d=3.4`;
+  execFileSync(FF, ['-y', '-loglevel', 'error', '-f', 'lavfi', '-i', motif, '-ar', '48000', '-ac', '2', signatureFile], {
+    stdio: ['ignore', 'ignore', 'inherit'],
+  });
+}
+
+/* ------------------------------------------------------------------- mix */
+
 const inputs = [];
 const chains = [];
 
-// voice
-timeline.forEach((b, i) => {
-  inputs.push('-i', clips[i].file);
+clips.forEach((c, i) => {
+  inputs.push('-i', c.file);
+  const ms = Math.round(clipStart.get(c.id) * 1000);
   chains.push(
-    `[${i}:a]aresample=48000,aformat=channel_layouts=stereo,` +
-      `adelay=${Math.round(b.start * 1000)}|${Math.round(b.start * 1000)},volume=1.0[vo${i}]`,
+    `[${i}:a]aresample=48000,aformat=channel_layouts=stereo,adelay=${ms}|${ms},volume=1.0[vo${i}]`,
   );
 });
 chains.push(
-  timeline.map((_, i) => `[vo${i}]`).join('') +
-    `amix=inputs=${timeline.length}:dropout_transition=0,volume=${timeline.length}[vo]`,
+  clips.map((_, i) => `[vo${i}]`).join('') +
+    `amix=inputs=${clips.length}:dropout_transition=0,volume=${clips.length}[vo]`,
   `[vo]asplit=2[vodry][vokey]`,
 );
 
-// bed
-const bedStart = timeline.length;
+const bedStart = clips.length;
 BED.forEach((src, i) => {
   inputs.push('-f', 'lavfi', '-i', src);
   chains.push(`[${bedStart + i}:a]aformat=channel_layouts=stereo[bed${i}]`);
@@ -174,39 +223,44 @@ BED.forEach((src, i) => {
 chains.push(
   BED.map((_, i) => `[bed${i}]`).join('') +
     `amix=inputs=${BED.length}:dropout_transition=0,volume=${BED.length * 0.25},` +
-    `afade=t=in:st=0:d=1.2,afade=t=out:st=${Math.max(0, total - 1.4)}:d=1.4[bed]`,
+    `volume='${levelExpr}':eval=frame,` +
+    `afade=t=in:st=0:d=1.2,afade=t=out:st=${Math.max(0, total - 1.6)}:d=1.6[bedraw]`,
 );
 
-// impacts
-const cuts = timeline.slice(1);
-if (cuts.length) {
-  const impIdx = bedStart + BED.length;
-  inputs.push('-i', impactFile);
-  chains.push(
-    `[${impIdx}:a]aformat=channel_layouts=stereo,asplit=${cuts.length}` +
-      cuts.map((_, i) => `[k${i}]`).join(''),
-  );
-  cuts.forEach((b, i) => {
-    chains.push(`[k${i}]adelay=${Math.round(b.start * 1000)}|${Math.round(b.start * 1000)}[imp${i}]`);
-  });
-  chains.push(
-    cuts.map((_, i) => `[imp${i}]`).join('') +
-      `amix=inputs=${cuts.length}:dropout_transition=0,volume=${cuts.length},volume=0.38[impacts]`,
-  );
+// impacts: one on every cut except the first, plus optional heavier hits
+const cuts = beats.slice(1).filter((b) => b.dur > 1.2);
+const impIdx = bedStart + BED.length;
+inputs.push('-i', impactFile);
+chains.push(`[${impIdx}:a]aformat=channel_layouts=stereo,asplit=${cuts.length}` + cuts.map((_, i) => `[k${i}]`).join(''));
+cuts.forEach((b, i) => chains.push(`[k${i}]adelay=${Math.round(b.start * 1000)}|${Math.round(b.start * 1000)}[imp${i}]`));
+chains.push(
+  cuts.map((_, i) => `[imp${i}]`).join('') +
+    `amix=inputs=${cuts.length}:dropout_transition=0,volume=${cuts.length},volume=0.34[impacts]`,
+);
+
+const parts = ['[vodry]', '[bedduck]', '[impacts]'];
+let inputsForFinal = 3;
+if (signatureAt != null) {
+  const sigIdx = impIdx + 1;
+  inputs.push('-i', signatureFile);
+  const ms = Math.round(signatureAt * 1000);
+  chains.push(`[${sigIdx}:a]aformat=channel_layouts=stereo,adelay=${ms}|${ms},volume=1.0[sig]`);
+  parts.push('[sig]');
+  inputsForFinal = 4;
 }
 
 chains.push(
-  // duck the bed under the voice
-  `[bed][vokey]sidechaincompress=threshold=0.02:ratio=12:attack=5:release=280[bedduck]`,
-  cuts.length
-    ? `[vodry][bedduck][impacts]amix=inputs=3:dropout_transition=0,volume=3[premix]`
-    : `[vodry][bedduck]amix=inputs=2:dropout_transition=0,volume=2[premix]`,
-  `[premix]alimiter=limit=0.94,loudnorm=I=-14:TP=-1.2:LRA=9,apad,atrim=0:${total}[mix]`,
+  `[bedraw][vokey]sidechaincompress=threshold=0.02:ratio=12:attack=5:release=280[bedduck]`,
+  `${parts.join('')}amix=inputs=${inputsForFinal}:dropout_transition=0,volume=${inputsForFinal}[premix]`,
+  `[premix]alimiter=limit=0.94,loudnorm=I=-14:TP=-1.2:LRA=9,volume=-2.2dB,apad,atrim=0:${total}[mix]`,
 );
 
 const out = join(HERE, 'mix.wav');
-execFileSync(FF, ['-y', '-loglevel', 'error', ...inputs, '-filter_complex', chains.join(';'), '-map', '[mix]', '-ar', '48000', '-ac', '2', out], {
-  stdio: ['ignore', 'ignore', 'inherit'],
-});
+const mixArgs = ['-y', '-loglevel', 'error', ...inputs, '-filter_complex', chains.join(';'), '-map', '[mix]', '-ar', '48000', '-ac', '2', out];
+const mixRun = spawnSync(FF, mixArgs, { encoding: 'utf8' });
+if (mixRun.status !== 0) {
+  console.error(mixRun.stderr || mixRun.error);
+  process.exit(1);
+}
 
 console.log(`mix.wav — ${probe(out).toFixed(2)} s`);

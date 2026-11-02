@@ -18,7 +18,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '../..');
 const argv = process.argv.slice(2);
 const sample = argv.includes('--sample');
+const beats = argv.includes('--beats');
 const silent = argv.includes('--no-audio');
+const fast = argv.includes('--fast');
+const no4k = argv.includes('--no-4k');
 const limitIdx = argv.indexOf('--limit');
 const limit = limitIdx !== -1 ? Number(argv[limitIdx + 1]) : null;
 
@@ -64,6 +67,11 @@ async function openScene(b) {
   });
   await page.goto(pathToFileURL(join(HERE, 'index.html')).href + '?frame=0', { waitUntil: 'load' });
   await page.waitForFunction(() => window.__MOTION__?.ready === true, null, { timeout: 30000 });
+  if (fast) {
+    // Full-screen CSS noise is expensive to rasterise every frame; the same
+    // grain is added at encode time with ffmpeg's noise filter instead.
+    await page.addStyleTag({ content: '.grain, .scan { display: none !important; }' });
+  }
   const meta = await page.evaluate(() => {
     const m = window.__MOTION__;
     return { fps: m.fps, frames: m.frames, width: m.width, height: m.height, duration: m.duration };
@@ -95,6 +103,21 @@ async function sampleStills(b) {
   await context.close();
 }
 
+async function beatStills(b) {
+  const out = join(STILLS, `ep${String(EPISODE.code).replace(/[^0-9]/g, '')}`);
+  mkdirSync(out, { recursive: true });
+  const { TIMELINE } = await import(pathToFileURL(join(HERE, 'timeline.js')).href);
+  const { context, page, meta } = await openScene(b);
+  for (const bt of TIMELINE.beats) {
+    const at = bt.start + Math.min(1.9, bt.dur * 0.55);
+    const fr = Math.min(meta.frames - 1, Math.round(at * meta.fps));
+    await page.evaluate((f) => window.__MOTION__.seek(f), fr);
+    await page.screenshot({ path: join(out, `${bt.id}.jpg`), type: 'jpeg', quality: 92 });
+    console.log(`  ${bt.id} @ ${(fr / meta.fps).toFixed(2)}s`);
+  }
+  await context.close();
+}
+
 async function fullRender(b) {
   mkdirSync(EXPORTS, { recursive: true });
   const useAudio = !silent;
@@ -117,7 +140,8 @@ async function fullRender(b) {
     await first.page.evaluate((fr) => window.__MOTION__.seek(fr), i);
     const { data } = await first.cdp.send('Page.captureScreenshot', {
       format: 'jpeg',
-      quality: 93,
+      quality: fast ? 86 : 93,
+      optimizeForSpeed: fast,
       captureBeyondViewport: false,
       fromSurface: true,
     });
@@ -145,10 +169,12 @@ async function fullRender(b) {
   console.log(`Encoding ${meta.width}x${meta.height}…`);
   let r = spawnSync(ff, [
     '-y', '-framerate', String(meta.fps), '-i', input, ...audioArgs,
+    ...(fast ? ['-vf', 'noise=alls=9:allf=t'] : []),
     '-crf', '18', ...common, small,
   ], { stdio: 'inherit' });
   if (r.status !== 0) { console.error('1080p encode failed; frames kept in', FRAME_DIR); process.exit(r.status || 1); }
 
+  if (!no4k) {
   console.log(`Encoding 4K (${meta.width > meta.height ? '3840x2160' : '2160x3840'})…`);
   r = spawnSync(ff, [
     '-y', '-framerate', String(meta.fps), '-i', input, ...audioArgs,
@@ -156,15 +182,17 @@ async function fullRender(b) {
     '-crf', '23', ...common, big,
   ], { stdio: 'inherit' });
   if (r.status !== 0) { console.error('4K encode failed; frames kept in', FRAME_DIR); process.exit(r.status || 1); }
+  }
 
   console.log(`1080p  ${small}  ${(statSync(small).size / 1048576).toFixed(1)} MB`);
-  console.log(`4K     ${big}  ${(statSync(big).size / 1048576).toFixed(1)} MB`);
+  if (!no4k) console.log(`4K     ${big}  ${(statSync(big).size / 1048576).toFixed(1)} MB`);
   rmSync(FRAME_DIR, { recursive: true, force: true });
 }
 
 const b = await browser();
 try {
-  if (sample) await sampleStills(b);
+  if (beats) await beatStills(b);
+  else if (sample) await sampleStills(b);
   else await fullRender(b);
 } finally {
   await b.close();

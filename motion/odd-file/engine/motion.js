@@ -438,6 +438,59 @@ const SCENES = {
     };
   },
 
+  /* Documentary beat: several text fragments revealed inside one scene. */
+  sequence(beat) {
+    const el = makeEl('div', 'scene');
+    el.style.justifyContent = 'center';
+    const plate = addPlate(el, beat.plate, { opacity: beat.plateOpacity ?? 0.55, grade: 0.75 });
+    if (plate) addScrim(el);
+    const glow = plate ? null : addGlow(el, 1200);
+
+    if (beat.kicker) {
+      const k = makeEl('div', 'kicker', beat.kicker);
+      el.appendChild(k);
+      var kickerEl = k;
+    }
+
+    const host = makeEl('div');
+    el.appendChild(host);
+
+    const groups = (beat.items || []).map((item) => {
+      const wrap = makeEl('div');
+      wrap.style.marginTop = item.first ? '0' : '26px';
+      host.appendChild(wrap);
+      const words = buildLines(wrap, item.text, { className: item.className || 'display' });
+      return { words, at: item.at || 0 };
+    });
+
+    return {
+      el,
+      update(t) {
+        if (kickerEl) kickerEl.style.opacity = String(easeOutCubic(seg(t, 0, 0.35)));
+        groups.forEach((g, i) => {
+          if (t < g.at) {
+            g.words.forEach((w) => { w.el.style.opacity = '0'; });
+            return;
+          }
+          revealWords(g.words, t - g.at, { stagger: 0.05, dur: 0.55 });
+          const next = groups[i + 1];
+          const dim = next ? 1 - 0.68 * easeInOutCubic(seg(t, next.at, next.at + 0.55)) : 1;
+          if (dim < 1) {
+            g.words.forEach((w) => {
+              const o = parseFloat(w.el.style.opacity || '1');
+              w.el.style.opacity = String(o * dim);
+            });
+          }
+        });
+        if (glow) {
+          glow.style.opacity = String(0.45 + 0.35 * Math.sin(clamp(t / 6) * Math.PI));
+          glow.style.transform = `scale(${1 + 0.05 * clamp(t / 6)})`;
+        }
+        if (plate) plate.style.transform = `scale(${1.06 - 0.05 * clamp(t / 8)})`;
+      },
+    };
+  },
+
   /* Outro: brand lockup, tagline tracking in letter by letter. */
   tagline(beat) {
     const el = makeEl('div', 'scene');
