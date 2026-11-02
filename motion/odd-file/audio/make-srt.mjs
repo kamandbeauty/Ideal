@@ -51,6 +51,10 @@ const blocks = [];
 for (const beat of EPISODE.beats) {
   const t = TIMELINE.beats.find((b) => b.id === beat.id);
   if (!t) throw new Error(`No timeline entry for ${beat.id}. Run: npm run odd-file:audio`);
+  // the closing brand card holds the picture past the last word, so its caption
+  // must not hang for the whole hold
+  const isLast = beat.id === EPISODE.beats[EPISODE.beats.length - 1].id;
+  const voDur = isLast ? Math.min(t.voDur, 3.55) : t.voDur;
   const words = beat.vo.split(/\s+/);
   const cards = [];
   if (beat.vo.length <= MAX_CHARS) {
@@ -63,8 +67,8 @@ for (const beat of EPISODE.beats) {
   }
 
   for (const card of cards) {
-    const start = t.start + (t.voDur * card.from) / words.length;
-    const end = t.start + (t.voDur * card.to) / words.length;
+    const start = t.start + (voDur * card.from) / words.length;
+    const end = t.start + (voDur * card.to) / words.length;
     i += 1;
     blocks.push(
       `${i}\n${stamp(start)} --> ${stamp(end)}\n${card.text.toUpperCase()}\n`,

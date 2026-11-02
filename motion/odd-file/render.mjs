@@ -19,9 +19,12 @@ const ROOT = resolve(HERE, '../..');
 const argv = process.argv.slice(2);
 const sample = argv.includes('--sample');
 const beats = argv.includes('--beats');
+const stripIdx = argv.indexOf('--strip');
+const stripId = stripIdx !== -1 ? argv[stripIdx + 1] : null;
 const silent = argv.includes('--no-audio');
 const fast = argv.includes('--fast');
 const no4k = argv.includes('--no-4k');
+const encodeOnly = argv.includes('--encode-only');
 const limitIdx = argv.indexOf('--limit');
 const limit = limitIdx !== -1 ? Number(argv[limitIdx + 1]) : null;
 
@@ -118,14 +121,33 @@ async function beatStills(b) {
   await context.close();
 }
 
+async function stripStills(b, beatId, count = 8) {
+  const out = join(STILLS, `strip-${beatId}`);
+  mkdirSync(out, { recursive: true });
+  const { TIMELINE } = await import(pathToFileURL(join(HERE, 'timeline.js')).href);
+  const bt = TIMELINE.beats.find((x) => x.id === beatId);
+  if (!bt) throw new Error(`No beat ${beatId}`);
+  const { context, page, meta } = await openScene(b);
+  for (let i = 0; i < count; i++) {
+    const at = bt.start + (bt.dur * i) / (count - 1) * 0.92;
+    const fr = Math.min(meta.frames - 1, Math.round(at * meta.fps));
+    await page.evaluate((f) => window.__MOTION__.seek(f), fr);
+    await page.screenshot({ path: join(out, `f${String(i).padStart(2, '0')}.jpg`), type: 'jpeg', quality: 88 });
+  }
+  await context.close();
+  console.log(`strip: ${count} frames → ${out}`);
+}
+
 async function fullRender(b) {
   mkdirSync(EXPORTS, { recursive: true });
   const useAudio = !silent;
   if (useAudio && !existsSync(AUDIO)) {
     throw new Error(`Missing ${AUDIO}. Run: npm run odd-file:audio && npm run odd-file:timeline`);
   }
-  rmSync(FRAME_DIR, { recursive: true, force: true });
-  mkdirSync(FRAME_DIR, { recursive: true });
+  if (!encodeOnly) {
+    rmSync(FRAME_DIR, { recursive: true, force: true });
+    mkdirSync(FRAME_DIR, { recursive: true });
+  }
 
   const first = await openScene(b);
   const meta = first.meta;
@@ -136,7 +158,7 @@ async function fullRender(b) {
   );
 
   const t0 = Date.now();
-  for (let i = 0; i < total; i++) {
+  if (!encodeOnly) for (let i = 0; i < total; i++) {
     await first.page.evaluate((fr) => window.__MOTION__.seek(fr), i);
     const { data } = await first.cdp.send('Page.captureScreenshot', {
       format: 'jpeg',
@@ -151,7 +173,7 @@ async function fullRender(b) {
     }
   }
   await first.context.close();
-  console.log(`  captured in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+  if (!encodeOnly) console.log(`  captured in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   if (limit) return;
 
   const ff = ffmpegPath();
@@ -169,8 +191,8 @@ async function fullRender(b) {
   console.log(`Encoding ${meta.width}x${meta.height}…`);
   let r = spawnSync(ff, [
     '-y', '-framerate', String(meta.fps), '-i', input, ...audioArgs,
-    ...(fast ? ['-vf', 'noise=alls=9:allf=t'] : []),
-    '-crf', '18', ...common, small,
+    ...(fast ? ['-vf', 'noise=alls=6:allf=t'] : []),
+    '-crf', fast ? '22' : '18', ...common, small,
   ], { stdio: 'inherit' });
   if (r.status !== 0) { console.error('1080p encode failed; frames kept in', FRAME_DIR); process.exit(r.status || 1); }
 
@@ -191,7 +213,8 @@ async function fullRender(b) {
 
 const b = await browser();
 try {
-  if (beats) await beatStills(b);
+  if (stripId) await stripStills(b, stripId);
+  else if (beats) await beatStills(b);
   else if (sample) await sampleStills(b);
   else await fullRender(b);
 } finally {

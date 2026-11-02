@@ -307,6 +307,55 @@ h1.display.xl { font-size: 152px; }
 #stage.landscape .cta-badge svg { width: 54px; height: 54px; }
 #stage.landscape .cta-label { font-size: 66px; }
 
+/* light band that crosses the frame right after a cut */
+#stage .sweep {
+  position: absolute;
+  inset: -12% -40%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 40%,
+    rgba(124, 58, 255, 0.16) 46%,
+    rgba(206, 180, 255, 0.30) 50%,
+    rgba(124, 58, 255, 0.14) 54%,
+    transparent 60%
+  );
+  will-change: transform, opacity;
+}
+
+/* sequence rail: hairline that grows as the list fills */
+.seq { position: relative; padding-left: 54px; }
+#stage .seq-rule {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 6px;
+  width: 2px;
+  display: block;
+  transform-origin: top center;
+  transform: scaleY(0);
+  background: linear-gradient(180deg, var(--violet-bright), rgba(124, 58, 255, 0));
+  box-shadow: 0 0 18px rgba(124, 58, 255, 0.5);
+}
+
+/* cta arrival ring */
+#stage .cta-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 32px;
+  border: 2px solid rgba(160, 120, 255, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* word flip needs a perspective origin — scoped, because a 3D context on every
+   heading is expensive to composite at 24 fps */
+#stage .fx-flip .w { perspective: 900px; }
+#stage .wi { transform-origin: left bottom; }
+
 /* brand lockup */
 .lockup { margin-top: auto; }
 .lockup-tag {
@@ -348,6 +397,7 @@ h1.display.xl { font-size: 152px; }
   position: absolute;
   inset: 0;
   pointer-events: none;
+  will-change: opacity;
   background: radial-gradient(72% 46% at 42% 48%, rgba(4, 4, 10, 0.72) 0%, rgba(4, 4, 10, 0.2) 62%, rgba(4, 4, 10, 0) 100%);
 }
 .scrim.bottom {

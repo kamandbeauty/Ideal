@@ -3,7 +3,8 @@
 ### Long-form landscape 16:9 · 1920×1080 · 24 fps · 3:02
 
 **Status: rendered and shippable.** 182.75 s · 26 scenes · 12 narration clips · 350 spoken words.
-Deliverables: `exports/file-003-1080p.mp4`, `audio/mix.wav`, `subtitles/ep-003.srt`, 26 graded stills in `assets/ep03/`.
+Deliverable: `exports/file-003-1080p.mp4` — 1920×1080, 24 fps, H.264 High, 3.7 Mbit/s, **84.9 MB**, AAC 192 kb/s, faststart.
+Plus `audio/mix.wav`, `subtitles/ep-003.srt`, 25 graded stills in `assets/ep03/`, and `images-sheet.jpg` in this folder.
 
 ---
 
@@ -22,8 +23,8 @@ The only structural addition is the **outro**: the closing brand line was re-rec
 | File number | 003 |
 | Category | Human Psychology |
 | Format | **16:9 landscape, 1920×1080** |
-| Runtime | **3:02.75** (182.75 s) |
-| Frame rate | 24 fps (4K master dropped for this file) |
+| Runtime | **182.75 s** = 3:02.75 · 4386 frames at 24 fps |
+| Frame rate | 24 fps (no 4K master for this file — see §0) |
 | Scenes | 26, one unique still each (the brand card is intentionally plate-free) |
 | Narration | 12 clips, 350 words, ≈ 171 s of speech |
 | Loudness | −14 LUFS integrated, −1.2 dBTP peak |
@@ -200,13 +201,64 @@ All stills were graded identically on the way in: `scale=1920:1080:flags=lanczos
 
 ## 8. Animation and camera, per scene
 
-- **statement** — words rise out of a mask (55 ms stagger, 0.6 s), plate pushes in from 1.06 → 1.01 and drifts 18 px up over the beat, kicker fades in over the first 0.35 s, `sub` lands at 0.34–0.86 s, and the type loses focus toward the cut so the eye is released before the next scene.
-- **sequence** — fragments land in timed groups (`at`), earlier groups dim to 32 % as the next one arrives; the plate keeps a slow 8 s push. This is the workhorse for question lists and findings.
-- **cta** — two rows, each an icon badge plus label; row one at 0.5 s, row two at 2.6 s, 30 px rise, badge pulses at 2.1 rad/s; the plate drifts 4 % over 9 s; a soft violet glow breathes underneath.
-- **tagline** — brand card: type reveals, a 1 px rule draws, then `THE ODD FILE` lockup and the tagline in mono, with the signature motif on the audio side.
-- **Transitions** — no wipes, no slides between scenes. Every cut is a hard cut on a measured silence, with a two-frame black breath from the type masks clearing. Cuts are punched by the impact hit (§10).
+### 8.1 The motion library
 
----
+Every effect is transform or opacity only — no filters, no blurs, no animated layout. That keeps the raster cost flat, which is what lets a 3-minute film render on two cores in under an hour.
+
+**Word entrances** (`fx` per scene, engine `wordTransform()`):
+
+| fx | Movement | Used for |
+| --- | --- | --- |
+| `rise` | out of the mask, upward, expo-out | the house move; neutral statements |
+| `settle` | falls in and lands with a 3.5 % squash | the lines that should feel heavy |
+| `flip` | rotates up out of the floor plane (78° → 0, real perspective) | the two “answer” titles and the twist |
+| `slide` | enters from the left | question lists that push forward |
+| `wipe` | shutter: each word opens left → right | held in reserve |
+| `drop` | comes down from above | beats where the rhythm breaks |
+
+**Camera** (`camera` per scene): `push` (house: 1.06 → 1.01 + 18 px rise), `drift` (lateral, ±23 px, for lists), `pull` (1.00 → 1.07, the frame opens and the subject recedes), `tilt` (±0.7°, used on the two “hard landing” beats).
+
+**Atmosphere**, on every photographic scene:
+- **Light rake** — a 20 %-wide violet band crosses the frame once, 1.7–2.4 s after the cut, opacity following `sin(p·π)`. It reads as the plate being lit; the cut itself stays hard.
+- **Scrim breathing** — the vignette changes density by ±5–7 % on a slow sine, so a held frame is never dead. (Promoted with `will-change: opacity`; without it this one effect cost 30 % of the render speed.)
+- **Sequence rail** — a hairline at the left of every list, growing down as each fragment lands (`scaleY`), so the list is visibly filling.
+- **Arrival rings** — on the CTA, a violet ring expands out of each icon badge once as it lands.
+- **Cut punch** — every scene opens 2.2 % over-scale and settles in 0.42 s, and the head/tail fade is 0.12 s / 0.18 s so cuts don't strobe.
+
+### 8.2 Per-scene assignment
+
+| # | Scene | fx | camera | Extra motion |
+| --- | --- | --- | --- | --- |
+| b01 | statement | settle | push | light rake |
+| b02 | sequence | rise | drift | rail + rake |
+| b03 | sequence | slide | drift | rail + rake |
+| b04 | statement | flip | pull | rake |
+| b05 | statement | flip | pull | rake |
+| b06 | sequence | rise | drift | rail |
+| b07 | statement | settle | push | **0.16 s stagger** — SPEAK / RESPOND / CONTINUE lands like a pulse |
+| b08 | statement | drop | tilt | rake — the rhythm breaks, the type falls |
+| b09 | statement | rise | push | rake |
+| b10 | sequence | slide | drift | rail |
+| b11 | statement | settle | push | rake + accent underline |
+| b12 | sequence | rise | drift | rail + rake |
+| b13 | sequence | slide | drift | rail — the three findings stack and dim |
+| b14 | statement | settle | pull | rake |
+| b15 | sequence | rise | drift | rail |
+| b16 | statement | flip | tilt | rake |
+| b17 | statement | settle | push | rake + sub line |
+| b18 | statement | rise | pull | rake |
+| b19 | sequence | slide | drift | rail — stranger vs. someone you love |
+| b20 | statement | settle | push | rake + accent underline |
+| b21 | statement | rise | pull | rake |
+| b22 | statement | drop | tilt | rake |
+| b23 | statement | settle | push | **no light rake** — the calmest frame in the file, on purpose |
+| b24 | statement | rise | push | rake |
+| b25 | cta | — | pull | arrival rings, badge pulse, 2.4 s rake |
+| b26 | tagline | settle | push | rule draws left → right, lockup rises, glow breathes |
+
+### 8.3 Transitions
+
+No wipes and no slides between scenes. Every cut is hard, placed on a measured silence, with the 0.12 s head fade doing the work of a breath. Cuts are punched by the impact hit (§10) so the ear confirms what the eye just did.
 
 ## 9. Typography as storytelling
 
@@ -308,11 +360,18 @@ motions/odd-file/
 ```
 
 ```
-node motion/odd-file/audio/build.mjs          # timeline + mix
-node motion/odd-file/audio/make-srt.mjs       # captions
-node motion/odd-file/render.mjs --beats       # one still per scene (review)
-node motion/odd-file/render.mjs --fast --no-4k # 1080p master, ~35 min
+node motion/odd-file/audio/build.mjs             # timeline + mix
+node motion/odd-file/audio/make-srt.mjs          # captions
+node motion/odd-file/render.mjs --beats          # one still per scene (review)
+node motion/odd-file/render.mjs --strip b07      # 8 frames across one beat
+node motion/odd-file/render.mjs --fast --no-4k   # 1080p master, ~40 min capture
+node motion/odd-file/render.mjs --fast --no-4k --encode-only  # re-encode kept frames
 ```
+
+Encode notes for this file: `--fast` hides the CSS grain layer and adds
+`noise=alls=6:allf=t` at encode instead. At `-crf 18` that noise alone pushed
+the bitrate to ~90 Mbit/s (a 2 GB file), so the long form encodes at **crf 22**,
+which lands at 3.7 Mbit/s and 84.9 MB — grain preserved, YouTube-friendly.
 
 ---
 
@@ -328,3 +387,6 @@ node motion/odd-file/render.mjs --fast --no-4k # 1080p master, ~35 min
 - [x] −14 LUFS, −1.2 dBTP, no clipping
 - [x] 50 SRT cues generated from the same timeline
 - [x] Left third of every plate kept clean for type
+- [x] 4386 frames = 182.75 s: picture length equals the mix exactly, so `-shortest` cuts nothing
+- [x] 84.9 MB · 3.7 Mbit/s · true peak −1.2 dBTP after AAC
+- [x] CTA card and brand card both present in the delivered MP4 (checked at 2:48 and 2:59)

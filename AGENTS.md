@@ -34,6 +34,16 @@ Frames are per-episode: `format: 'vertical' | 'landscape'` in
 renderer writes `exports/file-00X-1080p.mp4` + a 4K master. Narration is scoped
 to `audio/vo/<file-number>/bXX.mp3` so episodes never overwrite each other.
 
+**Long form (File 003+).** `audio/build.mjs` also supports the long-form timing
+model: one recording per script section (`c01…c12`), and each beat declares
+`clip` + clip-relative `from`/`to` seconds taken from `silencedetect` on that
+recording. `EPISODE.audio` places the bed hole, the pre-outro duck and the brand
+signature (`*FromEnd` variants resolve against the final runtime), and
+`clipCuts: { c10: 24.31 }` trims a clip at an arbitrary second when the outro
+needs to be re-ordered. A beat may hold the picture past its clip's last word —
+match the total picture length to `timeline.total` or the renderer will be a
+second short and `-shortest` will eat the tail.
+
 ```bash
 npm run odd-file:audio     # timeline.js + mix.wav (needs the VO clips)
 npm run odd-file:sample    # review stills
@@ -42,9 +52,22 @@ npm run odd-file:render    # 1080x1920 + 2160x3840 MP4 with audio
 
 Engine rules: every frame is `window.__MOTION__.seek(frame)`; no CSS animations,
 no Math.random, no network fonts (faces are bundled from `@fontsource*`). Scene
-types are `code`, `statement`, `serif`, `figure`, `plate`, `tagline`; use at least
-four per episode and never repeat one twice in a row. Purple is an event, not a
-wash — one highlighted phrase per scene.
+types are `code`, `statement`, `serif`, `figure`, `plate`, `sequence`, `cta`,
+`tagline`; use at least four per episode and never repeat one twice in a row.
+Purple is an event, not a wash — one highlighted phrase per scene.
+
+Motion is transform/opacity only — no filters, blurs or animated layout — because
+the whole film is rasterised frame by frame. Per-beat `fx` picks the word
+entrance (`rise`, `settle`, `flip`, `slide`, `wipe`, `drop`), `camera` picks the
+plate move (`push`, `drift`, `pull`, `tilt`), and every photographic scene gets a
+one-shot light rake and a breathing scrim. Promote anything you animate
+continuously with `will-change` (the scrim needs it; without it the render drops
+from 2.0 to 1.4 fps).
+
+Rendering: `--fast` hides the CSS grain and adds equivalent noise at encode time,
+`--no-4k` skips the upscale master, `--beats` writes one review still per scene
+to `stills/epNNN/`, `--strip b07` writes 8 frames across one beat. At 24 fps and
+2.0 fps capture speed a 3-minute film takes ~36 minutes on 2 vCPU.
 
 ## Prior campaign: `kamand vox` (37 s Vox paper-collage scroll)
 

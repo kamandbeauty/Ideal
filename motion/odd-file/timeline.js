@@ -219,8 +219,8 @@ export const TIMELINE = {
     {
       "id": "b26",
       "start": 177.33,
-      "dur": 3.84,
-      "voDur": 3.72
+      "dur": 5.42,
+      "voDur": 5.3
     }
   ]
 };
