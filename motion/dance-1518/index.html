@@ -54,11 +54,13 @@
         <stop offset="100%" stop-color="#2b2418" stop-opacity=".34"/>
       </linearGradient>
     </defs>
-    <g id="crowdG"></g>
+    <g id="camG">
+      <g id="crowdG"></g>
+      <g id="actorsG"></g>
+    </g>
     <rect id="fogRect" x="0" y="1180" width="1080" height="520" fill="url(#fogG)" opacity="0"/>
     <rect x="0" y="1200" width="1080" height="720" fill="url(#depthG)" opacity=".8"/>
     <rect id="crowdHaze" x="0" y="1180" width="1080" height="740" fill="url(#depthG)" opacity=".72"/>
-    <g id="actorsG"></g>
   </svg>
   <div id="ov"></div>
   <div class="grain" id="grain"></div>
@@ -79,7 +81,8 @@ const subA = { el: $('sub'), text: '', opacity: 1 };
 
 async function build() {
   const { preloadSprites, spriteGroup, poseSprite, silhouetteGroup, poseSilhouette } = await import('./engine/sprites.js');
-  await preloadSprites();
+  const { preloadParts, buildRig, poseRig, rigScale } = await import('./engine/partrig.js');
+  await Promise.all([preloadSprites(), preloadParts()]);
 
   // painted sprites exist for these; everything else borrows the closest cast
   const CAST = { hero: 'hero', man: 'townsman', official: 'official', musician: 'musician' };
@@ -97,6 +100,11 @@ async function build() {
     const ag = $('actorsG');
     ag.innerHTML = '';
     actors = (sc.actors || []).map((def, k) => {
+      if (def.type === 'hero') {
+        const root = buildRig();
+        ag.appendChild(root);
+        return { root, def, rig: true };
+      }
       const char = CAST[def.type] || 'hero';
       const root = spriteGroup(char);
       if (def.dark) root.setAttribute('style', 'filter: brightness(.3) saturate(.6)');
@@ -143,10 +151,19 @@ async function build() {
     const sc = DATA.SCENES[current];
     const sen = DATA.SENTENCES[current];
     const p = clamp((t - sen.start) / Math.max(0.001, sen.end - sen.start), 0, 1);
-    const k = sc.cam.from + (sc.cam.to - sc.cam.from) * easeInOut(p);
-    const dx = (sc.cam.driftX || 0) * (p - 0.5);
-    const dy = (sc.cam.driftY || 0) * (p - 0.5);
-    $('plate').style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
+    // ---- camera -----------------------------------------------------------
+    // A slow push/pull from the scene sheet, plus a hand-held breath: two
+    // incommensurate sines for drift, a third for a very small roll. Plate and
+    // cast share the same numbers, so nothing slides against the background.
+    const base = sc.cam.from + (sc.cam.to - sc.cam.from) * easeInOut(p);
+    const hh = (f, a, o) => Math.sin(t * f * Math.PI * 2 + o) * a;
+    const k = base * (1 + hh(0.17, 0.005, 1.1));
+    const dx = (sc.cam.driftX || 0) * (p - 0.5) + hh(0.13, 9, 0.4) + hh(0.29, 3.5, 2.1);
+    const dy = (sc.cam.driftY || 0) * (p - 0.5) + hh(0.11, 7, 1.7) + hh(0.23, 2.5, 0.3);
+    const rot = hh(0.087, 0.22, 2.6);
+    $('plate').style.transform = `translate(${dx}px, ${dy}px) scale(${k}) rotate(${rot}deg)`;
+    $('camG').setAttribute('transform',
+      `translate(${540 + dx} ${960 + dy}) rotate(${rot}) scale(${k}) translate(-540 -960)`);
 
     const par = (k - 1) * 120;
     const PS = 1.62;   // the rig is drawn at unit height; this is the in-frame size
@@ -157,8 +174,9 @@ async function build() {
       const scale = a.def.scale ?? 1;
       // the feet stay on their stone whatever the scale: growing the character
       // must not slide her off the ground
-      const footY = a.def.y * 1920 + 300;
-      poseSprite(a.root, a.def, t, rootX, footY);
+      const footY = a.def.y * 1920;   // in plate space: the camera moves her too
+      if (a.rig) poseRig(a.root, a.def, t, rootX, footY);
+      else poseSprite(a.root, a.def, t, rootX, footY);
       if (!a.shadow) {
         const el = document.createElementNS(NS, 'ellipse');
         el.setAttribute('fill', 'url(#shadowG)');
@@ -167,8 +185,9 @@ async function build() {
       }
       a.shadow.setAttribute('cx', String(rootX));
       a.shadow.setAttribute('cy', String(footY - 6 * scale));
-      a.shadow.setAttribute('rx', String(150 * scale));
-      a.shadow.setAttribute('ry', String(24 * scale));
+      const shs = a.rig ? rigScale(a.def) : scale;
+      a.shadow.setAttribute('rx', String((a.rig ? 120 : 150) * shs));
+      a.shadow.setAttribute('ry', String((a.rig ? 20 : 24) * shs));
     }
     for (const c of crowd) {
       poseSilhouette(c.root, c.def, t, c.def.x * 1080 + par * 1.25, c.def.y * 1920 + 120 * c.def.scale);
