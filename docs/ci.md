@@ -28,16 +28,51 @@ reaching a phone: Persian is the product.
 
 ### 1. Unity licence (needed by both workflows)
 
-Unity's licence is per-machine; CI needs it as a secret.
+Unity's licence is per-machine; CI needs it as a **repository secret**. Two things that are *not* a
+licence for CI, and look like one:
 
-**Personal / Plus:**
+- **a licence activated in the Hub on your laptop** — it lives in a file on that machine, and the runner
+  is a different machine;
+- **Hub connected to GitHub** — that is Unity Version Control / cloud sign-in; Actions never reads it.
+
+What CI needs is the `.ulf` file itself, as base64.
+
+**Personal / Plus — the short path (a licence already activated in your Hub):**
+
+The Hub already wrote the file. Find it, encode it, paste it:
+
+| OS | path |
+| --- | --- |
+| Windows | `C:\ProgramData\Unity\Unity_lic.ulf` |
+| macOS | `/Library/Application Support/Unity/Unity_lic.ulf` |
+| Linux | `~/.local/share/unity3d/Unity/Unity_lic.ulf` |
+
+```bash
+# Linux / macOS
+base64 -w0 Unity_lic.ulf        # macOS: base64 -i Unity_lic.ulf -o license.b64
+```
+
+```powershell
+# Windows PowerShell: straight to the clipboard
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("C:\ProgramData\Unity\Unity_lic.ulf")) | Set-Clipboard
+```
+
+Then **Settings → Secrets and variables → Actions → New repository secret**, name `UNITY_LICENSE`,
+value = that base64 string (one line, no wrapping, no quotes).
+
+**Personal / Plus — the long path (if the runner rejects the `.ulf` above):**
 1. Run the helper action once in a scratch branch: `game-ci/unity-request-activation-file@v2`
-   (it writes a `.alf` file as an artifact).
+   (it writes a `.alf` file as an artifact — that file describes the *runner*, not your laptop).
 2. Upload that `.alf` to `license.unity3d.com` → download the `.ulf`.
-3. `base64 -w0 Unity_v6000.x.ulf` (macOS: `base64 -i file -o -`) → paste into the secret
-   **`UNITY_LICENSE`**.
+3. Encode it the same way and paste it into `UNITY_LICENSE`.
+
+Either way: Unity allows three activated machines per licence. A CI activation is one of them, so do
+not run two Unity workflows in parallel, and do not be surprised if a fourth activation needs an old one
+freed.
 
 **Pro / Enterprise:** skip the `.ulf`; set `UNITY_SERIAL`, `UNITY_EMAIL`, `UNITY_PASSWORD` instead.
+(`UNITY_EMAIL` + `UNITY_PASSWORD` alone can activate a Personal licence too, but it is rate-limited and
+takes a slot on every run; the `.ulf` is the better default.)
 Unity allows three activated machines per serial — CI claiming one slot is normal, but do not run two
 Unity workflows in parallel on the same licence.
 

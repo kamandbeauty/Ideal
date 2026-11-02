@@ -75,6 +75,26 @@ jobs:
         with:
           lfs: true
 
+      # A licence is the one input to this job that the repository cannot contain. Say so in ten
+      # seconds, in words, instead of letting GameCI fail two minutes later with a licensing message.
+      - name: is there a licence to run Unity with?
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        run: |
+          if [ -n "$UNITY_LICENSE" ]; then
+            echo "licence: .ulf (UNITY_LICENSE)"
+          elif [ -n "$UNITY_SERIAL" ] && [ -n "$UNITY_EMAIL" ] && [ -n "$UNITY_PASSWORD" ]; then
+            echo "licence: serial + credentials"
+          elif [ -n "$UNITY_EMAIL" ] && [ -n "$UNITY_PASSWORD" ]; then
+            echo "licence: credentials only (Personal activation, rate-limited)"
+          else
+            echo "::error title=No Unity licence secret::Add UNITY_LICENSE — the base64 of your Unity_lic.ulf — under Settings → Secrets and variables → Actions. A licence activated in the Unity Hub on your own machine is a file on that machine, not a secret here; connecting the Hub to GitHub is not a licence either. docs/ci.md section 1 has the exact path per OS and the one-line command."
+            exit 1
+          fi
+
       - name: cache Library
         uses: actions/cache@v4
         with:
