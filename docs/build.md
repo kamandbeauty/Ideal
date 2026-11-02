@@ -60,7 +60,8 @@ python3 tools/levels/gen_levels.py --check
 # chapter meta: districts, tasks, chests (mirrors DistrictParser.Validate)
 python3 tools/content/check_meta.py
 
-# C#: parse every file and check static member access (needs tree-sitter, see requirements.txt)
+# C#: parse every file, check static member access, and check that every Unity type is in scope
+# (needs tree-sitter, see requirements.txt)
 pip install -r tools/csharp/requirements.txt
 python3 tools/csharp/lint.py
 
@@ -83,7 +84,8 @@ python3 replica/design/gen_tokens.py && git diff --exit-code -- client/Assets/Ga
 Compiling and running the C# needs Unity or the .NET SDK, and this sandbox has neither. So the
 engine tests are written and reviewed here, syntax-checked by `tools/csharp/lint.py`, and executed by
 CI (or by your editor) — that is the honest status, not a claim that they passed. The lint is a
-grammar check plus a shallow static-member check; it is not a type checker.
+grammar check, a shallow static-member check, and a namespace check (a type named without its
+`using` is `CS0246`, which reads like valid code to a human). It is not a type checker.
 
 ## 4. Gates before a build is called good (M0 exit — engine)
 

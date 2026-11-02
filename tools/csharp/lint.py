@@ -10,6 +10,11 @@ Two questions, asked of every file in client/Assets:
    extension methods. It is enough to catch the typo that a rename leaves behind, and it is
    honest about what it does not cover.
 
+3. Is every Unity/TMP/UI type the file names actually in scope? A C# compiler asks this question and
+   answers it with `CS0246`; a human reading a diff never does, because `NamedBuildTarget` looks
+   exactly like something that ought to work. This check caught one real `CS0246` in `CiBuild.cs`
+   the first time it ran, which is why it is a gate and not an anecdote.
+
 Both checks run identically here and in CI, which is the point: C# that has never been compiled is
 still C# that can be read carefully.
 
@@ -23,6 +28,7 @@ from __future__ import annotations
 import collections
 import sys
 from pathlib import Path
+from typing import Set
 
 try:
     import tree_sitter_c_sharp
@@ -37,6 +43,46 @@ except ImportError:  # pragma: no cover - CI installs this
 
 ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_ROOT = ROOT / "client" / "Assets"
+
+# Types that come from a `using` and not from the repo. Missing one of these is CS0246 at compile
+# time; nothing else in this file can see it, because the syntax is perfect and the member access is
+# on a type that does exist somewhere. Curated rather than exhaustive: every entry earned its place by
+# being a name that reads as if it were in scope when it is not.
+NEEDS_USING = {
+    "NamedBuildTarget": "UnityEditor.Build",
+    "BuildTargetGroup": "UnityEditor",
+    "BuildTarget": "UnityEditor",
+    "EditorUserBuildSettings": "UnityEditor",
+    "EditorBuildSettings": "UnityEditor",
+    "EditorBuildSettingsScene": "UnityEditor",
+    "PlayerSettings": "UnityEditor",
+    "AssetDatabase": "UnityEditor",
+    "EditorUtility": "UnityEditor",
+    "EditorApplication": "UnityEditor",
+    "SceneAsset": "UnityEditor",
+    "MenuItem": "UnityEditor",
+    "AssetPostprocessor": "UnityEditor",
+    "TextureImporter": "UnityEditor",
+    "BuildPipeline": "UnityEditor",
+    "BuildPlayerOptions": "UnityEditor",
+    "BuildOptions": "UnityEditor",
+    "BuildReport": "UnityEditor.Build.Reporting",
+    "BuildResult": "UnityEditor.Build.Reporting",
+    "EditorSceneManager": "UnityEditor.SceneManagement",
+    "NewSceneSetup": "UnityEditor.SceneManagement",
+    "NewSceneMode": "UnityEditor.SceneManagement",
+    "TMP_FontAsset": "TMPro",
+    "TMP_Text": "TMPro",
+    "TextMeshProUGUI": "TMPro",
+    "TextAlignmentOptions": "TMPro",
+    "AtlasPopulationMode": "TMPro",
+    "GlyphRenderMode": "UnityEngine.TextCore.LowLevel",
+    "Image": "UnityEngine.UI",
+    "Button": "UnityEngine.UI",
+    "EventSystem": "UnityEngine.EventSystems",
+    "StandaloneInputModule": "UnityEngine.EventSystems",
+    "IPointerClickHandler": "UnityEngine.EventSystems",
+}
 
 # Members every value has, so a name that collides with a class called `Type` is never a mistake.
 OBJECT_MEMBERS = {
@@ -138,6 +184,38 @@ def walk(node):
         stack.extend(current.children)
 
 
+def namespace_errors(path: Path, source: bytes, tree) -> list[str]:
+    """CS0246, the one compile error that reads as valid code."""
+    imported: Set[str] = set()
+    for node in walk(tree.root_node):
+        if node.type == "using_directive":
+            text = " ".join(decode(source, node).split())
+            imported.add(text[len("using "):].rstrip(";").strip())
+
+    errors: list[str] = []
+    for node in walk(tree.root_node):
+        if node.type != "identifier":
+            continue
+
+        name = decode(source, node)
+        namespace = NEEDS_USING.get(name)
+        if namespace is None or namespace in imported:
+            continue
+
+        # `UiKit.Button(...)` is a member access and `UnityEngine.UI.Image` is a qualified name;
+        # in both the last identifier is a part of a path, not a bare use of the type.
+        parent = node.parent
+        if parent is not None and parent.type in ("member_access_expression", "qualified_name"):
+            named = parent.child_by_field_name("name")
+            if named is not None and named.id == node.id:
+                continue
+
+        line = node.start_point[0] + 1
+        errors.append(f"{rel(path)}:{line}: `{name}` is used without `using {namespace};`")
+
+    return errors
+
+
 def main(argv: list[str]) -> int:
     targets = [Path(a) for a in argv] or [DEFAULT_ROOT]
     files: list[Path] = []
@@ -192,7 +270,11 @@ def main(argv: list[str]) -> int:
                 f"{rel(path)}:{line}: {type_name} has no member `{member_name}`"
             )
 
-    problems = syntax_errors + sorted(set(member_errors))
+    scope_errors: list[str] = []
+    for path in files:
+        scope_errors.extend(namespace_errors(path, sources[path], trees[path]))
+
+    problems = syntax_errors + sorted(set(member_errors)) + sorted(set(scope_errors))
     for problem in problems:
         print(problem, file=sys.stderr)
 
@@ -202,7 +284,7 @@ def main(argv: list[str]) -> int:
 
     print(
         f"lint: {len(files)} files parse clean, "
-        f"{len(members)} types, 0 unknown static members"
+        f"{len(members)} types, 0 unknown static members, 0 unresolved namespaces"
     )
     return 0
 
