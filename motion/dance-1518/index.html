@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<title>۱۵۱۸ — رقص استراسبورگ</title>
+<style>
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-700-normal.woff2') format('woff2'); font-weight: 700; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #070605; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #0b0908; }
+  #plate { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform-origin: 50% 58%;
+    will-change: transform; backface-visibility: hidden; }
+  svg#scene { position: absolute; inset: 0; }
+  #sub {
+    position: absolute; left: 56px; right: 56px; bottom: 126px;
+    font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 58px; line-height: 1.62;
+    color: #fff; text-align: center; direction: rtl;
+    text-shadow: 0 5px 20px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.85), 0 2px 3px rgba(0,0,0,.9);
+    -webkit-text-stroke: 2.2px rgba(0,0,0,.62); paint-order: stroke fill;
+  }
+  #fog { position: absolute; inset: 0; pointer-events: none; }
+  #ov { position: absolute; inset: 0; pointer-events: none; will-change: opacity;
+    background:
+      linear-gradient(180deg, rgba(8,6,4,0) 62%, rgba(8,6,4,.46) 82%, rgba(8,6,4,.66) 100%),
+      radial-gradient(118% 88% at 50% 44%, rgba(0,0,0,0) 40%, rgba(16,10,5,.58) 100%); }
+  .grain { position: absolute; inset: -60px; pointer-events: none; opacity: .085; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='160' height='160' filter='url(%23n)' opacity='0.55'/></svg>"); }
+  .fallback { position: absolute; inset: 0;
+    background: linear-gradient(180deg, #8fa6ad 0%, #b9b39c 42%, #cbb98f 58%, #6d5c46 100%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="fallback" id="fallback"></div>
+  <img id="plate" alt="" />
+  <svg id="scene" viewBox="0 0 1080 1920" width="1080" height="1920" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="shadowG">
+        <stop offset="0" stop-color="#1a1209" stop-opacity=".55"/>
+        <stop offset="62%" stop-color="#1a1209" stop-opacity=".22"/>
+        <stop offset="100%" stop-color="#1a1209" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="fogG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#efe3c8" stop-opacity="0"/>
+        <stop offset="52%" stop-color="#efe3c8" stop-opacity=".30"/>
+        <stop offset="100%" stop-color="#efe3c8" stop-opacity="0"/>
+      </linearGradient>
+      <filter id="ink" x="-12%" y="-12%" width="124%" height="124%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="7" result="n"/>
+        <feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <linearGradient id="depthG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#2b2418" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#2b2418" stop-opacity=".34"/>
+      </linearGradient>
+    </defs>
+    <g id="crowdG"></g>
+    <rect id="fogRect" x="0" y="1180" width="1080" height="520" fill="url(#fogG)" opacity="0"/>
+    <rect x="0" y="1200" width="1080" height="720" fill="url(#depthG)" opacity=".8"/>
+    <rect id="crowdHaze" x="0" y="1180" width="1080" height="740" fill="url(#depthG)" opacity=".72"/>
+    <g id="actorsG"></g>
+  </svg>
+  <div id="ov"></div>
+  <div class="grain" id="grain"></div>
+  <div id="sub"></div>
+</div>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const easeInOut = (p) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
+
+let DATA = null;          // injected by the renderer: { FPS, FRAMES, DURATION, SENTENCES, CUES, SCENES }
+let current = -1;         // active scene index
+let actors = [];          // [{root, def}]
+let crowd = [];           // [{root, def}]
+const subA = { el: $('sub'), text: '', opacity: 1 };
+
+async function build() {
+  const { applyPose, moodPose, puppetMarkup } = await import('./engine/rig.js');
+
+  const setScene = (i) => {
+    const sc = DATA.SCENES[i];
+    current = i;
+    const img = $('plate');
+    img.src = `assets/plates/${sc.plate}.jpg`;
+    img.style.display = '';
+    $('fallback').style.opacity = '0.55';
+    $('fogRect').setAttribute('opacity', String(sc.fog ?? 0.25));
+
+    // actors
+    const ag = $('actorsG');
+    ag.innerHTML = '';
+    actors = (sc.actors || []).map((def, k) => {
+      const wrap = document.createElementNS(NS, 'g');
+      wrap.innerHTML = puppetMarkup(def.type, `${i}-${k}`);
+      ag.appendChild(wrap);
+      const root = wrap.querySelector('.pup');
+      return { root, def };
+    });
+
+    // crowd: distance puppets, drawn behind the cast
+    const cg = $('crowdG');
+    cg.innerHTML = '';
+    crowd = [];
+    const n = sc.crowd || 0;
+    for (let k = 0; k < n; k++) {
+      const f = (k * 0.61803398875) % 1;                 // deterministic spread
+      const g = ((k * 0.38196601125) % 1);
+      const def = {
+        type: 'ghost',
+        x: 0.04 + f * 0.92,
+        y: 0.775 + g * 0.085,
+        scale: 0.36 + g * 0.26,
+        mood: 'dance',
+        seed: (f * 7.3 + g * 3.1) % 1,
+        energy: 0.55 + g * 0.5,
+      };
+      const wrap = document.createElementNS(NS, 'g');
+      wrap.innerHTML = puppetMarkup('ghost', `c${i}-${k}`);
+      cg.appendChild(wrap);
+      crowd.push({ root: wrap.querySelector('.pup'), def });
+    }
+  };
+
+  const cueAt = (t) => {
+    for (let i = 0; i < DATA.CUES.length; i++) {
+      const c = DATA.CUES[i];
+      if (t >= c.start - 0.02 && t < c.end + 0.14) return c;
+    }
+    return null;
+  };
+
+  function seek(frame) {
+    const t = frame / DATA.FPS;
+    const si = DATA.SENTENCES.findIndex((s) => t >= s.start && t < s.end + 0.001);
+    const idx = si === -1 ? DATA.SENTENCES.length - 1 : si;
+    if (idx !== current) setScene(idx);
+
+    const sc = DATA.SCENES[current];
+    const sen = DATA.SENTENCES[current];
+    const p = clamp((t - sen.start) / Math.max(0.001, sen.end - sen.start), 0, 1);
+    const k = sc.cam.from + (sc.cam.to - sc.cam.from) * easeInOut(p);
+    const dx = (sc.cam.driftX || 0) * (p - 0.5);
+    const dy = (sc.cam.driftY || 0) * (p - 0.5);
+    $('plate').style.transform = `translate(${dx}px, ${dy}px) scale(${k})`;
+
+    const par = (k - 1) * 120;
+    const PS = 1.62;   // the rig is drawn at unit height; this is the in-frame size
+    const shadowFor = (def) => -1;
+
+    for (const a of actors) {
+      const pose = moodPose(a.def.mood, t, a.def.seed ?? 0.3, 1);
+      const rootX = a.def.x * 1080 + par;
+      const rootY = a.def.y * 1920;
+      const sc = (a.def.scale ?? 1) * PS;
+      const tr = applyPose(a.root, pose, sc);
+      a.root.setAttribute('transform', `translate(${rootX} ${rootY}) ${tr}${a.def.flip ? ' scale(-1 1)' : ''}`);
+      if (!a.shadow) {
+        const el = document.createElementNS(NS, 'ellipse');
+        el.setAttribute('fill', 'url(#shadowG)');
+        $('actorsG').insertBefore(el, $('actorsG').firstChild);
+        a.shadow = el;
+      }
+      a.shadow.setAttribute('cx', String(rootX));
+      a.shadow.setAttribute('cy', String(rootY + 236 * sc));
+      a.shadow.setAttribute('rx', String(120 * sc));
+      a.shadow.setAttribute('ry', String(26 * sc));
+    }
+    for (const c of crowd) {
+      const pose = moodPose(c.def.mood, t, c.def.seed, c.def.energy);
+      const rootX = c.def.x * 1080 + par * 1.25;
+      const rootY = c.def.y * 1920;
+      const tr = applyPose(c.root, pose, c.def.scale);
+      c.root.setAttribute('transform', `translate(${rootX} ${rootY}) ${tr}`);
+      c.root.setAttribute('opacity', String(0.46 + 0.18 * c.def.energy));
+    }
+
+    const cue = cueAt(t);
+    if (cue && cue.text !== subA.text) { subA.text = cue.text; $('sub').textContent = cue.text; }
+    if (!cue && subA.text) { subA.text = ''; $('sub').textContent = ''; }
+    // short fade so the caption does not strobe on the cut
+    const since = cue ? t - cue.start : 99;
+    $('sub').style.opacity = String(clamp(since / 0.10, 0, 1) * (cue && cue.end - t < 0.10 ? clamp((cue.end - t) / 0.10, 0, 1) : 1));
+  }
+
+  window.__MOTION__ = {
+    fps: DATA.FPS, frames: DATA.FRAMES, width: 1080, height: 1920, duration: DATA.DURATION,
+    ready: false,
+    seek(frame) { seek(clamp(frame, 0, DATA.FRAMES - 1)); },
+  };
+  seek(0);
+  window.__MOTION__.ready = true;
+}
+
+window.__ENGINE_START__ = (data) => { DATA = data; return build(); };
+</script>
+</body>
+</html>
