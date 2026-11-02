@@ -32,6 +32,7 @@ namespace Shazdeh.Game
             Wallet = new Wallet(save);
             Lives = new Lives(save, clock);
             Progression = new Progression(save, clock);
+            Boosters = new BoosterBag(save);
         }
 
         public IClock Clock { get; }
@@ -43,6 +44,9 @@ namespace Shazdeh.Game
         public Lives Lives { get; }
 
         public Progression Progression { get; }
+
+        /// <summary>The five in-level boosters. The board owns the effect; this owns the count.</summary>
+        public BoosterBag Boosters { get; }
 
         public ChapterMeta Meta { get; }
 
@@ -174,6 +178,60 @@ namespace Shazdeh.Game
                 return false; // still playing: nothing to write
             }
 
+            SaveNow();
+            return true;
+        }
+
+        // ---- boosters -----------------------------------------------------------------------------
+
+        /// <summary>
+        /// Fires a booster on the board, charging the player for it only if the board accepts the move.
+        /// The refcount dance is the whole point of this method: a rejected target must not cost a
+        /// booster, and a screen must not have to know that.
+        /// </summary>
+        public bool TryUseBooster(LevelRun run, BoosterKind kind, int x, int y, out MoveResult result)
+        {
+            result = null;
+            if (run == null) return false;
+            if (run.Status != LevelStatus.Playing) return false;
+            if (!Boosters.TryConsume(kind)) return false;
+
+            result = run.UseBooster(kind, x, y);
+            if (result == null || !result.Accepted)
+            {
+                Boosters.Grant(kind, 1);
+                result = null;
+                return false;
+            }
+
+            // A booster that cleared nothing did nothing. The board takes any in-bounds target, so only
+            // this layer can tell a full cell from an empty one. The whirlwind is the exception: changing
+            // the board without clearing is exactly its job.
+            if (kind != BoosterKind.Whirlwind && !ClearedAnything(result))
+            {
+                Boosters.Grant(kind, 1);
+                run.RevertLastBooster(kind);
+                result = null;
+                return false;
+            }
+
+            SaveNow();
+            return true;
+        }
+
+        static bool ClearedAnything(MoveResult result)
+        {
+            if (result == null || result.Events == null) return false;
+
+            var events = result.Events;
+            for (int i = 0; i < events.Count; i++)
+                if (events[i] is PieceClearedEvent) return true;
+            return false;
+        }
+
+        public bool BuyBooster(BoosterKind kind, int quantity = 1)
+        {
+            if (!Boosters.Buy(kind, Wallet, quantity)) return false;
             SaveNow();
             return true;
         }

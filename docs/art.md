@@ -70,7 +70,7 @@ instead of breaking, which is what makes art additive.
 | Result | `result_win` / `result_lose` (720×200) behind the title, `icon_star` ×3 for the score, `panel_frame` as the card, `button_primary` as the primary button | text only |
 | Moves pill | `icon_moves` at 22 px | the word alone |
 | Settings (screen pending) | `icon_sound`, `icon_music`, `icon_vibration`, `icon_push`, `icon_settings` at 26 px | — (nothing to draw yet) |
-| In-level boosters | `booster_mallet`, `booster_ram`, `booster_auger`, `booster_whirlwind`, `booster_falcon` at 56 dp | text buttons |
+| In-level boosters | `booster_mallet`, `booster_ram`, `booster_auger`, `booster_whirlwind`, `booster_falcon` at 40 dp inside 48 dp chips, count in the corner | text buttons |
 | World map (screen pending) | `map_backdrop` (1024×768), `node_cleared`, `node_current`, `node_locked` at 48 dp | — (map is a list today) |
 | Onboarding | `tutorial_hand`, `tutorial_tap` | — (no tutorial yet) |
 | Board effects | `fx_spark` on every cleared cell, `fx_ring` for a power-up going off | the sprite's own colour, scaled and faded in code |

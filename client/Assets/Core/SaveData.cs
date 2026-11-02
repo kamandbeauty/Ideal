@@ -11,7 +11,7 @@ namespace Shazdeh.Core
     public sealed class SaveData
     {
         /// <summary>Bumped whenever the shape changes; SaveCodec migrates older files.</summary>
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         public int version = CurrentVersion;
         public string playerId = "";
@@ -27,6 +27,14 @@ namespace Shazdeh.Core
 
         /// <summary>Highest level the player may start. 1 = fresh save.</summary>
         public int levelNumber = 1;
+
+        /// <summary>
+        /// Booster counts, one per <see cref="Shazdeh.Core.BoosterKind"/>, in enum order. A list rather
+        /// than five fields because it has to survive the enum growing: a short list is padded and a
+        /// long one is trimmed by the bag, so the save never has to be rewritten by hand.
+        /// v2. A v1 save has no list at all and the codec seeds it.
+        /// </summary>
+        public List<int> boosters = new List<int>();
 
         public List<LevelRecord> levels = new List<LevelRecord>();
         public List<string> completedTasks = new List<string>();

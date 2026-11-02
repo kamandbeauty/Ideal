@@ -111,7 +111,7 @@ grammar check plus a shallow static-member check; it is not a type checker.
 ## 6. Gates before a build is called good (M2 exit: screens + Persian)
 
 - Every string a player reads is Persian, right to left, shaped — and the shaping is byte-identical to
-  `arabic-reshaper` on all 29 shipped strings (`tools/text/persian_ref.py --check`).
+  `arabic-reshaper` on all 33 shipped strings (`tools/text/persian_ref.py --check`).
 - Numbers are Persian numerals with Persian separators (`۱٬۲۳۴`), counts read `۳ از ۵`, and a countdown
   reads `۲۹:۵۹` — never ASCII digits in the UI.
 - The home → play → result → home loop works with the network off, and a loss costs exactly one life.
@@ -125,9 +125,23 @@ grammar check plus a shallow static-member check; it is not a type checker.
 
 - The manifest is valid, `ArtCatalog.gen.cs` is current, and every committed PNG has the size, alpha
   channel and weight budget the contract asks for (`art.py --check`).
-- `art.py --check --strict` passes: every required sprite exists. **This is the gate that is currently
-  red, by design — no artwork has been drawn yet.**
+- `art.py --check --strict` passes: every required sprite exists. It is green: 84 assets in the contract,
+  all 84 on disk, 10 of them required.
 - Every screen still runs with zero art files present (the placeholder path is the default path).
 - The board is readable at 48 px with real art: five stones distinguishable in greyscale by silhouette.
 - One light, one camera across the three district plates; no baked text, no baked glow.
 - 60 fps with the art in place: the pieces batch into one atlas per group, ≤ 150 draw calls.
+
+## 8. Gates before a build is called good (M4 exit: the turn)
+
+- A swipe of at least 0.45 of a cell plays the move; a shorter drag is a tap; a rejected move springs
+  back and costs nothing.
+- The view never edits the board: it plays the event list the model returns, and `Update` early-returns
+  while a tween is running, so two moves cannot overlap.
+- Stars come from `bestMovesLeft`, so a replay that does worse never loses a star already earned.
+- **A booster costs a booster only when the board accepts the target** — an armed chip fired at an empty
+  cell leaves the count untouched (`GameSession.TryUseBooster` refunds).
+- A booster costs no move: `MovesLeft` and `MovesUsed` are unchanged by `LevelRun.UseBooster`.
+- Counts stay in `[0, 9]`, a purchase charges only for what fits under the cap, and a save written by
+  v1 is migrated to v2 with the starter set instead of five zeros.
+- Every screen still runs with the booster bar present but no booster art: the chip stays a chip.

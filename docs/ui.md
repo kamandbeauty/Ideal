@@ -44,7 +44,7 @@ python3 tools/text/gen_persian_table.py --check   # CI: fail if it drifted
 ### It is tested against a second implementation
 
 `tools/text/persian_ref.py` implements the same two steps in Python and compares its output with
-`arabic-reshaper` (a widely used shaper) on the 29 strings the game ships. It then writes
+`arabic-reshaper` (a widely used shaper) on the 33 strings the game ships. It then writes
 `client/Assets/Core.Tests/Generated/PersianGoldenVectors.gen.cs`, and `PersianTextTests` asserts the C#
 produces exactly those strings. So "does the Persian look right" is a byte comparison, not an opinion.
 

@@ -26,13 +26,13 @@ Boss board: destroy castle towers and walls,board,should,yes,no,inverted gravity
 Multi-stage boards inside one level,board,should,yes,no,stage counter under the move count
 Dark Kingdom boss variant,board,should,yes,no,same engine different art and item set
 Pre-level boosters placed on the board,boosters,should,yes,no,rocket / dynamite / electro ball
-In-game boosters that cost no move,boosters,should,yes,no,hammer / battle ram / drill / wizard hat / bomber plane
+In-game boosters that cost no move,boosters,should,yes,partial,bar of five chips wired to LevelRun.UseBooster; counts are local (SaveData v2) and the shop screen is pending
 Magic Pots: power-ups at the start of a level,boosters,should,yes,no,unlocks at level 32 in the original
 Story episodes on kingdom unlock,story,should,yes,no,1-2 minute scenes - our own cast and script
 Revisit completed kingdoms,meta,should,yes,no,from the world map
 Level chests and streak rewards,progression,should,yes,no,
 Coin packs and bundles via in-app purchase,monetisation,should,yes,no,server-side receipt validation
-Booster shop priced in coins,monetisation,should,yes,no,
+Booster shop priced in coins,monetisation,should,yes,partial,GameSession.BuyBooster and BoosterBag.Buy are priced and tested; no shop screen yet
 New level batches released on a schedule,content,should,yes,no,every two weeks in the original - ours monthly
 Profile with avatar and username,profile,could,yes,no,
 Stats page,profile,could,yes,no,levels played / win rate

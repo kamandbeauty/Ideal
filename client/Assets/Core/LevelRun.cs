@@ -81,6 +81,22 @@ namespace Shazdeh.Core
             return result;
         }
 
+        /// <summary>
+        /// Takes the last use of this booster back out of the record. The board accepts any in-bounds
+        /// target, so a booster fired at a cell with nothing to clear comes back as "accepted" with no
+        /// events; the caller refunds it, and this keeps <see cref="BoostersUsed"/> — and the replay hash
+        /// a server would validate — from claiming a booster that did nothing.
+        /// </summary>
+        public void RevertLastBooster(BoosterKind kind)
+        {
+            for (int i = BoostersUsed.Count - 1; i >= 0; i--)
+            {
+                if (BoostersUsed[i] != kind) continue;
+                BoostersUsed.RemoveAt(i);
+                return;
+            }
+        }
+
         void Evaluate()
         {
             if (Status != LevelStatus.Playing) return;

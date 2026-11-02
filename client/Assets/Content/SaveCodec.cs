@@ -23,8 +23,17 @@ namespace Shazdeh.Content
                 lives = Lives.DefaultMax,
                 maxLives = Lives.DefaultMax,
                 livesUpdatedAtUnix = now,
-                levelNumber = 1
+                levelNumber = 1,
+                boosters = StarterBoosters()
             };
+        }
+
+        /// <summary>One of each, in enum order: the fresh-save grant, and the v1→v2 migration.</summary>
+        static List<int> StarterBoosters()
+        {
+            var boosters = new List<int>(BoosterCatalog.Slots);
+            for (int i = 0; i < BoosterCatalog.Slots; i++) boosters.Add(BoosterCatalog.StartOwned);
+            return boosters;
         }
 
         public static string Encode(SaveData data, bool pretty = true)
@@ -84,6 +93,16 @@ namespace Shazdeh.Content
                 errors.Add("migrated save from v0 to v1");
             }
 
+            // v2 added boosters. An older save gets the starter set — the same one a new player gets —
+            // rather than five zeros, because a player who has been playing for a month should not have
+            // to pay for the ability to try a booster for the first time.
+            if (data.version < 2)
+            {
+                data.version = 2;
+                data.boosters = StarterBoosters();
+                errors.Add("migrated save from v1 to v2: boosters added");
+            }
+
             data.version = SaveData.CurrentVersion;
         }
 
@@ -95,6 +114,9 @@ namespace Shazdeh.Content
             if (data.levels == null) data.levels = new List<LevelRecord>();
             if (data.completedTasks == null) data.completedTasks = new List<string>();
             if (data.claimedChests == null) data.claimedChests = new List<string>();
+            if (data.boosters == null) data.boosters = new List<int>(BoosterCatalog.Slots);
+
+            while (data.boosters.Count < BoosterCatalog.Slots) data.boosters.Add(BoosterCatalog.StartOwned);
 
             if (data.coins < 0) data.coins = 0;
             if (data.potions < 0) data.potions = 0;

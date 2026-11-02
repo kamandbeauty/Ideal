@@ -295,6 +295,10 @@ VECTORS = [
     "۲۹:۵۹",
     "سطح ۱ از ۱۰",
     "ناحیه کامل شد! صندوق را باز کن",
+    "یک خانه را انتخاب کن",     # the booster prompt: hamza-less, all simple letters
+    "خانهٔ دیگری را بزن",        # with hamza above (U+0654): the one combining mark the UI prints
+    "گردباد",
+    "بوستر تمام شده",
 ]
 
 

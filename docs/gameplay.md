@@ -55,7 +55,10 @@ A tap on a non-neighbour moves the selection instead of clearing it, so a mis-ta
   `obstacle_*`), then `۴ از ۱۲`. A finished goal turns gold and stays gold. The chips are created at
   full width once and hidden when a level has fewer goals, so the layout does not jump between levels.
 - **Hint line**, one line under the chips, empty during play. It carries a level's configuration
-  error, and it is where a rejected move will say why once we write copy for it.
+  error, the «یک خانه را انتخاب کن» prompt while a booster is armed, and it is where a rejected move
+  will say why once we write copy for it.
+- **Boosters**, five chips along the bottom edge (`booster_*` at 40 dp), each with its count in the
+  corner; the whole bar is dimmed when the level is over or the count is zero. See §5.
 
 ## 4. Stars
 
@@ -76,11 +79,45 @@ The result card shows three `icon_star` sprites: earned ones in gold, the rest a
 the clear was not perfect, the body names the number still needed for the next star, which is the only
 place in the game where the player is told the rule.
 
-## 5. What M4 does not do yet
+## 5. Boosters
+
+Five boosters, one chip each, along the bottom of the board (`Core/Boosters.cs` for the rules,
+`BoardScreen.BuildBoosterBar` for the bar). They cost **no move** — that is what makes them boosters
+rather than power-ups — and they do not add to `MovesUsed`, so a level cleared with four hammers still
+reports the moves it actually spent.
+
+| booster | effect | coins |
+| --- | --- | --- |
+| پتک (mallet) | removes one cell | 40 |
+| قوچ (ram) | a whole row | 60 |
+| مته (auger) | a whole column | 60 |
+| گردباد (whirlwind) | reshuffles the board, no clears | 80 |
+| شاهین (falcon) | three small blasts | 100 |
+
+The flow is **arm, then aim**: tapping a chip lights it gold and the hint line says «یک خانه را انتخاب
+کن»، the next tap on a cell fires it there, and a second tap on the same chip disarms. While a booster is
+armed a drag is not a swipe — the one thing a nervous player must not be able to do is spend a booster on
+a swap they meant to make.
+
+Two rules keep the counts honest:
+
+- **A refused target costs nothing.** `GameSession.TryUseBooster` consumes from the bag, calls the board,
+  and puts the booster back if the board says no; the screen never sees the intermediate state.
+- **Counts are capped at 9 and floored at 0**, and a purchase charges for exactly the number that fit
+  under the cap — buying three at 8 owned costs one booster's worth of coins, not three.
+
+The prices are tuned to *this* game's rewards (a first clear pays 10 coins), not copied from the
+original: at the original's prices nothing would be affordable for the first fifty levels. A fresh save,
+and any save migrated from v1, starts with one of each so the mechanic can be felt before it is bought.
+
+## 6. What M4 does not do yet
 
 - **No board reshape on a goal** — the level's goals are fixed at start, as the rules layer defines.
-- **No in-level booster use from the HUD.** `LevelRun.UseBooster` exists and is tested; the button does
-  not. Boosters are still pre-level inventory.
+- **No booster shop screen.** `GameSession.BuyBooster` is priced and tested; nothing opens a shop yet, so
+  in practice a booster is only spendable, not replaceable.
+- **No pre-level booster placement** — a booster is fired mid-level only, never set on the board before
+  the first move.
+- **No magic pots** (power-ups granted at the start of a level).
 - **No power-up tap-to-fire.** Power-ups are created and triggered by swaps only (`MoveResolver`).
 - **No sound, no haptics on a match**, though `SaveData.sfxOn`/`hapticsOn` already gate them.
 - **Particles are one sprite per clear** (`fx_spark`), capped at 40 alive. There is no pool and no

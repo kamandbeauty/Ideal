@@ -92,6 +92,18 @@ namespace Shazdeh.Game.Ui
         bool _pressActive;
         Vector3 _pressWorld;
 
+        // The booster bar. Armed is a mode, not a selection: while one is armed a tap on a cell fires
+        // it there, and the swap input stays out of the way.
+        const int BoosterSlots = 5;
+        const float BoosterButton = 48f;
+        const float BoosterBarBottom = 8f;
+        readonly Button[] _boosterButtons = new Button[BoosterSlots];
+        readonly Image[] _boosterIcons = new Image[BoosterSlots];
+        readonly TextMeshProUGUI[] _boosterCounts = new TextMeshProUGUI[BoosterSlots];
+        BoosterKind? _armed;
+
+        float BoosterBarTop => UiKit.CanvasHeight - BoosterBarBottom - BoosterButton;
+
         RectTransform _resultOverlay;
         Image _resultBanner;
         readonly Image[] _resultStars = new Image[3];
@@ -181,6 +193,7 @@ namespace Shazdeh.Game.Ui
             UiKit.Stretch(_movesLabel.rectTransform, Tokens.Space.S2, 0f);
 
             BuildGoalChips();
+            BuildBoosterBar();
 
             _hintLabel = UiKit.Label(Root, "hint", "", Tokens.Type.Xs, Tokens.TextMuted, TextAlignmentOptions.Center);
             UiKit.Place(_hintLabel.rectTransform, 20f, 120f, UiKit.CanvasWidth - 40f, 18f);
@@ -213,6 +226,52 @@ namespace Shazdeh.Game.Ui
 
                 _goalChip[i] = chip;
                 chip.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// The five boosters, as chips along the bottom edge, right where the thumb already rests.
+        /// Each one is a button with the drawn badge inside it and its count in the corner; the button
+        /// stays a button even when the art is missing, because a flat chip that still fires a booster
+        /// is worth more than an empty hole.
+        /// </summary>
+        void BuildBoosterBar()
+        {
+            const float gap = 8f;
+            float total = BoosterSlots * BoosterButton + (BoosterSlots - 1) * gap;
+            float x0 = (UiKit.CanvasWidth - total) * 0.5f;
+            float y = BoosterBarTop;
+
+            for (int i = 0; i < BoosterSlots; i++)
+            {
+                var kind = (BoosterKind)i;
+                float x = x0 + i * (BoosterButton + gap);
+
+                _boosterButtons[i] = UiKit.Button(Root, "booster_" + kind, "", x, y, BoosterButton, BoosterButton,
+                    Tokens.SurfaceRaised, Tokens.Text, () => ArmBooster(kind), (int)Tokens.Radius.Md);
+
+                var icon = UiKit.Panel(_boosterButtons[i].transform, "badge", 4f, 2f,
+                    BoosterButton - 8f, BoosterButton - 12f, Color.white);
+                _boosterIcons[i] = icon.GetComponent<Image>();
+                _boosterIcons[i].raycastTarget = false;
+                ArtLibrary.ApplyTo(_boosterIcons[i], BoosterArtId(kind));
+
+                _boosterCounts[i] = UiKit.Label(_boosterButtons[i].transform, "count", "", Tokens.Type.Xs,
+                    Tokens.Text, TextAlignmentOptions.BottomLeft);
+                UiKit.Place(_boosterCounts[i].rectTransform, 4f, BoosterButton - 18f, BoosterButton - 8f, 16f);
+            }
+        }
+
+        static string BoosterArtId(BoosterKind kind)
+        {
+            switch (kind)
+            {
+                case BoosterKind.Mallet: return "booster_mallet";
+                case BoosterKind.Ram: return "booster_ram";
+                case BoosterKind.Auger: return "booster_auger";
+                case BoosterKind.Whirlwind: return "booster_whirlwind";
+                case BoosterKind.Falcon: return "booster_falcon";
+                default: return "";
             }
         }
 
@@ -277,11 +336,13 @@ namespace Shazdeh.Game.Ui
             _run = Session.StartAttempt(number, out _level, out string error);
             _settled = false;
             _selected = null;
+            _armed = null;
             StopMotion();
             ClearHint();
 
             ClearTiles();
             _resultOverlay.gameObject.SetActive(false);
+            RefreshBoosters();
             _camera.enabled = true;
 
             if (_run == null)
@@ -388,6 +449,18 @@ namespace Shazdeh.Game.Ui
             float halfWidth = _level.Width * Cell * 0.5f + 0.5f;
             float aspect = _camera.aspect <= 0.01f ? 0.56f : _camera.aspect;
             _camera.orthographicSize = Mathf.Max(halfHeight, halfWidth / aspect);
+
+            // The booster bar owns the bottom strip of the canvas. On a squat aspect the board would run
+            // under it, so the board is lifted by however much it overlaps — measured in world units,
+            // because the camera is what decides how many canvas pixels a world unit is worth.
+            if (_level != null)
+            {
+                float halfWorld = _camera.orthographicSize;
+                float barTopWorld = halfWorld - (BoosterBarTop / UiKit.CanvasHeight) * 2f * halfWorld;
+                float boardBottom = BoardDropWorld - _level.Height * Cell * 0.5f;
+                float lift = barTopWorld + 0.25f - boardBottom;
+                _boardRoot.transform.localPosition = new Vector3(0f, BoardDropWorld + (lift > 0f ? lift : 0f), 0f);
+            }
         }
 
         Vector3 WorldOf(CellPos pos)
@@ -443,7 +516,7 @@ namespace Shazdeh.Game.Ui
             Vector3 drag = world - _pressWorld;
             drag.z = 0f;
 
-            if (drag.magnitude >= Cell * SwipeCells)
+            if (!_armed.HasValue && drag.magnitude >= Cell * SwipeCells)
             {
                 var origin = CellAt(_pressWorld);
                 if (!origin.HasValue) return;
@@ -482,6 +555,12 @@ namespace Shazdeh.Game.Ui
         /// </summary>
         void HandleTap(CellPos cell)
         {
+            if (_armed.HasValue)
+            {
+                FireBooster(_armed.Value, cell);
+                return;
+            }
+
             if (_selected.HasValue)
             {
                 var from = _selected.Value;
@@ -557,6 +636,21 @@ namespace Shazdeh.Game.Ui
             AddTween(b, pb, pa, Vector3.one, Vector3.one, 0f, SwapSeconds);
 
             _clearedCells.Clear();
+            CollectCleared(result);
+
+            _tweenDone = () =>
+            {
+                ResetTiles();
+                DrawBoard();
+                PlayClear();
+            };
+        }
+
+        /// <summary>The cells this move removed, in the order the model reported them.</summary>
+        void CollectCleared(MoveResult result)
+        {
+            if (result == null || result.Events == null) return;
+
             var events = result.Events;
             for (int i = 0; i < events.Count; i++)
             {
@@ -566,13 +660,6 @@ namespace Shazdeh.Game.Ui
                     if (index >= 0 && !_clearedCells.Contains(index)) _clearedCells.Add(index);
                 }
             }
-
-            _tweenDone = () =>
-            {
-                ResetTiles();
-                DrawBoard();
-                PlayClear();
-            };
         }
 
         void PlayClear()
@@ -1060,6 +1147,7 @@ namespace Shazdeh.Game.Ui
 
             RtlText.Set(_movesLabel, "حرکت " + Core.Text.PersianText.Number(_run.MovesLeft));
             RefreshGoalChips();
+            RefreshBoosters();
 
             if (_hint == null || Time.unscaledTime >= _hintUntil) ClearHint();
         }
@@ -1102,6 +1190,107 @@ namespace Shazdeh.Game.Ui
                 {
                     icon.sprite = null;
                     icon.color = done ? Tokens.Gold : ColorFor(goal.Piece);
+                }
+            }
+        }
+
+        // ---- boosters -------------------------------------------------------------------------------
+
+        /// <summary>
+        /// Arms a booster, or disarms the one that is already armed. Arming is a mode the player can see:
+        /// the chip goes gold and the hint line says what the next tap will do, so a stray tap cannot
+        /// quietly cost a booster.
+        /// </summary>
+        void ArmBooster(BoosterKind kind)
+        {
+            if (_run == null || _run.Status != LevelStatus.Playing) return;
+            if (_tweens.Count > 0) return;
+
+            if (Session == null || !Session.Boosters.Has(kind))
+            {
+                ShowHint(BoosterCatalog.Name(kind) + " تمام شده", 2.5f);
+                RefreshBoosters();
+                return;
+            }
+
+            bool same = _armed.HasValue && _armed.Value == kind;
+            _armed = same ? (BoosterKind?)null : kind;
+            _selected = null;
+            DrawBoard();
+            RefreshBoosters();
+
+            if (_armed.HasValue) ShowHint("یک خانه را انتخاب کن", 8f);
+            else ClearHint();
+        }
+
+        /// <summary>
+        /// Fires the armed booster at a cell. The session charges for it only if the board accepts, so a
+        /// tap on an empty cell costs nothing; the turn then plays through the same clear/settle path a
+        /// match uses, which is why a booster's cascade looks like every other cascade.
+        /// </summary>
+        void FireBooster(BoosterKind kind, CellPos at)
+        {
+            if (_run == null || _run.Status != LevelStatus.Playing) return;
+            if (_tweens.Count > 0) return;
+
+            MoveResult result;
+            if (Session == null || !Session.TryUseBooster(_run, kind, at.X, at.Y, out result))
+            {
+                // The chip stays armed: a tap that would have cost a booster for nothing is the one
+                // mistake this screen must not let a player make, so the next tap gets to be the right one.
+                DrawBoard();
+                RefreshBoosters();
+                ShowHint("خانهٔ دیگری را بزن", 2f);
+                return;
+            }
+
+            _armed = null;
+            _selected = null;
+            ClearHint();
+
+            _clearedCells.Clear();
+            CollectCleared(result);
+            RefreshBoosters();
+            Refresh();
+
+            if (_clearedCells.Count == 0)
+            {
+                // A shuffle moves pieces without clearing any: redraw, then let the turn end normally.
+                DrawBoard();
+                SettleTurn();
+                return;
+            }
+
+            PlayClear();
+        }
+
+        /// <summary>The chips: count, dimming, and which one is armed. Called on every turn end.</summary>
+        void RefreshBoosters()
+        {
+            bool playing = _run != null && _run.Status == LevelStatus.Playing;
+
+            for (int i = 0; i < BoosterSlots; i++)
+            {
+                var kind = (BoosterKind)i;
+                int count = Session != null ? Session.Boosters.Count(kind) : 0;
+                bool armed = _armed.HasValue && _armed.Value == kind;
+
+                var button = _boosterButtons[i];
+                if (button != null)
+                {
+                    button.interactable = playing && count > 0;
+
+                    var face = button.targetGraphic as Image;
+                    if (face != null) face.color = armed ? Tokens.Gold : (count > 0 ? Tokens.SurfaceRaised : Tokens.Surface);
+                }
+
+                if (_boosterIcons[i] != null)
+                    _boosterIcons[i].color = count > 0 ? Color.white : new Color(1f, 1f, 1f, 0.35f);
+
+                if (_boosterCounts[i] != null)
+                {
+                    RtlText.Set(_boosterCounts[i], Core.Text.PersianText.Number(count));
+                    _boosterCounts[i].color = count > 0 ? Tokens.Text : Tokens.TextMuted;
                 }
             }
         }
