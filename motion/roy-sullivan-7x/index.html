@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<title>هفت بار صاعقه — روی سالیوان</title>
+<style>
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-400-normal.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-500-normal.woff2') format('woff2'); font-weight: 500; }
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-700-normal.woff2') format('woff2'); font-weight: 700; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #06070a; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #07080c; }
+
+  /* ---------- the plates (two layers → soft dissolve between scenes) ---------- */
+  #plateWrap { position: absolute; inset: 0; overflow: hidden; }
+  .plt {
+    position: absolute; left: 50%; top: 50%;
+    width: 1080px; height: 1920px; object-fit: cover;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity; backface-visibility: hidden;
+    filter: saturate(1.04) brightness(1.02);
+  }
+  .fallback { position: absolute; inset: 0;
+    background: linear-gradient(180deg, #7d8fa8 0%, #6f7d94 40%, #4a4459 70%, #241f2c 100%); }
+
+  /* ---------- colour light ---------- */
+  #leak { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(42% 30% at 0% 20%, rgba(190,205,255,.42) 0%, rgba(180,190,255,0) 74%),
+                radial-gradient(38% 26% at 100% 78%, rgba(255,214,160,.34) 0%, rgba(255,200,140,0) 74%); }
+
+  /* ---------- atmosphere ---------- */
+  #vignette { position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(120% 78% at 50% 42%, rgba(0,0,0,0) 32%, rgba(8,10,18,.52) 84%, rgba(4,6,12,.76) 100%),
+      linear-gradient(180deg, rgba(6,8,14,.44) 0%, rgba(6,8,14,0) 18%, rgba(6,8,14,0) 66%, rgba(4,6,12,.62) 100%); }
+  #warm { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(58% 40% at 50% 62%, rgba(255,186,110,.40) 0%, rgba(255,150,70,.16) 45%, rgba(255,140,60,0) 78%); }
+  #fog { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(0deg, rgba(212,224,238,.30) 0%, rgba(212,224,238,.10) 16%, rgba(212,224,238,0) 40%); }
+  #boil { position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: soft-light;
+    background: radial-gradient(70% 46% at 30% 30%, rgba(226,236,255,.18) 0%, rgba(226,236,255,0) 70%); }
+  .grain { position: absolute; inset: -80px; pointer-events: none; opacity: .085; mix-blend-mode: overlay;
+    background-image: url("assets/grain.png"); background-repeat: repeat; background-size: 256px 256px; }
+  #flash { position: absolute; inset: 0; background: #eef3ff; opacity: 0; pointer-events: none; }
+  #curtain { position: absolute; inset: 0; background: #040406; opacity: 1; pointer-events: none; }
+  #scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; pointer-events: none;
+    background: linear-gradient(0deg, rgba(4,6,12,.50) 0%, rgba(4,6,12,.20) 46%, rgba(4,6,12,0) 100%); }
+
+  /* ---------- dust ---------- */
+  #dust { position: absolute; inset: 0; pointer-events: none; }
+  #dust i { position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    background: rgba(226,236,255,.52); box-shadow: 0 0 6px rgba(210,226,255,.32); }
+  #sparks { position: absolute; inset: 0; pointer-events: none; }
+  #sparks i { position: absolute; width: 4px; height: 4px; border-radius: 50%;
+    background: rgba(214,232,255,.95); box-shadow: 0 0 14px rgba(150,190,255,.9), 0 0 30px rgba(110,150,255,.45); }
+
+  /* ---------- title ---------- */
+  #title { position: absolute; left: 0; right: 0; top: 292px; text-align: center; pointer-events: none;
+    opacity: 0; }
+  #title::before { content: ''; position: absolute; inset: -110px -60px -70px; z-index: -1;
+    background: radial-gradient(58% 56% at 50% 46%, rgba(4,6,12,.66) 0%, rgba(4,6,12,.36) 52%, rgba(4,6,12,0) 78%); }
+  #title b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 214px;
+    line-height: 1; color: #f6e2bb; letter-spacing: 0;
+    -webkit-text-stroke: 2.4px rgba(20,16,38,.42); paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(30,22,50,.32), 0 18px 52px rgba(0,0,0,.92), 0 0 110px rgba(150,190,255,.34); }
+  #title span { display: block; margin-top: 6px; font-family: 'Vazirmatn', sans-serif; font-weight: 500;
+    font-size: 46px; letter-spacing: 4px; color: #f2f5ff; opacity: .96;
+    text-shadow: 0 4px 20px rgba(0,0,0,.95), 0 0 44px rgba(0,0,0,.85); }
+  #title i { display: block; margin-top: 16px; font-style: normal; font-family: 'Vazirmatn', sans-serif;
+    font-weight: 400; font-size: 30px; letter-spacing: 1px; color: #cfd9ef; opacity: .82;
+    text-shadow: 0 3px 16px rgba(0,0,0,.95); }
+  #title em { display: block; margin: 26px auto 0; width: 168px; height: 1.5px;
+    background: linear-gradient(90deg, rgba(246,226,187,0), rgba(246,226,187,.9), rgba(246,226,187,0)); }
+
+  /* ---------- end card: the real photograph ---------- */
+  #card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; }
+  #card::before { content: ''; position: absolute; inset: 0;
+    background: radial-gradient(70% 58% at 50% 46%, rgba(3,5,10,.72) 0%, rgba(3,5,10,.86) 62%, rgba(3,5,10,.94) 100%); }
+  #cardInner { position: relative; width: 840px; transform-origin: 50% 60%; }
+  #shot { display: block; width: 100%; height: auto; border-radius: 4px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.92), 0 0 0 12px rgba(248,246,240,.94), 0 0 0 15px rgba(30,32,44,.85); }
+  #cardCap { margin-top: 62px; text-align: center; direction: rtl; }
+  #cardCap b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 54px;
+    color: #fdf6e6; letter-spacing: -.2px;
+    text-shadow: 0 6px 26px rgba(0,0,0,.95), 0 0 42px rgba(0,0,0,.8); }
+  #cardCap span { display: block; margin-top: 16px; font-family: 'Vazirmatn', sans-serif; font-weight: 400;
+    font-size: 27px; letter-spacing: .4px; color: #b9c6dd;
+    text-shadow: 0 4px 18px rgba(0,0,0,.9); }
+  #cardCap u { display: block; margin: 26px auto 0; width: 132px; height: 1.5px; text-decoration: none;
+    background: linear-gradient(90deg, rgba(246,226,187,0), rgba(246,226,187,.85), rgba(246,226,187,0)); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="plateWrap">
+    <div class="fallback" id="fallback"></div>
+    <img class="plt" id="plateB" alt="" />
+    <img class="plt" id="plateA" alt="" />
+  </div>
+  <div id="leak"></div>
+  <div id="fog"></div>
+  <div id="warm"></div>
+  <div id="boil"></div>
+  <div id="dust"></div>
+  <div id="vignette"></div>
+  <div class="grain" id="grain"></div>
+  <div id="flash"></div>
+  <div id="curtain"></div>
+  <div id="sparks"></div>
+  <div id="scrim"></div>
+  <div id="title"><b>۷</b><span>بار صاعقه</span><i>روی سالیوان</i><em></em></div>
+  <div id="card">
+    <div id="cardInner">
+      <img id="shot" alt="" />
+      <div id="cardCap">
+        <b>عکس واقعی روی سالیوان</b>
+        <span>Roy Cleveland Sullivan · ۱۹۱۲–۱۹۸۳</span>
+        <u></u>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const smooth = (p) => { const q = clamp(p, 0, 1); return q * q * q * (q * (6 * q - 15) + 10); };  // easeInOutQuint
+const easeOutBack = (p) => { const c = 1.70158; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+
+let DATA = null;
+let current = -1;
+let dust = [];
+let sparks = [];
+const DISSOLVE = 0.50;          // ثانیه — گذارِ نرم بین دو پلیت
+let prevPlate = null;
+
+/* --------------------------------------------------------------- camera --- */
+// دوربین آرام است: نه پرش، نه تکانِ سریع. همه‌ی حرکت‌ها در طولِ کلِ صحنه پخش می‌شوند.
+const MOVES = {
+  in:    (a) => ({ k0: 1.10, k1: 1.30 + 0.20 * a }),
+  out:   (a) => ({ k0: 1.30 + 0.20 * a, k1: 1.10 }),
+  panR:  (a) => ({ k0: 1.26 + 0.10 * a, k1: 1.26 + 0.10 * a }),
+  panL:  (a) => ({ k0: 1.26 + 0.10 * a, k1: 1.26 + 0.10 * a }),
+  tiltU: (a) => ({ k0: 1.32 + 0.10 * a, k1: 1.32 + 0.10 * a }),
+  tiltD: (a) => ({ k0: 1.32 + 0.10 * a, k1: 1.32 + 0.10 * a }),
+  inL:   (a) => ({ k0: 1.12, k1: 1.34 + 0.18 * a }),
+  inR:   (a) => ({ k0: 1.12, k1: 1.34 + 0.18 * a }),
+  hold:  (a) => ({ k0: 1.16, k1: 1.20 + 0.06 * a }),
+  hook:  (a) => ({ k0: 1.70, k1: 1.24 + 0.08 * a }),
+};
+
+function cameraAt(sc, t, p, seed) {
+  const { k0, k1 } = (MOVES[sc.move] || MOVES.hold)(sc.amt ?? 0.8);
+  const k = k0 + (k1 - k0) * p;
+  const a0 = sc.a0 || [0.5, 0.5];
+  const a1 = sc.a1 || a0;
+  const ax = 0.5 + (a0[0] - 0.5) + ((a1[0] - a0[0]) * 1.2) * p;
+  const ay = 0.5 + (a0[1] - 0.5) + ((a1[1] - a0[1]) * 1.2) * p;
+
+  const maxX = ((k - 1) * 1080) / 2;
+  const maxY = ((k - 1) * 1920) / 2;
+  let tx = (0.5 - ax) * 1080 * k;
+  let ty = (0.5 - ay) * 1920 * k;
+  tx = clamp(tx, -maxX, maxX);
+  ty = clamp(ty, -maxY, maxY);
+
+  // لرزشِ خیلی نرم: دو موجِ کندِ ناهماهنگ، دامنه‌ی کم
+  const ph = seed * 2.7;
+  const hx = Math.sin(t * 0.085 * Math.PI * 2 + ph) * 2.6 + Math.sin(t * 0.205 * Math.PI * 2 + 1.7) * 1.1;
+  const hy = Math.sin(t * 0.072 * Math.PI * 2 + 0.6 + ph) * 2.2 + Math.sin(t * 0.178 * Math.PI * 2 + 2.3) * 0.9;
+  const rot = Math.sin(t * 0.055 * Math.PI * 2 + 2.1 + ph) * 0.12;
+  const breathe = 1 + Math.sin(t * 0.13 * Math.PI * 2 + 0.9) * 0.0032;
+  return { tx: tx + hx, ty: ty + hy, k: k * breathe, rot };
+}
+
+/* ------------------------------------------------------------------ dust --- */
+function initDust() {
+  const box = $('dust');
+  box.innerHTML = '';
+  dust = [];
+  for (let i = 0; i < 26; i++) {
+    const el = document.createElement('i');
+    box.appendChild(el);
+    dust.push({ el, x: hash(i, 1), y: hash(i, 2), s: 0.35 + hash(i, 3) * 1.1, ph: hash(i, 4) * 6.28 });
+  }
+  const sp = $('sparks');
+  sp.innerHTML = '';
+  sparks = [];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('i');
+    sp.appendChild(el);
+    sparks.push({ el, x: 0.16 + hash(i, 5) * 0.68, y: hash(i, 6), s: 0.5 + hash(i, 7) * 1.3, ph: hash(i, 8) * 6.28 });
+  }
+}
+
+function paintDust(t, warm) {
+  for (const d of dust) {
+    const x = (d.x * 1120 + Math.sin(t * 0.09 + d.ph) * 26 + t * 6 * d.s) % 1140;
+    const y = 1920 - ((d.y * 1980 + t * 15 * d.s + Math.sin(t * 0.08 + d.ph) * 30) % 2100);
+    d.el.style.transform = `translate(${x.toFixed(1)}px, ${(1920 - y).toFixed(1)}px)`;
+    d.el.style.opacity = String((0.09 + 0.24 * warm) * (0.5 + 0.5 * Math.sin(t * 0.6 + d.ph)));
+  }
+}
+
+// جرقه‌های سردِ افتتاحیه (به‌جای شعله‌های نسخهٔ قبلی) — فقط در سه ثانیهٔ اول
+function paintSparks(t) {
+  const sp = $('sparks');
+  if (t > 4.0) { if (sp.style.display !== 'none') sp.style.display = 'none'; return; }
+  if (sp.style.display === 'none') sp.style.display = '';
+  const life = clamp((3.2 - t) / 2.8, 0, 1);
+  for (const e of sparks) {
+    const rise = (t - 0.15) * (60 + 100 * e.s);
+    const y = 1660 - rise - e.y * 300 + Math.sin(t * 0.8 + e.ph) * 22;
+    const x = e.x * 1080 + Math.sin(t * 0.5 + e.ph) * 34;
+    e.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    e.el.style.opacity = String(life * (0.5 + 0.5 * Math.abs(Math.sin(t * 2.0 + e.ph))));
+  }
+}
+
+/* ------------------------------------------------------------------ build -- */
+async function build() {
+  const plates = [...new Set(DATA.SCENES.map((s) => s.plate))];
+  await Promise.all(plates.map((p) => new Promise((res) => {
+    const im = new Image();
+    im.onload = res; im.onerror = res;
+    im.src = `assets/plates/hd/${p}.jpg`;
+  })));
+  const shot = new Image();
+  await new Promise((res) => { shot.onload = res; shot.onerror = res; shot.src = 'assets/real/roy-sullivan.jpg'; });
+  $('shot').src = 'assets/real/roy-sullivan.jpg';
+
+  initDust();
+
+  const END = DATA.ENDCARD || { start: DATA.DURATION - 8 };
+
+  function place(el, cam) {
+    el.style.transform =
+      `translate(-50%, -50%) translate(${cam.tx.toFixed(2)}px, ${cam.ty.toFixed(2)}px) ` +
+      `rotate(${cam.rot.toFixed(3)}deg) scale(${cam.k.toFixed(4)})`;
+  }
+
+  function seek(frame) {
+    const t = frame / DATA.FPS;
+    const si = DATA.SENTENCES.findIndex((s) => t >= s.start && t < s.end + 0.001);
+    const idx = si === -1 ? DATA.SENTENCES.length - 1 : si;
+    const sc = DATA.SCENES[idx];
+    const sen = DATA.SENTENCES[idx];
+
+    if (idx !== current) {
+      // پلیتِ قبلی روی لایهٔ زیرین می‌ماند تا گذار نرم شود
+      if (current >= 0) {
+        prevPlate = { src: $('plateA').src, scene: DATA.SCENES[current], sen: DATA.SENTENCES[current], id: current };
+      }
+      $('plateA').src = `assets/plates/hd/${sc.plate}.jpg`;
+      current = idx;
+    }
+
+    const p = clamp((t - sen.start) / Math.max(0.001, sen.end - sen.start), 0, 1);
+    const cam = cameraAt(sc, t, smooth(p), idx + 1);
+    place($('plateA'), cam);
+
+    // گذار: پلیتِ قبلی ثابت می‌ماند و لایهٔ تازه رویش ظاهر می‌شود
+    const dp = clamp((t - sen.start) / DISSOLVE, 0, 1);
+    if (prevPlate && dp < 1) {
+      if ($('plateB').src !== prevPlate.src) $('plateB').src = prevPlate.src;
+      const camPrev = cameraAt(prevPlate.scene, prevPlate.sen.end, 1, prevPlate.id + 1);
+      $('plateB').style.display = '';
+      $('plateB').style.opacity = '1';
+      place($('plateB'), camPrev);
+      $('plateA').style.opacity = String(smooth(dp));
+      // فرورفتگیِ کوتاهِ نور وسطِ گذار: دو تصویر «دوبل» دیده نمی‌شوند
+      $('plateWrap').style.filter = `brightness(${(1 - 0.22 * Math.sin(Math.PI * dp)).toFixed(3)})`;
+    } else {
+      $('plateB').style.display = 'none';
+      $('plateA').style.opacity = '1';
+      $('plateWrap').style.filter = 'brightness(1)';
+    }
+
+    // جو و نور
+    const warm = sc.warm ?? 0.15;
+    $('warm').style.opacity = String(warm * (0.74 + 0.26 * Math.sin(t * 0.55 * Math.PI + 1.2)));
+    $('fog').style.opacity = String(sc.fog ?? 0.2);
+    $('fog').style.transform = `translateY(${(Math.sin(t * 0.1) * 10).toFixed(2)}px)`;
+    $('leak').style.opacity = String((0.08 + 0.18 * (sc.fog ?? 0.2)) * (0.45 + 0.55 * Math.pow(1 - dp, 2)));
+
+    const tick = Math.floor(t * 12) % 3;
+    $('grain').style.backgroundPosition = `${tick * 60}px ${((tick * 97) % 180)}px`;
+
+    // چشمکِ بسیار ملایمِ نور در شروع هر صحنه (به‌جای فلاشِ تند)
+    $('flash').style.opacity = String(Math.pow(1 - dp, 3) * 0.10);
+
+    paintDust(t, warm);
+    paintSparks(t);
+
+    /* ---- افتتاحیه: پرده، تیتر ---- */
+    $('curtain').style.opacity = String(clamp(1 - (t - 0.20) / 0.55, 0, 1));
+    const tt = clamp(t, 0, 99);
+    let toast = 0, ty = 0, tblur = 0;
+    if (tt > 0.50) {
+      const inP = clamp((tt - 0.50) / 1.05, 0, 1);
+      const outP = clamp((tt - 5.10) / 0.75, 0, 1);
+      toast = clamp(inP * 1.6, 0, 1) * (1 - outP);
+      ty = (1 - easeOutBack(inP)) * 30 - outP * 24;
+      tblur = (1 - inP) * 9 + outP * 7;
+    }
+    const title = $('title');
+    title.style.opacity = String(toast);
+    title.style.transform = `translateY(${ty.toFixed(1)}px)`;
+    title.style.filter = `blur(${tblur.toFixed(1)}px)`;
+    const numeral = title.querySelector('b');
+    if (numeral) numeral.style.letterSpacing = `${(6 * (1 - clamp((tt - 0.50) / 1.2, 0, 1))).toFixed(2)}px`;
+
+    /* ---- پایان: عکسِ واقعی ---- */
+    const cp = clamp((t - END.start) / 1.0, 0, 1);
+    const cardEl = $('card');
+    if (cp > 0) {
+      cardEl.style.opacity = String(smooth(clamp(cp * 1.25, 0, 1)));
+      const inner = $('cardInner');
+      const s = 0.93 + 0.07 * easeOutBack(clamp(cp / 0.85, 0, 1));
+      const zoom = 1 + 0.045 * clamp((t - END.start) / Math.max(0.1, DATA.DURATION - END.start), 0, 1);
+      inner.style.transform = `translateY(${((1 - smooth(cp)) * 26).toFixed(1)}px) scale(${(s * zoom).toFixed(4)}) rotate(-1.1deg)`;
+      inner.style.opacity = String(smooth(clamp(cp * 1.6, 0, 1)));
+    } else {
+      cardEl.style.opacity = '0';
+    }
+  }
+
+  window.__MOTION__ = {
+    fps: DATA.FPS, frames: DATA.FRAMES, width: 1080, height: 1920, duration: DATA.DURATION,
+    ready: false,
+    seek(frame) { seek(clamp(frame, 0, DATA.FRAMES - 1)); },
+  };
+  seek(0);
+  window.__MOTION__.ready = true;
+}
+
+window.__ENGINE_START__ = (data) => { DATA = data; return build(); };
+</script>
+</body>
+</html>
