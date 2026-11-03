@@ -4,11 +4,14 @@
  *
  *   npm run story:build -- <slug> [--lang fa|en]
  *
- * Steps: timeline → words → audio. Rendering is deliberately NOT automatic
- * (a 3-minute film is thousands of frames); run story:stills for a quick look
- * and story:render when the illustrated plates are in place.
+ * Steps: timeline → words → audio. If content/transcript.json is present (an
+ * ASR pass with word timestamps), align.py replaces timeline + words so every
+ * cue starts exactly where the voice starts. Rendering is deliberately NOT
+ * automatic (a 3-minute film is thousands of frames); run story:stills for a
+ * quick look and story:render when the illustrated plates are in place.
  */
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { ENGINE, parseArgs, project } from './lib.mjs';
 
@@ -16,10 +19,21 @@ const A = parseArgs();
 const P = project(A);
 const L = A.flags.lang || P.config.lang || 'fa';
 const args = process.argv.slice(2);
+const asr = existsSync(join(P.dir, 'content', 'transcript.json'));
 
-for (const step of ['timeline.mjs', 'words.mjs', 'audio.mjs']) {
+const steps = asr
+  ? ['align.py', 'audio.mjs']
+  : ['timeline.mjs', 'words.mjs', 'audio.mjs'];
+
+if (asr) console.log('ASR transcript found → exact word-level alignment');
+
+for (const step of steps) {
   console.log(`\n─── ${step} ───`);
-  const r = spawnSync(process.execPath, [join(ENGINE, step), ...args], { stdio: 'inherit' });
+  const bin = step.endsWith('.py') ? 'python3' : process.execPath;
+  const cmdArgs = step.endsWith('.py')
+    ? [join(ENGINE, step), ...args]
+    : [join(ENGINE, step), ...args];
+  const r = spawnSync(bin, cmdArgs, { stdio: 'inherit' });
   if (r.status !== 0) {
     if (r.status === 2) {
       console.log('\nمتن نریشن رو پر کن و دوباره `npm run story:build` رو اجرا کن.');

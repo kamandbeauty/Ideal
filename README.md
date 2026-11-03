@@ -6,6 +6,12 @@
 >
 > 👉 **ویس پروژهٔ جدید رو بذار تو [`projects/next/vo/`](projects/next/vo/)**
 > و بعد `npm run story:build -- next` رو اجرا کن.
+>
+> 🎬 **پروژهٔ فعال الان:** [`projects/austin-appelbee/`](projects/austin-appelbee/) —
+> داستان واقعی پسر ۱۳ سالهای که ۴ کیلومتر تو دریای طوفانی شنا کرد. سبک ۱۵۱۸،
+> دوربین نرم، زیرنویس تو محدودهٔ امن ریلز، هماهنگی کلمهبهکلمه با ویس و
+> عکس واقعی شخص آخر کلیپ. نمونه:
+> [`plates-contact-sheet.jpg`](projects/austin-appelbee/exports/plates-contact-sheet.jpg).
 
 ---
 
@@ -31,7 +37,9 @@ npm run story:render -- next --fast # MP4 نهایی ۱۰۸۰×۱۹۲۰
 | دستور | کار |
 | --- | --- |
 | `story:new -- <slug>` | اسکلت پروژهٔ تازه |
-| `story:build -- <slug>` | timeline → words → audio، پشتسرهم |
+| `story:build -- <slug>` | align (ASR) یا timeline → words → audio، پشتسرهم |
+| `story:align -- <slug>` | صحنهها + SRT + تایمکد کلمهها دقیقاً از `transcript.json` |
+| `story:photo-card -- <slug>` | کارت «عکس واقعی (…)» برای پایان کلیپ |
 | `story:timeline -- <slug>` | صحنهها + SRT + پلان دوربین از روی سکوتهای ویس |
 | `story:words -- <slug>` | تایمکد تک تک کلمهها روی انرژی صدا |
 | `story:audio -- <slug>` | نریشن + درون + ضربان قلب، −14 LUFS |
@@ -52,9 +60,11 @@ style/                 سبک خانه + نمونهٔ مرجع + تصمیمها
   DECISIONS.md         دو زبان، ویس توسط کاربر، …
   reference/           ویدئو و اسکرینشاتهای نمونه
 engine/                موتور مشترک، config-driven (از ۱۵۱۸ استخراج شده)
-  stage.html           صحنهٔ ۹:۱۶ + دوربین + زیرنویس کینتیک
+  stage.html           صحنهٔ ۹:۱۶ + دوربین نرم + زیرنویس کینتیک (محدودهٔ امن ریلز)
   timeline / words / audio / render / build / new-project .mjs
+  align.py / transcribe.py / photo-card.mjs   مسیر ASR دقیق + کارت عکس واقعی
 projects/              فیلمهای جدید
+  austin-appelbee/     🎬 پروژهٔ فعال (ویس جدید، ۸۷ ثانیه، فارسی)
   next/                👈 آمادهٔ دریافت ویس (config + vo/ + خروجیها)
 motion/
   dance-1518/          پروژهٔ مرجع تحویلشده (MP4 + SRT + ویس فا/ان)

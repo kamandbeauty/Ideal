@@ -43,3 +43,7 @@ projects/*/content/*.log
 # OS
 .DS_Store
 Thumbs.db
+
+# Image-search scratch + review PNG stills (regenerated on demand)
+image-search/
+projects/*/stills/*.png

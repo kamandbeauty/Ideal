@@ -1,0 +1,7 @@
+# Optional — only needed to (re)create content/transcript.json.
+# The checked-in transcript makes the whole pipeline reproducible offline.
+#   .venv/bin/pip install -r engine/requirements-asr.txt
+#   WHISPER_MODEL=/path/to/ctranslate2-whisper-small-int8 \
+#     .venv/bin/python engine/transcribe.py <slug>
+faster-whisper==1.2.1
+ctranslate2==4.8.5

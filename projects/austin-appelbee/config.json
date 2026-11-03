@@ -1,0 +1,29 @@
+{
+  "slug": "austin-appelbee",
+  "title": "آستین اپلبی — شنا تا نجات خانواده",
+  "titleNum": "۱۳",
+  "titleSub": "کیلومترها برای خانواده",
+  "lang": "fa",
+  "fps": 30,
+  "tail": 1.1,
+  "minScene": 1.4,
+  "beat": 1.42,
+  "vo": {},
+  "subtitle": {
+    "bottom": 430,
+    "left": 80,
+    "right": 150,
+    "maxChars": 40,
+    "wrapChars": 36
+  },
+  "camera": {
+    "smooth": true
+  },
+  "realPhoto": {
+    "file": "assets/real/austin-appelbee.jpg",
+    "caption": "عکس واقعی (آستین اپلبی)",
+    "credit": "Briana Shepherd / ABC via AP · 3 Feb 2026 · Gidgegannup, Australia",
+    "plate": "p17",
+    "from": 80.7
+  }
+}

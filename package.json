@@ -10,6 +10,9 @@
   "scripts": {
     "story:new": "node engine/new-project.mjs",
     "story:build": "node engine/build.mjs",
+    "story:align": "python3 engine/align.py",
+    "story:transcribe": "python3 engine/transcribe.py",
+    "story:photo-card": "node engine/photo-card.mjs",
     "story:timeline": "node engine/timeline.mjs",
     "story:words": "node engine/words.mjs",
     "story:audio": "node engine/audio.mjs",

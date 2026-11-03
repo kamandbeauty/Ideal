@@ -44,8 +44,10 @@
     background-image: url("assets/grain.png"); background-repeat: repeat; background-size: 256px 256px; }
   #flash { position: absolute; inset: 0; background: #fff3dc; opacity: 0; pointer-events: none; }
   #curtain { position: absolute; inset: 0; background: #050403; opacity: 1; pointer-events: none; }
-  #scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; pointer-events: none;
-    background: linear-gradient(0deg, rgba(6,4,2,.50) 0%, rgba(6,4,2,.22) 46%, rgba(6,4,2,0) 100%); }
+  /* Reels safe zone: the scrim now reaches up to the raised subtitle band
+     (bottom ~430px), well above the caption/audio/nav UI at the bottom. */
+  #scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 860px; pointer-events: none;
+    background: linear-gradient(0deg, rgba(6,4,2,.56) 0%, rgba(6,4,2,.34) 40%, rgba(6,4,2,.12) 72%, rgba(6,4,2,0) 100%); }
 
   /* ---------- dust + embers ---------- */
   #dust { position: absolute; inset: 0; pointer-events: none; }
@@ -70,9 +72,11 @@
   #title em { display: block; margin: 30px auto 0; width: 168px; height: 1.5px; background: linear-gradient(90deg, rgba(243,193,121,0), rgba(243,193,121,.9), rgba(243,193,121,0)); }
 
   /* ---------- kinetic subtitles ---------- */
-  #sub { position: absolute; left: 54px; right: 54px; bottom: 132px;
+  /* Instagram Reels: raised above the follow button / profile photo / bottom
+     caption strip, and inset from the right-hand action rail. */
+  #sub { position: absolute; left: 80px; right: 150px; bottom: 430px;
     direction: rtl; text-align: center; font-family: 'Vazirmatn', sans-serif; font-weight: 700;
-    font-size: 58px; line-height: 1.46; letter-spacing: -.3px; color: #fff;
+    font-size: 54px; line-height: 1.42; letter-spacing: -.3px; color: #fff;
     text-shadow: 0 6px 24px rgba(0,0,0,.95), 0 2px 6px rgba(0,0,0,.98), 0 0 34px rgba(0,0,0,.75);
     -webkit-text-stroke: 2.6px rgba(0,0,0,.55); paint-order: stroke fill; }
   #sub { word-spacing: -.08em; }
@@ -109,7 +113,9 @@
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 // دوربینِ آرام: نه با ضربه شروع می‌شود نه با ضربه تمام
-const easeCamera = (p) => 0.5 - 0.5 * Math.cos(Math.PI * clamp(p, 0, 1));
+// Smootherstep (quintic): zero velocity AND zero acceleration at both ends,
+// so the camera never lurches into or out of a move.
+const easeCamera = (p) => { const x = clamp(p, 0, 1); return x * x * x * (x * (x * 6 - 15) + 10); };
 const easeOutBack = (p) => { const c = 1.70158; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
 const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
 
@@ -123,18 +129,19 @@ let embers = [];
 
 /* --------------------------------------------------------------- camera --- */
 // k: زوم روی پلیت (پلیت ۲۶۰۰ پیکسل است، پس تا k≈2.3 هم تصویر تیز می‌ماند)
+// Gentle, continuous moves: smaller zoom deltas = no visible "jumping" on a cut.
 const MOVES = {
-  in:    (a) => ({ k0: 1.16, k1: 1.44 + 0.34 * a }),
-  out:   (a) => ({ k0: 1.44 + 0.34 * a, k1: 1.16 }),
-  panR:  (a) => ({ k0: 1.40 + 0.16 * a, k1: 1.40 + 0.16 * a }),
-  panL:  (a) => ({ k0: 1.40 + 0.16 * a, k1: 1.40 + 0.16 * a }),
-  tiltU: (a) => ({ k0: 1.46 + 0.16 * a, k1: 1.46 + 0.16 * a }),
-  tiltD: (a) => ({ k0: 1.46 + 0.16 * a, k1: 1.46 + 0.16 * a }),
-  inL:   (a) => ({ k0: 1.18, k1: 1.50 + 0.30 * a }),
-  inR:   (a) => ({ k0: 1.18, k1: 1.50 + 0.30 * a }),
-  hold:  (a) => ({ k0: 1.22, k1: 1.26 + 0.10 * a }),
-  push:  (a) => ({ k0: 1.34 + 0.30 * a, k1: 2.00 + 0.18 * a }),   // عقب‌کشیدنِ سریع
-  hook:  (a) => ({ k0: 2.06, k1: 1.30 + 0.10 * a }),              // نمای درشت → نمای باز
+  in:    (a) => ({ k0: 1.10, k1: 1.26 + 0.16 * a }),
+  out:   (a) => ({ k0: 1.26 + 0.16 * a, k1: 1.10 }),
+  panR:  (a) => ({ k0: 1.24 + 0.08 * a, k1: 1.24 + 0.08 * a }),
+  panL:  (a) => ({ k0: 1.24 + 0.08 * a, k1: 1.24 + 0.08 * a }),
+  tiltU: (a) => ({ k0: 1.26 + 0.08 * a, k1: 1.26 + 0.08 * a }),
+  tiltD: (a) => ({ k0: 1.26 + 0.08 * a, k1: 1.26 + 0.08 * a }),
+  inL:   (a) => ({ k0: 1.11, k1: 1.29 + 0.16 * a }),
+  inR:   (a) => ({ k0: 1.11, k1: 1.29 + 0.16 * a }),
+  hold:  (a) => ({ k0: 1.16, k1: 1.19 + 0.06 * a }),
+  push:  (a) => ({ k0: 1.18 + 0.14 * a, k1: 1.52 + 0.12 * a }),
+  hook:  (a) => ({ k0: 1.58, k1: 1.16 + 0.06 * a }),
 };
 
 function cameraAt(sc, t, p, seed) {
@@ -142,9 +149,9 @@ function cameraAt(sc, t, p, seed) {
   const k = k0 + (k1 - k0) * p;
   const a0 = sc.a0 || [0.5, 0.5];
   const a1 = sc.a1 || a0;
-  // سفرِ لنگر ۱٫۳ برابر می‌شود تا حرکتِ افقی/عمودی خوانده شود
-  const ax = 0.5 + (a0[0] - 0.5) + ((a1[0] - a0[0]) * 1.35) * p;
-  const ay = 0.5 + (a0[1] - 0.5) + ((a1[1] - a0[1]) * 1.35) * p;
+  // سفرِ لنگر ملایم (۱٫۱ برابر) تا پَن/تیلت نرم خوانده شود
+  const ax = 0.5 + (a0[0] - 0.5) + ((a1[0] - a0[0]) * 1.10) * p;
+  const ay = 0.5 + (a0[1] - 0.5) + ((a1[1] - a0[1]) * 1.10) * p;
 
   const maxX = ((k - 1) * 1080) / 2;
   const maxY = ((k - 1) * 1920) / 2;
@@ -153,12 +160,12 @@ function cameraAt(sc, t, p, seed) {
   tx = clamp(tx, -maxX, maxX);
   ty = clamp(ty, -maxY, maxY);
 
-  // لرزشِ دستی: دو سینوسِ ناهماهنگ + یک موجِ کند که با هر صحنه فرق دارد
+  // لرزشِ دستیِ بسیار ملایم: کندتر، با دامنۀ کوچکتر و بدون فرکانس‌های تند
   const ph = seed * 2.7;
-  const hx = Math.sin(t * 0.13 * Math.PI * 2 + ph) * 5 + Math.sin(t * 0.31 * Math.PI * 2 + 1.7) * 2.4;
-  const hy = Math.sin(t * 0.11 * Math.PI * 2 + 0.6 + ph) * 4.2 + Math.sin(t * 0.27 * Math.PI * 2 + 2.3) * 1.8;
-  const rot = Math.sin(t * 0.083 * Math.PI * 2 + 2.1 + ph) * 0.28;
-  const breathe = 1 + Math.sin(t * 0.19 * Math.PI * 2 + 0.9) * 0.0045;
+  const hx = Math.sin(t * 0.07 * Math.PI * 2 + ph) * 2.0 + Math.sin(t * 0.16 * Math.PI * 2 + 1.7) * 0.7;
+  const hy = Math.sin(t * 0.06 * Math.PI * 2 + 0.6 + ph) * 1.7 + Math.sin(t * 0.14 * Math.PI * 2 + 2.3) * 0.6;
+  const rot = Math.sin(t * 0.05 * Math.PI * 2 + 2.1 + ph) * 0.10;
+  const breathe = 1 + Math.sin(t * 0.11 * Math.PI * 2 + 0.9) * 0.0022;
   return { tx: tx + hx, ty: ty + hy, k: k * breathe, rot };
 }
 
@@ -174,7 +181,7 @@ function setCue(ci) {
   const ws = (DATA.WORDS && DATA.WORDS[ci]) || [];
   const cue = DATA.CUES[ci];
   const len = cue ? cue.text.length : 0;
-  sub.style.fontSize = len <= 40 ? '60px' : len <= 58 ? '55px' : '50px';
+  sub.style.fontSize = len <= 28 ? '56px' : len <= 40 ? '52px' : '48px';
   ws.forEach((w, i) => {
     const el = document.createElement('span');
     el.className = 'w';
@@ -290,6 +297,11 @@ async function build() {
   // House-style stage is shared; per-project text/direction comes from DATA.
   const sub = $('sub');
   sub.style.direction = (DATA.lang === 'fa' || DATA.lang === 'ar') ? 'rtl' : 'ltr';
+  // Per-project Reels safe zone (config.json → subtitle: {bottom,left,right}).
+  const sz = DATA.subtitle || {};
+  if (sz.bottom != null) sub.style.bottom = `${sz.bottom}px`;
+  if (sz.left != null) sub.style.left = `${sz.left}px`;
+  if (sz.right != null) sub.style.right = `${sz.right}px`;
   const stamp = $('title');
   const stampB = stamp.querySelector('b'), stampS = stamp.querySelector('span');
   if (stampB) stampB.textContent = DATA.titleNum || '';
@@ -329,8 +341,8 @@ async function build() {
     const cam = cameraAt(sc, t, easeCamera(p), current + 1);
 
     // ورودِ هر کات: پلیت با بلورِ کوتاه تیز می‌شود (نرم‌تر از پرشِ سخت)
-    const cut = clamp((t - sen.start) / 0.30, 0, 1);
-    const blur = (1 - cut) * 7;
+    const cut = clamp((t - sen.start) / 0.50, 0, 1);
+    const blur = (1 - cut) * 2.6;
     // بلور فقط در ۰٫۳ ثانیهٔ اولِ هر کات؛ در بقیهٔ فریم‌ها فیلتر سبک‌تر است
     $('plate').style.filter = blur > 0.06
       ? `saturate(1.04) brightness(1.02) blur(${blur.toFixed(2)}px)`
@@ -351,7 +363,7 @@ async function build() {
     $('grain').style.backgroundPosition = `${tick * 60}px ${((tick * 97) % 180)}px`;
 
     // فلاشِ گرم روی کات
-    $('flash').style.opacity = String(clamp(1 - (t - sen.start) / 0.20, 0, 1) * 0.30);
+    $('flash').style.opacity = String(clamp(1 - (t - sen.start) / 0.35, 0, 1) * 0.10);
 
     paintDust(t, warm);
     paintEmbers(t);

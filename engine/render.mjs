@@ -65,6 +65,7 @@ const DATA = {
   title: P.config.title || P.slug,
   titleNum: P.config.titleNum || '',
   titleSub: P.config.titleSub || '',
+  subtitle: P.config.subtitle || {},
 };
 
 function ffmpegPath() { return ffmpeg(); }
