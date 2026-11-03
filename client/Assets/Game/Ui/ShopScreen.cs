@@ -90,11 +90,13 @@ namespace Shazdeh.Game.Ui
             var name = UiKit.LabelRight(card, "name", BoosterCatalog.Name(kind), Tokens.Type.Base, Tokens.Text);
             UiKit.Place(name.rectTransform, 116f, 12f, nameRight - 116f, 22f);
 
+            // price and count share one line, one at each end: they are the same fact about the row
+            // ("costs 60, you have 2") and stacking them made the row read as two rows.
             row.Price = UiKit.LabelRight(card, "price", "", Tokens.Type.Sm, Tokens.Gold);
-            UiKit.Place(row.Price.rectTransform, 116f, 42f, nameRight - 116f, 20f);
+            UiKit.Place(row.Price.rectTransform, 210f, 42f, nameRight - 210f, 20f);
 
             row.Owned = UiKit.Label(card, "owned", "", Tokens.Type.Xs, Tokens.TextMuted, TextAlignmentOptions.Left);
-            UiKit.Place(row.Owned.rectTransform, 16f, 8f, 92f, 18f);
+            UiKit.Place(row.Owned.rectTransform, 116f, 44f, 92f, 18f);
 
             row.Buy = UiKit.Button(card, "buy", "خرید", 16f, (RowHeight - 36f) * 0.5f, 92f, 36f,
                 Tokens.Accent, Tokens.OnAccent, () => Buy(kind), (int)Tokens.Radius.Sm);
