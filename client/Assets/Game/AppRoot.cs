@@ -25,6 +25,7 @@ namespace Shazdeh.Game
         HomeScreen _home;
         DistrictScreen _districts;
         BoardScreen _board;
+        SettingsScreen _settings;
         float _hudTimer;
 
         [Tooltip("Log every content and save problem to the console. Off in a store build.")]
@@ -54,6 +55,7 @@ namespace Shazdeh.Game
             _home = CreateScreen<HomeScreen>(canvas.transform, "HomeScreen");
             _home.PlayRequested = () => Play(_session.CurrentLevel);
             _home.DistrictsRequested = ShowDistricts;
+            _home.SettingsRequested = ShowSettings;
 
             _districts = CreateScreen<DistrictScreen>(canvas.transform, "DistrictScreen");
             _districts.BackRequested = ShowHome;
@@ -61,6 +63,11 @@ namespace Shazdeh.Game
             _board = CreateScreen<BoardScreen>(canvas.transform, "BoardScreen");
             _board.HomeRequested = ShowHome;
             _board.PlayRequested = Play;
+
+            // Settings is reachable from the home screen only: nothing mid-level should be able to
+            // open a menu, and the result overlay already owns its own two buttons.
+            _settings = CreateScreen<SettingsScreen>(canvas.transform, "SettingsScreen");
+            _settings.BackRequested = ShowHome;
 
             _session.Changed += RefreshAll;
             _session.RefreshLives();
@@ -91,15 +98,29 @@ namespace Shazdeh.Game
             _home.SetVisible(true);
             _districts.SetVisible(false);
             _board.SetVisible(false);
+            _settings.SetVisible(false);
 
             _home.Refresh();
             _topBar.Refresh();
         }
 
+        void ShowSettings()
+        {
+            _home.SetVisible(false);
+            _districts.SetVisible(false);
+            _board.SetVisible(false);
+            _settings.SetVisible(true);
+
+            _settings.Refresh();
+            _topBar.Refresh();
+        }
+        
+
         void ShowDistricts()
         {
             _home.SetVisible(false);
             _board.SetVisible(false);
+            _settings.SetVisible(false);
             _districts.SetVisible(true);
 
             _districts.Refresh();
@@ -118,6 +139,7 @@ namespace Shazdeh.Game
 
             _home.SetVisible(false);
             _districts.SetVisible(false);
+            _settings.SetVisible(false);
             _board.SetVisible(true);
 
             _board.StartLevel(level);
@@ -130,6 +152,7 @@ namespace Shazdeh.Game
             if (_home.gameObject.activeSelf) _home.Refresh();
             if (_districts.gameObject.activeSelf) _districts.Refresh();
             if (_board.gameObject.activeSelf) _board.Refresh();
+            if (_settings.gameObject.activeSelf) _settings.Refresh();
         }
 
         // ---- ticks --------------------------------------------------------------------------------

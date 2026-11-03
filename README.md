@@ -35,8 +35,9 @@ See [`.claude/skills/README.md`](.claude/skills/README.md) for the map and the t
 | build (M1) | `Core/{Wallet,Lives,Progression,SaveData}`, `Content/{DistrictParser,SaveCodec}`, `Game/SaveStore` | done — offline economy, save/recover, 3 districts (not yet compiled here) |
 | build (M2) | `Core/Text/`, `Game/{AppRoot,GameSession}`, `Game/Ui/` | done — home/board/districts screens, Persian shaping + numerals, Vazir shipped (not yet compiled here) |
 | scaffold (M5) | `client/ProjectSettings/ProjectVersion.txt`, `tools/ci/check_unity_pin.py`, `docs/m5-run.md` | **started** — the project is pinned to `6000.0.32f1`, CI builds an installable `.apk`, and the pin gate is green; first compile still to happen |
-| build (M3) | `art/manifest.json`, `tools/art/`, `Game/ArtLibrary.cs`, `Editor/ArtImportSettings.cs` | **done** — 84-asset contract, all 84 sprites drawn by `tools/art/gen_art.py`, `art.py --check --strict` green |
+| build (M3) | `art/manifest.json`, `tools/art/`, `Game/ArtLibrary.cs`, `Editor/ArtImportSettings.cs` | **done** — 85-asset contract, all 85 sprites drawn by `tools/art/gen_art.py`, `art.py --check --strict` green |
 | build (M4) | `Game/Ui/BoardScreen.cs`, `Core/Boosters.cs`, `Core/StarRating.cs`, `docs/gameplay.md` | **done** — swipe and tap input, animated swap/clear/settle from the event list, per-goal HUD chips, stars on the result card, and the five-chip booster bar (arm then aim) on `LevelRun.UseBooster` (not yet compiled here) |
+| build (M6) | `Game/Ui/SettingsScreen.cs`, `Game/AppRoot.cs` | **started** — a settings screen (sound, music, haptics, reminders) that writes the four save flags and saves on the tap; the flags still gate nothing because there is no audio or haptics yet (not yet compiled here) |
 | backend | `replica/schema.sql`, `replica/architecture.md` | schema validated; API not written |
 | test | EditMode suite in `client/Assets/Core.Tests` | 150 tests **written, never executed** — the `csharp` CI job parses the sources, it cannot run Unity's runner without a licence |
 | diff | `replica/features.csv` | **21.6 / 100** — 16 features partial, 0 must-haves done |

@@ -15,6 +15,7 @@ namespace Shazdeh.Game.Ui
     {
         public Action PlayRequested;
         public Action DistrictsRequested;
+        public Action SettingsRequested;
 
         TextMeshProUGUI _levelNumber;
         TextMeshProUGUI _progressText;
@@ -81,6 +82,29 @@ namespace Shazdeh.Game.Ui
 
             var footer = UiKit.Label(Root, "footer", "بدون اینترنت هم بازی می‌شود", Tokens.Type.Xs, Tokens.TextMuted, TextAlignmentOptions.Center);
             UiKit.Place(footer.rectTransform, 20f, 700f, UiKit.CanvasWidth - 40f, 18f);
+
+            BuildSettingsButton();
+        }
+
+        /// <summary>
+        /// The gear, at the left of the title line. Left because the reading eye and every other
+        /// primary action in this layout is on the right; a secondary, permanent corner control
+        /// belongs on the side the player's thumb reaches last.
+        /// </summary>
+        void BuildSettingsButton()
+        {
+            const float size = 44f;
+            var gear = UiKit.Button(Root, "settings", "", 16f, 96f, size, size, Tokens.SurfaceRaised, Tokens.Text,
+                () => SettingsRequested?.Invoke(), (int)Tokens.Radius.Md);
+
+            // The icon is optional like every other asset: with no PNG the button says «تنظیمات» in
+            // words, which is worse-looking and just as usable.
+            var face = gear.targetGraphic as Image;
+            if (face == null || !ArtLibrary.ApplyTo(face, "icon_settings", false))
+            {
+                var label = gear.GetComponentInChildren<TextMeshProUGUI>();
+                if (label != null) RtlText.Set(label, "تنظیمات");
+            }
         }
 
         void BuildLevelCard()

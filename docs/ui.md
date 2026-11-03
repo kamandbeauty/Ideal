@@ -119,6 +119,7 @@ python3 tools/text/check_font.py       # glyph coverage, no Unity needed
 | `Assets/Game/Ui/HomeScreen.cs` | palace header, level card, play, districts |
 | `Assets/Game/Ui/BoardScreen.cs` | the board (real engine), swipe + tap input, animated turns, per-goal chips, result card with stars — see `docs/gameplay.md` |
 | `Assets/Game/Ui/DistrictScreen.cs` | districts, task prices, "build all", chest |
+| `Assets/Game/Ui/SettingsScreen.cs` | four switches — sound, music, haptics, reminders — that write the save flags |
 | `Assets/Game/Ui/PersianCheckView.cs` | the specimen scene that isolates font / shaper / layout problems |
 | `Assets/Game/Ui/RtlText.cs` | the only door text goes through |
 | `Assets/Core/Text/PersianText.cs` | shaping + reordering + digits (no UnityEngine) |
@@ -134,7 +135,10 @@ python3 tools/text/check_font.py       # glyph coverage, no Unity needed
   of the original is the acceptance criterion, and none of it exists yet. The pipeline that will
   consume it is `docs/art.md`.
 - **A world map.** Districts are a list, not a map.
-- **Settings, shop, tutorial, audio.** All later milestones.
+- **A shop, a tutorial, audio.** Later milestones. Settings exists (`SettingsScreen`) but its four
+  switches gate nothing yet: there is no audio mixer and no haptics call to gate. The switches write
+  the save flags, which is what the systems will read when they arrive — and the screen says so in
+  `docs/art.md` §3 rather than pretending.
 - **A tablet/landscape layout.** The canvas scales but the layout is portrait-first.
 - **Real device testing.** Nothing here has run on a phone yet: this sandbox has no Unity. First run on
   a device should be: check Persian on `_PersianCheck`, then play level 1 to the result overlay and

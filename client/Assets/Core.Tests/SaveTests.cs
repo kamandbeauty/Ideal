@@ -69,6 +69,34 @@ namespace Shazdeh.Core.Tests
         }
 
         [Test]
+        public void TheFourSettingsSwitchesSurviveASaveAndStartOn()
+        {
+            // SettingsScreen writes these four flags and nothing else. They are in the save because a
+            // player who mutes the game expects it to stay muted after the app is killed, so the
+            // round trip is the contract the screen leans on — not the switch animation.
+            var clock = new ManualClock();
+            var fresh = SaveCodec.NewSave(clock);
+            Assert.IsTrue(fresh.musicOn, "a new save should start with music on");
+            Assert.IsTrue(fresh.sfxOn, "a new save should start with sound on");
+            Assert.IsTrue(fresh.hapticsOn, "a new save should start with haptics on");
+            Assert.IsTrue(fresh.pushOn, "a new save should start with reminders on");
+
+            fresh.musicOn = false;
+            fresh.sfxOn = false;
+            fresh.hapticsOn = false;
+            fresh.pushOn = false;
+
+            var errors = Errors();
+            var loaded = SaveCodec.Decode(SaveCodec.Encode(fresh), clock, errors);
+
+            Assert.AreEqual(0, errors.Count, string.Join("; ", errors.ToArray()));
+            Assert.IsFalse(loaded.musicOn);
+            Assert.IsFalse(loaded.sfxOn);
+            Assert.IsFalse(loaded.hapticsOn);
+            Assert.IsFalse(loaded.pushOn);
+        }
+
+        [Test]
         public void ACorruptFileBecomesAFreshSaveInsteadOfACrash()
         {
             var clock = new ManualClock();
