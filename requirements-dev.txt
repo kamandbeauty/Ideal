@@ -2,5 +2,5 @@
 # https://github.com/agentskills/agentskills/tree/main/skills-ref
 skills-ref==0.1.1
 
-# Product photo cutouts and review contact sheets
+# Review contact sheets and illustrated-plate helpers
 Pillow>=10.0

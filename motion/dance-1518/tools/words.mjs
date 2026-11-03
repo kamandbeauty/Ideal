@@ -18,7 +18,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT = resolve(HERE, '..');
 const ROOT = resolve(PROJECT, '../..');
-const VO = join(ROOT, 'intake/style-v3/vo/Generated Audio November 02, 2026 - 9_11PM.wav');
+const VO = join(PROJECT, 'vo', 'fa.wav');
 
 /** WAV بایت‌ها → Float32 مونو در ۲۴ کیلوهرتز */
 function readWav(path) {

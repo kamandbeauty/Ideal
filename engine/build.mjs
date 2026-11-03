@@ -1,0 +1,36 @@
+#!/usr/bin/env node
+/**
+ * One command from "I dropped a VO" to "the film is timed, subtitled and mixed".
+ *
+ *   npm run story:build -- <slug> [--lang fa|en]
+ *
+ * Steps: timeline → words → audio. Rendering is deliberately NOT automatic
+ * (a 3-minute film is thousands of frames); run story:stills for a quick look
+ * and story:render when the illustrated plates are in place.
+ */
+import { spawnSync } from 'node:child_process';
+import { join } from 'node:path';
+import { ENGINE, parseArgs, project } from './lib.mjs';
+
+const A = parseArgs();
+const P = project(A);
+const L = A.flags.lang || P.config.lang || 'fa';
+const args = process.argv.slice(2);
+
+for (const step of ['timeline.mjs', 'words.mjs', 'audio.mjs']) {
+  console.log(`\n─── ${step} ───`);
+  const r = spawnSync(process.execPath, [join(ENGINE, step), ...args], { stdio: 'inherit' });
+  if (r.status !== 0) {
+    if (r.status === 2) {
+      console.log('\nمتن نریشن رو پر کن و دوباره `npm run story:build` رو اجرا کن.');
+    }
+    process.exit(r.status || 1);
+  }
+}
+
+console.log(`\n✅ ${P.slug} (${L}) آمادهست:`);
+console.log(`   projects/${P.slug}/subtitles/${L}.srt`);
+console.log(`   projects/${P.slug}/audio/mix.${L}.wav`);
+console.log('\nبعدیش: تصویرها رو بذار تو projects/' + P.slug + '/assets/plates/hd/ و:');
+console.log(`   npm run story:stills -- ${P.slug}`);
+console.log(`   npm run story:render -- ${P.slug} --fast`);

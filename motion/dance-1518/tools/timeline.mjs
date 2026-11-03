@@ -22,7 +22,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT = resolve(HERE, '..');
 const ROOT = resolve(PROJECT, '../..');
 const FFMPEG = join(ROOT, 'node_modules', '@ffmpeg-installer', 'linux-x64', 'ffmpeg');
-const VO = join(ROOT, 'intake/style-v3/vo/Generated Audio November 02, 2026 - 9_11PM.wav');
+const VO = join(PROJECT, 'vo', 'fa.wav');
 
 const FPS = 30;
 const TAIL = 1.1;          // hold the last frame after the final word

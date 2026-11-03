@@ -1,172 +1,106 @@
-# Ideal — استودیوی موشن گرافی کمند
+# Ideal — استودیوی «کتاب مصور متحرک»
 
-> **THE ODD FILE** — سیستم تولید مستقل و انگلیسیزبانِ کانال شورتس در
-> `motion/odd-file/`. قاب عمودی ۹:۱۶، تایپوگرافی ادیتوریال، بنفش الکتریک،
-> ۲۵–۳۵ ثانیه. تایملاین از روی ویساور ساخته میشود (هر بیت = یک کلیپ narration)
-> و رندر واقعی MP4 میدهد:
-> `npm run odd-file:audio` → `npm run odd-file:sample` → `npm run odd-file:render`.
-> بریف کامل: `motion/odd-file/brief.md` · نسخه فعلی:
-> `motion/odd-file/exports/odd-file-1080p.mp4`.
-
-
-این ریپو شامل **چهار کمپین موشن گرافی** و **زیرساخت استاندارد Agent Skills**
-است. همه ویدیوها واقعاً رندر و همراه صدا تحویل شدهاند، نه استوریبرد.
+> **سبک خانه از این به بعد: رقص استراسبورگ ۱۵۱۸.** کمپینهای قدیمی کمند
+> پاکسازی شدن؛ فیلم ۱۵۱۸ نگه داشته شده، و موتورش به یه زیرساخت قابل
+> استفادهٔ مجدد تبدیل شده تا پروژهٔ بعدی فقط با گذاشتن یه فایل ویس شروع بشه.
+>
+> 👉 **ویس پروژهٔ جدید رو بذار تو [`projects/next/vo/`](projects/next/vo/)**
+> و بعد `npm run story:build -- next` رو اجرا کن.
 
 ---
 
-## ۰. تازهترین: `kamand vox` — کلاژ کاغذی Vox با اسکرول پیوسته (۳۷ ثانیه)
+## شروع سریع
 
-چهارمین ویدئو **از صفر ساخته شد**: تنها دارایی تکراری، `assets/product-open.png`
-(عکس رسمی ژل لیفت ابرو، بستهبندی و لوگو دستنخورده) است. باقی بصریها —
-کاغذ پاره، پولاروید، نوار چسب، ماژیک قرمز، هافتون، بارکد، استامپ، گیره کاغذ،
-شمارههای ادیتوریال — همگی تازه با CSS/SVG ساخته شدند؛ ویساور و بستر صوتی هم
-اختصاصی همین فیلماند.
+```bash
+npm install                         # فقط بار اول: ffmpeg + chromium باندلشده
 
-- **دوربین پیوسته:** یک سند کاغذی ۷۲۰۰px که دوربین طی ۸۸۸ فریم بدون هیچ کات
-  از بالا به پایین اسکرول میکند (پارالاکس ۴ لایه + sway و زوم تدریجی).
-- **همزمانی کلمهبهکلمه:** ۶۰ تکه کاغذ جداگانه، هر کدام دقیقاً در `start`
-  همان کلمه از `audio/words.json` میچسبد؛ ماژیک قرمز زیرش کشیده میشود.
-  زمانبندی توسط کد `nimaone/persian_tts` (`split_phrases`, `_letter_words`,
-  وقفهها) + `silencedetect` روی کلیپ گوینده استخراج شده است.
-- مسیر اصلی TTS همانطور که خواسته شد `generate-vo-persian-tts.py` ← `OnnxTts`
-  است؛ چون وزنهای ONNX در این سندباکس در دسترس نیست، صدای تحویلی ۱۰ کلیپ
-  جایگزین `voice-00` است (`audio/tts-attempt.log`). با دانلود وزنها و اجرای
-  سه اسکریپت صدا، صدای اصلی بدون تغییر چیدمان جایگزین میشود.
+# ۱. ویس رو بذار
+#    projects/next/vo/fa.wav    (+ متنش: vo/script.txt — هر خط = یک صحنه)
+# ۲. بساز
+npm run story:build  -- next       # تایم لاین + زیرنویس کلمهبهکلمه + میکس صدا
+npm run story:stills -- next       # ۸ فریم مرور
+npm run story:render -- next --fast # MP4 نهایی ۱۰۸۰×۱۹۲۰
+```
 
-| خروجی | توضیح |
+متن نریشن نداری؟ `story:build` به تعداد جملههای ویس برات اسکلت
+`vo/script.txt` میسازه؛ فقط پرش کن و دوباره اجرا کن.
+
+اسم پروژه مشخصه؟ `npm run story:new -- my-story` یه پوشهٔ تازه با `vo/`
+مخصوص خودش میسازه.
+
+| دستور | کار |
 | --- | --- |
-| `motion/kamand-vox/exports/kamand-vox-4k.mp4` | 2160×3840 · 24fps · H.264 + AAC |
-| `motion/kamand-vox/exports/kamand-vox-1080p.mp4` | 1080×1920، همان صدا |
-| `motion/kamand-vox/stills/contact-sheet.jpg` | کانتکتشیت ۱۰ فریم |
-| `motion/kamand-vox/audio/words.json` | ۶۰ تایمکد کلمه |
-| `motion/kamand-vox/brief.md` | بریف کامل فارسی |
+| `story:new -- <slug>` | اسکلت پروژهٔ تازه |
+| `story:build -- <slug>` | timeline → words → audio، پشتسرهم |
+| `story:timeline -- <slug>` | صحنهها + SRT + پلان دوربین از روی سکوتهای ویس |
+| `story:words -- <slug>` | تایمکد تک تک کلمهها روی انرژی صدا |
+| `story:audio -- <slug>` | نریشن + درون + ضربان قلب، −14 LUFS |
+| `story:stills -- <slug>` | ۸ فریم مرور |
+| `story:render -- <slug> --fast` | MP4 نهایی (H.264 + AAC) |
+| `--lang en` | نسخهٔ انگلیسی همان تصویر، تایم لاین/زیرنویس/صدا/MP4 جدا |
 
-```bash
-npm run kamand-vox:audio      # mix.wav + words.json
-npm run kamand-vox:timeline   # timeline.js
-npm run kamand-vox:sample     # ۱۰ استیل مرور
-npm run kamand-vox:render     # 1080p + 4K همراه صدا
+جزئیات: [`projects/README.md`](projects/README.md) ·
+[`engine/README.md`](engine/README.md) · قوانین سبک: [`style/STYLE.md`](style/STYLE.md)
+
+---
+
+## ساختار ریپو
+
+```
+style/                 سبک خانه + نمونهٔ مرجع + تصمیمها
+  STYLE.md             قوانین قطعی (پالت، گرامر پلان، تایپوگرافی، صدا)
+  DECISIONS.md         دو زبان، ویس توسط کاربر، …
+  reference/           ویدئو و اسکرینشاتهای نمونه
+engine/                موتور مشترک، config-driven (از ۱۵۱۸ استخراج شده)
+  stage.html           صحنهٔ ۹:۱۶ + دوربین + زیرنویس کینتیک
+  timeline / words / audio / render / build / new-project .mjs
+projects/              فیلمهای جدید
+  next/                👈 آمادهٔ دریافت ویس (config + vo/ + خروجیها)
+motion/
+  dance-1518/          پروژهٔ مرجع تحویلشده (MP4 + SRT + ویس فا/ان)
+  odd-file/            برند جداگانهٔ انگلیسی THE ODD FILE — بایگانی
+  style-v3-poc/        PoC ریگ کاتاوت دوبعدی (مرجع معماری)
+.agents/skills/        Agent Skills استاندارد (motion-graphics و …)
 ```
 
 ---
 
-## ۱. `kamand paper` — ریل کاغذی ۳۰ ثانیهای
+## پروژهٔ مرجع: ۱۵۱۸ — رقص استراسبورگ
 
-سومین موشن گرافی، دقیقاً با **همان استایل اسکرینشاتهای ریل مرجع**: بکگراند
-کرم کاغذی، آرک خاکستری، گرید محو، بارکد، واترماک `KAMAND · MOTION 03`،
-نوار پیشرفت نارنجی، **تایپوگرافی فارسی خیلی درشت مشکی + یک کلمه نارنجی
-درخشان**، کارت سفید گرد، جعبه هدیه کرافت سهبعدی با روبان نارنجی و دکمه CTA
-نارنجی. کاتهای سریع، پاپ الاستیک، ماسک ریویل و ریتم 120BPM.
-
-| خروجی | توضیح |
+| مورد | مقدار |
 | --- | --- |
-| `motion/kamand-paper/exports/kamand-paper-4k.mp4` | 2160×3840 · 24fps · H.264 + AAC |
-| `motion/kamand-paper/exports/kamand-paper-1080p.mp4` | 1080×1920، همان صدا |
-| `motion/kamand-paper/stills/contact-sheet.jpg` | کانتکتشیت ۸ فریم |
-| `motion/kamand-paper/index.html` | صحنه قطعی `seek(frame)` |
-| `motion/kamand-paper/brief.md` | استوریبرد، پالت، صدا، مشخصات |
-| `reference/reel-DfNkAVNNVBu.md` | مطالعه ریل مرجع |
-
-ویساور ۵ خط فارسی + بستر الکترونیک 120BPM، بدون انسان/چهره/دست، بستهبندی
-اصلی کمند دستنخورده. شش بیت ۵ ثانیهای: هوک ← کارت نام ← جعبه هدیه ← بدون
-سفیدک ← ۳ قدم ← تیتر نهایی و CTA.
+| خروجی | `motion/dance-1518/exports/dance-1518-1080x1920.mp4` |
+| مشخصات | ۱۰۸۰×۱۹۲۰ · ۳۰fps · ۱۵۳٫۱s · ۲۰ صحنه · ۵۲ کیوی زیرنویس |
+| صدا | نریشن فارسی + درون + ضربان قلب ۱٫۴۲s، −۱۳٫۵ LUFS |
+| ویسها | `vo/fa.wav` (ضبطشده) · `vo/en.wav` (انگلیسی، آماده) |
+| متنها | `vo/fa.txt` · `vo/en.txt` |
 
 ```bash
-npm run kamand-paper:audio
-npm run kamand-paper:sample
-npm run kamand-paper:render
+npm run dance:timeline
+npm run dance:words
+npm run dance:audio
+npm run dance:render
 ```
+
+**باقیمانده:** نسخهٔ انگلیسی همان تصویر (ویس و متنش آمادهست، رندر نشده).
+پروژههای جدید این حالت رو بهصورت پیشفرض با `--lang en` پشتیبانی میکنن.
 
 ---
 
-## ۲. کمپین دوم: `kamand eye` — تیزر ۴۵ ثانیهای
+## پاکسازی انجامشده
 
-تیزر عمودی ۹:۱۶ تماماً انیمیشن، فارسی، با **محوریت تایپوگرافی جنبشی**،
-صداگذاری کامل فارسی (گوینده زن ایرانی) و بستر موسیقی الکترونیک.
+حذف شدن (همه توی تاریخچهٔ گیت قابل برگشتن):
+`motion/kamand-eye`، `motion/kamand-eyebrow-gel`، `motion/kamand-paper`،
+`motion/kamand-vox`، `motion/brand-intro`، `assets/kamand/`،
+`reference/reel-DfNkAVNNVBu.md`، `third_party/persian_tts/` و اسکریپتهای TTS
+کمند.
 
-| خروجی | توضیح |
-| --- | --- |
-| `motion/kamand-eye/exports/kamand-eye-4k.mp4` | 2160×3840 · 24fps · H.264 + AAC · **با ویساور و موزیک** |
-| `motion/kamand-eye/exports/kamand-eye-1080p.mp4` | نسخه سبک 1080×1920، همان صدا |
-| `motion/kamand-eye/stills/contact-sheet.jpg` | کانتکتشیت ۱۰ فریم |
-| `motion/kamand-eye/index.html` | صحنه قابل ویرایش، تایمline قطعی `seek(frame)` |
-| `motion/kamand-eye/audio/mix.wav` | میکس نهایی ۴۵٫۵ ثانیه |
-| `motion/kamand-eye/audio/vo-script.md` | اسکریپت ویساور با اعراب کامل + تایمکدها |
-| `motion/kamand-eye/brief.md` | استوریبرد، مشخصات فنی و محدودیتها |
+نگه داشته شدن: `motion/dance-1518` (سبک خانه)، `motion/odd-file` (برند
+جداگانهٔ انگلیسی، بایگانی — جزو کمپینهای کمند نبود)،
+`motion/style-v3-poc` (مرجع ریگ)، و زیرساخت Agent Skills.
 
-### استوریبرد (۱۰۸۰ فریم)
+ویسها و متنهای پراکندهٔ ریشه جمعآوری شدن: ویس فارسی/انگلیسی و متنها الان
+تو `motion/dance-1518/vo/`؛ نمونهٔ سبک و تحلیلش تو `style/`.
 
-| صحنه | زمان | اتفاق |
-| --- | --- | --- |
-| 1 — Hook | 0–5s | «ابروهات؟!» میکوبد داخل کادر، کش میآید، میلرزد، به دو نیمه split میشود؛ «نامرتب؟» «بدحالت؟» «سرکش؟!» از جهتهای مختلف میآیند |
-| 2 — Solution | 5–12s | موج مایع زمردی، «وقت یه تغییر قشنگه!» با ماسک ریویل، محصول با چرخش سهبعدی وارد میشود |
-| 3 — Benefits | 12–25s | «کاملاً گیاهی» (برگها رشد میکنند) · «بدون سفیدک» (پودر سفید در مایع شفاف حل میشود) · «بدون ریزش» (تایپ پایدار + امواج سبز) |
-| 4 — How to use | 25–37s | ۷۴ تار موی SVG کمکم مرتب میشوند، برس اسپولی از میانشان عبور میکند، ۴ کارت شمارهدار |
-| 5 — Final | 37–45s | کلمات به مرکز همگرا میشوند، محصول روی پایه سنگی، متنها، لوگوریویل تمیز با حلقه طلایی |
-
-- **فونت نمایشی:** Estedad 900/800 (مدرن فارسی، همرده Peyda ExtraBold / Morabba) + وزیرمتن برای متنهای فرعی؛ همه لوکال، بدون CDN.
-- **بدون** انسان، چهره، دست، فیلم لایواکشن یا کاراکتر کارتونی.
-- **بستهبندی و لوگوی اصلی کمند دستنخورده** (عکس رسمی سایت، فقط بکگراند سفید حذف شد).
-- ویساور ۱۰ کلیپ با اعراب کامل برای تلفظ صحیح؛ متن روی صفحه بدون اعراب اضافی.
-- **بکاند گفتار فارسی:** ریپوی [`nimaone/persian_tts`](https://github.com/nimaone/persian_tts)
-  در `third_party/persian_tts/` وندور و به پایپلاین وصل شده (صدای مرجع زن
-  `female_narration.wav`). وزنهای ONNX مدل (~469MB) روی HuggingFaceاند و این
-  سندباکس به `huggingface.co` دسترسی ندارد، بنابراین MP4های تحویلی فعلاً با
-  صدای جایگزین `voice-00` ساخته شدند؛ `third_party/persian_tts/model/README.md`
-  دستور یکباره دانلود و `npm run kamand-eye:vo:persian-tts` مسیر تعویض صدا را
-  دارد. نکته لایسنس: مدل پایه CC-BY-NC-4.0 است، پیش از انتشار تجاری بررسی شود.
-- موزیک 120 BPM الکترونیک + افکتهای impact/riser + امضای پایانی، با ducking زیر صدا.
-
-```bash
-npm run kamand-eye:audio        # ساخت mix.wav
-npm run kamand-eye:sample       # ۱۰ استیل مرور
-npm run kamand-eye:render       # خروجی 1080p + 4K همراه صدا
-npm run motion:preview          # پیشنمایش زنده پورت 8080
-```
-
-> **شفافسازی:** فیلم تماماً انیمیشن 2D/2.5D است (تایپوگرافی، SVG، چرخش CSS 3D،
-> پلیتهای CGI و کاتاوت واقعی محصول)، نه شبیهسازی بلادرنگ سیال/مو. موزیک بهصورت
-> برنامهنویسیشده سنتز شده (تراک لایسنسشده نیست) و ویساور TTS است؛ هر دو در پست
-> قابل تعویضاند بدون تغییر تایمline. خروجی 4K از مستر 1080×1920 با lanczos
-> آپاسکیل شده (پلیتهای منبع 768×1376اند).
-
----
-
-## ۳. کمپین اول: ژل لیفت ابرو کمند (۶ صحنه، ۲۷٫۶ ثانیه)
-
-تیزر عمودی ۹:۱۶ شش صحنهای با پلیتهای CGI فوقواقعی و عکس واقعی محصول.
-مستر 4K + 1080p + دو نسخه «بدون متن» برای پستپروداکشن:
-
-`motion/kamand-eyebrow-gel/exports/` · کانتکتشیت:
-`motion/kamand-eyebrow-gel/stills/contact-sheet.jpg` · بریف:
-`motion/kamand-eyebrow-gel/brief.md`.
-
-```bash
-npm run kamand:render
-npm run kamand:render:no-text
-```
-
----
-
-## ۴. زیرساخت Agent Skills
-
-لینک `agentskills/agentskills` **خود استاندارد** است، نه یک اسکیل قابل نصب
-(`npx skills add agentskills/agentskills --list` → «No skills found»). به همین
-دلیل پشتیبانی استاندارد نصب شد و اسکیل `motion-graphics` مطابق همان مشخصات
-ساخته شد:
-
-| بخش | مسیر |
-| --- | --- |
-| اسکیل | `.agents/skills/motion-graphics/` (+ لینک `.claude/skills/`) |
-| مدیریت / اعتبارسنجی | `skills` CLI، `skills-ref` (`npm run skills:validate` → `Valid skill`) |
-| راهنمای ایجنت | `AGENTS.md` |
-| پیشنمایش | `scripts/preview.mjs` → پورت 8080 |
-
-نصب اسکیل دیگر:
-
-```bash
-npx skills add <owner>/<repo> --skill <name> -a '*' -y
-```
-
-وابستگیها (`node_modules/`، `venv/`) و فریمهای میانی (`/tmp`) داخل گیت
-نمیآیند؛ فقط منابع قابل ویرایش، استیلها و خروجی MP4 نگهداری میشوند.
+> نکته: `motion/dance-1518/` عمداً موتور خودش رو نگه داشت تا آرشیو قابل
+> replay باشه. پروژههای **جدید** فقط از `engine/` استفاده میکنن.

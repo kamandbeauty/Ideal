@@ -3,7 +3,7 @@
 // Usage: npm run motion:preview   (PORT=8080 by default, binds 0.0.0.0)
 import { createServer } from 'node:http';
 import { createReadStream, existsSync, readdirSync, statSync } from 'node:fs';
-import { extname, join, normalize, resolve, sep } from 'node:path';
+import { extname, join, normalize, relative, resolve, sep } from 'node:path';
 
 const ROOT = process.cwd();
 const PORT = Number(process.env.PORT || 8080);
@@ -52,35 +52,30 @@ function scenes() {
     .map((e) => e.name);
 }
 
-function campaignLinks() {
-  const base = '/motion/kamand-eyebrow-gel';
-  const links = [];
-  const paper = '/motion/kamand-paper';
-  const eye = '/motion/kamand-eye';
-  const vox = '/motion/kamand-vox';
+function deliverableLinks() {
   const cands = [
-    ['VOX 1080p', `${vox}/exports/kamand-vox-1080p.mp4`],
-    ['VOX 4K', `${vox}/exports/kamand-vox-4k.mp4`],
-    ['VOX contact sheet', `${vox}/stills/contact-sheet.jpg`],
-    ['PAPER 1080p', `${paper}/exports/kamand-paper-1080p.mp4`],
-    ['PAPER 4K', `${paper}/exports/kamand-paper-4k.mp4`],
-    ['PAPER contact sheet', `${paper}/stills/contact-sheet.jpg`],
-    ['KAMAND EYE 1080p', `${eye}/exports/kamand-eye-1080p.mp4`],
-    ['KAMAND EYE 4K', `${eye}/exports/kamand-eye-4k.mp4`],
-    ['EYE contact sheet', `${eye}/stills/contact-sheet.jpg`],
-    ['Prev. 1080p MP4', `${base}/exports/kamand-eyebrow-gel-1080p.mp4`],
-    ['Prev. 4K MP4', `${base}/exports/kamand-eyebrow-gel-4k.mp4`],
-    ['Prev. contact sheet', `${base}/stills/contact-sheet.jpg`],
-    ['Prev. clean 1080p', `${base}/exports/kamand-eyebrow-gel-1080p-no-text.mp4`],
-    ['Prev. clean 4K', `${base}/exports/kamand-eyebrow-gel-4k-no-text.mp4`],
+    ['۱۵۱۸ · MP4', '/motion/dance-1518/exports/dance-1518-1080x1920.mp4'],
+    ['۱۵۱۸ · SRT', '/motion/dance-1518/subtitles/fa.srt'],
+    ['Style guide', '/style/STYLE.md'],
   ];
-  for (const [label, href] of cands) {
-    const rel = href.replace('/motion/', '');
-    if (existsSync(join(ROOT, 'motion', rel))) links.push(`<a href="${href}">${label}</a>`);
+  for (const dir of ['motion/dance-1518', 'projects']) {
+    const base = join(ROOT, dir);
+    if (!existsSync(base)) continue;
+    const walk = (d) => {
+      for (const e of readdirSync(d, { withFileTypes: true })) {
+        const f = join(d, e.name);
+        if (e.isDirectory()) walk(f);
+        else if (e.name.endsWith('.mp4')) cands.push([e.name, '/' + relative(ROOT, f).split(sep).join('/')]);
+      }
+    };
+    walk(base);
   }
-  return links.length
-    ? `<h2>Campaign exports</h2><p>${links.join(' · ')}</p>`
-    : '';
+  const links = [];
+  for (const [label, href] of cands) {
+    const rel = href.slice(1);
+    if (existsSync(join(ROOT, rel))) links.push(`<a href="${href}">${label}</a>`);
+  }
+  return links.length ? `<h2>Deliverables</h2><p>${links.join(' · ')}</p>` : '';
 }
 
 function indexPage() {
@@ -94,7 +89,7 @@ function indexPage() {
 a{color:#ff5c8a}code{background:#141828;padding:2px 6px;border-radius:4px}li{margin:8px 0}span{color:#a6adbf}</style>
 </head><body><h1>Ideal · motion preview</h1>
 <p>Starter template: <a href="/starter.html">starter.html</a> (plays in real time; append <code>?frame=90</code> for a single frame).</p>
-${campaignLinks()}<h2>Scenes</h2><ul>${list}</ul>
+${deliverableLinks()}<h2>Scenes</h2><ul>${list}</ul>
 <p>Exports live in <code>motion/&lt;slug&gt;/exports/</code>. Frames are driven by <code>window.__MOTION__.seek(frame)</code>.</p>
 </body></html>`;
 }
@@ -113,6 +108,9 @@ createServer((req, res) => {
   // Only whitelisted trees are exposed; .git, node_modules, etc. stay private.
   const roots = [
     ['/motion/', join(ROOT, 'motion')],
+    ['/projects/', join(ROOT, 'projects')],
+    ['/style/', join(ROOT, 'style')],
+    ['/engine/', join(ROOT, 'engine')],
     ['/out/', join(ROOT, 'out')],
     ['/assets/', SKILL_ASSETS],
   ];

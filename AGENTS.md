@@ -1,145 +1,67 @@
-# Agent instructions for the Ideal workspace
+# Agent instructions — Ideal workspace
+
+## سبک خانه (قانون اول)
+
+**همهٔ ویدیوهای جدید با سبک «رقص استراسبورگ ۱۵۱۸ / کتاب مصور متحرک» ساخته
+میشن.** قبل از هر کار تصویری [`style/STYLE.md`](style/STYLE.md) رو کامل بخون،
+و [`engine/README.md`](engine/README.md) رو برای معماری موتور.
+
+- پروژههای جدید **فقط** تو `projects/<slug>/` ساخته میشن و از `engine/`
+  استفاده میکنن. `motion/dance-1518/` آرشیو تحویلشدهست — دستش نزن (موتور
+  خودشو داره که باید قابل replay بمونه).
+- `motion/odd-file/` برند جداگانهٔ انگلیسی و بایگانیه؛ جزو کارهای جدید نیست،
+  ولی حذف/تغییر هم نشه مگر اینکه کاربر صریحاً بگه.
+- کمپینهای کمند حذف شدن؛ اسامیشون (`kamand-*`, `assets/kamand`, TTS فارسی)
+  نباید دوباره وارد ریپو بشن.
+
+## ورودی پروژهٔ جدید
+
+```
+projects/<slug>/vo/     ← ویس ضبطشده کاربر (fa.wav / en.wav / mp3 / …)
+projects/<slug>/vo/script.txt     ← متن، هر خط = یک صحنه
+projects/<slug>/assets/plates/hd/ ← پلیتهای نقاشیشدة p01.jpg, p02.jpg …
+```
+
+`projects/next/` از قبل آمادست؛ اگه کاربر گفت «ویس رو گذاشتم»، اول اونجا رو
+چک کن. **از TTS استفاده نکن** — ویس حتماً ضبط واقعی کاربره.
+
+```bash
+npm install                          # ffmpeg + chromium باندلشده
+npm run story:new -- <slug>           # پروژهٔ تازه
+npm run story:build -- <slug>         # timeline → words → audio
+npm run story:stills -- <slug>        # فریمهای مرور
+npm run story:render -- <slug> --fast # MP4 نهایی
+npm run story:build -- <slug> --lang en   # نسخهٔ دوم زبان
+```
+
+ترتیب واجب: `timeline` قبل `words`، `words` قبل `audio`، `audio` قبل `render`.
+اگه ویس عوض شد، کل زنجیره رو دوباره اجرا کن — هیچ زمانبندی دستی وجود نداره.
+
+## قوانین موتور (نشکن)
+
+1. هر فریم `window.__MOTION__.seek(frame)`؛ انیمیشن CSS، `Math.random`،
+   فونت/CDN شبکهای و فیلترهای متحرک ممنوع. فقط `transform`/`opacity`.
+2. یک تصویر نقاشیشده برای هر جمله، کات سخت ۱٫۵–۳ ثانیه؛ بدون ترنزیشن نرم،
+   بدون تیتر/لوگو/HUD (جز استامپ تاریخ افتتاحیه).
+3. تایپوگرافی = فقط زیرنویس؛ فارسی RTL با وزیرمتن، انگلیسی LTR. کلمهٔ
+   درحالگفتن کهربایی + خط کاراوکه.
+4. صدا: درون + ضربان قلب ۱٫۴۲s + رومتون، ducking زیر ویس، −14 LUFS.
+   موسیقی ملودیک نیار.
+5. پالت گرم/خاکی، بافت کاغذ، نور شمع، وینیت. رنگ نئونی ممنوع.
+6. خروجیها (SRT، `mix.<lang>.wav`، MP4، ویس، پلیتها) تو گیت بمونن؛ فقط
+   فریمهای میانی `/tmp` و `frames/` نگهداری نشن.
 
 ## Installed skills
 
-Skills live in `.agents/skills/` (the Agent Skills open standard,
-`https://github.com/agentskills/agentskills`). A symlink at
-`.claude/skills/motion-graphics` makes the same skill discoverable by Claude
-Code and other clients that read `.claude/skills/`.
+Skills تو `.agents/skills/` (استاندارد Agent Skills)؛ لینک
+`.claude/skills/motion-graphics` همون اسکیل رو برای کلاینتهای دیگه قابل
+کشف میکنه.
 
-| Skill | Activate when |
+| Skill | کی فعال بشه |
 | --- | --- |
-| `motion-graphics` | The user asks for a motion graphic, animation, intro/outro, animated title, logo sting, lower third, stat count-up, chart reveal, video overlay, موشن گرافی, or any frame-based visual sequence. |
+| `motion-graphics` | درخواست موشن گرافی/انیمیشن/تیتر متحرک — ولی برای فیلمهای داستانی این ریپو، مسیر `engine/` اولویت داره |
+| `ip-character-builder` | ساخت پک شخصیت ثابت برای پلیتهای نقاشیشده |
+| `spine-animation` | فقط اگه کاربر صریحاً ریگ Spine خواست |
 
-When a request matches, read `.agents/skills/motion-graphics/SKILL.md` in full
-before writing code, and load only the `references/*.md` files the task needs.
-
-## Channel system: `odd-file` (THE ODD FILE)
-
-`motion/odd-file/` is a separate, English-language brand: a premium faceless
-YouTube Shorts channel (9:16, 25–35 s, dark cinema + editorial type + electric
-purple). Read `motion/odd-file/brief.md` first — it is the brand bible, the scene
-vocabulary and the QC checklist.
-
-Only one file changes per episode: `motion/odd-file/content/episode.js`. Beats
-(`b01…`) map 1:1 to narration clips in `motion/odd-file/audio/vo/bXX.mp3`;
-`npm run odd-file:audio` trims and peak-normalises them, then writes
-`timeline.js` (beat starts/durations) and `mix.wav` (VO + synthesised drone bed +
-cut impacts, sidechain-ducked, −14 LUFS). Picture duration is derived from that
-timeline, so re-recording a line re-cuts the film automatically.
-
-Frames are per-episode: `format: 'vertical' | 'landscape'` in
-`motion/odd-file/content/episode.js` switches the engine between 9:16 Shorts and
-16:9 YouTube posts (stage size, type scale, padding, HUD, scrims), and the
-renderer writes `exports/file-00X-1080p.mp4` + a 4K master. Narration is scoped
-to `audio/vo/<file-number>/bXX.mp3` so episodes never overwrite each other.
-
-**Long form (File 003+).** `audio/build.mjs` also supports the long-form timing
-model: one recording per script section (`c01…c12`), and each beat declares
-`clip` + clip-relative `from`/`to` seconds taken from `silencedetect` on that
-recording. `EPISODE.audio` places the bed hole, the pre-outro duck and the brand
-signature (`*FromEnd` variants resolve against the final runtime), and
-`clipCuts: { c10: 24.31 }` trims a clip at an arbitrary second when the outro
-needs to be re-ordered. A beat may hold the picture past its clip's last word —
-match the total picture length to `timeline.total` or the renderer will be a
-second short and `-shortest` will eat the tail.
-
-```bash
-npm run odd-file:audio     # timeline.js + mix.wav (needs the VO clips)
-npm run odd-file:sample    # review stills
-npm run odd-file:render    # 1080x1920 + 2160x3840 MP4 with audio
-```
-
-Engine rules: every frame is `window.__MOTION__.seek(frame)`; no CSS animations,
-no Math.random, no network fonts (faces are bundled from `@fontsource*`). Scene
-types are `code`, `statement`, `serif`, `figure`, `plate`, `sequence`, `cta`,
-`tagline`; use at least four per episode and never repeat one twice in a row.
-Purple is an event, not a wash — one highlighted phrase per scene.
-
-Motion is transform/opacity only — no filters, blurs or animated layout — because
-the whole film is rasterised frame by frame. Per-beat `fx` picks the word
-entrance (`rise`, `settle`, `flip`, `slide`, `wipe`, `drop`), `camera` picks the
-plate move (`push`, `drift`, `pull`, `tilt`), and every photographic scene gets a
-one-shot light rake and a breathing scrim. Promote anything you animate
-continuously with `will-change` (the scrim needs it; without it the render drops
-from 2.0 to 1.4 fps).
-
-Rendering: `--fast` hides the CSS grain and adds equivalent noise at encode time,
-`--no-4k` skips the upscale master, `--beats` writes one review still per scene
-to `stills/epNNN/`, `--strip b07` writes 8 frames across one beat. At 24 fps and
-2.0 fps capture speed a 3-minute film takes ~36 minutes on 2 vCPU.
-
-## Prior campaign: `kamand vox` (37 s Vox paper-collage scroll)
-
-The newest film lives in `motion/kamand-vox/` — read its `brief.md` first.
-Only `assets/product-open.png` was carried over; every other visual, VO clip,
-music bed and render script was built fresh. One 7200px paper document is
-scrolled by a continuous (no-cut) camera over 888 frames at 24 fps. 60 separate
-torn-paper word cutouts pop in exactly at their `audio/words.json` timestamps;
-word timings come from the vendored `third_party/persian_tts` splitters plus
-`silencedetect` on the narrator clips. `timeline.js` is generated by
-`npm run kamand-vox:timeline` and must be regenerated whenever `words.json`
-changes. Primary VO path is `npm run kamand-vox:vo:persian-tts` (needs HF ONNX
-weights, absent here); shipped audio uses 10 dedicated `voice-00` fallback
-clips. Render: `npm run kamand-vox:render`.
-
-### Prior campaign: `kamand paper` (30 s)
-
-This film lives in `motion/kamand-paper/` — read its `brief.md`.
-Reference style: `reference/reel-DfNkAVNNVBu.md` + the two client screenshots
-(cream paper, black/orange giant Persian type, 3D kraft gift box, white card,
- barcode, orange CTA pill). 720 deterministic frames at 24 fps, `seek(frame)`,
- Estedad/Vazirmatn, bundled audio. Render: `npm run kamand-paper:render`.
-
-An earlier 45 s Persian kinetic ad lives in `motion/kamand-eye/`
-(`npm run kamand-eye:render`) and a six-scene CGI commercial in
-`motion/kamand-eyebrow-gel/` (`npm run kamand:render`).
-
-### Prior campaign: `kamand eye` (45 s)
-
-The current ad lives in `motion/kamand-eye/` — read its `brief.md` before
-editing. Key facts: vertical 9:16, 45 s, 1080 deterministic frames at 24 fps,
-`window.__MOTION__.seek(frame)`, Estedad 900 + Vazirmatn fonts bundled locally,
-10 Persian voiceover clips + synthesized 120 BPM music mixed into
-`audio/mix.wav`, official KAMAND product cutouts in `assets/`
-(**never redesign the packaging or logo**), and `?noText=1` support.
-Render with `npm run kamand-eye:render` (adds AAC audio); review stills in
-`stills/`. VO timecodes are in `audio/vo-script.md`. The requested Persian TTS
-backend `nimaone/persian_tts` is vendored in `third_party/persian_tts/` and
-wired through `npm run kamand-eye:vo:persian-tts`; its HF weights are absent
-here (`huggingface.co` blocked), so shipped audio uses the `voice-00` fallback.
-
-An earlier six-scene 27.6 s commercial remains in
-`motion/kamand-eyebrow-gel/` (`npm run kamand:render`).
-
-## Motion graphics workflow
-
-```bash
-npm run motion:new -- <slug>       # scaffold motion/<slug>/index.html + brief.md
-npm run motion:render -- <slug>    # export out/<slug>.mp4 (needs Playwright + ffmpeg)
-npm run motion:preview             # live preview on 0.0.0.0:8080
-npm run skills:validate            # validate skill frontmatter
-npm run skills:list                # show skills discovered by the skills CLI
-```
-
-Scenes must expose `window.__MOTION__` with `fps`, `frames`, `width`, `height`,
-and `seek(frame)`. All motion must be deterministic and derived from the frame
-number. Generated videos, PNG frame sequences, and `node_modules/` are ignored
-by Git; keep only editable sources and briefs in the repository.
-
-## Adding more skills
-
-```bash
-npx skills add <owner>/<repo> --skill <skill-name> -a '*' -y
-```
-
-The `agentskills/agentskills` repository itself is the specification plus the
-`skills-ref` validator, not an installable skill: `npx skills add
-agentskills/agentskills --list` reports "No skills found". Use that repo as the
-format reference, not as a skill source.
-
-## Language
-
-The project owner writes in Persian. User-facing documentation (README) is in
-Persian; skill instructions and code comments stay in English for portability
-across agents.
+پیشنمایش زنده: `npm run motion:preview` (پورت ۸۰۸۰، bind روی 0.0.0.0).
+اعتبارسنجی اسکیلها: `npm run skills:validate`.

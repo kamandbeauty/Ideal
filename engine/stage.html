@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<title>story</title>
+<style>
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-400-normal.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-500-normal.woff2') format('woff2'); font-weight: 500; }
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-700-normal.woff2') format('woff2'); font-weight: 700; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #070605; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #080605; }
+
+  /* ---------- the plate ---------- */
+  #plateWrap { position: absolute; inset: 0; overflow: hidden; }
+  #plate {
+    position: absolute; left: 50%; top: 50%;
+    width: 1080px; height: 1920px; object-fit: cover;
+    transform-origin: 50% 50%;
+    will-change: transform, filter; backface-visibility: hidden;
+    filter: saturate(1.04) brightness(1.02);
+  }
+  .fallback { position: absolute; inset: 0;
+    background: linear-gradient(180deg, #8fa6ad 0%, #b9b39c 42%, #cbb98f 58%, #6d5c46 100%); }
+
+  /* ---------- colour grade (baked into the plates) ---------- */
+  /* نشتیِ نورِ لبه‌ها */
+  #leak { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(42% 30% at 0% 20%, rgba(255,196,120,.55) 0%, rgba(255,180,100,0) 74%),
+                radial-gradient(38% 26% at 100% 78%, rgba(255,220,170,.40) 0%, rgba(255,200,140,0) 74%); }
+
+  /* ---------- atmosphere ---------- */
+  #vignette { position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(118% 76% at 50% 42%, rgba(0,0,0,0) 34%, rgba(16,10,5,.50) 84%, rgba(8,5,2,.72) 100%),
+      linear-gradient(180deg, rgba(10,7,4,.42) 0%, rgba(10,7,4,0) 18%, rgba(10,7,4,0) 68%, rgba(8,5,3,.60) 100%); }
+  #warm { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(58% 40% at 50% 62%, rgba(255,186,96,.44) 0%, rgba(255,150,60,.18) 45%, rgba(255,140,50,0) 78%); }
+  #fog { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(0deg, rgba(236,224,202,.32) 0%, rgba(236,224,202,.11) 16%, rgba(236,224,202,0) 40%); }
+  #boil { position: absolute; inset: 0; pointer-events: none; opacity: .5; mix-blend-mode: soft-light;
+    background: radial-gradient(70% 46% at 30% 30%, rgba(255,236,200,.20) 0%, rgba(255,236,200,0) 70%); }
+  .grain { position: absolute; inset: -80px; pointer-events: none; opacity: .085; mix-blend-mode: overlay;
+    background-image: url("assets/grain.png"); background-repeat: repeat; background-size: 256px 256px; }
+  #flash { position: absolute; inset: 0; background: #fff3dc; opacity: 0; pointer-events: none; }
+  #curtain { position: absolute; inset: 0; background: #050403; opacity: 1; pointer-events: none; }
+  #scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; pointer-events: none;
+    background: linear-gradient(0deg, rgba(6,4,2,.50) 0%, rgba(6,4,2,.22) 46%, rgba(6,4,2,0) 100%); }
+
+  /* ---------- dust + embers ---------- */
+  #dust { position: absolute; inset: 0; pointer-events: none; }
+  #dust i { position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    background: rgba(255,236,200,.55); box-shadow: 0 0 6px rgba(255,220,170,.35); }
+  #embers { position: absolute; inset: 0; pointer-events: none; }
+  #embers i { position: absolute; width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(255,196,120,.95); box-shadow: 0 0 14px rgba(255,150,60,.95), 0 0 30px rgba(255,120,40,.5); }
+
+  /* ---------- hook: date stamp ---------- */
+  #title { position: absolute; left: 0; right: 0; top: 300px; text-align: center; pointer-events: none;
+    direction: ltr; opacity: 0; }
+  #title::before { content: ''; position: absolute; inset: -110px -60px -70px; z-index: -1;
+    background: radial-gradient(58% 56% at 50% 46%, rgba(6,4,2,.62) 0%, rgba(6,4,2,.34) 52%, rgba(6,4,2,0) 78%); }
+  #title b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 196px;
+    line-height: 1; color: #f8d39a; letter-spacing: 0;
+    -webkit-text-stroke: 2.4px rgba(34,14,0,.38); paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(58,24,2,.30), 0 18px 52px rgba(0,0,0,.92), 0 0 110px rgba(255,168,72,.30); }
+  #title span { display: block; margin-top: 10px; font-family: 'Vazirmatn', sans-serif; font-weight: 400;
+    font-size: 34px; letter-spacing: 15px; color: #f7ecdd; opacity: .95;
+    text-shadow: 0 4px 20px rgba(0,0,0,.95), 0 0 44px rgba(0,0,0,.85); }
+  #title em { display: block; margin: 30px auto 0; width: 168px; height: 1.5px; background: linear-gradient(90deg, rgba(243,193,121,0), rgba(243,193,121,.9), rgba(243,193,121,0)); }
+
+  /* ---------- kinetic subtitles ---------- */
+  #sub { position: absolute; left: 54px; right: 54px; bottom: 132px;
+    direction: rtl; text-align: center; font-family: 'Vazirmatn', sans-serif; font-weight: 700;
+    font-size: 58px; line-height: 1.46; letter-spacing: -.3px; color: #fff;
+    text-shadow: 0 6px 24px rgba(0,0,0,.95), 0 2px 6px rgba(0,0,0,.98), 0 0 34px rgba(0,0,0,.75);
+    -webkit-text-stroke: 2.6px rgba(0,0,0,.55); paint-order: stroke fill; }
+  #sub { word-spacing: -.08em; }
+  #sub .w { display: inline-block; will-change: transform, opacity, filter; }
+  #sub .w.now { -webkit-text-stroke: 2.6px rgba(52,22,2,.62);
+    text-shadow: 0 6px 24px rgba(0,0,0,.95), 0 2px 6px rgba(0,0,0,.98), 0 0 26px rgba(243,193,121,.45); }
+  #sub .krule { position: absolute; height: 3px; border-radius: 2px; pointer-events: none;
+    background: linear-gradient(90deg, rgba(243,193,121,0), rgba(243,193,121,.95), rgba(243,193,121,0));
+    box-shadow: 0 0 12px rgba(243,193,121,.35); opacity: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="plateWrap">
+    <div class="fallback" id="fallback"></div>
+    <img id="plate" alt="" />
+  </div>
+  <div id="leak"></div>
+  <div id="fog"></div>
+  <div id="warm"></div>
+  <div id="boil"></div>
+  <div id="dust"></div>
+  <div id="vignette"></div>
+  <div class="grain" id="grain"></div>
+  <div id="flash"></div>
+  <div id="curtain"></div>
+  <div id="embers"></div>
+  <div id="scrim"></div>
+  <div id="title"><b>۱۵۱۸</b><span>استراسبورگ</span><em></em></div>
+  <div id="sub"></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+// دوربینِ آرام: نه با ضربه شروع می‌شود نه با ضربه تمام
+const easeCamera = (p) => 0.5 - 0.5 * Math.cos(Math.PI * clamp(p, 0, 1));
+const easeOutBack = (p) => { const c = 1.70158; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
+const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+
+let DATA = null;
+let current = -1;
+let cueKey = '';
+let words = [];       // {el, t, d, x, w, y}
+const krState = { init: false, x: 0, y: 0, w: 0 };
+let dust = [];
+let embers = [];
+
+/* --------------------------------------------------------------- camera --- */
+// k: زوم روی پلیت (پلیت ۲۶۰۰ پیکسل است، پس تا k≈2.3 هم تصویر تیز می‌ماند)
+const MOVES = {
+  in:    (a) => ({ k0: 1.16, k1: 1.44 + 0.34 * a }),
+  out:   (a) => ({ k0: 1.44 + 0.34 * a, k1: 1.16 }),
+  panR:  (a) => ({ k0: 1.40 + 0.16 * a, k1: 1.40 + 0.16 * a }),
+  panL:  (a) => ({ k0: 1.40 + 0.16 * a, k1: 1.40 + 0.16 * a }),
+  tiltU: (a) => ({ k0: 1.46 + 0.16 * a, k1: 1.46 + 0.16 * a }),
+  tiltD: (a) => ({ k0: 1.46 + 0.16 * a, k1: 1.46 + 0.16 * a }),
+  inL:   (a) => ({ k0: 1.18, k1: 1.50 + 0.30 * a }),
+  inR:   (a) => ({ k0: 1.18, k1: 1.50 + 0.30 * a }),
+  hold:  (a) => ({ k0: 1.22, k1: 1.26 + 0.10 * a }),
+  push:  (a) => ({ k0: 1.34 + 0.30 * a, k1: 2.00 + 0.18 * a }),   // عقب‌کشیدنِ سریع
+  hook:  (a) => ({ k0: 2.06, k1: 1.30 + 0.10 * a }),              // نمای درشت → نمای باز
+};
+
+function cameraAt(sc, t, p, seed) {
+  const { k0, k1 } = (MOVES[sc.move] || MOVES.hold)(sc.amt ?? 0.8);
+  const k = k0 + (k1 - k0) * p;
+  const a0 = sc.a0 || [0.5, 0.5];
+  const a1 = sc.a1 || a0;
+  // سفرِ لنگر ۱٫۳ برابر می‌شود تا حرکتِ افقی/عمودی خوانده شود
+  const ax = 0.5 + (a0[0] - 0.5) + ((a1[0] - a0[0]) * 1.35) * p;
+  const ay = 0.5 + (a0[1] - 0.5) + ((a1[1] - a0[1]) * 1.35) * p;
+
+  const maxX = ((k - 1) * 1080) / 2;
+  const maxY = ((k - 1) * 1920) / 2;
+  let tx = (0.5 - ax) * 1080 * k;
+  let ty = (0.5 - ay) * 1920 * k;
+  tx = clamp(tx, -maxX, maxX);
+  ty = clamp(ty, -maxY, maxY);
+
+  // لرزشِ دستی: دو سینوسِ ناهماهنگ + یک موجِ کند که با هر صحنه فرق دارد
+  const ph = seed * 2.7;
+  const hx = Math.sin(t * 0.13 * Math.PI * 2 + ph) * 5 + Math.sin(t * 0.31 * Math.PI * 2 + 1.7) * 2.4;
+  const hy = Math.sin(t * 0.11 * Math.PI * 2 + 0.6 + ph) * 4.2 + Math.sin(t * 0.27 * Math.PI * 2 + 2.3) * 1.8;
+  const rot = Math.sin(t * 0.083 * Math.PI * 2 + 2.1 + ph) * 0.28;
+  const breathe = 1 + Math.sin(t * 0.19 * Math.PI * 2 + 0.9) * 0.0045;
+  return { tx: tx + hx, ty: ty + hy, k: k * breathe, rot };
+}
+
+/* ------------------------------------------------------------- subtitles --- */
+// کلمه‌ها از قبل ساخته می‌شوند و فقط با رسیدنِ زمانِ خودشان ظاهر می‌شوند:
+// هیچ خطی وسطِ جمله نمی‌پرد و هیچ کلمه‌ای دیرتر/زودتر نمی‌آید.
+function setCue(ci) {
+  const sub = $('sub');
+  sub.innerHTML = '';
+  words = [];
+  krState.init = false;
+  if (ci < 0) return;
+  const ws = (DATA.WORDS && DATA.WORDS[ci]) || [];
+  const cue = DATA.CUES[ci];
+  const len = cue ? cue.text.length : 0;
+  sub.style.fontSize = len <= 40 ? '60px' : len <= 58 ? '55px' : '50px';
+  ws.forEach((w, i) => {
+    const el = document.createElement('span');
+    el.className = 'w';
+    el.textContent = w.w;
+    el.style.opacity = '0';
+    if (i) sub.appendChild(document.createTextNode(' '));
+    sub.appendChild(el);
+    words.push({ el, t: w.t, d: w.d, x: 0, w: 0, y: 0 });
+  });
+  const kr = document.createElement('i');
+  kr.className = 'krule';
+  sub.appendChild(kr);
+  sub.__kr = kr;
+  sub.__end = cue ? cue.end : 0;
+
+  // اندازه‌گیریِ یک‌بارهٔ کادرِ هر کلمه (چیدمان دیگر تغییر نمی‌کند)
+  for (const w of words) {
+    w.x = w.el.offsetLeft;
+    w.w = w.el.offsetWidth;
+    w.y = w.el.offsetTop + w.el.offsetHeight + 4;
+  }
+  kr.style.opacity = '0';
+}
+
+function paintCue(t) {
+  if (!words.length) return;
+  const sub = $('sub');
+  const end = sub.__end || 0;
+  const out = clamp((t - (end - 0.18)) / 0.18, 0, 1);
+  let cur = -1;
+
+  for (let i = 0; i < words.length; i++) {
+    const w = words[i];
+    const p = clamp((t - w.t) / 0.16, 0, 1);
+    const e = easeOutBack(p);
+    const speaking = t >= w.t && t < w.t + (w.d || 0.2) + 0.04;
+    if (speaking) cur = i;
+    w.el.style.opacity = String(clamp(p * 1.5 - 0.45, 0, 1) * (1 - out));
+    w.el.style.transform =
+      `translateY(${((1 - e) * 14 - out * 10).toFixed(2)}px) scale(${(0.965 + 0.035 * e + (speaking ? 0.025 : 0)).toFixed(3)})`;
+    w.el.style.filter = `blur(${((1 - p) * 3.4).toFixed(2)}px)`;
+    w.el.style.color = speaking ? '#f6c988' : '#ffffff';
+    w.el.classList.toggle('now', speaking);
+  }
+
+  // خطِ نازکِ کاراوکه زیرِ کلمهٔ در حالِ گفتن، لغزشِ نرم بین کلمه‌ها
+  const kr = sub.__kr;
+  if (kr) {
+    const target = cur >= 0 ? words[cur] : null;
+    if (target) {
+      const tx = target.x + target.w * 0.5;
+      const tw = Math.max(24, target.w * 0.88);
+      if (!krState.init) { krState.x = tx; krState.y = target.y; krState.w = tw; krState.init = true; }
+      krState.x += (tx - krState.x) * 0.30;
+      krState.y += (target.y - krState.y) * 0.30;
+      krState.w += (tw - krState.w) * 0.30;
+      kr.style.left = `${(krState.x - krState.w / 2).toFixed(1)}px`;
+      kr.style.top = `${krState.y.toFixed(1)}px`;
+      kr.style.width = `${krState.w.toFixed(1)}px`;
+      kr.style.opacity = String(clamp((t - words[0].t) / 0.18, 0, 1) * 0.92 * (1 - out));
+    } else {
+      kr.style.opacity = '0';
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ dust --- */
+function initDust() {
+  const box = $('dust');
+  box.innerHTML = '';
+  dust = [];
+  for (let i = 0; i < 26; i++) {
+    const el = document.createElement('i');
+    box.appendChild(el);
+    dust.push({ el, x: hash(i, 1), y: hash(i, 2), s: 0.35 + hash(i, 3) * 1.1, ph: hash(i, 4) * 6.28 });
+  }
+  const eb = $('embers');
+  eb.innerHTML = '';
+  embers = [];
+  for (let i = 0; i < 46; i++) {
+    const el = document.createElement('i');
+    eb.appendChild(el);
+    embers.push({ el, x: 0.15 + hash(i, 5) * 0.7, y: hash(i, 6), s: 0.5 + hash(i, 7) * 1.4, ph: hash(i, 8) * 6.28 });
+  }
+}
+
+function paintDust(t, warm) {
+  for (const d of dust) {
+    const x = (d.x * 1120 + Math.sin(t * 0.11 + d.ph) * 30 + t * 7 * d.s) % 1140;
+    const y = 1920 - ((d.y * 1980 + t * 18 * d.s + Math.sin(t * 0.09 + d.ph) * 34) % 2100);
+    d.el.style.transform = `translate(${x.toFixed(1)}px, ${(1920 - y).toFixed(1)}px)`;
+    d.el.style.opacity = String((0.10 + 0.28 * warm) * (0.5 + 0.5 * Math.sin(t * 0.7 + d.ph)));
+  }
+}
+
+// جرقه‌های افتتاحیه: از مرکز کادر بالا می‌روند و تا ثانیهٔ ۳ محو می‌شوند
+function paintEmbers(t) {
+  const eb = $('embers');
+  if (t > 4.2) { if (eb.style.display !== 'none') { eb.style.display = 'none'; } return; }
+  if (eb.style.display === 'none') { eb.style.display = ''; }
+  const life = clamp((3.4 - t) / 3.0, 0, 1);
+  for (const e of embers) {
+    const rise = (t - 0.15) * (70 + 110 * e.s);
+    const y = 1640 - rise - e.y * 320 + Math.sin(t * 0.9 + e.ph) * 26;
+    const x = e.x * 1080 + Math.sin(t * 0.6 + e.ph) * 40;
+    e.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+    e.el.style.opacity = String(life * (0.55 + 0.45 * Math.abs(Math.sin(t * 2.2 + e.ph))));
+  }
+}
+
+/* ------------------------------------------------------------------ build -- */
+async function build() {
+  // House-style stage is shared; per-project text/direction comes from DATA.
+  const sub = $('sub');
+  sub.style.direction = (DATA.lang === 'fa' || DATA.lang === 'ar') ? 'rtl' : 'ltr';
+  const stamp = $('title');
+  const stampB = stamp.querySelector('b'), stampS = stamp.querySelector('span');
+  if (stampB) stampB.textContent = DATA.titleNum || '';
+  if (stampS) stampS.textContent = DATA.titleSub || '';
+  if (!DATA.titleNum) stamp.style.display = 'none';
+  document.title = DATA.title || 'story';
+
+  const plates = [...new Set(DATA.SCENES.map((s) => s.plate))];
+  await Promise.all(plates.map((p) => new Promise((res) => {
+    const im = new Image();
+    im.onload = res; im.onerror = res;
+    im.src = (DATA.plateBase || 'assets/plates/hd/') + p + '.jpg';
+  })));
+
+  initDust();
+
+  const cueIndexAt = (t) => {
+    for (let i = 0; i < DATA.CUES.length; i++) {
+      const c = DATA.CUES[i];
+      if (t >= c.start - 0.02 && t < c.end + 0.06) return i;
+    }
+    return -1;
+  };
+
+  function seek(frame) {
+    const t = frame / DATA.FPS;
+    const si = DATA.SENTENCES.findIndex((s) => t >= s.start && t < s.end + 0.001);
+    const idx = si === -1 ? DATA.SENTENCES.length - 1 : si;
+    if (idx !== current) {
+      current = idx;
+      $('plate').src = (DATA.plateBase || 'assets/plates/hd/') + DATA.SCENES[idx].plate + '.jpg';
+      $('fallback').style.opacity = '0.3';
+    }
+    const sc = DATA.SCENES[current];
+    const sen = DATA.SENTENCES[current];
+    const p = clamp((t - sen.start) / Math.max(0.001, sen.end - sen.start), 0, 1);
+    const cam = cameraAt(sc, t, easeCamera(p), current + 1);
+
+    // ورودِ هر کات: پلیت با بلورِ کوتاه تیز می‌شود (نرم‌تر از پرشِ سخت)
+    const cut = clamp((t - sen.start) / 0.30, 0, 1);
+    const blur = (1 - cut) * 7;
+    // بلور فقط در ۰٫۳ ثانیهٔ اولِ هر کات؛ در بقیهٔ فریم‌ها فیلتر سبک‌تر است
+    $('plate').style.filter = blur > 0.06
+      ? `saturate(1.04) brightness(1.02) blur(${blur.toFixed(2)}px)`
+      : 'saturate(1.04) brightness(1.02)';
+    $('plate').style.transform =
+      `translate(-50%, -50%) translate(${cam.tx.toFixed(2)}px, ${cam.ty.toFixed(2)}px) ` +
+      `rotate(${cam.rot.toFixed(3)}deg) scale(${cam.k.toFixed(4)})`;
+
+    // نور و لعاب
+    const warm = sc.warm ?? 0.15;
+    $('warm').style.opacity = String(warm * (0.72 + 0.28 * Math.sin(t * 0.7 * Math.PI + 1.2)));
+    $('fog').style.opacity = String(sc.fog ?? 0.2);
+    $('fog').style.transform = `translateY(${(Math.sin(t * 0.12) * 12).toFixed(2)}px)`;
+    // نشتیِ نور: در ابتدای هر صحنه و در صحنه‌های شبانه قوی‌تر
+    $('leak').style.opacity = String((0.10 + 0.22 * (sc.fog ?? 0.2)) * (0.35 + 0.65 * Math.pow(1 - cut, 2)));
+
+    const tick = Math.floor(t * 12) % 3;
+    $('grain').style.backgroundPosition = `${tick * 60}px ${((tick * 97) % 180)}px`;
+
+    // فلاشِ گرم روی کات
+    $('flash').style.opacity = String(clamp(1 - (t - sen.start) / 0.20, 0, 1) * 0.30);
+
+    paintDust(t, warm);
+    paintEmbers(t);
+
+    /* ---- هوکِ افتتاحیه: پردهٔ سیاه، جرقه، و تاریخ ---- */
+    // پردهٔ سیاه در نیم‌ثانیهٔ اول، بعد با یک فلاشِ گرمِ کوتاه تصویر باز می‌شود
+    $('curtain').style.opacity = String(clamp(1 - (t - 0.22) / 0.42, 0, 1));
+    const tt = clamp(t, 0, 99);
+    let toast = 0, ty = 0, tblur = 0;
+    if (tt > 0.45) {
+      const inP = clamp((tt - 0.45) / 0.9, 0, 1);
+      const outP = clamp((tt - 4.9) / 0.7, 0, 1);
+      toast = clamp(inP * 1.6, 0, 1) * (1 - outP);
+      ty = (1 - easeOutBack(inP)) * 34 - outP * 26;
+      tblur = (1 - inP) * 10 + outP * 8;
+    }
+    const title = $('title');
+    title.style.opacity = String(toast);
+    title.style.transform = `translateY(${ty.toFixed(1)}px)`;
+    title.style.filter = `blur(${tblur.toFixed(1)}px)`;
+    const numeral = title.querySelector('b');
+    if (numeral) numeral.style.letterSpacing = `${(7 * (1 - clamp((tt - 0.45) / 1.1, 0, 1))).toFixed(2)}px`;
+
+    const ci = cueIndexAt(t);
+    const key = ci < 0 ? '' : String(ci);
+    if (key !== cueKey) { cueKey = key; setCue(ci); }
+    paintCue(t);
+  }
+
+  window.__MOTION__ = {
+    fps: DATA.FPS, frames: DATA.FRAMES, width: 1080, height: 1920, duration: DATA.DURATION,
+    ready: false,
+    seek(frame) { seek(clamp(frame, 0, DATA.FRAMES - 1)); },
+  };
+  seek(0);
+  window.__MOTION__.ready = true;
+}
+
+window.__ENGINE_START__ = (data) => { DATA = data; return build(); };
+</script>
+</body>
+</html>
