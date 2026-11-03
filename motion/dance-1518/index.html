@@ -4,6 +4,8 @@
 <meta charset="utf-8" />
 <title>۱۵۱۸ — رقص استراسبورگ</title>
 <style>
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-400-normal.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-500-normal.woff2') format('woff2'); font-weight: 500; }
   @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-700-normal.woff2') format('woff2'); font-weight: 700; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { background: #070605; }
@@ -58,25 +60,27 @@
     direction: ltr; opacity: 0; }
   #title::before { content: ''; position: absolute; inset: -110px -60px -70px; z-index: -1;
     background: radial-gradient(58% 56% at 50% 46%, rgba(6,4,2,.62) 0%, rgba(6,4,2,.34) 52%, rgba(6,4,2,0) 78%); }
-  #title b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 186px;
-    line-height: 1; color: #f7cd8d; letter-spacing: 3px;
-    -webkit-text-stroke: 3px rgba(38,16,0,.42); paint-order: stroke fill;
-    text-shadow: 0 4px 0 rgba(60,26,4,.35), 0 14px 44px rgba(0,0,0,.9), 0 0 90px rgba(255,166,70,.35); }
-  #title span { display: block; margin-top: 6px; font-family: 'Vazirmatn', sans-serif; font-weight: 700;
-    font-size: 44px; letter-spacing: 12px; color: #fff3e2;
-    text-shadow: 0 4px 18px rgba(0,0,0,.95), 0 0 40px rgba(0,0,0,.8); }
-  #title em { display: block; margin: 26px auto 0; width: 150px; height: 2px; background: linear-gradient(90deg, rgba(243,193,121,0), rgba(243,193,121,.9), rgba(243,193,121,0)); }
+  #title b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 196px;
+    line-height: 1; color: #f8d39a; letter-spacing: 0;
+    -webkit-text-stroke: 2.4px rgba(34,14,0,.38); paint-order: stroke fill;
+    text-shadow: 0 3px 0 rgba(58,24,2,.30), 0 18px 52px rgba(0,0,0,.92), 0 0 110px rgba(255,168,72,.30); }
+  #title span { display: block; margin-top: 10px; font-family: 'Vazirmatn', sans-serif; font-weight: 400;
+    font-size: 34px; letter-spacing: 15px; color: #f7ecdd; opacity: .95;
+    text-shadow: 0 4px 20px rgba(0,0,0,.95), 0 0 44px rgba(0,0,0,.85); }
+  #title em { display: block; margin: 30px auto 0; width: 168px; height: 1.5px; background: linear-gradient(90deg, rgba(243,193,121,0), rgba(243,193,121,.9), rgba(243,193,121,0)); }
 
   /* ---------- kinetic subtitles ---------- */
-  #sub { position: absolute; left: 58px; right: 58px; bottom: 126px;
+  #sub { position: absolute; left: 54px; right: 54px; bottom: 132px;
     direction: rtl; text-align: center; font-family: 'Vazirmatn', sans-serif; font-weight: 700;
-    font-size: 62px; line-height: 1.5; letter-spacing: -.5px; color: #fff;
+    font-size: 58px; line-height: 1.46; letter-spacing: -.3px; color: #fff;
     text-shadow: 0 6px 24px rgba(0,0,0,.95), 0 2px 6px rgba(0,0,0,.98), 0 0 34px rgba(0,0,0,.75);
     -webkit-text-stroke: 2.6px rgba(0,0,0,.55); paint-order: stroke fill; }
-  #sub .w { display: inline-block; margin: 0 .07em; will-change: transform, opacity, filter; }
-  #sub .w.now { -webkit-text-stroke: 2.6px rgba(52,22,2,.62); }
-  #sub .rule { display: block; margin: 16px auto 0; width: 0; height: 3px; border-radius: 2px;
-    background: linear-gradient(90deg, rgba(243,193,121,0), rgba(243,193,121,.95), rgba(243,193,121,0)); }
+  #sub .w { display: inline-block; margin: 0 .06em; will-change: transform, opacity, filter; }
+  #sub .w.now { -webkit-text-stroke: 2.6px rgba(52,22,2,.62);
+    text-shadow: 0 6px 24px rgba(0,0,0,.95), 0 2px 6px rgba(0,0,0,.98), 0 0 26px rgba(243,193,121,.45); }
+  #sub .krule { position: absolute; height: 3px; border-radius: 2px; pointer-events: none;
+    background: linear-gradient(90deg, rgba(243,193,121,0), rgba(243,193,121,.95), rgba(243,193,121,0));
+    box-shadow: 0 0 12px rgba(243,193,121,.35); opacity: 0; }
 </style>
 </head>
 <body>
@@ -111,7 +115,8 @@ const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
 let DATA = null;
 let current = -1;
 let cueKey = '';
-let words = [];       // {el, t, d}
+let words = [];       // {el, t, d, x, w, y}
+const krState = { init: false, x: 0, y: 0, w: 0 };
 let dust = [];
 let embers = [];
 
@@ -163,52 +168,73 @@ function setCue(ci) {
   const sub = $('sub');
   sub.innerHTML = '';
   words = [];
+  krState.init = false;
   if (ci < 0) return;
   const ws = (DATA.WORDS && DATA.WORDS[ci]) || [];
   const cue = DATA.CUES[ci];
-  const light = new Set(['و', 'که', 'به', 'در', 'از', 'با', 'را', 'این', 'اون', 'یه', 'تا', 'هم', 'بر', 'نه', 'یا', 'چه', 'می', 'نمی']);
-  let hot = -1;
   ws.forEach((w, i) => {
-    const s = document.createElement('span');
-    s.className = 'w';
-    s.textContent = w.w;
-    s.style.opacity = '0';
+    const el = document.createElement('span');
+    el.className = 'w';
+    el.textContent = w.w;
+    el.style.opacity = '0';
     if (i) sub.appendChild(document.createTextNode('\u200c'));
-    sub.appendChild(s);
-    words.push({ el: s, t: w.t, d: w.d });
-
-    const score = light.has(w.w) ? -1 : w.w.replace(/[\u200c\u200f\u064b-\u0652]/g, '').length;
-    if (hot < 0 || score > hot) hot = score;
+    sub.appendChild(el);
+    words.push({ el, t: w.t, d: w.d, x: 0, w: 0, y: 0 });
   });
-  const rule = document.createElement('span');
-  rule.className = 'rule';
-  sub.appendChild(rule);
-  sub.__rule = rule;
+  const kr = document.createElement('i');
+  kr.className = 'krule';
+  sub.appendChild(kr);
+  sub.__kr = kr;
   sub.__end = cue ? cue.end : 0;
+
+  // اندازه‌گیریِ یک‌بارهٔ کادرِ هر کلمه (چیدمان دیگر تغییر نمی‌کند)
+  for (const w of words) {
+    w.x = w.el.offsetLeft;
+    w.w = w.el.offsetWidth;
+    w.y = w.el.offsetTop + w.el.offsetHeight + 4;
+  }
+  kr.style.opacity = '0';
 }
 
 function paintCue(t) {
   if (!words.length) return;
-  const end = $('sub').__end || 0;
-  const out = clamp((t - (end - 0.16)) / 0.16, 0, 1);
+  const sub = $('sub');
+  const end = sub.__end || 0;
+  const out = clamp((t - (end - 0.18)) / 0.18, 0, 1);
+  let cur = -1;
+
   for (let i = 0; i < words.length; i++) {
     const w = words[i];
-    const p = clamp((t - w.t) / 0.13, 0, 1);
+    const p = clamp((t - w.t) / 0.16, 0, 1);
     const e = easeOutBack(p);
-    const speaking = t >= w.t && t < w.t + (w.d || 0.2) + 0.03;
+    const speaking = t >= w.t && t < w.t + (w.d || 0.2) + 0.04;
+    if (speaking) cur = i;
     w.el.style.opacity = String(clamp(p * 1.5 - 0.45, 0, 1) * (1 - out));
-    w.el.style.transform = `translateY(${((1 - e) * 18 - out * 12).toFixed(2)}px) scale(${(0.9 + 0.1 * e + (speaking ? 0.03 : 0)).toFixed(3)})`;
-    w.el.style.filter = `blur(${((1 - p) * 4.5).toFixed(2)}px)`;
-    w.el.style.color = speaking ? '#f3c179' : '#ffffff';
-    if (speaking) w.el.classList.add('now'); else w.el.classList.remove('now');
+    w.el.style.transform =
+      `translateY(${((1 - e) * 14 - out * 10).toFixed(2)}px) scale(${(0.965 + 0.035 * e + (speaking ? 0.025 : 0)).toFixed(3)})`;
+    w.el.style.filter = `blur(${((1 - p) * 3.4).toFixed(2)}px)`;
+    w.el.style.color = speaking ? '#f6c988' : '#ffffff';
+    w.el.classList.toggle('now', speaking);
   }
-  const rule = $('sub').__rule;
-  if (rule) {
-    const first = words[0].t;
-    const last = words[words.length - 1].t;
-    const rp = clamp((t - first) / Math.max(0.2, last - first), 0, 1);
-    rule.style.width = `${(rp * 240).toFixed(1)}px`;
-    rule.style.opacity = String(rp * 0.9 * (1 - out));
+
+  // خطِ نازکِ کاراوکه زیرِ کلمهٔ در حالِ گفتن، لغزشِ نرم بین کلمه‌ها
+  const kr = sub.__kr;
+  if (kr) {
+    const target = cur >= 0 ? words[cur] : null;
+    if (target) {
+      const tx = target.x + target.w * 0.5;
+      const tw = Math.max(24, target.w * 0.88);
+      if (!krState.init) { krState.x = tx; krState.y = target.y; krState.w = tw; krState.init = true; }
+      krState.x += (tx - krState.x) * 0.30;
+      krState.y += (target.y - krState.y) * 0.30;
+      krState.w += (tw - krState.w) * 0.30;
+      kr.style.left = `${(krState.x - krState.w / 2).toFixed(1)}px`;
+      kr.style.top = `${krState.y.toFixed(1)}px`;
+      kr.style.width = `${krState.w.toFixed(1)}px`;
+      kr.style.opacity = String(clamp((t - words[0].t) / 0.18, 0, 1) * 0.92 * (1 - out));
+    } else {
+      kr.style.opacity = '0';
+    }
   }
 }
 
@@ -333,7 +359,8 @@ async function build() {
     title.style.opacity = String(toast);
     title.style.transform = `translateY(${ty.toFixed(1)}px)`;
     title.style.filter = `blur(${tblur.toFixed(1)}px)`;
-    title.style.letterSpacing = '0';
+    const numeral = title.querySelector('b');
+    if (numeral) numeral.style.letterSpacing = `${(7 * (1 - clamp((tt - 0.45) / 1.1, 0, 1))).toFixed(2)}px`;
 
     const ci = cueIndexAt(t);
     const key = ci < 0 ? '' : String(ci);
