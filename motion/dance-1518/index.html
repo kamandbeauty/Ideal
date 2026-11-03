@@ -75,7 +75,8 @@
     font-size: 58px; line-height: 1.46; letter-spacing: -.3px; color: #fff;
     text-shadow: 0 6px 24px rgba(0,0,0,.95), 0 2px 6px rgba(0,0,0,.98), 0 0 34px rgba(0,0,0,.75);
     -webkit-text-stroke: 2.6px rgba(0,0,0,.55); paint-order: stroke fill; }
-  #sub .w { display: inline-block; margin: 0 .06em; will-change: transform, opacity, filter; }
+  #sub { word-spacing: -.08em; }
+  #sub .w { display: inline-block; will-change: transform, opacity, filter; }
   #sub .w.now { -webkit-text-stroke: 2.6px rgba(52,22,2,.62);
     text-shadow: 0 6px 24px rgba(0,0,0,.95), 0 2px 6px rgba(0,0,0,.98), 0 0 26px rgba(243,193,121,.45); }
   #sub .krule { position: absolute; height: 3px; border-radius: 2px; pointer-events: none;
@@ -172,12 +173,14 @@ function setCue(ci) {
   if (ci < 0) return;
   const ws = (DATA.WORDS && DATA.WORDS[ci]) || [];
   const cue = DATA.CUES[ci];
+  const len = cue ? cue.text.length : 0;
+  sub.style.fontSize = len <= 40 ? '60px' : len <= 58 ? '55px' : '50px';
   ws.forEach((w, i) => {
     const el = document.createElement('span');
     el.className = 'w';
     el.textContent = w.w;
     el.style.opacity = '0';
-    if (i) sub.appendChild(document.createTextNode('\u200c'));
+    if (i) sub.appendChild(document.createTextNode(' '));
     sub.appendChild(el);
     words.push({ el, t: w.t, d: w.d, x: 0, w: 0, y: 0 });
   });
