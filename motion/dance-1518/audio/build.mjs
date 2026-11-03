@@ -17,10 +17,15 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT = resolve(HERE, '..');
 const ROOT = resolve(PROJECT, '../..');
 const FFMPEG = join(ROOT, 'node_modules', '@ffmpeg-installer', 'linux-x64', 'ffmpeg');
-const VO = join(ROOT, 'intake/style-v3/vo/Generated Audio November 02, 2026 - 9_11PM.wav');
-const OUT = join(HERE, 'mix.wav');
+const argv = process.argv.slice(2);
+const LANG = argv.includes('--lang') ? argv[argv.indexOf('--lang') + 1] : 'fa';
+const EN = LANG === 'en';
+const VO = EN
+  ? join(ROOT, 'Generated Audio November 03, 2026 - 5_15PM.wav')
+  : join(ROOT, 'intake/style-v3/vo/Generated Audio November 02, 2026 - 9_11PM.wav');
+const OUT = join(HERE, EN ? 'mix.en.wav' : 'mix.wav');
 
-const { DURATION, VO_DURATION } = await import(pathToFileURL(join(PROJECT, 'content', 'timeline.js')).href);
+const { DURATION, VO_DURATION } = await import(pathToFileURL(join(PROJECT, 'content', EN ? 'timeline.en.js' : 'timeline.js')).href);
 const D = DURATION.toFixed(3);
 const BEAT = 1.42;                 // one heartbeat every 1.42 s
 

@@ -114,6 +114,7 @@ const easeOutBack = (p) => { const c = 1.70158; return 1 + (c + 1) * Math.pow(p 
 const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
 
 let DATA = null;
+let LANG = 'fa';
 let current = -1;
 let cueKey = '';
 let words = [];       // {el, t, d, x, w, y}
@@ -287,6 +288,15 @@ function paintEmbers(t) {
 
 /* ------------------------------------------------------------------ build -- */
 async function build() {
+  LANG = DATA.lang || 'fa';
+  if (LANG === 'en') {
+    // نسخهٔ انگلیسی: بدون زیرنویس، تیترِ لاتین
+    $('sub').style.display = 'none';
+    $('title').style.direction = 'ltr';
+    $('title').innerHTML = '<b>1518</b><span>STRASBOURG</span><em></em>';
+    $('title').querySelector('span').style.letterSpacing = '11px';
+    $('title').querySelector('b').style.fontSize = '210px';
+  }
   const plates = [...new Set(DATA.SCENES.map((s) => s.plate))];
   await Promise.all(plates.map((p) => new Promise((res) => {
     const im = new Image();
@@ -365,10 +375,12 @@ async function build() {
     const numeral = title.querySelector('b');
     if (numeral) numeral.style.letterSpacing = `${(7 * (1 - clamp((tt - 0.45) / 1.1, 0, 1))).toFixed(2)}px`;
 
-    const ci = cueIndexAt(t);
-    const key = ci < 0 ? '' : String(ci);
-    if (key !== cueKey) { cueKey = key; setCue(ci); }
-    paintCue(t);
+    if (LANG !== 'en') {
+      const ci = cueIndexAt(t);
+      const key = ci < 0 ? '' : String(ci);
+      if (key !== cueKey) { cueKey = key; setCue(ci); }
+      paintCue(t);
+    }
   }
 
   window.__MOTION__ = {

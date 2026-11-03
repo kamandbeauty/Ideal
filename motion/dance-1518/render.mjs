@@ -29,11 +29,14 @@ const fast = argv.includes('--fast');
 const silent = argv.includes('--no-audio');
 const encodeOnly = argv.includes('--encode-only');
 const keep = argv.includes('--keep');
+const langIdx = argv.indexOf('--lang');
+const lang = langIdx !== -1 ? argv[langIdx + 1] : 'fa';
+const EN = lang === 'en';
 const FRAME_DIR = '/tmp/dance-1518-frames';
 
-const timeline = await import(pathToFileURL(join(HERE, 'content', 'timeline.js')).href);
-const { SCENES } = await import(pathToFileURL(join(HERE, 'content', 'scenes.js')).href);
-const { WORDS } = await import(pathToFileURL(join(HERE, 'content', 'words.js')).href);
+const timeline = await import(pathToFileURL(join(HERE, 'content', EN ? 'timeline.en.js' : 'timeline.js')).href);
+const { SCENES } = await import(pathToFileURL(join(HERE, 'content', EN ? 'scenes.en.js' : 'scenes.js')).href);
+const { WORDS } = EN ? { WORDS: [] } : await import(pathToFileURL(join(HERE, 'content', 'words.js')).href);
 const DATA = {
   FPS: timeline.FPS,
   FRAMES: timeline.FRAMES,
@@ -42,6 +45,7 @@ const DATA = {
   CUES: timeline.CUES,
   SCENES,
   WORDS,
+  lang,
 };
 
 function ffmpegPath() {
@@ -110,9 +114,9 @@ if (!encodeOnly) {
 }
 await b.close();
 
-const audio = join(HERE, 'audio', 'mix.wav');
+const audio = join(HERE, 'audio', EN ? 'mix.en.wav' : 'mix.wav');
 const tag = from === 0 && last === meta.frames ? '1080x1920' : `slice-${from}-${last}`;
-const out = join(HERE, 'exports', `dance-1518-${tag}.mp4`);
+const out = join(HERE, 'exports', `dance-1518-${EN ? 'en-' : ''}${tag}.mp4`);
 mkdirSync(dirname(out), { recursive: true });
 const useAudio = !silent && existsSync(audio);
 const args = [
