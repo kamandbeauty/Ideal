@@ -40,7 +40,7 @@ See [`.claude/skills/README.md`](.claude/skills/README.md) for the map and the t
 | build (M6) | `Game/Ui/{Settings,Shop}Screen.cs`, `Game/AppRoot.cs` | **started** — a settings screen (sound, music, haptics, reminders) that writes the four save flags and saves on the tap, and a booster shop over `BoosterBag.Buy`, so a spent booster is replaceable; the settings flags still gate nothing because there is no audio or haptics yet (not yet compiled here) |
 | backend | `replica/schema.sql`, `replica/architecture.md` | schema validated; API not written |
 | test | EditMode suite in `client/Assets/Core.Tests` | 150 tests **written, never executed** — the `csharp` CI job parses the sources, it cannot run Unity's runner without a licence |
-| diff | `replica/features.csv` | **21.6 / 100** — 16 features partial, 0 must-haves done |
+| diff | `replica/features.csv` | **25.3 / 100** — 17 features partial, 0 must-haves done |
 | entrepreneur · brand · launch · deploy | | pending |
 
 ## Ground rules
