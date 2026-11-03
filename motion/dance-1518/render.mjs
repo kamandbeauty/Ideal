@@ -33,6 +33,7 @@ const FRAME_DIR = '/tmp/dance-1518-frames';
 
 const timeline = await import(pathToFileURL(join(HERE, 'content', 'timeline.js')).href);
 const { SCENES } = await import(pathToFileURL(join(HERE, 'content', 'scenes.js')).href);
+const { WORDS } = await import(pathToFileURL(join(HERE, 'content', 'words.js')).href);
 const DATA = {
   FPS: timeline.FPS,
   FRAMES: timeline.FRAMES,
@@ -40,6 +41,7 @@ const DATA = {
   SENTENCES: timeline.SENTENCES,
   CUES: timeline.CUES,
   SCENES,
+  WORDS,
 };
 
 function ffmpegPath() {
@@ -117,7 +119,9 @@ const args = [
   '-y', '-hide_banner', '-loglevel', 'error',
   '-framerate', String(meta.fps), '-start_number', String(from), '-i', join(FRAME_DIR, 'f_%05d.jpg'),
   ...(useAudio ? ['-ss', String(from / meta.fps), '-t', String((last - from) / meta.fps), '-i', audio] : []),
-  ...(fast ? ['-vf', 'noise=alls=7:allf=t'] : []),
+  ...(fast
+    ? ['-vf', 'noise=alls=7:allf=t']
+    : ['-vf', 'eq=saturation=1.10:contrast=1.03:gamma=0.99,unsharp=5:5:0.45:5:5:0.0']),
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '21', '-pix_fmt', 'yuv420p',
   ...(useAudio ? ['-c:a', 'aac', '-b:a', '192k'] : []),
   '-shortest', '-movflags', '+faststart', out,

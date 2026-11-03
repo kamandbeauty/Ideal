@@ -17,12 +17,12 @@
 // warm  : ۰..۱ — نور گرم/فانوس که آرام نفس می‌کشد
 
 export const SCENES = [
-  { id: 1, plate: 's01', move: 'out', amt: 0.85, a0: [0.50, 0.52], a1: [0.50, 0.55], fog: 0.30, warm: 0.10 },
+  { id: 1, plate: 's01', move: 'hook', amt: 0.85, a0: [0.47, 0.30], a1: [0.50, 0.58], fog: 0.28, warm: 0.16 },
   { id: 2, plate: 'n02', move: 'in', amt: 0.80, a0: [0.50, 0.56], a1: [0.48, 0.62], fog: 0.18, warm: 0.22 },
   { id: 3, plate: 'n03', move: 'inL', amt: 0.75, a0: [0.56, 0.58], a1: [0.50, 0.64], fog: 0.16, warm: 0.45 },
-  { id: 4, plate: 'n04', move: 'panR', amt: 0.70, a0: [0.44, 0.60], a1: [0.58, 0.58], fog: 0.22, warm: 0.18 },
+  { id: 4, plate: 'n04', move: 'panR', amt: 0.70, a0: [0.38, 0.62], a1: [0.64, 0.56], fog: 0.22, warm: 0.18 },
   { id: 5, plate: 'n05', move: 'out', amt: 0.95, a0: [0.50, 0.55], a1: [0.50, 0.60], fog: 0.20, warm: 0.12 },
-  { id: 6, plate: 'n06', move: 'tiltD', amt: 0.85, a0: [0.50, 0.46], a1: [0.50, 0.64], fog: 0.18, warm: 0.20 },
+  { id: 6, plate: 'n06', move: 'tiltD', amt: 0.85, a0: [0.50, 0.38], a1: [0.50, 0.70], fog: 0.18, warm: 0.20 },
   { id: 7, plate: 'n07', move: 'in', amt: 0.85, a0: [0.50, 0.50], a1: [0.50, 0.55], fog: 0.26, warm: 0.05 },
   { id: 8, plate: 'n08', move: 'panL', amt: 0.80, a0: [0.58, 0.54], a1: [0.44, 0.56], fog: 0.16, warm: 0.30 },
   { id: 9, plate: 's09', move: 'tiltU', amt: 0.80, a0: [0.50, 0.60], a1: [0.50, 0.44], fog: 0.24, warm: 0.10 },
