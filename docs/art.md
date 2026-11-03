@@ -71,6 +71,7 @@ instead of breaking, which is what makes art additive.
 | Moves pill | `icon_moves` at 22 px | the word alone |
 | Settings | `icon_sound`, `icon_music`, `icon_vibration`, `icon_push` at 26 px in the switch rows, `icon_settings` as the gear on the home screen | — (there was no screen) |
 | In-level boosters | `booster_mallet`, `booster_ram`, `booster_auger`, `booster_whirlwind`, `booster_falcon` at 40 dp inside 48 dp chips, count in the corner | text buttons |
+| Shop | the same five `booster_*` at 48 dp, one per row, next to the price | a list of Persian names and numbers |
 | World map (screen pending) | `map_backdrop` (1024×768), `node_cleared`, `node_current`, `node_locked` at 48 dp | — (map is a list today) |
 | Onboarding | `tutorial_hand`, `tutorial_tap` | — (no tutorial yet) |
 | Board effects | `fx_spark` on every cleared cell, `fx_ring` for a power-up going off | the sprite's own colour, scaled and faded in code |

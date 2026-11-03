@@ -26,6 +26,7 @@ namespace Shazdeh.Game
         DistrictScreen _districts;
         BoardScreen _board;
         SettingsScreen _settings;
+        ShopScreen _shop;
         float _hudTimer;
 
         [Tooltip("Log every content and save problem to the console. Off in a store build.")]
@@ -56,6 +57,7 @@ namespace Shazdeh.Game
             _home.PlayRequested = () => Play(_session.CurrentLevel);
             _home.DistrictsRequested = ShowDistricts;
             _home.SettingsRequested = ShowSettings;
+            _home.ShopRequested = ShowShop;
 
             _districts = CreateScreen<DistrictScreen>(canvas.transform, "DistrictScreen");
             _districts.BackRequested = ShowHome;
@@ -68,6 +70,10 @@ namespace Shazdeh.Game
             // open a menu, and the result overlay already owns its own two buttons.
             _settings = CreateScreen<SettingsScreen>(canvas.transform, "SettingsScreen");
             _settings.BackRequested = ShowHome;
+
+            // The shop is the other half of the booster bar: the bar spends them, this replaces them.
+            _shop = CreateScreen<ShopScreen>(canvas.transform, "ShopScreen");
+            _shop.BackRequested = ShowHome;
 
             _session.Changed += RefreshAll;
             _session.RefreshLives();
@@ -99,6 +105,7 @@ namespace Shazdeh.Game
             _districts.SetVisible(false);
             _board.SetVisible(false);
             _settings.SetVisible(false);
+            _shop.SetVisible(false);
 
             _home.Refresh();
             _topBar.Refresh();
@@ -110,8 +117,21 @@ namespace Shazdeh.Game
             _districts.SetVisible(false);
             _board.SetVisible(false);
             _settings.SetVisible(true);
+            _shop.SetVisible(false);
 
             _settings.Refresh();
+            _topBar.Refresh();
+        }
+
+        void ShowShop()
+        {
+            _home.SetVisible(false);
+            _districts.SetVisible(false);
+            _board.SetVisible(false);
+            _settings.SetVisible(false);
+            _shop.SetVisible(true);
+
+            _shop.Refresh();
             _topBar.Refresh();
         }
         
@@ -121,6 +141,7 @@ namespace Shazdeh.Game
             _home.SetVisible(false);
             _board.SetVisible(false);
             _settings.SetVisible(false);
+            _shop.SetVisible(false);
             _districts.SetVisible(true);
 
             _districts.Refresh();
@@ -140,6 +161,7 @@ namespace Shazdeh.Game
             _home.SetVisible(false);
             _districts.SetVisible(false);
             _settings.SetVisible(false);
+            _shop.SetVisible(false);
             _board.SetVisible(true);
 
             _board.StartLevel(level);
@@ -153,6 +175,7 @@ namespace Shazdeh.Game
             if (_districts.gameObject.activeSelf) _districts.Refresh();
             if (_board.gameObject.activeSelf) _board.Refresh();
             if (_settings.gameObject.activeSelf) _settings.Refresh();
+            if (_shop.gameObject.activeSelf) _shop.Refresh();
         }
 
         // ---- ticks --------------------------------------------------------------------------------

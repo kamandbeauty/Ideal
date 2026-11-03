@@ -120,6 +120,7 @@ python3 tools/text/check_font.py       # glyph coverage, no Unity needed
 | `Assets/Game/Ui/BoardScreen.cs` | the board (real engine), swipe + tap input, animated turns, per-goal chips, result card with stars — see `docs/gameplay.md` |
 | `Assets/Game/Ui/DistrictScreen.cs` | districts, task prices, "build all", chest |
 | `Assets/Game/Ui/SettingsScreen.cs` | four switches — sound, music, haptics, reminders — that write the save flags |
+| `Assets/Game/Ui/ShopScreen.cs` | the five boosters, their prices and counts; the view over `BoosterBag.Buy` |
 | `Assets/Game/Ui/PersianCheckView.cs` | the specimen scene that isolates font / shaper / layout problems |
 | `Assets/Game/Ui/RtlText.cs` | the only door text goes through |
 | `Assets/Core/Text/PersianText.cs` | shaping + reordering + digits (no UnityEngine) |

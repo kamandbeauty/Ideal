@@ -113,8 +113,9 @@ and any save migrated from v1, starts with one of each so the mechanic can be fe
 ## 6. What M4 does not do yet
 
 - **No board reshape on a goal** — the level's goals are fixed at start, as the rules layer defines.
-- **No booster shop screen.** `GameSession.BuyBooster` is priced and tested; nothing opens a shop yet, so
-  in practice a booster is only spendable, not replaceable.
+- **No booster shop in the level.** `ShopScreen` replaces spent boosters from the home screen; there is
+  still no way to buy one *during* a level, which is where the original puts its "you are out of mallets"
+  offer.
 - **No pre-level booster placement** — a booster is fired mid-level only, never set on the board before
   the first move.
 - **No magic pots** (power-ups granted at the start of a level).

@@ -16,6 +16,7 @@ namespace Shazdeh.Game.Ui
         public Action PlayRequested;
         public Action DistrictsRequested;
         public Action SettingsRequested;
+        public Action ShopRequested;
 
         TextMeshProUGUI _levelNumber;
         TextMeshProUGUI _progressText;
@@ -74,8 +75,13 @@ namespace Shazdeh.Game.Ui
             // TMP child, so a missing sprite costs nothing but the flat colour underneath.
             UiKit.StyleButton(_playButton, "button_primary", 18);
 
-            UiKit.Button(Root, "districts", "ناحیه‌ها", 20f, 596f, UiKit.CanvasWidth - 40f, 48f,
+            // Two half-width buttons: the palace work on the reading side, the shop on the other.
+            // «ناحیه‌ها» stays first (right) because building is what the potions are for.
+            float half = (UiKit.CanvasWidth - 40f - Tokens.Space.S2) * 0.5f;
+            UiKit.Button(Root, "districts", "ناحیه‌ها", UiKit.CanvasWidth - 20f - half, 596f, half, 48f,
                 Tokens.SurfaceRaised, Tokens.Text, () => DistrictsRequested?.Invoke(), (int)Tokens.Radius.Md);
+            UiKit.Button(Root, "shop", "فروشگاه", 20f, 596f, half, 48f,
+                Tokens.SurfaceRaised, Tokens.Text, () => ShopRequested?.Invoke(), (int)Tokens.Radius.Md);
 
             _blockedText = UiKit.Label(Root, "blocked", "", Tokens.Type.Sm, Tokens.Warning, TextAlignmentOptions.Center);
             UiKit.Place(_blockedText.rectTransform, 20f, 656f, UiKit.CanvasWidth - 40f, 22f);
