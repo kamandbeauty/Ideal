@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-310 -760 660 1240" role="img" aria-labelledby="title desc">
+  <title id="title">Mehran — main character, Terminal 1988</title>
+  <desc id="desc">A warm, ink-outlined 2D character: a tired Iranian traveler in a dark brown jacket, charcoal trousers, black shoes, and carrying a worn suitcase.</desc>
+  <defs>
+    <linearGradient id="jacket" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#805638"/>
+      <stop offset="1" stop-color="#56371f"/>
+    </linearGradient>
+    <linearGradient id="case" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#947251"/>
+      <stop offset="1" stop-color="#64472f"/>
+    </linearGradient>
+    <filter id="soft-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7"/>
+    </filter>
+  </defs>
+
+  <!-- Reusable character asset. Hip origin is (0,0); all limbs have stable IDs/classes. -->
+  <g id="mehran" class="mehran-character" stroke="#111114" stroke-linecap="round" stroke-linejoin="round">
+    <ellipse cx="28" cy="421" rx="197" ry="21" fill="#151516" opacity=".14" stroke="none" filter="url(#soft-shadow)"/>
+
+    <!-- His old suitcase sits beside him; can be split out as a prop if needed. -->
+    <g class="suitcase" transform="translate(218 150) rotate(-2)">
+      <path d="M-61 35 Q-61 22 -48 20 L50 20 Q63 22 63 36 L58 215 Q57 229 43 231 L-43 228 Q-57 227 -58 214 Z" fill="url(#case)" stroke="#171514" stroke-width="11"/>
+      <path d="M-27 22 L-25 2 Q-24 -13 -10 -14 L13 -13 Q28 -12 29 2 L29 22" fill="none" stroke="#171514" stroke-width="12"/>
+      <path d="M-48 56 Q0 48 49 58 M-49 194 Q0 202 49 195" fill="none" stroke="#b39670" stroke-width="5" opacity=".72"/>
+      <path d="M-47 42 L-39 211 M47 43 L41 214" fill="none" stroke="#37281e" stroke-width="5" opacity=".75"/>
+      <rect x="-12" y="102" width="26" height="30" rx="5" fill="#b89c73" stroke="#201a16" stroke-width="6"/>
+      <path d="M-48 34 L-39 43 M43 214 L51 205" fill="none" stroke="#d0b18a" stroke-width="7"/>
+      <circle cx="-35" cy="234" r="7" fill="#282321" stroke-width="5"/>
+      <circle cx="36" cy="235" r="7" fill="#282321" stroke-width="5"/>
+    </g>
+
+    <!-- Legs: slightly bowed, narrow and weary. -->
+    <g class="left-leg">
+      <path d="M-47 -4 Q-58 95 -70 192 L-66 359" fill="none" stroke="#17191e" stroke-width="57"/>
+      <path d="M-47 -4 Q-58 95 -70 192 L-66 359" fill="none" stroke="#111114" stroke-width="9"/>
+      <path d="M-67 103 L-70 189" fill="none" stroke="#393a3d" stroke-width="5"/>
+      <path d="M-77 354 Q-111 366 -112 392 Q-112 406 -94 407 L-38 407 Q-24 404 -27 391 Q-33 369 -58 357 Z" fill="#171719" stroke-width="10"/>
+      <path d="M-102 390 Q-68 398 -32 389" fill="none" stroke="#4a4036" stroke-width="5"/>
+    </g>
+    <g class="right-leg">
+      <path d="M43 -4 Q56 94 69 190 L75 358" fill="none" stroke="#202126" stroke-width="57"/>
+      <path d="M43 -4 Q56 94 69 190 L75 358" fill="none" stroke="#111114" stroke-width="9"/>
+      <path d="M66 110 L70 190" fill="none" stroke="#3d3e41" stroke-width="5"/>
+      <path d="M63 355 Q35 370 36 393 Q37 407 53 408 L108 407 Q124 405 120 391 Q113 369 87 357 Z" fill="#171719" stroke-width="10"/>
+      <path d="M44 390 Q80 399 115 389" fill="none" stroke="#4a4036" stroke-width="5"/>
+    </g>
+
+    <!-- Jacket body, broad shoulders and a tired, slightly rounded posture. -->
+    <g class="torso">
+      <path d="M-126 -383 Q-89 -421 -42 -424 L43 -424 Q91 -420 126 -382 L151 -245 Q142 -163 122 -89 L108 25 Q57 47 0 42 Q-57 47 -110 25 L-121 -91 Q-143 -172 -151 -248 Z" fill="url(#jacket)" stroke-width="13"/>
+      <path d="M-83 -407 L-48 -449 L-9 -407 L-34 -367 Z" fill="#eee8dc" stroke="#171514" stroke-width="9"/>
+      <path d="M83 -407 L48 -449 L9 -407 L34 -367 Z" fill="#eee8dc" stroke="#171514" stroke-width="9"/>
+      <path d="M0 -408 L0 24" fill="none" stroke="#241a14" stroke-width="11"/>
+      <path d="M-5 -348 L-5 -26" fill="none" stroke="#d5b78d" stroke-width="4" opacity=".65"/>
+      <circle cx="8" cy="-314" r="5" fill="#d8c3a4" stroke="none"/>
+      <circle cx="8" cy="-243" r="5" fill="#d8c3a4" stroke="none"/>
+      <circle cx="8" cy="-171" r="5" fill="#d8c3a4" stroke="none"/>
+      <path d="M-109 -128 Q-68 -143 -34 -128 L-36 -72 Q-72 -57 -106 -73 Z" fill="#674526" stroke="#2d2118" stroke-width="7"/>
+      <path d="M36 -128 Q74 -143 110 -127 L106 -73 Q73 -58 37 -72 Z" fill="#674526" stroke="#2d2118" stroke-width="7"/>
+      <path d="M-107 -111 L-42 -115 M40 -114 L105 -110" stroke="#bb966d" stroke-width="4" opacity=".7"/>
+      <path d="M-113 22 Q0 40 112 22" fill="none" stroke="#302218" stroke-width="8"/>
+    </g>
+
+    <!-- Left sleeve and hand. Separate limb group for posing. -->
+    <g class="left-arm">
+      <path d="M-124 -376 Q-165 -329 -175 -249 L-188 -128" fill="none" stroke="#111114" stroke-width="63"/>
+      <path d="M-124 -376 Q-165 -329 -175 -249 L-188 -128" fill="none" stroke="url(#jacket)" stroke-width="47"/>
+      <path d="M-170 -249 L-185 -138" fill="none" stroke="#9a7651" stroke-width="4" opacity=".75"/>
+      <path d="M-205 -130 Q-218 -113 -211 -92 Q-204 -73 -184 -79 Q-164 -85 -169 -107 L-177 -133 Z" fill="#d9b79b" stroke-width="8"/>
+      <path d="M-199 -96 Q-188 -104 -175 -96" fill="none" stroke="#9e7964" stroke-width="4"/>
+    </g>
+
+    <!-- Right sleeve reaches the suitcase handle. -->
+    <g class="right-arm">
+      <path d="M123 -376 Q169 -332 177 -252 L207 -68" fill="none" stroke="#111114" stroke-width="63"/>
+      <path d="M123 -376 Q169 -332 177 -252 L207 -68" fill="none" stroke="url(#jacket)" stroke-width="47"/>
+      <path d="M174 -247 L199 -99" fill="none" stroke="#9a7651" stroke-width="4" opacity=".75"/>
+      <path d="M190 -80 Q185 -57 203 -49 Q222 -42 233 -58 Q242 -75 225 -90 L208 -101 Z" fill="#d9b79b" stroke-width="8"/>
+      <path d="M205 -67 Q214 -76 228 -70" fill="none" stroke="#9e7964" stroke-width="4"/>
+      <path d="M222 -70 L223 140" fill="none" stroke="#111114" stroke-width="9"/>
+    </g>
+
+    <!-- Neck and oversized round head, locked to the reference's graphic language. -->
+    <g class="head" transform="translate(0 -548)">
+      <path d="M-47 71 L-49 122 Q0 151 49 121 L45 70 Z" fill="#f8f7f2" stroke="#111114" stroke-width="11"/>
+      <circle cx="0" cy="0" r="119" fill="#fffefa" stroke="#111114" stroke-width="15"/>
+      <!-- Hair cap with a distinctive swept tuft and a few grey temples. -->
+      <path d="M-111 -27 Q-119 -83 -76 -113 Q-48 -134 -18 -123 Q5 -150 39 -128 Q78 -121 103 -88 Q119 -65 111 -24 Q97 -47 84 -50 Q66 -40 56 -66 Q39 -45 18 -62 Q-11 -39 -30 -63 Q-60 -40 -83 -54 Q-100 -45 -111 -27 Z" fill="#28231f" stroke="#111114" stroke-width="9"/>
+      <path d="M-105 -17 Q-108 5 -99 26 M105 -20 Q109 0 99 26" fill="none" stroke="#37312b" stroke-width="18" stroke-linecap="round"/>
+      <path d="M-90 -92 Q-76 -107 -58 -111 M80 -91 Q68 -103 57 -105" fill="none" stroke="#aaa298" stroke-width="8" stroke-linecap="round"/>
+      <path d="M-87 -25 Q-63 -43 -39 -29 M37 -29 Q61 -43 85 -24" fill="none" stroke="#4b4035" stroke-width="12" stroke-linecap="round"/>
+      <!-- Expression variants. Keep all in the same face coordinates. -->
+      <g class="expr-worried">
+        <ellipse cx="-49" cy="-3" rx="27" ry="34" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="49" cy="-3" rx="27" ry="34" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="-43" cy="1" rx="12" ry="17" fill="#171719"/>
+        <ellipse cx="55" cy="1" rx="12" ry="17" fill="#171719"/>
+        <circle cx="-47" cy="-5" r="4" fill="#fff"/><circle cx="51" cy="-5" r="4" fill="#fff"/>
+        <path d="M-76 -48 Q-53 -61 -32 -48 M31 -48 Q53 -61 76 -49" fill="none" stroke="#171719" stroke-width="9" stroke-linecap="round"/>
+        <path d="M-12 56 Q0 47 13 56" fill="none" stroke="#27211e" stroke-width="7" stroke-linecap="round"/>
+      </g>
+      <g class="expr-shock" style="display:none">
+        <ellipse cx="-49" cy="-4" rx="31" ry="40" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="49" cy="-4" rx="31" ry="40" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="-49" cy="0" rx="13" ry="20" fill="#171719"/><ellipse cx="49" cy="0" rx="13" ry="20" fill="#171719"/>
+        <circle cx="-54" cy="-8" r="4" fill="#fff"/><circle cx="44" cy="-8" r="4" fill="#fff"/>
+        <path d="M-81 -61 Q-54 -74 -30 -61 M30 -61 Q54 -74 81 -61" fill="none" stroke="#171719" stroke-width="9" stroke-linecap="round"/>
+        <ellipse cx="0" cy="61" rx="15" ry="22" fill="#30211d" stroke="#171719" stroke-width="5"/>
+      </g>
+      <g class="expr-doubt" style="display:none">
+        <ellipse cx="-49" cy="-3" rx="27" ry="31" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="49" cy="-3" rx="27" ry="31" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="-43" cy="2" rx="12" ry="16" fill="#171719"/><ellipse cx="55" cy="2" rx="12" ry="16" fill="#171719"/>
+        <circle cx="-47" cy="-4" r="4" fill="#fff"/><circle cx="51" cy="-4" r="4" fill="#fff"/>
+        <path d="M-78 -47 Q-55 -54 -34 -48 M32 -52 Q55 -65 78 -56" fill="none" stroke="#171719" stroke-width="9" stroke-linecap="round"/>
+        <path d="M-11 57 Q2 52 14 55" fill="none" stroke="#27211e" stroke-width="7" stroke-linecap="round"/>
+      </g>
+      <g class="expr-tired" style="display:none">
+        <path d="M-77 -3 Q-50 -25 -22 -2 Q-50 12 -77 -3 Z" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <path d="M22 -2 Q50 -25 77 -3 Q50 12 22 -2 Z" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="-49" cy="0" rx="11" ry="12" fill="#171719"/><ellipse cx="49" cy="0" rx="11" ry="12" fill="#171719"/>
+        <path d="M-76 -24 Q-52 -35 -29 -24 M29 -24 Q52 -35 76 -24" fill="none" stroke="#171719" stroke-width="9" stroke-linecap="round"/>
+        <path d="M-12 57 Q0 51 12 57" fill="none" stroke="#27211e" stroke-width="7" stroke-linecap="round"/>
+      </g>
+      <g class="expr-stern" style="display:none">
+        <ellipse cx="-49" cy="-2" rx="27" ry="29" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="49" cy="-2" rx="27" ry="29" fill="#fff" stroke="#171719" stroke-width="7"/>
+        <ellipse cx="-49" cy="0" rx="12" ry="17" fill="#171719"/><ellipse cx="49" cy="0" rx="12" ry="17" fill="#171719"/>
+        <path d="M-78 -52 L-31 -40 M78 -52 L31 -40" fill="none" stroke="#171719" stroke-width="11" stroke-linecap="round"/>
+        <path d="M-17 59 L17 59" fill="none" stroke="#27211e" stroke-width="8" stroke-linecap="round"/>
+      </g>
+      <!-- Small nose and moustache are shared so every expression reads as the same man. -->
+      <path d="M0 10 Q-6 31 1 34 Q7 36 13 31" fill="none" stroke="#b2937b" stroke-width="6" stroke-linecap="round"/>
+      <path d="M-34 31 Q-23 21 -8 30 Q0 35 7 30 Q22 21 34 31 Q30 44 13 45 Q3 40 0 41 Q-9 42 -19 46 Q-31 44 -34 31 Z" fill="#44382e" stroke="#241f1b" stroke-width="4"/>
+      <path d="M-21 35 Q-12 32 -5 36 M12 36 Q20 32 26 34" fill="none" stroke="#a09281" stroke-width="2.5" opacity=".65"/>
+    </g>
+  </g>
+</svg>
