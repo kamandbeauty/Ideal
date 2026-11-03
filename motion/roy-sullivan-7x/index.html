@@ -54,24 +54,6 @@
   #sparks i { position: absolute; width: 4px; height: 4px; border-radius: 50%;
     background: rgba(214,232,255,.95); box-shadow: 0 0 14px rgba(150,190,255,.9), 0 0 30px rgba(110,150,255,.45); }
 
-  /* ---------- title ---------- */
-  #title { position: absolute; left: 0; right: 0; top: 292px; text-align: center; pointer-events: none;
-    opacity: 0; }
-  #title::before { content: ''; position: absolute; inset: -110px -60px -70px; z-index: -1;
-    background: radial-gradient(58% 56% at 50% 46%, rgba(4,6,12,.66) 0%, rgba(4,6,12,.36) 52%, rgba(4,6,12,0) 78%); }
-  #title b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 214px;
-    line-height: 1; color: #f6e2bb; letter-spacing: 0;
-    -webkit-text-stroke: 2.4px rgba(20,16,38,.42); paint-order: stroke fill;
-    text-shadow: 0 3px 0 rgba(30,22,50,.32), 0 18px 52px rgba(0,0,0,.92), 0 0 110px rgba(150,190,255,.34); }
-  #title span { display: block; margin-top: 6px; font-family: 'Vazirmatn', sans-serif; font-weight: 500;
-    font-size: 46px; letter-spacing: 4px; color: #f2f5ff; opacity: .96;
-    text-shadow: 0 4px 20px rgba(0,0,0,.95), 0 0 44px rgba(0,0,0,.85); }
-  #title i { display: block; margin-top: 16px; font-style: normal; font-family: 'Vazirmatn', sans-serif;
-    font-weight: 400; font-size: 30px; letter-spacing: 1px; color: #cfd9ef; opacity: .82;
-    text-shadow: 0 3px 16px rgba(0,0,0,.95); }
-  #title em { display: block; margin: 26px auto 0; width: 168px; height: 1.5px;
-    background: linear-gradient(90deg, rgba(246,226,187,0), rgba(246,226,187,.9), rgba(246,226,187,0)); }
-
   /* ---------- end card: the real photograph ---------- */
   #card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     pointer-events: none; opacity: 0; }
@@ -81,11 +63,14 @@
   #shot { display: block; width: 100%; height: auto; border-radius: 4px;
     box-shadow: 0 30px 80px rgba(0,0,0,.92), 0 0 0 12px rgba(248,246,240,.94), 0 0 0 15px rgba(30,32,44,.85); }
   #cardCap { margin-top: 62px; text-align: center; direction: rtl; }
-  #cardCap b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 54px;
+  #cardCap b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 60px;
     color: #fdf6e6; letter-spacing: -.2px;
     text-shadow: 0 6px 26px rgba(0,0,0,.95), 0 0 42px rgba(0,0,0,.8); }
-  #cardCap span { display: block; margin-top: 16px; font-family: 'Vazirmatn', sans-serif; font-weight: 400;
-    font-size: 27px; letter-spacing: .4px; color: #b9c6dd;
+  #cardCap i { display: block; margin-top: 14px; font-style: normal;
+    font-family: 'Vazirmatn', sans-serif; font-weight: 400; font-size: 26px; letter-spacing: .3px;
+    color: #93a1ba; text-shadow: 0 4px 16px rgba(0,0,0,.9); }
+  #cardCap span { display: block; margin-top: 20px; font-family: 'Vazirmatn', sans-serif; font-weight: 400;
+    font-size: 33px; line-height: 1.7; letter-spacing: .4px; color: #b9c6dd;
     text-shadow: 0 4px 18px rgba(0,0,0,.9); }
   #cardCap u { display: block; margin: 26px auto 0; width: 132px; height: 1.5px; text-decoration: none;
     background: linear-gradient(90deg, rgba(246,226,187,0), rgba(246,226,187,.85), rgba(246,226,187,0)); }
@@ -109,13 +94,13 @@
   <div id="curtain"></div>
   <div id="sparks"></div>
   <div id="scrim"></div>
-  <div id="title"><b>۷</b><span>بار صاعقه</span><i>روی سالیوان</i><em></em></div>
   <div id="card">
     <div id="cardInner">
       <img id="shot" alt="" />
       <div id="cardCap">
         <b>عکس واقعی روی سالیوان</b>
-        <span>Roy Cleveland Sullivan · ۱۹۱۲–۱۹۸۳</span>
+        <span>روی کلیولند سالیوان · جنگلبان پارک ملی شنندوا، ویرجینیا</span>
+        <i>Shenandoah National Park · Virginia, USA · ۱۹۱۲–۱۹۸۳</i>
         <u></u>
       </div>
     </div>
@@ -294,23 +279,8 @@ async function build() {
     paintDust(t, warm);
     paintSparks(t);
 
-    /* ---- افتتاحیه: پرده، تیتر ---- */
+    /* ---- پردهٔ افتتاحیه ---- */
     $('curtain').style.opacity = String(clamp(1 - (t - 0.20) / 0.55, 0, 1));
-    const tt = clamp(t, 0, 99);
-    let toast = 0, ty = 0, tblur = 0;
-    if (tt > 0.50) {
-      const inP = clamp((tt - 0.50) / 1.05, 0, 1);
-      const outP = clamp((tt - 5.10) / 0.75, 0, 1);
-      toast = clamp(inP * 1.6, 0, 1) * (1 - outP);
-      ty = (1 - easeOutBack(inP)) * 30 - outP * 24;
-      tblur = (1 - inP) * 9 + outP * 7;
-    }
-    const title = $('title');
-    title.style.opacity = String(toast);
-    title.style.transform = `translateY(${ty.toFixed(1)}px)`;
-    title.style.filter = `blur(${tblur.toFixed(1)}px)`;
-    const numeral = title.querySelector('b');
-    if (numeral) numeral.style.letterSpacing = `${(6 * (1 - clamp((tt - 0.50) / 1.2, 0, 1))).toFixed(2)}px`;
 
     /* ---- پایان: عکسِ واقعی ---- */
     const cp = clamp((t - END.start) / 1.0, 0, 1);
