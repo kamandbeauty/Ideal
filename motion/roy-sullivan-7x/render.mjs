@@ -33,6 +33,7 @@ const FRAME_DIR = '/tmp/ranger-frames';
 
 const timeline = await import(pathToFileURL(join(HERE, 'content', 'timeline.js')).href);
 const { SCENES } = await import(pathToFileURL(join(HERE, 'content', 'scenes.fa.js')).href);
+const { WORDS } = await import(pathToFileURL(join(HERE, 'content', 'words.js')).href);
 const DATA = {
   FPS: timeline.FPS,
   FRAMES: timeline.FRAMES,
@@ -41,7 +42,7 @@ const DATA = {
   CUES: timeline.CUES,
   SCENES,
   ENDCARD: timeline.ENDCARD,
-  WORDS: [],
+  WORDS,
 };
 
 function ffmpegPath() {

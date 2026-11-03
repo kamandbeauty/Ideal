@@ -42,7 +42,6 @@
   .grain { position: absolute; inset: -80px; pointer-events: none; opacity: .085; mix-blend-mode: overlay;
     background-image: url("assets/grain.png"); background-repeat: repeat; background-size: 256px 256px; }
   #flash { position: absolute; inset: 0; background: #eef3ff; opacity: 0; pointer-events: none; }
-  #curtain { position: absolute; inset: 0; background: #040406; opacity: 1; pointer-events: none; }
   #scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; pointer-events: none;
     background: linear-gradient(0deg, rgba(4,6,12,.50) 0%, rgba(4,6,12,.20) 46%, rgba(4,6,12,0) 100%); }
 
@@ -50,29 +49,35 @@
   #dust { position: absolute; inset: 0; pointer-events: none; }
   #dust i { position: absolute; width: 3px; height: 3px; border-radius: 50%;
     background: rgba(226,236,255,.52); box-shadow: 0 0 6px rgba(210,226,255,.32); }
-  #sparks { position: absolute; inset: 0; pointer-events: none; }
-  #sparks i { position: absolute; width: 4px; height: 4px; border-radius: 50%;
-    background: rgba(214,232,255,.95); box-shadow: 0 0 14px rgba(150,190,255,.9), 0 0 30px rgba(110,150,255,.45); }
+  /* ---------- word-by-word subtitles (بالاتر از UI ریلز) ---------- */
+  #subscrim { position: absolute; left: 0; right: 0; bottom: 0; height: 760px; pointer-events: none; opacity: 0;
+    background: radial-gradient(64% 60% at 50% 74%, rgba(4,6,12,.62) 0%, rgba(4,6,12,.30) 52%, rgba(4,6,12,0) 82%); }
+  #sub { position: absolute; left: 62px; right: 62px; bottom: 470px;
+    direction: rtl; text-align: center; font-family: 'Vazirmatn', sans-serif; font-weight: 700;
+    font-size: 56px; line-height: 1.5; letter-spacing: -.2px; color: #fff;
+    -webkit-text-stroke: 2.2px rgba(6,8,16,.55); paint-order: stroke fill; }
+  #sub .w { display: inline-block; opacity: 0; will-change: transform, opacity, filter; }
+  #sub .w.live { -webkit-text-stroke: 2.2px rgba(46,26,4,.62); }
 
   /* ---------- end card: the real photograph ---------- */
   #card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     pointer-events: none; opacity: 0; }
   #card::before { content: ''; position: absolute; inset: 0;
     background: radial-gradient(70% 58% at 50% 46%, rgba(3,5,10,.72) 0%, rgba(3,5,10,.86) 62%, rgba(3,5,10,.94) 100%); }
-  #cardInner { position: relative; width: 840px; transform-origin: 50% 60%; }
+  #cardInner { position: relative; width: 660px; transform-origin: 50% 60%; margin-bottom: 600px; }
   #shot { display: block; width: 100%; height: auto; border-radius: 4px;
     box-shadow: 0 30px 80px rgba(0,0,0,.92), 0 0 0 12px rgba(248,246,240,.94), 0 0 0 15px rgba(30,32,44,.85); }
-  #cardCap { margin-top: 62px; text-align: center; direction: rtl; }
-  #cardCap b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 60px;
+  #cardCap { margin-top: 40px; text-align: center; direction: rtl; }
+  #cardCap b { display: block; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 50px;
     color: #fdf6e6; letter-spacing: -.2px;
     text-shadow: 0 6px 26px rgba(0,0,0,.95), 0 0 42px rgba(0,0,0,.8); }
   #cardCap i { display: block; margin-top: 14px; font-style: normal;
     font-family: 'Vazirmatn', sans-serif; font-weight: 400; font-size: 26px; letter-spacing: .3px;
     color: #93a1ba; text-shadow: 0 4px 16px rgba(0,0,0,.9); }
   #cardCap span { display: block; margin-top: 20px; font-family: 'Vazirmatn', sans-serif; font-weight: 400;
-    font-size: 33px; line-height: 1.7; letter-spacing: .4px; color: #b9c6dd;
+    font-size: 28px; line-height: 1.65; letter-spacing: .4px; color: #b9c6dd;
     text-shadow: 0 4px 18px rgba(0,0,0,.9); }
-  #cardCap u { display: block; margin: 26px auto 0; width: 132px; height: 1.5px; text-decoration: none;
+  #cardCap u { display: block; margin: 20px auto 0; width: 132px; height: 1.5px; text-decoration: none;
     background: linear-gradient(90deg, rgba(246,226,187,0), rgba(246,226,187,.85), rgba(246,226,187,0)); }
 </style>
 </head>
@@ -91,9 +96,9 @@
   <div id="vignette"></div>
   <div class="grain" id="grain"></div>
   <div id="flash"></div>
-  <div id="curtain"></div>
-  <div id="sparks"></div>
   <div id="scrim"></div>
+  <div id="subscrim"></div>
+  <div id="sub"></div>
   <div id="card">
     <div id="cardInner">
       <img id="shot" alt="" />
@@ -117,7 +122,6 @@ const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
 let DATA = null;
 let current = -1;
 let dust = [];
-let sparks = [];
 const DISSOLVE = 0.50;          // ثانیه — گذارِ نرم بین دو پلیت
 let prevPlate = null;
 
@@ -170,14 +174,6 @@ function initDust() {
     box.appendChild(el);
     dust.push({ el, x: hash(i, 1), y: hash(i, 2), s: 0.35 + hash(i, 3) * 1.1, ph: hash(i, 4) * 6.28 });
   }
-  const sp = $('sparks');
-  sp.innerHTML = '';
-  sparks = [];
-  for (let i = 0; i < 40; i++) {
-    const el = document.createElement('i');
-    sp.appendChild(el);
-    sparks.push({ el, x: 0.16 + hash(i, 5) * 0.68, y: hash(i, 6), s: 0.5 + hash(i, 7) * 1.3, ph: hash(i, 8) * 6.28 });
-  }
 }
 
 function paintDust(t, warm) {
@@ -186,21 +182,6 @@ function paintDust(t, warm) {
     const y = 1920 - ((d.y * 1980 + t * 15 * d.s + Math.sin(t * 0.08 + d.ph) * 30) % 2100);
     d.el.style.transform = `translate(${x.toFixed(1)}px, ${(1920 - y).toFixed(1)}px)`;
     d.el.style.opacity = String((0.09 + 0.24 * warm) * (0.5 + 0.5 * Math.sin(t * 0.6 + d.ph)));
-  }
-}
-
-// جرقه‌های سردِ افتتاحیه (به‌جای شعله‌های نسخهٔ قبلی) — فقط در سه ثانیهٔ اول
-function paintSparks(t) {
-  const sp = $('sparks');
-  if (t > 4.0) { if (sp.style.display !== 'none') sp.style.display = 'none'; return; }
-  if (sp.style.display === 'none') sp.style.display = '';
-  const life = clamp((3.2 - t) / 2.8, 0, 1);
-  for (const e of sparks) {
-    const rise = (t - 0.15) * (60 + 100 * e.s);
-    const y = 1660 - rise - e.y * 300 + Math.sin(t * 0.8 + e.ph) * 22;
-    const x = e.x * 1080 + Math.sin(t * 0.5 + e.ph) * 34;
-    e.el.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
-    e.el.style.opacity = String(life * (0.5 + 0.5 * Math.abs(Math.sin(t * 2.0 + e.ph))));
   }
 }
 
@@ -219,6 +200,65 @@ async function build() {
   initDust();
 
   const END = DATA.ENDCARD || { start: DATA.DURATION - 8 };
+
+  /* ------------------------------------------- word-by-word subtitles ---- */
+  const WORDS = DATA.WORDS || [];
+  let subSent = -1;
+  let subEls = [];
+
+  function buildSub(idx) {
+    const box = $('sub');
+    box.innerHTML = '';
+    subEls = [];
+    const mine = WORDS.filter((w) => w[0] === idx);
+    const sen = DATA.SENTENCES[idx];
+    if (mine.length) {
+      mine.forEach((w, k) => {
+        const el = document.createElement('span');
+        el.className = 'w';
+        el.textContent = w[1];
+        box.appendChild(el);
+        if (k) box.appendChild(document.createTextNode(' '));
+        subEls.push({ el, a: w[2], b: w[3] });
+      });
+    } else {
+      // پشتیبان: تقسیمِ خط به نسبتِ طولِ کلمه‌ها
+      const ws = sen.text.split(/\s+/).filter(Boolean);
+      const chars = ws.reduce((n, w) => n + w.length, 0);
+      let acc = 0;
+      ws.forEach((w, k) => {
+        const a = sen.start + ((sen.end - sen.start) * acc) / chars;
+        acc += w.length;
+        const b = sen.start + ((sen.end - sen.start) * acc) / chars;
+        const el = document.createElement('span');
+        el.className = 'w';
+        el.textContent = w;
+        box.appendChild(el);
+        if (k) box.appendChild(document.createTextNode(' '));
+        subEls.push({ el, a, b });
+      });
+    }
+  }
+
+  function paintSub(t, idx, sen) {
+    if (idx !== subSent) { buildSub(idx); subSent = idx; }
+    const inP = smooth(clamp((t - sen.start) / 0.14, 0, 1));
+    const outP = smooth(clamp((t - (sen.end - 0.16)) / 0.16, 0, 1));
+    $('sub').style.opacity = String(inP * (1 - outP));
+    $('subscrim').style.opacity = String(0.9 * inP * (1 - outP));
+    for (const w of subEls) {
+      const app = smooth(clamp((t - w.a) / 0.17, 0, 1));
+      const live = t >= w.a - 0.01 && t < w.b;
+      w.el.style.opacity = String(app);
+      w.el.style.transform = `translateY(${((1 - app) * 11).toFixed(2)}px) scale(${live ? 1.055 : 1})`;
+      w.el.style.filter = `blur(${((1 - app) * 5).toFixed(2)}px)`;
+      w.el.style.color = live ? '#ffd79a' : '#ffffff';
+      w.el.style.textShadow = live
+        ? '0 6px 26px rgba(0,0,0,.96), 0 0 26px rgba(255,205,128,.62), 0 2px 8px rgba(0,0,0,.92)'
+        : '0 6px 26px rgba(0,0,0,.96), 0 2px 8px rgba(0,0,0,.92)';
+      w.el.classList.toggle('live', live);
+    }
+  }
 
   function place(el, cam) {
     el.style.transform =
@@ -277,10 +317,8 @@ async function build() {
     $('flash').style.opacity = String(Math.pow(1 - dp, 3) * 0.10);
 
     paintDust(t, warm);
-    paintSparks(t);
 
-    /* ---- پردهٔ افتتاحیه ---- */
-    $('curtain').style.opacity = String(clamp(1 - (t - 0.20) / 0.55, 0, 1));
+    paintSub(t, idx, sen);
 
     /* ---- پایان: عکسِ واقعی ---- */
     const cp = clamp((t - END.start) / 1.0, 0, 1);
