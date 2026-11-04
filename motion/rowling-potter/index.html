@@ -247,7 +247,8 @@ async function build() {
       const live = t >= w.a - 0.01 && t < w.b;
       w.el.style.opacity = String(app);
       w.el.style.transform = `translateY(${((1 - app) * 11).toFixed(2)}px) scale(${live ? 1.055 : 1})`;
-      w.el.style.filter = `blur(${((1 - app) * 5).toFixed(2)}px)`;
+      if (app > 0.995) w.el.style.filter = 'none';
+      else w.el.style.filter = `blur(${((1 - app) * 5).toFixed(2)}px)`;
       w.el.style.color = live ? '#ffd79a' : '#ffffff';
       w.el.style.textShadow = live
         ? '0 6px 26px rgba(0,0,0,.96), 0 0 26px rgba(255,205,128,.62), 0 2px 8px rgba(0,0,0,.92)'

@@ -26,6 +26,10 @@ const stillsCount = num('--stills', 0);
 const from = num('--from', 0);
 const to = num('--to', null);
 const fast = argv.includes('--fast');
+const cssIdx = argv.indexOf('--css');
+const extraCss = cssIdx !== -1 ? argv[cssIdx + 1] : null;
+const qIdx = argv.indexOf('--q');
+const jpegQ = qIdx !== -1 ? Number(argv[qIdx + 1]) : 95;
 const silent = argv.includes('--no-audio');
 const encodeOnly = argv.includes('--encode-only');
 const keep = argv.includes('--keep');
@@ -74,6 +78,7 @@ await page.goto(pathToFileURL(join(HERE, 'index.html')).href, { waitUntil: 'load
 await page.evaluate(() => window.__ENGINE_START__(window.__DATA__));
 await page.waitForFunction(() => window.__MOTION__?.ready === true, null, { timeout: 30000 });
 if (fast) await page.addStyleTag({ content: '.grain { display: none !important; }' });
+if (extraCss) await page.addStyleTag({ content: extraCss });
 
 const meta = await page.evaluate(() => {
   const m = window.__MOTION__;
@@ -105,7 +110,7 @@ if (!encodeOnly) {
   const t0 = Date.now();
   for (let f = from; f < last; f++) {
     await page.evaluate((n) => window.__MOTION__.seek(n), f);
-    await stage.screenshot({ path: join(FRAME_DIR, `f_${String(f).padStart(5, '0')}.jpg`), type: 'jpeg', quality: 95 });
+    await stage.screenshot({ path: join(FRAME_DIR, `f_${String(f).padStart(5, '0')}.jpg`), type: 'jpeg', quality: jpegQ });
     if ((f - from) % 60 === 0) process.stdout.write(`\r  frame ${f}/${last}`);
   }
   console.log(`\n  captured ${last - from} frames in ${((Date.now() - t0) / 1000).toFixed(1)}s`);
