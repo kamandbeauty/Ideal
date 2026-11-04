@@ -18,7 +18,6 @@
     width: 1080px; height: 1920px; object-fit: cover;
     transform-origin: 50% 50%;
     will-change: transform, opacity; backface-visibility: hidden;
-    filter: saturate(1.04) brightness(1.02);
   }
   .fallback { position: absolute; inset: 0;
     background: linear-gradient(180deg, #7d8fa8 0%, #6f7d94 40%, #4a4459 70%, #241f2c 100%); }
@@ -29,10 +28,6 @@
                 radial-gradient(38% 26% at 100% 78%, rgba(255,214,160,.34) 0%, rgba(255,200,140,0) 74%); }
 
   /* ---------- atmosphere ---------- */
-  #vignette { position: absolute; inset: 0; pointer-events: none;
-    background:
-      radial-gradient(120% 78% at 50% 42%, rgba(0,0,0,0) 32%, rgba(8,10,18,.52) 84%, rgba(4,6,12,.76) 100%),
-      linear-gradient(180deg, rgba(6,8,14,.44) 0%, rgba(6,8,14,0) 18%, rgba(6,8,14,0) 66%, rgba(4,6,12,.62) 100%); }
   #warm { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
     background: radial-gradient(58% 40% at 50% 62%, rgba(255,186,110,.40) 0%, rgba(255,150,70,.16) 45%, rgba(255,140,60,0) 78%); }
   #fog { position: absolute; inset: 0; pointer-events: none; opacity: 0;
@@ -42,8 +37,6 @@
   .grain { position: absolute; inset: -80px; pointer-events: none; opacity: .085; mix-blend-mode: overlay;
     background-image: url("assets/grain.png"); background-repeat: repeat; background-size: 256px 256px; }
   #flash { position: absolute; inset: 0; background: #eef3ff; opacity: 0; pointer-events: none; }
-  #scrim { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; pointer-events: none;
-    background: linear-gradient(0deg, rgba(4,6,12,.50) 0%, rgba(4,6,12,.20) 46%, rgba(4,6,12,0) 100%); }
 
   /* ---------- dust ---------- */
   #dust { position: absolute; inset: 0; pointer-events: none; }
@@ -51,21 +44,15 @@
     background: rgba(226,236,255,.52); box-shadow: 0 0 6px rgba(210,226,255,.32); }
   /* ---------- word-by-word subtitles (بالاتر از UI ریلز) ---------- */
   #subscrim { position: absolute; inset: 0; pointer-events: none; opacity: 0;
-    background: radial-gradient(62% 26% at 50% 73%, rgba(3,5,10,.86) 0%, rgba(3,5,10,.46) 56%, rgba(3,5,10,0) 88%); }
+    background: radial-gradient(60% 24% at 50% 73%, rgba(3,5,10,.46) 0%, rgba(3,5,10,.20) 58%, rgba(3,5,10,0) 90%); }
   #sub { position: absolute; left: 62px; right: 62px; bottom: 470px;
     direction: rtl; text-align: center; font-family: 'Vazirmatn', sans-serif; font-weight: 700;
     font-size: 58px; line-height: 1.52; letter-spacing: -.2px; color: #fff;
     -webkit-text-stroke: 2.9px rgba(4,6,12,.72); paint-order: stroke fill; }
   #sub .w { display: inline-block; opacity: 0; will-change: transform, opacity, filter; }
-  /* لوگوی شیشه‌ایِ نیم‌اندازه، پایین‌تر از زیرنویس */
-  #glass { position: absolute; left: 50%; transform: translateX(-50%); bottom: 196px;
-    padding: 9px 17px; border-radius: 22px; pointer-events: none; opacity: .84;
-    background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
-    border: 1px solid rgba(255,255,255,.17);
-    box-shadow: 0 12px 34px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.26), inset 0 -12px 24px rgba(255,255,255,.04);
-    backdrop-filter: blur(10px) saturate(1.15); -webkit-backdrop-filter: blur(10px) saturate(1.15); }
-  #logo { display: block; width: 190px; height: auto; opacity: .60;
-    filter: saturate(.92) brightness(1.05) drop-shadow(0 4px 12px rgba(0,0,0,.45)); }
+  /* لوگو: بدونِ قاب، خودِ تصویر با شفافیتِ ۳۰٪ */
+  #logo { position: absolute; left: 50%; transform: translateX(-50%); bottom: 196px;
+    display: block; width: 190px; height: auto; opacity: .30; pointer-events: none; }
   #sub .w.live { -webkit-text-stroke: 2.9px rgba(44,24,2,.75); }
 
   /* ---------- end card: the real photograph ---------- */
@@ -102,10 +89,8 @@
   <div id="warm"></div>
   <div id="boil"></div>
   <div id="dust"></div>
-  <div id="vignette"></div>
   <div class="grain" id="grain"></div>
   <div id="flash"></div>
-  <div id="scrim"></div>
   <div id="card">
     <div id="cardInner">
       <img id="shot" alt="" />
@@ -118,7 +103,7 @@
     </div>
   </div>
   <div id="subscrim"></div>
-  <div id="glass"><img id="logo" src="assets/brand/odd-file-logo.png" alt="" /></div>
+  <img id="logo" src="assets/brand/odd-file-logo.png" alt="" />
   <div id="sub"></div>
 </div>
 
@@ -252,8 +237,9 @@ async function build() {
 
   function paintSub(t, idx, sen) {
     if (idx !== subSent) { buildSub(idx); subSent = idx; }
+    const hold = Math.min(sen.end - 0.02, (sen.hold ?? sen.end - 0.3));
     const inP = smooth(clamp((t - sen.start) / 0.14, 0, 1));
-    const outP = smooth(clamp((t - (sen.end - 0.16)) / 0.16, 0, 1));
+    const outP = smooth(clamp((t - (hold - 0.2)) / 0.2, 0, 1));
     $('sub').style.opacity = String(inP * (1 - outP));
     $('subscrim').style.opacity = String(0.9 * inP * (1 - outP));
     for (const w of subEls) {
