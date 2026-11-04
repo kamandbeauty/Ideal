@@ -16,7 +16,7 @@ from PIL import Image, ImageFilter, ImageEnhance
 
 SRC = 'assets/plates'
 OUT = 'assets/plates/hd'
-W, H = 2000, 3556          # ~۱٫۸× کادرِ ۱۰۸۰×۱۹۲۰، ۹:۱۶ کامل
+W, H = 1600, 2845          # ~۱٫۵× کادرِ ۱۰۸۰×۱۹۲۰، ۹:۱۶ کامل
 
 
 def cover(im, w=W, h=H):
