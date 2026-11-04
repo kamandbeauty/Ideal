@@ -18,7 +18,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const PROJECT = resolve(HERE, '..');
 const ROOT = resolve(PROJECT, '../..');
 const FFMPEG = join(ROOT, 'node_modules', '@ffmpeg-installer', 'linux-x64', 'ffmpeg');
-const VO = join(ROOT, 'Generated Audio November 04, 2026 - 4_16PM.wav');
+const VO = join(ROOT, 'Generated Audio November 05, 2026 - 1_02AM.wav');
 
 const FPS = 30;
 const TAIL = 1.1;

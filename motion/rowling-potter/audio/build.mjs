@@ -21,7 +21,7 @@ const argv = process.argv.slice(2);
 const LANG = argv.includes('--lang') ? argv[argv.indexOf('--lang') + 1] : 'fa';
 const EN = LANG === 'en';
 // این پروژه صداگذاریِ خودش را دارد: روایتِ فارسیِ روی سالیوان
-const VO = join(ROOT, 'Generated Audio November 05, 2026 - ROWLING.wav');
+const VO = join(ROOT, 'Generated Audio November 05, 2026 - 1_02AM.wav');
 const OUT = join(HERE, 'mix.wav');
 
 const { DURATION, VO_DURATION } = await import(pathToFileURL(join(PROJECT, 'content', 'timeline.js')).href);

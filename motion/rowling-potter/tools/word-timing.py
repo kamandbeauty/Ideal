@@ -19,7 +19,7 @@ from pathlib import Path
 from faster_whisper import WhisperModel
 
 PROJECT = Path(__file__).resolve().parent.parent
-VO = PROJECT.parent.parent / 'Generated Audio November 04, 2026 - 4_16PM.wav'
+VO = PROJECT.parent.parent / 'Generated Audio November 05, 2026 - 1_02AM.wav'
 MODEL = '/tmp/models/whisper-base'
 FPS = 30
 TAIL = 1.1
@@ -65,7 +65,7 @@ for si, text in enumerate(SCRIPT):
             script_words.append((si, w))
 
 # ------------------------------------------------------------------- whisper ---
-CACHE = Path('/tmp/lustig-asr-words.json')
+CACHE = Path('/tmp/rowling-asr-words.json')
 if CACHE.exists():
     spoken = [tuple(x) for x in json.loads(CACHE.read_text())]
     print(f'ریتمِ گفتار از کش ({len(spoken)} کلمه)')
