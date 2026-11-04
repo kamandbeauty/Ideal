@@ -48,3 +48,5 @@ motion/*/assets/plates/hd/
 
 # rowling-potter: mix is rebuilt from the tracked VO (node audio/build.mjs)
 motion/rowling-potter/audio/mix.wav
+# macgregor-poyais: same — mix is rebuilt from the tracked VO
+motion/macgregor-poyais/audio/mix.wav
