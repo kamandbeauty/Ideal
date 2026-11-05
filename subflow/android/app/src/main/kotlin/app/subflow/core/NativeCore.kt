@@ -24,6 +24,25 @@ object NativeCore {
 
     val isReady: Boolean get() = loadError == null
 
+    // ---------------------------------------------------------------- whisper
+    // The engine is compiled in only when third_party/whisper.cpp is present
+    // (CMake option SF_ENABLE_WHISPER). `nativeAsrAvailable` is the honest
+    // answer to "can this APK transcribe?", and the UI asks it before offering
+    // the feature.
+    external fun nativeAsrAvailable(): Boolean
+
+    external fun nativeAsrLoadModel(modelPath: String): String
+
+    external fun nativeAsrUnload()
+
+    external fun nativeAsrReady(): Boolean
+
+    external fun nativeAsrCancel()
+
+    external fun nativeAsrProgress(): Int
+
+    external fun nativeAsrTranscribe(pcm: FloatArray, language: String, threads: Int): String
+
     external fun nativeWriteSrt(starts: LongArray, ends: LongArray, texts: Array<String>): String
 
     external fun nativeWriteAss(

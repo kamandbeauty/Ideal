@@ -1,7 +1,7 @@
 name: subflow
 description: SubFlow - Professional Offline AI Subtitle & Video Editor for Android.
 publish_to: "none"
-version: 0.2.2+4
+version: 0.3.0+5
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -36,6 +36,7 @@ flutter:
   assets:
     # The SQL migrations are executed at runtime, so they ship as assets.
     - assets/db/
+    - assets/images/
     # assets/templates/ is added in Phase 4 together with the caption presets.
   fonts:
     # ------------------------------------------------------------------ Persian

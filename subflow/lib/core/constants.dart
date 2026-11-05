@@ -26,6 +26,10 @@ class Channels {
   static const String playerViewType = 'app.subflow/player_view';
   static const String playerEventPrefix = 'app.subflow/player';
   static String player(int viewId) => '$playerEventPrefix/$viewId';
+
+  /// Progress of a long Whisper run (0..100). Separate from the method channel
+  /// so one slow transcription cannot delay ordinary calls.
+  static const String asrEvents = 'app.subflow/asr';
 }
 
 /// Keys of the `app_settings` table (no SharedPreferences: one storage story).
@@ -52,4 +56,10 @@ class NativeMethods {
   static const String writeSrt = 'subtitle.writeSrt';
   static const String writeAss = 'subtitle.writeAss';
   static const String planExport = 'export.plan';
+  static const String asrCapabilities = 'asr.capabilities';
+  static const String asrListModels = 'asr.listModels';
+  static const String asrImportModel = 'asr.importModel';
+  static const String asrDeleteModel = 'asr.deleteModel';
+  static const String asrTranscribe = 'asr.transcribe';
+  static const String asrCancel = 'asr.cancel';
 }

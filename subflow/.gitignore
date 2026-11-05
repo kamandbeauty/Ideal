@@ -19,7 +19,11 @@ android/key.properties
 # Generated / downloaded models and exports (never commit weights)
 assets/models/*.bin
 assets/models/*.gguf
-third_party/whisper.cpp/
+
+# whisper.cpp is vendored *source* (MIT), not weights: it is committed so a
+# clean clone can build the engine. Hugging Face / ggml model files are what must
+# never land here.
+!third_party/whisper.cpp/
 
 # Host test binaries
 tools/native-core/build/

@@ -18,6 +18,7 @@ import '../features/subtitles/subtitle_editor_model.dart';
 import '../models/project.dart';
 import '../models/subtitle.dart';
 import '../models/subtitle_style.dart';
+import '../services/asr_service.dart';
 import '../services/media_service.dart';
 import '../services/project_repository.dart';
 import '../services/subtitle_export_service.dart';
@@ -152,6 +153,42 @@ final FutureProviderFamily<ProjectDetail, String> projectDetailProvider =
     mediaAvailable: await repo.verifyMedia(projectId),
   );
 });
+
+// ------------------------------------------------------------------- whisper
+final Provider<AsrService> asrServiceProvider =
+    Provider<AsrService>((Ref ref) => AsrService());
+
+final FutureProvider<AsrCapabilities> asrCapabilitiesProvider =
+    FutureProvider<AsrCapabilities>((Ref ref) async {
+  return ref.watch(asrServiceProvider).capabilities();
+});
+
+/// Installed Whisper models. Import and delete go through this controller so
+/// the list on screen is the list on disk - never a cached guess.
+class AsrModelsController extends AsyncNotifier<List<AsrModel>> {
+  @override
+  Future<List<AsrModel>> build() => ref.watch(asrServiceProvider).listModels();
+
+  Future<AsrModel?> importModel() async {
+    final AsrService service = ref.read(asrServiceProvider);
+    final AsrModel? model = await service.importModel();
+    state = AsyncData<List<AsrModel>>(await service.listModels());
+    return model;
+  }
+
+  Future<void> delete(String path) async {
+    final AsrService service = ref.read(asrServiceProvider);
+    await service.deleteModel(path);
+    state = AsyncData<List<AsrModel>>(await service.listModels());
+  }
+
+  Future<void> refresh() async {
+    state = AsyncData<List<AsrModel>>(await ref.read(asrServiceProvider).listModels());
+  }
+}
+
+final AsyncNotifierProvider<AsrModelsController, List<AsrModel>> asrModelsProvider =
+    AsyncNotifierProvider<AsrModelsController, List<AsrModel>>(AsrModelsController.new);
 
 // ---------------------------------------------------------------- subtitles
 final FutureProvider<SubtitleDao> subtitleDaoProvider = FutureProvider<SubtitleDao>((Ref ref) async {

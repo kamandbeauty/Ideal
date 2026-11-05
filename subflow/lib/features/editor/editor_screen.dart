@@ -149,6 +149,39 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ),
         ),
         const SizedBox(height: 14),
+        // The headline action: an untouched project goes from video to captions
+        // in one tap. The studio card below stays for projects that already have
+        // text (or for people who would rather type).
+        SfCard(
+          gradient: const LinearGradient(
+            colors: <Color>[Color(0xFF231A46), Color(0xFF10203D)],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+          ),
+          onTap: () => context.push('/project/${widget.projectId}/asr'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  const Icon(Icons.graphic_eq_rounded, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text('تشخیص گفتار با Whisper',
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const Spacer(),
+                  const Icon(Icons.chevron_left_rounded, color: AppColors.textSecondary, size: 20),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'صدا روی همین گوشی به متن تبدیل می‌شود و مستقیم روی خط زمان می‌نشیند؛ '
+                'بدون اینترنت و بدون ارسال ویدئو.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.8),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
         SfCard(
           onTap: () => context.push('/project/${widget.projectId}/subtitles'),
           child: Column(

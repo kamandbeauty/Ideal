@@ -24,10 +24,15 @@ class CaptionPainter extends CustomPainter {
     this.activeWord = -1,
     this.wordFills = const <double>[],
     this.pulsePhase = 0,
+    this.minFontSize = 10,
   });
 
   final CaptionPreset preset;
   final String text;
+
+  /// Floor for the caption size. The gallery preview is a fraction of the size
+  /// of a real frame, so the same `fontScale` would render an unreadable 7 px
+  /// caption; tiles raise this instead of inventing a different preset.
 
   /// 0..1 entrance / exit progress.
   final double enter;
@@ -45,7 +50,8 @@ class CaptionPainter extends CustomPainter {
     if (text.trim().isEmpty || size.isEmpty) return;
 
     final double shortEdge = size.shortestSide;
-    final double baseSize = (shortEdge * preset.fontScale).clamp(10.0, size.height * 0.42).toDouble();
+    final double baseSize =
+        (shortEdge * preset.fontScale).clamp(minFontSize, size.height * 0.42).toDouble();
     final double k = preset.effects.intensity.clamp(0.2, 2.5).toDouble();
     final Curve curve = preset.effects.easing.curve;
     final double e = curve.transform(enter.clamp(0.0, 1.0).toDouble());
@@ -192,32 +198,42 @@ class CaptionPainter extends CustomPainter {
       );
     }
 
-    if (preset.effects.wordEffect == CaptionWordEffect.activeBackground &&
-        activeWord >= 0 &&
-        activeWord < prepared.wordRects.length) {
-      final Rect? rect = prepared.wordRects[activeWord];
-      if (rect != null) {
+    // Word decorations come from `TextPainter.getBoxesForSelection`, i.e. they
+    // live in the text's own layout space (origin at 0,0), while the layers are
+    // painted at `origin`. Drawing them without that offset - which is what the
+    // gallery did - parks the highlight somewhere else on the frame.
+    final Rect? activeRect = activeWord >= 0 && activeWord < prepared.wordRects.length
+        ? prepared.wordRects[activeWord]
+        : null;
+    if (activeRect != null &&
+        (preset.effects.wordEffect == CaptionWordEffect.activeBackground ||
+            preset.effects.wordEffect == CaptionWordEffect.activeUnderline)) {
+      canvas.save();
+      canvas.translate(origin.dx, origin.dy);
+      if (preset.effects.wordEffect == CaptionWordEffect.activeBackground) {
         canvas.drawRRect(
-          RRect.fromRectAndRadius(rect.inflate(baseSize * 0.12), Radius.circular(baseSize * 0.16)),
+          RRect.fromRectAndRadius(
+            activeRect.inflate(baseSize * 0.12),
+            Radius.circular(baseSize * 0.16),
+          ),
           Paint()..color = preset.accent.withOpacity(0.92),
         );
-      }
-    }
-
-    if (preset.effects.wordEffect == CaptionWordEffect.activeUnderline &&
-        activeWord >= 0 &&
-        activeWord < prepared.wordRects.length) {
-      final Rect? rect = prepared.wordRects[activeWord];
-      if (rect != null) {
+      } else {
         final double thickness = math.max(2.0, baseSize * 0.09);
         canvas.drawRRect(
           RRect.fromRectAndRadius(
-            Rect.fromLTWH(rect.left, rect.bottom + thickness * 0.6, rect.width, thickness),
+            Rect.fromLTWH(
+              activeRect.left,
+              activeRect.bottom + thickness * 0.6,
+              activeRect.width,
+              thickness,
+            ),
             Radius.circular(thickness),
           ),
           Paint()..color = preset.accent,
         );
       }
+      canvas.restore();
     }
 
     final double pulse = preset.effects.pulse
@@ -576,6 +592,7 @@ class CaptionSurface extends StatelessWidget {
     this.activeWord = -1,
     this.wordFills = const <double>[],
     this.pulsePhase = 0,
+    this.minFontSize = 10,
   });
 
   final CaptionPreset preset;
@@ -585,6 +602,7 @@ class CaptionSurface extends StatelessWidget {
   final int activeWord;
   final List<double> wordFills;
   final double pulsePhase;
+  final double minFontSize;
 
   @override
   Widget build(BuildContext context) {
@@ -598,6 +616,7 @@ class CaptionSurface extends StatelessWidget {
           activeWord: activeWord,
           wordFills: wordFills,
           pulsePhase: pulsePhase,
+          minFontSize: minFontSize,
         ),
         size: Size.infinite,
       ),
@@ -613,12 +632,20 @@ class AnimatedCaptionPreview extends StatefulWidget {
     super.key,
     this.cycleMs = 2600,
     this.animate = true,
+    this.phase = 0,
+    this.minFontSize = 10,
   });
 
   final CaptionPreset preset;
   final String text;
   final int cycleMs;
   final bool animate;
+
+  /// 0..1 offset into the cycle. Tiles used to share one phase, so a list of
+  /// them was blank at the same moment for every row; phasing them apart keeps
+  /// at least the visible ones readable.
+  final double phase;
+  final double minFontSize;
 
   @override
   State<AnimatedCaptionPreview> createState() => _AnimatedCaptionPreviewState();
@@ -634,7 +661,10 @@ class _AnimatedCaptionPreviewState extends State<AnimatedCaptionPreview>
   @override
   void initState() {
     super.initState();
-    if (widget.animate) _controller.repeat();
+    if (widget.animate) {
+      _controller.value = widget.phase.clamp(0.0, 0.999).toDouble();
+      _controller.repeat();
+    }
   }
 
   @override
@@ -648,7 +678,7 @@ class _AnimatedCaptionPreviewState extends State<AnimatedCaptionPreview>
     return AnimatedBuilder(
       animation: _controller,
       builder: (BuildContext context, Widget? child) {
-        final double t = widget.animate ? _controller.value : 0.7;
+        final double t = widget.animate ? _controller.value : 0.55;
         const double enterSpan = 0.18;
         const double exitStart = 0.86;
         final double enterT = (t / enterSpan).clamp(0.0, 1.0).toDouble();
@@ -666,6 +696,7 @@ class _AnimatedCaptionPreviewState extends State<AnimatedCaptionPreview>
           activeWord: active,
           wordFills: List<double>.filled(wordCount, 1),
           pulsePhase: t,
+          minFontSize: widget.minFontSize,
         );
       },
     );

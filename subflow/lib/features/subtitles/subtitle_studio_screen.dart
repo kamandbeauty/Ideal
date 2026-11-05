@@ -277,17 +277,22 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
               Text('هنوز زیرنویسی نیست', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
               const Text(
-                'در این فاز می‌توانی زیرنویس را دستی بسازی: پخش را متوقف کن، «افزودن» را بزن و '
-                'متن و زمان را وارد کن. تشخیص خودکار گفتار (Whisper) در فاز بعد به همین استودیو وصل می‌شود؛ '
-                'تا آن زمان هیچ درصد پیشرفت ساختگی نشان داده نمی‌شود.',
+                'تشخیص گفتار Whisper صدا را روی همین گوشی به متن تبدیل می‌کند و زیرنویس را '
+                'همین‌جا می‌سازد؛ اگر ترجیح می‌دهی دستی کار کنی، پخش را متوقف کن، «افزودن» را بزن و '
+                'متن و زمان را وارد کن.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.9),
               ),
               const SizedBox(height: 16),
               SfPrimaryButton(
-                label: 'افزودن زیرنویس در این لحظه',
-                icon: Icons.add_rounded,
+                label: 'تشخیص خودکار گفتار',
+                icon: Icons.graphic_eq_rounded,
+                onPressed: () => context.push('/project/${widget.projectId}/asr'),
+              ),
+              const SizedBox(height: 10),
+              TextButton(
                 onPressed: () => _notifier.insertAt(_playheadUs),
+                child: const Text('افزودن زیرنویس در این لحظه'),
               ),
             ],
           ),

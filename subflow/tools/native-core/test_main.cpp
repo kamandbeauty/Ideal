@@ -5,6 +5,11 @@
 #include <string>
 #include <vector>
 
+#ifndef SF_HAVE_WHISPER_TEST
+#define SF_HAVE_WHISPER_TEST 0
+#endif
+
+#include "core/sf_asr.h"
 #include "core/sf_quality.h"
 #include "core/sf_silence.h"
 #include "core/sf_subtitle.h"
@@ -385,6 +390,49 @@ void TestExportPlanner() {
 
 }  // namespace
 
+
+// The host build has no whisper.cpp on purpose: this verifies the *guard* - an
+// APK compiled without the engine must refuse the feature cleanly instead of
+// crashing or pretending to transcribe.
+void TestAsrGuard() {
+  std::printf("- asr engine guard\n");
+  SF_CHECK(sf::AsrAvailable() == (SF_HAVE_WHISPER_TEST == 1));
+
+  sf::AsrEngine engine;
+  SF_CHECK(engine.Ready() == false);
+  SF_CHECK_EQ_INT(engine.Progress(), 0);
+
+  std::string error;
+  SF_CHECK(engine.Load("", &error) == false);
+  SF_CHECK(error.empty() == false);
+
+  sf::AsrOptions options;
+  options.language = "fa";
+  std::vector<sf::AsrSegment> segments;
+  const std::vector<float> silence(16000, 0.0f);
+  error.clear();
+  SF_CHECK(engine.Transcribe(silence.data(), silence.size(), options, &segments, &error) == false);
+  SF_CHECK(error.empty() == false);
+  SF_CHECK(segments.empty());
+
+  // Cancelling an idle engine is a no-op, not an error.
+  engine.Cancel();
+  engine.Unload();
+  SF_CHECK(engine.Ready() == false);
+}
+
+void TestAsrOptions() {
+  std::printf("- asr option defaults\n");
+  const sf::AsrOptions options;
+  SF_CHECK_EQ_INT(options.threads, 4);
+  SF_CHECK_EQ_STR(options.language, "auto");
+  SF_CHECK(options.translate == false);
+  SF_CHECK_EQ_INT(options.max_segment_us, 7000000);
+  const sf::AsrSegment segment;
+  SF_CHECK_EQ_INT(segment.start_us, 0);
+  SF_CHECK_EQ_INT(segment.end_us, 0);
+}
+
 int main() {
   std::printf("SubFlow native core tests\n");
   TestTimeFormatting();
@@ -394,6 +442,8 @@ int main() {
   TestSrtRoundTrip();
   TestAssWriter();
   TestExportPlanner();
+  TestAsrGuard();
+  TestAsrOptions();
 
   std::printf("\n%d checks, %d failure(s)\n", sftest::Checks(), sftest::Failures());
   return sftest::Failures() == 0 ? 0 : 1;

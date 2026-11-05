@@ -36,8 +36,8 @@ android {
         // Android 8.0 / API 26 is the supported floor.
         minSdk = 26
         targetSdk = 34
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 5
+        versionName = "0.3.0"
 
         // ARM64 first; x86_64 is kept for the emulator only. 32-bit ARM is
         // deliberately excluded from Phase 1 because whisper.cpp models are
@@ -50,7 +50,7 @@ android {
             cmake {
                 arguments += listOf(
                     "-DANDROID_STL=c++_shared",
-                    "-DSF_ENABLE_WHISPER=OFF",
+                    "-DSF_ENABLE_WHISPER=ON",
                 )
                 cppFlags += listOf("-std=c++17", "-O2", "-ffast-math")
             }

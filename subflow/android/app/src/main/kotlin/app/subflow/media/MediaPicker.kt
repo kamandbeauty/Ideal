@@ -24,7 +24,9 @@ import androidx.activity.result.contract.ActivityResultContracts
  */
 class MediaPicker(private val activity: Activity) {
     private var pending: ((Result<Uri?>) -> Unit)? = null
+    private var pendingDocument: ((Result<Uri?>) -> Unit)? = null
     private val contract = ActivityResultContracts.PickVisualMedia()
+    private val documentContract = ActivityResultContracts.OpenDocument()
 
     fun pickVideo(callback: (Result<Uri?>) -> Unit) {
         if (pending != null) {
@@ -50,10 +52,45 @@ class MediaPicker(private val activity: Activity) {
     }
 
     /**
+     * Opens the system document picker.
+     *
+     * Used for Whisper model files: a `.bin` ggml model is user-owned data that
+     * lives wherever the user put it, so it is read through SAF and copied into
+     * app-private storage - no storage permission, no scan of the file system.
+     */
+    fun pickDocument(mimeTypes: Array<String>, callback: (Result<Uri?>) -> Unit) {
+        if (pendingDocument != null) {
+            callback(Result.failure(IllegalStateException("document picker already open")))
+            return
+        }
+        val intent = documentContract.createIntent(activity, mimeTypes)
+        if (intent.resolveActivity(activity.packageManager) == null) {
+            callback(Result.failure(IllegalStateException("no document picker available")))
+            return
+        }
+        pendingDocument = callback
+        try {
+            activity.startActivityForResult(intent, REQUEST_CODE_DOCUMENT)
+        } catch (error: Exception) {
+            pendingDocument = null
+            callback(Result.failure(error))
+        }
+    }
+
+    /**
      * Returns true when the result belonged to this picker, so the activity can
      * stop propagating it to plugins.
      */
     fun handleActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
+        if (requestCode == REQUEST_CODE_DOCUMENT) {
+            val callback = pendingDocument
+            pendingDocument = null
+            if (callback == null) return true
+            val uri = documentContract.parseResult(resultCode, data)
+            if (uri != null) persistPermission(uri)
+            callback(Result.success(uri))
+            return true
+        }
         if (requestCode != REQUEST_CODE) return false
         val callback = pending
         pending = null
@@ -83,5 +120,6 @@ class MediaPicker(private val activity: Activity) {
     companion object {
         private const val TAG = "SubFlowPicker"
         private const val REQUEST_CODE = 0x5F107
+        private const val REQUEST_CODE_DOCUMENT = 0x5F108
     }
 }

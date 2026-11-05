@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../features/asr/asr_screen.dart';
 import '../features/editor/editor_screen.dart';
 import '../features/effects/caption_gallery_screen.dart';
 import '../features/home/home_screen.dart';
@@ -13,8 +14,8 @@ import '../features/video_import/video_import_screen.dart';
 /// Routes. `/captions` is the caption look gallery: it pushes a `CaptionPreset`
 /// back to the caller and is the only place a style is chosen, so the editor,
 /// the gallery previews and (Phase 6) the native renderer all read one model.
-/// Later phases add `/project/:id/transcript`, `/project/:id/subtitles`,
-/// `/project/:id/export`.
+/// `/project/:id/asr` runs offline Whisper on the project's video,
+/// `/project/:id/subtitles` is the editing studio.
 final GoRouter subFlowRouter = GoRouter(
   initialLocation: '/',
   routes: <RouteBase>[
@@ -27,6 +28,11 @@ final GoRouter subFlowRouter = GoRouter(
       path: '/project/:id',
       builder: (_, GoRouterState state) =>
           EditorScreen(projectId: state.pathParameters['id'] ?? ''),
+    ),
+    GoRoute(
+      path: '/project/:id/asr',
+      builder: (_, GoRouterState state) =>
+          AsrScreen(projectId: state.pathParameters['id'] ?? ''),
     ),
     GoRoute(
       path: '/project/:id/subtitles',

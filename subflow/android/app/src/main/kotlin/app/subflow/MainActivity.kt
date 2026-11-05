@@ -8,6 +8,7 @@ import app.subflow.media.MediaPicker
 import app.subflow.media.PlayerViewFactory
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
 /**
@@ -33,10 +34,28 @@ class MainActivity : FlutterActivity() {
         // which is exactly where configureFlutterEngine runs.
         val mediaPicker = MediaPicker(this)
         picker = mediaPicker
-        val bridge = SubFlowBridge(this, mediaPicker)
+        var asrSink: EventChannel.EventSink? = null
+        val bridge = SubFlowBridge(this, mediaPicker) { event ->
+            runOnUiThread { asrSink?.success(event) }
+        }
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BridgeContract.CHANNEL)
             .setMethodCallHandler(bridge)
+
+        // Whisper progress travels on its own event channel: transcription can
+        // run for minutes, and one sink keeps the method channel reply clean.
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, BridgeContract.ASR_EVENTS_CHANNEL)
+            .setStreamHandler(
+                object : EventChannel.StreamHandler {
+                    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                        asrSink = events
+                    }
+
+                    override fun onCancel(arguments: Any?) {
+                        asrSink = null
+                    }
+                }
+            )
 
         flutterEngine.platformViewsController.registry.registerViewFactory(
             BridgeContract.PLAYER_VIEW_TYPE,

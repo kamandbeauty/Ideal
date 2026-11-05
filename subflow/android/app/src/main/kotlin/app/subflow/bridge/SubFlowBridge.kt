@@ -7,6 +7,7 @@ import android.media.MediaCodecList
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import app.subflow.asr.WhisperEngine
 import app.subflow.core.NativeCore
 import app.subflow.media.MediaPicker
 import app.subflow.media.VideoProbe
@@ -24,7 +25,10 @@ import java.util.concurrent.Executors
 class SubFlowBridge(
     private val activity: Activity,
     private val picker: MediaPicker,
+    asrEvents: (Map<String, Any?>) -> Unit = {},
 ) : MethodChannel.MethodCallHandler {
+
+    private val whisper = WhisperEngine(activity, asrEvents)
 
     private val io = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "subflow-bridge-io").apply { isDaemon = true }
@@ -39,6 +43,12 @@ class SubFlowBridge(
             BridgeContract.METHOD_WRITE_SRT -> handleWriteSrt(call, result)
             BridgeContract.METHOD_WRITE_ASS -> handleWriteAss(call, result)
             BridgeContract.METHOD_PLAN_EXPORT -> handlePlanExport(call, result)
+            BridgeContract.METHOD_ASR_CAPABILITIES -> handleAsrCapabilities(result)
+            BridgeContract.METHOD_ASR_LIST_MODELS -> handleAsrListModels(result)
+            BridgeContract.METHOD_ASR_IMPORT_MODEL -> handleAsrImportModel(result)
+            BridgeContract.METHOD_ASR_DELETE_MODEL -> handleAsrDeleteModel(call, result)
+            BridgeContract.METHOD_ASR_TRANSCRIBE -> handleAsrTranscribe(call, result)
+            BridgeContract.METHOD_ASR_CANCEL -> handleAsrCancel(result)
             else -> result.notImplemented()
         }
     }
@@ -98,6 +108,96 @@ class SubFlowBridge(
             val exists = VideoProbe.exists(activity, uriString)
             activity.runOnUiThread { result.success(exists) }
         }
+    }
+
+
+    // ------------------------------------------------------------------ whisper
+    private fun handleAsrCapabilities(result: MethodChannel.Result) {
+        io.execute { activity.runOnUiThread { result.success(whisper.capabilities()) } }
+    }
+
+    private fun handleAsrListModels(result: MethodChannel.Result) {
+        io.execute {
+            val models = whisper.listModels()
+            activity.runOnUiThread { result.success(models) }
+        }
+    }
+
+    private fun handleAsrImportModel(result: MethodChannel.Result) {
+        activity.runOnUiThread {
+            // Empty type list = "any document": a ggml model has no registered
+            // MIME type, so filtering by one would hide every valid file.
+            picker.pickDocument(emptyArray()) { outcome ->
+                outcome.fold(
+                    onSuccess = { uri ->
+                        if (uri == null) {
+                            result.success(null)
+                            return@fold
+                        }
+                        io.execute {
+                            try {
+                                val model = whisper.importModel(uri)
+                                activity.runOnUiThread { result.success(model) }
+                            } catch (error: Exception) {
+                                Log.e(TAG, "model import failed", error)
+                                activity.runOnUiThread {
+                                    result.error("asr_import_failed", error.message, null)
+                                }
+                            }
+                        }
+                    },
+                    onFailure = { error ->
+                        result.error("asr_picker_failed", error.message, null)
+                    }
+                )
+            }
+        }
+    }
+
+    private fun handleAsrDeleteModel(call: MethodCall, result: MethodChannel.Result) {
+        val path: String? = call.argument<String>("path")
+        if (path.isNullOrEmpty()) {
+            result.error("bad_args", "path is required", null)
+            return
+        }
+        io.execute {
+            val deleted = whisper.deleteModel(path)
+            activity.runOnUiThread { result.success(deleted) }
+        }
+    }
+
+    /**
+     * Runs on the single IO thread on purpose: one transcription at a time, and
+     * the model file is read from disk, which must never touch the UI thread.
+     * Cancellation goes out of band (see [handleAsrCancel]) so it is not queued
+     * behind the work it is meant to stop.
+     */
+    private fun handleAsrTranscribe(call: MethodCall, result: MethodChannel.Result) {
+        val uriString: String? = call.argument<String>("uri")
+        val modelPath: String? = call.argument<String>("modelPath")
+        if (uriString.isNullOrEmpty() || modelPath.isNullOrEmpty()) {
+            result.error("bad_args", "uri and modelPath are required", null)
+            return
+        }
+        val language: String = call.argument<String>("language") ?: "auto"
+        val durationUs: Long = (call.argument<Number>("durationUs") ?: 0).toLong()
+        io.execute {
+            val json = try {
+                whisper.transcribe(Uri.parse(uriString), modelPath, language, durationUs)
+            } catch (error: Exception) {
+                Log.e(TAG, "transcription failed", error)
+                val message = (error.message ?: "transcription failed").replace('"', ' ')
+                "{\"ok\":false,\"error\":\"$message\"}"
+            }
+            activity.runOnUiThread { result.success(json) }
+        }
+    }
+
+    private fun handleAsrCancel(result: MethodChannel.Result) {
+        Thread {
+            whisper.cancel()
+        }.start()
+        result.success(true)
     }
 
     // ----------------------------------------------------------- capabilities

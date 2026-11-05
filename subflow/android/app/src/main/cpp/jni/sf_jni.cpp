@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "sf_asr.h"
 #include "sf_quality.h"
 #include "sf_silence.h"
 #include "sf_subtitle.h"
@@ -66,6 +67,57 @@ std::vector<sf::Segment> ReadSegments(JNIEnv* env, jlongArray starts, jlongArray
     }
   }
   return segments;
+}
+
+
+// ------------------------------------------------------------------ whisper
+// One engine per process: a whisper model is hundreds of megabytes of weights,
+// so two would be a memory bug, not a feature. Every entry point below is
+// serialized by the engine's own mutex.
+sf::AsrEngine& Asr() {
+  static sf::AsrEngine engine;
+  return engine;
+}
+
+std::string QuoteJson(const std::string& value) {
+  std::string out = "\"";
+  for (const char c : value) {
+    switch (c) {
+      case '"': out += "\\\""; break;
+      case '\\': out += "\\\\"; break;
+      case '\n': out += "\\n"; break;
+      case '\r': out += "\\r"; break;
+      case '\t': out += "\\t"; break;
+      default:
+        if (static_cast<unsigned char>(c) < 0x20) {
+          out += ' ';
+        } else {
+          out += c;
+        }
+    }
+  }
+  out += "\"";
+  return out;
+}
+
+std::string SegmentsJson(const std::vector<sf::AsrSegment>& segments) {
+  std::string json = "{\"ok\":true,\"segments\":[";
+  for (std::size_t i = 0; i < segments.size(); ++i) {
+    if (i > 0) json += ",";
+    json += "[";
+    json += std::to_string(segments[i].start_us);
+    json += ",";
+    json += std::to_string(segments[i].end_us);
+    json += ",";
+    json += QuoteJson(segments[i].text);
+    json += "]";
+  }
+  json += "]}";
+  return json;
+}
+
+std::string ErrorJson(const std::string& message) {
+  return "{\"ok\":false,\"error\":" + QuoteJson(message) + "}";
 }
 
 }  // namespace
@@ -234,6 +286,71 @@ Java_app_subflow_core_NativeCore_nativePlanExport(
   }
   json += "]}";
   return env->NewStringUTF(json.c_str());
+}
+
+JNIEXPORT jboolean JNICALL
+Java_app_subflow_core_NativeCore_nativeAsrAvailable(JNIEnv* /*env*/, jclass /*clazz*/) {
+  return sf::AsrAvailable() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jstring JNICALL
+Java_app_subflow_core_NativeCore_nativeAsrLoadModel(JNIEnv* env, jclass /*clazz*/, jstring path) {
+  const std::string model_path = ToStdString(env, path);
+  std::string error;
+  if (!Asr().Load(model_path, &error)) {
+    return env->NewStringUTF(ErrorJson(error).c_str());
+  }
+  return env->NewStringUTF("{\"ok\":true}");
+}
+
+JNIEXPORT void JNICALL
+Java_app_subflow_core_NativeCore_nativeAsrUnload(JNIEnv* /*env*/, jclass /*clazz*/) {
+  Asr().Unload();
+}
+
+JNIEXPORT jboolean JNICALL
+Java_app_subflow_core_NativeCore_nativeAsrReady(JNIEnv* /*env*/, jclass /*clazz*/) {
+  return Asr().Ready() ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT void JNICALL
+Java_app_subflow_core_NativeCore_nativeAsrCancel(JNIEnv* /*env*/, jclass /*clazz*/) {
+  Asr().Cancel();
+}
+
+JNIEXPORT jint JNICALL
+Java_app_subflow_core_NativeCore_nativeAsrProgress(JNIEnv* /*env*/, jclass /*clazz*/) {
+  return static_cast<jint>(Asr().Progress());
+}
+
+/// Transcribes mono 16 kHz float PCM and returns segments as JSON:
+/// {"ok":true,"segments":[[startUs,endUs,"text"], ...]} or {"ok":false,"error":...}
+JNIEXPORT jstring JNICALL
+Java_app_subflow_core_NativeCore_nativeAsrTranscribe(JNIEnv* env, jclass /*clazz*/,
+                                                     jfloatArray pcm, jstring language,
+                                                     jint threads) {
+  if (pcm == nullptr) {
+    return env->NewStringUTF(ErrorJson("no audio").c_str());
+  }
+  const jsize length = env->GetArrayLength(pcm);
+  if (length <= 0) {
+    return env->NewStringUTF(ErrorJson("no audio").c_str());
+  }
+
+  std::vector<float> samples(static_cast<std::size_t>(length));
+  env->GetFloatArrayRegion(pcm, 0, length, samples.data());
+  if (env->ExceptionCheck()) return nullptr;
+
+  sf::AsrOptions options;
+  options.threads = static_cast<int>(threads);
+  options.language = ToStdString(env, language);
+
+  std::vector<sf::AsrSegment> segments;
+  std::string error;
+  if (!Asr().Transcribe(samples.data(), samples.size(), options, &segments, &error)) {
+    return env->NewStringUTF(ErrorJson(error).c_str());
+  }
+  return env->NewStringUTF(SegmentsJson(segments).c_str());
 }
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* /*vm*/, void* /*reserved*/) {
