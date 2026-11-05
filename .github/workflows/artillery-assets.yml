@@ -23,7 +23,7 @@ jobs:
         if: always()
         run: |
           tail -60 /tmp/blender.log
-          grep -E 'Error|Traceback|line [0-9]|CREATED|Exception' /tmp/blender.log | tail -18 | while IFS= read -r line; do echo "::error title=Blender::${line}"; done
+          grep -E 'Error|error|Traceback|line [0-9]|CREATED|Exception' /tmp/blender.log | tail -18 | while IFS= read -r line; do echo "::error title=Blender::${line}"; done
       - name: Verify exports
         run: |
           grep 'CREATED' /tmp/blender.log || { echo '::error::No CREATED markers; inspect Blender diagnostics'; exit 1; }

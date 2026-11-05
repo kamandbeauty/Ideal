@@ -144,7 +144,7 @@ def export_glb(root,path):
     def accessor(values,fmt,components,target,minimum=None,maximum=None):
         nonlocal binary
         while len(binary)%4:binary.append(0)
-        payload=struct.pack('<'+fmt*len(values),*[c for v in values for c in v]) if components>1 else struct.pack('<'+fmt*len(values),*values)
+        payload=struct.pack('<'+fmt*(len(values)*components),*[c for v in values for c in v]) if components>1 else struct.pack('<'+fmt*len(values),*values)
         view=len(doc['bufferViews']);doc['bufferViews'].append({'buffer':0,'byteOffset':len(binary),'byteLength':len(payload),'target':target})
         binary.extend(payload)
         typ={1:'SCALAR',2:'VEC2',3:'VEC3',4:'VEC4'}[components]
