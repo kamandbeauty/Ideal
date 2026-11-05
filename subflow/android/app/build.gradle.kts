@@ -1,6 +1,13 @@
 import java.io.FileInputStream
 import java.util.Properties
 
+plugins {
+    id("com.android.application")
+    id("kotlin-android")
+    id("dev.flutter.flutter-gradle-plugin")
+}
+
+
 // Optional real release keystore. CI writes android/key.properties from the
 // ANDROID_KEYSTORE_* secrets; locally the file simply does not exist and the
 // build falls back to the debug key (installable, but not store-ready).
@@ -8,12 +15,6 @@ val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
     FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
-}
-
-plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("dev.flutter.flutter-gradle-plugin")
 }
 
 android {

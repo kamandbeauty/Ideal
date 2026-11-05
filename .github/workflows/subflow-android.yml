@@ -131,9 +131,36 @@ jobs:
           PROPS
           echo "release keystore configured"
 
+      # The build log is also surfaced as a check-run annotation, because the
+      # default log download is not always reachable from automation tooling.
       - name: Build release APK
+        id: build
+        continue-on-error: true
         working-directory: subflow
-        run: flutter build apk --release --verbose
+        run: |
+          set -o pipefail
+          (flutter build apk --release 2>&1 || echo "BUILD_FAILED" >> /tmp/state) \
+            | tee /tmp/subflow-build.log
+          if [ -f /tmp/state ]; then exit 1; fi
+
+      - name: Publish build diagnostics
+        if: failure()
+        run: |
+          echo "### Gradle / Flutter build failure" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -nE "error:|Error|FAILURE|What went wrong|Execution failed|Caused by|> Task .* FAILED|Unresolved|expected" /tmp/subflow-build.log \
+            | tail -60 >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "--- last 40 lines ---" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -40 /tmp/subflow-build.log >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          # Also emit annotations, which are readable through the check-run API.
+          grep -nE "error:|What went wrong|Caused by|FAILED" /tmp/subflow-build.log \
+            | tail -15 | while IFS= read -r line; do
+                echo "::error title=subflow build::${line//\n/ }"
+              done || true
+          exit 1
 
       - name: Collect artefact
         id: collect
