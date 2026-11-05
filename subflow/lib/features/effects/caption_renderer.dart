@@ -33,6 +33,7 @@ class CaptionPainter extends CustomPainter {
   /// Floor for the caption size. The gallery preview is a fraction of the size
   /// of a real frame, so the same `fontScale` would render an unreadable 7 px
   /// caption; tiles raise this instead of inventing a different preset.
+  final double minFontSize;
 
   /// 0..1 entrance / exit progress.
   final double enter;
