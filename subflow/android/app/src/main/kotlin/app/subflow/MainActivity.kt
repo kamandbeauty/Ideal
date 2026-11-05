@@ -1,5 +1,6 @@
 package app.subflow
 
+import android.content.Intent
 import android.os.Bundle
 import app.subflow.bridge.BridgeContract
 import app.subflow.bridge.SubFlowBridge
@@ -15,6 +16,10 @@ import io.flutter.plugin.common.MethodChannel
  */
 class MainActivity : FlutterActivity() {
 
+    // Held so `onActivityResult` can hand the Photo Picker result back; the
+    // bridge itself owns the channel and the IO thread.
+    private var picker: MediaPicker? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Keep the window background dark so Flutter's first frame never flashes white.
@@ -26,8 +31,9 @@ class MainActivity : FlutterActivity() {
 
         // The picker must be registered before the activity reaches RESUMED,
         // which is exactly where configureFlutterEngine runs.
-        val picker = MediaPicker(this)
-        val bridge = SubFlowBridge(this, picker)
+        val mediaPicker = MediaPicker(this)
+        picker = mediaPicker
+        val bridge = SubFlowBridge(this, mediaPicker)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BridgeContract.CHANNEL)
             .setMethodCallHandler(bridge)
@@ -36,5 +42,15 @@ class MainActivity : FlutterActivity() {
             BridgeContract.PLAYER_VIEW_TYPE,
             PlayerViewFactory(flutterEngine.dartExecutor.binaryMessenger),
         )
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        val handled = picker?.handleActivityResult(requestCode, resultCode, data) ?: false
+        if (!handled) super.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onDestroy() {
+        picker = null
+        super.onDestroy()
     }
 }

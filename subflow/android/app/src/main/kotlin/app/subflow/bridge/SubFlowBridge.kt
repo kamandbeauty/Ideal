@@ -1,12 +1,12 @@
 package app.subflow.bridge
 
+import android.app.Activity
 import android.content.Context
 import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.net.Uri
 import android.os.Build
 import android.util.Log
-import androidx.activity.ComponentActivity
 import app.subflow.core.NativeCore
 import app.subflow.media.MediaPicker
 import app.subflow.media.VideoProbe
@@ -22,7 +22,7 @@ import java.util.concurrent.Executors
  * #1/#5 in the brief: no heavy work on the main thread).
  */
 class SubFlowBridge(
-    private val activity: ComponentActivity,
+    private val activity: Activity,
     private val picker: MediaPicker,
 ) : MethodChannel.MethodCallHandler {
 
