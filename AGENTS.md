@@ -143,3 +143,13 @@ format reference, not as a skill source.
 The project owner writes in Persian. User-facing documentation (README) is in
 Persian; skill instructions and code comments stay in English for portability
 across agents.
+
+## Camera rule (channels: all story films)
+
+When one plate stays on screen longer than ~5 s, the shot must never sit still and
+must never restart its move at subtitle boundaries. The plate's camera path is
+computed over the whole *scene* (all subtitles that share that plate): a slow
+zoom-in, then a continuous drift to the side, then a gentle pull-back — so the
+image keeps feeling alive until the next plate arrives. Implementation:
+`cameraAt(sc, t, p, seed, sceneDuration)` in `motion/rowling-potter/index.html`
+(`legs = dur / 5.2`, zoom breathing + pan sway + one-way travel).
