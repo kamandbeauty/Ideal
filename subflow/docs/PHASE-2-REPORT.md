@@ -174,7 +174,7 @@ segments/words/styles including cascade deletion.
 end, and version bumped to `0.2.1+3`.
 
 **Status**: verified by CI. Run `42104634583` (commit `30885cf`): analyzer clean,
-**76 Dart tests green** (the 12 new database cases included), release APK built;
+**73 Dart tests green** (64 + 9 new database cases), release APK built;
 run `42105891541` (tag `subflow-v0.2.1`) republished the release. The download tag
 now carries only `subflow-0.2.1-release.apk` + `.sha256` (43,999,796 B); the broken
 0.2.0 assets were deleted. Not yet verified on the reporting device;
