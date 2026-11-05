@@ -134,8 +134,12 @@ CI (`subflow-android.yml`, run `42072627325`, commit `6c7a871`):
 
 ## 5. Test results (what the evidence actually proves)
 
-* The app **compiles**: Dart, Kotlin and the NDK C++ core all build on a real
-  Android toolchain, and a release APK is produced and inspected.
+* The app **compiles and ships**: Dart, Kotlin and the NDK C++ core all build on
+  a real Android toolchain, and a signed release APK was produced, inspected and
+  attached to the rolling release
+  <https://github.com/kamandbeauty/Ideal/releases/tag/subflow-apk-latest>
+  (`subflow-0.1.0-release.apk`, 43,605,124 bytes + `.sha256`, published by CI run
+  `42074006445` on tag `subflow-v1.0.0`).
 * The caption engine **paints every one of its 34 effect values without
   throwing**, at entrance 0/50/100 %, with and without an active word, for all
   40 presets — that is what the new widget tests assert (`tester.takeException()`).
