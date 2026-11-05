@@ -109,6 +109,7 @@ def finish(root,name):
         o=bpy.data.objects.get(object_name)
         if o is not None and o.type=='EMPTY':merge_children(o)
     # Blender front is -Y; rotate the authored root so glTF/Godot forward is -Z.
+    # The exporter preserves named pivots and applies this root orientation.
     root.rotation_euler.z=math.pi
     bpy.ops.object.select_all(action='DESELECT')
     root.select_set(True)
