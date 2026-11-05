@@ -68,15 +68,19 @@ void main() {
 
     test('indexAt uses half-open ranges', () {
       expect(document.indexAt(0), 0);
-      expect(document.indexAt(999), 0);
-      expect(document.indexAt(1000), isNull);
-      expect(document.indexAt(2500), 1);
-      expect(document.indexAt(4000), 1, reason: 'playhead parked at the very end');
-      expect(document.indexAt(90000), isNull);
+      expect(document.indexAt(TimeUs.fromMilliseconds(999)), 0);
+      expect(document.indexAt(TimeUs.fromMilliseconds(1000)), isNull);
+      expect(document.indexAt(TimeUs.fromMilliseconds(2500)), 1);
+      expect(document.indexAt(TimeUs.fromMilliseconds(4000)), 1,
+          reason: 'playhead parked at the very end');
+      expect(document.indexAt(TimeUs.fromMilliseconds(90000)), isNull);
     });
 
     test('wordIndexAt never returns null for a segment with words', () {
-      final SubtitleDocument withWords = document.withText('a', 'یک دو');
+      // An empty starting text forces `withText` to build the word list; setting
+      // the same text again would correctly be a no-op.
+      final SubtitleDocument withWords = doc(<SubtitleSegment>[seg('a', 0, 1000, '')])
+          .withText('a', 'یک دو');
       expect(withWords.segments.first.words.length, 2);
       expect(withWords.wordIndexAt('a', 10), 0);
       expect(withWords.wordIndexAt('a', TimeUs.fromMilliseconds(900)), 1);
@@ -194,7 +198,7 @@ void main() {
 
     test('shiftAll moves captions and word timings, never below zero', () {
       final SubtitleDocument document =
-          doc(<SubtitleSegment>[seg('a', 1000, 2000, 'سلام دنیا')]).withText('a', 'سلام دنیا');
+          doc(<SubtitleSegment>[seg('a', 1000, 2000, '')]).withText('a', 'سلام دنیا');
       final SubtitleDocument shifted = document.shiftAll(-500000);
       expect(shifted.segments.single.startUs, TimeUs.fromMilliseconds(500));
       expect(shifted.segments.single.words.first.startUs, greaterThanOrEqualTo(0));
