@@ -3,7 +3,8 @@
 Run with Blender 3.4+ --background --python this_file.py. No external assets.
 All dimensions are meters. Blender Z-up exports to Godot Y-up glTF.
 """
-import bpy, math, os, sys
+import bpy, math, os, sys, struct, json
+from mathutils import Matrix
 from mathutils import Vector
 ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT=os.path.join(ROOT,'assets','models')
@@ -112,7 +113,7 @@ def finish(root,name):
     for o in bpy.data.objects:o.select_set(True)
     bpy.context.view_layer.objects.active=root
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SRC,name+'.blend'))
-    bpy.ops.export_scene.gltf(filepath=os.path.join(OUT,name+'.glb'),export_format='GLB',use_selection=True,export_apply=True,export_yup=True,export_extras=True,export_cameras=False,export_lights=False)
+    export_glb(root,os.path.join(OUT,name+'.glb'))
     print('CREATED',name, len(bpy.data.objects),'objects')
 
 def wheel(parent,x,y,z,r=.91,width=.48):
@@ -126,6 +127,67 @@ def wheel(parent,x,y,z,r=.91,width=.48):
         a=i*math.tau/18
         o=box('Tread',(x,y+math.sin(a)*r,z+math.cos(a)*r),(.52,.14,.08),'Rubber',parent,.015)
         o.rotation_euler[0]=-a
+
+def export_glb(root,path):
+    """Direct standards-compliant GLB writer, independent of Blender's bundled
+    glTF addon (Ubuntu's Blender package has an incompatible addon runtime).
+    Evaluated geometry and named animation pivots are preserved exactly.
+    """
+    convert=Matrix(((1,0,0,0),(0,0,1,0),(0,-1,0,0),(0,0,0,1)))
+    inverse=convert.inverted()
+    objects=[root]+list(root.children_recursive)
+    indices={o.name:i for i,o in enumerate(objects)}
+    doc={'asset':{'version':'2.0','generator':'ARTILLERY FRONTLINE original Blender pipeline'},
+         'scene':0,'scenes':[{'nodes':[0]}],'nodes':[],'meshes':[],'materials':[],
+         'accessors':[],'bufferViews':[],'buffers':[]}
+    material_indices={}; binary=bytearray()
+    def accessor(values,fmt,components,target,minimum=None,maximum=None):
+        nonlocal binary
+        while len(binary)%4:binary.append(0)
+        payload=struct.pack('<'+fmt*len(values),*[c for v in values for c in v]) if components>1 else struct.pack('<'+fmt*len(values),*values)
+        view=len(doc['bufferViews']);doc['bufferViews'].append({'buffer':0,'byteOffset':len(binary),'byteLength':len(payload),'target':target})
+        binary.extend(payload)
+        typ={1:'SCALAR',2:'VEC2',3:'VEC3',4:'VEC4'}[components]
+        component_type={'f':5126,'I':5125,'H':5123}[fmt]
+        a={'bufferView':view,'componentType':component_type,'count':len(values),'type':typ}
+        if minimum is not None:a['min']=minimum;a['max']=maximum
+        index=len(doc['accessors']);doc['accessors'].append(a);return index
+    depsgraph=bpy.context.evaluated_depsgraph_get()
+    for o in objects:
+        matrix=convert @ o.matrix_local @ inverse
+        loc,rot,scale=matrix.decompose()
+        node={'name':o.name,'translation':list(loc),'rotation':[rot.x,rot.y,rot.z,rot.w],'scale':list(scale)}
+        children=[indices[c.name] for c in o.children]
+        if children:node['children']=children
+        doc['nodes'].append(node)
+        if o.type!='MESH':continue
+        evaluated=o.evaluated_get(depsgraph);mesh=evaluated.to_mesh();mesh.calc_loop_triangles()
+        positions=[tuple(convert.to_3x3() @ v.co) for v in mesh.vertices]
+        normals=[tuple((convert.to_3x3() @ v.normal).normalized()) for v in mesh.vertices]
+        triangles=[tuple(t.vertices) for t in mesh.loop_triangles]
+        if not triangles:
+            evaluated.to_mesh_clear();continue
+        pa=accessor(positions,'f',3,34962,[min(p[k] for p in positions) for k in range(3)],[max(p[k] for p in positions) for k in range(3)])
+        na=accessor(normals,'f',3,34962)
+        ia=accessor(triangles,'I',3,34963)
+        source=o.data.materials[0] if o.data.materials else None
+        if source.name not in material_indices:
+            bs=source.node_tree.nodes.get('Principled BSDF')
+            color=list(bs.inputs['Base Color'].default_value)
+            pbr={'baseColorFactor':color,'metallicFactor':float(bs.inputs['Metallic'].default_value),'roughnessFactor':float(bs.inputs['Roughness'].default_value)}
+            material_indices[source.name]=len(doc['materials']);doc['materials'].append({'name':source.name,'pbrMetallicRoughness':pbr,'doubleSided':False})
+        doc['meshes'].append({'name':o.data.name,'primitives':[{'attributes':{'POSITION':pa,'NORMAL':na},'indices':ia,'material':material_indices[source.name]}]})
+        node['mesh']=len(doc['meshes'])-1
+        evaluated.to_mesh_clear()
+    doc['buffers']=[{'byteLength':len(binary)}]
+    encoded=json.dumps(doc,separators=(',',':')).encode('utf8')
+    while len(encoded)%4:encoded+=b' '
+    while len(binary)%4:binary.append(0)
+    total=12+8+len(encoded)+8+len(binary)
+    with open(path,'wb') as f:
+        f.write(struct.pack('<III',0x46546c67,2,total))
+        f.write(struct.pack('<II',len(encoded),0x4e4f534a));f.write(encoded)
+        f.write(struct.pack('<II',len(binary),0x004e4942));f.write(binary)
 
 def kestrel():
     r=reset('Kestrel')
