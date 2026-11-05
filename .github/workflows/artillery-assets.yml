@@ -23,8 +23,12 @@ jobs:
       - name: Publish Blender diagnostics
         if: failure()
         run: |
-          tail -60 /tmp/blender.log
-          grep -E 'Error|error|Traceback|line [0-9]|CREATED|Exception' /tmp/blender.log | tail -18 | while IFS= read -r line; do echo "::error title=Blender::${line}"; done
+          if [ -f /tmp/blender.log ]; then
+            tail -45 /tmp/blender.log | while IFS= read -r line; do echo "::error title=Blender log::${line}"; done
+          else
+            echo '::error::Blender log was not created'
+          fi
+          ls -l ARTILLERY_FRONTLINE/assets/models || true
       - name: Verify exports
         run: |
           grep 'CREATED' /tmp/blender.log || { echo '::error::No CREATED markers; inspect Blender diagnostics'; exit 1; }
