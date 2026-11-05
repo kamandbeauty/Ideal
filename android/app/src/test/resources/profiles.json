@@ -1,0 +1,848 @@
+{
+ "auto": {
+  "p0": {
+   "intensity": 0.65,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.105,
+     "time": 0.0,
+     "x": 0.005220654404493239,
+     "y": -0.0008822255592753778
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.468545,
+     "time": 5.0,
+     "x": 0.005220654404493239,
+     "y": -0.0008822255592753778
+    }
+   ],
+   "motionType": "zoomIn",
+   "path": null,
+   "seed": -7574243413730551920
+  },
+  "p1": {
+   "intensity": 0.65,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.1271,
+     "time": 0.0,
+     "x": -0.10023758120643933,
+     "y": -0.2026938861412185
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.5204799999999998,
+     "time": 5.0,
+     "x": 0.18256690869549963,
+     "y": 0.2026938861412185
+    }
+   ],
+   "motionType": "zoomPan",
+   "path": null,
+   "seed": 3799741165564138872
+  },
+  "p2": {
+   "intensity": 0.65,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.2110175,
+     "time": 0.0,
+     "x": 0.016486306933133493,
+     "y": 0.09122161566908685
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.0395,
+     "time": 5.0,
+     "x": -0.008243153466566747,
+     "y": -0.045610807834543424
+    }
+   ],
+   "motionType": "pullBack",
+   "path": null,
+   "seed": -3282003537954170160
+  },
+  "p3": {
+   "intensity": 0.65,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.1271,
+     "time": 0.0,
+     "x": -0.10023758120643933,
+     "y": -0.2026938861412185
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.5204799999999998,
+     "time": 5.0,
+     "x": 0.18256690869549963,
+     "y": 0.2026938861412185
+    }
+   ],
+   "motionType": "zoomPan",
+   "path": null,
+   "seed": 8072829747775410408
+  },
+  "p4": {
+   "intensity": 0.65,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4475500000000001,
+     "time": 0.0,
+     "x": 0.24184557048499572,
+     "y": 0.019922803756557673
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.5179123868819806,
+     "time": 5.0,
+     "x": -0.24184557048499572,
+     "y": 0.019922803756557673
+    }
+   ],
+   "motionType": "panLeft",
+   "path": null,
+   "seed": 2288097547748740640
+  },
+  "p5": {
+   "intensity": 0.65,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4475500000000001,
+     "time": 0.0,
+     "x": -0.24184557048499572,
+     "y": -0.0010821233889970908
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.467683946964198,
+     "time": 5.0,
+     "x": 0.24184557048499572,
+     "y": -0.0010821233889970908
+    }
+   ],
+   "motionType": "panRight",
+   "path": null,
+   "seed": -4784712455411790728
+  },
+  "p6": {
+   "intensity": 0.65,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0.0,
+     "scale": 1.1520000000000001,
+     "time": 0.0,
+     "x": -0.015701381856262586,
+     "y": -0.031471041664866584
+    },
+    {
+     "easing": "smoother",
+     "rotation": -0.029845130209103034,
+     "scale": 1.18656,
+     "time": 5.0,
+     "x": 0.015701381856262586,
+     "y": 0.031471041664866584
+    }
+   ],
+   "motionType": "subtleRotation",
+   "path": null,
+   "seed": 6580258327525884224
+  },
+  "p7": {
+   "intensity": 0.65,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4475500000000001,
+     "time": 0.0,
+     "x": 0.0022635809690759036,
+     "y": -0.28270480006447674
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4918426219262038,
+     "time": 5.0,
+     "x": 0.0022635809690759036,
+     "y": 0.28270480006447674
+    }
+   ],
+   "motionType": "panDown",
+   "path": null,
+   "seed": -473338878256347192
+  }
+ },
+ "auto_types": [
+  "zoomIn",
+  "zoomPan",
+  "pullBack",
+  "zoomPan",
+  "panLeft",
+  "panRight",
+  "subtleRotation",
+  "panDown"
+ ],
+ "locked_after_regen": {
+  "p0": {
+   "intensity": 0.65,
+   "isLocked": true,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.105,
+     "time": 0.0,
+     "x": 0.005220654404493239,
+     "y": -0.0008822255592753778
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.468545,
+     "time": 5.0,
+     "x": 0.005220654404493239,
+     "y": -0.0008822255592753778
+    }
+   ],
+   "motionType": "zoomIn",
+   "path": null,
+   "seed": -7574243413730551920
+  },
+  "p1": {
+   "intensity": 0.9,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.1526,
+     "time": 0.0,
+     "x": -0.11768561898702457,
+     "y": -0.21512066457958437
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.6226800000000001,
+     "time": 5.0,
+     "x": 0.2046589592525945,
+     "y": 0.21512066457958437
+    }
+   ],
+   "motionType": "zoomPan",
+   "path": null,
+   "seed": 3799741165564147103
+  },
+  "p2": {
+   "intensity": 0.9,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0.0,
+     "scale": 1.066,
+     "time": 0.0,
+     "x": -0.05503439649781117,
+     "y": -0.08872784399009373
+    },
+    {
+     "easing": "smoother",
+     "rotation": -0.013089969389957472,
+     "scale": 1.246154,
+     "time": 2.5,
+     "x": 0.0,
+     "y": 0.0
+    },
+    {
+     "easing": "smoother",
+     "rotation": -0.026179938779914945,
+     "scale": 1.426308,
+     "time": 5.0,
+     "x": 0.1854817040984692,
+     "y": 0.08872784399009373
+    }
+   ],
+   "motionType": "combined",
+   "path": null,
+   "seed": -3282003537954162121
+  },
+  "p3": {
+   "intensity": 0.9,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.065,
+     "time": 0.0,
+     "x": 0.0,
+     "y": 0.0
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.36533,
+     "time": 5.0,
+     "x": 0.2200072103040616,
+     "y": -0.2779207224627013
+    }
+   ],
+   "motionType": "centerToCorner",
+   "path": null,
+   "seed": 8072829747775418383
+  },
+  "p4": {
+   "intensity": 0.9,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.047,
+     "time": 0.0,
+     "x": -0.03990236654993096,
+     "y": 0.09534758890755024
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.2459300000000002,
+     "time": 5.0,
+     "x": 0.026909284134159613,
+     "y": -0.04767379445377512
+    }
+   ],
+   "motionType": "slowPush",
+   "path": null,
+   "seed": 2288097547748748999
+  },
+  "p5": {
+   "intensity": 0.9,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.2459300000000002,
+     "time": 0.0,
+     "x": 0.04716385796816705,
+     "y": 0.11227220762176388
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.047,
+     "time": 5.0,
+     "x": -0.023581928984083525,
+     "y": -0.05613610381088194
+    }
+   ],
+   "motionType": "pullBack",
+   "path": null,
+   "seed": -4784712455411782497
+  },
+  "p6": {
+   "intensity": 0.9,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.1526,
+     "time": 0.0,
+     "x": -0.11768561898702457,
+     "y": 0.21512066457958437
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.6226800000000001,
+     "time": 5.0,
+     "x": 0.2046589592525945,
+     "y": -0.21512066457958437
+    }
+   ],
+   "motionType": "zoomPan",
+   "path": null,
+   "seed": 6580258327525892519
+  },
+  "p7": {
+   "intensity": 0.9,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0.0,
+     "scale": 1.1720000000000002,
+     "time": 0.0,
+     "x": -0.01734091260583336,
+     "y": -0.03195875865000134
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0.03595378259108319,
+     "scale": 1.2071600000000002,
+     "time": 5.0,
+     "x": 0.01734091260583336,
+     "y": 0.03195875865000134
+    }
+   ],
+   "motionType": "subtleRotation",
+   "path": null,
+   "seed": -473338878256339153
+  }
+ },
+ "types": {
+  "centerToCorner": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.055,
+     "time": 0.0,
+     "x": 0.0,
+     "y": 0.0
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.31453,
+     "time": 5.0,
+     "x": -0.18610031299737884,
+     "y": -0.2505147593943589
+    }
+   ],
+   "motionType": "centerToCorner",
+   "path": null,
+   "seed": 12345
+  },
+  "combined": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0.0,
+     "scale": 1.058,
+     "time": 0.0,
+     "x": -0.04872925855912624,
+     "y": -0.18412679207926616
+    },
+    {
+     "easing": "smoother",
+     "rotation": -0.01134464013796314,
+     "scale": 1.2135259999999999,
+     "time": 2.5,
+     "x": 0.0,
+     "y": 0.0
+    },
+    {
+     "easing": "smoother",
+     "rotation": -0.02268928027592628,
+     "scale": 1.369052,
+     "time": 5.0,
+     "x": 0.07928961448607749,
+     "y": 0.18412679207926616
+    }
+   ],
+   "motionType": "combined",
+   "path": null,
+   "seed": 12345
+  },
+  "diagonalLeft": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.52514,
+     "time": 0.0,
+     "x": 0.2723973464002576,
+     "y": 0.24124547254678252
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.6166484,
+     "time": 5.0,
+     "x": -0.2723973464002576,
+     "y": -0.24124547254678252
+    }
+   ],
+   "motionType": "diagonalLeft",
+   "path": null,
+   "seed": 12345
+  },
+  "diagonalRight": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.52514,
+     "time": 0.0,
+     "x": -0.2723973464002576,
+     "y": 0.24124547254678252
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.6166484,
+     "time": 5.0,
+     "x": 0.2723973464002576,
+     "y": -0.24124547254678252
+    }
+   ],
+   "motionType": "diagonalRight",
+   "path": null,
+   "seed": 12345
+  },
+  "drift": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0.0,
+     "scale": 1.1300000000000001,
+     "time": 0.0,
+     "x": 0.0020266566255820353,
+     "y": -0.14789787909228397
+    },
+    {
+     "easing": "smoother",
+     "rotation": -0.008988445647770798,
+     "scale": 1.1752000000000002,
+     "time": 2.5,
+     "x": -0.02361176666210148,
+     "y": -0.0015550692184754427
+    },
+    {
+     "easing": "smoother",
+     "rotation": -0.017976891295541596,
+     "scale": 1.2091000000000003,
+     "time": 5.0,
+     "x": -0.0020266566255820353,
+     "y": 0.14789787909228397
+    }
+   ],
+   "motionType": "drift",
+   "path": null,
+   "seed": 12345
+  },
+  "panDown": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4652,
+     "time": 0.0,
+     "x": -0.0207619327278436,
+     "y": -0.2896205296205296
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4777944484496752,
+     "time": 5.0,
+     "x": -0.0207619327278436,
+     "y": 0.2896205296205296
+    }
+   ],
+   "motionType": "panDown",
+   "path": null,
+   "seed": 12345
+  },
+  "panLeft": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4652,
+     "time": 0.0,
+     "x": 0.2511772378439045,
+     "y": -0.02393959741017908
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4777944484496752,
+     "time": 5.0,
+     "x": -0.2511772378439045,
+     "y": -0.02393959741017908
+    }
+   ],
+   "motionType": "panLeft",
+   "path": null,
+   "seed": 12345
+  },
+  "panRight": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4652,
+     "time": 0.0,
+     "x": -0.2511772378439045,
+     "y": -0.02393959741017908
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4777944484496752,
+     "time": 5.0,
+     "x": 0.2511772378439045,
+     "y": -0.02393959741017908
+    }
+   ],
+   "motionType": "panRight",
+   "path": null,
+   "seed": 12345
+  },
+  "panUp": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4652,
+     "time": 0.0,
+     "x": -0.0207619327278436,
+     "y": 0.2896205296205296
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.4777944484496752,
+     "time": 5.0,
+     "x": -0.0207619327278436,
+     "y": -0.2896205296205296
+    }
+   ],
+   "motionType": "panUp",
+   "path": null,
+   "seed": 12345
+  },
+  "pullBack": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.21797,
+     "time": 0.0,
+     "x": -0.05885284920368187,
+     "y": -0.07874054561940956
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.041,
+     "time": 5.0,
+     "x": 0.029426424601840934,
+     "y": 0.03937027280970478
+    }
+   ],
+   "motionType": "pullBack",
+   "path": null,
+   "seed": 12345
+  },
+  "slowPush": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.041,
+     "time": 0.0,
+     "x": -0.03500907247304941,
+     "y": -0.07874054561940956
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.21797,
+     "time": 5.0,
+     "x": 0.029426424601840934,
+     "y": 0.03937027280970478
+    }
+   ],
+   "motionType": "slowPush",
+   "path": null,
+   "seed": 12345
+  },
+  "subtleRotation": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0.0,
+     "scale": 1.1560000000000001,
+     "time": 0.0,
+     "x": -0.016033476107241533,
+     "y": -0.03156973044922037
+    },
+    {
+     "easing": "smoother",
+     "rotation": -0.031066860685499062,
+     "scale": 1.1906800000000002,
+     "time": 5.0,
+     "x": 0.016033476107241533,
+     "y": 0.03156973044922037
+    }
+   ],
+   "motionType": "subtleRotation",
+   "path": null,
+   "seed": 12345
+  },
+  "zoomIn": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.11,
+     "time": 0.0,
+     "x": -0.004904404100306823,
+     "y": -0.006561712134950798
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.48962,
+     "time": 5.0,
+     "x": -0.004904404100306823,
+     "y": -0.006561712134950798
+    }
+   ],
+   "motionType": "zoomIn",
+   "path": null,
+   "seed": 12345
+  },
+  "zoomOut": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.48962,
+     "time": 0.0,
+     "x": -0.009808808200613646,
+     "y": -0.013123424269901596
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.11,
+     "time": 5.0,
+     "x": -0.009808808200613646,
+     "y": -0.013123424269901596
+    }
+   ],
+   "motionType": "zoomOut",
+   "path": null,
+   "seed": 12345
+  },
+  "zoomPan": {
+   "intensity": 0.7,
+   "isLocked": false,
+   "isMotionTypePinned": false,
+   "keyframes": [
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.1322,
+     "time": 0.0,
+     "x": 0.10379006457437834,
+     "y": 0.20528078510787443
+    },
+    {
+     "easing": "smoother",
+     "rotation": 0,
+     "scale": 1.54068,
+     "time": 5.0,
+     "x": -0.18716584019177682,
+     "y": -0.20528078510787443
+    }
+   ],
+   "motionType": "zoomPan",
+   "path": null,
+   "seed": 12345
+  }
+ }
+}

@@ -1,0 +1,34 @@
+[PASS] kotlin sources present
+[PASS] all imports are platform, SDK or module-internal
+[PASS] member references
+[PASS] channel names agree
+[PASS] dart methods handled by kotlin
+[PASS] kotlin methods  — cancelExport, getCapabilities, isExportRunning, probeFile, probeRequest, saveToGallery, shareFile, startExport
+[PASS] error codes produced
+[PASS] protocol keys present on both sides
+[PASS] kotlin photoSeed parity
+[PASS] kotlin xorshift128+ parity
+[PASS] kotlin nextDouble parity
+[PASS] kotlin easing parity
+[PASS] kotlin keyframe sampling parity
+[PASS] kotlin motion generator parity (15 types)
+[PASS] kotlin timeline parity
+[PASS] transition invariants (9 types x 21 steps)
+[PASS] kotlin path LUT size
+[PASS] kotlin path engine samples parity (16 specs)
+[PASS] kotlin path bake fidelity
+[PASS] kotlin path seam continuity
+[PASS] kotlin path arc-length uniformity
+[PASS] kotlin path C1 continuity (exact derivative)
+[PASS] kotlin path freehand smoothing
+[PASS] kotlin path generator parity (40 draws)
+[PASS] dart bitrate parity (108 combos)
+[PASS] even-dimension parity
+[PASS] bitrate check is sensitive to rounding
+[PASS] golden JSON integers fit signed 64-bit
+[PASS] golden fixtures mirrored to Dart + Kotlin tests
+[PASS] dart List.sort comparators return int
+[PASS] dart imports resolve cleanly
+[PASS] l10n en/fa key parity + all referenced keys exist
+
+TOTAL 32  PASS 32  FAIL 0  WARN 0

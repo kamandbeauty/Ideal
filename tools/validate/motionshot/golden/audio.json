@@ -1,0 +1,9 @@
+{
+ "rules": [
+  "loop-to-target",
+  "no-loop-silence",
+  "fade-in-out",
+  "volume",
+  "no-audio"
+ ]
+}

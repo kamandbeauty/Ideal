@@ -1,0 +1,98 @@
+CHECK                                         RESULT
+photo import (multi-select)                   PASS
+EXIF orientation handled                      PASS
+photo reorder                                 PASS
+photo replace                                 PASS
+photo rotate                                  PASS
+thumbnail cache                               PASS
+15 motion types                               PASS
+seeded random                                 PASS
+regenerate all (unlocked only)                PASS
+per-photo manual keyframes                    PASS
+pinch/drag gestures                           PASS
+timeline playhead                             PASS
+custom cubic-bezier easing                    PASS
+undo/redo                                     PASS
+copy/paste motion                             PASS
+duplicate motion                              PASS
+lock motion                                   PASS
+path model (spec + presets)                   PASS
+centripetal CR spline engine                  PASS
+arc-length LUT (N=4096, refine=16)            PASS
+arc-length uniform parameter                  PASS
+speed + speed-ease progress                   PASS
+path evaluation (clamp + log-lerp zoom)       PASS
+bake path to keyframes                        PASS
+sanitize (cover-safe, pan-clamped)            PASS
+freehand smoothing (dedupe+resample+Chaikin)  PASS
+curved-motion preset draw (no repeats)        PASS
+deterministic path generation (15 draws)      PASS
+~40% curved chance + protectManual            PASS
+path editor screen (freehand + presets)       PASS
+path in export request                        PASS
+path preview integration                      PASS
+Kotlin path evaluator (native render)         PASS
+Kotlin path keyframe bake (fallback/tests)    PASS
+transition crossDissolve                      PASS
+transition fade                               PASS
+transition fadeToBlack                        PASS
+transition slideLeft                          PASS
+transition slideRight                         PASS
+transition zoomTransition                     PASS
+transition blurTransition                     PASS
+transition smoothZoom                         PASS
+transition none                               PASS
+transition randomizer avoids repeats          PASS
+preview uses the same motion math             PASS
+preview transform (unit rect -> pixels)       PASS
+audio picker (MP3/AAC/WAV)                    PASS
+volume                                        PASS
+fade in/out                                   PASS
+trim                                          PASS
+loop with crossfade                           PASS
+audio PCM building (native)                   PASS
+AAC encoding (native)                         PASS
+resolution 720p                               PASS
+resolution 1080p                              PASS
+resolution 1440p                              PASS
+resolution 2160p                              PASS
+fps 24                                        PASS
+fps 30                                        PASS
+fps 60                                        PASS
+H.264                                         PASS
+HEVC                                          PASS
+quality presets + custom bitrate              PASS
+aspect 9:16                                   PASS
+aspect 16:9                                   PASS
+aspect 1:1                                    PASS
+aspect 4:5                                    PASS
+hardware encoder selection                    PASS
+MP4 via MediaMuxer                            PASS
+foreground service export                     PASS
+cancel export                                 PASS
+gallery publish via MediaStore                PASS
+post-render verification                      PASS
+project persistence (SQLite)                  PASS
+project resume                                PASS
+project export/import file                    PASS
+Persian + English                             PASS
+RTL support                                   PASS
+no INTERNET permission                        PASS
+no HTTP client in Dart                        PASS
+no FFmpeg                                     PASS
+spec: curved paths section (§12)              PASS
+screen: HomeScreen                            PASS
+screen: GalleryScreen                         PASS
+screen: EditorScreen                          PASS
+screen: MotionEditorScreen                    PASS
+screen: PathEditorScreen                      PASS
+screen: PreviewScreen                         PASS
+screen: ExportScreen                          PASS
+screen: SettingsScreen                        PASS
+no empty button handlers                      PASS
+no TODO/FIXME/UnimplementedError              PASS
+report: phase-1-foundation                    PASS
+report: phase-2-flutter-app                   PASS
+report: phase-3-android-renderer              PASS
+
+95 checks, 95 pass, 0 fail

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Exported videos live in the cache until they are published to the
+         gallery, so sharing needs to reach exactly that folder. -->
+    <cache-path name="exports" path="." />
+    <files-path name="projects" path="motionshot/" />
+</paths>
