@@ -9,6 +9,14 @@
       "passed": true
     },
     {
+      "name": "trajectory predicts ground impact",
+      "passed": true
+    },
+    {
+      "name": "touch aiming surface changes traverse",
+      "passed": true
+    },
+    {
       "name": "capture battlefield",
       "passed": true
     },
@@ -53,6 +61,10 @@
       "passed": true
     },
     {
+      "name": "upgrade purchase persists",
+      "passed": true
+    },
+    {
       "name": "capture upgrades",
       "passed": true
     }
@@ -72,18 +84,18 @@
     "star_gain": 3,
     "stars": 3,
     "success": true,
-    "time": 10.8879356666667
+    "time": 11.2363583333333
   },
   "passed": true,
   "performance": {
-    "draw_calls": 477,
-    "fps": 16.5,
+    "draw_calls": 387,
+    "fps": 16.1,
     "frame_ms": 0.0,
-    "objects": 1269,
-    "primitives": 158832,
+    "objects": 1189,
+    "primitives": 122530,
     "renderer": "Compatibility",
-    "scale": 1.0,
-    "tier": "high"
+    "scale": 0.82,
+    "tier": "medium"
   },
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware"
 }
