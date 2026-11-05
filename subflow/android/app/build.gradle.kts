@@ -1,3 +1,15 @@
+import java.io.FileInputStream
+import java.util.Properties
+
+// Optional real release keystore. CI writes android/key.properties from the
+// ANDROID_KEYSTORE_* secrets; locally the file simply does not exist and the
+// build falls back to the debug key (installable, but not store-ready).
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
+}
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -51,12 +63,30 @@ android {
         }
     }
 
+    signingConfigs {
+        if (keystorePropertiesFile.exists()) {
+            create("release") {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO(release): replace with the production keystore in Phase 8.
-            signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Production keystore when available, otherwise the debug key so CI
+            // can always produce an installable APK for device testing.
+            signingConfig = if (keystorePropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
+            // R8 stays off until its keep rules have been verified on a device;
+            // shipping a minifier we have not tested would be an unverified claim.
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
