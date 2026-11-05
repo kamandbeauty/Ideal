@@ -14,16 +14,12 @@ on:
         type: boolean
         default: false
   push:
-    paths:
-      - "subflow/**"
-      - ".github/workflows/subflow-android.yml"
     branches: ["main", "arena/**"]
+    tags: ["subflow-v*"]
   pull_request:
     paths:
       - "subflow/**"
       - ".github/workflows/subflow-android.yml"
-  tags:
-    - "subflow-v*"
 
 concurrency:
   group: subflow-android-${{ github.ref }}
@@ -167,7 +163,7 @@ jobs:
           if-no-files-found: error
 
       - name: Attach to rolling release
-        if: github.event_name == 'workflow_dispatch' && inputs.upload_release || startsWith(github.ref, 'refs/tags/subflow-v')
+        if: (github.event_name == 'workflow_dispatch' && inputs.upload_release == true) || startsWith(github.ref, 'refs/tags/subflow-v')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: subflow-apk-latest
