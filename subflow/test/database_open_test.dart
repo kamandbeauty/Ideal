@@ -107,9 +107,12 @@ void main() {
   group('subtitle DAO against real SQLite', () {
     int counter = 0;
 
-    SubtitleSegment segment(String id, int startMs, int endMs, String text) => SubtitleSegment(
+    // The track id matters: `subtitle_segments.track_id` is a foreign key, and a
+    // wrong id here is exactly what made the first version of this suite fail.
+    SubtitleSegment segment(String trackId, String id, int startMs, int endMs, String text) =>
+        SubtitleSegment(
           id: id,
-          trackId: 'track',
+          trackId: trackId,
           ordinal: 0,
           startUs: TimeUs.fromMilliseconds(startMs),
           endUs: TimeUs.fromMilliseconds(endMs),
@@ -150,8 +153,8 @@ void main() {
       final SubtitleDocument document = SubtitleDocument(
         trackId: track.id,
         segments: <SubtitleSegment>[
-          segment('s1', 0, 1000, ''),
-          segment('s2', 1500, 2500, ''),
+          segment(track.id, 's1', 0, 1000, ''),
+          segment(track.id, 's2', 1500, 2500, ''),
         ],
       ).withText('s1', 'سلام دنیا').withText('s2', 'خداحافظ');
 
@@ -205,7 +208,7 @@ void main() {
         track.id,
         SubtitleDocument(
           trackId: track.id,
-          segments: <SubtitleSegment>[segment('s1', 0, 1000, '')],
+          segments: <SubtitleSegment>[segment(track.id, 's1', 0, 1000, '')],
         ).withText('s1', 'یک دو سه').segments,
       );
       final Database db = await database.database;
