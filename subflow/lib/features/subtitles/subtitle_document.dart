@@ -408,7 +408,23 @@ class SubtitleDocument {
       final SubtitleSegment fixed = (start == segment.startUs && end == segment.endUs)
           ? segment
           : segment.copyWith(startUs: start, endUs: end);
-      out.add(fixed.copyWith(ordinal: i));
+      // `ordinal` is not part of `copyWith` (order belongs to the store), so the
+      // normalised position is written explicitly here.
+      out.add(SubtitleSegment(
+        id: fixed.id,
+        trackId: fixed.trackId,
+        ordinal: i,
+        startUs: fixed.startUs,
+        endUs: fixed.endUs,
+        text: fixed.text,
+        styleId: fixed.styleId,
+        source: fixed.source,
+        confidence: fixed.confidence,
+        reviewState: fixed.reviewState,
+        createdAtMs: fixed.createdAtMs,
+        updatedAtMs: fixed.updatedAtMs,
+        words: fixed.words,
+      ));
       lastEnd = end;
     }
     return out;

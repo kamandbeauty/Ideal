@@ -278,6 +278,10 @@ class SubtitleEditorNotifier extends FamilyAsyncNotifier<SubtitleEditorSnapshot,
     if (_require.remove(segmentId)) _publish();
   }
 
+  void shiftAll(int deltaUs) {
+    if (_require.shiftAll(deltaUs)) _publish();
+  }
+
   void undo() {
     if (_require.undo()) _publish();
   }
