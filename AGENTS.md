@@ -1,5 +1,37 @@
 # Agent instructions for the Ideal workspace
 
+## SubFlow: the Android product in `subflow/`
+
+`subflow/` is a Flutter + Kotlin + C++ Android app (**Professional Offline AI
+Subtitle & Video Editor**). It is independent of the motion-graphics campaigns
+and must not touch their files. Read `subflow/docs/ARCHITECTURE.md` before
+editing and `subflow/docs/DECISIONS.md` before changing a structural choice.
+
+Hard rules (also enforced by `subflow/tools/check-project.py`): no WebView, no
+`INTERNET` permission, no silent video quality loss, no fake progress numbers,
+all timestamps are integer microseconds, and nothing is reported as "done"
+without a real test.
+
+Three verification layers run without Android or the Flutter SDK:
+
+```bash
+npm run subflow:verify     # all of the below
+npm run subflow:native     # g++ unit tests for the C++ core (124 checks)
+npm run subflow:native:san # same suite under ASan + UBSan
+npm run subflow:jni        # JNI bridge syntax check against a stub jni.h
+npm run subflow:db         # real SQLite: migrations, constraints, cascades
+npm run subflow:check      # imports, assets, Dart<->Kotlin channel parity, JNI symbols
+```
+
+The C++ core in `subflow/android/app/src/main/cpp/core/` is the shared engine
+for subtitle codecs, timeline surgery, VAD and export-quality planning; it is
+compiled and tested on the host with the same sources the device build uses, so
+never duplicate that logic in Dart or Kotlin.
+
+Untested-in-sandbox areas (Dart compile, Kotlin compile, Gradle/NDK link, device
+playback, rendering, image quality) are listed explicitly in
+`subflow/docs/PHASE-1-REPORT.md`; keep that list honest when you extend it.
+
 ## Installed skills
 
 Skills live in `.agents/skills/` (the Agent Skills open standard,

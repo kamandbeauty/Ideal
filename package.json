@@ -33,7 +33,13 @@
     "odd-file:timeline": "node motion/odd-file/audio/build.mjs",
     "skills:add": "skills add",
     "skills:list": "skills list",
-    "skills:validate": "bash scripts/validate-skills.sh"
+    "skills:validate": "bash scripts/validate-skills.sh",
+    "subflow:check": "python3 subflow/tools/check-project.py",
+    "subflow:db": "python3 subflow/tools/check_schema.py",
+    "subflow:jni": "make -C subflow/tools/native-core check-jni",
+    "subflow:native": "make -C subflow/tools/native-core test",
+    "subflow:native:san": "make -C subflow/tools/native-core test-asan",
+    "subflow:verify": "bash subflow/tools/verify-all.sh"
   },
   "devDependencies": {
     "@ffmpeg-installer/linux-x64": "^4.1.0",

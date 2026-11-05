@@ -1,0 +1,25 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+pubspec.lock
+
+# Android
+android/local.properties
+android/.gradle/
+android/app/.cxx/
+android/key.properties
+*.jks
+*.keystore
+
+# Generated / downloaded models and exports (never commit weights)
+assets/models/*.bin
+assets/models/*.gguf
+third_party/whisper.cpp/
+
+# Host test binaries
+tools/native-core/build/
