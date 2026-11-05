@@ -199,7 +199,8 @@ object WhisperAudio {
             val base = position.toInt().coerceAtMost(source.size - 1)
             val next = (base + 1).coerceAtMost(source.size - 1)
             val fraction = position - base
-            output[i] = (input[base] + (input[next] - input[base]) * fraction).coerceIn(-1f, 1f)
+            val sample = input[base] + (input[next] - input[base]) * fraction.toFloat()
+            output[i] = sample.coerceIn(-1f, 1f)
         }
         return output
     }
