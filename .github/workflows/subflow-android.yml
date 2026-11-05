@@ -123,9 +123,21 @@ jobs:
             echo "::warning title=analyze::${line}"
           done || true
 
+      # Test failures are republished as annotations: the raw log download is
+      # unreachable from automation, so this is the only readable channel.
       - name: Dart unit tests
         working-directory: subflow
-        run: flutter test --reporter expanded
+        run: |
+          if flutter test --reporter expanded > /tmp/test.log 2>&1; then
+            tail -3 /tmp/test.log
+            exit 0
+          fi
+          tail -80 /tmp/test.log
+          grep -nE "\[E\]|^\s*(Expected|Actual|Which):|Test failed|tests? failed|Error:" /tmp/test.log \
+            | tail -20 | while IFS= read -r line; do
+                echo "::error title=dart test::$(echo "$line" | cut -c1-300)"
+              done || true
+          exit 1
 
       - name: Write release keystore (when configured)
         if: env.ANDROID_KEYSTORE_BASE64 != ''
