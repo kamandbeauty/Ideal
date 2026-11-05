@@ -18,3 +18,6 @@ local.properties
 __pycache__/
 *.pyc
 # Release packages are retained in explicit delivery/ on this milestone branch.
+
+# Blender editor backups
+*.blend1

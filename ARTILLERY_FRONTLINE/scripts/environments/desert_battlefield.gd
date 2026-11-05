@@ -82,8 +82,8 @@ func _build_lighting() -> void:
 	sun.light_color = Color(1.0, 0.88, 0.69)
 	sun.light_energy = 1.15
 	sun.shadow_enabled = true
-	sun.shadow_bias = 0.12
-	sun.shadow_normal_bias = 2.0
+	sun.shadow_bias = 0.25
+	sun.shadow_normal_bias = 3.0
 	sun.directional_shadow_max_distance = 230.0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	add_child(sun)

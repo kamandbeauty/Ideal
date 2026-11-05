@@ -114,7 +114,7 @@ jobs:
             {
               echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$RUNNER_TEMP/release.keystore"
               echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$RELEASE_KEY_ALIAS"
-              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$RELEASE_KEY_PASSWORD"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$RELEASE_KEYSTORE_PASSWORD"
               echo "ARTILLERY_EXPORT_MODE=--export-release"
               echo "ARTILLERY_SIGNING_SCOPE=release secrets"
             } >> "$GITHUB_ENV"
@@ -160,7 +160,10 @@ jobs:
         if: failure()
         run: |
           for log in /tmp/import.log /tmp/apk.log /tmp/aab.log /tmp/compat.log; do
-            if [ -f "$log" ]; then grep -E 'ERROR|Error|FAILURE|What went wrong|failed|Failed|configuration|SDK|keystore|Gradle' "$log" | tail -25 | while IFS= read -r line; do echo "::error title=Android build::${line}"; done; fi
+            if [ -f "$log" ]; then
+              grep -E 'ERROR|Error|FAILURE|What went wrong|failed|Failed|configuration|SDK|keystore|Gradle' "$log" | tail -25 | while IFS= read -r line; do echo "::error title=Android build::${line}"; done
+              sed -n '/due to configuration errors/,+12p' "$log" | while IFS= read -r line; do echo "::error title=Android configuration::${line}"; done
+            fi
           done
       - uses: actions/upload-artifact@v4
         if: always()
