@@ -88,20 +88,45 @@ class AppDatabase {
         );
       }
       await db.transaction((Transaction txn) async {
-        for (final String statement in statements) {
-          // The .sql files carry their own PRAGMA lines (the same files are run
-          // by tools/db-check against real SQLite). sqflite rejects a PRAGMA
-          // through execute(), so those go through rawQuery instead.
-          if (statement.toUpperCase().startsWith('PRAGMA')) {
-            await txn.rawQuery(statement);
-          } else {
-            await txn.execute(statement);
-          }
+        for (int i = 0; i < statements.length; i++) {
+          await _execute(txn, statements[i], i);
         }
-        // rawQuery, not execute: the same sqflite rule that broke 0.2.0.
-        await txn.rawQuery('PRAGMA user_version = ${migration.version}');
+        // sqflite writes user_version itself once the callbacks return; setting
+        // it here keeps [_currentVersion] honest for later migrations, and stays
+        // best-effort so a device that dislikes the statement cannot brick boot.
+        try {
+          await txn.rawQuery('PRAGMA user_version = ${migration.version}');
+        } on Object catch (error) {
+          _log.e('user_version not set inside migration v${migration.version}', error);
+        }
       });
       _log.d('applied migration v${migration.version} (${statements.length} statements)');
+    }
+  }
+
+  /// Runs one migration statement.
+  ///
+  /// Two Android-only rules are handled here, both learned from devices rather
+  /// than from the checker:
+  ///   * a `PRAGMA` returns a row, and sqflite's `execute()` rejects that
+  ///     ("Queries can be performed using ... rawQuery methods only", the 0.2.0
+  ///     crash);
+  ///   * a statement that contains no actual SQL — e.g. a chunk made only of
+  ///     `--` comments — fails on Android's `execSQL` with "not an error (code 0
+  ///     SQLITE_OK)", the 0.2.1 crash. Comment-only chunks are already removed by
+  ///     [splitStatements]; this is the belt to that braces.
+  static Future<void> _execute(Transaction txn, String statement, int index) async {
+    if (statement.toUpperCase().startsWith('PRAGMA')) {
+      await txn.rawQuery(statement);
+      return;
+    }
+    try {
+      await txn.execute(statement);
+    } on DatabaseException catch (error) {
+      if (!error.toString().contains('code 0')) rethrow;
+      _log.e('statement ${index + 1} retried through rawQuery: '
+          '${error.toString().split('\n').first}');
+      await txn.rawQuery(statement);
     }
   }
 
@@ -120,17 +145,84 @@ class AppDatabase {
     }
   }
 
-  /// Splits a migration file into single statements.
+  /// Splits a migration file into single, executable statements.
   ///
-  /// Rule: a statement ends at `;` followed by a newline. This is deliberately
-  /// simple and identical to the Python checker, and the schema files are
-  /// written so no `;` appears inside a comment or string literal.
+  /// SQL comments are removed and empty fragments dropped *before* a statement
+  /// reaches sqflite. This is not cosmetic: the schema header lists its
+  /// conventions and ends those lines with `;`, so a naive split on `;` yields a
+  /// chunk that is only comments, and Android's `execSQL` answers that with
+  /// "not an error (code 0 SQLITE_OK)". That is exactly how 0.2.1 still failed to
+  /// launch even though the desktop SQLite used in `flutter test` accepted it.
+  ///
+  /// The tokenizer understands `'...'`/`"..."`/`` `...` `` quoting (so a `;` or
+  /// `--` inside a literal is text, and `''` stays an escaped quote), `--` line
+  /// comments and `/* ... */` block comments.
   static List<String> splitStatements(String sql) {
-    return sql
-        .split(RegExp(r';[ \t]*\n'))
-        .map((String chunk) => chunk.trim())
-        .where((String chunk) => chunk.isNotEmpty)
-        .toList(growable: false);
+    final List<String> statements = <String>[];
+    final StringBuffer current = StringBuffer();
+    String? quote;
+    bool inLineComment = false;
+    bool inBlockComment = false;
+
+    void flush() {
+      final String statement = current.toString().trim();
+      current.clear();
+      if (statement.isNotEmpty) statements.add(statement);
+    }
+
+    for (int i = 0; i < sql.length; i++) {
+      final String char = sql[i];
+      final String next = i + 1 < sql.length ? sql[i + 1] : '';
+
+      if (inLineComment) {
+        if (char == '\n') {
+          inLineComment = false;
+          current.write('\n');
+        }
+        continue;
+      }
+      if (inBlockComment) {
+        if (char == '*' && next == '/') {
+          inBlockComment = false;
+          i++;
+        }
+        continue;
+      }
+      if (quote != null) {
+        current.write(char);
+        if (char == quote) {
+          if (next == quote) {
+            current.write(next);
+            i++;
+          } else {
+            quote = null;
+          }
+        }
+        continue;
+      }
+      if (char == "'" || char == '"' || char == '`') {
+        quote = char;
+        current.write(char);
+        continue;
+      }
+      if (char == '-' && next == '-') {
+        inLineComment = true;
+        i++;
+        continue;
+      }
+      if (char == '/' && next == '*') {
+        inBlockComment = true;
+        i++;
+        continue;
+      }
+      if (char == ';') {
+        flush();
+        continue;
+      }
+      current.write(char);
+    }
+    flush();
+    return List<String>.unmodifiable(statements);
   }
 
   Future<void> close() async {

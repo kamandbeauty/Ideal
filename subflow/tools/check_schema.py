@@ -42,12 +42,70 @@ def check(condition: bool, message: str) -> None:
 
 
 def split_statements(sql: str) -> list[str]:
-    """Mirror of AppDatabase.splitStatements (Dart)."""
-    statements = []
-    for chunk in re.split(r";[ \t]*\n", sql):
-        stripped = chunk.strip()
-        if stripped:
-            statements.append(stripped)
+    """Mirror of AppDatabase.splitStatements (Dart).
+
+    Comments are stripped and empty fragments dropped, because a comment-only
+    statement makes Android's execSQL fail with "not an error (code 0)".
+    """
+    statements: list[str] = []
+    current: list[str] = []
+    quote: str | None = None
+    in_line = False
+    in_block = False
+
+    def flush() -> None:
+        statement = "".join(current).strip()
+        current.clear()
+        if statement:
+            statements.append(statement)
+
+    i = 0
+    n = len(sql)
+    while i < n:
+        char = sql[i]
+        nxt = sql[i + 1] if i + 1 < n else ""
+        if in_line:
+            if char == "\n":
+                in_line = False
+                current.append("\n")
+            i += 1
+            continue
+        if in_block:
+            if char == "*" and nxt == "/":
+                in_block = False
+                i += 1
+            i += 1
+            continue
+        if quote is not None:
+            current.append(char)
+            if char == quote:
+                if nxt == quote:
+                    current.append(nxt)
+                    i += 1
+                else:
+                    quote = None
+            i += 1
+            continue
+        if char in ("'", '"', "`"):
+            quote = char
+            current.append(char)
+            i += 1
+            continue
+        if char == "-" and nxt == "-":
+            in_line = True
+            i += 2
+            continue
+        if char == "/" and nxt == "*":
+            in_block = True
+            i += 2
+            continue
+        if char == ";":
+            flush()
+            i += 1
+            continue
+        current.append(char)
+        i += 1
+    flush()
     return statements
 
 

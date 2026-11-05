@@ -179,3 +179,40 @@ run `42105891541` (tag `subflow-v0.2.1`) republished the release. The download t
 now carries only `subflow-0.2.1-release.apk` + `.sha256` (43,999,796 B); the broken
 0.2.0 assets were deleted. Not yet verified on the reporting device;
 that is the user's install, not something this workspace can claim.
+
+---
+
+## 9. Hotfix 0.2.2 — second startup crash (also user-reported)
+
+**Reported**: 0.2.1 got past the pragma and then failed with
+`DatabaseException(not an error (code 0 SQLITE_OK)) sql '-- SubFlow schema v1. …'`.
+
+**Cause**: the schema file's header comment lists the conventions, and two of
+those lines end with `;`. The splitter broke the file on `;` + newline, so the
+first "statement" was the comment block *alone*. Desktop SQLite treats that as a
+no-op; Android's `execSQL` refuses a statement that never becomes a real SQL
+statement and reports `not an error (code 0 SQLITE_OK)`. The previous fix moved
+the pragma to `rawQuery` but left this chunk in place.
+
+**Fix**
+1. `splitStatements` is now a tokenizer, not a `split()`: it removes `--` line
+   comments, `/* */` block comments, understands `'…'`, `"…"` and backticks (so a
+   `;` or `--` inside a literal stays text, and `''` stays an escaped quote), and
+   drops empty fragments. The same tokenizer is mirrored in
+   `tools/check_schema.py`, so both harnesses agree.
+2. `_execute` routes `PRAGMA` through `rawQuery` and, if Android still answers
+   `code 0` for a statement, retries it through `rawQuery` and logs instead of
+   aborting startup.
+3. Setting `PRAGMA user_version` inside the migration is best-effort (sqflite sets
+   the version itself after the callbacks), so it cannot brick boot either.
+
+**Tests** (`test/database_migrations_test.dart`, 11 cases): comment-only header,
+inline/trailing comments, block comments, `;` inside a literal, `--` inside a
+literal, doubled quotes, empty fragments, and — over both real asset files — every
+emitted statement starts with a keyword and contains no `--`, plus the v1 file
+still yields 15 `CREATE TABLE` and 10 `CREATE INDEX` statements and both files end
+with `PRAGMA user_version`.
+
+**Status**: CI-verified (analyzer + full suite + release APK) and published as
+`subflow-0.2.2-release.apk` under tag `subflow-v0.2.2`. Device confirmation is
+still the user's install.
