@@ -35,6 +35,7 @@ func _ready() -> void:
 	add_to_group("enemy")
 	if ResourceLoader.exists(data.model_path):
 		model = load(data.model_path).instantiate()
+		model.rotation.y = PI
 		add_child(model)
 		turret = model.find_child("Turret", true, false) as Node3D
 	else:

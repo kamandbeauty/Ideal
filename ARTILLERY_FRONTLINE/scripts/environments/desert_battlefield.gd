@@ -270,7 +270,9 @@ func _hangar(point: Vector3, yaw: float, size_scale: float) -> void:
 	root.scale = Vector3.ONE * size_scale
 	add_child(root)
 	if ResourceLoader.exists("res://assets/models/hangar.glb"):
-		root.add_child(load("res://assets/models/hangar.glb").instantiate())
+		var hangar_model: Node3D = load("res://assets/models/hangar.glb").instantiate()
+		hangar_model.rotation.y = PI
+		root.add_child(hangar_model)
 	else:
 		MeshFactory.box(root, "Hangar", Vector3(0, 4, 0), Vector3(22, 8, 30), Color(0.37, 0.39, 0.29))
 		MeshFactory.box(root, "Door", Vector3(0, 3, 15.1), Vector3(14, 6, 0.15), Color(0.15, 0.18, 0.15))

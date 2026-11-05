@@ -30,8 +30,10 @@ func run(t: TestContext) -> void:
 	battle.mission = mission
 	battle.active_on_ready = true
 	t.tree.root.add_child(battle)
-	await t.tree.physics_frame
-	await t.tree.physics_frame
+	var prediction_frames: int = 0
+	while not battle.targeting.prediction_valid and prediction_frames < 60:
+		await t.tree.physics_frame
+		prediction_frames += 1
 	t.check(battle.targeting.prediction_valid, "Trajectory preview finds real terrain collision")
 	for id in mission.target_ids:
 		var attempts: int = 0

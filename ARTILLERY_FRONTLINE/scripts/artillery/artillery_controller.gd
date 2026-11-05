@@ -29,6 +29,8 @@ func configure(resource: WeaponData) -> void:
 	rng.seed = dispersion_seed
 	if ResourceLoader.exists(data.model_path):
 		var model: Node3D = load(data.model_path).instantiate()
+		# Authored Blender front is -Y; glTF import presents it as +Z in Godot.
+		model.rotation.y = PI
 		add_child(model)
 		turret = model.find_child("Turret", true, false) as Node3D
 		barrel_pivot = model.find_child("BarrelPivot", true, false) as Node3D
@@ -66,7 +68,7 @@ func _update_transforms() -> void:
 	if turret:
 		turret.rotation.y = deg_to_rad(yaw_degrees)
 	if barrel_pivot:
-		barrel_pivot.rotation.x = deg_to_rad(elevation_degrees)
+		barrel_pivot.rotation.x = -deg_to_rad(elevation_degrees)
 
 func muzzle_position() -> Vector3:
 	return muzzle.global_position if muzzle else global_position + Vector3(0, 3, -5)
@@ -107,7 +109,7 @@ func tick(delta: float) -> void:
 	recoil_velocity += (-recoil_offset * 95.0 - recoil_velocity * 16.0) * delta
 	recoil_offset += recoil_velocity * delta
 	if recoil_assembly:
-		recoil_assembly.position.z = recoil_offset
+		recoil_assembly.position.z = -recoil_offset
 	if reload_remaining > 0.0:
 		reload_remaining = maxf(0.0, reload_remaining - delta)
 		reload_animation_time += delta
