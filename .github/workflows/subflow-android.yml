@@ -174,21 +174,22 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           tail -40 "$LOG" >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          # Annotations are the only channel reachable by automation, so the
-          # failure reason is republished there with the surrounding context.
-          awk '/What went wrong/{flag=1} flag{print; n++} n>25{exit}' "$LOG" \
-            | while IFS= read -r line; do
-                [ -n "$line" ] && echo "::error title=gradle::$(echo "$line" | cut -c1-300)"
-              done || true
-          # Kotlin/Java compiler diagnostics: 'e: file:///...:line:col message'.
+          # Annotations are the only channel reachable by automation. GitHub
+          # keeps ~10 annotations per level per step, so compiler errors get the
+          # error budget and the Gradle context goes out as warnings.
           grep -E "^(e|w): |^e: file|error: |Unresolved reference" "$LOG" \
-            | head -20 | while IFS= read -r line; do
+            | head -10 | while IFS= read -r line; do
                 echo "::error title=kotlin::$(echo "$line" | cut -c1-350)"
               done || true
-          grep -nE "error:|Execution failed|Caused by" "$LOG" \
-            | tail -8 | while IFS= read -r line; do
-                echo "::error title=subflow build::$(echo "$line" | cut -c1-300)"
+          awk '/What went wrong/{flag=1} flag{print; n++} n>12{exit}' "$LOG" \
+            | grep -vE "^$" | head -6 | while IFS= read -r line; do
+                echo "::warning title=gradle::$(echo "$line" | cut -c1-300)"
               done || true
+          grep -nE "^> Task .* FAILED|Execution failed for task|Compilation error" "$LOG" \
+            | head -4 | while IFS= read -r line; do
+                echo "::warning title=build::$(echo "$line" | cut -c1-300)"
+              done || true
+        continue-on-error: true
 
       - name: Collect artefact
         id: collect
