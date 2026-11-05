@@ -280,6 +280,82 @@ for name in sorted(referenced_screens):
     check(name in defined_classes, f"router references {name} which is not defined anywhere")
 check(len(referenced_screens) >= 6, "router should wire every Phase 1 screen")
 
+
+# ------------------------------------------------------- brand + launcher art
+# tools/make_icons.py is the only source of the launcher art; these checks make
+# sure a missing density cannot reach the Gradle resource linker again.
+densities = ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")
+for density in densities:
+    folder = ROOT / f"android/app/src/main/res/mipmap-{density}"
+    for name in ("ic_launcher.png", "ic_launcher_round.png",
+                 "ic_launcher_foreground.png", "ic_launcher_background.png"):
+        check((folder / name).exists(), f"missing launcher artwork mipmap-{density}/{name}")
+
+for name in ("ic_launcher.xml", "ic_launcher_round.xml"):
+    adaptive = ROOT / "android/app/src/main/res/mipmap-anydpi-v26" / name
+    check(adaptive.exists(), f"missing adaptive icon {name}")
+    if adaptive.exists():
+        body = adaptive.read_text(encoding="utf-8")
+        check("<adaptive-icon" in body, f"{name} is not an adaptive-icon")
+        check("@mipmap/ic_launcher_foreground" in body, f"{name} must use the keyed foreground")
+        check("@mipmap/ic_launcher_background" in body, f"{name} must use the generated backdrop")
+
+check('android:roundIcon="@mipmap/ic_launcher_round"' in app_manifest,
+      "manifest must declare roundIcon")
+for asset in ("assets/branding/app_icon_1024.png", "assets/branding/app_icon_512.png"):
+    check((ROOT / asset).exists(), f"missing {asset}")
+
+# ---------------------------------------------------- caption engine coverage
+effect_enums = (ROOT / "lib/features/effects/caption_effect.dart").read_text(encoding="utf-8")
+labels_src = (ROOT / "lib/features/effects/caption_labels.dart").read_text(encoding="utf-8")
+renderer_src = (ROOT / "lib/features/effects/caption_renderer.dart").read_text(encoding="utf-8")
+
+
+def enum_cases(source: str, name: str) -> list[str]:
+    match = re.search(rf"enum {name} \{{(.*?)\}}", source, re.DOTALL)
+    if not match:
+        failures.append(f"enum {name} not found in caption_effect.dart")
+        return []
+    return [line.strip().rstrip(",") for line in match.group(1).splitlines()
+            if line.strip() and not line.strip().startswith("//")]
+
+
+for enum_name in ("CaptionAnimation", "CaptionExit", "CaptionWordEffect"):
+    cases = enum_cases(effect_enums, enum_name)
+    check(len(cases) >= 5, f"enum {enum_name} looks truncated ({len(cases)} cases)")
+    for case in cases:
+        check(f"{enum_name}.{case}" in labels_src,
+              f"{enum_name}.{case} has no Persian label in caption_labels.dart")
+        check(f"{enum_name}.{case}" in renderer_src,
+              f"{enum_name}.{case} is never handled by the renderer")
+
+check(len(enum_cases(effect_enums, "CaptionAnimation")) >= 16,
+      "at least 16 entrance animations are required")
+check(len(enum_cases(effect_enums, "CaptionExit")) >= 8, "at least 8 exit animations are required")
+check(len(enum_cases(effect_enums, "CaptionWordEffect")) >= 8, "at least 8 word effects are required")
+
+presets_src = (ROOT / "lib/features/effects/presets_library.dart").read_text(encoding="utf-8")
+pairs = len(re.findall(r"^      id: '", presets_src, re.MULTILINE))
+check(pairs * 2 >= 30, f"preset catalogue must ship >= 30 looks, found {pairs * 2}")
+
+fonts_src = (ROOT / "lib/features/effects/caption_fonts.dart").read_text(encoding="utf-8")
+persian_families = set()
+for block in re.findall(r"CaptionFont\((.*?)\n  \);", fonts_src, re.DOTALL):
+    family = re.search(r"family: '([^']+)'", block)
+    persian = "supportsPersian: true" in block
+    if family and persian:
+        persian_families.add(family.group(1))
+check(len(persian_families) >= 5, "at least five Persian-capable families are required")
+
+for fa_font in re.findall(r"faFont: '([^']+)'", presets_src):
+    check(fa_font in persian_families,
+          f"Persian preset uses '{fa_font}' which is not a Persian-capable family")
+
+pubspec_fonts = (ROOT / "pubspec.yaml").read_text(encoding="utf-8")
+for family in re.findall(r"family: '([^']+)'", presets_src) + sorted(persian_families):
+    check(f"family: {family}" in pubspec_fonts,
+          f"font family '{family}' is used by presets but not declared in pubspec.yaml")
+
 # --------------------------------------------------------- JSON sanity pass
 for json_path in ROOT.glob("assets/**/*.json"):
     try:

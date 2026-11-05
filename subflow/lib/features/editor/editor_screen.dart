@@ -2,6 +2,7 @@ import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
 import '../../core/platform/contracts.dart';
@@ -12,6 +13,11 @@ import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_card.dart';
 import '../../shared/widgets/sf_scaffold.dart';
 import '../../shared/widgets/stat_chip.dart';
+import '../effects/caption_fonts.dart';
+import '../effects/caption_labels.dart';
+import '../effects/caption_preset.dart';
+import '../effects/caption_renderer.dart';
+import '../effects/presets_library.dart';
 import 'widgets/native_player_view.dart';
 
 /// Phase 1 editor: real Media3 playback of the *original* file plus the real
@@ -28,6 +34,12 @@ class EditorScreen extends ConsumerStatefulWidget {
 
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   late final SfPlayerController _player = SfPlayerController.create();
+
+  /// The active caption look. It is real state, not a placeholder: the overlay
+  /// below is painted by the same renderer the export path will use.
+  CaptionPreset _preset = PresetsLibrary.byId('viral-fa');
+
+  static const String _sampleCaption = 'متن نمونه برای پیش‌نمایش استایل';
 
   @override
   void dispose() {
@@ -55,6 +67,12 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         data: (ProjectDetail loaded) => _buildBody(loaded),
       ),
     );
+  }
+
+  Future<void> _pickCaptionStyle() async {
+    final CaptionPreset? picked = await context.push<CaptionPreset>('/captions');
+    if (picked == null || !mounted) return;
+    setState(() => _preset = picked);
   }
 
   Widget _buildBody(ProjectDetail detail) {
@@ -92,7 +110,16 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           builder: (BuildContext context, SfPlayerState state, Widget? child) {
             return Column(
               children: <Widget>[
-                NativeVideoPlayer(uri: asset.uri, controller: _player),
+                Stack(
+                  children: <Widget>[
+                    NativeVideoPlayer(uri: asset.uri, controller: _player),
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: CaptionSurface(preset: _preset, text: _sampleCaption),
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 10),
                 _TransportBar(state: state, player: _player),
               ],
@@ -120,6 +147,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 14),
+        _CaptionStyleCard(
+          preset: _preset,
+          onPick: _pickCaptionStyle,
         ),
         const SizedBox(height: 14),
         _ExportPlanCard(asset: asset),
@@ -337,4 +369,49 @@ class _ExportPlanCardState extends ConsumerState<_ExportPlanCard> {
         'UNKNOWN_SOURCE_BITRATE' => 'بیت‌ریت منبع نامشخص بود؛ مقدار محافظه‌کارانه انتخاب شد.',
         _ => code,
       };
+}
+
+/// Entry point to the caption gallery plus a readout of the active look, so the
+/// user always knows which style the overlay above is painting.
+class _CaptionStyleCard extends StatelessWidget {
+  const _CaptionStyleCard({required this.preset, required this.onPick});
+
+  final CaptionPreset preset;
+  final VoidCallback onPick;
+
+  @override
+  Widget build(BuildContext context) {
+    final CaptionFont font = CaptionFonts.byFamily(preset.fontFamily);
+    return SfCard(
+      onTap: onPick,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const Icon(Icons.auto_awesome_rounded, color: AppColors.primarySoft, size: 20),
+              const SizedBox(width: 8),
+              Text('استایل زیرنویس', style: Theme.of(context).textTheme.titleMedium),
+              const Spacer(),
+              const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted, size: 20),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '${preset.name} • ${font.label} • ${captionAnimationLabel(preset.effects.enter)} / ${captionExitLabel(preset.effects.exit)}',
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
+          ),
+          const SizedBox(height: 10),
+          const Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              StatChip(label: 'پیش‌نمایش زنده', icon: Icons.play_circle_outline_rounded),
+              StatChip(label: 'موتور رندر مشترک با خروجی', icon: Icons.layers_outlined),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 
 import '../features/editor/editor_screen.dart';
+import '../features/effects/caption_gallery_screen.dart';
 import '../features/home/home_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/projects/project_list_screen.dart';
@@ -8,8 +9,11 @@ import '../features/settings/settings_screen.dart';
 import '../features/splash/splash_screen.dart';
 import '../features/video_import/video_import_screen.dart';
 
-/// Routes for Phase 1. Later phases add `/project/:id/transcript`,
-/// `/project/:id/subtitles`, `/project/:id/effects`, `/project/:id/export`.
+/// Routes. `/captions` is the caption look gallery: it pushes a `CaptionPreset`
+/// back to the caller and is the only place a style is chosen, so the editor,
+/// the gallery previews and (Phase 6) the native renderer all read one model.
+/// Later phases add `/project/:id/transcript`, `/project/:id/subtitles`,
+/// `/project/:id/export`.
 final GoRouter subFlowRouter = GoRouter(
   initialLocation: '/',
   routes: <RouteBase>[
@@ -23,6 +27,7 @@ final GoRouter subFlowRouter = GoRouter(
       builder: (_, GoRouterState state) =>
           EditorScreen(projectId: state.pathParameters['id'] ?? ''),
     ),
+    GoRoute(path: '/captions', builder: (_, __) => const CaptionGalleryScreen()),
     GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),
   ],
 );

@@ -35,6 +35,7 @@ flutter:
     - assets/db/
     # assets/templates/ is added in Phase 4 together with the caption presets.
   fonts:
+    # ------------------------------------------------------------------ Persian
     - family: Vazirmatn
       fonts:
         - asset: assets/fonts/Vazirmatn-Regular.ttf
@@ -45,3 +46,45 @@ flutter:
           weight: 700
         - asset: assets/fonts/Vazirmatn-ExtraBold.ttf
           weight: 800
+    - family: Estedad
+      fonts:
+        - asset: assets/fonts/Estedad-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Estedad-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Estedad-ExtraBold.ttf
+          weight: 800
+    - family: Sahel
+      fonts:
+        - asset: assets/fonts/Sahel-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Sahel-Bold.ttf
+          weight: 700
+    - family: Samim
+      fonts:
+        - asset: assets/fonts/Samim-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Samim-Bold.ttf
+          weight: 700
+    - family: Shabnam
+      fonts:
+        - asset: assets/fonts/Shabnam-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Shabnam-Bold.ttf
+          weight: 700
+    - family: Tanha
+      fonts:
+        - asset: assets/fonts/Tanha-Regular.ttf
+    - family: Lalezar
+      fonts:
+        - asset: assets/fonts/Lalezar-Regular.ttf
+    # ------------------------------------------------- "viral" Latin display
+    - family: Archivo Black
+      fonts:
+        - asset: assets/fonts/ArchivoBlack-Regular.ttf
+    - family: Bebas Neue
+      fonts:
+        - asset: assets/fonts/BebasNeue-Regular.ttf
+    - family: Anton
+      fonts:
+        - asset: assets/fonts/Anton-Regular.ttf
