@@ -152,21 +152,26 @@ jobs:
       - name: Publish build diagnostics
         if: failure()
         run: |
+          LOG=/tmp/subflow-build.log
           echo "### Gradle / Flutter build failure" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          grep -nE "error:|Error|FAILURE|What went wrong|Execution failed|Caused by|> Task .* FAILED|Unresolved|expected" /tmp/subflow-build.log \
+          grep -nE "error:|Error|FAILURE|What went wrong|Execution failed|Caused by|> Task .* FAILED|Unresolved|expected" "$LOG" \
             | tail -60 >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           echo "--- last 40 lines ---" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          tail -40 /tmp/subflow-build.log >> "$GITHUB_STEP_SUMMARY" || true
+          tail -40 "$LOG" >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          # Also emit annotations, which are readable through the check-run API.
-          grep -nE "error:|What went wrong|Caused by|FAILED" /tmp/subflow-build.log \
-            | tail -15 | while IFS= read -r line; do
-                echo "::error title=subflow build::${line//\n/ }"
+          # Annotations are the only channel reachable by automation, so the
+          # failure reason is republished there with the surrounding context.
+          awk '/What went wrong/{flag=1} flag{print; n++} n>25{exit}' "$LOG" \
+            | while IFS= read -r line; do
+                [ -n "$line" ] && echo "::error title=gradle::$(echo "$line" | cut -c1-300)"
               done || true
-          exit 1
+          grep -nE "error:|Execution failed|Caused by" "$LOG" \
+            | tail -8 | while IFS= read -r line; do
+                echo "::error title=subflow build::$(echo "$line" | cut -c1-300)"
+              done || true
 
       - name: Collect artefact
         id: collect

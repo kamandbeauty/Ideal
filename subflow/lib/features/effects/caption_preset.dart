@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
 import 'caption_effect.dart';

@@ -312,7 +312,7 @@ class CaptionPainter extends CustomPainter {
         }
         final bool hidden = visibility.isHidden(wordIndex, offset);
         String content = token.text;
-        if (visibility.isPartial(wordIndex, offset)) {
+        if (visibility.isPartial(wordIndex, offset, token.text.length)) {
           content = token.text.substring(0, visibility.visibleChars(offset));
         } else if (hidden) {
           content = '';
@@ -511,7 +511,7 @@ class _Visibility {
     return false;
   }
 
-  bool isPartial(int wordIndex, int offset) =>
+  bool isPartial(int wordIndex, int offset, int length) =>
       typeBudget >= 0 && offset < typeBudget && offset + length > typeBudget;
 
   int visibleChars(int offset) => (typeBudget - offset).clamp(0, 1 << 20).toInt();

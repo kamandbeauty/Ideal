@@ -80,6 +80,48 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
           ),
+          const SizedBox(height: 16),
+          // Discoverability without a fake feature: the gallery really is the
+          // render engine, so it can be opened before a project exists.
+          SfCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            onTap: () => context.push('/captions'),
+            child: Row(
+              children: <Widget>[
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.accentGradient,
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 19),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        'گالری استایل زیرنویس',
+                        style: TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        '۴۰ استایل آماده فارسی و انگلیسی با پیش‌نمایش زنده',
+                        style: TextStyle(color: AppColors.textMuted, fontSize: 11.5),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted, size: 20),
+              ],
+            ),
+          ),
           const SizedBox(height: 24),
           Row(
             children: <Widget>[
