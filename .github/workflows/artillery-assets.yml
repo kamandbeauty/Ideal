@@ -20,7 +20,7 @@ jobs:
       - name: Author and export original models
         run: blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
       - name: Publish Blender diagnostics
-        if: failure()
+        if: always()
         run: |
           tail -60 /tmp/blender.log
           grep -E 'Error|Traceback|line [0-9]|CREATED|Exception' /tmp/blender.log | tail -18 | while IFS= read -r line; do echo "::error title=Blender::${line}"; done

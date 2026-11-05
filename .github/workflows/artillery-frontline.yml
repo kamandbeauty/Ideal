@@ -2,41 +2,175 @@ name: ARTILLERY FRONTLINE
 on:
   push:
     branches: [arena/40ad7d87-ideal]
-    paths: ['ARTILLERY_FRONTLINE/**', '.github/workflows/artillery-frontline.yml']
+    paths: ['ARTILLERY_FRONTLINE/project.godot', 'ARTILLERY_FRONTLINE/scripts/**', 'ARTILLERY_FRONTLINE/scenes/**', 'ARTILLERY_FRONTLINE/resources/**', 'ARTILLERY_FRONTLINE/tests/**']
   workflow_dispatch:
 permissions:
   contents: write
+  actions: read
 concurrency:
   group: artillery-${{ github.ref }}
   cancel-in-progress: false
 env:
   GODOT_VERSION: 4.7.2-stable
   GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+  PROJECT: ARTILLERY_FRONTLINE
 jobs:
-  toolchain:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+      - name: Cache verified Godot editor
+        id: engine-cache
+        uses: actions/cache@v4
         with:
-          fetch-depth: 0
-      - name: Obtain checksum-verified engine for restricted development sandbox
-        if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
+          path: ~/.local/godot-bin
+          key: godot-4.7.2-stable-linux-v1
+      - name: Install checksum-verified Godot
         run: |
           set -euo pipefail
-          if [ -f ARTILLERY_FRONTLINE/project.godot ]; then exit 0; fi
-          mkdir -p .ci-cache
-          curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o .ci-cache/godot.zip
-          echo "${GODOT_SHA256}  .ci-cache/godot.zip" | sha256sum -c -
-          unzip -q .ci-cache/godot.zip -d .ci-cache
-          .ci-cache/Godot_v${GODOT_VERSION}_linux.x86_64 --headless --version
+          mkdir -p ~/.local/godot-bin
+          if [ ! -x ~/.local/godot-bin/godot ]; then
+            curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+            echo "${GODOT_SHA256}  $RUNNER_TEMP/godot.zip" | sha256sum -c -
+            unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+            cp "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" ~/.local/godot-bin/godot
+            chmod +x ~/.local/godot-bin/godot
+          fi
+          echo "$HOME/.local/godot-bin" >> "$GITHUB_PATH"
+          ~/.local/godot-bin/godot --headless --version
+      - name: Import project and compile resources
+        run: |
+          godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1 || { tail -100 /tmp/import.log; exit 1; }
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' /tmp/import.log; then exit 1; fi
+      - name: Run dependency-free unit and integration suites
+        run: godot --headless --path "$PROJECT" --script res://tests/run_tests.gd
+      - name: Check test report
+        run: python3 "$PROJECT/tools/check_report.py" artillery-test-results.json
+      - name: Software-rendered gameplay smoke test
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri
+          xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --smoke-test > /tmp/smoke.log 2>&1 || { tail -100 /tmp/smoke.log; exit 1; }
+          cat /tmp/smoke.log
+          test -s "$PROJECT/documentation/qa/battlefield.png"
+      - name: Preserve validation evidence
+        if: always() && github.ref == 'refs/heads/arena/40ad7d87-ideal'
+        run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -f .ci-cache/godot.zip
-          git commit -m 'chore: temporary checksum-verified engine transport for sandbox'
-          git push origin HEAD:arena/40ad7d87-ideal
+          git add artillery-test-results.json "$PROJECT/documentation/qa" || true
+          git diff --cached --quiet || { git commit -m 'test: preserve headless and software-rendered validation evidence'; git pull --rebase --autostash origin arena/40ad7d87-ideal; git push origin HEAD:arena/40ad7d87-ideal; }
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: verified-godot-linux
-          path: .ci-cache/godot.zip
+          name: validation-evidence
+          path: |
+            artillery-test-results.json
+            ARTILLERY_FRONTLINE/documentation/qa/
+  android:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android SDK 36
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.1.0' 'platform-tools'
+      - name: Cache Android export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates/4.7.2.stable
+          key: godot-4.7.2-android-templates-v1
+      - name: Install verified editor and Android templates
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/godot-bin ~/.local/share/godot/export_templates/4.7.2.stable
+          curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          echo "${GODOT_SHA256}  $RUNNER_TEMP/godot.zip" | sha256sum -c -
+          unzip -qo "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          cp "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" ~/.local/godot-bin/godot
+          chmod +x ~/.local/godot-bin/godot
+          echo "$HOME/.local/godot-bin" >> "$GITHUB_PATH"
+          T=~/.local/share/godot/export_templates/4.7.2.stable
+          if [ ! -s "$T/android_release.apk" ]; then
+            curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" -o "$RUNNER_TEMP/templates.tpz"
+            unzip -j "$RUNNER_TEMP/templates.tpz" 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/android_source.zip' 'templates/version.txt' -d "$T"
+          fi
+      - name: Configure SDK paths without credentials
+        run: |
+          godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1
+          python3 "$PROJECT/tools/configure_editor.py"
+      - name: Configure signing entirely in ephemeral runner storage
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.ARTILLERY_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ARTILLERY_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.ARTILLERY_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [ -n "${RELEASE_KEYSTORE_BASE64:-}" ]; then
+            printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            {
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$RUNNER_TEMP/release.keystore"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$RELEASE_KEY_ALIAS"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$RELEASE_KEY_PASSWORD"
+              echo "ARTILLERY_EXPORT_MODE=--export-release"
+              echo "ARTILLERY_SIGNING_SCOPE=release secrets"
+            } >> "$GITHUB_ENV"
+          else
+            PASSWORD=$(openssl rand -hex 32)
+            keytool -genkeypair -keystore "$RUNNER_TEMP/development.keystore" -storepass "$PASSWORD" -keypass "$PASSWORD" -alias artillery -keyalg RSA -keysize 2048 -validity 30 -dname 'CN=Artillery Frontline Development,O=Frontline,C=DE' >/dev/null 2>&1
+            {
+              echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$RUNNER_TEMP/development.keystore"
+              echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=artillery"
+              echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=$PASSWORD"
+              echo "ARTILLERY_EXPORT_MODE=--export-debug"
+              echo "ARTILLERY_SIGNING_SCOPE=ephemeral development key; not a store release"
+            } >> "$GITHUB_ENV"
+          fi
+      - name: Install Android Gradle build template
+        run: |
+          T=~/.local/share/godot/export_templates/4.7.2.stable
+          mkdir -p "$PROJECT/android/build"
+          unzip -qo "$T/android_source.zip" -d "$PROJECT/android/build"
+          chmod +x "$PROJECT/android/build/gradlew"
+      - name: Import resources
+        run: godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1
+      - name: Export ARM64 APK and AAB
+        run: |
+          set -euo pipefail
+          mkdir -p delivery
+          godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android APK' res://../delivery/Artillery-Frontline-arm64.apk > /tmp/apk.log 2>&1 || { tail -100 /tmp/apk.log; exit 1; }
+          godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android AAB' res://../delivery/Artillery-Frontline-arm64.aab > /tmp/aab.log 2>&1 || { tail -100 /tmp/aab.log; exit 1; }
+          godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android Compatibility' res://../delivery/Artillery-Frontline-compatibility.apk > /tmp/compat.log 2>&1 || { tail -70 /tmp/compat.log; exit 1; }
+      - name: Verify package signatures, architectures and offline manifest
+        run: |
+          "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose delivery/Artillery-Frontline-arm64.apk
+          "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump badging delivery/Artillery-Frontline-arm64.apk > delivery/package-metadata.txt
+          jarsigner -verify delivery/Artillery-Frontline-arm64.aab
+          python3 "$PROJECT/tools/verify_packages.py" delivery
+          sha256sum delivery/*.apk delivery/*.aab > delivery/SHA256SUMS.txt
+          printf 'Signing: %s\n' "$ARTILLERY_SIGNING_SCOPE" > delivery/BUILD-STATUS.txt
+      - name: Publish downloadable packages to the session branch
+        if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f delivery
+          git diff --cached --quiet || { git commit -m 'build: deliver verified ARM64 Android packages'; git pull --rebase --autostash origin arena/40ad7d87-ideal; git push origin HEAD:arena/40ad7d87-ideal; }
+      - name: Publish build diagnostics
+        if: failure()
+        run: |
+          for log in /tmp/import.log /tmp/apk.log /tmp/aab.log /tmp/compat.log; do
+            if [ -f "$log" ]; then grep -E 'ERROR|Error|FAILURE|What went wrong|failed|Failed' "$log" | tail -15 | while IFS= read -r line; do echo "::error title=Android build::${line}"; done; fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Artillery-Frontline-Android
+          path: delivery/
           if-no-files-found: ignore
