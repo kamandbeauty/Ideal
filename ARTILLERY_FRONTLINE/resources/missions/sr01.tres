@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/core/mission_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "sr01"
+title = "FIRST LIGHT"
+subtitle = "Sable Ridge / Forward observation"
+briefing = "A hostile observation post controls the southern approach. Calibrate your gun on the stationary emplacement, then silence the supply truck. Use FIRE CONTROL for a computed solution, or drag to lay the gun manually."
+sector = "A1"
+difficulty = 1
+target_ids = Array[String](["t01", "t03"])
+optional_crate_id = "crate01"
+ammunition = {"he": 10, "ap": 5}
+time_limit = 210.0
+par_time = 90.0
+base_reward = 250
+unlock_after = ""
+map_position = Vector2(0.18, 0.68)

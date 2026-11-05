@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/core/weapon_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "kestrel"
+display_name = "KESTREL M-42"
+caliber = "155 mm"
+damage = 100.0
+muzzle_velocity = 82.0
+effective_range = 650.0
+reload_duration = 3.4
+accuracy_degrees = 0.32
+elevation_limits = Vector2(4, 72)
+traverse_limits = Vector2(-52, 52)
+compatible_ammunition = Array[String](["he", "ap"])
+magazine_capacity = 30
+model_path = "res://assets/models/kestrel.glb"

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/core/mission_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "sr05"
+title = "LAST RIDGE"
+subtitle = "Sable Ridge / Operation clear horizon"
+briefing = "Final assault. All six hostile assets must be neutralized before the convoy escapes the sector. Destroy the marked fuel depot for an optional commendation. Three-star performance demands precision and speed."
+sector = "A5"
+difficulty = 5
+target_ids = Array[String](["t01", "t02", "t03", "t04", "t05", "t06"])
+optional_crate_id = "crate05"
+ammunition = {"he": 16, "ap": 10}
+time_limit = 330.0
+par_time = 190.0
+base_reward = 600
+unlock_after = "sr04"
+map_position = Vector2(0.84, 0.22)

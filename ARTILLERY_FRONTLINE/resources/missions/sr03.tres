@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/core/mission_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "sr03"
+title = "BROKEN GATE"
+subtitle = "Sable Ridge / Western checkpoint"
+briefing = "Breached cover shields a forward command post. Destroy the command tank and its escort transport. Blast damage can clear sandbags and fuel caches in your line of fire."
+sector = "A3"
+difficulty = 3
+target_ids = Array[String](["t01", "t03", "t04"])
+optional_crate_id = "crate03"
+ammunition = {"he": 12, "ap": 8}
+time_limit = 270.0
+par_time = 135.0
+base_reward = 380
+unlock_after = "sr02"
+map_position = Vector2(0.52, 0.62)

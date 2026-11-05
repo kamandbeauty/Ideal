@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/core/upgrade_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "reload"
+display_name = "AUTO-RAMMER"
+description = "−10% reload time per level"
+maximum_level = 4
+base_cost = 180
+cost_step = 120
+points_per_level = 1

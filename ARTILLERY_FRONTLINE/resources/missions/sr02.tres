@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/core/mission_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "sr02"
+title = "IRON CARAVAN"
+subtitle = "Sable Ridge / Route jackal"
+briefing = "A Warden patrol is moving through the wadi. Intercept both armored vehicles. Switch to AP for reliable penetration; lead moving targets or use the fire-control lead estimate."
+sector = "A2"
+difficulty = 2
+target_ids = Array[String](["t02", "t04"])
+optional_crate_id = "crate02"
+ammunition = {"he": 10, "ap": 8}
+time_limit = 240.0
+par_time = 110.0
+base_reward = 320
+unlock_after = "sr01"
+map_position = Vector2(0.35, 0.48)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="UpgradeData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/core/upgrade_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "capacity"
+display_name = "FIELD MAGAZINE"
+description = "+2 rounds of each ammunition type per level"
+maximum_level = 4
+base_cost = 120
+cost_step = 90
+points_per_level = 1

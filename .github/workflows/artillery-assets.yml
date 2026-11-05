@@ -2,7 +2,7 @@ name: Author original Blender assets
 on:
   push:
     branches: [arena/40ad7d87-ideal]
-    paths: ['ARTILLERY_FRONTLINE/tools/create_models.py', '.github/workflows/artillery-assets.yml']
+    paths: ['ARTILLERY_FRONTLINE/tools/create_models.py']
   workflow_dispatch:
 permissions:
   contents: write
@@ -19,8 +19,9 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends blender
       - name: Author and export original models
         run: blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
+          if grep -q 'Traceback (most recent call last)' /tmp/blender.log; then tail -80 /tmp/blender.log; exit 1; fi
       - name: Publish Blender diagnostics
-        if: always()
+        if: failure()
         run: |
           tail -60 /tmp/blender.log
           grep -E 'Error|error|Traceback|line [0-9]|CREATED|Exception' /tmp/blender.log | tail -18 | while IFS= read -r line; do echo "::error title=Blender::${line}"; done
@@ -35,10 +36,7 @@ jobs:
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
           touch ARTILLERY_FRONTLINE/assets/models/source/.gdignore
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add ARTILLERY_FRONTLINE/assets/models ARTILLERY_FRONTLINE/documentation/blender-version.txt
-          git diff --cached --quiet || { git commit -m 'assets: author original artillery and battlefield models in Blender'; git pull --rebase origin arena/40ad7d87-ideal; git push origin HEAD:arena/40ad7d87-ideal; }
+          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: author original artillery and battlefield models in Blender' ARTILLERY_FRONTLINE/assets/models ARTILLERY_FRONTLINE/documentation/blender-version.txt
       - uses: actions/upload-artifact@v4
         with:
           name: original-blender-models

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+[ext_resource type="Script" path="res://scripts/core/enemy_data.gd" id="1"]
+[resource]
+script = ExtResource("1")
+id = "emplacement"
+display_name = "WATCHTOWER / AT POST"
+kind = "emplacement"
+health = 140.0
+armor = 0.08
+speed = 0.0
+collision_size = Vector3(7, 4, 7)
+score_value = 100
+model_path = "res://assets/models/sentry.glb"
