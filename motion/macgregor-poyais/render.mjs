@@ -122,7 +122,7 @@ const args = [
   '-framerate', String(meta.fps), '-start_number', String(from), '-i', join(FRAME_DIR, 'f_%05d.jpg'),
   ...(useAudio ? ['-ss', String(from / meta.fps), '-t', String((last - from) / meta.fps), '-i', audio] : []),
   ...(fast
-    ? ['-vf', 'noise=alls=7:allf=t']
+    ? ['-vf', 'eq=saturation=1.10:contrast=1.03:gamma=0.99,unsharp=5:5:0.35:5:5:0.0,noise=alls=7:allf=t']
     : ['-vf', 'eq=saturation=1.10:contrast=1.03:gamma=0.99,unsharp=5:5:0.35:5:5:0.0']),
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '26', '-pix_fmt', 'yuv420p',
   ...(useAudio ? ['-c:a', 'aac', '-b:a', '192k'] : []),

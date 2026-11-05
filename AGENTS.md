@@ -114,6 +114,18 @@ An earlier six-scene 27.6 s commercial remains in
 
 ## Motion graphics workflow
 
+### Continuous-camera rule (story films) — NEW
+
+When one plate stays on screen for a long stretch (multiple subtitle cues), its
+camera must **never** repeat a move — repeating the same push/pan on one still
+makes the image feel looped. The camera path is a *chain of gestures* (zoom out
+→ zoom in → pan …) where every gesture starts from the pose the previous one
+ended at, so the picture keeps travelling until the next plate arrives. Plates
+declare the chain in `content/scenes.fa.js` as `moves: ['in', 'panR', 'out']`;
+the engine splits the plate's span at cue boundaries, caps every gesture at
+4.6 s (`SEG_MAX`, long cues subdivide), and never repeats a gesture back to
+back. Cross-dissolves happen only at plate changes — never mid-plate.
+
 ```bash
 npm run motion:new -- <slug>       # scaffold motion/<slug>/index.html + brief.md
 npm run motion:render -- <slug>    # export out/<slug>.mp4 (needs Playwright + ffmpeg)
