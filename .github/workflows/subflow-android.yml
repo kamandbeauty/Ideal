@@ -180,6 +180,11 @@ jobs:
             | while IFS= read -r line; do
                 [ -n "$line" ] && echo "::error title=gradle::$(echo "$line" | cut -c1-300)"
               done || true
+          # Kotlin/Java compiler diagnostics: 'e: file:///...:line:col message'.
+          grep -E "^(e|w): |^e: file|error: |Unresolved reference" "$LOG" \
+            | head -20 | while IFS= read -r line; do
+                echo "::error title=kotlin::$(echo "$line" | cut -c1-350)"
+              done || true
           grep -nE "error:|Execution failed|Caused by" "$LOG" \
             | tail -8 | while IFS= read -r line; do
                 echo "::error title=subflow build::$(echo "$line" | cut -c1-300)"
