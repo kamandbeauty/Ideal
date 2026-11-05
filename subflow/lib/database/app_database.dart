@@ -37,10 +37,7 @@ class AppDatabase {
       path,
       options: OpenDatabaseOptions(
         version: manifest.schemaVersion,
-        onConfigure: (Database db) async {
-          await db.execute('PRAGMA foreign_keys = ON');
-          await db.execute('PRAGMA journal_mode = WAL');
-        },
+        onConfigure: _applyPragmas,
         onCreate: (Database db, int version) async {
           await _applyMigrations(db, manifest, upto: version);
         },
@@ -50,6 +47,28 @@ class AppDatabase {
         },
       ),
     );
+  }
+
+  /// Applies the connection pragmas.
+  ///
+  /// `PRAGMA journal_mode` returns the resulting mode, and sqflite's `execute()`
+  /// rejects statements that produce rows ("Queries can be performed using
+  /// SQLiteDatabase query or rawQuery methods only"), so every pragma goes
+  /// through `rawQuery`. Each one is also applied independently and a refusal is
+  /// logged rather than thrown: a device that dislikes a pragma must not make
+  /// the whole app unopenable, which is exactly what happened in 0.2.0.
+  static Future<void> _applyPragmas(Database db) async {
+    await _tryPragma(db, 'PRAGMA foreign_keys = ON');
+    await _tryPragma(db, 'PRAGMA journal_mode = WAL');
+    await _tryPragma(db, 'PRAGMA synchronous = NORMAL');
+  }
+
+  static Future<void> _tryPragma(Database db, String sql) async {
+    try {
+      await db.rawQuery(sql);
+    } on Object catch (error) {
+      _log.e('pragma not applied: $sql', error);
+    }
   }
 
   Future<void> _applyMigrations(
@@ -70,9 +89,17 @@ class AppDatabase {
       }
       await db.transaction((Transaction txn) async {
         for (final String statement in statements) {
-          await txn.execute(statement);
+          // The .sql files carry their own PRAGMA lines (the same files are run
+          // by tools/db-check against real SQLite). sqflite rejects a PRAGMA
+          // through execute(), so those go through rawQuery instead.
+          if (statement.toUpperCase().startsWith('PRAGMA')) {
+            await txn.rawQuery(statement);
+          } else {
+            await txn.execute(statement);
+          }
         }
-        await txn.execute('PRAGMA user_version = ${migration.version}');
+        // rawQuery, not execute: the same sqflite rule that broke 0.2.0.
+        await txn.rawQuery('PRAGMA user_version = ${migration.version}');
       });
       _log.d('applied migration v${migration.version} (${statements.length} statements)');
     }

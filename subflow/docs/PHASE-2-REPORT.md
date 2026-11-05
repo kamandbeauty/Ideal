@@ -131,3 +131,49 @@ explicit user-initiated download), audio extraction, progress and cancel that
 report real numbers, fa/en/mixed language selection, and word-level timestamps
 written into `subtitle_words`. The studio, the karaoke renderer and the SRT/ASS
 writers are already waiting for exactly that data.
+
+---
+
+## 8. Hotfix 0.2.1 — startup crash on a real device (user-reported)
+
+**Reported**: installing 0.2.0 on an Android phone showed
+`DatabaseException(unknown error (code 0 SQLITE_OK): Queries can be performed
+using SQLiteDatabase query or rawQuery methods only.) [] sql 'PRAGMA
+journal_mode = WAL'` instead of the app.
+
+**Cause**: `AppDatabase` opened SQLite with
+`db.execute('PRAGMA journal_mode = WAL')` in `onConfigure`. sqflite's `execute()`
+only accepts statements that return no rows; `PRAGMA journal_mode` returns the
+resulting mode, so the very first statement of the very first launch threw. Every
+`.sql` migration file also carries `PRAGMA` lines that were executed the same way,
+so fixing only the first one would have moved the crash a few lines down.
+
+**Fix** (three parts, all in `lib/database/app_database.dart`):
+1. pragmas run through `rawQuery`, which is what sqflite requires for rows;
+2. each pragma is applied independently and a refusal is *logged*, never thrown —
+   a device that dislikes `synchronous = NORMAL` must not make the app unopenable;
+3. statements in migration files that start with `PRAGMA` are routed to
+   `rawQuery` as well, so both files keep working unchanged.
+
+**Related hardening**: `SubtitleDao.replaceSegments` / `clearSegments` now delete
+`subtitle_words` explicitly instead of relying on `ON DELETE CASCADE`. `PRAGMA
+foreign_keys` is a no-op inside a transaction, so a device that never enables it
+would otherwise leave word rows orphaned after every autosave.
+
+**Why it was not caught**: nothing in the test suite ever *opened* the database.
+The schema was verified by a Python harness against real SQLite, and the Dart side
+was only analysed (types) and built (compiles). 0.2.1 adds
+`test/database_open_test.dart`, which opens the real schema through
+`sqflite_common_ffi` on the CI runner and asserts: the open path does not throw,
+migrations reach the manifest version, `foreign_keys=1`, `journal_mode=wal`, all
+tables exist, re-opening does not re-migrate, and the subtitle DAO round-trips
+segments/words/styles including cascade deletion.
+
+**Also changed**: the splash failure screen is now selectable text with a
+"تلاش دوباره" (retry) button, so a startup problem is reportable instead of a dead
+end, and version bumped to `0.2.1+3`.
+
+**Status**: verified by CI run on the hotfix commit — analyzer clean, the full
+Dart suite (including the new database suite) green, release APK built and
+published as `subflow-0.2.1-release.apk`. Not yet verified on the reporting device;
+that is the user's install, not something this workspace can claim.

@@ -77,10 +77,23 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             else
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  _error!,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.danger),
+                child: Column(
+                  children: <Widget>[
+                    SelectableText(
+                      _error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.danger, fontSize: 12.5, height: 1.8),
+                    ),
+                    const SizedBox(height: 18),
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() => _error = null);
+                        _boot();
+                      },
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('تلاش دوباره'),
+                    ),
+                  ],
                 ),
               ),
           ],

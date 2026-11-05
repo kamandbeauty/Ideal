@@ -85,7 +85,14 @@ class SubtitleDao {
   }) async {
     final int now = updatedAtMs ?? DateTime.now().millisecondsSinceEpoch;
     await _db.transaction((Transaction txn) async {
-      // Cascades remove the words of the deleted segments.
+      // Words are deleted explicitly instead of relying on ON DELETE CASCADE:
+      // if a device refuses `PRAGMA foreign_keys = ON`, cascades silently do
+      // nothing and orphaned words would outlive their segments.
+      await txn.rawDelete(
+        'DELETE FROM subtitle_words WHERE segment_id IN '
+        '(SELECT id FROM subtitle_segments WHERE track_id = ?)',
+        <Object?>[trackId],
+      );
       await txn.delete('subtitle_segments', where: 'track_id = ?', whereArgs: <Object?>[trackId]);
       for (int index = 0; index < segments.length; index++) {
         final SubtitleSegment segment = segments[index];
@@ -154,6 +161,13 @@ class SubtitleDao {
 
   /// Deletes every caption of a track without touching the track row itself.
   Future<void> clearSegments(String trackId) async {
-    await _db.delete('subtitle_segments', where: 'track_id = ?', whereArgs: <Object?>[trackId]);
+    await _db.transaction((Transaction txn) async {
+      await txn.rawDelete(
+        'DELETE FROM subtitle_words WHERE segment_id IN '
+        '(SELECT id FROM subtitle_segments WHERE track_id = ?)',
+        <Object?>[trackId],
+      );
+      await txn.delete('subtitle_segments', where: 'track_id = ?', whereArgs: <Object?>[trackId]);
+    });
   }
 }
