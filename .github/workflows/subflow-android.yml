@@ -243,14 +243,18 @@ jobs:
           prerelease: true
           allow_updates: true
           body: |
-            SubFlow ${{ steps.collect.outputs.version }} — Phase 1 (technical foundation).
+            SubFlow ${{ steps.collect.outputs.version }} — Phase 1.5 (fonts, caption looks, branding).
 
             Install: enable "install unknown apps" for your browser/file manager, then open the APK.
             Requires Android 8.0 (API 26) or newer on a 64-bit ARM device.
 
             What this build really does: video import through the Photo Picker, exact
             technical probing, Media3 playback of the original file, project management,
-            the native subtitle codecs / VAD / export-quality planner behind them.
-            Speech recognition, subtitle editing and rendering are later phases and are
-            marked "not yet" inside the app — no fake features.
+            10 embedded OFL font families (7 Persian-capable), a caption effect engine
+            (17 entrances / 9 exits / 8 word effects / 6 easings) with 40 ready looks in
+            Persian and English, a live style gallery, and the native subtitle codecs /
+            VAD / export-quality planner behind them.
+
+            Speech recognition, subtitle editing, watermarking and rendering are later
+            phases and are marked "not yet" inside the app — no fake features.
           files: dist/*
