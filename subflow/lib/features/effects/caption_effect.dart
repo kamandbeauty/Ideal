@@ -114,15 +114,33 @@ class CaptionEffects {
       return fallback;
     }
 
+    // Persisted project data may come from an older or newer build, so every
+    // field is read defensively: a wrong type falls back instead of throwing a
+    // CastError halfway through opening a project.
+    int readInt(String key, int fallback) {
+      final Object? raw = map[key];
+      return raw is num ? raw.toInt() : fallback;
+    }
+
+    double readDouble(String key, double fallback) {
+      final Object? raw = map[key];
+      return raw is num ? raw.toDouble() : fallback;
+    }
+
+    bool readBool(String key, bool fallback) {
+      final Object? raw = map[key];
+      return raw is bool ? raw : fallback;
+    }
+
     return CaptionEffects(
       enter: pick(CaptionAnimation.values, map['enter'], CaptionAnimation.fade),
       exit: pick(CaptionExit.values, map['exit'], CaptionExit.fadeOut),
       wordEffect: pick(CaptionWordEffect.values, map['word'], CaptionWordEffect.none),
-      durationMs: (map['durationMs'] as num?)?.toInt() ?? 260,
-      delayMs: (map['delayMs'] as num?)?.toInt() ?? 0,
+      durationMs: readInt('durationMs', 260),
+      delayMs: readInt('delayMs', 0),
       easing: pick(CaptionEasing.values, map['easing'], CaptionEasing.easeOut),
-      intensity: (map['intensity'] as num?)?.toDouble() ?? 1.0,
-      pulse: (map['pulse'] as bool?) ?? false,
+      intensity: readDouble('intensity', 1.0),
+      pulse: readBool('pulse', false),
     );
   }
 
