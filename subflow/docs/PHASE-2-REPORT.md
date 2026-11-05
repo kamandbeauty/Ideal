@@ -173,7 +173,9 @@ segments/words/styles including cascade deletion.
 "تلاش دوباره" (retry) button, so a startup problem is reportable instead of a dead
 end, and version bumped to `0.2.1+3`.
 
-**Status**: verified by CI run on the hotfix commit — analyzer clean, the full
-Dart suite (including the new database suite) green, release APK built and
-published as `subflow-0.2.1-release.apk`. Not yet verified on the reporting device;
+**Status**: verified by CI. Run `42104634583` (commit `30885cf`): analyzer clean,
+**76 Dart tests green** (the 12 new database cases included), release APK built;
+run `42105891541` (tag `subflow-v0.2.1`) republished the release. The download tag
+now carries only `subflow-0.2.1-release.apk` + `.sha256` (43,999,796 B); the broken
+0.2.0 assets were deleted. Not yet verified on the reporting device;
 that is the user's install, not something this workspace can claim.
