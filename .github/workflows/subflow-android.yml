@@ -106,13 +106,22 @@ jobs:
         working-directory: subflow
         run: flutter pub get
 
-      # Analyzer diagnostics are reported but do not gate the APK: a real
-      # compile error still fails the build step below, and this way a style
-      # nit can never be the reason the artefact is missing.
+      # Analyzer diagnostics are published as check-run annotations but do not
+      # gate the APK: a real compile error still fails the build step below, and
+      # this way a style nit can never be the reason the artefact is missing.
+      # Annotations are the only log channel reachable from automation here.
       - name: Analyze (diagnostic)
         continue-on-error: true
         working-directory: subflow
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+        run: |
+          flutter analyze --no-fatal-infos --no-fatal-warnings > /tmp/analyze.log 2>&1 || true
+          tail -n 40 /tmp/analyze.log
+          grep -E "error •" /tmp/analyze.log | head -10 | while IFS= read -r line; do
+            echo "::error title=analyze::${line}"
+          done || true
+          grep -E "warning •" /tmp/analyze.log | head -5 | while IFS= read -r line; do
+            echo "::warning title=analyze::${line}"
+          done || true
 
       - name: Dart unit tests
         working-directory: subflow
@@ -135,13 +144,10 @@ jobs:
       # default log download is not always reachable from automation tooling.
       - name: Build release APK
         id: build
-        continue-on-error: true
         working-directory: subflow
         run: |
           set -o pipefail
-          (flutter build apk --release 2>&1 || echo "BUILD_FAILED" >> /tmp/state) \
-            | tee /tmp/subflow-build.log
-          if [ -f /tmp/state ]; then exit 1; fi
+          flutter build apk --release 2>&1 | tee /tmp/subflow-build.log
 
       - name: Publish build diagnostics
         if: failure()
@@ -167,8 +173,18 @@ jobs:
         run: |
           VERSION="$(grep '^version:' subflow/pubspec.yaml | cut -d' ' -f2 | cut -d'+' -f1)"
           mkdir -p dist
-          APK="subflow/build/app/outputs/flutter-apk/app-release.apk"
-          test -f "$APK" || { echo "APK missing"; find subflow/build -name '*.apk'; exit 1; }
+          APK=""
+          for candidate in \
+            subflow/build/app/outputs/flutter-apk/app-release.apk \
+            subflow/build/app/outputs/apk/release/app-release.apk; do
+            if [ -f "$candidate" ]; then APK="$candidate"; break; fi
+          done
+          if [ -z "$APK" ]; then
+            echo "APK missing in the known output directories"
+            find subflow/build -name '*.apk' -o -name '*.so' | head -20
+            echo "::error title=subflow apk::expected APK not produced by flutter build apk --release"
+            exit 1
+          fi
           OUT="dist/subflow-${VERSION}-release.apk"
           cp "$APK" "$OUT"
           ( cd dist && sha256sum "$(basename "$OUT")" > "$(basename "$OUT").sha256" )
@@ -176,9 +192,15 @@ jobs:
           ls -lh dist
           # Fail loudly if the APK does not contain the native core for arm64.
           unzip -l "$OUT" | grep -q "lib/arm64-v8a/libsubflow_core.so" || {
-            echo "libsubflow_core.so missing for arm64-v8a"; exit 1; }
+            echo "libsubflow_core.so missing for arm64-v8a"
+            unzip -l "$OUT" | grep -E 'lib/' | head -20
+            echo "::error title=subflow apk::libsubflow_core.so missing for arm64-v8a"
+            exit 1; }
           unzip -l "$OUT" | grep -q "lib/arm64-v8a/libapp.so" || {
-            echo "Flutter arm64 libapp.so missing"; exit 1; }
+            echo "Flutter arm64 libapp.so missing"
+            unzip -l "$OUT" | grep -E 'lib/' | head -20
+            echo "::error title=subflow apk::libapp.so missing for arm64-v8a"
+            exit 1; }
           echo "APK content verified (arm64 native core + flutter engine)"
 
       - name: Upload APK artefact
