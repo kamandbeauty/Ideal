@@ -243,18 +243,22 @@ jobs:
           prerelease: true
           allow_updates: true
           body: |
-            SubFlow ${{ steps.collect.outputs.version }} — Phase 1.5 (fonts, caption looks, branding).
+            SubFlow ${{ steps.collect.outputs.version }}.
 
             Install: enable "install unknown apps" for your browser/file manager, then open the APK.
             Requires Android 8.0 (API 26) or newer on a 64-bit ARM device.
 
-            What this build really does: video import through the Photo Picker, exact
-            technical probing, Media3 playback of the original file, project management,
-            10 embedded OFL font families (7 Persian-capable), a caption effect engine
-            (17 entrances / 9 exits / 8 word effects / 6 easings) with 40 ready looks in
-            Persian and English, a live style gallery, and the native subtitle codecs /
-            VAD / export-quality planner behind them.
+            What this build really does:
+            - video import through the Android Photo Picker, exact technical probing,
+              Media3 playback of the original file, project management on SQLite;
+            - 10 embedded OFL font families (7 Persian-capable) and a caption effect engine
+              (17 entrances / 9 exits / 8 word effects / 6 easings) with 40 ready looks in
+              Persian and English plus a live style gallery;
+            - a subtitle studio: add / split / merge / retime / delete captions, undo and redo,
+              word-level karaoke driven by the real playhead, atomic autosave, style
+              copy-paste, and SRT / ASS / TXT export that never re-encodes the video.
 
-            Speech recognition, subtitle editing, watermarking and rendering are later
-            phases and are marked "not yet" inside the app — no fake features.
+            Speech recognition (Whisper), translation, watermarks, silence removal and video
+            rendering are later phases and are marked "not yet" inside the app — no fake
+            progress, no placeholder buttons.
           files: dist/*
