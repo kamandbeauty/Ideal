@@ -67,7 +67,9 @@ func _build_top_bar() -> void:
 	objective_label = UITheme.label("PRIMARY TARGETS  0 / 2", 16, UITheme.MUTED)
 	mission_box.add_child(mission_label)
 	mission_box.add_child(objective_label)
-	bar.add_child(UITheme.panel(mission_box, 12))
+	var mission_panel: PanelContainer = UITheme.panel(mission_box, 12)
+	mission_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bar.add_child(mission_panel)
 	var bearing_box := UITheme.column(0)
 	bearing_box.custom_minimum_size.x = 185
 	bearing_box.add_child(UITheme.label("MAGNETIC BEARING", 14, UITheme.MUTED))

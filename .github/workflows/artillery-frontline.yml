@@ -160,7 +160,7 @@ jobs:
         if: failure()
         run: |
           for log in /tmp/import.log /tmp/apk.log /tmp/aab.log /tmp/compat.log; do
-            if [ -f "$log" ]; then grep -E 'ERROR|Error|FAILURE|What went wrong|failed|Failed' "$log" | tail -15 | while IFS= read -r line; do echo "::error title=Android build::${line}"; done; fi
+            if [ -f "$log" ]; then grep -E 'ERROR|Error|FAILURE|What went wrong|failed|Failed|configuration|SDK|keystore|Gradle' "$log" | tail -25 | while IFS= read -r line; do echo "::error title=Android build::${line}"; done; fi
           done
       - uses: actions/upload-artifact@v4
         if: always()

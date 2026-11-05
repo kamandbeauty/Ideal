@@ -22,13 +22,22 @@ func capture(name: String) -> void:
 
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
-	Graphics.apply_tier("medium")
+	Profile.data.settings.quality = "medium"
+	Graphics.apply_preference()
 	await get_tree().create_timer(1.8).timeout
 	game.start_mission("sr01")
 	await get_tree().create_timer(1.0).timeout
 	var battle: BattleController = game.battle
 	check("battlefield initialized", battle.battlefield.targets.size() == 6)
 	check("HUD visible", game.hud.visible)
+	await get_tree().create_timer(0.5).timeout
+	check("trajectory predicts ground impact", battle.targeting.prediction_valid and battle.targeting.predicted_time > 1.0)
+	var yaw_before: float = battle.artillery.yaw_degrees
+	var drag := InputEventScreenDrag.new()
+	drag.index = 0
+	drag.relative = Vector2(40, -15)
+	game.aim_input._gui_input(drag)
+	check("touch aiming surface changes traverse", not is_equal_approx(yaw_before, battle.artillery.yaw_degrees))
 	await capture("battlefield")
 	for id in battle.mission.target_ids:
 		var attempts: int = 0
@@ -38,9 +47,12 @@ func run() -> void:
 				target = candidate
 		while not target.health.is_destroyed and attempts < 5 and battle.active:
 			battle.select_target(id)
-			check("fire control " + id, battle.compute_solution())
+			game.hud.solution_requested.emit()
+			check("fire control " + id, battle.targeting.prediction_valid)
 			await get_tree().create_timer(0.3).timeout
-			check("fire " + id, battle.fire())
+			var shots_before: int = battle.missions.shots
+			game.hud.fire_button.pressed.emit()
+			check("fire " + id, battle.missions.shots == shots_before + 1)
 			var elapsed: float = 0.0
 			while battle.projectiles.active_count() > 0 and elapsed < 20.0:
 				await get_tree().create_timer(0.1).timeout
@@ -55,6 +67,9 @@ func run() -> void:
 	await get_tree().create_timer(1.0).timeout
 	check("mission results displayed", game.menus.current == "results" and battle.missions.result.get("success", false))
 	await capture("mission-results")
+	var upgrade_before: int = int(Profile.data.upgrades.reload)
+	game.menus.upgrade_requested.emit("reload")
+	check("upgrade purchase persists", int(Profile.data.upgrades.reload) > upgrade_before and int(SaveManager.read_with_recovery(Profile.SAVE_PATH).data.upgrades.reload) > upgrade_before)
 	game.menus.show_screen("upgrades")
 	await get_tree().create_timer(0.3).timeout
 	await capture("upgrades")

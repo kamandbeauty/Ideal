@@ -40,6 +40,7 @@ func _ready() -> void:
 	_build_scatter()
 	_build_targets()
 	_build_destructibles()
+	_batch_static_boxes()
 	apply_quality(Graphics.tier, Graphics.profile())
 
 func _process(delta: float) -> void:
@@ -61,10 +62,10 @@ func _build_lighting() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.65
+	env.ambient_light_energy = 0.55
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	env.tonemap_exposure = 1.05
+	env.tonemap_exposure = 1.0
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.73, 0.70, 0.60)
 	env.fog_light_energy = 0.8
@@ -79,10 +80,10 @@ func _build_lighting() -> void:
 	sun.name = "LateAfternoonSun"
 	sun.rotation_degrees = Vector3(-39.0, -34.0, 0.0)
 	sun.light_color = Color(1.0, 0.88, 0.69)
-	sun.light_energy = 1.65
+	sun.light_energy = 1.15
 	sun.shadow_enabled = true
-	sun.shadow_bias = 0.045
-	sun.shadow_normal_bias = 1.2
+	sun.shadow_bias = 0.12
+	sun.shadow_normal_bias = 2.0
 	sun.directional_shadow_max_distance = 230.0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	add_child(sun)
@@ -126,7 +127,7 @@ func _build_chunk(start_x: float, start_z: float) -> void:
 	for z in range(subdivisions):
 		for x in range(subdivisions):
 			var i: int = z * stride + x
-			indices.append_array(PackedInt32Array([i, i + stride, i + 1, i + 1, i + stride, i + stride + 1]))
+			indices.append_array(PackedInt32Array([i, i + 1, i + stride, i + 1, i + stride + 1, i + stride]))
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
@@ -149,7 +150,9 @@ func _build_chunk(start_x: float, start_z: float) -> void:
 	body.collision_layer = 1
 	body.collision_mask = 0
 	var collision := CollisionShape3D.new()
-	collision.shape = mesh.create_trimesh_shape()
+	var terrain_shape: ConcavePolygonShape3D = mesh.create_trimesh_shape()
+	terrain_shape.backface_collision = true
+	collision.shape = terrain_shape
 	body.add_child(collision)
 	add_child(body)
 
@@ -159,7 +162,7 @@ func _build_roads() -> void:
 	_road_strip(Vector3(-110, 0, -280), Vector3(-110, 0, -435), 8.0, Color(0.43, 0.37, 0.28))
 	_road_strip(Vector3(100, 0, -280), Vector3(100, 0, -420), 8.0, Color(0.43, 0.37, 0.28))
 	for side in [-1.0, 1.0]:
-		_road_strip(Vector3(side * 3.0, 0, 80), Vector3(side * 3.0, 0, -455), 0.65, Color(0.32, 0.29, 0.23))
+		_road_strip(Vector3(side * 3.0, 0, 80), Vector3(side * 3.0, 0, -455), 0.65, Color(0.32, 0.29, 0.23), 0.13)
 	var center := Vector3(34, height_at(34, -182) + 0.08, -182)
 	MeshFactory.cylinder(self, "Helipad", center, 18.0, 0.10, Color(0.37, 0.36, 0.30), 48)
 	var ring := TorusMesh.new()
@@ -177,7 +180,7 @@ func _build_roads() -> void:
 		MeshFactory.box(self, "HelipadH", center + Vector3(x, 0.10, 0), Vector3(1.0, 0.04, 9), Color(0.72, 0.69, 0.53), false)
 	MeshFactory.box(self, "HelipadH", center + Vector3(0, 0.10, 0), Vector3(6, 0.04, 1), Color(0.72, 0.69, 0.53), false)
 
-func _road_strip(from: Vector3, to: Vector3, width: float, color: Color) -> void:
+func _road_strip(from: Vector3, to: Vector3, width: float, color: Color, lift: float = 0.08) -> void:
 	var direction: Vector3 = (to - from).normalized()
 	var side := Vector3(-direction.z, 0, direction.x) * width * 0.5
 	var vertices := PackedVector3Array()
@@ -187,11 +190,11 @@ func _road_strip(from: Vector3, to: Vector3, width: float, color: Color) -> void
 		var center: Vector3 = from.lerp(to, float(index) / steps)
 		for sign_value in [-1.0, 1.0]:
 			var point: Vector3 = center + side * sign_value
-			point.y = height_at(point.x, point.z) + 0.07
+			point.y = height_at(point.x, point.z) + lift
 			vertices.append(point)
 		if index < steps:
 			var i: int = index * 2
-			indices.append_array(PackedInt32Array([i, i + 2, i + 1, i + 1, i + 2, i + 3]))
+			indices.append_array(PackedInt32Array([i, i + 1, i + 2, i + 1, i + 3, i + 2]))
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
@@ -377,7 +380,7 @@ func _sandbags(center: Vector3, radius: float, count: int, start: float, end: fl
 			bags.set_instance_transform(row * count + index, Transform3D(basis, point))
 	var instance := MultiMeshInstance3D.new()
 	instance.multimesh = bags
-	instance.material_override = MeshFactory.material(Color(0.47, 0.44, 0.31))
+	instance.material_override = MeshFactory.material(Color(0.34, 0.31, 0.22))
 	add_child(instance)
 
 func _build_scatter() -> void:
@@ -408,7 +411,7 @@ func _build_scatter() -> void:
 	canopy.height = 2.0
 	canopy.radial_segments = 9
 	canopy.rings = 4
-	_scatter_mesh(canopy, MeshFactory.material(Color(0.28, 0.32, 0.18)), 52, 2)
+	_scatter_mesh(canopy, MeshFactory.material(Color(0.18, 0.23, 0.12)), 52, 2)
 	var shrub := SphereMesh.new()
 	shrub.radius = 1.0
 	shrub.height = 2.0
@@ -437,7 +440,10 @@ func _scatter_mesh(mesh: PrimitiveMesh, material: StandardMaterial3D, count: int
 		else:
 			var x: float = rng.randf_range(-470, 470)
 			var z: float = rng.randf_range(-580, 330)
-			if absf(x) < 180 and z < -160 and z > -475:
+			if index < 24:
+				x = (30.0 + rng.randf() * 65.0) * (1.0 if index % 2 == 0 else -1.0)
+				z = 90.0 - rng.randf() * 230.0
+			if absf(x) < 180 and z < -160 and z > -475 and index >= 24:
 				x += 220.0 if x >= 0 else -220.0
 			if Vector2(x, z - 105).length() < 30:
 				x += 60
@@ -483,6 +489,45 @@ func _build_destructibles() -> void:
 	for point in [Vector3(-120, 0, -220), Vector3(125, 0, -265), Vector3(15, 0, -410)]:
 		for index in range(3):
 			MeshFactory.cylinder(self, "FuelDrum", Vector3(point.x + index * 1.3, height_at(point.x, point.z) + 0.8, point.z), 0.55, 1.6, Color(0.30, 0.34, 0.24))
+
+func _batch_static_boxes() -> void:
+	var groups: Dictionary = {}
+	for node in find_children("*", "MeshInstance3D", true, false):
+		var instance: MeshInstance3D = node as MeshInstance3D
+		if instance.mesh != MeshFactory.box_mesh or instance.material_override == null:
+			continue
+		var ancestor: Node = instance
+		var dynamic: bool = false
+		while ancestor != null and ancestor != self:
+			if ancestor is Destructible or ancestor is EnemyTarget or ancestor == radar:
+				dynamic = true
+				break
+			ancestor = ancestor.get_parent()
+		if dynamic:
+			continue
+		var key: String = str(instance.material_override.get_instance_id()) + ":" + str(instance.cast_shadow)
+		if not groups.has(key):
+			groups[key] = {"material": instance.material_override, "shadow": instance.cast_shadow, "nodes": []}
+		groups[key].nodes.append(instance)
+	for key in groups:
+		var group: Dictionary = groups[key]
+		var nodes: Array = group.nodes
+		if nodes.size() < 2:
+			continue
+		var multi := MultiMesh.new()
+		multi.transform_format = MultiMesh.TRANSFORM_3D
+		multi.mesh = MeshFactory.box_mesh
+		multi.instance_count = nodes.size()
+		for index in range(nodes.size()):
+			var instance: MeshInstance3D = nodes[index]
+			multi.set_instance_transform(index, global_transform.affine_inverse() * instance.global_transform)
+			instance.queue_free()
+		var batch := MultiMeshInstance3D.new()
+		batch.name = "StaticBatch_" + key.get_slice(":", 0)
+		batch.multimesh = multi
+		batch.material_override = group.material
+		batch.cast_shadow = group.shadow
+		add_child(batch)
 
 func configure_mission(mission: MissionData) -> void:
 	for target in targets:
