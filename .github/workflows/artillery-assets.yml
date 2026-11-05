@@ -19,10 +19,15 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends blender
       - name: Author and export original models
         run: blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
+      - name: Publish Blender diagnostics
+        if: failure()
+        run: |
+          tail -60 /tmp/blender.log
+          grep -E 'Error|Traceback|line [0-9]|CREATED|Exception' /tmp/blender.log | tail -18 | while IFS= read -r line; do echo "::error title=Blender::${line}"; done
       - name: Verify exports
         run: |
-          grep 'CREATED' /tmp/blender.log
-          for name in kestrel warden nomad sentry hangar; do test -s "ARTILLERY_FRONTLINE/assets/models/$name.glb"; done
+          grep 'CREATED' /tmp/blender.log || { echo '::error::No CREATED markers; inspect Blender diagnostics'; exit 1; }
+          for name in kestrel warden nomad sentry hangar; do test -s "ARTILLERY_FRONTLINE/assets/models/$name.glb" || { echo "::error::Missing export $name"; exit 1; }; done
           blender --version | head -1 > ARTILLERY_FRONTLINE/documentation/blender-version.txt
       - name: Preserve generated assets on the active session branch
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
