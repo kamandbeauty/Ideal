@@ -103,8 +103,10 @@ def merge_children(parent):
         bpy.context.view_layer.objects.active=objects[0]
         bpy.ops.object.join();objects[0].name=parent.name+'_'+key.replace(' ','_')
 def finish(root,name):
-    for o in list(bpy.data.objects):
-        if o.type=='EMPTY':merge_children(o)
+    empty_names=[o.name for o in bpy.data.objects if o.type=='EMPTY']
+    for object_name in empty_names:
+        o=bpy.data.objects.get(object_name)
+        if o is not None and o.type=='EMPTY':merge_children(o)
     bpy.ops.object.select_all(action='DESELECT')
     root.select_set(True)
     for o in bpy.data.objects:o.select_set(True)
