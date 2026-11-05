@@ -64,6 +64,8 @@ class SfPlayerController {
     const SfPlayerState(),
   );
 
+  bool _disposed = false;
+
   Future<void> play() => _invoke('play');
   Future<void> pause() => _invoke('pause');
   Future<void> seekTo(int positionUs) => _invoke('seek', <String, Object?>{'positionUs': positionUs});
@@ -78,7 +80,8 @@ class SfPlayerController {
   }
 
   Future<void> _handleCall(MethodCall call) async {
-    if (call.method != 'onPlayerEvent') return;
+    // A late event after dispose() must not touch a disposed ValueNotifier.
+    if (_disposed || call.method != 'onPlayerEvent') return;
     final Map<Object?, Object?> args =
         (call.arguments as Map<Object?, Object?>?) ?? const <Object?, Object?>{};
     state.value = SfPlayerState(
@@ -92,6 +95,8 @@ class SfPlayerController {
   }
 
   void dispose() {
+    if (_disposed) return;
+    _disposed = true;
     _channel.invokeMethod<void>('dispose').ignore();
     _channel.setMethodCallHandler(null);
     state.dispose();
