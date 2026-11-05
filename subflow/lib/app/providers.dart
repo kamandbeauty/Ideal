@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/constants.dart';
@@ -10,9 +12,15 @@ import '../database/dao/media_dao.dart';
 import '../database/dao/model_dao.dart';
 import '../database/dao/project_dao.dart';
 import '../database/dao/settings_dao.dart';
+import '../database/dao/subtitle_dao.dart';
+import '../features/subtitles/subtitle_document.dart';
+import '../features/subtitles/subtitle_editor_model.dart';
 import '../models/project.dart';
+import '../models/subtitle.dart';
+import '../models/subtitle_style.dart';
 import '../services/media_service.dart';
 import '../services/project_repository.dart';
+import '../services/subtitle_export_service.dart';
 
 // ---------------------------------------------------------------- infrastructure
 final Provider<NativeBridge> nativeBridgeProvider =
@@ -144,3 +152,157 @@ final FutureProviderFamily<ProjectDetail, String> projectDetailProvider =
     mediaAvailable: await repo.verifyMedia(projectId),
   );
 });
+
+// ---------------------------------------------------------------- subtitles
+final FutureProvider<SubtitleDao> subtitleDaoProvider = FutureProvider<SubtitleDao>((Ref ref) async {
+  return SubtitleDao(await ref.watch(appDatabaseProvider).database);
+});
+
+final Provider<SubtitleExportService> subtitleExportServiceProvider =
+    Provider<SubtitleExportService>((Ref ref) {
+  return SubtitleExportService(bridge: ref.watch(nativeBridgeProvider));
+});
+
+/// The subtitle studio for one project.
+///
+/// Loading happens once, every command mutates a pure `SubtitleEditorModel`
+/// (which owns the undo history), and the document is written back to SQLite on
+/// a short debounce so a crash can lose at most one edit. The notifier never
+/// invents state: `state` is always the model's snapshot.
+class SubtitleEditorNotifier extends FamilyAsyncNotifier<SubtitleEditorSnapshot, String> {
+  SubtitleEditorModel? _model;
+  SubtitleTrack? _track;
+  Timer? _saveTimer;
+  bool _saving = false;
+  String? lastSaveError;
+
+  @override
+  Future<SubtitleEditorSnapshot> build(String projectId) async {
+    ref.onDispose(() {
+      _saveTimer?.cancel();
+      final SubtitleEditorModel? model = _model;
+      final SubtitleTrack? track = _track;
+      if (model != null && track != null && model.snapshot.dirty) {
+        // Best effort final flush; nothing else can await inside onDispose.
+        unawaited(_persist(track.id, model));
+      }
+    });
+    final SubtitleDao dao = await ref.watch(subtitleDaoProvider.future);
+    final SubtitleTrack track = await dao.ensureOriginalTrack(projectId);
+    final List<SubtitleSegment> segments = await dao.loadSegments(track.id);
+    _track = track;
+    _model = SubtitleEditorModel(
+      document: SubtitleDocument(trackId: track.id, segments: segments),
+    );
+    return _model!.snapshot;
+  }
+
+  SubtitleEditorModel get _require {
+    final SubtitleEditorModel? model = _model;
+    if (model == null) {
+      throw StateError('subtitle editor is not loaded yet');
+    }
+    return model;
+  }
+
+  void _publish({bool scheduleSave = true}) {
+    final SubtitleEditorModel model = _require;
+    state = AsyncData<SubtitleEditorSnapshot>(model.snapshot);
+    if (scheduleSave && model.snapshot.dirty) _scheduleSave();
+  }
+
+  void _scheduleSave() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 700), () {
+      unawaited(_saveNow());
+    });
+  }
+
+  Future<void> _saveNow() async {
+    final SubtitleEditorModel? model = _model;
+    final SubtitleTrack? track = _track;
+    if (model == null || track == null || _saving) return;
+    _saving = true;
+    try {
+      await _persist(track.id, model);
+      model.markSaved();
+      lastSaveError = null;
+      state = AsyncData<SubtitleEditorSnapshot>(model.snapshot);
+    } on Object catch (error) {
+      lastSaveError = '$error';
+      if (state.hasValue) {
+        state = AsyncData<SubtitleEditorSnapshot>(model.snapshot);
+      }
+    } finally {
+      _saving = false;
+    }
+  }
+
+  Future<void> _persist(String trackId, SubtitleEditorModel model) async {
+    final SubtitleDao dao = await ref.read(subtitleDaoProvider.future);
+    await dao.replaceSegments(trackId, model.document.segments);
+  }
+
+  /// Force a save (used before export and when leaving the screen).
+  Future<void> flush() async {
+    _saveTimer?.cancel();
+    await _saveNow();
+  }
+
+  void select(String? segmentId) {
+    _require.select(segmentId);
+    _publish(scheduleSave: false);
+  }
+
+  void setText(String segmentId, String text) {
+    if (_require.setText(segmentId, text)) _publish();
+  }
+
+  void retime(String segmentId, {int? startUs, int? endUs}) {
+    if (_require.retime(segmentId, startUs: startUs, endUs: endUs)) _publish();
+  }
+
+  void insertAt(int atUs) {
+    if (_require.insertAt(atUs)) _publish();
+  }
+
+  void split(String segmentId, int atUs) {
+    if (_require.split(segmentId, atUs)) _publish();
+  }
+
+  void mergeWithNext(String segmentId) {
+    if (_require.mergeWithNext(segmentId)) _publish();
+  }
+
+  void remove(String segmentId) {
+    if (_require.remove(segmentId)) _publish();
+  }
+
+  void undo() {
+    if (_require.undo()) _publish();
+  }
+
+  void redo() {
+    if (_require.redo()) _publish();
+  }
+
+  void copyStyle() {
+    _require.copyStyle();
+    _publish(scheduleSave: false);
+  }
+
+  void pasteStyle() {
+    if (_require.pasteStyle()) _publish();
+  }
+
+  /// Saves the mapped gallery style and applies it to every caption.
+  Future<void> applyStyle(SubtitleStyle style) async {
+    final SubtitleDao dao = await ref.read(subtitleDaoProvider.future);
+    await dao.saveStyle(style);
+    if (_require.applyStyleToAll(style.id)) _publish();
+  }
+}
+
+final AsyncNotifierProviderFamily<SubtitleEditorNotifier, SubtitleEditorSnapshot, String>
+    subtitleEditorProvider = AsyncNotifierProvider.family<SubtitleEditorNotifier,
+        SubtitleEditorSnapshot, String>(SubtitleEditorNotifier.new);

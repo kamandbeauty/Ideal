@@ -149,6 +149,30 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ),
         ),
         const SizedBox(height: 14),
+        SfCard(
+          onTap: () => context.push('/project/${widget.projectId}/subtitles'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  const Icon(Icons.subtitles_rounded, color: AppColors.secondarySoft, size: 20),
+                  const SizedBox(width: 8),
+                  Text('استودیوی زیرنویس', style: Theme.of(context).textTheme.titleMedium),
+                  const Spacer(),
+                  const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted, size: 20),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'ساخت و ویرایش زیرنویس روی همین ویدئو: افزودن، برش، ادغام، جابه‌جایی زمان، '
+                'استایل مشترک با خروجی و واگرد/ازنو.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.8),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
         _CaptionStyleCard(
           preset: _preset,
           onPick: _pickCaptionStyle,

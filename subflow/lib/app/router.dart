@@ -6,6 +6,7 @@ import '../features/home/home_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/projects/project_list_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../features/subtitles/subtitle_studio_screen.dart';
 import '../features/splash/splash_screen.dart';
 import '../features/video_import/video_import_screen.dart';
 
@@ -26,6 +27,11 @@ final GoRouter subFlowRouter = GoRouter(
       path: '/project/:id',
       builder: (_, GoRouterState state) =>
           EditorScreen(projectId: state.pathParameters['id'] ?? ''),
+    ),
+    GoRoute(
+      path: '/project/:id/subtitles',
+      builder: (_, GoRouterState state) =>
+          SubtitleStudioScreen(projectId: state.pathParameters['id'] ?? ''),
     ),
     GoRoute(path: '/captions', builder: (_, __) => const CaptionGalleryScreen()),
     GoRoute(path: '/settings', builder: (_, __) => const SettingsScreen()),

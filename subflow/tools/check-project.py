@@ -356,6 +356,28 @@ for family in re.findall(r"family: '([^']+)'", presets_src) + sorted(persian_fam
     check(f"family: {family}" in pubspec_fonts,
           f"font family '{family}' is used by presets but not declared in pubspec.yaml")
 
+# ------------------------------------------------------ subtitle studio wiring
+studio = ROOT / "lib/features/subtitles/subtitle_studio_screen.dart"
+check(studio.exists(), "missing the subtitle studio screen")
+check("'/project/:id/subtitles'" in router, "router must expose the subtitle studio")
+check("SubtitleStudioScreen" in router, "router must instantiate the subtitle studio")
+
+dao_src = (ROOT / "lib/database/dao/subtitle_dao.dart").read_text(encoding="utf-8")
+for method in ("ensureOriginalTrack", "loadSegments", "replaceSegments", "saveStyle"):
+    check(f"Future" in dao_src and method in dao_src, f"subtitle DAO is missing {method}()")
+
+doc_src = (ROOT / "lib/features/subtitles/subtitle_document.dart").read_text(encoding="utf-8")
+for operation in ("withText", "withTiming", "splitAt", "mergeWithNext", "insertAt", "shiftAll"):
+    check(operation in doc_src, f"subtitle document is missing {operation}()")
+check("minSegmentUs" in doc_src, "subtitle document must enforce a minimum segment length")
+
+model_src = (ROOT / "lib/features/subtitles/subtitle_editor_model.dart").read_text(encoding="utf-8")
+for member in ("bool undo()", "bool redo()", "historyLimit"):
+    check(member in model_src, f"editor model is missing {member}")
+
+check("SubtitleExportService" in (ROOT / "lib/services/subtitle_export_service.dart").read_text(encoding="utf-8"),
+      "missing the subtitle export service")
+
 # --------------------------------------------------------- JSON sanity pass
 for json_path in ROOT.glob("assets/**/*.json"):
     try:
