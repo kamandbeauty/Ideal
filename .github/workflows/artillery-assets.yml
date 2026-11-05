@@ -28,7 +28,8 @@ jobs:
         run: |
           grep 'CREATED' /tmp/blender.log || { echo '::error::No CREATED markers; inspect Blender diagnostics'; exit 1; }
           for name in kestrel warden nomad sentry hangar; do test -s "ARTILLERY_FRONTLINE/assets/models/$name.glb" || { echo "::error::Missing export $name"; exit 1; }; done
-          blender --version | head -1 > ARTILLERY_FRONTLINE/documentation/blender-version.txt
+          blender --version > /tmp/blender-version.txt
+          head -1 /tmp/blender-version.txt > ARTILLERY_FRONTLINE/documentation/blender-version.txt
       - name: Preserve generated assets on the active session branch
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
