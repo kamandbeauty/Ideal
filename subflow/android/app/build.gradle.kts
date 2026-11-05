@@ -52,7 +52,12 @@ android {
                     "-DANDROID_STL=c++_shared",
                     "-DSF_ENABLE_WHISPER=ON",
                 )
-                cppFlags += listOf("-std=c++17", "-O2", "-ffast-math")
+                // No global -ffast-math / -O2 here: directory-level flags reach
+                // the vendored whisper.cpp/ggml, which refuses -ffinite-math
+                // (ggml-cpu/vec.h has a hard #error for it) and sets its own
+                // optimisation per target. Our own sources get their flags from
+                // CMakeLists.txt.
+                cppFlags += listOf("-std=c++17")
             }
         }
     }
