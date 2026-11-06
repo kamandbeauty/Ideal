@@ -39,6 +39,6 @@ See `documentation/BUILD_ANDROID.md`. The repository workflow validates the proj
 
 ## Scope and honesty
 
-This is a production-oriented vertical slice, not a claim of completed commercial release certification. Smoke visuals and frame time from a software-rendered CI desktop are not Android device performance. See `documentation/QA_REPORT.md` and the milestone report for executed checks and remaining limitations.
+This is a production-oriented vertical slice, not a claim of completed commercial release certification. Smoke visuals and frame time from a software-rendered CI desktop are not Android device performance. See [`documentation/QA_REPORT.md`](documentation/QA_REPORT.md) and [`../MILESTONE_REPORT.md`](../MILESTONE_REPORT.md) for executed checks and remaining limitations.
 
 Original asset provenance: `ASSET_LICENSES.md`. Architecture: `documentation/TECHNICAL.md`.
