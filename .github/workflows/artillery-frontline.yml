@@ -150,6 +150,27 @@ jobs:
           godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android APK' res://../delivery/Artillery-Frontline-arm64.apk > /tmp/apk.log 2>&1 || { tail -100 /tmp/apk.log; exit 1; }
           godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android AAB' res://../delivery/Artillery-Frontline-arm64.aab > /tmp/aab.log 2>&1 || { tail -100 /tmp/aab.log; exit 1; }
           godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android Compatibility' res://../delivery/Artillery-Frontline-compatibility.apk > /tmp/compat.log 2>&1 || { tail -70 /tmp/compat.log; exit 1; }
+      - name: Ensure the AAB carries a verified JAR signature
+        run: |
+          set -euo pipefail
+          if [ "$ARTILLERY_EXPORT_MODE" = "--export-release" ]; then
+            KS_PATH="$GODOT_ANDROID_KEYSTORE_RELEASE_PATH"
+            KS_USER="$GODOT_ANDROID_KEYSTORE_RELEASE_USER"
+            export KS_PASSWORD="$GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD"
+          else
+            KS_PATH="$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
+            KS_USER="$GODOT_ANDROID_KEYSTORE_DEBUG_USER"
+            export KS_PASSWORD="$GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD"
+          fi
+          jarsigner -verify delivery/Artillery-Frontline-arm64.aab > /tmp/aab-precheck.txt 2>&1 || true
+          if grep -q 'jar verified' /tmp/aab-precheck.txt; then
+            echo 'AAB already carries a verified exporter signature'
+          else
+            jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore "$KS_PATH" -storepass:env KS_PASSWORD -keypass:env KS_PASSWORD -signedjar "$RUNNER_TEMP/Artillery-Frontline-signed.aab" delivery/Artillery-Frontline-arm64.aab "$KS_USER"
+            mv "$RUNNER_TEMP/Artillery-Frontline-signed.aab" delivery/Artillery-Frontline-arm64.aab
+          fi
+          jarsigner -verify -strict -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
+          grep -q 'jar verified' delivery/aab-signature.txt
       - name: Verify package signatures, architectures and offline manifest
         run: |
           exec > /tmp/package-verify.log 2>&1
@@ -159,7 +180,8 @@ jobs:
           "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump badging delivery/Artillery-Frontline-compatibility.apk > delivery/compatibility-package-metadata.txt
           "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump xmltree delivery/Artillery-Frontline-arm64.apk --file AndroidManifest.xml > delivery/AndroidManifest.txt
           "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump xmltree delivery/Artillery-Frontline-compatibility.apk --file AndroidManifest.xml > delivery/compatibility-AndroidManifest.txt
-          jarsigner -verify -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
+          jarsigner -verify -strict -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
+          grep -q 'jar verified' delivery/aab-signature.txt
           python3 "$PROJECT/tools/verify_packages.py" delivery
           sha256sum delivery/*.apk delivery/*.aab > delivery/SHA256SUMS.txt
           {

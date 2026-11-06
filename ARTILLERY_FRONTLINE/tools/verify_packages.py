@@ -50,7 +50,13 @@ for meta, text in ((metadata, manifest), (compat_metadata, compat_manifest)):
     assert "android.permission.INTERNET" not in text, "Manifest requests INTERNET"
 for name in ("Artillery-Frontline-arm64.apk", "Artillery-Frontline-compatibility.apk"):
     report[name].update({"package_id_verified": True, "min_sdk": 24, "target_sdk": 36, "landscape": True, "no_internet_permission": True})
-report["Artillery-Frontline-arm64.aab"]["signature_check"] = "jarsigner verified in CI"
+aab_signature = (root / "aab-signature.txt").read_text()
+assert "jar verified" in aab_signature and "jar is unsigned" not in aab_signature, "AAB JAR signature did not verify"
+with zipfile.ZipFile(root / "Artillery-Frontline-arm64.aab") as archive:
+    signature_entries = archive.namelist()
+    assert any(n.startswith("META-INF/") and n.endswith((".RSA", ".DSA", ".EC")) for n in signature_entries), "AAB signature block missing"
+    assert any(n.startswith("META-INF/") and n.endswith(".SF") for n in signature_entries), "AAB signature file missing"
+report["Artillery-Frontline-arm64.aab"]["signature_check"] = "jarsigner strict verified; META-INF signature block present"
 report["scope"] = "CI export, signature and package inspection; no Android device/emulator execution"
 (root / "package-validation.json").write_text(json.dumps(report, indent=2) + "\n")
 print(json.dumps(report, indent=2))
