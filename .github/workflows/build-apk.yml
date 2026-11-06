@@ -26,8 +26,8 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          # Latest stable that satisfies pubspec (flutter >= 3.27.0).
-          flutter-version: ">=3.27.0 <4.0.0"
+          # Stable that satisfies pubspec (flutter >= 3.27.0).
+          flutter-version: "3.35.5"
           channel: stable
           cache: true
 
