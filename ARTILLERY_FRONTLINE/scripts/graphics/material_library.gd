@@ -4,6 +4,7 @@ extends RefCounted
 const ROOT: String = "res://assets/textures/pbr/"
 static var textures: Dictionary = {}
 static var surfaces: Dictionary = {}
+static var surface_data: Dictionary = {}
 static var detail_level: int = 512
 
 static func texture(name: String) -> Texture2D:
@@ -74,16 +75,25 @@ static func surface(kind: String, tint: Color = Color.WHITE, uv_scale: float = 1
 			result.metallic = 0.25
 			result.roughness = 0.6
 	surfaces[key] = result
+	surface_data[key] = {"orm": orm, "roughness": result.roughness, "metallic": result.metallic}
 	return result
 
 static func apply_quality(settings: Dictionary) -> void:
 	detail_level = int(settings.get("texture_size", 256))
+	var full_pbr: bool = detail_level >= 512
 	for key in surfaces:
 		var material: StandardMaterial3D = surfaces[key]
+		var data: Dictionary = surface_data.get(key, {})
 		if material.normal_texture:
-			material.normal_enabled = detail_level >= 256
-		if material.ao_texture:
-			material.ao_enabled = detail_level >= 512
+			material.normal_enabled = full_pbr
+		var orm: Texture2D = data.get("orm", null)
+		if orm:
+			material.ao_enabled = full_pbr
+			material.roughness_texture = orm if full_pbr else null
+			material.metallic_texture = orm if full_pbr else null
+		if not full_pbr:
+			material.roughness = float(data.get("roughness", 0.85))
+			material.metallic = float(data.get("metallic", 0.0))
 
 static func for_model_material(material_name: String, original: Material) -> Material:
 	var lower: String = material_name.to_lower()

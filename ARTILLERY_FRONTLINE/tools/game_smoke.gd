@@ -21,6 +21,7 @@ func capture(name: String) -> void:
 	check("capture " + name, error == OK and image.get_width() > 500)
 
 func run() -> void:
+	Engine.max_physics_steps_per_frame = 32
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	Profile.data.settings.quality = "high"
 	Graphics.apply_preference()
@@ -43,9 +44,9 @@ func run() -> void:
 	Graphics.apply_preference()
 	await get_tree().create_timer(0.8).timeout
 	await capture("battlefield-ultra")
-	# Gameplay assertions run at the balanced tier so software rendering cannot
+	# Gameplay assertions run at the performance tier so software rendering cannot
 	# starve the fixed-step simulation; visual evidence above stays high/ultra.
-	Profile.data.settings.quality = "medium"
+	Profile.data.settings.quality = "low"
 	Graphics.apply_preference()
 	await get_tree().create_timer(0.6).timeout
 	for id in battle.mission.target_ids:

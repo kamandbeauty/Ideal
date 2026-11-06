@@ -602,6 +602,8 @@ func apply_quality(tier: String, settings: Dictionary) -> void:
 		var size: int = int(settings.texture_size)
 		noise_texture.width = size
 		noise_texture.height = size
+	if terrain_material:
+		terrain_material.set_shader_parameter("detail_enabled", int(settings.texture_size) >= 512)
 	if sun:
 		sun.shadow_enabled = bool(settings.shadows)
 		sun.directional_shadow_max_distance = float(settings.shadow_distance)
