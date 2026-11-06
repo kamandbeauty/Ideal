@@ -152,6 +152,7 @@ jobs:
           godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android Compatibility' res://../delivery/Artillery-Frontline-compatibility.apk > /tmp/compat.log 2>&1 || { tail -70 /tmp/compat.log; exit 1; }
       - name: Ensure the AAB carries a verified JAR signature
         run: |
+          exec > /tmp/aab-signing.log 2>&1
           set -euo pipefail
           if [ "$ARTILLERY_EXPORT_MODE" = "--export-release" ]; then
             KS_PATH="$GODOT_ANDROID_KEYSTORE_RELEASE_PATH"
@@ -197,6 +198,9 @@ jobs:
       - name: Publish build diagnostics
         if: failure()
         run: |
+          if [ -f /tmp/aab-signing.log ]; then
+            tail -90 /tmp/aab-signing.log | while IFS= read -r line; do echo "::error title=AAB signing::${line}"; done
+          fi
           if [ -f /tmp/package-verify.log ]; then
             tail -90 /tmp/package-verify.log | while IFS= read -r line; do echo "::error title=Package verification::${line}"; done
           fi
