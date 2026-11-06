@@ -41,7 +41,9 @@ jobs:
           ~/.local/godot-bin/godot --headless --version
       - name: Import project and compile resources
         run: |
-          godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1 || { tail -100 /tmp/import.log; exit 1; }
+          mkdir -p "$PROJECT/documentation/qa"
+          godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1 || { tail -160 /tmp/import.log; cp /tmp/import.log "$PROJECT/documentation/qa/import.log"; exit 1; }
+          cp /tmp/import.log "$PROJECT/documentation/qa/import.log"
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' /tmp/import.log; then exit 1; fi
       - name: Run dependency-free unit and integration suites
         run: godot --headless --path "$PROJECT" --script res://tests/run_tests.gd
