@@ -152,12 +152,21 @@ jobs:
           godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android Compatibility' res://../delivery/Artillery-Frontline-compatibility.apk > /tmp/compat.log 2>&1 || { tail -70 /tmp/compat.log; exit 1; }
       - name: Verify package signatures, architectures and offline manifest
         run: |
-          "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose delivery/Artillery-Frontline-arm64.apk
+          "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose --print-certs delivery/Artillery-Frontline-arm64.apk > delivery/apk-signature.txt
+          "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose --print-certs delivery/Artillery-Frontline-compatibility.apk > delivery/compatibility-signature.txt
           "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump badging delivery/Artillery-Frontline-arm64.apk > delivery/package-metadata.txt
-          jarsigner -verify delivery/Artillery-Frontline-arm64.aab
+          "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump badging delivery/Artillery-Frontline-compatibility.apk > delivery/compatibility-package-metadata.txt
+          "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump xmltree delivery/Artillery-Frontline-arm64.apk --file AndroidManifest.xml > delivery/AndroidManifest.txt
+          "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump xmltree delivery/Artillery-Frontline-compatibility.apk --file AndroidManifest.xml > delivery/compatibility-AndroidManifest.txt
+          jarsigner -verify -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
           python3 "$PROJECT/tools/verify_packages.py" delivery
           sha256sum delivery/*.apk delivery/*.aab > delivery/SHA256SUMS.txt
-          printf 'Signing: %s\n' "$ARTILLERY_SIGNING_SCOPE" > delivery/BUILD-STATUS.txt
+          {
+            printf 'Source commit: %s\n' "$GITHUB_SHA"
+            printf 'Engine: Godot %s\n' "$GODOT_VERSION"
+            printf 'Signing: %s\n' "$ARTILLERY_SIGNING_SCOPE"
+            printf 'Validation: CI signatures, ARM64, ZIP CRC, landscape manifest and offline permissions; no device/emulator execution\n'
+          } > delivery/BUILD-STATUS.txt
       - name: Publish downloadable packages to the session branch
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |

@@ -76,4 +76,4 @@ func _process(delta: float) -> void:
 			apply_tier(TIERS[index])
 
 func snapshot() -> Dictionary:
-	return {"fps": snappedf(fps, 0.1), "frame_ms": snappedf(monitor.average_ms, 0.01), "draw_calls": draw_calls, "primitives": primitives, "tier": tier, "scale": profile().scale, "objects": int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), "renderer": "Compatibility" if compatibility else "Mobile"}
+	return {"fps": snappedf(fps, 0.1), "frame_ms": snappedf(1000.0 / maxf(fps, 0.1), 0.01), "draw_calls": draw_calls, "primitives": primitives, "tier": tier, "scale": profile().scale, "objects": int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), "renderer": "Compatibility" if compatibility else "Mobile"}

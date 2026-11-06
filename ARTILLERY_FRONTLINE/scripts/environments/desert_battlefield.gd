@@ -82,7 +82,7 @@ func _build_lighting() -> void:
 	sun.light_color = Color(1.0, 0.88, 0.69)
 	sun.light_energy = 1.15
 	sun.shadow_enabled = true
-	sun.shadow_bias = 0.25
+	sun.shadow_bias = 0.60
 	sun.shadow_normal_bias = 3.0
 	sun.directional_shadow_max_distance = 230.0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
@@ -162,7 +162,7 @@ func _build_roads() -> void:
 	_road_strip(Vector3(-110, 0, -280), Vector3(-110, 0, -435), 8.0, Color(0.43, 0.37, 0.28))
 	_road_strip(Vector3(100, 0, -280), Vector3(100, 0, -420), 8.0, Color(0.43, 0.37, 0.28))
 	for side in [-1.0, 1.0]:
-		_road_strip(Vector3(side * 3.0, 0, 80), Vector3(side * 3.0, 0, -455), 0.65, Color(0.32, 0.29, 0.23), 0.13)
+		_road_strip(Vector3(side * 3.0, 0, 80), Vector3(side * 3.0, 0, -455), 0.65, Color(0.32, 0.29, 0.23), 0.20)
 	var center := Vector3(34, height_at(34, -182) + 0.08, -182)
 	MeshFactory.cylinder(self, "Helipad", center, 18.0, 0.10, Color(0.37, 0.36, 0.30), 48)
 	var ring := TorusMesh.new()
@@ -180,35 +180,39 @@ func _build_roads() -> void:
 		MeshFactory.box(self, "HelipadH", center + Vector3(x, 0.10, 0), Vector3(1.0, 0.04, 9), Color(0.72, 0.69, 0.53), false)
 	MeshFactory.box(self, "HelipadH", center + Vector3(0, 0.10, 0), Vector3(6, 0.04, 1), Color(0.72, 0.69, 0.53), false)
 
-func _road_strip(from: Vector3, to: Vector3, width: float, color: Color, lift: float = 0.08) -> void:
+func _road_strip(from: Vector3, to: Vector3, width: float, color: Color, lift: float = 0.14) -> void:
+	# Conform to the height field in both axes. A two-vertex-wide strip can sink
+	# below the terrain between samples and produce severe z-fighting bands.
 	var direction: Vector3 = (to - from).normalized()
 	var side := Vector3(-direction.z, 0, direction.x) * width * 0.5
 	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
 	var indices := PackedInt32Array()
-	var steps: int = maxi(2, int(from.distance_to(to) / 8.0))
-	for index in range(steps + 1):
-		var center: Vector3 = from.lerp(to, float(index) / steps)
-		for sign_value in [-1.0, 1.0]:
-			var point: Vector3 = center + side * sign_value
+	var length_steps: int = maxi(2, ceili(from.distance_to(to) / 3.0))
+	var width_steps: int = maxi(2, ceili(width / 3.0))
+	var stride: int = width_steps + 1
+	for row in range(length_steps + 1):
+		var center: Vector3 = from.lerp(to, float(row) / length_steps)
+		for column in range(stride):
+			var point: Vector3 = center + side * (float(column) / width_steps * 2.0 - 1.0)
 			point.y = height_at(point.x, point.z) + lift
 			vertices.append(point)
-		if index < steps:
-			var i: int = index * 2
-			indices.append_array(PackedInt32Array([i, i + 1, i + 2, i + 1, i + 3, i + 2]))
+			normals.append(Vector3(height_at(point.x - 1.0, point.z) - height_at(point.x + 1.0, point.z), 2.0, height_at(point.x, point.z - 1.0) - height_at(point.x, point.z + 1.0)).normalized())
+			if row < length_steps and column < width_steps:
+				var i: int = row * stride + column
+				indices.append_array(PackedInt32Array([i, i + 1, i + stride, i + 1, i + stride + 1, i + stride]))
 	var arrays: Array = []
 	arrays.resize(Mesh.ARRAY_MAX)
 	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = normals
 	arrays[Mesh.ARRAY_INDEX] = indices
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	var tool := SurfaceTool.new()
-	tool.create_from(mesh, 0)
-	tool.generate_normals()
-	mesh = tool.commit()
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
 	var material: StandardMaterial3D = MeshFactory.material(color).duplicate()
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.cull_mode = BaseMaterial3D.CULL_BACK
+	material.disable_receive_shadows = true
 	instance.material_override = material
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(instance)

@@ -64,6 +64,7 @@ func run() -> void:
 				await get_tree().create_timer(0.1).timeout
 			attempts += 1
 		check("target destroyed " + id, target.health.is_destroyed)
+	game.present_smoke_results()
 	await get_tree().create_timer(1.0).timeout
 	check("mission results displayed", game.menus.current == "results" and battle.missions.result.get("success", false))
 	await capture("mission-results")
@@ -78,4 +79,6 @@ func run() -> void:
 	file.store_string(JSON.stringify(report, "  "))
 	file.close()
 	print("ARTILLERY_SMOKE_REPORT ", JSON.stringify(report))
+	Sound.stop_all()
+	await get_tree().create_timer(0.25).timeout
 	get_tree().quit(0 if failures == 0 else 1)

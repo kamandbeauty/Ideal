@@ -12,7 +12,8 @@ func _run() -> void:
 		"res://tests/unit/test_weapon.gd", "res://tests/unit/test_save.gd",
 		"res://tests/unit/test_progression.gd", "res://tests/unit/test_graphics.gd",
 		"res://tests/unit/test_resources.gd", "res://tests/integration/test_combat.gd",
-		"res://tests/integration/test_missions.gd"
+		"res://tests/integration/test_missions.gd",
+		"res://tests/integration/test_campaign.gd"
 	]
 	for path in suites:
 		if not ResourceLoader.exists(path):

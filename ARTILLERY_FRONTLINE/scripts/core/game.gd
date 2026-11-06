@@ -10,6 +10,7 @@ var battle: BattleController
 var splash_remaining: float = 1.4
 var last_mission_id: String = "sr01"
 var smoke_mode: bool = false
+var pending_smoke_result: Dictionary = {}
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -118,6 +119,18 @@ func _on_mission_finished(result: Dictionary) -> void:
 	if not first_clear:
 		result["points"] = 0
 	result["star_gain"] = maxi(0, int(result.stars) - previous_stars)
+	if smoke_mode:
+		# Let the smoke driver photograph the final explosion before the UI hides it.
+		pending_smoke_result = result.duplicate(true)
+		return
+	_present_results(result)
+
+func present_smoke_results() -> void:
+	if not pending_smoke_result.is_empty():
+		_present_results(pending_smoke_result)
+		pending_smoke_result.clear()
+
+func _present_results(result: Dictionary) -> void:
 	battle.process_mode = Node.PROCESS_MODE_DISABLED
 	hud.visible = false
 	menus.show_results(result)
