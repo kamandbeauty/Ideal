@@ -274,6 +274,9 @@ func _test_vertical_slice() -> void:
 	var start_yaw: float = game.gun.yaw_degrees
 	game.gun.aim_by_pixels(Vector2(30, -15))
 	_check(game.gun.yaw_degrees != start_yaw, "aim input moves independent gun axes")
+	var tank := game.get_node("Tank") as BattlefieldTarget
+	var transport := game.get_node("Transport") as BattlefieldTarget
+	var tank_start_x := tank.position.x
 	game.gun.set_aim(0, 26)
 	await physics_frame
 	await physics_frame
@@ -294,9 +297,12 @@ func _test_vertical_slice() -> void:
 		radar.is_destroyed and game.mission.hits == 1,
 		"fired shell actually destroys the radar target"
 	)
-	var targets: Array[Node] = get_nodes_in_group("damageable")
-	for target in targets:
-		target.receive_damage(1000.0)
+	_check(absf(tank.position.x - tank_start_x) > 0.1, "patrolling targets move during combat")
+	game._select_ammo(1)
+	_check(await _fire_at_target(game, tank), "AP shell actually destroys the moving tank")
+	_check(
+		await _fire_at_target(game, transport), "AP shell actually destroys the moving transport"
+	)
 	_check(
 		game.mission.is_complete and game.mode == "finishing",
 		"destroying objectives triggers the result flow"
@@ -308,6 +314,72 @@ func _test_vertical_slice() -> void:
 	_clean_save(game.save_store.path)
 	game.queue_free()
 	await process_frame
+
+
+func _fire_at_target(game: Node3D, target: BattlefieldTarget) -> bool:
+	game._reload()
+	for i in range(200):
+		await physics_frame
+		if game.gun.state.can_fire():
+			break
+	if not game.gun.state.can_fire():
+		return false
+	var offset: Vector3 = target.global_position - game.gun.global_position
+	var aimed := false
+	# Lead a live patrol using its predicted future position. Search the actual
+	# sampled chamber trajectory; this test never modifies target health or motion.
+	for step in range(8 * 4, 65 * 4 + 1):
+		var elevation: float = step * 0.25
+		var yaw := rad_to_deg(atan2(-offset.x, -offset.z))
+		var origin: Vector3
+		var velocity: Vector3
+		var flight_time := 0.0
+		for iteration in range(4):
+			game.gun.set_aim(yaw, elevation)
+			origin = game.gun.muzzle_position()
+			velocity = game.gun.launch_velocity()
+			flight_time = (target.global_position.z - origin.z) / velocity.z
+			var future_x := _patrol_x_at_time(target, flight_time)
+			yaw = rad_to_deg(atan2(-(future_x - game.gun.global_position.x), -offset.z))
+		if flight_time <= 0.0:
+			continue
+		var end_x := origin.x + velocity.x * flight_time
+		var end_y: float = (
+			origin.y
+			+ velocity.y * flight_time
+			- 0.5 * game.gun.config.gravity * flight_time * flight_time
+		)
+		if (
+			absf(end_x - _patrol_x_at_time(target, flight_time)) < 1.5
+			and end_y > 0.8
+			and end_y < 3.4
+		):
+			aimed = true
+			break
+	if not aimed:
+		return false
+	game._fire()
+	for i in range(480):
+		await physics_frame
+		if target.is_destroyed:
+			return true
+	return false
+
+
+func _patrol_x_at_time(target: BattlefieldTarget, time: float) -> float:
+	var x := target.position.x
+	var direction := target._patrol_direction
+	var minimum := target._home.x - target.patrol_extent
+	var maximum := target._home.x + target.patrol_extent
+	for i in range(maxi(0, int(ceil(time / Ballistics.STEP)))):
+		x += direction * target.patrol_speed * Ballistics.STEP
+		if x >= maximum:
+			x = maximum
+			direction = -1.0
+		elif x <= minimum:
+			x = minimum
+			direction = 1.0
+	return x
 
 
 func _clean_save(path: String) -> void:

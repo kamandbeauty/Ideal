@@ -33,7 +33,7 @@ gdformat --check scripts tests
 gdlint scripts tests
 ```
 
-Tests include analytic ballistics, drag, blast falloff, reload and ammo rules, range falloff, unique objective completion, backup recovery, quality hysteresis, swept collision, predicted vs. actual impact, and a scene-level mission flow. The visual smoke test also exercises touch input and captures rendered screenshots under Xvfb. Headless validation exercises the simulation and scene initialization but does not validate GPU rendering, sound output, touch hardware, or actual Android performance.
+Tests include analytic ballistics, drag, blast falloff, reload and ammo rules, range falloff, unique objective completion, backup recovery, quality hysteresis, swept collision, predicted vs. actual impact, and a full scene-level mission flow in which fired shells destroy all three targets, including the moving tank and transport. The visual smoke test also exercises touch input and captures rendered screenshots under Xvfb. Headless validation exercises the simulation and scene initialization but does not validate GPU rendering, sound output, touch hardware, or actual Android performance.
 
 ### Optional Web preview
 

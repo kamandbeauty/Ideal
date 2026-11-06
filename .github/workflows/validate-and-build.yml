@@ -156,12 +156,17 @@ jobs:
           for extension in apk aab; do
             file="build/ARTILLERY_FRONTLINE-debug.$extension"
             python3 -c 'import sys,zipfile; z=zipfile.ZipFile(sys.argv[1]); bad=z.testzip(); assert bad is None, bad' "$file"
-            python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$file" > /tmp/frontline-artifact.json
-            blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-artifact.json --jq .sha 2>/tmp/frontline-transfer.err) || {
-              echo "::error title=Artifact transfer failed::$(tail -n 10 /tmp/frontline-transfer.err | tr '\n' '|')"
-              exit 1
-            }
-            echo "::notice title=DEBUG $extension blob::$blob"
+            rm -f /tmp/frontline-part-*
+            split -b 12000000 -d "$file" /tmp/frontline-part-
+            for part in /tmp/frontline-part-*; do
+              index=${part##*-}
+              python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$part" > /tmp/frontline-artifact.json
+              blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-artifact.json --jq .sha 2>/tmp/frontline-transfer.err) || {
+                echo "::error title=Artifact transfer failed::$(tail -n 10 /tmp/frontline-transfer.err | tr '\n' '|')"
+                exit 1
+              }
+              echo "::notice title=DEBUG $extension part $index::$blob"
+            done
             echo "::notice title=DEBUG $extension SHA256::$(sha256sum "$file")"
           done
 
@@ -204,9 +209,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tar -czf /tmp/frontline-web.tar.gz -C build/web .
-          python3 -c 'import base64,json; print(json.dumps({"content":base64.b64encode(open("/tmp/frontline-web.tar.gz","rb").read()).decode(),"encoding":"base64"}))' > /tmp/frontline-web.json
-          blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-web.json --jq .sha)
-          echo "::notice title=Web preview blob::$blob"
+          rm -f /tmp/frontline-web-part-*
+          split -b 12000000 -d /tmp/frontline-web.tar.gz /tmp/frontline-web-part-
+          for part in /tmp/frontline-web-part-*; do
+            index=${part##*-}
+            python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$part" > /tmp/frontline-web.json
+            blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-web.json --jq .sha)
+            echo "::notice title=Web preview part $index::$blob"
+          done
           echo "::notice title=Web preview SHA256::$(sha256sum /tmp/frontline-web.tar.gz)"
 
   visual:
