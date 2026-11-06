@@ -23,12 +23,9 @@ adb shell wm density 160
 # above the game, consuming every automated touch until "Got it" is tapped.
 adb shell settings put secure immersive_mode_confirmations confirmed
 adb install -r "$apk"
-# The hosted emulator advertises a SwiftShader Vulkan device that cannot present.
-# A debug-only, same-UID launch of the non-exported activity lets us explicitly
-# exercise the game's Compatibility renderer without changing the ARM64 preset.
-timeout 90 adb shell run-as com.artilleryfrontline.game am start -W \
-  -n com.artilleryfrontline.game/com.godot.game.GodotApp \
-  --esa command_line_params --rendering-method,gl_compatibility
+# Bound launch time so a renderer/driver startup hang is captured in logcat.
+timeout 90 adb shell am start -W \
+  -n com.artilleryfrontline.game/com.godot.game.GodotAppLauncher
 # First launch compiles shaders on the software GPU; give it time to become interactive.
 sleep 20
 pid=$(adb shell pidof com.artilleryfrontline.game | tr -d '\r')
