@@ -82,6 +82,8 @@ func _replace_battle(mission: MissionData, active: bool) -> void:
 		hud.bind(battle)
 
 func start_coastal_milestone() -> void:
+	if is_instance_valid(splash):
+		splash.queue_free()
 	get_tree().paused = false
 	if is_instance_valid(coastal):
 		coastal.queue_free()
@@ -96,7 +98,6 @@ func start_coastal_milestone() -> void:
 	menus.visible = false
 	hud.visible = false
 	Sound.play_ui()
-
 func start_mission(id: String) -> void:
 	if not id in Profile.data.unlocked:
 		menus.toast("COMPLETE THE PREVIOUS OPERATION TO UNLOCK")
