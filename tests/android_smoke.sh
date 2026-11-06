@@ -19,6 +19,9 @@ adb wait-for-device
 adb logcat -c
 adb shell wm size 1280x720
 adb shell wm density 160
+# A fresh emulator otherwise displays Android's one-time immersive-mode tutorial
+# above the game, consuming every automated touch until "Got it" is tapped.
+adb shell settings put secure immersive_mode_confirmations confirmed
 adb install -r "$apk"
 adb shell am start -W -n com.artilleryfrontline.game/com.godot.game.GodotAppLauncher
 # First launch compiles shaders on the software GPU; give it time to become interactive.
@@ -37,7 +40,7 @@ PY
 )
 if [ "$width" -le "$height" ]; then
   echo "Expected landscape output, got ${width}x${height}" >&2
-  exit 1
+  false
 fi
 # Coordinates are relative to the screenshot, so the test works with either landscape rotation.
 # Open the bundled license screen, then return to the menu before deploying.
@@ -56,12 +59,12 @@ sleep 5
 adb exec-out screencap -p > build/android-gameplay.png
 if cmp -s build/android-menu.png build/android-gameplay.png; then
   echo "Screen did not change after touch input" >&2
-  exit 1
+  false
 fi
 adb shell pidof com.artilleryfrontline.game >/dev/null
 adb logcat -d > build/android-logcat.txt
 if grep -E 'FATAL EXCEPTION|SCRIPT ERROR' build/android-logcat.txt; then
   echo "Android runtime reported a fatal or GDScript error" >&2
-  exit 1
+  false
 fi
 echo "::notice title=Android emulator smoke::Installed and launched; landscape ${width}x${height}; touch actions sent; process alive"
