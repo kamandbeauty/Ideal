@@ -133,8 +133,14 @@ jobs:
         run: |
           T=~/.local/share/godot/export_templates/4.7.2.stable
           mkdir -p "$PROJECT/android/build"
+          # Match Godot's own template installer: identifier belongs beside build/,
+          # and .gdignore keeps the Java/Gradle sources out of resource imports.
+          cp "$T/version.txt" "$PROJECT/android/.build_version"
           unzip -qo "$T/android_source.zip" -d "$PROJECT/android/build"
+          touch "$PROJECT/android/build/.gdignore"
           chmod +x "$PROJECT/android/build/gradlew"
+          test -s "$PROJECT/android/.build_version"
+          grep -q '4.7.2.stable' "$PROJECT/android/.build_version"
       - name: Import resources
         run: godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1
       - name: Export ARM64 APK and AAB
