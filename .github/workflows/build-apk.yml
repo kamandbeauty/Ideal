@@ -35,7 +35,26 @@ jobs:
         run: flutter pub get
 
       - name: Build debug APK
-        run: flutter build apk --debug
+        run: |
+          set -o pipefail
+          flutter build apk --debug 2>&1 | tee build-log.txt
+
+      # The log download host is unreachable from some networks, so on failure
+      # the last lines of the build log are posted as a commit comment
+      # (readable via the GitHub API).
+      - name: Post build log tail on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Build failed (run ${GITHUB_RUN_ID}). Last 80 log lines:"
+            echo '```'
+            tail -n 80 build-log.txt
+            echo '```'
+          } > commit-comment.md
+          gh api repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments \
+            -F body=@commit-comment.md
 
       - name: Collect APK
         run: |
