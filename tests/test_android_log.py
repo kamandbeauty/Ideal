@@ -35,6 +35,17 @@ class AndroidLogTests(unittest.TestCase):
         log = '\n'.join([self.condition, 'E/godot ( 123): at: other_function', self.fallback])
         self.assertEqual(unexpected_errors(log), [self.condition])
 
+    def test_threadtime_format_errors_are_not_hidden(self) -> None:
+        shader = '11-06 15:14:47.680  2241  2250 E godot : ERROR: shader linking failed'
+        self.assertEqual(unexpected_errors(shader), [shader])
+
+    def test_threadtime_expected_fallback_is_exempted(self) -> None:
+        log = '\n'.join([
+            '11-06 15:14:46.781  2241  2250 E godot : ERROR: vkEnumeratePhysicalDevices reported zero accessible devices.',
+            '11-06 15:14:46.781  2241  2250 E godot : WARNING: Your device does not seem to support Vulkan, switching to OpenGL 3.',
+        ])
+        self.assertEqual(unexpected_errors(log), [])
+
     def test_fatal_and_script_errors_fail(self) -> None:
         log = 'FATAL EXCEPTION: main\nE/godot ( 123): SCRIPT ERROR: bad script'
         self.assertEqual(len(unexpected_errors(log)), 2)

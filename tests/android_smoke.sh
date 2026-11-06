@@ -34,7 +34,7 @@ timeout 90 adb shell am start -W \
 # Android splash screen as though it were the game menu.
 renderer=""
 for attempt in $(seq 1 120); do
-  renderer=$(adb logcat -d -s godot:I | grep -E 'I/godot.*(Vulkan [0-9]|OpenGL API)' | tail -1 || true)
+  renderer=$(adb logcat -d -v time -s godot:I | grep -E 'I/godot.*(Vulkan [0-9]|OpenGL API)' | tail -1 || true)
   if [ -n "$renderer" ]; then break; fi
   sleep 1
 done
@@ -82,7 +82,7 @@ if cmp -s build/android-menu.png build/android-gameplay.png; then
   false
 fi
 adb shell pidof com.artilleryfrontline.game >/dev/null
-adb logcat -d > build/android-logcat.txt
+adb logcat -d -v time > build/android-logcat.txt
 python3 tests/check_android_log.py build/android-logcat.txt
 echo "::notice title=Android renderer::$renderer"
 echo "::notice title=Android emulator smoke::Installed and launched; landscape ${width}x${height}; touch actions sent; process alive"

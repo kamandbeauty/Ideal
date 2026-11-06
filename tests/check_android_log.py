@@ -16,7 +16,8 @@ FALLBACK_WARNING = "Your device does not seem to support Vulkan, switching to Op
 VULKAN_MISSING = "ERROR: vkEnumeratePhysicalDevices reported zero accessible devices."
 VULKAN_CONDITION = 'ERROR: Condition "err != OK" is true. Returning: err'
 VULKAN_CALLSITE = "at: initialize (drivers/vulkan/rendering_context_driver_vulkan.cpp:"
-GODOT_ERROR = re.compile(r"E/godot\s*\(\s*\d+\):\s*ERROR:")
+# Accept both logcat's time format and its common threadtime format.
+GODOT_ERROR = re.compile(r"(?:E/godot\s*\(\s*\d+\)|\bE\s+godot)\s*:\s*ERROR:")
 
 
 def unexpected_errors(text: str) -> list[str]:
