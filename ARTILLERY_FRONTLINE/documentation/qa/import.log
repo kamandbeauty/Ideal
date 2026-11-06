@@ -1,0 +1,369 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Started Project initialization (5 steps)[39m[0m
+[   0% ] [90m[1mfirst_scan_filesystem[22m | Scanning file structure...[39m[0m
+[  16% ] [90m[1mfirst_scan_filesystem[22m | Loading global class names...[39m[0m
+[  33% ] [90m[1mfirst_scan_filesystem[22m | Verifying GDExtensions...[39m[0m
+[  50% ] [90m[1mfirst_scan_filesystem[22m | Creating autoload scripts...[39m[0m
+[  66% ] [90m[1mfirst_scan_filesystem[22m | Initializing plugins...[39m[0m
+[  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
+[92m[ DONE ][39m [1mfirst_scan_filesystem[22m
+[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (68 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | ArtilleryController[39m[0m
+[   1% ] [90m[1mupdate_scripts_classes[22m | ArtilleryCameraRig[39m[0m
+[   2% ] [90m[1mupdate_scripts_classes[22m | WeaponLoadout[39m[0m
+[   4% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[   5% ] [90m[1mupdate_scripts_classes[22m | Ballistics[39m[0m
+[   7% ] [90m[1mupdate_scripts_classes[22m | CoastalBackgroundAction[39m[0m
+[   8% ] [90m[1mupdate_scripts_classes[22m | CoastalBarrel[39m[0m
+[  10% ] [90m[1mupdate_scripts_classes[22m | CoastalBattlefield[39m[0m
+[  11% ] [90m[1mupdate_scripts_classes[22m | CoastalBullet[39m[0m
+[  13% ] [90m[1mupdate_scripts_classes[22m | CoastalBulletPool[39m[0m
+[  14% ] [90m[1mupdate_scripts_classes[22m | CoastalController[39m[0m
+[  15% ] [90m[1mupdate_scripts_classes[22m | CoastalHUD[39m[0m
+[  17% ] [90m[1mupdate_scripts_classes[22m | CoastalTerrain[39m[0m
+[  18% ] [90m[1mupdate_scripts_classes[22m | CoastalWeapon[39m[0m
+[  20% ] [90m[1mupdate_scripts_classes[22m | EnemySoldier[39m[0m
+[  21% ] [90m[1mupdate_scripts_classes[22m | LandingCraft[39m[0m
+[  23% ] [90m[1mupdate_scripts_classes[22m | WaveManager[39m[0m
+[  24% ] [90m[1mupdate_scripts_classes[22m | CombatCoordinator[39m[0m
+[  26% ] [90m[1mupdate_scripts_classes[22m | DamageSystem[39m[0m
+[  27% ] [90m[1mupdate_scripts_classes[22m | HealthComponent[39m[0m
+[  28% ] [90m[1mupdate_scripts_classes[22m | AmmunitionData[39m[0m
+[  30% ] [90m[1mupdate_scripts_classes[22m | BattleController[39m[0m
+[  31% ] [90m[1mupdate_scripts_classes[22m | EnemyData[39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  34% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  36% ] [90m[1mupdate_scripts_classes[22m | MeshFactory[39m[0m
+[  37% ] [90m[1mupdate_scripts_classes[22m | MissionData[39m[0m
+[  39% ] [90m[1mupdate_scripts_classes[22m | UpgradeData[39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | WeaponData[39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | Destructible[39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | Economy[39m[0m
+[  44% ] [90m[1mupdate_scripts_classes[22m | EffectPool[39m[0m
+[  46% ] [90m[1mupdate_scripts_classes[22m | ExplosionEffect[39m[0m
+[  47% ] [90m[1mupdate_scripts_classes[22m | EnemyTarget[39m[0m
+[  49% ] [90m[1mupdate_scripts_classes[22m | DesertBattlefield[39m[0m
+[  50% ] [90m[1mupdate_scripts_classes[22m | TerrainSampler[39m[0m
+[  52% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  53% ] [90m[1mupdate_scripts_classes[22m | MaterialLibrary[39m[0m
+[  55% ] [90m[1mupdate_scripts_classes[22m | MissionManager[39m[0m
+[  56% ] [90m[1mupdate_scripts_classes[22m | SustainedFrameMonitor[39m[0m
+[  57% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  59% ] [90m[1mupdate_scripts_classes[22m | Progression[39m[0m
+[  60% ] [90m[1mupdate_scripts_classes[22m | ArtilleryProjectile[39m[0m
+[  62% ] [90m[1mupdate_scripts_classes[22m | ProjectilePool[39m[0m
+[  63% ] [90m[1mupdate_scripts_classes[22m | SaveManager[39m[0m
+[  65% ] [90m[1mupdate_scripts_classes[22m | TargetingSystem[39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | AimInput[39m[0m
+[  68% ] [90m[1mupdate_scripts_classes[22m | CampaignMap[39m[0m
+[  69% ] [90m[1mupdate_scripts_classes[22m | GameplayHUD[39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | MenuScreens[39m[0m
+[  72% ] [90m[1mupdate_scripts_classes[22m | TacticalOverlay[39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | UITheme[39m[0m
+[  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  76% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  78% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  79% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  81% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  82% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  84% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  85% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  86% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  88% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  89% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  91% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  92% ] [90m[1mupdate_scripts_classes[22m | TestContext[39m[0m
+[  94% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  95% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  97% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[92m[ DONE ][39m [1mupdate_scripts_classes[22m
+[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (60 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | cannon.wav[39m[0m
+[   1% ] [90m[1m_update_scan_actions[22m | click.wav[39m[0m
+[   3% ] [90m[1m_update_scan_actions[22m | explosion.wav[39m[0m
+[   4% ] [90m[1m_update_scan_actions[22m | hmg.wav[39m[0m
+[   6% ] [90m[1m_update_scan_actions[22m | impact.wav[39m[0m
+[   8% ] [90m[1m_update_scan_actions[22m | reload.wav[39m[0m
+[   9% ] [90m[1m_update_scan_actions[22m | rocket.wav[39m[0m
+[  11% ] [90m[1m_update_scan_actions[22m | wind.wav[39m[0m
+[  13% ] [90m[1m_update_scan_actions[22m | Rajdhani-Medium.ttf[39m[0m
+[  14% ] [90m[1m_update_scan_actions[22m | Rajdhani-SemiBold.ttf[39m[0m
+[  16% ] [90m[1m_update_scan_actions[22m | hangar.glb[39m[0m
+[  18% ] [90m[1m_update_scan_actions[22m | helicopter.glb[39m[0m
+[  19% ] [90m[1m_update_scan_actions[22m | kestrel.glb[39m[0m
+[  21% ] [90m[1m_update_scan_actions[22m | landing_craft.glb[39m[0m
+[  22% ] [90m[1m_update_scan_actions[22m | mounted_autocannon.glb[39m[0m
+[  24% ] [90m[1m_update_scan_actions[22m | mounted_cannon.glb[39m[0m
+[  26% ] [90m[1m_update_scan_actions[22m | mounted_rocket.glb[39m[0m
+[  27% ] [90m[1m_update_scan_actions[22m | mounted_twin_hmg.glb[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | nomad.glb[39m[0m
+[  31% ] [90m[1m_update_scan_actions[22m | patrol_boat.glb[39m[0m
+[  32% ] [90m[1m_update_scan_actions[22m | sentry.glb[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | soldier.glb[39m[0m
+[  36% ] [90m[1m_update_scan_actions[22m | warden.glb[39m[0m
+[  37% ] [90m[1m_update_scan_actions[22m | concrete_albedo.jpg[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | concrete_normal.png[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | concrete_orm.png[39m[0m
+[  42% ] [90m[1m_update_scan_actions[22m | fabric_albedo.jpg[39m[0m
+[  44% ] [90m[1m_update_scan_actions[22m | fabric_normal.png[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | fabric_orm.png[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | foliage_albedo.jpg[39m[0m
+[  49% ] [90m[1m_update_scan_actions[22m | foliage_normal.png[39m[0m
+[  50% ] [90m[1m_update_scan_actions[22m | foliage_orm.png[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | grass_card.png[39m[0m
+[  54% ] [90m[1m_update_scan_actions[22m | gravel_albedo.jpg[39m[0m
+[  55% ] [90m[1m_update_scan_actions[22m | gravel_normal.png[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | gravel_orm.png[39m[0m
+[  59% ] [90m[1m_update_scan_actions[22m | paint_olive_albedo.jpg[39m[0m
+[  60% ] [90m[1m_update_scan_actions[22m | paint_olive_normal.png[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | paint_olive_orm.png[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | paint_sand_albedo.jpg[39m[0m
+[  65% ] [90m[1m_update_scan_actions[22m | paint_sand_normal.png[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | paint_sand_orm.png[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | rock_albedo.jpg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | rock_normal.png[39m[0m
+[  72% ] [90m[1m_update_scan_actions[22m | rock_orm.png[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | rubber_albedo.jpg[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | rubber_normal.png[39m[0m
+[  77% ] [90m[1m_update_scan_actions[22m | rubber_orm.png[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | sand_albedo.jpg[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | sand_normal.png[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | sand_orm.png[39m[0m
+[  83% ] [90m[1m_update_scan_actions[22m | sky_panorama.jpg[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | steel_albedo.jpg[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | steel_normal.png[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | steel_orm.png[39m[0m
+[  90% ] [90m[1m_update_scan_actions[22m | wood_albedo.jpg[39m[0m
+[  91% ] [90m[1m_update_scan_actions[22m | wood_normal.png[39m[0m
+[  93% ] [90m[1m_update_scan_actions[22m | wood_orm.png[39m[0m
+[  95% ] [90m[1m_update_scan_actions[22m | icon.png[39m[0m
+[  96% ] [90m[1m_update_scan_actions[22m | icon.svg[39m[0m
+[92m[ DONE ][39m [1m_update_scan_actions[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (60 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   3% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   4% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   6% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   8% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   9% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  11% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  13% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  86% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  88% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  90% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  91% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  93% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  95% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  96% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[   0% ] [90m[1mreimport[22m | Executing pre-reimport operations...[39m[0m
+[   0% ] [90m[1mpreload_reimporting_scene[22m | Started Preparing scenes for reload (1 steps)[39m[0m
+[   0% ] [90m[1mpreload_reimporting_scene[22m | Analyzing scene [empty][39m[0m
+[  50% ] [90m[1mpreload_reimporting_scene[22m | Preparation done.[39m[0m
+[92m[ DONE ][39m [1mpreload_reimporting_scene[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Rajdhani-Medium.ttf[39m[0m
+[   1% ] [90m[1mreimport[22m | Rajdhani-SemiBold.ttf[39m[0m
+[   3% ] [90m[1mreimport[22m | Rajdhani-Medium.ttf[39m[0m
+[   4% ] [90m[1mreimport[22m | Rajdhani-SemiBold.ttf[39m[0m
+[   6% ] [90m[1mreimport[22m | foliage_orm.png[39m[0m
+[   8% ] [90m[1mreimport[22m | grass_card.png[39m[0m
+[   9% ] [90m[1mreimport[22m | gravel_albedo.jpg[39m[0m
+[  11% ] [90m[1mreimport[22m | gravel_normal.png[39m[0m
+[  13% ] [90m[1mreimport[22m | gravel_orm.png[39m[0m
+[  14% ] [90m[1mreimport[22m | paint_olive_albedo.jpg[39m[0m
+[  16% ] [90m[1mreimport[22m | paint_olive_normal.png[39m[0m
+[  18% ] [90m[1mreimport[22m | paint_olive_orm.png[39m[0m
+[  19% ] [90m[1mreimport[22m | paint_sand_albedo.jpg[39m[0m
+[  21% ] [90m[1mreimport[22m | paint_sand_normal.png[39m[0m
+[  22% ] [90m[1mreimport[22m | paint_sand_orm.png[39m[0m
+[  24% ] [90m[1mreimport[22m | rock_albedo.jpg[39m[0m
+[  26% ] [90m[1mreimport[22m | rock_normal.png[39m[0m
+[  27% ] [90m[1mreimport[22m | rock_orm.png[39m[0m
+[  29% ] [90m[1mreimport[22m | rubber_albedo.jpg[39m[0m
+[  31% ] [90m[1mreimport[22m | rubber_normal.png[39m[0m
+[  32% ] [90m[1mreimport[22m | rubber_orm.png[39m[0m
+[  34% ] [90m[1mreimport[22m | sand_albedo.jpg[39m[0m
+[  36% ] [90m[1mreimport[22m | sand_normal.png[39m[0m
+[  37% ] [90m[1mreimport[22m | sand_orm.png[39m[0m
+[  39% ] [90m[1mreimport[22m | sky_panorama.jpg[39m[0m
+[  40% ] [90m[1mreimport[22m | steel_albedo.jpg[39m[0m
+[  42% ] [90m[1mreimport[22m | steel_normal.png[39m[0m
+[  44% ] [90m[1mreimport[22m | steel_orm.png[39m[0m
+[  45% ] [90m[1mreimport[22m | wood_albedo.jpg[39m[0m
+[  47% ] [90m[1mreimport[22m | wood_normal.png[39m[0m
+[  49% ] [90m[1mreimport[22m | wood_orm.png[39m[0m
+[  50% ] [90m[1mreimport[22m | icon.png[39m[0m
+[  52% ] [90m[1mreimport[22m | icon.svg[39m[0m
+[  54% ] [90m[1mreimport[22m | foliage_normal.png[39m[0m
+[  55% ] [90m[1mreimport[22m | foliage_albedo.jpg[39m[0m
+[  57% ] [90m[1mreimport[22m | fabric_orm.png[39m[0m
+[  59% ] [90m[1mreimport[22m | fabric_normal.png[39m[0m
+[  60% ] [90m[1mreimport[22m | fabric_albedo.jpg[39m[0m
+[  62% ] [90m[1mreimport[22m | concrete_orm.png[39m[0m
+[  63% ] [90m[1mreimport[22m | Rajdhani-Medium.ttf[39m[0m
+[  65% ] [90m[1mreimport[22m | Rajdhani-SemiBold.ttf[39m[0m
+[  67% ] [90m[1mreimport[22m | foliage_orm.png[39m[0m
+[  68% ] [90m[1mreimport[22m | grass_card.png[39m[0m
+[  70% ] [90m[1mreimport[22m | gravel_albedo.jpg[39m[0m
+[  72% ] [90m[1mreimport[22m | gravel_normal.png[39m[0m
+[  73% ] [90m[1mreimport[22m | gravel_orm.png[39m[0m
+[  75% ] [90m[1mreimport[22m | paint_olive_albedo.jpg[39m[0m
+[  77% ] [90m[1mreimport[22m | mounted_autocannon.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  78% ] [90m[1mreimport[22m | landing_craft.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  80% ] [90m[1mreimport[22m | kestrel.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  81% ] [90m[1mreimport[22m | helicopter.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  83% ] [90m[1mreimport[22m | hangar.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  85% ] [90m[1mreimport[22m | mounted_cannon.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  86% ] [90m[1mreimport[22m | mounted_rocket.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  88% ] [90m[1mreimport[22m | mounted_twin_hmg.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  90% ] [90m[1mreimport[22m | nomad.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  91% ] [90m[1mreimport[22m | patrol_boat.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  93% ] [90m[1mreimport[22m | sentry.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  95% ] [90m[1mreimport[22m | soldier.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  96% ] [90m[1mreimport[22m | warden.glb[39m[0m
+[   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
+[   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
+[   1% ] [90m[1mimport[22m | Running Custom Script...[39m[0m
+[  99% ] [90m[1mimport[22m | Saving...[39m[0m
+[92m[ DONE ][39m [1mimport[22m
+[0m
+[  98% ] [90m[1mreimport[22m | Finalizing Asset Import...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (60 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Executing post-reimport operations...[39m[0m
+[92m[ DONE ][39m [1mreimport[22m
+[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Started Loading editor (5 steps)[39m[0m
+[   0% ] [90m[1mloading_editor_layout[22m | Loading editor layout...[39m[0m
+[  16% ] [90m[1mloading_editor_layout[22m | Loading docks...[39m[0m
+[92m[ DONE ][39m [1mloading_editor_layout[22m
+[0m
+SCRIPT ERROR: Parse Error: Identifier "splash" not declared in the current scope.
+          at: GDScript::reload (res://scripts/core/game.gd:85)
+SCRIPT ERROR: Parse Error: Identifier "splash" not declared in the current scope.
+          at: GDScript::reload (res://scripts/core/game.gd:86)
+ERROR: Failed to load script "res://scripts/core/game.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+cannot connect to daemon at tcp:5037: Connection refused
