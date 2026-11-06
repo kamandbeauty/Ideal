@@ -41,13 +41,22 @@ for text in (metadata, compat_metadata):
     assert "targetSdkVersion:'36'" in text, "Unexpected target Android API"
     assert "android.permission.INTERNET" not in text, "Offline build requests INTERNET"
 
-# Badging's implied landscape feature is useful, but also decode the actual
-# activity attribute so a missing orientation cannot pass this check.
+# Require both the decoded activity attribute and aapt2's landscape feature
+# inference. Raw xmltree value formatting varies between build-tools releases.
 manifest = (root / "AndroidManifest.txt").read_text()
 compat_manifest = (root / "compatibility-AndroidManifest.txt").read_text()
-for text in (manifest, compat_manifest):
-    values = re.findall(r"screenOrientation[^\n]*?=\(type 0x10\)(0x[0-9a-fA-F]+)", text)
-    assert values and any(int(value, 16) in (0, 6, 9) for value in values), "Activity is not landscape"
+for meta, text in ((metadata, manifest), (compat_metadata, compat_manifest)):
+    assert "screenOrientation" in text, "Activity orientation attribute missing"
+    assert "android.hardware.screen.landscape" in meta and "landscape orientation" in meta, "Activity is not landscape"
+    values = []
+    for line in text.splitlines():
+        if "screenOrientation" not in line:
+            continue
+        numbers = re.findall(r"0x[0-9a-fA-F]+", line)
+        if numbers:
+            values.append(int(numbers[-1], 16))
+    if values:
+        assert any(value in (0, 6, 9) for value in values), "Activity orientation is not a landscape mode"
     assert "android.permission.INTERNET" not in text, "Manifest requests INTERNET"
 for name in ("Artillery-Frontline-arm64.apk", "Artillery-Frontline-compatibility.apk"):
     report[name].update({"package_id_verified": True, "min_sdk": 24, "target_sdk": 36, "landscape": True, "no_internet_permission": True})
