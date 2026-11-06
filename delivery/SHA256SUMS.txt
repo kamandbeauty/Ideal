@@ -1,0 +1,3 @@
+b5b84bdddba52d15cbc146b0df81c44523fe6ae24646eca8dffde9a985405e84  delivery/Artillery-Frontline-arm64.apk
+b1846940bfc7487cd02247c997ff84437d6f0427912cb6cce4044c6a2f93328d  delivery/Artillery-Frontline-compatibility.apk
+29e69d736bc09d3bd6e449d374b57d5b5a91eee9340dcdd25b1c36375cc55fac  delivery/Artillery-Frontline-arm64.aab
