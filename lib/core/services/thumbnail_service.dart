@@ -18,7 +18,9 @@ class ThumbnailService {
   final Directory cacheDir;
   final int targetWidth;
   final Map<String, File> _memo = <String, File>{};
-  final Set<String> _inFlight = <String>{};
+  /// One shared future per photo so concurrent callers await the same decode
+  /// instead of racing two writes to the same file.
+  final Map<String, Future<File>> _inFlight = <String, Future<File>>{};
 
   File fileFor(String photoId) =>
       File(p.join(cacheDir.path, 'thumb_$photoId.jpg'));
@@ -41,35 +43,43 @@ class ThumbnailService {
   Future<File> generate(String photoId, Uint8List bytes) async {
     final existing = cached(photoId);
     if (existing != null) return existing;
-    if (_inFlight.contains(photoId)) {
-      // Wait for the in-flight generation instead of decoding twice.
-      for (var i = 0; i < 100; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-        final f = cached(photoId);
-        if (f != null) return f;
-      }
-    }
-    _inFlight.add(photoId);
+    final running = _inFlight[photoId];
+    if (running != null) return running;
+    final future = _decode(photoId, bytes);
+    _inFlight[photoId] = future;
     try {
-      final codec = await instantiateImageCodec(
-        bytes,
-        targetWidth: targetWidth,
-        allowUpscaling: false,
-      );
-      final frame = await codec.getNextFrame();
-      final image = frame.image;
-      final data = await image.toByteData(format: ImageByteFormat.png);
-      await cacheDir.create(recursive: true);
-      final out = fileFor(photoId);
-      if (data != null) {
-        await out.writeAsBytes(data.buffer.asUint8List(), flush: true);
-      }
-      image.dispose();
-      codec.dispose();
-      _memo[photoId] = out;
-      return out;
+      return await future;
     } finally {
       _inFlight.remove(photoId);
+    }
+  }
+
+  Future<File> _decode(String photoId, Uint8List bytes) async {
+    final codec = await instantiateImageCodec(
+      bytes,
+      targetWidth: targetWidth,
+      allowUpscaling: false,
+    );
+    try {
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+      try {
+        final data = await image.toByteData(format: ImageByteFormat.png);
+        if (data == null) {
+          // Corrupt input: surface an error instead of caching a missing file.
+          throw const FileSystemException(
+              'thumbnail encode produced no data');
+        }
+        await cacheDir.create(recursive: true);
+        final out = fileFor(photoId);
+        await out.writeAsBytes(data.buffer.asUint8List(), flush: true);
+        _memo[photoId] = out;
+        return out;
+      } finally {
+        image.dispose();
+      }
+    } finally {
+      codec.dispose();
     }
   }
 

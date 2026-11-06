@@ -143,8 +143,10 @@ class MotionProfile {
       try {
         path = MotionPathSpec.fromJson(
             Map<String, dynamic>.from(rawPath.cast<String, dynamic>()));
-      } on FormatException {
-        path = null; // foreign path data: fall back to keyframes
+      } catch (_) {
+        // Any foreign/malformed path data falls back to the baked keyframes
+        // (lenient load, spec §12.1) — never breaks project opening.
+        path = null;
       }
     }
     return MotionProfile(

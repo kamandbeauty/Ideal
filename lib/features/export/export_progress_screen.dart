@@ -443,6 +443,11 @@ class _ExportPlayerState extends State<_ExportPlayer> {
       setState(() => _controller = c);
       await c.play();
     } catch (e) {
+      // The user may have left the screen while the preview was initializing.
+      if (!mounted) {
+        await c.dispose();
+        return;
+      }
       setState(() => _error = '$e');
       await c.dispose();
     }

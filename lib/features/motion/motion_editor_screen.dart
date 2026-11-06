@@ -118,8 +118,11 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
     super.dispose();
   }
 
+  // ref.read (not watch): this getter is also used from gesture handlers,
+  // where watch is not allowed. build() calls ref.watch directly, so the
+  // screen still rebuilds when the editor state changes.
   PhotoItem? get _photo {
-    final st = ref.watch(projectEditorProvider);
+    final st = ref.read(projectEditorProvider);
     if (st == null || _photoId == null) return null;
     return st.photoById(_photoId!);
   }
@@ -171,6 +174,9 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // Register the dependency (the _photo getter reads it via ref.read so it
+    // is also safe to call from gesture handlers).
+    ref.watch(projectEditorProvider);
     final photo = _photo;
     if (photo == null) {
       return Scaffold(
@@ -308,8 +314,12 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
                     if (box == null) return;
                     var next = k;
                     if (d.rotation.abs() > 0.0005) {
+                      // Same ±8° legal range as the rotation slider, so a
+                      // gesture can never produce a value the UI can't show.
                       next = next.copyWith(
-                          rotation: _gestureStartRotation + d.rotation);
+                        rotation: (_gestureStartRotation + d.rotation)
+                            .clamp(-8 * math.pi / 180, 8 * math.pi / 180),
+                      );
                     }
                     if ((d.scale - 1).abs() > 0.0005) {
                       next = next.copyWith(
@@ -562,10 +572,13 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
             ),
             child: Column(
               children: <Widget>[
+                // Display values are clamped into the slider range: two-finger
+                // gestures can store scale up to 8x (beyond the 4x slider max),
+                // and ValueSlider asserts when value is outside [min, max].
                 ValueSlider(
                   label: l10n.t('motion_zoom'),
                   icon: Icons.zoom_in_rounded,
-                  value: kf.scale,
+                  value: kf.scale.clamp(math.max(1.0, sMin), 4.0),
                   min: math.max(1.0, sMin),
                   max: 4.0,
                   format: (double v) => '${v.toStringAsFixed(2)}×',
@@ -576,7 +589,7 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
                 ValueSlider(
                   label: l10n.t('motion_rotation'),
                   icon: Icons.rotate_right_rounded,
-                  value: kf.rotationDegrees,
+                  value: kf.rotationDegrees.clamp(-8.0, 8.0),
                   min: -8,
                   max: 8,
                   format: (double v) => '${v.toStringAsFixed(1)}°',

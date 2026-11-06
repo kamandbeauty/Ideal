@@ -26,6 +26,8 @@ import 'preview_transform.dart';
 class PreviewImageCache extends ChangeNotifier {
   final Map<String, ui.Image> _images = <String, ui.Image>{};
   final Map<String, ImageStream> _streams = <String, ImageStream>{};
+  final Map<String, ImageStreamListener> _listeners =
+      <String, ImageStreamListener>{};
   final Set<String> _pending = <String>{};
   bool _disposed = false;
 
@@ -41,6 +43,7 @@ class PreviewImageCache extends ChangeNotifier {
     late final ImageStreamListener listener;
     listener = ImageStreamListener(
       (ImageInfo info, bool synchronouslyLoaded) {
+        _listeners.remove(photoId);
         if (_disposed) {
           info.dispose();
           return;
@@ -53,26 +56,38 @@ class PreviewImageCache extends ChangeNotifier {
       onError: (Object error, StackTrace? st) {
         _pending.remove(photoId);
         _streams.remove(photoId)?.removeListener(listener);
+        _listeners.remove(photoId);
       },
     );
+    _listeners[photoId] = listener;
     stream.addListener(listener);
   }
 
   /// Frees an image (called when a photo leaves the project).
   void evict(String photoId) {
     _images.remove(photoId)?.dispose();
-    _streams.remove(photoId);
+    _detachStream(photoId);
     _pending.remove(photoId);
+  }
+
+  /// Unsubscribes the decode listener so a late callback can neither leak the
+  /// decoded image nor resurrect an evicted entry.
+  void _detachStream(String photoId) {
+    final listener = _listeners.remove(photoId);
+    final stream = _streams.remove(photoId);
+    if (listener != null && stream != null) stream.removeListener(listener);
   }
 
   @override
   void dispose() {
     _disposed = true;
+    for (final key in _images.keys.toList()) {
+      _detachStream(key);
+    }
     for (final img in _images.values) {
       img.dispose();
     }
     _images.clear();
-    _streams.clear();
     super.dispose();
   }
 }
@@ -366,5 +381,6 @@ class _TimelinePainter extends CustomPainter {
       old.frame.playing != frame.playing ||
       !identical(old.project, project) ||
       old.activeLocalTime != activeLocalTime ||
+      old.activePhotoIndex != activePhotoIndex ||
       old.showMotionPath != showMotionPath;
 }

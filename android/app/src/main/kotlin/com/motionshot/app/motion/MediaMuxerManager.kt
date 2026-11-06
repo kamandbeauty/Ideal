@@ -132,6 +132,21 @@ class MediaMuxerManager(private val outputPath: String) {
         return true
     }
 
+    /**
+     * Releases the underlying MediaMuxer without touching the file.
+     * No-op after [finish]/[abort]; used as a safety net on failure paths
+     * where the muxer was started but never finalized (fd leak).
+     */
+    fun releaseQuietly() {
+        val m = muxer ?: return
+        muxer = null
+        try {
+            m.release()
+        } catch (e: Exception) {
+            Log.d(TAG, "muxer release: ${e.message}")
+        }
+    }
+
     /** Aborts and deletes any partial output. Safe to call twice. */
     fun abort() {
         finalized = true

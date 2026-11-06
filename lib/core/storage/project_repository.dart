@@ -9,6 +9,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
@@ -94,7 +95,25 @@ class ProjectRepository {
         columns: <String>['document'], where: 'id = ?', whereArgs: <Object?>[id]);
     if (rows.isEmpty) return null;
     final doc = rows.first['document'] as String;
-    return Project.fromJson(jsonDecode(doc) as Map<String, dynamic>);
+    Project? project;
+    try {
+      project =
+          Project.fromJson(jsonDecode(doc) as Map<String, dynamic>);
+    } catch (e) {
+      // A corrupted row must never crash the app: try the disk mirror.
+      debugPrint('project $id: DB document failed to parse: $e');
+    }
+    if (project != null) return project;
+    final file = File(p.join(_dir.path, '$id.json'));
+    if (file.existsSync()) {
+      try {
+        return Project.fromJson(
+            jsonDecode(await file.readAsString()) as Map<String, dynamic>);
+      } catch (e) {
+        debugPrint('project $id: disk mirror failed to parse: $e');
+      }
+    }
+    return null;
   }
 
   Future<List<ProjectSummary>> recent({int limit = 20}) async {

@@ -242,7 +242,12 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                       .setExportSettings(settings);
                   ref
                       .read(projectEditorProvider.notifier)
-                      .save();
+                      .save()
+                      .catchError((Object e) {
+                    // Non-fatal here: export progress saves again after the
+                    // run. Log only, to keep the unhandled-error path quiet.
+                    debugPrint('export pre-save failed: $e');
+                  });
                   context.push(AppRoutes.exportProgress);
                 },
               ),

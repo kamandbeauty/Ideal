@@ -38,6 +38,14 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     final l10n = context.l10n;
     final st = ref.watch(projectEditorProvider);
     final frame = ref.watch(playbackProvider);
+    // Keep the playback clock in sync if the project is edited while this
+    // screen is open (e.g. via the per-shot motion editor): bind preserves
+    // the playhead and playback state, it only re-derives durations.
+    ref.listen(projectEditorProvider, (_, next) {
+      if (next != null) {
+        ref.read(playbackProvider.notifier).bind(next.project);
+      }
+    });
     if (st == null) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.t('preview_title'))),
@@ -59,11 +67,13 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         actions: <Widget>[
           IconButton(
             tooltip: l10n.t('preview_edit_current'),
-            onPressed: () {
-              final id = st.project.photos[currentIndex].id;
-              ref.read(projectEditorProvider.notifier).selectPhoto(id);
-              context.push('${AppRoutes.motionEditor}?photo=$id');
-            },
+            onPressed: currentIndex < st.project.photos.length
+                ? () {
+                    final id = st.project.photos[currentIndex].id;
+                    ref.read(projectEditorProvider.notifier).selectPhoto(id);
+                    context.push('${AppRoutes.motionEditor}?photo=$id');
+                  }
+                : null,
             icon: const Icon(Icons.tune_rounded),
           ),
         ],
@@ -229,5 +239,7 @@ class _TimelinePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_TimelinePainter old) =>
-      old.position != position || old.activeIndex != activeIndex;
+      old.position != position ||
+      old.activeIndex != activeIndex ||
+      old.total != total;
 }

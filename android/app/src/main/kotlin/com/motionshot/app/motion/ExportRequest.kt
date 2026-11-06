@@ -188,7 +188,10 @@ data class ExportRequest(
             } else {
                 try {
                     MotionPathSpec.fromJson(pathJson)
-                } catch (e: IllegalArgumentException) {
+                } catch (e: Exception) {
+                    // Lenient load (spec §12.1): unknown presets AND
+                    // malformed point data both fall back to keyframes —
+                    // a bad path must never fail the whole request.
                     null
                 }
             }

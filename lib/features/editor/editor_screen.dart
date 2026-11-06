@@ -93,9 +93,16 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
           IconButton(
             tooltip: l10n.t('editor_save'),
             onPressed: () async {
-              await ref.read(projectEditorProvider.notifier).save();
-              if (context.mounted) {
-                context.snack(l10n.t('editor_saved'));
+              try {
+                await ref.read(projectEditorProvider.notifier).save();
+                if (context.mounted) {
+                  context.snack(l10n.t('editor_saved'));
+                }
+              } catch (e) {
+                debugPrint('save failed: $e');
+                if (context.mounted) {
+                  context.snack(l10n.t('error_unknown'), isError: true);
+                }
               }
             },
             icon: Icon(st.dirty
@@ -707,7 +714,14 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
       ),
     );
     if (save == 'save') {
-      await ref.read(projectEditorProvider.notifier).save();
+      try {
+        await ref.read(projectEditorProvider.notifier).save();
+      } catch (e) {
+        debugPrint('save failed: $e');
+        if (context.mounted) {
+          context.snack(context.l10n.t('error_unknown'), isError: true);
+        }
+      }
     }
     if (context.mounted) context.go(AppRoutes.home);
   }

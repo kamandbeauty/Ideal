@@ -58,8 +58,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       destructive: true,
     );
     if (!ok) return;
-    await ref.read(bootstrapProvider).repository.delete(summary.id);
-    _reload();
+    try {
+      await ref.read(bootstrapProvider).repository.delete(summary.id);
+    } catch (e) {
+      debugPrint('delete failed: $e');
+      if (mounted) context.snack(context.l10n.t('error_unknown'), isError: true);
+      return;
+    }
+    if (mounted) _reload();
   }
 
   void _newProject() {

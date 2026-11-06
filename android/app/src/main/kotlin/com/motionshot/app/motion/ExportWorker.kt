@@ -84,6 +84,7 @@ class ExportWorker(
         var muxer: MediaMuxerManager? = null
         var renderEngine: RenderEngine? = null
         var audioStarted = false
+        var exportOk = false // only true once a verified MP4 is delivered
 
         try {
             // ---------- 0. preflight ----------
@@ -317,6 +318,7 @@ class ExportWorker(
                 texturesEvicted = stats.second,
             )
             Log.i(TAG, "export done in ${SystemClock.elapsedRealtime() - startedAt}ms: $result")
+            exportOk = true
             post { listener.onCompleted(result) }
         } catch (e: ExportRequestException) {
             fail("UNSUPPORTED_FORMAT", e.message ?: "invalid request")
@@ -346,9 +348,11 @@ class ExportWorker(
             } catch (e: Exception) {
                 Log.w(TAG, "encoder release: ${e.message}")
             }
-            if (cancelled.get() || !File(request.outputPath).exists() ||
-                File(request.outputPath).length() < 4096
-            ) {
+            if (!exportOk) {
+                // Any non-delivered export: free a muxer that was started but
+                // never finalized (fd leak) and remove the partial file so a
+                // corrupt video can never look like a real export.
+                muxer?.releaseQuietly()
                 File(request.outputPath).delete()
             }
             Log.d(

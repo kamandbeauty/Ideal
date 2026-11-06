@@ -121,8 +121,11 @@ class _PathEditorScreenState extends ConsumerState<PathEditorScreen>
     super.dispose();
   }
 
+  // ref.read (not watch): this getter is also used from gesture handlers,
+  // where watch is not allowed. build() calls ref.watch directly, so the
+  // screen still rebuilds when the editor state changes.
   PhotoItem? get _photo {
-    final st = ref.watch(projectEditorProvider);
+    final st = ref.read(projectEditorProvider);
     if (st == null || _photoId == null) return null;
     return st.photoById(_photoId!);
   }
@@ -232,6 +235,9 @@ class _PathEditorScreenState extends ConsumerState<PathEditorScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    // Register the dependency (the _photo getter reads it via ref.read so it
+    // is also safe to call from gesture handlers).
+    ref.watch(projectEditorProvider);
     final photo = _photo;
     if (photo == null) {
       return Scaffold(
