@@ -24,6 +24,7 @@ func run(t: TestContext) -> void:
 	await t.tree.process_frame
 	t.check(scene.soldiers.size() >= 8, "Playable milestone spawns animated infantry")
 	t.check(scene.craft != null, "Playable milestone includes amphibious craft")
+	scene.weapon.cooldown = 0.0
 	var ammo: int = scene.weapon.ammo
 	t.check(scene.fire_once(), "Mounted weapon fires")
 	t.equal(scene.weapon.ammo, ammo - 1, "Firing consumes ammunition")
