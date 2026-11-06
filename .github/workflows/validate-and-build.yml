@@ -28,7 +28,8 @@ jobs:
         run: |
           gdformat --check scripts tests
           gdlint scripts tests
-          python -m py_compile tests/verify_apk.py
+          python -m py_compile tests/verify_apk.py tests/check_android_log.py tests/test_android_log.py tools/serve_preview.py
+          python -m unittest discover -s tests -p 'test_*.py'
           bash -n tests/android_smoke.sh
       - name: Install Godot
         run: |
@@ -328,11 +329,11 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
-          target: google_apis
+          target: default
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu host -noaudio -no-boot-anim -camera-back none -memory 2048
+          emulator-options: -no-window -gpu host -feature -Vulkan -noaudio -no-boot-anim -camera-back none -memory 2048
           script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
       - name: Upload Android smoke evidence
         if: always() && hashFiles('build/android-*.png') != ''
@@ -412,11 +413,11 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
-          target: google_apis
+          target: default
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu host -noaudio -no-boot-anim -camera-back none -memory 2048
+          emulator-options: -no-window -gpu host -feature -Vulkan -noaudio -no-boot-anim -camera-back none -memory 2048
           script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
       - name: Upload Android smoke evidence
         if: always() && hashFiles('build/android-*.png') != ''

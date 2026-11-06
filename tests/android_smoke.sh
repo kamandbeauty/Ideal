@@ -26,10 +26,24 @@ adb install -r "$apk"
 # Bound launch time so a renderer/driver startup hang is captured in logcat.
 timeout 90 adb shell am start -W \
   -n com.artilleryfrontline.game/com.godot.game.GodotAppLauncher
-# First launch compiles shaders on the software GPU; give it time to become interactive.
-sleep 20
-pid=$(adb shell pidof com.artilleryfrontline.game | tr -d '\r')
-test -n "$pid"
+# A software GPU can take a long time to initialize. Never interact with the
+# Android splash screen as though it were the game menu.
+renderer=""
+for attempt in $(seq 1 120); do
+  renderer=$(adb logcat -d -s godot:I | grep -E 'I/godot.*(Vulkan [0-9]|OpenGL API)' | tail -1 || true)
+  if [ -n "$renderer" ]; then break; fi
+  if ! adb shell pidof com.artilleryfrontline.game >/dev/null; then
+    echo "App process exited before its renderer was ready" >&2
+    false
+  fi
+  sleep 1
+done
+if [ -z "$renderer" ]; then
+  echo "Renderer did not start within 120 seconds" >&2
+  false
+fi
+# Shader compilation and first scene construction continue after the renderer starts.
+sleep 12
 mkdir -p build
 adb exec-out screencap -p > build/android-menu.png
 read -r width height < <(python3 - <<'PY'
@@ -49,6 +63,10 @@ fi
 adb shell input tap "$((width * 39 / 100))" "$((height * 89 / 100))"
 sleep 2
 adb exec-out screencap -p > build/android-licenses.png
+if cmp -s build/android-menu.png build/android-licenses.png; then
+  echo "License screen did not change after touch input" >&2
+  false
+fi
 adb shell input tap "$((width * 50 / 100))" "$((height * 84 / 100))"
 sleep 2
 adb shell input tap "$((width * 17 / 100))" "$((height * 80 / 100))"
@@ -65,10 +83,6 @@ if cmp -s build/android-menu.png build/android-gameplay.png; then
 fi
 adb shell pidof com.artilleryfrontline.game >/dev/null
 adb logcat -d > build/android-logcat.txt
-if grep -E 'FATAL EXCEPTION|SCRIPT ERROR|E/godot.*ERROR:' build/android-logcat.txt; then
-  echo "Android runtime reported a fatal or GDScript error" >&2
-  false
-fi
-renderer=$(grep -E 'I/godot.*(Vulkan|OpenGL API)' build/android-logcat.txt | tail -1 | tr '\n' '|')
+python3 tests/check_android_log.py build/android-logcat.txt
 echo "::notice title=Android renderer::$renderer"
 echo "::notice title=Android emulator smoke::Installed and launched; landscape ${width}x${height}; touch actions sent; process alive"
