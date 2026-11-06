@@ -24,7 +24,15 @@ providers = manifest.findall("./application/provider")
 authorities = [p.get(ANDROID + "authorities") for p in providers if p.get(ANDROID + "authorities")]
 assert len(authorities) == len(set(authorities)), f"Duplicate provider authorities: {authorities}"
 with zipfile.ZipFile(path) as zf:
-    assert f"lib/{abi}/libgodot_android.so" in zf.namelist(), f"Missing {abi} runtime"
+    names = zf.namelist()
+    assert f"lib/{abi}/libgodot_android.so" in names, f"Missing {abi} runtime"
+    for notice in (
+        "assets/fonts/OFL-Rajdhani.txt",
+        "assets/fonts/OFL-IBMPlexMono.txt",
+        "assets/licenses/GODOT-LICENSE.txt",
+        "assets/licenses/GODOT-COPYRIGHT.txt",
+    ):
+        assert any(name.endswith("/" + notice) for name in names), f"Missing license: {notice}"
     corrupt = zf.testzip()
     assert corrupt is None, f"Corrupt ZIP member: {corrupt}"
 print(f"APK manifest OK: {apk.package}; Android 7.0+; landscape; {abi}; no internet permission; unique providers")

@@ -19,7 +19,7 @@ HE has a wide blast; AP deals more direct damage but has a smaller blast radius.
 ## Project and validation
 
 - `scenes/main.tscn` is the composition root. Game systems live separately under `scripts/`; weapon and shell definitions are Godot Resources under `resources/`.
-- The battlefield and models are original procedural geometry; effects and audio are generated locally. Font licenses are listed in [ASSET_LICENSES.md](ASSET_LICENSES.md).
+- The battlefield and models are original procedural geometry; effects and audio are generated locally. Font and engine licenses are listed in [ASSET_LICENSES.md](ASSET_LICENSES.md) and included under LICENSES in the game menu.
 - The default Mobile renderer falls back to Compatibility if Vulkan is unavailable. Graphics settings, audio, sensitivity, and mission records are saved locally; the game requests no internet permission.
 - Build, testing, architecture and known limitations are documented in [documentation/DEVELOPMENT.md](documentation/DEVELOPMENT.md).
 - `.github/workflows/validate-and-build.yml` contains lint, headless test, and **debug** APK/AAB artifact jobs. Release signing is deliberately not configured in source.

@@ -29,6 +29,8 @@ var _menu: Control
 var _pause: Control
 var _results: Control
 var _settings_screen: Control
+var _licenses_screen: Control
+var _licenses_text: RichTextLabel
 var _settings_return: String = "menu"
 var _settings: Dictionary = {}
 var _reticle: AimReticle
@@ -73,6 +75,7 @@ func _ready() -> void:
 	_build_pause()
 	_build_results()
 	_build_settings()
+	_build_licenses()
 	show_menu()
 
 
@@ -104,7 +107,7 @@ func show_results(
 		if success
 		else "No ammunition remaining. Regroup and try again."
 	)
-	_result_stars.text = "★ ".repeat(stars) + "☆ ".repeat(3 - stars)
+	_result_stars.text = "STAR RATING  %d / 3" % stars
 	_result_summary.text = (
 		"TARGETS  %d / %d       HITS  %d / %d       TIME  %02d:%02d"
 		% [destroyed, total, hits, shots, int(seconds) / 60, int(seconds) % 60]
@@ -125,6 +128,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif _settings_screen.visible:
 			_show_screen(_settings_return)
+			get_viewport().set_input_as_handled()
+		elif _licenses_screen.visible:
+			_show_screen("menu")
 			get_viewport().set_input_as_handled()
 
 
@@ -362,10 +368,13 @@ func _build_menu() -> void:
 		false,
 		true
 	)
-	var deploy := _button(shade, "DEPLOY TO DUSTLINE   →", Vector2(49, 546), Vector2(338, 60), true)
+	var deploy := _button(shade, "DEPLOY TO DUSTLINE   >", Vector2(49, 546), Vector2(338, 60), true)
 	deploy.pressed.connect(start_requested.emit)
 	var settings := _button(shade, "SETTINGS", Vector2(398, 546), Vector2(196, 60))
 	settings.pressed.connect(func() -> void: _open_settings("menu"))
+	var licenses := _button(shade, "LICENSES", Vector2(398, 618), Vector2(196, 42))
+	licenses.add_theme_font_size_override("font_size", 15)
+	licenses.pressed.connect(_open_licenses)
 	var footer := _anchored(shade, Control.PRESET_BOTTOM_LEFT, 49, -42, 600, -18)
 	_label(
 		footer,
@@ -419,7 +428,9 @@ func _build_results() -> void:
 		18,
 		MUTED
 	)
-	_result_stars = _label(panel, "★ ★ ★", Vector2(32, 159), Vector2(490, 42), 31, GOLD, true)
+	_result_stars = _label(
+		panel, "STAR RATING  3 / 3", Vector2(32, 159), Vector2(490, 42), 31, GOLD, true
+	)
 	_result_summary = _label(panel, "", Vector2(32, 220), Vector2(500, 50), 12, SAND, false, true)
 	var replay := _button(panel, "REPLAY OPERATION", Vector2(32, 310), Vector2(248, 58), true)
 	var menu := _button(panel, "MAIN MENU", Vector2(292, 310), Vector2(246, 58))
@@ -445,6 +456,42 @@ func _build_settings() -> void:
 	_sound_button.pressed.connect(_toggle_sound)
 	_sensitivity_button.pressed.connect(_cycle_sensitivity)
 	back.pressed.connect(func() -> void: _show_screen(_settings_return))
+
+
+func _build_licenses() -> void:
+	_licenses_screen = _overlay()
+	var panel := _center_panel(_licenses_screen, Vector2(860, 600))
+	_label(
+		panel, "CREDITS  /  OPEN SOURCE", Vector2(30, 22), Vector2(700, 20), 11, GOLD, false, true
+	)
+	_label(panel, "LICENSES", Vector2(27, 45), Vector2(700, 54), 44, SAND, true)
+	_licenses_text = RichTextLabel.new()
+	_licenses_text.position = Vector2(30, 110)
+	_licenses_text.size = Vector2(800, 394)
+	_licenses_text.scroll_active = true
+	_licenses_text.add_theme_font_override("normal_font", _regular)
+	_licenses_text.add_theme_font_size_override("normal_font_size", 16)
+	_licenses_text.add_theme_color_override("default_color", SAND)
+	panel.add_child(_licenses_text)
+	var back := _button(panel, "BACK", Vector2(30, 522), Vector2(800, 52), true)
+	back.pressed.connect(func() -> void: _show_screen("menu"))
+
+
+func _open_licenses() -> void:
+	if _licenses_text.text.is_empty():
+		_licenses_text.text = (
+			"ARTILLERY FRONTLINE — LICENSES\n\n"
+			+ "Original geometry, visuals and synthesized audio were created for this project.\n\n"
+			+ "RAJDHANI FONT\n\n"
+			+ FileAccess.get_file_as_string("res://assets/fonts/OFL-Rajdhani.txt")
+			+ "\n\nIBM PLEX MONO FONT\n\n"
+			+ FileAccess.get_file_as_string("res://assets/fonts/OFL-IBMPlexMono.txt")
+			+ "\n\nGODOT ENGINE\n\n"
+			+ FileAccess.get_file_as_string("res://assets/licenses/GODOT-LICENSE.txt")
+			+ "\n\nGODOT THIRD-PARTY NOTICES\n\n"
+			+ FileAccess.get_file_as_string("res://assets/licenses/GODOT-COPYRIGHT.txt")
+		)
+	_show_screen("licenses")
 
 
 func _cycle_graphics() -> void:
@@ -479,17 +526,17 @@ func _refresh_settings() -> void:
 	if _graphics_button == null:
 		return
 	_graphics_button.text = (
-		"GRAPHICS PROFILE                         %s  ›" % _settings.get("graphics", "AUTO")
+		"GRAPHICS PROFILE                         %s  >" % _settings.get("graphics", "AUTO")
 	)
 	_fps_button.text = (
-		"FRAME RATE TARGET                         %s FPS  ›" % _settings.get("target_fps", 60)
+		"FRAME RATE TARGET                         %s FPS  >" % _settings.get("target_fps", 60)
 	)
 	_sound_button.text = (
-		"SOUND EFFECTS                                  %s  ›"
+		"SOUND EFFECTS                                  %s  >"
 		% ("ON" if _settings.get("sound", true) else "OFF")
 	)
 	_sensitivity_button.text = (
-		"AIM SENSITIVITY                               %.1f×  ›"
+		"AIM SENSITIVITY                               %.1fx  >"
 		% float(_settings.get("sensitivity", 1.0))
 	)
 
@@ -504,6 +551,7 @@ func _show_screen(which: String) -> void:
 	_pause.visible = which == "pause"
 	_results.visible = which == "results"
 	_settings_screen.visible = which == "settings"
+	_licenses_screen.visible = which == "licenses"
 
 
 func _overlay() -> Control:

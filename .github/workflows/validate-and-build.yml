@@ -62,8 +62,7 @@ jobs:
       contents: write
     env:
       GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /home/runner/.android/frontline-debug.keystore
-      GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
-      GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD: android
+      GODOT_ANDROID_KEYSTORE_DEBUG_USER: frontlinedebug
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -95,7 +94,15 @@ jobs:
       - name: Generate an ephemeral debug signing key
         run: |
           mkdir -p "$HOME/.android" build
-          keytool -genkeypair -keystore "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH" -storepass android -keypass android -alias androiddebugkey -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 3650
+          password=$(openssl rand -hex 24)
+          echo "::add-mask::$password"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=$password" >> "$GITHUB_ENV"
+          export GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD="$password"
+          keytool -genkeypair -keystore "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH" \
+            -storepass:env GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD \
+            -keypass:env GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD \
+            -alias "$GODOT_ANDROID_KEYSTORE_DEBUG_USER" \
+            -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 3650
       - name: Import project
         run: Godot_v${GODOT_VERSION}-stable_linux.x86_64 --headless --editor --path . --import --quit
       - name: Export debug APK
@@ -142,6 +149,7 @@ jobs:
           jarsigner -verify build/ARTILLERY_FRONTLINE-debug.aab | tee /tmp/aab-verification.log
           grep -q 'jar verified' /tmp/aab-verification.log
           echo "::notice title=AAB signature::Debug bundle signature verified (self-signed ephemeral key)"
+          python3 -c 'import zipfile; z=zipfile.ZipFile("build/ARTILLERY_FRONTLINE-debug.aab"); names=z.namelist(); required=["assets/fonts/OFL-Rajdhani.txt", "assets/fonts/OFL-IBMPlexMono.txt", "assets/licenses/GODOT-LICENSE.txt", "assets/licenses/GODOT-COPYRIGHT.txt"]; missing=[r for r in required if not any(n.endswith("/"+r) for n in names)]; assert not missing, missing'
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
@@ -311,13 +319,7 @@ jobs:
           profile: pixel_2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
-          script: |
-            set -o pipefail
-            bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk 2>&1 | tee /tmp/android-smoke.log || {
-              echo "::error title=Android smoke failed::$(tail -n 20 /tmp/android-smoke.log | tr '\n' '|')"
-              exit 1
-            }
-            echo "::notice title=Android emulator smoke::$(tail -n 1 /tmp/android-smoke.log)"
+          script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
       - name: Upload Android smoke evidence
         if: always() && hashFiles('build/android-menu.png') != ''
         uses: actions/upload-artifact@v4
@@ -325,6 +327,7 @@ jobs:
           name: ARTILLERY_FRONTLINE-android-emulator-evidence
           path: |
             build/android-menu.png
+            build/android-licenses.png
             build/android-gameplay.png
             build/android-logcat.txt
           if-no-files-found: error
@@ -333,7 +336,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for image in menu gameplay; do
+          for image in menu licenses gameplay; do
             file="build/android-$image.png"
             if [ -s "$file" ]; then
               python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$file" > /tmp/frontline-screen.json

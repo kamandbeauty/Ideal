@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Executes against an already-booted Android emulator. No network access is needed by the app.
-set -euo pipefail
+set -Eeuo pipefail
+trap 'status=$?; echo "::error title=Android smoke failed::Line $LINENO exited with status $status"; exit "$status"' ERR
 apk=${1:?usage: android_smoke.sh path/to/x86_64.apk}
 adb wait-for-device
 adb logcat -c
@@ -27,6 +28,12 @@ if [ "$width" -le "$height" ]; then
   exit 1
 fi
 # Coordinates are relative to the screenshot, so the test works with either landscape rotation.
+# Open the bundled license screen, then return to the menu before deploying.
+adb shell input tap "$((width * 39 / 100))" "$((height * 89 / 100))"
+sleep 2
+adb exec-out screencap -p > build/android-licenses.png
+adb shell input tap "$((width * 50 / 100))" "$((height * 84 / 100))"
+sleep 2
 adb shell input tap "$((width * 17 / 100))" "$((height * 80 / 100))"
 sleep 3
 adb shell input swipe "$((width * 50 / 100))" "$((height * 42 / 100))" "$((width * 54 / 100))" "$((height * 42 / 100))" 300
@@ -45,4 +52,4 @@ if grep -E 'FATAL EXCEPTION|SCRIPT ERROR' build/android-logcat.txt; then
   echo "Android runtime reported a fatal or GDScript error" >&2
   exit 1
 fi
-echo "ANDROID_SMOKE_OK: installed and launched; landscape ${width}x${height}; touch actions sent; process alive"
+echo "::notice title=Android emulator smoke::Installed and launched; landscape ${width}x${height}; touch actions sent; process alive"

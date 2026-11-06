@@ -269,6 +269,16 @@ func _test_vertical_slice() -> void:
 		"battlefield, artillery, prediction and bounded projectile pool initialize"
 	)
 	_check(get_nodes_in_group("damageable").size() == 3, "all three target types spawn")
+	game.hud._open_licenses()
+	_check(
+		(
+			game.hud._licenses_screen.visible
+			and game.hud._licenses_text.text.contains("SIL OPEN FONT LICENSE")
+			and game.hud._licenses_text.text.contains("Godot Engine")
+		),
+		"font and engine license notices are accessible in the menu"
+	)
+	game.hud.show_menu()
 	game._start_mission()
 	_check(game.mode == "active", "deploy starts the mission")
 	var start_yaw: float = game.gun.yaw_degrees

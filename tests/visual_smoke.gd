@@ -16,6 +16,15 @@ func _run() -> void:
 	await create_timer(1.0).timeout
 	await RenderingServer.frame_post_draw
 	_capture("build/visual-menu.png")
+	game.hud._open_licenses()
+	await process_frame
+	await RenderingServer.frame_post_draw
+	_capture("build/visual-licenses.png")
+	_check(
+		game.hud._licenses_text.text.contains("Godot Engine"),
+		"license screen displays engine notices"
+	)
+	game.hud.show_menu()
 	game._start_mission()
 	await create_timer(1.0).timeout
 	await RenderingServer.frame_post_draw
