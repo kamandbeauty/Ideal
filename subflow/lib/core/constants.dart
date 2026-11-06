@@ -63,4 +63,5 @@ class NativeMethods {
   static const String asrCancel = 'asr.cancel';
   static const String asrCatalog = 'asr.catalog';
   static const String asrDownloadModel = 'asr.downloadModel';
+  static const String asrSelfTest = 'asr.selfTest';
 }

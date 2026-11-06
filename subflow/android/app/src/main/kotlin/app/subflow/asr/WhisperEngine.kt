@@ -160,6 +160,7 @@ class WhisperEngine(
         "cores" to Runtime.getRuntime().availableProcessors(),
         "recommendedThreads" to recommendedThreads(),
         "modelsDir" to modelsDir().absolutePath,
+        "nativeError" to (NativeCore.loadError ?: ""),
     )
 
     fun listModels(): List<Map<String, Any?>> {
@@ -234,6 +235,86 @@ class WhisperEngine(
         )
     }
 
+    /**
+     * Runs every stage once and reports what happened.
+     *
+     * The point is diagnosability: "it doesn't work" is not actionable, but
+     * "model loaded in 820 ms / decode 12.4 s of audio at peak 0.03 / whisper
+     * returned 0 segments in 41 s" says exactly which stage broke.
+     */
+    fun selfTest(uri: Uri?, modelPath: String?, language: String, durationUs: Long): Map<String, Any?> {
+        val report = LinkedHashMap<String, Any?>()
+        report["nativeLib"] = NativeCore.isReady
+        report["nativeError"] = NativeCore.loadError ?: ""
+        if (!NativeCore.isReady) return report
+
+        report["whisperCompiled"] = NativeCore.nativeAsrAvailable()
+        report["abi"] = android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "?"
+        report["sdkInt"] = android.os.Build.VERSION.SDK_INT
+        report["cores"] = Runtime.getRuntime().availableProcessors()
+        report["threads"] = recommendedThreads()
+        if (!NativeCore.nativeAsrAvailable()) return report
+
+        val path = modelPath ?: (listModels().firstOrNull()?.get("path") as? String)
+        report["modelPath"] = path ?: "(none)"
+        if (path == null) {
+            report["modelError"] = "هیچ مدلی نصب نشده است."
+            return report
+        }
+        val model = File(path)
+        report["modelExists"] = model.isFile
+        report["modelBytes"] = if (model.isFile) model.length() else 0L
+        if (!model.isFile) {
+            report["modelError"] = "فایل مدل پیدا نشد."
+            return report
+        }
+
+        val loadStart = System.currentTimeMillis()
+        val load = NativeCore.nativeAsrLoadModel(model.absolutePath)
+        report["modelLoadMs"] = System.currentTimeMillis() - loadStart
+        report["modelLoad"] = isOk(load)
+        if (!isOk(load)) {
+            report["modelError"] = load
+            return report
+        }
+
+        if (uri == null) {
+            report["audio"] = "skipped (no video)"
+            return report
+        }
+
+        val decodeStart = System.currentTimeMillis()
+        val pcm = try {
+            WhisperAudio.decode(
+                context = context,
+                uri = uri,
+                durationUs = durationUs,
+                onProgress = {},
+                isCancelled = { false },
+                maxSeconds = 20.0,
+            )
+        } catch (error: Exception) {
+            report["decodeError"] = error.message ?: error.javaClass.simpleName
+            return report
+        }
+        report["decodeMs"] = System.currentTimeMillis() - decodeStart
+        report["samples"] = pcm.size
+        report["audioSeconds"] = pcm.size / 16000.0
+        report["peak"] = WhisperAudio.peak(pcm)
+        if (pcm.isEmpty()) {
+            report["decodeError"] = "صدایی دیکد نشد."
+            return report
+        }
+
+        val transcribeStart = System.currentTimeMillis()
+        val json = NativeCore.nativeAsrTranscribe(pcm, language, recommendedThreads())
+        report["transcribeMs"] = System.currentTimeMillis() - transcribeStart
+        report["transcribeOk"] = isOk(json)
+        report["transcribe"] = json?.take(400) ?: ""
+        Log.i(TAG, "self test: $report")
+        return report
+    }
+
     fun cancel() {
         cancelled.set(true)
         if (NativeCore.isReady) NativeCore.nativeAsrCancel()
@@ -270,6 +351,11 @@ class WhisperEngine(
             }
             if (cancelled.get() || pcm.isEmpty()) {
                 return errorJson("تشخیص گفتار لغو شد.")
+            }
+            // Silence would burn minutes of CPU and then report "nothing found",
+            // which sounds like a broken engine. Say what is actually wrong.
+            if (WhisperAudio.peak(pcm) < 0.0015f) {
+                return errorJson("صدای این ویدئو تقریباً بی‌صداست؛ زیرنویسی برای ساختن پیدا نشد.")
             }
 
             val stopPolling = AtomicBoolean(false)

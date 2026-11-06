@@ -32,6 +32,7 @@ object BridgeContract {
     const val METHOD_ASR_CANCEL = "asr.cancel"
     const val METHOD_ASR_CATALOG = "asr.catalog"
     const val METHOD_ASR_DOWNLOAD_MODEL = "asr.downloadModel"
+    const val METHOD_ASR_SELF_TEST = "asr.selfTest"
 
     // Outbound (Kotlin -> Dart) on the per-player channel
     const val METHOD_PLAYER_EVENT = "onPlayerEvent"

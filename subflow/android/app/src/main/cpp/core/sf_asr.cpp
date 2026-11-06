@@ -198,7 +198,10 @@ bool AsrEngine::Transcribe(const float* pcm, std::size_t samples, const AsrOptio
   params.n_threads = std::clamp(options.threads, 1, 8);
   params.no_context = true;
   params.single_segment = false;
-  params.token_timestamps = true;
+  // Token timestamps are deliberately *off*: the editor spreads word timings
+  // itself, and asking whisper for per-token data costs CPU and changes segment
+  // segmentation on quantised models.
+  params.token_timestamps = false;
   // Greedy decoding is what the small models are tuned for on phones; beam
   // search costs 2-3x the time for a marginal gain in a captioning context.
   params.greedy.best_of = 1;
@@ -225,28 +228,61 @@ bool AsrEngine::Transcribe(const float* pcm, std::size_t samples, const AsrOptio
   };
   params.abort_callback_user_data = impl_;
 
-  const int status = whisper_full(impl_->ctx, params, pcm, static_cast<int>(samples));
-  if (status != 0) {
-    if (error) {
-      *error = impl_->cancel.load() ? "transcription cancelled" : "whisper failed on this audio";
+  // Long audio is transcribed in windows. whisper already pads to 30 s internally,
+  // but a single call on a 20-minute file holds the whole mel spectrum and every
+  // recognised segment in one state; windows keep the peak bounded, make progress
+  // monotonic, and let a cancel land within seconds instead of minutes.
+  constexpr std::size_t kWindowSamples = static_cast<std::size_t>(kSampleRate) * 120;
+  Micros last_end = 0;
+  int windows = 0;
+  int failures = 0;
+  for (std::size_t offset = 0; offset < samples; offset += kWindowSamples) {
+    if (impl_->cancel.load()) {
+      if (error) *error = "transcription cancelled";
+      impl_->progress.store(0);
+      return false;
     }
+    const std::size_t length = std::min(kWindowSamples, samples - offset);
+    if (length < static_cast<std::size_t>(kSampleRate) / 2) break;  // trailing sliver
+
+    const int status = whisper_full(impl_->ctx, params, pcm + offset, static_cast<int>(length));
+    if (status != 0) {
+      ++failures;
+      if (failures > 2) {
+        if (error) {
+          *error = impl_->cancel.load() ? "transcription cancelled" : "whisper failed on this audio";
+        }
+        impl_->progress.store(0);
+        return false;
+      }
+      continue;
+    }
+
+    const Micros window_start = static_cast<Micros>(offset) * 1000000 / kSampleRate;
+    windows += 1;
+    const int count = whisper_full_n_segments(impl_->ctx);
+    for (int i = 0; i < count; ++i) {
+      const char* raw = whisper_full_get_segment_text(impl_->ctx, i);
+      if (raw == nullptr) continue;
+      // whisper reports centiseconds relative to the window; convert once, here.
+      const Micros start_us =
+          window_start + static_cast<Micros>(whisper_full_get_segment_t0(impl_->ctx, i)) * 10000;
+      const Micros end_us =
+          window_start + static_cast<Micros>(whisper_full_get_segment_t1(impl_->ctx, i)) * 10000;
+      if (end_us <= start_us) continue;
+      const Micros from = std::max(start_us, last_end);
+      if (end_us <= from) continue;
+      AppendTimed(out, from, end_us, std::string(raw), options.max_segment_us);
+      last_end = end_us;
+    }
+
+    const int done = static_cast<int>((offset + length) * 100 / samples);
+    impl_->progress.store(std::clamp(done, 0, 99));
+  }
+  if (windows == 0) {
+    if (error) *error = impl_->cancel.load() ? "transcription cancelled" : "whisper failed on this audio";
     impl_->progress.store(0);
     return false;
-  }
-
-  const int count = whisper_full_n_segments(impl_->ctx);
-  Micros last_end = 0;
-  for (int i = 0; i < count; ++i) {
-    const char* raw = whisper_full_get_segment_text(impl_->ctx, i);
-    if (raw == nullptr) continue;
-    // whisper reports centiseconds; convert once, here.
-    const Micros start_us = static_cast<Micros>(whisper_full_get_segment_t0(impl_->ctx, i)) * 10000;
-    const Micros end_us = static_cast<Micros>(whisper_full_get_segment_t1(impl_->ctx, i)) * 10000;
-    if (end_us <= start_us) continue;
-    const Micros from = std::max(start_us, last_end);
-    if (end_us <= from) continue;
-    AppendTimed(out, from, end_us, std::string(raw), options.max_segment_us);
-    last_end = end_us;
   }
 
   impl_->progress.store(100);

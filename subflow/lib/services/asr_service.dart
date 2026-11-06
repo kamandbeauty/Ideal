@@ -96,12 +96,16 @@ class AsrCapabilities {
     required this.engineReady,
     required this.cores,
     required this.recommendedThreads,
+    this.nativeError = '',
   });
 
   final bool available;
   final bool engineReady;
   final int cores;
   final int recommendedThreads;
+
+  /// Why the native library (or the engine) is missing, when it is.
+  final String nativeError;
 
   static const AsrCapabilities unavailable = AsrCapabilities(
     available: false,
@@ -117,6 +121,7 @@ class AsrCapabilities {
       engineReady: map['engineReady'] == true,
       cores: asInt(map['cores'], 0),
       recommendedThreads: asInt(map['recommendedThreads'], 2),
+      nativeError: '${map['nativeError'] ?? ''}',
     );
   }
 }
@@ -281,6 +286,27 @@ class AsrService {
     } finally {
       await subscription?.cancel();
     }
+  }
+
+  /// Runs every stage of the pipeline on the project's own audio and returns the
+  /// raw report, so a failure can be located instead of guessed at.
+  Future<Map<String, Object?>> selfTest({
+    String? uri,
+    String? modelPath,
+    String language = 'fa',
+    int durationUs = 0,
+  }) async {
+    final Map<Object?, Object?>? raw = await _channel.invokeMapMethod<Object?, Object?>(
+      NativeMethods.asrSelfTest,
+      <String, Object?>{
+        'uri': uri,
+        'modelPath': modelPath,
+        'language': language,
+        'durationUs': durationUs,
+      },
+    );
+    if (raw == null) return const <String, Object?>{};
+    return raw.map((Object? key, Object? value) => MapEntry<String, Object?>('$key', value));
   }
 
   Future<bool> deleteModel(String path) async {

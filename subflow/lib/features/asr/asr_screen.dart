@@ -32,7 +32,7 @@ class AsrScreen extends ConsumerStatefulWidget {
 }
 
 class _AsrScreenState extends ConsumerState<AsrScreen> {
-  String _language = 'auto';
+  String _language = 'fa';
   String? _selectedPath;
   bool _running = false;
   int _progress = 0;
@@ -184,6 +184,33 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _selfTest() async {
+    final ProjectDetail? project = ref.read(projectDetailProvider(widget.projectId)).valueOrNull;
+    final AsrService service = ref.read(asrServiceProvider);
+    setState(() => _error = null);
+    Map<String, Object?> report;
+    try {
+      report = await service.selfTest(
+        uri: project?.asset?.uri,
+        modelPath: _selectedPath,
+        language: _language,
+        durationUs: project?.asset?.durationUs ?? 0,
+      );
+    } on Object catch (error) {
+      report = <String, Object?>{'fatal': _humanize(error)};
+    }
+    if (!mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (BuildContext context) => _SelfTestSheet(report: report),
     );
   }
 
@@ -440,6 +467,14 @@ class _EngineCard extends StatelessWidget {
               ),
             ],
           ),
+          if (value != null && !available && value.nativeError.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                'جزئیات: ${value.nativeError}',
+                style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted, height: 1.6),
+              ),
+            ),
           const SizedBox(height: 12),
           Row(
             children: <Widget>[
@@ -746,6 +781,96 @@ class _CatalogTile extends StatelessWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+/// Plain, copyable evidence of what each stage did.
+class _SelfTestSheet extends StatelessWidget {
+  const _SelfTestSheet({required this.report});
+
+  final Map<String, Object?> report;
+
+  static const Map<String, String> _labels = <String, String>{
+    'nativeLib': 'کتابخانهٔ بومی',
+    'nativeError': 'خطای کتابخانهٔ بومی',
+    'whisperCompiled': 'موتور Whisper کامپایل شده',
+    'abi': 'معماری',
+    'sdkInt': 'نسخهٔ اندروید',
+    'cores': 'هسته‌های CPU',
+    'threads': 'رشته‌های استفاده‌شده',
+    'modelPath': 'مدل',
+    'modelExists': 'فایل مدل موجود',
+    'modelBytes': 'حجم مدل (بایت)',
+    'modelLoadMs': 'زمان بارگذاری مدل (ms)',
+    'modelLoad': 'بارگذاری مدل',
+    'modelError': 'خطای مدل',
+    'decodeMs': 'زمان دیکد صدا (ms)',
+    'samples': 'نمونه‌های صوتی',
+    'audioSeconds': 'ثانیهٔ صوتی دیکدشده',
+    'peak': 'بلندی صدا (۰..۱)',
+    'decodeError': 'خطای دیکد',
+    'transcribeMs': 'زمان تشخیص (ms)',
+    'transcribeOk': 'نتیجه',
+    'transcribe': 'خروجی خام',
+    'fatal': 'خطای کل',
+    'audio': 'صدا',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final String text = report.entries
+        .map((MapEntry<String, Object?> entry) =>
+            '${_labels[entry.key] ?? entry.key}: ${entry.value}')
+        .join('\n');
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                const Expanded(
+                  child: Text(
+                    'گزارش تست موتور',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    await Clipboard.setData(ClipboardData(text: text));
+                    if (context.mounted) Navigator.of(context).pop();
+                  },
+                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  label: const Text('کپی'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.55),
+              child: SingleChildScrollView(
+                child: SelectableText(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    height: 1.9,
+                    color: AppColors.textSecondary,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

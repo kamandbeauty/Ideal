@@ -52,6 +52,7 @@ object WhisperAudio {
         durationUs: Long,
         onProgress: (Int) -> Unit,
         isCancelled: () -> Boolean,
+        maxSeconds: Double? = null,
     ): FloatArray {
         val extractor = MediaExtractor()
         var codec: MediaCodec? = null
@@ -92,8 +93,10 @@ object WhisperAudio {
             var inputDone = false
             var outputDone = false
 
+            val sampleLimit = maxSeconds?.let { (it * sampleRate).toInt() } ?: Int.MAX_VALUE
             while (!outputDone) {
                 if (isCancelled()) return FloatArray(0)
+                if (source.size >= sampleLimit) break
 
                 if (!inputDone) {
                     val inputIndex = codec.dequeueInputBuffer(10_000)
@@ -185,6 +188,16 @@ object WhisperAudio {
             }
             sink.add(sum / channels)
         }
+    }
+
+    /** Loudest sample in the decoded audio; 0 means the track is silent. */
+    fun peak(pcm: FloatArray): Float {
+        var peak = 0f
+        for (sample in pcm) {
+            val value = kotlin.math.abs(sample)
+            if (value > peak) peak = value
+        }
+        return peak
     }
 
     private fun resample(source: FloatSink, sampleRate: Int): FloatArray {

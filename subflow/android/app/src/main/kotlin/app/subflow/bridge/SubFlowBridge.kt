@@ -51,6 +51,7 @@ class SubFlowBridge(
             BridgeContract.METHOD_ASR_CANCEL -> handleAsrCancel(result)
             BridgeContract.METHOD_ASR_CATALOG -> handleAsrCatalog(result)
             BridgeContract.METHOD_ASR_DOWNLOAD_MODEL -> handleAsrDownloadModel(call, result)
+            BridgeContract.METHOD_ASR_SELF_TEST -> handleAsrSelfTest(call, result)
             else -> result.notImplemented()
         }
     }
@@ -219,6 +220,28 @@ class SubFlowBridge(
                     result.error("asr_download_failed", error.message, null)
                 }
             }
+        }
+    }
+
+    /** Diagnostic pass over every stage; the reply is the report itself. */
+    private fun handleAsrSelfTest(call: MethodCall, result: MethodChannel.Result) {
+        val uriString: String? = call.argument<String>("uri")
+        val modelPath: String? = call.argument<String>("modelPath")
+        val language: String = call.argument<String>("language") ?: "fa"
+        val durationUs: Long = (call.argument<Number>("durationUs") ?: 0).toLong()
+        io.execute {
+            val report = try {
+                whisper.selfTest(
+                    uri = uriString?.let { Uri.parse(it) },
+                    modelPath = modelPath,
+                    language = language,
+                    durationUs = durationUs,
+                )
+            } catch (error: Exception) {
+                Log.e(TAG, "self test failed", error)
+                mapOf("fatal" to (error.message ?: error.javaClass.simpleName))
+            }
+            activity.runOnUiThread { result.success(report) }
         }
     }
 
