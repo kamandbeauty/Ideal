@@ -21,6 +21,7 @@ import '../audio/audio_sheet.dart';
 import '../preview/motion_preview.dart';
 import '../preview/playback_controller.dart';
 import '../project/project_editor_controller.dart';
+import '../transitions/timeline_engine.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});

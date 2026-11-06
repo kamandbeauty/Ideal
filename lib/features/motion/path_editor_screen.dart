@@ -1070,7 +1070,7 @@ class _PathCanvasPainter extends CustomPainter {
     final pathPts = <Offset>[];
     for (var j = 0; j <= steps; j++) {
       final p = _rawAt(spec, lut, j / steps);
-      pathPts.add(toScreen(p.x, p.y));
+      pathPts.add(toScreen(p.$1, p.$2));
     }
     if (pathPts.length > 1) {
       final path = Path()..moveTo(pathPts.first.dx, pathPts.first.dy);
@@ -1089,7 +1089,7 @@ class _PathCanvasPainter extends CustomPainter {
     for (final frac in const <double>[0.15, 0.35, 0.55, 0.75]) {
       final u = paramAtArc(spec, lut, frac * lut.total);
       final fp = _rawAt(spec, lut, frac);
-      final pos = toScreen(fp.x, fp.y);
+      final pos = toScreen(fp.$1, fp.$2);
       final tan = pathTangent(spec, u);
       final dir = Offset(tan.x, -tan.y); // y down on screen
       final dl = dir.distance;
@@ -1111,8 +1111,8 @@ class _PathCanvasPainter extends CustomPainter {
     // Start / end markers.
     final s0 = _rawAt(spec, lut, 0.0);
     final s1 = _rawAt(spec, lut, 1.0);
-    final startP = toScreen(s0.x, s0.y);
-    final endP = toScreen(s1.x, s1.y);
+    final startP = toScreen(s0.$1, s0.$2);
+    final endP = toScreen(s1.$1, s1.$2);
     canvas.drawCircle(startP, 8, Paint()..color = const Color(0xFF66BB6A));
     canvas.drawCircle(startP, 11, Paint()
       ..style = PaintingStyle.stroke
