@@ -32,6 +32,7 @@ func configure(resource: WeaponData) -> void:
 		# Authored Blender front is -Y; glTF import presents it as +Z in Godot.
 		model.rotation.y = PI
 		add_child(model)
+		MaterialLibrary.apply_to_model(model)
 		turret = model.find_child("Turret", true, false) as Node3D
 		barrel_pivot = model.find_child("BarrelPivot", true, false) as Node3D
 		recoil_assembly = model.find_child("RecoilAssembly", true, false) as Node3D

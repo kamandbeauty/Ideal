@@ -1,11 +1,13 @@
 extends Node
 ## Autoload Graphics. Mobile-first quality tiers and sustained adaptation.
 signal quality_changed(tier: String)
-const TIERS: Array[String] = ["low", "medium", "high"]
+const TIERS: Array[String] = ["low", "medium", "high", "ultra"]
+const AUTO_MAX_INDEX: int = 2
 const PROFILES: Dictionary = {
-	"low": {"scale": 0.62, "shadows": false, "shadow_distance": 55.0, "particles": 0.4, "effect_slots": 4, "detail": 0.35, "visibility": 650.0, "msaa": 0, "texture_size": 128, "mip_bias": 0.7},
-	"medium": {"scale": 0.82, "shadows": true, "shadow_distance": 90.0, "particles": 0.7, "effect_slots": 7, "detail": 0.65, "visibility": 950.0, "msaa": 0, "texture_size": 256, "mip_bias": 0.25},
-	"high": {"scale": 1.0, "shadows": true, "shadow_distance": 180.0, "particles": 1.0, "effect_slots": 10, "detail": 1.0, "visibility": 1400.0, "msaa": 2, "texture_size": 512, "mip_bias": 0.0}
+	"low": {"scale": 0.62, "shadows": false, "shadow_distance": 55.0, "particles": 0.4, "effect_slots": 4, "detail": 0.35, "visibility": 650.0, "msaa": 0, "texture_size": 128, "mip_bias": 0.7, "ssao": false, "glow": false, "dof": false},
+	"medium": {"scale": 0.82, "shadows": true, "shadow_distance": 90.0, "particles": 0.7, "effect_slots": 7, "detail": 0.65, "visibility": 950.0, "msaa": 0, "texture_size": 256, "mip_bias": 0.25, "ssao": false, "glow": false, "dof": false},
+	"high": {"scale": 1.0, "shadows": true, "shadow_distance": 180.0, "particles": 1.0, "effect_slots": 10, "detail": 1.0, "visibility": 1400.0, "msaa": 2, "texture_size": 512, "mip_bias": 0.0, "ssao": true, "glow": true, "dof": false},
+	"ultra": {"scale": 1.0, "shadows": true, "shadow_distance": 240.0, "particles": 1.0, "effect_slots": 10, "detail": 1.0, "visibility": 1600.0, "msaa": 2, "texture_size": 1024, "mip_bias": -0.2, "ssao": true, "glow": true, "dof": true}
 }
 var tier: String = "medium"
 var monitor := SustainedFrameMonitor.new()
@@ -47,6 +49,7 @@ func apply_tier(value: String) -> void:
 		return
 	tier = value
 	var settings: Dictionary = profile()
+	MaterialLibrary.apply_quality(settings)
 	var viewport: Viewport = get_viewport()
 	if viewport:
 		viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
@@ -71,7 +74,7 @@ func _process(delta: float) -> void:
 		return
 	var adjustment: int = monitor.tick(frame_ms, delta)
 	if adjustment != 0:
-		var index: int = clampi(TIERS.find(tier) + adjustment, 0, 2)
+		var index: int = clampi(TIERS.find(tier) + adjustment, 0, AUTO_MAX_INDEX)
 		if TIERS[index] != tier:
 			apply_tier(TIERS[index])
 

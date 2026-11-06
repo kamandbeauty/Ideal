@@ -2,7 +2,7 @@ name: Author original Blender assets
 on:
   push:
     branches: [arena/40ad7d87-ideal]
-    paths: ['ARTILLERY_FRONTLINE/tools/create_models.py']
+    paths: ['ARTILLERY_FRONTLINE/tools/create_models.py', 'ARTILLERY_FRONTLINE/tools/create_textures.py', '.github/workflows/artillery-assets.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -21,6 +21,13 @@ jobs:
         run: |
           blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
           if grep -q 'Traceback (most recent call last)' /tmp/blender.log; then tail -80 /tmp/blender.log; exit 1; fi
+      - name: Author original seamless PBR textures
+        run: |
+          python3 -m pip install --quiet numpy pillow
+          python3 ARTILLERY_FRONTLINE/tools/create_textures.py
+          test -s ARTILLERY_FRONTLINE/assets/textures/pbr/sand_albedo.jpg
+          test -s ARTILLERY_FRONTLINE/assets/textures/pbr/sand_normal.png
+          test -s ARTILLERY_FRONTLINE/assets/textures/pbr/sky_panorama.jpg
       - name: Publish Blender diagnostics
         if: failure()
         run: |
@@ -41,10 +48,11 @@ jobs:
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
           touch ARTILLERY_FRONTLINE/assets/models/source/.gdignore
-          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: author original artillery and battlefield models in Blender' ARTILLERY_FRONTLINE/assets/models ARTILLERY_FRONTLINE/documentation/blender-version.txt
+          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: author original models and seamless PBR textures' ARTILLERY_FRONTLINE/assets/models ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/documentation/blender-version.txt
       - uses: actions/upload-artifact@v4
         with:
           name: original-blender-models
           path: |
             ARTILLERY_FRONTLINE/assets/models/*.glb
             ARTILLERY_FRONTLINE/assets/models/source/*.blend
+            ARTILLERY_FRONTLINE/assets/textures/pbr/

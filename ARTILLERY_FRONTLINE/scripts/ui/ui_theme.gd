@@ -1,8 +1,8 @@
 class_name UITheme
 extends RefCounted
 const INK := Color(0.055, 0.085, 0.073, 0.96)
-const PANEL := Color(0.075, 0.105, 0.090, 0.92)
-const LINE := Color(0.38, 0.43, 0.34, 0.55)
+const PANEL := Color(0.065, 0.092, 0.080, 0.80)
+const LINE := Color(0.46, 0.50, 0.38, 0.62)
 const TEXT := Color(0.91, 0.91, 0.82)
 const MUTED := Color(0.59, 0.65, 0.56)
 const ACCENT := Color(0.86, 0.69, 0.40)

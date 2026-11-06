@@ -51,7 +51,7 @@ static func validate(raw: Variant) -> Dictionary:
 			if typeof(value) == expected or (expected == TYPE_FLOAT and value is int):
 				clean.settings[key] = value
 		var settings: Dictionary = clean.settings
-		if not settings.quality in ["auto", "low", "medium", "high"]:
+		if not settings.quality in ["auto", "low", "medium", "high", "ultra"]:
 			settings.quality = "auto"
 		settings.fps_target = 30 if int(settings.fps_target) == 30 else 60
 		settings.sensitivity = clampf(float(settings.sensitivity), 0.3, 2.5)

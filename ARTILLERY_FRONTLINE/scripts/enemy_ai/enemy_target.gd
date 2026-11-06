@@ -37,6 +37,7 @@ func _ready() -> void:
 		model = load(data.model_path).instantiate()
 		model.rotation.y = PI
 		add_child(model)
+		MaterialLibrary.apply_to_model(model)
 		turret = model.find_child("Turret", true, false) as Node3D
 	else:
 		model = Node3D.new()

@@ -3,9 +3,12 @@ func run(t: TestContext) -> void:
 	var low: Dictionary = Graphics.PROFILES.low
 	var medium: Dictionary = Graphics.PROFILES.medium
 	var high: Dictionary = Graphics.PROFILES.high
+	var ultra: Dictionary = Graphics.PROFILES.ultra
 	t.check(low.scale < medium.scale and medium.scale < high.scale, "Resolution tiers ordered")
 	t.check(low.effect_slots < medium.effect_slots and medium.effect_slots < high.effect_slots, "Bounded effect pools ordered")
-	t.check(low.texture_size < high.texture_size, "Texture quality tiers differ")
+	t.check(low.texture_size < high.texture_size and high.texture_size <= ultra.texture_size, "Texture quality tiers differ")
+	t.check(high.scale <= ultra.scale and high.shadow_distance < ultra.shadow_distance, "Ultra extends high without reducing resolution")
+	t.check(Graphics.TIERS.find("ultra") > Graphics.TIERS.find("high") and Graphics.AUTO_MAX_INDEX == Graphics.TIERS.find("high"), "Adaptive quality is capped below manual ultra")
 	var monitor := SustainedFrameMonitor.new()
 	t.equal(monitor.tick(500.0, 0.1), 0, "One stall does not reduce quality")
 	var adjustment: int = 0

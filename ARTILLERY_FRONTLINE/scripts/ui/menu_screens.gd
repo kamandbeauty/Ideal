@@ -255,11 +255,11 @@ func _build_settings() -> void:
 	grid.add_theme_constant_override("h_separation", 40)
 	grid.add_theme_constant_override("v_separation", 16)
 	var quality := OptionButton.new()
-	for item in ["AUTO / ADAPTIVE", "LOW / PERFORMANCE", "MEDIUM / BALANCED", "HIGH / QUALITY"]:
+	for item in ["AUTO / ADAPTIVE", "LOW / PERFORMANCE", "MEDIUM / BALANCED", "HIGH / QUALITY", "ULTRA / CINEMATIC"]:
 		quality.add_item(item)
-	quality.select(["auto", "low", "medium", "high"].find(Profile.data.settings.quality))
-	quality.item_selected.connect(func(index): Profile.set_setting("quality", ["auto", "low", "medium", "high"][index]))
-	_add_setting(grid, "GRAPHICS PROFILE", "Sustained frame-time adaptation in AUTO", quality)
+	quality.select(["auto", "low", "medium", "high", "ultra"].find(Profile.data.settings.quality))
+	quality.item_selected.connect(func(index): Profile.set_setting("quality", ["auto", "low", "medium", "high", "ultra"][index]))
+	_add_setting(grid, "GRAPHICS PROFILE", "AUTO protects frame rate; ULTRA adds depth of field on capable renderers", quality)
 	var fps := OptionButton.new()
 	fps.add_item("60 FPS / RESPONSIVE")
 	fps.add_item("30 FPS / BATTERY")

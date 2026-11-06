@@ -49,18 +49,18 @@ def box(name,loc,scale,mat='Field olive',parent=None,bevel=.05,rot=None):
     o.scale=scale
     bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
     if bevel:
-        b=o.modifiers.new('Machined edges','BEVEL'); b.width=bevel; b.segments=2
+        b=o.modifiers.new('Machined edges','BEVEL'); b.width=bevel; b.segments=3
         bpy.ops.object.modifier_apply(modifier=b.name)
         b=o.modifiers.new('Weighted corner normals','WEIGHTED_NORMAL')
         bpy.ops.object.modifier_apply(modifier=b.name)
     if rot:o.rotation_euler=rot
     return o
-def cyl(name,loc,radius,depth,mat='Gun steel',parent=None,axis='Z',vertices=20):
+def cyl(name,loc,radius,depth,mat='Gun steel',parent=None,axis='Z',vertices=28):
     bpy.ops.mesh.primitive_cylinder_add(vertices=vertices,radius=radius,depth=depth,location=loc)
     o=adopt(bpy.context.object,name,mat,parent)
     if axis=='X':o.rotation_euler[1]=math.pi/2
     if axis=='Y':o.rotation_euler[0]=math.pi/2
-    b=o.modifiers.new('Rim bevel','BEVEL');b.width=min(.035,radius*.12);b.segments=2
+    b=o.modifiers.new('Rim bevel','BEVEL');b.width=min(.03,radius*.10);b.segments=2
     bpy.ops.object.modifier_apply(modifier=b.name)
     for p in o.data.polygons:p.use_smooth=len(p.vertices)==4
     return o
@@ -68,6 +68,17 @@ def rod(name,a,b,r,mat='Gun steel',parent=None):
     a,b=Vector(a),Vector(b); d=b-a
     o=cyl(name,(a+b)/2,r,d.length,mat,parent,vertices=12)
     o.rotation_euler=d.to_track_quat('Z','Y').to_euler();return o
+def bolts(parent,center,radius,count,axis='Z',r=.035,depth=.05,mat='Recoil steel'):
+    cx,cy,cz=center
+    for i in range(count):
+        a=i*math.tau/count
+        if axis=='Z': loc=(cx+math.cos(a)*radius,cy+math.sin(a)*radius,cz)
+        elif axis=='X': loc=(cx,cy+math.cos(a)*radius,cz+math.sin(a)*radius)
+        else: loc=(cx+math.cos(a)*radius,cy,cz+math.sin(a)*radius)
+        cyl('Bolt',loc,r,depth,mat,parent,axis,6)
+def hose(parent,points,r=.035,mat='Rubber'):
+    for a,b in zip(points[:-1],points[1:]):
+        rod('Hydraulic hose',a,b,r,mat,parent)
 def mesh(name,verts,faces,mat,parent=None):
     data=bpy.data.meshes.new(name);data.from_pydata(verts,[],faces);data.update()
     o=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(o)
@@ -117,14 +128,15 @@ def finish(root,name):
     print('CREATED',name, len(bpy.data.objects),'objects')
 
 def wheel(parent,x,y,z,r=.91,width=.48):
-    cyl('Tire',(x,y,z),r,width,'Rubber',parent,'X',24)
-    cyl('Rim',(x+math.copysign(width*.52,x),y,z),r*.57,.06,'Armor edge',parent,'X',20)
-    cyl('Hub',(x+math.copysign(width*.64,x),y,z),r*.22,.14,'Gun steel',parent,'X',16)
+    cyl('Tire',(x,y,z),r,width,'Rubber',parent,'X',32)
+    cyl('Rim',(x+math.copysign(width*.52,x),y,z),r*.57,.06,'Armor edge',parent,'X',24)
+    bolts(parent,(x+math.copysign(width*.56,x),y,z),r*.40,8,'X',.03,.05)
+    cyl('Hub',(x+math.copysign(width*.64,x),y,z),r*.22,.14,'Gun steel',parent,'X',20)
     for i in range(8):
         a=i*math.tau/8
         cyl('Hub bolt',(x+math.copysign(width*.68,x),y+math.sin(a)*r*.38,z+math.cos(a)*r*.38),.045,.06,'Recoil steel',parent,'X',6)
-    for i in range(18):
-        a=i*math.tau/18
+    for i in range(24):
+        a=i*math.tau/24
         o=box('Tread',(x,y+math.sin(a)*r,z+math.cos(a)*r),(.52,.14,.08),'Rubber',parent,.015)
         o.rotation_euler[0]=-a
 
@@ -195,6 +207,9 @@ def kestrel():
     for x in [-2.05,2.05]:wheel(r,x,.4,.96)
     box('Lower carriage',(0,.35,1.18),(2.5,2.6,.48),'Field olive',r,.13)
     cyl('Traverse ring',(0,.15,1.55),1.14,.28,'Gun steel',r)
+    bolts(r,(0,.15,1.71),1.02,16,'Z',.04,.05)
+    for sx in [-1,1]:
+        for i in range(5): box('Carriage rivet',(sx*1.18,-.05+i*.5,1.44),(.06,.06,.05),'Recoil steel',r,.01)
     for s in [-1,1]:
         trail=box('Split trail',(s*1.25,2.65,.68),(.4,4.4,.42),'Field olive',r,.07)
         trail.rotation_euler[2]=s*-.24
@@ -202,6 +217,8 @@ def kestrel():
         rod('Trail brace',(s*.7,1,.9),(s*1.55,3.6,.65),.075,'Recoil steel',r)
         box('Shield',(s*1.04,-.55,2.38),(1.18,.18,1.55),'Armor edge',r,.07,(math.radians(-9),0,s*.08))
         box('Shield lower',(s*1.2,.0,1.7),(1.05,.2,.5),'Field olive',r,.04)
+        box('Shield weld',(s*1.04,-.66,2.38),(1.12,.035,.06),'Gun steel',r,.01,(math.radians(-9),0,s*.08))
+        box('Vision block',(s*.72,-.66,2.86),(.22,.05,.16),'Glass',r,.02)
         box('Tool locker',(s*1.4,1.3,1.5),(.55,1.0,.45),'Field olive',r,.06)
         for j in range(4):
             cyl('Shield fastener',(s*(.62+j*.25),-.68,2.94),.035,.045,'Recoil steel',r,'Y',6)
@@ -211,12 +228,18 @@ def kestrel():
         cyl('Trunnion',(s*.76,0,.65),.31,.22,'Gun steel',turret,'X')
         rod('Hydraulic sleeve',(s*.56,.55,.1),(s*.56,-.9,.65),.13,'Field olive',turret)
         rod('Hydraulic piston',(s*.56,-.7,.53),(s*.56,-1.5,.78),.068,'Recoil steel',turret)
+        hose(turret,[(s*.62,.62,.18),(s*.78,.2,.34),(s*.7,-.35,.56),(s*.58,-.82,.7)],.028)
+        bolts(turret,(s*.76,0,.78),.22,8,'X',.028,.04)
     pivot=empty('BarrelPivot',(0,0,.68),turret)
     recoil=empty('RecoilAssembly',(0,0,0),pivot)
-    cyl('Barrel sleeve',(0,-.8,0),.29,2.0,'Field olive',recoil,'Y',24)
-    cyl('Forged tube',(0,-3.4,0),.18,4.2,'Gun steel',recoil,'Y',24)
-    for y in [-1.7,-2.0,-4.6]:cyl('Barrel collar',(0,y,0),.225,.13,'Armor edge',recoil,'Y',24)
-    box('Muzzle brake',(0,-5.72,0),(.56,.7,.46),'Gun steel',recoil,.08)
+    cyl('Barrel sleeve',(0,-.8,0),.29,2.0,'Field olive',recoil,'Y',32)
+    for i in range(6): cyl('Sleeve rib',(0,-.1-i*.28,0),.305,.045,'Armor edge',recoil,'Y',32)
+    cyl('Forged tube',(0,-3.4,0),.18,4.2,'Gun steel',recoil,'Y',32)
+    for y in [-1.7,-2.0,-4.6]:cyl('Barrel collar',(0,y,0),.225,.13,'Armor edge',recoil,'Y',32)
+    bolts(recoil,(0,-4.6,0),.19,8,'Y',.022,.035)
+    box('Muzzle brake',(0,-5.72,0),(.56,.7,.46),'Gun steel',recoil,.06)
+    for s in [-1,1]:
+        for i in range(2): box('Brake baffle',(s*.286,-5.5-i*.28,0),(.02,.12,.3),'Black bore',recoil,.005)
     for s in [-1,1]:
         box('Gas port',(s*.284,-5.7,0),(.015,.32,.25),'Black bore',recoil,.01)
     cyl('Muzzle rim',(0,-6.09,0),.215,.07,'Recoil steel',recoil,'Y',24)
@@ -225,13 +248,18 @@ def kestrel():
     box('Breech',(0,.55,0),(.7,.9,.58),'Gun steel',pivot,.07)
     block=box('BreechBlock',(.44,.7,0),(.14,.6,.48),'Recoil steel',pivot,.035)
     rod('Operating lever',(.5,.8,.2),(.85,1.0,.35),.045,'Gun steel',pivot)
-    cyl('Elevation wheel',(-1.0,.55,.3),.32,.07,'Gun steel',turret,'X',16)
-    for i in range(6):
-        a=i*math.tau/6
+    cyl('Elevation wheel',(-1.0,.55,.3),.32,.07,'Gun steel',turret,'X',24)
+    cyl('Wheel hub',(-1.08,.55,.3),.08,.1,'Recoil steel',turret,'X',12)
+    for i in range(8):
+        a=i*math.tau/8
         rod('Wheel spoke',(-1.05,.55,.3),(-1.05,.55+math.sin(a)*.3,.3+math.cos(a)*.3),.025,'Armor edge',turret)
     box('Gunner seat',(-1.25,1.05,.65),(.62,.55,.13),'Canvas',turret,.05)
     box(' Sight housing',(.72,-.2,1.0),(.3,.4,.4),'Field olive',turret,.04)
-    cyl('Optic glass',(.72,-.415,1.04),.095,.025,'Glass',turret,'Y',16)
+    cyl('Optic glass',(.72,-.415,1.04),.095,.025,'Glass',turret,'Y',20)
+    box('Ammo rack',(-1.35,1.9,1.0),(.7,1.2,.35),'Field olive',r,.05)
+    for i in range(4):
+        cyl('Stowed round',(-1.35,1.45+i*.3,1.28),.09,.5,'Brass',r,'Z',16)
+        cyl('Round tip',(-1.35,1.45+i*.3,1.56),.07,.12,'Gun steel',r,'Z',12)
     finish(r,'kestrel')
 
 def warden():
@@ -239,15 +267,20 @@ def warden():
     for s in [-1,1]:
         box('Track belt',(s*2.0,0,.78),(.8,6.9,1.35),'Rubber',r,.3)
         for y in [-2.5,-1.25,0,1.25,2.5]:wheel(r,s*2.16,y,.75,.58,.45)
-        for i in range(22):
-            box('Track shoe',(s*2.0,-3.25+i*.31,1.47),(.87,.2,.1),'Gun steel',r,.015)
+        for i in range(26):
+            box('Track shoe',(s*2.0,-3.25+i*.25,1.47),(.87,.18,.1),'Gun steel',r,.012)
+            box('Track shoe lower',(s*2.0,-3.25+i*.25,.12),(.87,.18,.08),'Gun steel',r,.01)
         box('Side skirt',(s*2.3,0,1.65),(.22,6.6,.65),'Field olive',r,.05)
         for i in range(6):box('ERA skirt',(s*2.44,-2.55+i*1.02,1.72),(.18,.88,.5),'Armor edge',r,.04)
-    box('Lower hull',(0,0,1.25),(3.7,6.4,1.0),'Field olive',r,.2)
+    box('Lower hull',(0,0,1.25),(3.7,6.4,1.0),'Field olive',r,.18)
+    for s in [-1,1]:
+        for i in range(8): cyl('Hull rivet',(s*1.82,-2.8+i*.8,1.82),.035,.04,'Recoil steel',r,'X',6)
     mesh('Sloped glacis',[(-1.95,-3.3,1.5),(1.95,-3.3,1.5),(1.75,-2.25,2.35),(-1.75,-2.25,2.35),(-1.8,3.0,1.5),(1.8,3.0,1.5),(1.7,2.6,2.25),(-1.7,2.6,2.25)],[(0,1,2,3),(4,7,6,5),(3,2,6,7),(0,4,5,1),(0,3,7,4),(1,5,6,2)],'Armor edge',r)
     turret=empty('Turret',(0,-.25,2.35),r)
     cyl('Turret race',(0,0,0),1.3,.25,'Gun steel',turret)
-    box('Cast turret',(0,-.1,.48),(2.75,2.8,.92),'Field olive',turret,.35)
+    box('Cast turret',(0,-.1,.48),(2.75,2.8,.92),'Field olive',turret,.3)
+    bolts(turret,(0,0,.16),1.18,14,'Z',.035,.04)
+    box('Turret weld',(0,-1.42,.95),(2.5,.04,.05),'Gun steel',turret,.01)
     for s in [-1,1]:
         for i in range(3):box('Cheek armor',(s*1.13,-.9+i*.58,.62),(.48,.5,.65),'Armor edge',turret,.08,(0,s*.18,0))
     cyl('Tank gun',(0,-3.2,.55),.12,4.2,'Gun steel',turret,'Y')
@@ -256,6 +289,7 @@ def warden():
     cyl('Bore',(0,-5.42,.55),.09,.02,'Black bore',turret,'Y')
     for x in [-.65,.65]:
         cyl('Hatch',(x,.5,1.02),.4,.12,'Armor edge',turret)
+        bolts(turret,(x,.5,1.1),.32,8,'Z',.025,.035)
         box('Periscope',(x,.16,1.1),(.28,.15,.16),'Glass',turret,.02)
     rod('Antenna',(1.05,.9,.8),(1.05,.9,3.2),.02,'Gun steel',turret)
     box('Stowage',(0,1.55,.55),(2.3,.45,.65),'Canvas',turret,.08)
@@ -269,7 +303,9 @@ def nomad():
     box('Chassis',(0,0,.95),(2.5,7.6,.35),'Gun steel',r,.08)
     for x in [-1.55,1.55]:
         for y in [-2.65,.8,2.55]:wheel(r,x,y,.82,.73,.46)
-    box('Armored cab',(0,-2.45,2.0),(2.65,2.3,1.9),'Sand armor',r,.18)
+    box('Armored cab',(0,-2.45,2.0),(2.65,2.3,1.9),'Sand armor',r,.16)
+    for s in [-1,1]:
+        for i in range(4): cyl('Cab rivet',(s*1.3,-3.2+i*.5,2.7),.03,.04,'Recoil steel',r,'X',6)
     box('Bonnet',(0,-3.55,1.55),(2.5,1.0,.8),'Field olive',r,.1)
     box('Windscreen',(0,-3.625,2.45),(2.18,.035,.65),'Glass',r,.025)
     box('Windscreen divider',(0,-3.66,2.45),(.07,.05,.7),'Gun steel',r,.01)
@@ -282,7 +318,8 @@ def nomad():
     box('Cargo bed',(0,1.45,1.5),(2.7,4.7,.5),'Field olive',r,.06)
     box('Canvas load',(0,1.45,2.45),(2.6,4.5,1.6),'Canvas',r,.3)
     for y in [-.5,.8,2.1,3.45]:
-        box('Cargo strap',(0,y,2.55),(2.67,.07,1.55),'Field olive',r,.04)
+        box('Cargo strap',(0,y,2.55),(2.67,.07,1.55),'Field olive',r,.035)
+        box('Strap buckle',(1.36,y,2.55),(.06,.18,.2),'Recoil steel',r,.02)
     for i in range(5):box('Radiator grille',(0,-4.075,1.3+i*.1),(.95,.03,.035),'Gun steel',r,.005)
     box('Front bumper',(0,-4.2,1.02),(2.95,.22,.25),'Gun steel',r,.05)
     rod('Antenna',(1.15,-1.4,2.8),(1.15,-1.4,4.5),.018,'Gun steel',r)
@@ -315,7 +352,7 @@ def hangar():
     for s in [-1,1]:box('Side wall',(s*10.5,0,2.8),(.35,29,5.4),'Sand armor',r,.04)
     box('Rear wall',(0,14.4,2.8),(21,.35,5.4),'Sand armor',r,.04)
     verts=[];faces=[]
-    segments=20
+    segments=32
     for y in [-15,15]:
         for i in range(segments+1):
             a=i*math.pi/segments
@@ -324,7 +361,7 @@ def hangar():
     roof=mesh('Curved roof',verts,faces,'Field olive',r)
     solid=roof.modifiers.new('Roof thickness','SOLIDIFY');solid.thickness=.15
     bpy.context.view_layer.objects.active=roof;bpy.ops.object.modifier_apply(modifier=solid.name)
-    for y in [-14.7,-10,-5,0,5,10,14.7]:
+    for y in [-14.7,-12,-9,-6,-3,0,3,6,9,12,14.7]:
         for i in range(segments):
             a=i*math.pi/segments;b=(i+1)*math.pi/segments
             rod('Roof rib',(10.55*math.cos(a),y,5.25+5.05*math.sin(a)),(10.55*math.cos(b),y,5.25+5.05*math.sin(b)),.075,'Gun steel',r)

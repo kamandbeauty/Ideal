@@ -25,7 +25,7 @@ func _ready() -> void:
 	fire = _particles("FlashFire", 48, 0.85, fire_ramp, true)
 	_set_velocity(fire, 6.0, 17.0)
 	(fire.process_material as ParticleProcessMaterial).gravity = Vector3(0, 3, 0)
-	smoke = _particles("LayeredSmoke", 36, 4.6, smoke_ramp, false)
+	smoke = _particles("LayeredSmoke", 40, 5.2, smoke_ramp, false)
 	_set_velocity(smoke, 2.0, 6.0)
 	var smoke_process: ParticleProcessMaterial = smoke.process_material
 	smoke_process.gravity = Vector3(0, 1.8, 0)
@@ -73,12 +73,19 @@ func _ready() -> void:
 func _init_textures() -> void:
 	if puff_texture:
 		return
-	var image := Image.create(64, 64, false, Image.FORMAT_RGBA8)
-	for y in range(64):
-		for x in range(64):
-			var distance: float = Vector2(x - 31.5, y - 31.5).length() / 31.5
-			var alpha: float = pow(maxf(0.0, 1.0 - distance), 1.4)
-			image.set_pixel(x, y, Color(1, 1, 1, alpha))
+	var size: int = 128
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var noise := FastNoiseLite.new()
+	noise.seed = 9182
+	noise.frequency = 0.045
+	noise.fractal_type = FastNoiseLite.FRACTAL_FBM
+	noise.fractal_octaves = 4
+	for y in range(size):
+		for x in range(size):
+			var distance: float = Vector2(x - size * 0.5, y - size * 0.5).length() / (size * 0.5)
+			var wisps: float = noise.get_noise_2d(float(x), float(y)) * 0.5 + 0.5
+			var alpha: float = pow(maxf(0.0, 1.0 - distance), 1.25) * (0.55 + wisps * 0.65)
+			image.set_pixel(x, y, Color(1, 1, 1, clampf(alpha, 0.0, 1.0)))
 	puff_texture = ImageTexture.create_from_image(image)
 	fire_ramp = _gradient([Color(1.0, 0.92, 0.53, 1), Color(1.0, 0.38, 0.055, 0.95), Color(0.3, 0.11, 0.035, 0)], [0.0, 0.35, 1.0])
 	smoke_ramp = _gradient([Color(0.22, 0.20, 0.17, 0), Color(0.24, 0.22, 0.19, 0.72), Color(0.39, 0.36, 0.31, 0)], [0.0, 0.18, 1.0])
@@ -124,7 +131,7 @@ func _particles(name: String, amount: int, lifetime: float, ramp: GradientTextur
 	material.billboard_keep_scale = true
 	material.vertex_color_use_as_albedo = true
 	material.albedo_texture = puff_texture
-	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	if emissive:
 		material.emission_enabled = true
 		material.emission = Color(1.0, 0.35, 0.04)
@@ -151,7 +158,7 @@ func activate(point: Vector3, blast_radius: float, ground: float, quality_ratio:
 	rng.seed = int(absf(point.x * 731.0 + point.z * 193.0)) + 42
 	var effect_scale: float = clampf(radius / 12.0, 0.18, 1.8)
 	for particles in [fire, smoke, dust]:
-		var base_amount: int = 48 if particles == fire else (36 if particles == smoke else 30)
+		var base_amount: int = 48 if particles == fire else (40 if particles == smoke else 30)
 		particles.amount = maxi(4, int(base_amount * quality_ratio))
 		var process: ParticleProcessMaterial = particles.process_material as ParticleProcessMaterial
 		process.scale_min = (1.4 if particles == fire else 2.5) * effect_scale

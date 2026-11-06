@@ -24,8 +24,22 @@ func _ready() -> void:
 	camera.fov = 57.0
 	camera.current = true
 	add_child(camera)
+	add_to_group("quality_listener")
+	apply_quality(Graphics.tier, Graphics.profile())
 	Events.camera_shake_requested.connect(shake)
 	Events.projectile_impacted.connect(_on_impact)
+
+func apply_quality(_tier: String, settings: Dictionary) -> void:
+	if camera == null:
+		return
+	var attributes := CameraAttributesPractical.new()
+	var method: String = RenderingServer.get_current_rendering_method()
+	if bool(settings.get("dof", false)) and method != "gl_compatibility":
+		attributes.dof_blur_far_enabled = true
+		attributes.dof_blur_far_distance = 110.0
+		attributes.dof_blur_far_transition = 55.0
+		attributes.dof_blur_amount = 0.055
+	camera.attributes = attributes
 
 func shake(strength: float) -> void:
 	if Profile.data.settings.camera_shake:
@@ -60,13 +74,14 @@ func _process(delta: float) -> void:
 	if controller == null or camera == null:
 		return
 	clock += delta
-	var desired_position: Vector3 = controller.global_position + Vector3(11, 8.0, 18)
-	var desired_focus: Vector3 = controller.global_position + Vector3(0, 2.5, -38)
-	var desired_fov: float = 57.0
+	var desired_position: Vector3 = controller.global_position + Vector3(8.5, 5.6, 13.5)
+	var desired_focus: Vector3 = controller.global_position + Vector3(0, 2.2, -34)
+	var desired_fov: float = 53.0
 	match mode:
 		Mode.GUN:
-			desired_position = controller.global_position + Vector3(11, 8.0, 18).rotated(Vector3.UP, deg_to_rad(controller.yaw_degrees * 0.3))
-			desired_focus = controller.global_position + Ballistics.direction(controller.yaw_degrees * 0.65, 0) * 42.0 + Vector3.UP * 2.0
+			desired_position = controller.global_position + Vector3(8.5, 5.6, 13.5).rotated(Vector3.UP, deg_to_rad(controller.yaw_degrees * 0.3))
+			desired_focus = controller.global_position + Ballistics.direction(controller.yaw_degrees * 0.65, 0) * 36.0 + Vector3.UP * 1.8
+			desired_fov = 53.0
 		Mode.OPTIC:
 			desired_position = controller.global_position + Vector3(0, 14.0, 8.0)
 			desired_focus = targeting.predicted_impact if targeting and targeting.prediction_valid else controller.global_position + controller.aim_direction() * 350.0
@@ -78,7 +93,7 @@ func _process(delta: float) -> void:
 				desired_focus = shell.global_position + shell.velocity.normalized() * 7.0
 				desired_fov = 56.0
 			else:
-				desired_position = controller.global_position + Vector3(11, 8, 18)
+				desired_position = controller.global_position + Vector3(8.5, 5.6, 13.5)
 		Mode.IMPACT:
 			impact_timer -= delta
 			desired_position = impact_point + Vector3(22, 14, 30)

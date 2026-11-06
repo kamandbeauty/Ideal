@@ -22,7 +22,7 @@ func capture(name: String) -> void:
 
 func run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
-	Profile.data.settings.quality = "medium"
+	Profile.data.settings.quality = "high"
 	Graphics.apply_preference()
 	await get_tree().create_timer(1.8).timeout
 	game.start_mission("sr01")
@@ -39,6 +39,13 @@ func run() -> void:
 	game.aim_input._gui_input(drag)
 	check("touch aiming surface changes traverse", not is_equal_approx(yaw_before, battle.artillery.yaw_degrees))
 	await capture("battlefield")
+	Profile.data.settings.quality = "ultra"
+	Graphics.apply_preference()
+	await get_tree().create_timer(0.8).timeout
+	await capture("battlefield-ultra")
+	Profile.data.settings.quality = "high"
+	Graphics.apply_preference()
+	await get_tree().create_timer(0.4).timeout
 	for id in battle.mission.target_ids:
 		var attempts: int = 0
 		var target: EnemyTarget
