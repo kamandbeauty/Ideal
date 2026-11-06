@@ -42,12 +42,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if flutter analyze --no-pub > analyze-log.txt 2>&1; then
-            echo "analyze: clean"
-          else
+          # flutter analyze is fatal on warnings by default; only real errors
+          # should block the build. Warnings are reported for reference.
+          flutter analyze --no-pub > analyze-log.txt 2>&1 || true
+          ERRS=$(grep -c 'error •' analyze-log.txt || true)
+          WARNS=$(grep -c 'warning •' analyze-log.txt || true)
+          echo "analyze: ${ERRS} errors, ${WARNS} warnings"
+          if [ "${ERRS}" -gt 0 ]; then
             {
               echo "Dart analysis failed (run ${GITHUB_RUN_ID})."
-              echo "Error count: $(grep -c 'error •' analyze-log.txt || true)"
+              echo "Error count: ${ERRS}"
               echo '```'
               grep 'error •' analyze-log.txt | head -120
               echo '```'
@@ -56,6 +60,10 @@ jobs:
               -F body=@commit-comment.md
             exit 1
           fi
+          if [ "${WARNS}" -gt 0 ]; then
+            echo "warnings (non-blocking):"
+            grep 'warning •' analyze-log.txt | head -20
+          fi
 
       - name: Build debug APK
         run: |
@@ -63,7 +71,7 @@ jobs:
           flutter build apk --debug 2>&1 | tee build-log.txt
 
       - name: Post build log tail on failure
-        if: failure()
+        if: failure() && file_exists(build-log.txt)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
