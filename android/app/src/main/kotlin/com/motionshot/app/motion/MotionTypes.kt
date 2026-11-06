@@ -137,7 +137,8 @@ class Xorshift128Plus(seed: Long) {
      */
     fun irange(lo: Int, hiInclusive: Int): Int {
         val n = (hiInclusive - lo + 1).toLong()
-        return lo + Long.remainderUnsigned(nextU64(), n).toInt()
+        // unsigned remainder as a stdlib extension (not a companion method)
+        return lo + nextU64().remainderUnsigned(n).toInt()
     }
 
     fun bool(pTrue: Double = 0.5): Boolean = nextDouble() < pTrue

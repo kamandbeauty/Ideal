@@ -53,14 +53,14 @@ class MotionInterpolator(
         if (pe != null) {
             val p = pe.progressAt(localTime, endTime - startTime)
             val u = pe.paramAtArc(p * pe.total())
-            val pt = rawPoint(pe.spec(), u)
+            val pt = rawPoint(pe.spec, u)
             val s = logLerp(
-                pe.spec().startZoom,
-                pe.spec().endZoom,
+                pe.spec.startZoom,
+                pe.spec.endZoom,
                 p,
             )
-            val r = pe.spec().startRotation +
-                shortestAngle(pe.spec().startRotation, pe.spec().endRotation) * p
+            val r = pe.spec.startRotation +
+                shortestAngle(pe.spec.startRotation, pe.spec.endRotation) * p
             return CameraState(pt.x, pt.y, s, r)
         }
         val t = localTime.coerceIn(startTime, endTime)

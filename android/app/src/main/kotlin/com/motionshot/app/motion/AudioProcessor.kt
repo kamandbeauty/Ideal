@@ -49,7 +49,7 @@ class AudioProcessor(
      */
     fun buildPcm(): FloatArray {
         val source = decodeSource()
-        if (source.frames == 0) throw AudioException("audio file contains no samples")
+        if (source.frames == 0L) throw AudioException("audio file contains no samples")
 
         val out = FloatArray((totalFrames * channels).toInt())
         val fadeInFrames = (spec.fadeIn.coerceAtLeast(0.0) * sampleRate).toInt()
@@ -178,9 +178,9 @@ class AudioProcessor(
                         } else {
                             val maxFrames = buffer.capacity() / bytesPerFrame
                             val chunk = min(maxFrames.toLong(), remainingFrames).toInt()
-                            val shorts = ByteBuffer.allocateDirect(chunk * bytesPerFrame)
+                            val shortBytes = ByteBuffer.allocateDirect(chunk * bytesPerFrame)
                                 .order(ByteOrder.LITTLE_ENDIAN)
-                                .asShortBuffer()
+                            val shorts = shortBytes.asShortBuffer()
                             for (i in 0 until chunk * channels) {
                                 val idx = (pcmOffsetFrames * channels).toInt() + i
                                 val v = (pcm[idx].coerceIn(-1f, 1f) * 32767f).toInt()
@@ -188,7 +188,8 @@ class AudioProcessor(
                             }
                             shorts.flip()
                             buffer.clear()
-                            buffer.put(shorts)
+                            // copy the little-endian bytes (not the ShortBuffer view)
+                            buffer.put(shortBytes)
                             codec.queueInputBuffer(
                                 inIdx, 0, chunk * bytesPerFrame,
                                 framesToUs(pcmOffsetFrames), 0,
