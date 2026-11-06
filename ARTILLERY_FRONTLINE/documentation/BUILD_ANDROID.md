@@ -6,13 +6,13 @@
 - JDK 17.
 - Android SDK platform 36, build-tools 36.1.0, platform-tools.
 - Godot Android Gradle source template for AAB; APK presets can export without Gradle.
-- ARM64-v8a only in this milestone. Minimum SDK 26 for Mobile/Vulkan package; 24 for Compatibility package. Target SDK 36.
+- ARM64-v8a only in this milestone. The two APK presets use minimum SDK 24; the AAB preset explicitly overrides minimum SDK to 26. All presets target SDK 36. Vulkan is recommended on Android 10/API 29+; Godot's OpenGL fallback and the separate Compatibility APK cover older/GLES-only devices.
 
 The sandbox originally had no Godot, Blender, Java, Android SDK, templates or device. Engine/SDK downloads were network-restricted. GitHub Actions provides the free build toolchain; the editor archive is checksum-pinned. Blender models are authored by the separate asset workflow.
 
 ## Automated build
 
-Run **ARTILLERY FRONTLINE** workflow on the session branch. It performs import, unit/integration tests, a software-rendered gameplay smoke test, then APK/AAB export. It verifies APK signatures, AAB jarsignature, ARM64 native libraries, project payload, ZIP CRC and absence of INTERNET permission.
+Run **ARTILLERY FRONTLINE** workflow on the session branch. It performs import, unit/integration tests, a software-rendered gameplay smoke test, then APK/AAB export. It verifies both APK signatures and certificate reports, the AAB jarsignature, ARM64 native libraries, project payload, ZIP CRC, package IDs, min/target SDK, decoded landscape orientation and absence of INTERNET permission. The Gradle source template is installed with Godot's `android/.build_version` identifier and a `build/.gdignore` marker.
 
 Presets:
 
@@ -37,8 +37,10 @@ The workflow decodes the keystore only into runner temp storage and passes crede
 Install matching templates, configure Java/Android SDK paths in Godot Editor Settings, install the Android build template for AAB, set signing through editor/environment, then:
 
 ```sh
-godot --headless --path ARTILLERY_FRONTLINE --export-release "Android APK" ../delivery/Artillery-Frontline-arm64.apk
-godot --headless --path ARTILLERY_FRONTLINE --export-release "Android AAB" ../delivery/Artillery-Frontline-arm64.aab
+godot --headless --path ARTILLERY_FRONTLINE --export-release "Android APK" res://../delivery/Artillery-Frontline-arm64.apk
+godot --headless --path ARTILLERY_FRONTLINE --export-release "Android AAB" res://../delivery/Artillery-Frontline-arm64.aab
 ```
+
+For a connected test device, `adb install -r delivery/Artillery-Frontline-arm64.apk` installs the primary test APK; use the `.compatibility` APK if Vulkan startup is unsupported. These commands were not executed in the sandbox.
 
 A successful export is not an installation test. Device QA must cover touch comfort, safe areas, suspend/resume, thermal throttling, Vulkan and OpenGL startup, audio focus, save persistence after force-stop, and sustained frame time. No Android device/emulator was available in the initial sandbox.

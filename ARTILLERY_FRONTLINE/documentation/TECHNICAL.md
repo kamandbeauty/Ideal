@@ -21,7 +21,7 @@ Engine: Godot 4.7.2 stable, standard GDScript build. Mobile/Vulkan is the primar
 - `Progression`, `Economy`, `Profile`: first-clear points, best-star records, replay-safe star totals and upgrade purchases.
 - `SaveManager`: versioned JSON schema validation, temporary-file write, backup copy and rename replacement; corrupt primary falls back to last good backup.
 - `Graphics` / `SustainedFrameMonitor`: quality tiers and four-second frame-time windows with downgrade/upgrade hysteresis.
-- `Sound`: fixed spatial/UI player pools and original PCM assets.
+- `Sound`: fixed spatial/UI player pools and original PCM assets. Headless logic tests skip dummy-driver playback; shutdown stops and releases pooled streams.
 
 ## Ballistic model
 
@@ -32,7 +32,7 @@ The fire-control computer is an intentional accessibility feature. It solves nom
 
 ## World and rendering
 
-Sable Ridge is deterministic original geometry: 64 terrain chunks with generated mesh LOD and static trimesh collision, procedural multi-resolution ground noise, roads, hangars, barracks, towers, fencing, utility lines, radar, helipad, rocks, acacia-style vegetation and sandbags. Repeated props use MultiMesh. Materials/primitive meshes are shared. Frustum culling and visibility ranges limit work; no unsupported occlusion feature is claimed.
+Sable Ridge is deterministic original geometry: 64 terrain chunks with generated mesh LOD and static trimesh collision, procedural multi-resolution ground noise, height-conforming road grids, hangars, barracks, towers, fencing, utility lines, radar, helipad, rocks, acacia-style vegetation and sandbags. Repeated props use MultiMesh. Materials/primitive meshes are shared. Blender-authored GLBs use a documented runtime +Y-to--Z import correction while preserving named turret/barrel/recoil/muzzle pivots. Frustum culling and visibility ranges limit work; no unsupported occlusion feature is claimed.
 
 Lighting uses a realtime directional sun, procedural sky ambient/reflection and distance fog. This milestone does not contain baked LightmapGI data. Smoke is layered billboard GPU particles (volumetric-style), not raymarched volumetrics. Destruction uses authored intermediate/wreck states and bounded manual debris rather than unlimited rigid-body fracture.
 
@@ -48,8 +48,8 @@ Lighting uses a realtime directional sun, procedural sky ambient/reflection and 
 ## Adaptive quality
 
 LOW: 62% 3D scale, no shadows, 40% particles, four effect slots, 35% scatter, 128px procedural ground noise.
-MEDIUM: 82%, 120 m shadows, 70% particles, seven effects, 65% scatter, 256px noise.
-HIGH: 100%, 230 m shadows, full particles, ten effects, full scatter, 512px noise.
+MEDIUM: 82%, 90 m shadows, 70% particles, seven effects, 65% scatter, 256px noise.
+HIGH: 100%, 180 m shadows, full particles, ten effects, full scatter, 512px noise.
 
 AUTO starts at medium on Android, high on desktop. It ignores isolated stalls, requires sustained overload before reducing quality, and requires sustained headroom plus cooldown before restoring it. Manual profiles are never overridden. Texture quality here means procedural texture resolution and mip bias; imported model textures are not dynamically streamed.
 

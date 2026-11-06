@@ -29,9 +29,11 @@ godot --headless --path ARTILLERY_FRONTLINE --editor --import
 godot --headless --path ARTILLERY_FRONTLINE --script res://tests/run_tests.gd
 ```
 
-The dependency-free runner writes `artillery-test-results.json` at the repository root and exits nonzero on failure. It includes real scene/physics mission integration, not only arithmetic tests.
+The dependency-free runner writes `artillery-test-results.json` at the repository root and exits nonzero on failure. It includes real scene/physics integration for all five missions, not only arithmetic tests.
 
-## Android
+## Android deliverables
+
+Verified CI test packages are retained in [`../delivery/`](../delivery/): primary ARM64 APK, ARM64 AAB and an OpenGL Compatibility APK. They are development-signed unless repository release secrets are configured. Package hashes and inspection reports are beside the binaries.
 
 See `documentation/BUILD_ANDROID.md`. The repository workflow validates the project before exporting ARM64 APK/AAB and an explicit OpenGL Compatibility APK. Without repository signing secrets, packages use an **ephemeral development key** and are not store-release artifacts. No credentials are stored in the project.
 
