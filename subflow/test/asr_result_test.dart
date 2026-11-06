@@ -97,6 +97,42 @@ void main() {
     });
   });
 
+  group('AsrCatalogEntry', () {
+    test('reads the native catalogue', () {
+      final AsrCatalogEntry? entry = AsrCatalogEntry.fromMap(<Object?, Object?>{
+        'id': 'ggml-base-q5_1',
+        'label': 'پیشنهادی برای فارسی (base)',
+        'detail': '۵۷ مگابایت • تعادل خوب دقت و سرعت',
+        'approxBytes': 59700000,
+        'installed': false,
+      });
+      expect(entry, isNotNull);
+      expect(entry!.id, 'ggml-base-q5_1');
+      expect(entry.installed, isFalse);
+      expect(entry.sizeLabel, '57 MB');
+    });
+
+    test('rejects entries without an id', () {
+      expect(AsrCatalogEntry.fromMap(<Object?, Object?>{'label': 'x'}), isNull);
+      expect(AsrCatalogEntry.fromMap(null), isNull);
+    });
+  });
+
+  group('AsrDownloadProgress', () {
+    test('reports a clamped fraction and megabytes', () {
+      const AsrDownloadProgress progress =
+          AsrDownloadProgress(id: 'm', received: 30 * 1024 * 1024, total: 60 * 1024 * 1024);
+      expect(progress.fraction, 0.5);
+      expect(progress.label, '30 / 60 MB');
+    });
+
+    test('unknown total stays at zero instead of dividing by zero', () {
+      const AsrDownloadProgress progress =
+          AsrDownloadProgress(id: 'm', received: 1024, total: 0);
+      expect(progress.fraction, 0);
+    });
+  });
+
   group('AsrCapabilities', () {
     test('reads the native capability map', () {
       final AsrCapabilities caps = AsrCapabilities.fromMap(<Object?, Object?>{

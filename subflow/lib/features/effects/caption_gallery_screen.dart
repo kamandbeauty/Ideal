@@ -24,9 +24,16 @@ import 'presets_library.dart';
 ///     like a grid of empty boxes;
 ///   * only the sheet animates, one preview at a time, so the list stays cheap.
 class CaptionGalleryScreen extends StatefulWidget {
-  const CaptionGalleryScreen({super.key, this.initialSelection});
+  const CaptionGalleryScreen({super.key, this.initialSelection, this.embedded = false});
 
+  /// The style chosen when this screen was pushed as a picker (`null` when it is
+  /// only being browsed).
   final String? initialSelection;
+
+  /// True when the screen is a bottom-bar tab instead of a pushed picker: the
+  /// sheet then offers "بستن" instead of returning a preset, because there is no
+  /// caller waiting for one.
+  final bool embedded;
 
   @override
   State<CaptionGalleryScreen> createState() => _CaptionGalleryScreenState();
@@ -128,7 +135,11 @@ class _CaptionGalleryScreenState extends State<CaptionGalleryScreen> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
       ),
-      builder: (BuildContext context) => _PresetSheet(preset: preset, sample: _sample),
+      builder: (BuildContext context) => _PresetSheet(
+        preset: preset,
+        sample: _sample,
+        embedded: widget.embedded,
+      ),
     );
     if (!mounted || chosen == null) return;
     Navigator.of(context).pop(chosen);
@@ -405,10 +416,11 @@ class CaptionFrame extends StatelessWidget {
 }
 
 class _PresetSheet extends StatelessWidget {
-  const _PresetSheet({required this.preset, required this.sample});
+  const _PresetSheet({required this.preset, required this.sample, required this.embedded});
 
   final CaptionPreset preset;
   final String sample;
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -498,9 +510,9 @@ class _PresetSheet extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: SfPrimaryButton(
-                label: 'انتخاب این استایل',
-                icon: Icons.check_rounded,
-                onPressed: () => Navigator.of(context).pop(preset),
+                label: embedded ? 'بستن' : 'انتخاب این استایل',
+                icon: embedded ? Icons.expand_more_rounded : Icons.check_rounded,
+                onPressed: () => Navigator.of(context).pop(embedded ? null : preset),
               ),
             ),
           ],

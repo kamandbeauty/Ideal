@@ -30,6 +30,8 @@ object BridgeContract {
     const val METHOD_ASR_DELETE_MODEL = "asr.deleteModel"
     const val METHOD_ASR_TRANSCRIBE = "asr.transcribe"
     const val METHOD_ASR_CANCEL = "asr.cancel"
+    const val METHOD_ASR_CATALOG = "asr.catalog"
+    const val METHOD_ASR_DOWNLOAD_MODEL = "asr.downloadModel"
 
     // Outbound (Kotlin -> Dart) on the per-player channel
     const val METHOD_PLAYER_EVENT = "onPlayerEvent"

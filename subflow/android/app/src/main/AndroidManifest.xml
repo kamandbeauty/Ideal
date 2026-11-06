@@ -2,12 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      SubFlow declares no INTERNET permission on purpose: the product is offline
-      by construction, so a future regression cannot silently upload media.
-      Model downloads (Phase 2) will be performed by an explicit, user-initiated
-      downloader component added together with the INTERNET permission, so the
-      permission grant is a visible, reviewable change.
+      INTERNET exists for exactly one thing: fetching a Whisper model file when
+      the user taps "دریافت مدل". Nothing else in the app opens a socket - media
+      stays on the device and no audio, video, subtitle or project data is ever
+      uploaded. Keeping the permission next to that comment is deliberate: if a
+      future change starts sending media somewhere, it is visible here.
     -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature
         android:name="android.hardware.camera"

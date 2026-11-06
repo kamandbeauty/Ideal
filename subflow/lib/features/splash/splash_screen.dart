@@ -29,9 +29,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Future<void> _boot() async {
     try {
       await ref.read(appDatabaseProvider).database;
-      final bool onboardingDone = await ref.read(onboardingDoneProvider.future);
+      // No welcome screen: the database is the only thing worth waiting for,
+      // and a first-run carousel in front of a one-screen editor is friction.
       if (!mounted) return;
-      context.go(onboardingDone ? '/home' : '/onboarding');
+      context.go('/home');
     } on AppFailure catch (failure) {
       if (!mounted) return;
       setState(() => _error = failure.message);

@@ -128,3 +128,49 @@ the 0.2.2 assets were removed.
 - Word-level timings come from the document's spreader, not from whisper's token
   timestamps, so they are as good as the caption split — the same rule the manual
   editor follows.
+
+---
+
+## 6. 0.4.0 — model in one tap, CapCut-style frame, no welcome screen
+
+**"The Whisper model isn't in the app."** Correct, and it cannot be shipped as a
+file: the smallest usable model is ~32 MB and the useful Persian one is ~57 MB, and
+the weights are not in this repository (and never may be - they are not ours to
+vendor). What was missing was a way to get one *from inside the app*. Added:
+
+- `asr.catalog` + `asr.downloadModel`: three quantised models (tiny 32 MB, base
+  57 MB - the recommendation for Persian, small 190 MB), downloaded over HTTPS
+  from Hugging Face with `hf-mirror.com` as a fallback because one of the two is
+  routinely unreachable on some networks.
+- Every download is verified twice before it is kept: ggml magic number, then a
+  real `whisper_init_from_file_with_params` load through the native engine. A bad
+  file is deleted and reported, never silently used.
+- The ASR screen now lists the catalogue with sizes and per-model progress, and a
+  completed download is selected automatically. Manual `.bin` import still works
+  for anyone who already has a model.
+- `INTERNET` permission added to the manifest, documented next to the paragraph
+  that says media never leaves the device. `tools/check-project.py` now enforces
+  that exception instead of a blanket ban: no `ACCESS_NETWORK_STATE`, no other
+  network permission, and the manifest must keep explaining itself.
+
+**"Layout like CapCut."** The app now has the frame short-form editors use:
+
+- persistent bottom bar with three destinations: پروژه‌ها / استایل‌ها / تنظیمات
+  (`StatefulShellRoute.indexedStack`, so tab state survives a push);
+- home = identity row, a large gradient "پروژهٔ تازه" action, two quick tools
+  (تشخیص گفتار, استایل زیرنویس) and a two-column grid of project tiles with a
+  status badge and last-used time;
+- every deeper screen (import, editor, ASR, studio, picker gallery) is pushed on
+  top of the bar, so "back" always returns to the list you left.
+
+**"No welcome screen."** Onboarding is gone: file, route, provider and its setting
+key. Splash waits for the database only, then goes straight to `/home`. A
+first-run carousel in front of a three-tap workflow was pure friction.
+
+**Verification for this pass**: no compiler here, so the loop was CI. Three real
+defects were found and fixed before the tag - the analyzer's missing
+`CaptionPainter.minFontSize` field, `-ffast-math` leaking from gradle into ggml
+(a hard `#error` in Android builds), and a Double/Float mix in the resampler.
+Locally: host core 139 checks, ASan/UBSan clean, JNI syntax, schema 43, project
+checker (now quote-aware when stripping comments, because a URL literal was being
+mistaken for a comment), and the Dart suite.

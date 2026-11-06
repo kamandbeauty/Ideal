@@ -36,7 +36,6 @@ class Channels {
 class SettingKeys {
   const SettingKeys._();
 
-  static const String onboardingDone = 'onboarding_done';
   static const String locale = 'app_locale';
   static const String defaultWhisperModel = 'default_whisper_model';
   static const String defaultTranslationModel = 'default_translation_model';
@@ -62,4 +61,6 @@ class NativeMethods {
   static const String asrDeleteModel = 'asr.deleteModel';
   static const String asrTranscribe = 'asr.transcribe';
   static const String asrCancel = 'asr.cancel';
+  static const String asrCatalog = 'asr.catalog';
+  static const String asrDownloadModel = 'asr.downloadModel';
 }

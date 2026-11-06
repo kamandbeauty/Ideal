@@ -5,12 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../core/constants.dart';
 import '../../database/dao/project_dao.dart';
+import '../../models/enums.dart';
 import '../../models/project.dart';
 import '../../shared/theme/app_colors.dart';
-import '../../shared/widgets/sf_button.dart';
-import '../../shared/widgets/sf_card.dart';
 import '../../shared/widgets/sf_scaffold.dart';
 
+/// Home tab: create a project, then reopen one. Everything else lives one tap
+/// away in the bottom bar.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -18,183 +19,403 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<List<Project>> projects = ref.watch(projectsControllerProvider);
     return SfScaffold(
-      child: ListView(
-        padding: const EdgeInsets.only(top: 12, bottom: 28),
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
-                  borderRadius: BorderRadius.circular(13),
-                ),
-                child: const Icon(Icons.subtitles_rounded, color: Colors.white, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(SubFlowInfo.appName,
-                        style: Theme.of(context).textTheme.headlineSmall),
-                    const Text(
-                      'زیرنویس آفلاین با هوش مصنوعی',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+      padded: false,
+      child: CustomScrollView(
+        slivers: <Widget>[
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      gradient: AppColors.accentGradient,
+                      borderRadius: BorderRadius.circular(11),
                     ),
-                  ],
+                    child: const Icon(Icons.subtitles_rounded, color: Colors.white, size: 19),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          SubFlowInfo.appName,
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const Text(
+                          'زیرنویس آورندهٔ خودکار، کاملاً آفلاین',
+                          style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    // /settings is a bottom-bar destination, not a pushed page.
+                    onPressed: () => context.go('/settings'),
+                    icon: const Icon(Icons.info_outline_rounded, size: 20),
+                    color: AppColors.textSecondary,
+                    tooltip: 'دربارهٔ برنامه',
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+              child: _NewProjectCard(onTap: () => context.push('/import')),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _QuickTile(
+                      icon: Icons.graphic_eq_rounded,
+                      label: 'تشخیص گفتار',
+                      hint: 'Whisper',
+                      onTap: () => _openLatest(context, ref, asr: true),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _QuickTile(
+                      icon: Icons.auto_awesome_rounded,
+                      label: 'استایل زیرنویس',
+                      hint: '۴۰ استایل',
+                      onTap: () => context.go('/styles'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
+              child: Row(
+                children: <Widget>[
+                  const Text(
+                    'پروژه‌ها',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (projects.valueOrNull?.isNotEmpty ?? false)
+                    Text(
+                      '${projects.value!.length}',
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          projects.when(
+            loading: () => const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+            ),
+            error: (Object error, StackTrace stack) => SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: Text(
+                  'خواندن پروژه‌ها ناموفق بود: $error',
+                  style: const TextStyle(color: AppColors.danger, fontSize: 12),
                 ),
               ),
-              IconButton(
-                onPressed: () => context.push('/settings'),
-                icon: const Icon(Icons.settings_outlined),
-                tooltip: 'تنظیمات',
-              ),
-            ],
+            ),
+            data: (List<Project> list) {
+              if (list.isEmpty) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.outline),
+                      ),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            'هنوز پروژه‌ای نیست',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            'یک ویدئو انتخاب کن؛ زیرنویس با Whisper ساخته می‌شود و '
+                            'همین‌جا می‌توانی زمان و استایلش را عوض کنی.',
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: AppColors.textSecondary,
+                              height: 1.9,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.92,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) => _ProjectTile(project: list[index]),
+                    childCount: list.length,
+                  ),
+                ),
+              );
+            },
           ),
-          const SizedBox(height: 22),
-          SfCard(
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openLatest(BuildContext context, WidgetRef ref, {required bool asr}) async {
+    final List<Project>? projects = ref.read(projectsControllerProvider).valueOrNull;
+    if (projects == null || projects.isEmpty) {
+      context.push('/import');
+      return;
+    }
+    final Project latest = projects.first;
+    context.push(asr ? '/project/${latest.id}/asr' : '/project/${latest.id}/subtitles');
+  }
+}
+
+class _NewProjectCard extends StatelessWidget {
+  const _NewProjectCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Ink(
+          decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: <Color>[Color(0xFF241A47), Color(0xFF10213F)],
+              colors: <Color>[Color(0xFF4B2EA8), Color(0xFF1D4ED8)],
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
             ),
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('پروژه تازه بساز',
-                    style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 6),
-                const Text(
-                  'یک ویدئو انتخاب کن؛ کیفیت، رزولوشن و کدک آن به‌طور خودکار خوانده می‌شود.',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.7),
-                ),
-                const SizedBox(height: 16),
-                SfPrimaryButton(
-                  label: 'انتخاب ویدئو',
-                  icon: Icons.video_library_outlined,
-                  onPressed: () => context.push('/import'),
-                ),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(18),
           ),
-          const SizedBox(height: 16),
-          // Discoverability without a fake feature: the gallery really is the
-          // render engine, so it can be opened before a project exists.
-          SfCard(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            onTap: () => context.push('/captions'),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: <Widget>[
                 Container(
-                  width: 38,
-                  height: 38,
+                  width: 46,
+                  height: 46,
                   decoration: BoxDecoration(
-                    gradient: AppColors.accentGradient,
-                    borderRadius: BorderRadius.circular(11),
+                    color: Colors.white.withOpacity(0.16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 19),
+                  child: const Icon(Icons.add_rounded, color: Colors.white, size: 26),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        'گالری استایل زیرنویس',
+                        'پروژهٔ تازه',
                         style: TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
                         ),
                       ),
-                      SizedBox(height: 2),
+                      SizedBox(height: 3),
                       Text(
-                        '۴۰ استایل آماده فارسی و انگلیسی با پیش‌نمایش زنده',
-                        style: TextStyle(color: AppColors.textMuted, fontSize: 11.5),
+                        'ویدئو را انتخاب کن؛ مشخصات و صدا خودکار خوانده می‌شود.',
+                        style: TextStyle(fontSize: 11.5, color: Color(0xFFE3E8FF), height: 1.6),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.chevron_left_rounded, color: AppColors.textMuted, size: 20),
+                const Icon(Icons.chevron_left_rounded, color: Colors.white70, size: 22),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          Row(
-            children: <Widget>[
-              Text('پروژه‌های اخیر', style: Theme.of(context).textTheme.titleMedium),
-              const Spacer(),
-              TextButton(
-                onPressed: () => context.push('/projects'),
-                child: const Text('همه'),
-              ),
-            ],
+        ),
+      ),
+    );
+  }
+}
+
+class _QuickTile extends StatelessWidget {
+  const _QuickTile({
+    required this.icon,
+    required this.label,
+    required this.hint,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final String hint;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.outline),
           ),
-          const SizedBox(height: 8),
-          projects.when(
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 28),
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
-            error: (Object error, StackTrace stack) => SfCard(
-              child: Text(
-                'خواندن پروژه‌ها ناموفق بود.\n$error',
-                style: const TextStyle(color: AppColors.danger, fontSize: 13),
-              ),
-            ),
-            data: (List<Project> list) {
-              if (list.isEmpty) {
-                return const SfCard(
-                  child: Text(
-                    'هنوز پروژه‌ای نداری. اولین ویدئو را انتخاب کن تا زیرنویس بسازیم.',
-                    style: TextStyle(color: AppColors.textSecondary, height: 1.8),
-                  ),
-                );
-              }
-              return Column(
-                children: list
-                    .take(3)
-                    .map(
-                      (Project project) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: SfCard(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                          onTap: () => context.push('/project/${project.id}'),
-                          child: Row(
-                            children: <Widget>[
-                              const Icon(Icons.movie_outlined,
-                                  color: AppColors.secondarySoft, size: 20),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(project.name,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context).textTheme.titleSmall),
-                                    Text(
-                                      ProjectDao.humanizeEdit(project.lastOpenedAtMs),
-                                      style: const TextStyle(
-                                          color: AppColors.textMuted, fontSize: 11.5),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Icon(Icons.chevron_left, color: AppColors.textMuted),
-                            ],
-                          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: <Widget>[
+                Icon(icon, size: 18, color: AppColors.secondarySoft),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
                         ),
                       ),
-                    )
-                    .toList(growable: false),
-              );
-            },
+                      Text(
+                        hint,
+                        style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProjectTile extends StatelessWidget {
+  const _ProjectTile({required this.project});
+
+  final Project project;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push('/project/${project.id}'),
+        borderRadius: BorderRadius.circular(14),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.outline),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      gradient: const LinearGradient(
+                        colors: <Color>[Color(0xFF1B2440), Color(0xFF0B1220)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                    child: Stack(
+                      children: <Widget>[
+                        const Center(
+                          child: Icon(Icons.movie_creation_outlined,
+                              size: 26, color: AppColors.textMuted),
+                        ),
+                        Positioned(
+                          left: 6,
+                          top: 6,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.45),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              project.status == ProjectStatus.ready ? 'آماده' : 'در ویرایش',
+                              style: const TextStyle(fontSize: 9, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Text(
+                  project.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 1),
+                Text(
+                  ProjectDao.humanizeEdit(project.lastOpenedAtMs),
+                  style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

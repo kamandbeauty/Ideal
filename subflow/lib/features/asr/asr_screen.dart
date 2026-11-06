@@ -38,6 +38,8 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   int _progress = 0;
   String? _error;
   bool _importing = false;
+  String? _downloadingId;
+  AsrDownloadProgress? _download;
 
   static const List<Map<String, String>> _languages = <Map<String, String>>[
     <String, String>{'code': 'auto', 'label': 'تشخیص خودکار'},
@@ -94,6 +96,42 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
             ),
           ),
           const SizedBox(height: 18),
+          const _SectionTitle(title: 'دریافت مدل (یک‌بار، بعد آفلاین)'),
+          const SizedBox(height: 4),
+          const Text(
+            'فایل مدل در خود برنامه نیست چون از ۳۲ مگابایت تا چند گیگابایت است؛ '
+            'با یک ضربه دانلود می‌شود، بررسی می‌شود و بعد بدون اینترنت کار می‌کند.',
+            style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.8),
+          ),
+          const SizedBox(height: 8),
+          Consumer(
+            builder: (BuildContext context, WidgetRef ref, Widget? child) {
+              final AsyncValue<List<AsrCatalogEntry>> catalog = ref.watch(asrCatalogProvider);
+              return catalog.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                ),
+                error: (Object error, StackTrace stack) => _ErrorCard(message: '$error'),
+                data: (List<AsrCatalogEntry> entries) => Column(
+                  children: entries
+                      .map((AsrCatalogEntry entry) => Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: _CatalogTile(
+                              entry: entry,
+                              busy: _downloadingId == entry.id,
+                              progress: _downloadingId == entry.id ? _download : null,
+                              onDownload: _running || _downloadingId != null
+                                  ? null
+                                  : () => _downloadModel(entry),
+                            ),
+                          ))
+                      .toList(growable: false),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 18),
           const _SectionTitle(title: 'زبان گفتار'),
           const SizedBox(height: 8),
           Row(
@@ -146,6 +184,41 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _downloadModel(AsrCatalogEntry entry) async {
+    setState(() {
+      _downloadingId = entry.id;
+      _download = AsrDownloadProgress(id: entry.id, received: 0, total: entry.approxBytes);
+      _error = null;
+    });
+    try {
+      final AsrModel? model = await ref.read(asrModelsProvider.notifier).download(
+        entry.id,
+        onProgress: (AsrDownloadProgress progress) {
+          if (mounted) setState(() => _download = progress);
+        },
+      );
+      if (!mounted) return;
+      if (model != null) {
+        setState(() => _selectedPath = model.path);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('مدل ${model.label} آماده است.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } on Object catch (error) {
+      if (mounted) setState(() => _error = _humanize(error));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _downloadingId = null;
+          _download = null;
+        });
+      }
+    }
   }
 
   Future<void> _importModel() async {
@@ -584,6 +657,86 @@ class _RunCard extends StatelessWidget {
               label: 'شروع تشخیص گفتار',
               icon: Icons.auto_awesome_rounded,
               onPressed: enabled ? onStart : null,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CatalogTile extends StatelessWidget {
+  const _CatalogTile({
+    required this.entry,
+    required this.busy,
+    required this.progress,
+    required this.onDownload,
+  });
+
+  final AsrCatalogEntry entry;
+  final bool busy;
+  final AsrDownloadProgress? progress;
+  final VoidCallback? onDownload;
+
+  @override
+  Widget build(BuildContext context) {
+    return SfCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                entry.installed ? Icons.download_done_rounded : Icons.cloud_download_outlined,
+                size: 18,
+                color: entry.installed ? AppColors.success : AppColors.secondarySoft,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      entry.label,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      entry.installed ? 'نصب شده • ${entry.sizeLabel}' : entry.detail,
+                      style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted, height: 1.6),
+                    ),
+                  ],
+                ),
+              ),
+              if (!entry.installed)
+                TextButton(
+                  onPressed: busy ? null : onDownload,
+                  child: Text(busy ? '…' : 'دریافت'),
+                )
+              else
+                const Icon(Icons.check_circle_rounded, size: 16, color: AppColors.success),
+            ],
+          ),
+          if (busy) ...<Widget>[
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: LinearProgressIndicator(
+                value: progress == null || progress!.fraction == 0 ? null : progress!.fraction,
+                minHeight: 6,
+                backgroundColor: AppColors.surfaceHigher,
+                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.secondary),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              progress == null ? 'در حال دریافت…' : '${progress!.label} • ${(progress!.fraction * 100).round()}٪',
+              style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
             ),
           ],
         ],

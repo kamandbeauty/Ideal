@@ -39,6 +39,56 @@ class AsrModel {
   }
 }
 
+/// A model the app can fetch in one tap. Whisper weights are far too large to
+/// bundle, so the download is explicit, visible and cancellable.
+class AsrCatalogEntry {
+  const AsrCatalogEntry({
+    required this.id,
+    required this.label,
+    required this.detail,
+    required this.approxBytes,
+    required this.installed,
+  });
+
+  final String id;
+  final String label;
+  final String detail;
+  final int approxBytes;
+  final bool installed;
+
+  String get sizeLabel => '${(approxBytes / (1024 * 1024)).round()} MB';
+
+  static AsrCatalogEntry? fromMap(Object? raw) {
+    if (raw is! Map) return null;
+    final Object? id = raw['id'];
+    if (id is! String || id.isEmpty) return null;
+    final Object? size = raw['approxBytes'];
+    return AsrCatalogEntry(
+      id: id,
+      label: '${raw['label'] ?? id}',
+      detail: '${raw['detail'] ?? ''}',
+      approxBytes: size is num ? size.toInt() : 0,
+      installed: raw['installed'] == true,
+    );
+  }
+}
+
+/// Progress of a model download, in bytes.
+class AsrDownloadProgress {
+  const AsrDownloadProgress({required this.id, required this.received, required this.total});
+
+  final String id;
+  final int received;
+  final int total;
+
+  double get fraction => total <= 0 ? 0 : (received / total).clamp(0.0, 1.0).toDouble();
+
+  String get label {
+    String mb(int bytes) => (bytes / (1024 * 1024)).toStringAsFixed(0);
+    return '${mb(received)} / ${mb(total)} MB';
+  }
+}
+
 /// What this install can actually do.
 class AsrCapabilities {
   const AsrCapabilities({
@@ -184,6 +234,53 @@ class AsrService {
     final Map<Object?, Object?>? map =
         await _channel.invokeMapMethod<Object?, Object?>(NativeMethods.asrImportModel);
     return AsrModel.fromMap(map);
+  }
+
+  Future<List<AsrCatalogEntry>> catalog() async {
+    try {
+      final List<Object?>? raw =
+          await _channel.invokeListMethod<Object?>(NativeMethods.asrCatalog);
+      if (raw == null) return const <AsrCatalogEntry>[];
+      return raw
+          .map(AsrCatalogEntry.fromMap)
+          .whereType<AsrCatalogEntry>()
+          .toList(growable: false);
+    } on PlatformException {
+      return const <AsrCatalogEntry>[];
+    } on MissingPluginException {
+      return const <AsrCatalogEntry>[];
+    }
+  }
+
+  /// Downloads one catalogue model, reporting byte progress as it arrives.
+  /// Throws [PlatformException] with a user-facing message on failure.
+  Future<AsrModel?> downloadModel(
+    String id, {
+    void Function(AsrDownloadProgress progress)? onProgress,
+  }) async {
+    StreamSubscription<dynamic>? subscription;
+    if (onProgress != null) {
+      subscription = _events.receiveBroadcastStream().listen((dynamic event) {
+        if (event is! Map || event['event'] != 'download' || event['id'] != id) return;
+        final Object? received = event['received'];
+        final Object? total = event['total'];
+        if (received is! num) return;
+        onProgress(AsrDownloadProgress(
+          id: id,
+          received: received.toInt(),
+          total: total is num ? total.toInt() : 0,
+        ));
+      });
+    }
+    try {
+      final Map<Object?, Object?>? map = await _channel.invokeMapMethod<Object?, Object?>(
+        NativeMethods.asrDownloadModel,
+        <String, Object?>{'id': id},
+      );
+      return AsrModel.fromMap(map);
+    } finally {
+      await subscription?.cancel();
+    }
   }
 
   Future<bool> deleteModel(String path) async {

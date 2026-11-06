@@ -49,6 +49,8 @@ class SubFlowBridge(
             BridgeContract.METHOD_ASR_DELETE_MODEL -> handleAsrDeleteModel(call, result)
             BridgeContract.METHOD_ASR_TRANSCRIBE -> handleAsrTranscribe(call, result)
             BridgeContract.METHOD_ASR_CANCEL -> handleAsrCancel(result)
+            BridgeContract.METHOD_ASR_CATALOG -> handleAsrCatalog(result)
+            BridgeContract.METHOD_ASR_DOWNLOAD_MODEL -> handleAsrDownloadModel(call, result)
             else -> result.notImplemented()
         }
     }
@@ -190,6 +192,33 @@ class SubFlowBridge(
                 "{\"ok\":false,\"error\":\"$message\"}"
             }
             activity.runOnUiThread { result.success(json) }
+        }
+    }
+
+    private fun handleAsrCatalog(result: MethodChannel.Result) {
+        io.execute {
+            val catalog = whisper.catalog()
+            activity.runOnUiThread { result.success(catalog) }
+        }
+    }
+
+    /** One-shot download of a catalogue model, verified before it is kept. */
+    private fun handleAsrDownloadModel(call: MethodCall, result: MethodChannel.Result) {
+        val id: String? = call.argument<String>("id")
+        if (id.isNullOrEmpty()) {
+            result.error("bad_args", "id is required", null)
+            return
+        }
+        io.execute {
+            try {
+                val model = whisper.downloadModel(id)
+                activity.runOnUiThread { result.success(model) }
+            } catch (error: Exception) {
+                Log.e(TAG, "model download failed", error)
+                activity.runOnUiThread {
+                    result.error("asr_download_failed", error.message, null)
+                }
+            }
         }
     }
 

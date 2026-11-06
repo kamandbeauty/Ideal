@@ -47,9 +47,47 @@ check(len(cpp_files) >= 10, f"expected the C++ core, found {len(cpp_files)}")
 
 # ------------------------------------------------------- balanced delimiters
 def strip_comments(text: str) -> str:
-    """Removes // and /* */ comments so braces inside prose do not count."""
-    without_block = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
-    return re.sub(r"//[^\n]*", "", without_block)
+    """Removes // and /* */ comments so braces inside prose do not count.
+
+    Quote-aware on purpose: a `https://...` string literal is not a comment, and
+    the earlier regex silently deleted the rest of such a line - which is how a
+    perfectly balanced Kotlin file started failing the brace check.
+    """
+    out: list[str] = []
+    index = 0
+    length = len(text)
+    quote: str | None = None
+    while index < length:
+        char = text[index]
+        nxt = text[index + 1] if index + 1 < length else ""
+        if quote is not None:
+            out.append(char)
+            if char == "\\" and nxt:
+                out.append(nxt)
+                index += 2
+                continue
+            if char == quote:
+                quote = None
+            index += 1
+            continue
+        if char in ("'", '"'):
+            quote = char
+            out.append(char)
+            index += 1
+            continue
+        if char == "/" and nxt == "/":
+            while index < length and text[index] != "\n":
+                index += 1
+            continue
+        if char == "/" and nxt == "*":
+            index += 2
+            while index < length - 1 and not (text[index] == "*" and text[index + 1] == "/"):
+                index += 1
+            index += 2
+            continue
+        out.append(char)
+        index += 1
+    return "".join(out)
 
 
 for path in dart_files + kt_files + cpp_files:
@@ -234,8 +272,17 @@ for migration in manifest["migrations"]:
 
 # ------------------------------------------------------------- app manifest
 app_manifest = (ROOT / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
-check("android.permission.INTERNET" not in app_manifest,
-      "AndroidManifest must not request INTERNET (offline product)")
+# The product is offline: media, audio and subtitles never leave the device. The
+# single exception is the Whisper model downloader, which is user-initiated and
+# only fetches weights. That exception has to stay documented in the manifest and
+# must not drag in any other network-related permission.
+if "android.permission.INTERNET" in app_manifest:
+    check("fetching a Whisper model" in app_manifest,
+          "INTERNET is only allowed for the documented Whisper model downloader")
+    check("android.permission.ACCESS_NETWORK_STATE" not in app_manifest,
+          "no extra network permissions: the downloader needs INTERNET only")
+else:
+    check(False, "the model downloader needs INTERNET (see WhisperEngine.downloadModel)")
 check("android:supportsRtl=\"true\"" in app_manifest, "AndroidManifest must support RTL")
 check("android:minSdkVersion" not in app_manifest, "minSdk belongs in build.gradle.kts")
 

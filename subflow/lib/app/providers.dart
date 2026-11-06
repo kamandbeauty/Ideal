@@ -73,10 +73,6 @@ final FutureProvider<DeviceCapabilities> deviceCapabilitiesProvider =
 });
 
 // ------------------------------------------------------------------ app state
-final FutureProvider<bool> onboardingDoneProvider = FutureProvider<bool>((Ref ref) async {
-  final SettingsDao settings = await ref.watch(settingsDaoProvider.future);
-  return settings.getBool(SettingKeys.onboardingDone);
-});
 
 final FutureProvider<int> projectCountProvider = FutureProvider<int>((Ref ref) async {
   final ProjectDao dao = await ref.watch(projectDaoProvider.future);
@@ -176,10 +172,23 @@ class AsrModelsController extends AsyncNotifier<List<AsrModel>> {
     return model;
   }
 
+  /// Downloads one catalogue model and refreshes both lists when it lands.
+  Future<AsrModel?> download(
+    String id, {
+    void Function(AsrDownloadProgress progress)? onProgress,
+  }) async {
+    final AsrService service = ref.read(asrServiceProvider);
+    final AsrModel? model = await service.downloadModel(id, onProgress: onProgress);
+    state = AsyncData<List<AsrModel>>(await service.listModels());
+    ref.invalidate(asrCatalogProvider);
+    return model;
+  }
+
   Future<void> delete(String path) async {
     final AsrService service = ref.read(asrServiceProvider);
     await service.deleteModel(path);
     state = AsyncData<List<AsrModel>>(await service.listModels());
+    ref.invalidate(asrCatalogProvider);
   }
 
   Future<void> refresh() async {
@@ -189,6 +198,12 @@ class AsrModelsController extends AsyncNotifier<List<AsrModel>> {
 
 final AsyncNotifierProvider<AsrModelsController, List<AsrModel>> asrModelsProvider =
     AsyncNotifierProvider<AsrModelsController, List<AsrModel>>(AsrModelsController.new);
+
+/// Models the app can fetch itself, with their installed state.
+final FutureProvider<List<AsrCatalogEntry>> asrCatalogProvider =
+    FutureProvider<List<AsrCatalogEntry>>((Ref ref) async {
+  return ref.watch(asrServiceProvider).catalog();
+});
 
 // ---------------------------------------------------------------- subtitles
 final FutureProvider<SubtitleDao> subtitleDaoProvider = FutureProvider<SubtitleDao>((Ref ref) async {
