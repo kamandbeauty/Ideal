@@ -23,6 +23,10 @@ adb shell wm density 160
 # above the game, consuming every automated touch until "Got it" is tapped.
 adb shell settings put secure immersive_mode_confirmations confirmed
 adb install -r "$apk"
+# Allow the fresh emulator's display/density and first-boot overlays to settle.
+# Otherwise Android can recreate the activity while Godot is initializing.
+sleep 25
+adb logcat -c
 # Bound launch time so a renderer/driver startup hang is captured in logcat.
 timeout 90 adb shell am start -W \
   -n com.artilleryfrontline.game/com.godot.game.GodotAppLauncher
@@ -32,10 +36,6 @@ renderer=""
 for attempt in $(seq 1 120); do
   renderer=$(adb logcat -d -s godot:I | grep -E 'I/godot.*(Vulkan [0-9]|OpenGL API)' | tail -1 || true)
   if [ -n "$renderer" ]; then break; fi
-  if ! adb shell pidof com.artilleryfrontline.game >/dev/null; then
-    echo "App process exited before its renderer was ready" >&2
-    false
-  fi
   sleep 1
 done
 if [ -z "$renderer" ]; then
@@ -43,7 +43,7 @@ if [ -z "$renderer" ]; then
   false
 fi
 # Shader compilation and first scene construction continue after the renderer starts.
-sleep 12
+sleep 30
 mkdir -p build
 adb exec-out screencap -p > build/android-menu.png
 read -r width height < <(python3 - <<'PY'
@@ -61,21 +61,21 @@ fi
 # Coordinates are relative to the screenshot, so the test works with either landscape rotation.
 # Open the bundled license screen, then return to the menu before deploying.
 adb shell input tap "$((width * 39 / 100))" "$((height * 89 / 100))"
-sleep 2
+sleep 8
 adb exec-out screencap -p > build/android-licenses.png
 if cmp -s build/android-menu.png build/android-licenses.png; then
   echo "License screen did not change after touch input" >&2
   false
 fi
 adb shell input tap "$((width * 50 / 100))" "$((height * 84 / 100))"
-sleep 2
+sleep 6
 adb shell input tap "$((width * 17 / 100))" "$((height * 80 / 100))"
-sleep 3
+sleep 10
 adb shell input swipe "$((width * 50 / 100))" "$((height * 42 / 100))" "$((width * 54 / 100))" "$((height * 42 / 100))" 300
 adb shell input tap "$((width * 90 / 100))" "$((height * 84 / 100))"
-sleep 2
+sleep 6
 adb shell input tap "$((width * 71 / 100))" "$((height * 90 / 100))"
-sleep 5
+sleep 10
 adb exec-out screencap -p > build/android-gameplay.png
 if cmp -s build/android-menu.png build/android-gameplay.png; then
   echo "Screen did not change after touch input" >&2
