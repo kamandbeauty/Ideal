@@ -17,7 +17,7 @@ env:
 jobs:
   validate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Cache verified Godot editor
@@ -53,6 +53,11 @@ jobs:
           xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --smoke-test > /tmp/smoke.log 2>&1 || { tail -100 /tmp/smoke.log; exit 1; }
           cat /tmp/smoke.log
           test -s "$PROJECT/documentation/qa/battlefield.png"
+      - name: Software-rendered coastal milestone smoke test
+        run: |
+          xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --coastal-smoke > /tmp/coastal-smoke.log 2>&1 || { tail -120 /tmp/coastal-smoke.log; exit 1; }
+          cat /tmp/coastal-smoke.log
+          test -s "$PROJECT/documentation/qa/coastal-beach.png"
       - name: Preserve validation evidence
         if: always() && github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |

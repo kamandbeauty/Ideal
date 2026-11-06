@@ -1,6 +1,7 @@
 class_name MenuScreens
 extends Control
 signal deploy_requested(id: String)
+signal coastal_requested
 signal navigation_requested(screen: String)
 signal resume_requested
 signal restart_requested
@@ -122,16 +123,17 @@ func _build_main() -> void:
 	var content := UITheme.row(50)
 	var left := UITheme.column(12)
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left.add_child(UITheme.label("OPERATION 01 / SABLE RIDGE", 20, UITheme.ACCENT, true))
+	left.add_child(UITheme.label("VISUAL MILESTONE / OPERATION TIDE WALL", 20, UITheme.ACCENT, true))
 	var title := UITheme.label("ARTILLERY\nFRONTLINE", 86, UITheme.TEXT, true)
 	title.add_theme_constant_override("line_spacing", -18)
 	left.add_child(title)
-	left.add_child(UITheme.wrapped("One gun. One sector. Make every round count.\nOriginal 3D artillery combat • offline single player", 22, UITheme.TEXT))
+	left.add_child(UITheme.wrapped("Hold the beachhead. Mounted weapons against landing waves.\nOriginal 3D coastal defense • offline single player", 22, UITheme.TEXT))
 	content.add_child(left)
 	var actions := UITheme.column(12)
 	actions.custom_minimum_size.x = 340
 	actions.add_child(UITheme.label("COMMAND DIRECTORY", 16, UITheme.MUTED))
-	actions.add_child(UITheme.button("DEPLOY TO FRONTLINE", func(): deploy_requested.emit(Profile.next_mission()), true))
+	actions.add_child(UITheme.button("DEPLOY / COASTAL DEFENSE", func(): coastal_requested.emit(), true))
+	actions.add_child(UITheme.button("LEGACY ARTILLERY CAMPAIGN", func(): deploy_requested.emit(Profile.next_mission())))
 	actions.add_child(UITheme.button("CAMPAIGN MAP", func(): navigation_requested.emit("campaign")))
 	actions.add_child(UITheme.button("ARSENAL & UPGRADES", func(): navigation_requested.emit("arsenal")))
 	actions.add_child(UITheme.button("SETTINGS", func(): settings_return = "main"; navigation_requested.emit("settings")))

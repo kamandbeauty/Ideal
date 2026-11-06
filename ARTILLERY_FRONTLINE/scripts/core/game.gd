@@ -7,6 +7,7 @@ var aim_input: AimInput
 var menus: MenuScreens
 var hud: GameplayHUD
 var battle: BattleController
+var coastal: CoastalController
 var splash_remaining: float = 1.4
 var last_mission_id: String = "sr01"
 var smoke_mode: bool = false
@@ -39,14 +40,19 @@ func _ready() -> void:
 	Events.mission_finished.connect(_on_mission_finished)
 	get_viewport().size_changed.connect(_update_safe_area)
 	_update_safe_area()
-	smoke_mode = "--smoke-test" in OS.get_cmdline_user_args()
-	if smoke_mode and ResourceLoader.exists("res://tools/game_smoke.gd"):
+	smoke_mode = "--smoke-test" in OS.get_cmdline_user_args() or "--coastal-smoke" in OS.get_cmdline_user_args()
+	if "--smoke-test" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://tools/game_smoke.gd"):
 		var smoke: Node = load("res://tools/game_smoke.gd").new()
 		smoke.set("game", self)
 		add_child(smoke)
+	if "--coastal-smoke" in OS.get_cmdline_user_args() and ResourceLoader.exists("res://tools/coastal_smoke.gd"):
+		var coastal_smoke: Node = load("res://tools/coastal_smoke.gd").new()
+		coastal_smoke.set("game", self)
+		add_child(coastal_smoke)
 
 func _connect_ui() -> void:
 	menus.deploy_requested.connect(start_mission)
+	menus.coastal_requested.connect(start_coastal_milestone)
 	menus.navigation_requested.connect(navigate)
 	menus.resume_requested.connect(resume_game)
 	menus.restart_requested.connect(func(): start_mission(last_mission_id))
@@ -75,6 +81,22 @@ func _replace_battle(mission: MissionData, active: bool) -> void:
 	if active:
 		hud.bind(battle)
 
+func start_coastal_milestone() -> void:
+	get_tree().paused = false
+	if is_instance_valid(coastal):
+		coastal.queue_free()
+	if is_instance_valid(battle):
+		world.remove_child(battle)
+		battle.queue_free()
+		battle = null
+	coastal = load("res://scenes/coastal/coastal_milestone.tscn").instantiate()
+	world.add_child(coastal)
+	coastal.exit_requested.connect(return_to_command)
+	surface.visible = false
+	menus.visible = false
+	hud.visible = false
+	Sound.play_ui()
+
 func start_mission(id: String) -> void:
 	if not id in Profile.data.unlocked:
 		menus.toast("COMPLETE THE PREVIOUS OPERATION TO UNLOCK")
@@ -88,6 +110,10 @@ func start_mission(id: String) -> void:
 
 func return_to_command() -> void:
 	get_tree().paused = false
+	if is_instance_valid(coastal):
+		coastal.queue_free()
+		coastal = null
+	surface.visible = true
 	if is_instance_valid(battle):
 		battle.missions.active = false
 	_replace_battle(load("res://resources/missions/sr01.tres"), false)
@@ -155,6 +181,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _back() -> void:
+	if is_instance_valid(coastal) and coastal.active:
+		coastal.set_paused(not coastal.paused)
+		return
 	if menus.visible:
 		match menus.current:
 			"pause": resume_game()
@@ -169,8 +198,11 @@ func _back() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		_back()
-	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT and OS.has_feature("android") and is_instance_valid(battle) and battle.active and not get_tree().paused:
-		pause_game()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT and OS.has_feature("android") and not get_tree().paused:
+		if is_instance_valid(coastal) and coastal.active:
+			coastal.set_paused(true)
+		elif is_instance_valid(battle) and battle.active:
+			pause_game()
 
 func _update_safe_area() -> void:
 	if not OS.has_feature("android"):

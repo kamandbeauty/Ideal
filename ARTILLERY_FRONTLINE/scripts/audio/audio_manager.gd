@@ -14,7 +14,7 @@ func _ready() -> void:
 	# in fast logic tests while keeping bus/resource configuration under test.
 	playback_enabled = DisplayServer.get_name() != "headless"
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	for id in ["cannon", "explosion", "reload", "click", "impact", "wind"]:
+	for id in ["cannon", "explosion", "reload", "click", "impact", "wind", "hmg", "rocket"]:
 		var path: String = "res://assets/audio/%s.wav" % id
 		if ResourceLoader.exists(path):
 			clips[id] = load(path)

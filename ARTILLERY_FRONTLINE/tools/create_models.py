@@ -372,5 +372,180 @@ def hangar():
     for y in [-8,0,8]:box('Roof ventilator',(0,y,10.55),(1.6,2.0,.6),'Gun steel',r,.08)
     finish(r,'hangar')
 
+
+def sphere(name,loc,scale,mat,parent=None,segments=20,rings=12):
+    bpy.ops.mesh.primitive_uv_sphere_add(segments=segments,ring_count=rings,radius=1,location=loc)
+    o=adopt(bpy.context.object,name,mat,parent)
+    o.scale=scale
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    for p in o.data.polygons:p.use_smooth=True
+    return o
+
+def weapon_base(r,shield=True):
+    cyl('Pedestal',(0,.35,.55),.34,.7,'Gun steel',r)
+    cyl('Traverse ring',(0,.1,.95),.62,.18,'Armor edge',r)
+    bolts(r,(0,.1,1.06),.52,10,'Z',.035,.04)
+    box('Cradle',(0,.15,1.15),(.7,.9,.34),'Field olive',r,.08)
+    if shield:
+        for s in [-1,1]:
+            box('Gun shield',(s*.52,-.28,1.42),(.5,.08,.72),'Armor edge',r,.04,(math.radians(-8),0,s*.06))
+    return empty('BarrelPivot',(0,0,1.28),r)
+
+def mounted_twin_hmg():
+    r=reset('MountedTwinHMG')
+    pivot=weapon_base(r)
+    recoil=empty('RecoilAssembly',(0,0,0),pivot)
+    box('Receiver',(0,-.18,0),(.42,.72,.26),'Gun steel',recoil,.05)
+    box('Top cover',(0,-.18,.16),(.38,.66,.06),'Armor edge',recoil,.025)
+    spin=empty('BarrelSpin',(0,-.55,0),recoil)
+    for s in [-1,1]:
+        cyl('Barrel',(s*.12,-.8,0),.045,1.6,'Gun steel',spin,'Y',20)
+        cyl('Cooling jacket',(s*.12,-.38,0),.065,.62,'Armor edge',spin,'Y',20)
+        for i in range(5):cyl('Jacket ring',(s*.12,-.16-i*.11,0),.068,.025,'Gun steel',spin,'Y',16)
+        box('Muzzle brake',(s*.12,-1.64,0),(.12,.18,.12),'Gun steel',spin,.02)
+        empty('MuzzleL' if s<0 else 'MuzzleR',(s*.12,-1.76,0),spin)
+    box('Breech',(0,.28,-.02),(.34,.26,.22),'Recoil steel',recoil,.03)
+    box('Ammo box',(.34,-.05,-.12),(.24,.4,.28),'Field olive',recoil,.035)
+    box('Ammo box L',(-.34,-.05,-.12),(.24,.4,.28),'Field olive',recoil,.035)
+    rod('Belt chute',(.24,-.12,.08),(.1,-.18,.08),.035,'Rubber',recoil)
+    rod('Belt chute L',(-.24,-.12,.08),(-.1,-.18,.08),.035,'Rubber',recoil)
+    for s in [-1,1]:
+        rod('Spade grip',(s*.2,.42,-.08),(s*.24,.62,-.16),.025,'Rubber',pivot)
+        cyl('Grip cap',(s*.24,.64,-.16),.035,.06,'Rubber',pivot,'Z',10)
+    box('Sight post',(0,-.62,.2),(.05,.05,.18),'Gun steel',pivot,.01)
+    cyl('Sight ring',(0,-.62,.3),.07,.02,'Gun steel',pivot,'Y',16)
+    hose(pivot,[(.3,.1,-.1),(.36,-.1,-.04),(.3,-.3,.02)],.02)
+    finish(r,'mounted_twin_hmg')
+
+def mounted_cannon():
+    r=reset('MountedCannon')
+    pivot=weapon_base(r)
+    recoil=empty('RecoilAssembly',(0,0,0),pivot)
+    cyl('Recoil sleeve',(0,-.45,0),.14,1.0,'Field olive',recoil,'Y',24)
+    cyl('Barrel',(0,-1.55,0),.085,1.7,'Gun steel',recoil,'Y',24)
+    for y in [-.9,-1.2]:cyl('Barrel collar',(0,y,0),.11,.08,'Armor edge',recoil,'Y',24)
+    box('Muzzle brake',(0,-2.45,0),(.26,.3,.26),'Gun steel',recoil,.035)
+    for s in [-1,1]:box('Brake port',(s*.135,-2.45,0),(.02,.18,.18),'Black bore',recoil,.005)
+    empty('Muzzle',(0,-2.64,0),recoil)
+    box('Breech',(0,.34,0),(.4,.42,.32),'Recoil steel',recoil,.045)
+    rod('Operating lever',(.22,.42,.1),(.48,.58,.18),.03,'Gun steel',pivot)
+    cyl('Elevation wheel',(-.48,.28,.05),.2,.05,'Gun steel',pivot,'X',20)
+    box('Sight housing',(.3,-.2,.24),(.2,.26,.2),'Field olive',pivot,.03)
+    cyl('Optic glass',(.3,-.34,.26),.06,.02,'Glass',pivot,'Y',16)
+    finish(r,'mounted_cannon')
+
+def mounted_rocket():
+    r=reset('MountedRocket')
+    pivot=weapon_base(r,False)
+    recoil=empty('RecoilAssembly',(0,0,0),pivot)
+    box('Pod frame',(0,-.35,0),(.66,1.1,.5),'Field olive',recoil,.06)
+    for x in [-.18,.18]:
+        for z in [-.12,.12]:
+            cyl('Launch tube',(x,-.55,z),.115,1.3,'Gun steel',recoil,'Y',20)
+            cyl('Tube cap',(x,-1.22,z),.09,.03,'Black bore',recoil,'Y',16)
+            cyl('Rocket nose',(x,-1.05,z),.075,.18,'Armor edge',recoil,'Y',14)
+    empty('Muzzle',(0,-1.28,0),recoil)
+    box('Breech',(0,.28,0),(.5,.22,.4),'Gun steel',recoil,.04)
+    box('Optics',(0,.05,.36),(.34,.3,.22),'Field olive',pivot,.035)
+    box('Optic glass',(0,-.11,.38),(.24,.025,.14),'Glass',pivot,.01)
+    for s in [-1,1]:rod('Handle',(s*.3,.3,-.12),(s*.34,.52,-.2),.025,'Rubber',pivot)
+    finish(r,'mounted_rocket')
+
+def mounted_autocannon():
+    r=reset('MountedAutocannon')
+    pivot=weapon_base(r)
+    recoil=empty('RecoilAssembly',(0,0,0),pivot)
+    box('Receiver',(0,-.2,0),(.36,.8,.3),'Gun steel',recoil,.05)
+    cyl('Barrel',(0,-1.2,0),.055,1.6,'Gun steel',recoil,'Y',22)
+    cyl('Flash hider',(0,-2.05,0),.08,.22,'Armor edge',recoil,'Y',18)
+    empty('Muzzle',(0,-2.19,0),recoil)
+    spin=empty('BarrelSpin',(0,-.6,0),recoil)
+    cyl('Barrel shroud',(0,-.2,0),.085,.5,'Armor edge',spin,'Y',20)
+    cyl('Ammo drum',(.3,.05,-.12),.22,.18,'Field olive',recoil,'X',22)
+    box('Feed chute',(.18,-.12,-.04),(.2,.3,.12),'Gun steel',recoil,.025)
+    box('Breech',(0,.3,0),(.3,.28,.24),'Recoil steel',recoil,.035)
+    box('Sight',(0,-.35,.24),(.16,.2,.16),'Field olive',pivot,.025)
+    cyl('Optic glass',(0,-.46,.26),.05,.02,'Glass',pivot,'Y',14)
+    finish(r,'mounted_autocannon')
+
+def soldier():
+    r=reset('Soldier')
+    material('Uniform',(.24,.28,.18),0.,.9)
+    material('Webbing',(.13,.15,.1),0.,.95)
+    material('Skin',(.45,.33,.25),0.,.7)
+    hips=empty('Hips',(0,0,.95),r)
+    box('Pelvis',(0,0,0),(.34,.22,.2),'Uniform',hips,.05)
+    torso=empty('Torso',(0,0,.18),hips)
+    box('Chest',(0,0,.26),(.42,.26,.5),'Uniform',torso,.08)
+    box('Vest',(0,-.13,.28),(.36,.08,.36),'Webbing',torso,.04)
+    for x in [-.12,.12]:box('Pouch',(x,-.18,.16),(.1,.06,.14),'Webbing',torso,.02)
+    box('Pack',(0,.17,.28),(.32,.12,.34),'Canvas',torso,.05)
+    neck=cyl('Neck',(0,0,.56),.06,.1,'Skin',torso,'Z',12)
+    head=empty('Head',(0,0,.66),torso)
+    sphere('Face',(0,0,0),(.11,.12,.13),'Skin',head,16,10)
+    sphere('Helmet',(0,.01,.05),(.135,.14,.11),'Field olive',head,18,10)
+    box('Visor',(0,-.11,.02),(.18,.03,.05),'Glass',head,.01)
+    for s in [-1,1]:
+        leg=empty('LegL' if s<0 else 'LegR',(s*.11,0,-.02),hips)
+        box('Thigh',(0,0,-.22),(.15,.17,.44),'Uniform',leg,.045)
+        box('Shin',(0,-.01,-.62),(.13,.15,.4),'Uniform',leg,.04)
+        box('Boot',(0,-.05,-.86),(.15,.24,.12),'Rubber',leg,.035)
+        arm=empty('ArmL' if s<0 else 'ArmR',(s*.27,0,.48),torso)
+        box('Upper arm',(0,0,-.16),(.12,.14,.32),'Uniform',arm,.04)
+        box('Forearm',(0,-.03,-.42),(.1,.12,.28),'Uniform',arm,.035)
+        sphere('Hand',(0,-.04,-.58),(.055,.06,.07),'Skin',arm,12,8)
+    rifle=empty('Rifle',(.16,-.18,.32),torso)
+    box('Rifle body',(0,0,0),(.06,.42,.1),'Gun steel',rifle,.015)
+    cyl('Rifle barrel',(0,-.3,.02),.02,.3,'Gun steel',rifle,'Y',10)
+    box('Magazine',(0,.02,-.1),(.05,.1,.14),'Black bore',rifle,.01)
+    finish(r,'soldier')
+
+def landing_craft():
+    r=reset('LandingCraft')
+    box('Hull',(0,0,.8),(4.2,11.5,1.6),'Sand armor',r,.35)
+    box('Deck',(0,.2,1.65),(3.8,10.5,.16),'Field olive',r,.06)
+    for s in [-1,1]:box('Gunwale',(s*2.0,0,1.9),(.18,11.0,.5),'Sand armor',r,.08)
+    ramp=empty('Ramp',(0,-5.7,1.2),r)
+    box('Ramp plate',(0,-1.4,0),(3.6,2.8,.16),'Armor edge',r,.05)
+    for s in [-1,1]:rod('Ramp cable',(s*1.7,-5.5,2.2),(s*1.7,-7.8,1.3),.03,'Gun steel',r)
+    box('Superstructure',(0,3.8,2.6),(2.6,2.4,1.8),'Sand armor',r,.16)
+    box('Bridge glass',(0,2.55,2.9),(2.2,.05,.6),'Glass',r,.02)
+    cyl('Mast',(0,4.2,4.0),.06,1.8,'Gun steel',r,'Z',10)
+    box('Radar',(0,4.2,4.9),(.7,.12,.16),'Gun steel',r,.02)
+    for y in [-3,-1,1,3]:box('Cleat',(1.9,y,2.15),(.12,.3,.12),'Gun steel',r,.02)
+    finish(r,'landing_craft')
+
+def helicopter():
+    r=reset('Helicopter')
+    sphere('Fuselage',(0,0,1.1),(1.1,2.6,1.1),'Field olive',r,22,14)
+    box('Cabin glass',(0,-1.9,1.3),(.9,.7,.6),'Glass',r,.12)
+    box('Tail boom',(0,3.4,1.3),(.34,4.2,.34),'Field olive',r,.1)
+    box('Tail fin',(0,5.3,1.9),(.12,.7,1.2),'Armor edge',r,.05)
+    rotor=empty('Rotor',(0,0,2.25),r)
+    cyl('Rotor hub',(0,0,0),.14,.18,'Gun steel',rotor,'Z',12)
+    for i in range(4):
+        a=i*math.tau/4
+        blade=box('Blade',(math.cos(a)*2.4,math.sin(a)*2.4,.06),(4.8,.22,.04),'Black bore',rotor,.01)
+        blade.rotation_euler[2]=a
+    tail=empty('TailRotor',(0.22,5.3,1.9),r)
+    box('Tail blade',(0,0,0),(.04,.9,.08),'Black bore',tail,.005)
+    for s in [-1,1]:
+        rod('Skid',(s*.8,-1.4,.15),(s*.8,1.6,.15),.05,'Gun steel',r)
+        rod('Skid strut F',(s*.7,-.9,.2),(s*.8,-.9,.7),.04,'Gun steel',r)
+        rod('Skid strut R',(s*.7,.9,.2),(s*.8,.9,.7),.04,'Gun steel',r)
+    finish(r,'helicopter')
+
+def patrol_boat():
+    r=reset('PatrolBoat')
+    box('Hull',(0,0,.5),(2.2,7.0,1.0),'Sand armor',r,.28)
+    box('Deck',(0,0,1.05),(2.0,6.4,.12),'Field olive',r,.05)
+    box('Cabin',(0,.8,1.7),(1.5,1.8,1.1),'Sand armor',r,.12)
+    box('Cabin glass',(0,-.12,1.85),(1.2,.05,.45),'Glass',r,.02)
+    cyl('Mast',(0,1.4,2.8),.04,1.2,'Gun steel',r,'Z',8)
+    cyl('Bow gun',(0,-2.2,1.35),.08,.7,'Gun steel',r,'Y',12)
+    box('Gun shield',(0,-1.9,1.45),(.5,.08,.4),'Armor edge',r,.03)
+    finish(r,'patrol_boat')
 if __name__=='__main__':
     kestrel();warden();nomad();sentry();hangar()
+    mounted_twin_hmg();mounted_cannon();mounted_rocket();mounted_autocannon()
+    soldier();landing_craft();helicopter();patrol_boat()
