@@ -82,8 +82,7 @@ func _replace_battle(mission: MissionData, active: bool) -> void:
 		hud.bind(battle)
 
 func start_coastal_milestone() -> void:
-	if is_instance_valid(splash):
-		splash.queue_free()
+	splash_remaining = 0.0
 	get_tree().paused = false
 	if is_instance_valid(coastal):
 		coastal.queue_free()
