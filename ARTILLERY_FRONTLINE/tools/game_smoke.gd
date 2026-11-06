@@ -43,9 +43,11 @@ func run() -> void:
 	Graphics.apply_preference()
 	await get_tree().create_timer(0.8).timeout
 	await capture("battlefield-ultra")
-	Profile.data.settings.quality = "high"
+	# Gameplay assertions run at the balanced tier so software rendering cannot
+	# starve the fixed-step simulation; visual evidence above stays high/ultra.
+	Profile.data.settings.quality = "medium"
 	Graphics.apply_preference()
-	await get_tree().create_timer(0.4).timeout
+	await get_tree().create_timer(0.6).timeout
 	for id in battle.mission.target_ids:
 		var attempts: int = 0
 		var target: EnemyTarget
