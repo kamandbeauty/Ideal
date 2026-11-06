@@ -1,0 +1,17 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): true
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+Signer #1 certificate DN: CN=Artillery Frontline Development, O=Frontline, C=DE
+Signer #1 certificate SHA-256 digest: 5bb535d46228e44a2b7a94791579cc735a71c9498eaba842b8164ec72476dd9d
+Signer #1 certificate SHA-1 digest: 9159c27446803532c67c621adbfd71723b435169
+Signer #1 certificate MD5 digest: deac8f8ac6d14cea3e7072b1281396fa
+Signer #1 key algorithm: RSA
+Signer #1 key size (bits): 2048
+Signer #1 public key SHA-256 digest: 00d51afb592db2a66b3d444173f7a443f5e6dc0542921e5c2d24c8f9a1318e4e
+Signer #1 public key SHA-1 digest: 505dbeb934004cf933c98b12772a32aea1d516cc
+Signer #1 public key MD5 digest: ce7f98beff7536db1e0f112785b7a893

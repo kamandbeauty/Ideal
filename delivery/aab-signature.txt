@@ -1,0 +1,8 @@
+
+  s = signature was verified 
+  m = entry is listed in manifest
+  k = at least one certificate was found in keystore
+
+no manifest.
+
+jar is unsigned.
