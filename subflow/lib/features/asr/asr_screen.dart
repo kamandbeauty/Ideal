@@ -40,6 +40,7 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   bool _importing = false;
   String? _downloadingId;
   AsrDownloadProgress? _download;
+  bool _userCancelled = false;
 
   static const List<Map<String, String>> _languages = <Map<String, String>>[
     <String, String>{'code': 'auto', 'label': 'تشخیص خودکار'},
@@ -59,7 +60,7 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
         leadingWidth: 56,
         title: const Text('تشخیص گفتار'),
         actions: <Widget>[
-          if (_running)
+          if (_running || _downloadingId != null)
             Padding(
               padding: const EdgeInsets.only(left: 16),
               child: TextButton(
@@ -210,8 +211,9 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
         );
       }
     } on Object catch (error) {
-      if (mounted) setState(() => _error = _humanize(error));
+      if (mounted && !_userCancelled) setState(() => _error = _humanize(error));
     } finally {
+      _userCancelled = false;
       if (mounted) {
         setState(() {
           _downloadingId = null;
@@ -244,10 +246,13 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   }
 
   Future<void> _cancel() async {
+    _userCancelled = true;
     await ref.read(asrServiceProvider).cancel();
     if (!mounted) return;
     setState(() {
       _running = false;
+      _downloadingId = null;
+      _download = null;
       _error = null;
     });
   }
@@ -283,8 +288,9 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
     if (!result.ok) {
       setState(() {
         _running = false;
-        _error = result.error ?? 'تشخیص گفتار ناموفق بود.';
+        if (!_userCancelled) _error = result.error ?? 'تشخیص گفتار ناموفق بود.';
       });
+      _userCancelled = false;
       return;
     }
     try {
