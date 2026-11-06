@@ -100,10 +100,22 @@ the UI are guidance, not measurements.
 | ASan + UBSan | clean |
 | `check-jni` (syntax only, stub jni.h) | OK |
 | `check_schema.py` | 43 assertions |
-| `check-project.py` | 856+ assertions |
-| `flutter analyze` | 0 errors (CI) |
-| `flutter test` | 84+ cases (CI) |
-| APK | arm64-v8a + x86_64, `libsubflow_core.so` includes whisper |
+| `check-project.py` | 862 assertions |
+| `flutter analyze` | 0 errors (CI run `42130184708`) |
+| `flutter test` | 91 cases / 8 files, all green in CI |
+| APK | arm64-v8a + x86_64, 46,959,547 B, `libsubflow_core.so` includes whisper |
+
+The whisper build itself was also validated outside Android while writing this:
+the vendored tree configures and builds on the host (cmake 4.4, g++ 12) and
+`sf_asr.cpp` compiles and links against it with `SF_HAVE_WHISPER=1`; a smoke
+program confirmed `AsrAvailable() == true`, a missing model refused with a
+message, and `Transcribe` refused cleanly with `no model is loaded`. Two build
+regressions found that way (a lost field declaration, `-ffast-math` leaking into
+ggml, a Double/Float mix in the resampler) were fixed before the tag.
+
+Tag `subflow-v0.3.0` → CI run `42131874848` ✅ published
+`subflow-0.3.0-release.apk` (+ `.sha256`) on the `subflow-apk-latest` release;
+the 0.2.2 assets were removed.
 
 ## 5. Known limits
 
