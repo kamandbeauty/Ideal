@@ -72,10 +72,10 @@ func _read_valid(file_path: String) -> Dictionary:
 	var file := FileAccess.open(file_path, FileAccess.READ)
 	if file == null:
 		return {}
-	var decoded: Variant = JSON.parse_string(file.get_as_text())
-	if not decoded is Dictionary:
+	var parser := JSON.new()
+	if parser.parse(file.get_as_text()) != OK or not parser.data is Dictionary:
 		return {}
-	var result: Dictionary = decoded
+	var result: Dictionary = parser.data
 	var version: Variant = result.get("version", null)
 	if typeof(version) not in [TYPE_INT, TYPE_FLOAT] or float(version) != float(VERSION):
 		return {}
