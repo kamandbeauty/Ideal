@@ -76,7 +76,8 @@ List<Keyframe> moveKeyframeTime(List<Keyframe> kfs, int index, double time,
   final hi = index == kfs.length - 1
       ? math.max(lo, kfs[index].time)
       : kfs[index + 1].time - minGap;
-  final t = time.clamp(lo, math.max(lo, hi));
+  // clamp() on a double returns num; copyWith(time:) wants a double.
+  final t = time.clamp(lo, math.max(lo, hi)).toDouble();
   final out = List<Keyframe>.of(kfs);
   out[index] = out[index].copyWith(time: t);
   return out;

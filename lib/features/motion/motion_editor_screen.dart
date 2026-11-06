@@ -17,8 +17,10 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-// Viewport/ImageFit are the camera_math.dart classes, not the Flutter ones.
-import 'package:flutter/material.dart' hide ValueSlider, Viewport, ImageFit;
+// Viewport/ImageFit are the camera_math.dart classes, not the Flutter ones;
+// Easing is core/utils/easing.dart, not Flutter's material Easing.
+import 'package:flutter/material.dart'
+    hide ValueSlider, Viewport, ImageFit, Easing;
 import 'package:flutter/painting.dart' show MatrixUtils;
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,6 +38,7 @@ import '../../core/models/motion_profile.dart';
 import '../../core/models/motion_type.dart';
 import '../../core/models/photo_item.dart';
 import '../../core/utils/easing.dart';
+import '../preview/motion_preview.dart';
 import '../../core/utils/img_proc_math.dart';
 import '../motion/camera_math.dart';
 import '../preview/preview_transform.dart';
@@ -960,15 +963,16 @@ class _MotionCanvasPainter extends CustomPainter {
 
     CameraState cam() => motion.sample(playhead.clamp(0.0, photo.duration), fit, vp);
 
-    if (image != null) {
+    final img = image; // local copy so the null-check promotes the type
+    if (img != null) {
       final m = previewMatrix(
           cam: cam(), fit: fit, vp: vp, outputSize: size);
       canvas.save();
       canvas.clipRect(Offset.zero & size);
       canvas.transform(m.storage);
       canvas.drawImageRect(
-        image,
-        Rect.fromLTWH(0, 0, image.width.toDouble(), image.height.toDouble()),
+        img,
+        Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
         const Rect.fromLTWH(0, 0, 1, 1),
         Paint()..filterQuality = FilterQuality.medium,
       );

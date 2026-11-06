@@ -270,7 +270,8 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
               onTap: () {
                 ref.read(projectEditorProvider.notifier).selectPhoto(p.id);
                 final notifier = ref.read(playbackProvider.notifier);
-                final segs = st.segments();
+                final segs =
+                    buildSegments(st.photoIds, st.durations, st.transitions);
                 if (i < segs.length) notifier.seek(segs[i].start + 0.001);
               },
               onLongPress: () => context.push(

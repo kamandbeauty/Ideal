@@ -19,6 +19,10 @@ dependencies:
   flutter_riverpod: ^2.5.1
   go_router: ^14.2.0
 
+  # Matrix4 for the preview painters (transitive dep of Flutter, declared
+  # because lib/ imports it directly).
+  vector_math: ^2.1.4
+
   # Storage
   sqflite: ^2.3.3
   path_provider: ^2.1.4

@@ -2,6 +2,7 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:motionshot/core/constants/app_constants.dart';
 import 'package:motionshot/core/models/keyframe.dart';
 import 'package:motionshot/core/models/motion_profile.dart';
 import 'package:motionshot/core/models/motion_type.dart';

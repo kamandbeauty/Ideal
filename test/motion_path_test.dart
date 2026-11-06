@@ -17,6 +17,9 @@ import 'package:motionshot/features/motion/random.dart';
 import 'package:motionshot/features/motion/random_motion.dart';
 import 'package:motionshot/features/motion_path/motion_path_engine.dart';
 
+/// dart:math has no hypot; mirror the reference sqrt(x*x + y*y).
+double _hypot(double a, double b) => math.sqrt(a * a + b * b);
+
 Map<String, dynamic> _golden(String name) {
   final f = File('test/golden/$name.json');
   if (!f.existsSync()) {
@@ -135,7 +138,9 @@ void main() {
         for (var i = 0; i <= 100; i++) {
           final t = _duration * i / 100;
           final st = evaluatePath(spec, _fit, _vp, t, _duration);
-          final (bw, bh) = halfExtent(_vp, st.scale, st.rotation);
+          final he = halfExtent(_vp, st.scale, st.rotation);
+          final bw = he.bw;
+          final bh = he.bh;
           expect(bw <= _fit.iw + 1e-9 && bh <= _fit.ih + 1e-9, isTrue,
               reason: '$name cover@$i');
         }
@@ -150,15 +155,15 @@ void main() {
         final spec =
             _specFrom(specs[name]['spec'] as Map<String, dynamic>);
         final lut = buildArcLut(spec);
-        final pts = <(double, double)>[
+        final pts = <({double x, double y})>[
           for (var j = 0; j <= 400; j++)
             rawPathPoint(spec, paramAtArc(spec, lut, lut.total * j / 400)),
         ];
         var maxD = 0.0;
         var minD = double.infinity;
         for (var j = 0; j < 400; j++) {
-          final d = math.hypot(pts[j + 1].$1 - pts[j].$1,
-              pts[j + 1].$2 - pts[j].$2);
+          final d = _hypot(pts[j + 1].x - pts[j].x,
+              pts[j + 1].y - pts[j].y);
           maxD = math.max(maxD, d);
           minD = math.min(minD, d);
         }
@@ -180,11 +185,11 @@ void main() {
             _specFrom(specs[name]['spec'] as Map<String, dynamic>);
         final a = rawPathPoint(spec, 0.0);
         final b = rawPathPoint(spec, 1.0);
-        final posJump = math.hypot(a.$1 - b.$1, a.$2 - b.$2);
+        final posJump = _hypot(a.x - b.x, a.y - b.y);
         final ta = pathTangent(spec, 0.0);
         final tb = pathTangent(spec, 1.0);
         var ang =
-            (math.atan2(ta.$2, ta.$1) - math.atan2(tb.$2, tb.$1)).abs();
+            (math.atan2(ta.y, ta.x) - math.atan2(tb.y, tb.x)).abs();
         ang = math.min(ang, 2 * math.pi - ang);
         final bound = 2 * math.pi * e * spec.turns + 0.005;
         final golden = entry as Map<String, dynamic>;
@@ -244,7 +249,7 @@ void main() {
           final right =
               crSegmentDerivative(pts[i - 1], pts[i], pR2, pR3, false);
           worst = math.max(worst,
-              math.max((left.$1 - right.$1).abs(), (left.$2 - right.$2).abs()));
+              math.max((left.x - right.x).abs(), (left.y - right.y).abs()));
         }
         expectClose(worst, (worstGolden as num).toDouble(), '$name c1',
             tol: 1e-9);
@@ -275,8 +280,8 @@ void main() {
       }
       // Endpoints are (nearly) preserved by the pipeline.
       expect(
-          math.hypot(out[0].x - raw[0].x, out[0].y - raw[0].y), lessThan(0.01));
-      expect(math.hypot(out.last.x - raw.last.x, out.last.y - raw.last.y),
+          _hypot(out[0].x - raw[0].x, out[0].y - raw[0].y), lessThan(0.01));
+      expect(_hypot(out.last.x - raw.last.x, out.last.y - raw.last.y),
           lessThan(0.01));
     });
 
@@ -400,7 +405,9 @@ void main() {
       for (var i = 0; i <= 50; i++) {
         final t = _duration * i / 50;
         final st = evaluatePath(s, _fit, _vp, t, _duration);
-        final (bw, bh) = halfExtent(_vp, st.scale, st.rotation);
+        final he = halfExtent(_vp, st.scale, st.rotation);
+        final bw = he.bw;
+        final bh = he.bh;
         expect(bw <= _fit.iw + 1e-9 && bh <= _fit.ih + 1e-9, isTrue,
             reason: 'cover@$i');
       }

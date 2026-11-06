@@ -7,9 +7,9 @@ library;
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' show ImageByteFormat, instantiateImageCodec;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/painting.dart';
 import 'package:path/path.dart' as p;
 
 class ThumbnailService {

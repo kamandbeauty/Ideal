@@ -545,7 +545,7 @@ double _clampD(double v, double lo, double hi) => v < lo ? lo : (v > hi ? hi : v
 /// the maximum zoom / rotation the envelope reaches.
 MotionPathSpec sanitizePath(MotionPathSpec spec, ImageFit fit, Viewport vp) {
   final rMax =
-      math.max(abs(spec.startRotation), abs(spec.endRotation));
+      math.max(spec.startRotation.abs(), spec.endRotation.abs());
   final sZoom = math.max(spec.startZoom, spec.endZoom);
   final sMin = minScaleAtRotation(fit, vp, rMax) * kScalePad;
   final startZoom = spec.startZoom >= sMin ? spec.startZoom : sMin;

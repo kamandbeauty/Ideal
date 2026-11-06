@@ -362,9 +362,6 @@ class _PathEditorScreenState extends ConsumerState<PathEditorScreen>
               onScaleEnd: (_) {
                 _finishHandleDrag();
               },
-              onScaleCancel: (_) {
-                _finishHandleDrag();
-              },
               onPanStart: _drawMode ? (details) => _strokeStart(details, size) : null,
               onPanUpdate:
                   _drawMode ? (details) => _strokeUpdate(details, size) : null,
@@ -770,11 +767,11 @@ class _PathEditorScreenState extends ConsumerState<PathEditorScreen>
                           ButtonSegment<int>(
                               value: -1,
                               label: Text('CW'),
-                              icon: Icons.refresh_rounded),
+                              icon: Icon(Icons.refresh_rounded)),
                           ButtonSegment<int>(
                               value: 1,
                               label: Text('CCW'),
-                              icon: Icons.refresh_rounded),
+                              icon: Icon(Icons.refresh_rounded)),
                         ],
                         selected: {spec.direction == -1 ? -1 : 1},
                         onSelectionChanged: (s) => _edit(
@@ -1070,10 +1067,11 @@ class _PathCanvasPainter extends CustomPainter {
     // The motion path: uniform-arc polyline of the raw trajectory.
     final lut = buildArcLut(spec);
     const steps = 240;
-    final pathPts = <Offset>[
-      for (var j = 0; j <= steps; j++)
-        toScreen(..._rawAt(spec, lut, j / steps)),
-    ];
+    final pathPts = <Offset>[];
+    for (var j = 0; j <= steps; j++) {
+      final p = _rawAt(spec, lut, j / steps);
+      pathPts.add(toScreen(p.x, p.y));
+    }
     if (pathPts.length > 1) {
       final path = Path()..moveTo(pathPts.first.dx, pathPts.first.dy);
       for (final p in pathPts.skip(1)) {
@@ -1090,7 +1088,8 @@ class _PathCanvasPainter extends CustomPainter {
     // Direction arrows at fixed arc fractions.
     for (final frac in const <double>[0.15, 0.35, 0.55, 0.75]) {
       final u = paramAtArc(spec, lut, frac * lut.total);
-      final pos = toScreen(..._rawAt(spec, lut, frac));
+      final fp = _rawAt(spec, lut, frac);
+      final pos = toScreen(fp.x, fp.y);
       final tan = pathTangent(spec, u);
       final dir = Offset(tan.x, -tan.y); // y down on screen
       final dl = dir.distance;
@@ -1110,8 +1109,10 @@ class _PathCanvasPainter extends CustomPainter {
     }
 
     // Start / end markers.
-    final startP = toScreen(..._rawAt(spec, lut, 0.0));
-    final endP = toScreen(..._rawAt(spec, lut, 1.0));
+    final s0 = _rawAt(spec, lut, 0.0);
+    final s1 = _rawAt(spec, lut, 1.0);
+    final startP = toScreen(s0.x, s0.y);
+    final endP = toScreen(s1.x, s1.y);
     canvas.drawCircle(startP, 8, Paint()..color = const Color(0xFF66BB6A));
     canvas.drawCircle(startP, 11, Paint()
       ..style = PaintingStyle.stroke

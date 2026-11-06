@@ -14,6 +14,7 @@ import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
 import '../../core/models/project.dart';
 import '../../core/storage/project_repository.dart';
+import '../project/project_editor_controller.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -92,7 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         size: 18, color: context.theme.colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(l10n.t('home_recent'),
-                        style: context.theme.textTheme.titleMedium?
+                        style: context.theme.textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w600)),
                   ],
                 ),

@@ -17,6 +17,7 @@ import '../../app/widgets/common.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/models/export_settings.dart';
 import '../../core/utils/ratio_utils.dart';
+import 'export_request_builder.dart';
 import '../platform/native_video_bridge/video_bridge.dart';
 import '../project/project_editor_controller.dart';
 
