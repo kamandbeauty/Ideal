@@ -42,12 +42,12 @@ Install matching 4.7.2 export templates and Android SDK/JDK first. A debug keyst
 ```sh
 mkdir -p build
 godot --headless --editor --path . --import --quit
-godot --headless --path . --export-debug "Android" build/ARTILLERY_FRONTLINE-debug.apk
-# AAB requires the Android Gradle build template and a working Gradle/SDK installation:
-godot --headless --path . --install-android-build-template --export-debug "Android AAB" build/ARTILLERY_FRONTLINE-debug.aab
+# Both presets use Godot's Gradle build template and a working Gradle/SDK installation:
+godot --headless --path . --install-android-build-template --export-debug "Android" build/ARTILLERY_FRONTLINE-debug.apk
+godot --headless --path . --export-debug "Android AAB" build/ARTILLERY_FRONTLINE-debug.aab
 ```
 
-The debug APK is for testing, not a store release. The GitHub Actions workflow generates a disposable debug keystore and uploads debug artifacts; its hosted build may need network access for tool installation. To create a release, configure a private release keystore and the `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `GODOT_ANDROID_KEYSTORE_RELEASE_USER`, and `GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD` environment variables from GitHub Secrets or a secure local environment. Never commit the keystore or credentials. Independently verify the signed artifacts and test installation on representative devices.
+Both Android deliverables use the Gradle template rather than direct APK patching; the latter produced duplicate provider authorities with the 4.7.2 template in this environment. The debug APK is for testing, not a store release. The GitHub Actions workflow generates a disposable debug keystore and uploads debug artifacts; its hosted build may need network access for tool installation. To create a release, configure a private release keystore and the `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `GODOT_ANDROID_KEYSTORE_RELEASE_USER`, and `GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD` environment variables from GitHub Secrets or a secure local environment. Never commit the keystore or credentials. Independently verify the signed artifacts and test installation on representative devices.
 
 ## Known limitations / next work
 

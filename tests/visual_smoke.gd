@@ -20,6 +20,18 @@ func _run() -> void:
 	await create_timer(1.0).timeout
 	await RenderingServer.frame_post_draw
 	_capture("build/visual-gameplay.png")
+	var frame_count := 0
+	var sample_start := Time.get_ticks_usec()
+	while Time.get_ticks_usec() - sample_start < 1000000:
+		await process_frame
+		frame_count += 1
+	var sample_seconds := float(Time.get_ticks_usec() - sample_start) / 1000000.0
+	print(
+		(
+			"Software rendering observation: %.1f FPS at 1280x720 (%.1f s)"
+			% [frame_count / sample_seconds, sample_seconds]
+		)
+	)
 
 	# A touch beginning on FIRE must activate the button, not the aim drag.
 	var fire_point: Vector2 = game.hud._fire_button.get_global_rect().get_center()
@@ -65,6 +77,21 @@ func _run() -> void:
 	Input.parse_input_event(release)
 	await process_frame
 	_check(game.gun.yaw_degrees != initial_yaw, "touch drag on the battlefield aims the gun")
+	game.gun.set_aim(0, 26)
+	var radar := game.get_node("Radar") as BattlefieldTarget
+	for i in range(420):
+		await physics_frame
+		if radar.is_destroyed:
+			break
+	_check(radar.is_destroyed, "touch-fired shell hits and destroys the radar")
+	if radar.is_destroyed:
+		await create_timer(0.15).timeout
+		await RenderingServer.frame_post_draw
+		_capture("build/visual-impact.png")
+		var effect_active := false
+		for effect in game.effects._explosions:
+			effect_active = effect_active or effect.active
+		_check(effect_active, "pooled impact effect is active after a hit")
 
 	game.queue_free()
 	await process_frame

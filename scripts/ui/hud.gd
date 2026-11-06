@@ -226,11 +226,11 @@ func _build_gameplay() -> void:
 	_label(top, "OPERATION 01", Vector2(283, 13), Vector2(140, 18), 10, MUTED, false, true)
 	_label(top, "DUSTLINE", Vector2(283, 27), Vector2(160, 32), 24, SAND, true)
 	var telemetry := _anchored(top, Control.PRESET_CENTER_TOP, -175, 9, 175, 64)
-	_label(telemetry, "BEARING", Vector2(0, 0), Vector2(90, 15), 10, MUTED, false, true)
+	_label(telemetry, "BEARING", Vector2(0, 0), Vector2(90, 15), 12, MUTED, false, true)
 	_bearing = _label(telemetry, "000°", Vector2(0, 14), Vector2(100, 30), 24, SAND, true)
-	_label(telemetry, "ELEVATION", Vector2(115, 0), Vector2(90, 15), 10, MUTED, false, true)
+	_label(telemetry, "ELEVATION", Vector2(115, 0), Vector2(90, 15), 12, MUTED, false, true)
 	_elevation = _label(telemetry, "26°", Vector2(115, 14), Vector2(100, 30), 24, SAND, true)
-	_label(telemetry, "IMPACT", Vector2(235, 0), Vector2(90, 15), 10, MUTED, false, true)
+	_label(telemetry, "IMPACT", Vector2(235, 0), Vector2(90, 15), 12, MUTED, false, true)
 	_range = _label(telemetry, "--- M", Vector2(235, 14), Vector2(110, 30), 24, GOLD, true)
 	var top_right := _anchored(top, Control.PRESET_TOP_RIGHT, -240, 10, -26, 60)
 	_timer = _label(top_right, "00:00", Vector2(0, 12), Vector2(80, 28), 20, SAND, false, true)
@@ -238,10 +238,10 @@ func _build_gameplay() -> void:
 	pause_button.pressed.connect(pause_requested.emit)
 
 	var objective := _panel(_gameplay, Vector2(28, 88), Vector2(254, 76), PANEL)
-	_label(objective, "PRIMARY OBJECTIVE", Vector2(14, 10), Vector2(210, 16), 10, GOLD, false, true)
+	_label(objective, "PRIMARY OBJECTIVE", Vector2(14, 10), Vector2(210, 16), 12, GOLD, false, true)
 	_label(objective, "NEUTRALIZE THE OUTPOST", Vector2(14, 25), Vector2(225, 22), 17, SAND, true)
 	_objective = _label(
-		objective, "0 / 3  TARGETS", Vector2(14, 49), Vector2(200, 16), 11, MUTED, false, true
+		objective, "0 / 3  TARGETS", Vector2(14, 49), Vector2(200, 16), 13, MUTED, false, true
 	)
 
 	_target_panel = _anchored(_gameplay, Control.PRESET_TOP_RIGHT, -253, 88, -28, 155)
@@ -253,7 +253,7 @@ func _build_gameplay() -> void:
 		_target_panel, "TARGET", Vector2(12, 22), Vector2(200, 20), 16, SAND, true
 	)
 	_target_health = _label(
-		_target_panel, "INTEGRITY  100%", Vector2(12, 44), Vector2(200, 15), 10, MUTED, false, true
+		_target_panel, "INTEGRITY  100%", Vector2(12, 44), Vector2(200, 15), 12, MUTED, false, true
 	)
 	_target_panel.visible = false
 
@@ -271,11 +271,11 @@ func _build_gameplay() -> void:
 	)
 	_label(bottom_left, "M-70 BASTION", Vector2(14, 25), Vector2(220, 29), 24, SAND, true)
 	_ammo_name = _label(
-		bottom_left, "HIGH EXPLOSIVE", Vector2(14, 57), Vector2(180, 18), 11, MUTED, false, true
+		bottom_left, "HIGH EXPLOSIVE", Vector2(14, 57), Vector2(180, 18), 13, MUTED, false, true
 	)
 	_ammo_count = _label(bottom_left, "18", Vector2(228, 27), Vector2(52, 42), 35, GOLD, true)
 	_status = _label(
-		bottom_left, "ROUND CHAMBERED", Vector2(14, 80), Vector2(240, 18), 11, SAND, false, true
+		bottom_left, "ROUND CHAMBERED", Vector2(14, 80), Vector2(240, 18), 13, SAND, false, true
 	)
 	_he_button = _button(bottom_left, "HE  /  BLAST", Vector2(14, 107), Vector2(129, 39))
 	_ap_button = _button(bottom_left, "AP  /  ARMOR", Vector2(152, 107), Vector2(129, 39))
@@ -298,7 +298,7 @@ func _build_gameplay() -> void:
 		"",
 		Vector2.ZERO,
 		Vector2(420, 26),
-		13,
+		15,
 		GOLD,
 		false,
 		true,
@@ -310,7 +310,7 @@ func _build_gameplay() -> void:
 		"DRAG TO AIM  /  SPACE TO FIRE",
 		Vector2(0, 28),
 		Vector2(420, 20),
-		10,
+		12,
 		SAND,
 		false,
 		true,

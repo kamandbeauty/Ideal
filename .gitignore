@@ -14,3 +14,6 @@ export_credentials.cfg
 *.log
 # Generated Gradle project (install with Godot's Android build template)
 android/
+# Python test cache
+__pycache__/
+*.pyc

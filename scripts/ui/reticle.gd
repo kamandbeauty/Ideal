@@ -26,7 +26,7 @@ func update_markers(markers: Array[Dictionary]) -> void:
 func _draw() -> void:
 	for marker in target_markers:
 		var point: Vector2 = marker.position
-		if point.x < 20 or point.x > size.x - 140 or point.y < 80 or point.y > size.y - 150:
+		if point.x < 20 or point.x > size.x - 155 or point.y < 80 or point.y > size.y - 150:
 			continue
 		var color := Color("e8b34f")
 		draw_line(point + Vector2(0, 5), point + Vector2(0, 20), color, 1.0, true)
@@ -44,9 +44,9 @@ func _draw() -> void:
 			1.5,
 			true
 		)
-		draw_rect(Rect2(point + Vector2(10, -16), Vector2(116, 19)), Color(0.05, 0.08, 0.06, 0.82))
+		draw_rect(Rect2(point + Vector2(10, -16), Vector2(132, 21)), Color(0.05, 0.08, 0.06, 0.82))
 		draw_string(
-			_mono, point + Vector2(15, -2), marker.name, HORIZONTAL_ALIGNMENT_LEFT, 108, 10, color
+			_mono, point + Vector2(15, -2), marker.name, HORIZONTAL_ALIGNMENT_LEFT, 124, 12, color
 		)
 	if (
 		aim_position.x < 0
