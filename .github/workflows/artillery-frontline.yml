@@ -2,7 +2,7 @@ name: ARTILLERY FRONTLINE
 on:
   push:
     branches: [arena/40ad7d87-ideal]
-    paths: ['ARTILLERY_FRONTLINE/project.godot', 'ARTILLERY_FRONTLINE/scripts/**', 'ARTILLERY_FRONTLINE/scenes/**', 'ARTILLERY_FRONTLINE/resources/**', 'ARTILLERY_FRONTLINE/tests/**']
+    paths: ['ARTILLERY_FRONTLINE/**', '!ARTILLERY_FRONTLINE/documentation/**', '!ARTILLERY_FRONTLINE/**/*.md', '.github/workflows/artillery-frontline.yml']
   workflow_dispatch:
 permissions:
   contents: write
