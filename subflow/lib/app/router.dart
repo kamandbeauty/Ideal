@@ -24,7 +24,7 @@ final GoRouter subFlowRouter = GoRouter(
     // is pushed on top so tab state survives, which is how short-form editors
     // behave and why there is no welcome carousel in front of it.
     StatefulShellRoute.indexedStack(
-      builder: (BuildContext context, GoRouterState state, StatefulNavigationShell shell) =>
+      builder: (_, GoRouterState state, StatefulNavigationShell shell) =>
           AppShell(navigationShell: shell),
       branches: <StatefulShellBranch>[
         StatefulShellBranch(

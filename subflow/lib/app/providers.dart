@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../core/constants.dart';
 import '../core/errors.dart';
 import '../core/platform/contracts.dart';
 import '../core/platform/native_bridge.dart';
