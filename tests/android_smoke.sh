@@ -63,8 +63,10 @@ if cmp -s build/android-menu.png build/android-gameplay.png; then
 fi
 adb shell pidof com.artilleryfrontline.game >/dev/null
 adb logcat -d > build/android-logcat.txt
-if grep -E 'FATAL EXCEPTION|SCRIPT ERROR' build/android-logcat.txt; then
+if grep -E 'FATAL EXCEPTION|SCRIPT ERROR|E/godot.*ERROR:' build/android-logcat.txt; then
   echo "Android runtime reported a fatal or GDScript error" >&2
   false
 fi
+renderer=$(grep -E 'I/godot.*(Vulkan|OpenGL API)' build/android-logcat.txt | tail -1 | tr '\n' '|')
+echo "::notice title=Android renderer::$renderer"
 echo "::notice title=Android emulator smoke::Installed and launched; landscape ${width}x${height}; touch actions sent; process alive"

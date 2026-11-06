@@ -318,7 +318,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
+          emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -noaudio -no-boot-anim -camera-back none -memory 2048
           script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
       - name: Upload Android smoke evidence
         if: always() && hashFiles('build/android-*.png') != ''
@@ -388,7 +388,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
+          emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -noaudio -no-boot-anim -camera-back none -memory 2048
           script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
       - name: Upload Android smoke evidence
         if: always() && hashFiles('build/android-*.png') != ''
