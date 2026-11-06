@@ -12,7 +12,7 @@ The sandbox originally had no Godot, Blender, Java, Android SDK, templates or de
 
 ## Automated build
 
-Run **ARTILLERY FRONTLINE** workflow on the session branch. It performs import, unit/integration tests, a software-rendered gameplay smoke test, then APK/AAB export. It explicitly JAR-signs the AAB when the Gradle exporter leaves it unsigned, then strict-verifies it. It verifies both APK signatures and certificate reports, the AAB jarsignature and META-INF signature block, ARM64 native libraries, project payload, ZIP CRC, package IDs, min/target SDK, decoded landscape orientation and absence of INTERNET permission. The Gradle source template is installed with Godot's `android/.build_version` identifier and a `build/.gdignore` marker.
+Run **ARTILLERY FRONTLINE** workflow on the session branch. It performs import, unit/integration tests, a software-rendered gameplay smoke test, then APK/AAB export. It explicitly JAR-signs the AAB when the Gradle exporter leaves it unsigned, then verifies its JAR signature. It verifies both APK signatures and certificate reports, the AAB jarsignature and META-INF signature block, ARM64 native libraries, project payload, ZIP CRC, package IDs, min/target SDK, decoded landscape orientation and absence of INTERNET permission. The Gradle source template is installed with Godot's `android/.build_version` identifier and a `build/.gdignore` marker.
 
 Presets:
 
@@ -43,6 +43,6 @@ godot --headless --path ARTILLERY_FRONTLINE --export-release "Android AAB" res:/
 
 For a connected test device, `adb install -r delivery/Artillery-Frontline-arm64.apk` installs the primary test APK; use the `.compatibility` APK if Vulkan startup is unsupported. These commands were not executed in the sandbox.
 
-Always run `jarsigner -verify -strict delivery/Artillery-Frontline-arm64.aab` after a local AAB export; an unsigned bundle is rejected by CI even if the exporter exits successfully.
+Android upload/development certificates are normally self-signed; a self-signed warning is expected, but an unsigned jar is rejected. Always run `jarsigner -verify delivery/Artillery-Frontline-arm64.aab` after a local AAB export; an unsigned bundle is rejected by CI even if the exporter exits successfully.
 
 A successful export is not an installation test. Device QA must cover touch comfort, safe areas, suspend/resume, thermal throttling, Vulkan and OpenGL startup, audio focus, save persistence after force-stop, and sustained frame time. No Android device/emulator was available in the initial sandbox.

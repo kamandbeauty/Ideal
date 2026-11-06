@@ -170,7 +170,7 @@ jobs:
             jarsigner -sigalg SHA256withRSA -digestalg SHA-256 -keystore "$KS_PATH" -storepass:env KS_PASSWORD -keypass:env KS_PASSWORD -signedjar "$RUNNER_TEMP/Artillery-Frontline-signed.aab" delivery/Artillery-Frontline-arm64.aab "$KS_USER"
             mv "$RUNNER_TEMP/Artillery-Frontline-signed.aab" delivery/Artillery-Frontline-arm64.aab
           fi
-          jarsigner -verify -strict -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
+          jarsigner -verify -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
           grep -q 'jar verified' delivery/aab-signature.txt
       - name: Verify package signatures, architectures and offline manifest
         run: |
@@ -181,7 +181,7 @@ jobs:
           "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump badging delivery/Artillery-Frontline-compatibility.apk > delivery/compatibility-package-metadata.txt
           "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump xmltree delivery/Artillery-Frontline-arm64.apk --file AndroidManifest.xml > delivery/AndroidManifest.txt
           "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump xmltree delivery/Artillery-Frontline-compatibility.apk --file AndroidManifest.xml > delivery/compatibility-AndroidManifest.txt
-          jarsigner -verify -strict -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
+          jarsigner -verify -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
           grep -q 'jar verified' delivery/aab-signature.txt
           python3 "$PROJECT/tools/verify_packages.py" delivery
           sha256sum delivery/*.apk delivery/*.aab > delivery/SHA256SUMS.txt

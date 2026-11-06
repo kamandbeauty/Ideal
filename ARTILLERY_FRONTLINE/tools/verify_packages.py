@@ -56,7 +56,7 @@ with zipfile.ZipFile(root / "Artillery-Frontline-arm64.aab") as archive:
     signature_entries = archive.namelist()
     assert any(n.startswith("META-INF/") and n.endswith((".RSA", ".DSA", ".EC")) for n in signature_entries), "AAB signature block missing"
     assert any(n.startswith("META-INF/") and n.endswith(".SF") for n in signature_entries), "AAB signature file missing"
-report["Artillery-Frontline-arm64.aab"]["signature_check"] = "jarsigner strict verified; META-INF signature block present"
+report["Artillery-Frontline-arm64.aab"]["signature_check"] = "jarsigner verified; META-INF signature block present"
 report["scope"] = "CI export, signature and package inspection; no Android device/emulator execution"
 (root / "package-validation.json").write_text(json.dumps(report, indent=2) + "\n")
 print(json.dumps(report, indent=2))
