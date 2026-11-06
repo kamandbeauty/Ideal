@@ -1,14 +1,26 @@
 #!/usr/bin/env bash
 # Executes against an already-booted Android emulator. No network access is needed by the app.
 set -Eeuo pipefail
-trap 'status=$?; echo "::error title=Android smoke failed::Line $LINENO exited with status $status"; exit "$status"' ERR
+on_error() {
+  local status=$1 line=$2
+  trap - ERR
+  set +e
+  mkdir -p build
+  adb logcat -d -v time > build/android-logcat.txt
+  adb exec-out screencap -p > build/android-failure.png
+  details=$(grep -Ei 'AndroidRuntime|FATAL EXCEPTION|Fatal signal|com\.artilleryfrontline|godot|linker|backtrace|vulkan|tombstone' build/android-logcat.txt | tail -80 | tr '\n' '|')
+  echo "::error title=Android logcat::${details:0:30000}"
+  echo "::error title=Android smoke failed::Line $line exited with status $status"
+  exit "$status"
+}
+trap 'status=$?; on_error "$status" "$LINENO"' ERR
 apk=${1:?usage: android_smoke.sh path/to/x86_64.apk}
 adb wait-for-device
 adb logcat -c
 adb shell wm size 1280x720
 adb shell wm density 160
 adb install -r "$apk"
-adb shell am start -n com.artilleryfrontline.game/com.godot.game.GodotAppLauncher
+adb shell am start -W -n com.artilleryfrontline.game/com.godot.game.GodotAppLauncher
 # First launch compiles shaders on the software GPU; give it time to become interactive.
 sleep 20
 pid=$(adb shell pidof com.artilleryfrontline.game | tr -d '\r')

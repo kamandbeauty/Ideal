@@ -4,7 +4,9 @@ An original, offline, single-player **Godot 4.7.2** artillery vertical slice for
 
 ## Play
 
-Open `project.godot` in Godot 4.7.2 and run the main scene. Choose **Deploy to Dustline**. Drag the battlefield to traverse and elevate the gun, follow the dotted trajectory, and tap **FIRE**. Tap **RELOAD** after each shot; switching shell types also requires a reload. Neutralize all three targets before running out of ammunition.
+On Android 7.0 or newer, install the ARM64 debug APK from the build artifacts. It is signed with a disposable test key, not a release key; a different CI build may require uninstalling the previous debug build first, which also deletes its local saves. An AAB is a bundle for distribution tooling and cannot be installed directly like an APK.
+
+Alternatively, open `project.godot` in Godot 4.7.2 and run the main scene, or export the optional Web preview. Choose **Deploy to Dustline**. Drag the battlefield to traverse and elevate the gun, follow the dotted trajectory, and tap **FIRE**. Tap **RELOAD** after each shot; switching shell types also requires a reload. Neutralize all three targets before running out of ammunition.
 
 | Action | Touch | Desktop |
 | --- | --- | --- |

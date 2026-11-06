@@ -321,22 +321,20 @@ jobs:
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
           script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
       - name: Upload Android smoke evidence
-        if: always() && hashFiles('build/android-menu.png') != ''
+        if: always() && hashFiles('build/android-*.png') != ''
         uses: actions/upload-artifact@v4
         with:
           name: ARTILLERY_FRONTLINE-android-emulator-evidence
           path: |
-            build/android-menu.png
-            build/android-licenses.png
-            build/android-gameplay.png
+            build/android-*.png
             build/android-logcat.txt
           if-no-files-found: error
       - name: Transfer Android screenshots for visual inspection
-        if: always() && hashFiles('build/android-menu.png') != ''
+        if: always() && hashFiles('build/android-*.png') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for image in menu licenses gameplay; do
+          for image in menu licenses gameplay failure; do
             file="build/android-$image.png"
             if [ -s "$file" ]; then
               python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$file" > /tmp/frontline-screen.json
@@ -344,3 +342,78 @@ jobs:
               echo "::notice title=Android $image blob::$blob"
             fi
           done
+          if [ -s build/android-logcat.txt ]; then
+            python3 -c 'import base64,json; print(json.dumps({"content":base64.b64encode(open("build/android-logcat.txt","rb").read()).decode(),"encoding":"base64"}))' > /tmp/frontline-log.json
+            blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-log.json --jq .sha)
+            echo "::notice title=Android logcat blob::$blob"
+          fi
+
+  android_emulator_debug:
+    name: Android emulator diagnostic (existing test APK)
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    # Temporary emulator screenshot transfer; removed after inspection.
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/download-artifact@v4
+        with:
+          name: ARTILLERY_FRONTLINE-emulator-x86_64
+          path: build
+          run-id: 42235357933
+          github-token: ${{ github.token }}
+      - name: Check hardware acceleration
+        id: kvm
+        run: |
+          if [ -e /dev/kvm ]; then
+            sudo chmod a+rw /dev/kvm
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::No KVM on this runner; Android emulator test was skipped."
+          fi
+      - name: Install, launch, and exercise the app
+        if: steps.kvm.outputs.available == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
+          script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
+      - name: Upload Android smoke evidence
+        if: always() && hashFiles('build/android-*.png') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ARTILLERY_FRONTLINE-android-diagnostic-evidence
+          path: |
+            build/android-*.png
+            build/android-logcat.txt
+          if-no-files-found: error
+      - name: Transfer Android screenshots for visual inspection
+        if: always() && hashFiles('build/android-*.png') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for image in menu licenses gameplay failure; do
+            file="build/android-$image.png"
+            if [ -s "$file" ]; then
+              python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$file" > /tmp/frontline-screen.json
+              blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-screen.json --jq .sha)
+              echo "::notice title=Android $image blob::$blob"
+            fi
+          done
+          if [ -s build/android-logcat.txt ]; then
+            python3 -c 'import base64,json; print(json.dumps({"content":base64.b64encode(open("build/android-logcat.txt","rb").read()).decode(),"encoding":"base64"}))' > /tmp/frontline-log.json
+            blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-log.json --jq .sha)
+            echo "::notice title=Android logcat blob::$blob"
+          fi

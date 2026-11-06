@@ -18,5 +18,6 @@ android/
 __pycache__/
 *.pyc
 
-# Locally generated Web preview
+# Locally generated delivery files and Web preview
+artifacts/
 preview/
