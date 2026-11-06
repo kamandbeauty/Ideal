@@ -109,11 +109,11 @@
   "mission": {},
   "passed": false,
   "performance": {
-    "draw_calls": 370,
-    "fps": 5.4,
-    "frame_ms": 184.28,
-    "objects": 1189,
-    "primitives": 517452,
+    "draw_calls": 970,
+    "fps": 0.9,
+    "frame_ms": 1120.97,
+    "objects": 1194,
+    "primitives": 492994,
     "renderer": "Compatibility",
     "scale": 1.0,
     "tier": "high"
