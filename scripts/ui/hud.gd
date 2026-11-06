@@ -42,6 +42,7 @@ var _ammo_count: Label
 var _status: Label
 var _feedback: Label
 var _reload_button: Button
+var _fire_button: Button
 var _he_button: Button
 var _ap_button: Button
 var _zoom_button: Button
@@ -261,12 +262,12 @@ func _build_gameplay() -> void:
 	_camera_button = _button(actions, "CAM  GUN", Vector2(0, 18), Vector2(105, 48))
 	_zoom_button = _button(actions, "ZOOM  OFF", Vector2(115, 18), Vector2(105, 48))
 	_reload_button = _button(actions, "RELOAD", Vector2(0, 76), Vector2(220, 62))
-	var fire := _button(actions, "FIRE", Vector2(238, 0), Vector2(214, 138), true)
-	fire.add_theme_font_size_override("font_size", 34)
+	_fire_button = _button(actions, "FIRE", Vector2(238, 0), Vector2(214, 138), true)
+	_fire_button.add_theme_font_size_override("font_size", 34)
 	_camera_button.pressed.connect(camera_requested.emit)
 	_zoom_button.pressed.connect(zoom_requested.emit)
 	_reload_button.pressed.connect(reload_requested.emit)
-	fire.pressed.connect(fire_requested.emit)
+	_fire_button.pressed.connect(fire_requested.emit)
 	var bottom_center := _anchored(_gameplay, Control.PRESET_CENTER_BOTTOM, -210, -80, 210, -20)
 	_feedback = _label(
 		bottom_center,

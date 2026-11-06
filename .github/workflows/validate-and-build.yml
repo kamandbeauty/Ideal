@@ -132,3 +132,53 @@ jobs:
           name: ARTILLERY_FRONTLINE-debug-aab
           path: build/ARTILLERY_FRONTLINE-debug.aab
           if-no-files-found: error
+
+  visual:
+    name: Rendered desktop and touch smoke test
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Godot and virtual display
+        run: |
+          curl -fL --retry 3 -o /tmp/godot.zip "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d /tmp/godot-bin
+          chmod +x /tmp/godot-bin/Godot_v${GODOT_VERSION}-stable_linux.x86_64
+          echo "/tmp/godot-bin" >> "$GITHUB_PATH"
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb libgl1-mesa-dri
+          mkdir -p build
+      - name: Import project
+        run: Godot_v${GODOT_VERSION}-stable_linux.x86_64 --headless --editor --path . --import --quit
+      - name: Render scenes and exercise touch input
+        shell: bash
+        run: |
+          set -o pipefail
+          xvfb-run -a -s "-screen 0 1280x720x24" env LIBGL_ALWAYS_SOFTWARE=1 Godot_v${GODOT_VERSION}-stable_linux.x86_64 --rendering-method gl_compatibility --audio-driver Dummy --path . --script res://tests/visual_smoke.gd 2>&1 | tee /tmp/visual.log || {
+            echo "::error title=Visual smoke failed::$(tail -n 20 /tmp/visual.log | tr '\n' '|')"
+            exit 1
+          }
+          if grep -E 'SCRIPT ERROR|^ERROR:' /tmp/visual.log; then
+            echo "::error title=Rendering errors::$(grep -E 'SCRIPT ERROR|^ERROR:' /tmp/visual.log | head -10 | tr '\n' '|')"
+            exit 1
+          fi
+          echo "::notice title=Visual smoke::$(grep 'Visual smoke:' /tmp/visual.log | tail -1)"
+      - name: Upload screenshots
+        if: always() && hashFiles('build/visual-gameplay.png') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ARTILLERY_FRONTLINE-visual-smoke
+          path: build/visual-*.png
+          if-no-files-found: error
+      # Temporary diagnostic transfer while the sandbox cannot access Actions artifact hosts.
+      - name: Share screenshot for visual inspection
+        if: always() && github.event_name == 'push' && hashFiles('build/visual-gameplay.png') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -c 'import base64,json; print(json.dumps({"content":base64.b64encode(open("build/visual-gameplay.png","rb").read()).decode(),"encoding":"base64"}))' > /tmp/screenshot-blob.json
+          blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/screenshot-blob.json --jq .sha)
+          echo "::notice title=Screenshot blob::$blob"
