@@ -309,6 +309,20 @@ jobs:
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "::warning::No KVM on this runner; Android emulator test was skipped."
           fi
+      - name: Start software OpenGL display for emulator
+        if: steps.kvm.outputs.available == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils
+          Xvfb :99 -screen 0 1280x720x24 -ac -noreset >/tmp/frontline-xvfb.log 2>&1 &
+          echo "DISPLAY=:99" >> "$GITHUB_ENV"
+          echo "LIBGL_ALWAYS_SOFTWARE=1" >> "$GITHUB_ENV"
+          for i in $(seq 1 15); do
+            DISPLAY=:99 glxinfo -B && exit 0
+            sleep 1
+          done
+          echo "::error::Could not start a software OpenGL display for the Android emulator"
+          exit 1
       - name: Install, launch, and exercise the app
         if: steps.kvm.outputs.available == 'true'
         uses: reactivecircus/android-emulator-runner@v2
@@ -318,7 +332,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
+          emulator-options: -no-window -gpu host -noaudio -no-boot-anim -camera-back none -memory 2048
           script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
       - name: Upload Android smoke evidence
         if: always() && hashFiles('build/android-*.png') != ''
@@ -379,6 +393,20 @@ jobs:
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "::warning::No KVM on this runner; Android emulator test was skipped."
           fi
+      - name: Start software OpenGL display for emulator
+        if: steps.kvm.outputs.available == 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y xvfb libgl1-mesa-dri mesa-utils
+          Xvfb :99 -screen 0 1280x720x24 -ac -noreset >/tmp/frontline-xvfb.log 2>&1 &
+          echo "DISPLAY=:99" >> "$GITHUB_ENV"
+          echo "LIBGL_ALWAYS_SOFTWARE=1" >> "$GITHUB_ENV"
+          for i in $(seq 1 15); do
+            DISPLAY=:99 glxinfo -B && exit 0
+            sleep 1
+          done
+          echo "::error::Could not start a software OpenGL display for the Android emulator"
+          exit 1
       - name: Install, launch, and exercise the app
         if: steps.kvm.outputs.available == 'true'
         uses: reactivecircus/android-emulator-runner@v2
@@ -388,7 +416,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
+          emulator-options: -no-window -gpu host -noaudio -no-boot-anim -camera-back none -memory 2048
           script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
       - name: Upload Android smoke evidence
         if: always() && hashFiles('build/android-*.png') != ''
