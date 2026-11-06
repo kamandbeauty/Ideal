@@ -1,7 +1,7 @@
 
-s      36388 Fri Nov 06 10:48:22 UTC 2026 META-INF/MANIFEST.MF
-       36550 Fri Nov 06 10:48:22 UTC 2026 META-INF/ARTILLER.SF (and 1 more)
-sm       628 Thu Jan 01 00:00:00 UTC 1970 BundleConfig.pb (and 272 more)
+s      48109 Fri Nov 06 16:49:24 UTC 2026 META-INF/MANIFEST.MF
+       48271 Fri Nov 06 16:49:24 UTC 2026 META-INF/ARTILLER.SF (and 1 more)
+sm       628 Thu Jan 01 00:00:00 UTC 1970 BundleConfig.pb (and 346 more)
 
   s = signature was verified 
   m = entry is listed in manifest
