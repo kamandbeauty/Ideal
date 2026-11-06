@@ -82,8 +82,8 @@ func _build_lighting() -> void:
 	sun.light_color = Color(1.0, 0.88, 0.69)
 	sun.light_energy = 1.15
 	sun.shadow_enabled = true
-	sun.shadow_bias = 0.60
-	sun.shadow_normal_bias = 3.0
+	sun.shadow_bias = 1.20
+	sun.shadow_normal_bias = 2.0
 	sun.directional_shadow_max_distance = 230.0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	add_child(sun)
@@ -211,7 +211,7 @@ func _road_strip(from: Vector3, to: Vector3, width: float, color: Color, lift: f
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
 	var material: StandardMaterial3D = MeshFactory.material(color).duplicate()
-	material.cull_mode = BaseMaterial3D.CULL_BACK
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.disable_receive_shadows = true
 	instance.material_override = material
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

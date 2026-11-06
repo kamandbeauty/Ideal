@@ -152,6 +152,7 @@ jobs:
           godot --headless --path "$PROJECT" "$ARTILLERY_EXPORT_MODE" 'Android Compatibility' res://../delivery/Artillery-Frontline-compatibility.apk > /tmp/compat.log 2>&1 || { tail -70 /tmp/compat.log; exit 1; }
       - name: Verify package signatures, architectures and offline manifest
         run: |
+          exec > /tmp/package-verify.log 2>&1
           "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose --print-certs delivery/Artillery-Frontline-arm64.apk > delivery/apk-signature.txt
           "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose --print-certs delivery/Artillery-Frontline-compatibility.apk > delivery/compatibility-signature.txt
           "$ANDROID_HOME/build-tools/36.1.0/aapt2" dump badging delivery/Artillery-Frontline-arm64.apk > delivery/package-metadata.txt
@@ -174,6 +175,9 @@ jobs:
       - name: Publish build diagnostics
         if: failure()
         run: |
+          if [ -f /tmp/package-verify.log ]; then
+            tail -90 /tmp/package-verify.log | while IFS= read -r line; do echo "::error title=Package verification::${line}"; done
+          fi
           for log in /tmp/import.log /tmp/apk.log /tmp/aab.log /tmp/compat.log; do
             if [ -f "$log" ]; then
               grep -E 'ERROR|Error|FAILURE|What went wrong|failed|Failed|configuration|SDK|keystore|Gradle' "$log" | tail -25 | while IFS= read -r line; do echo "::error title=Android build::${line}"; done

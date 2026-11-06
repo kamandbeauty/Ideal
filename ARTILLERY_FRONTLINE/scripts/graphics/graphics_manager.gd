@@ -4,8 +4,8 @@ signal quality_changed(tier: String)
 const TIERS: Array[String] = ["low", "medium", "high"]
 const PROFILES: Dictionary = {
 	"low": {"scale": 0.62, "shadows": false, "shadow_distance": 55.0, "particles": 0.4, "effect_slots": 4, "detail": 0.35, "visibility": 650.0, "msaa": 0, "texture_size": 128, "mip_bias": 0.7},
-	"medium": {"scale": 0.82, "shadows": true, "shadow_distance": 120.0, "particles": 0.7, "effect_slots": 7, "detail": 0.65, "visibility": 950.0, "msaa": 0, "texture_size": 256, "mip_bias": 0.25},
-	"high": {"scale": 1.0, "shadows": true, "shadow_distance": 230.0, "particles": 1.0, "effect_slots": 10, "detail": 1.0, "visibility": 1400.0, "msaa": 2, "texture_size": 512, "mip_bias": 0.0}
+	"medium": {"scale": 0.82, "shadows": true, "shadow_distance": 90.0, "particles": 0.7, "effect_slots": 7, "detail": 0.65, "visibility": 950.0, "msaa": 0, "texture_size": 256, "mip_bias": 0.25},
+	"high": {"scale": 1.0, "shadows": true, "shadow_distance": 180.0, "particles": 1.0, "effect_slots": 10, "detail": 1.0, "visibility": 1400.0, "msaa": 2, "texture_size": 512, "mip_bias": 0.0}
 }
 var tier: String = "medium"
 var monitor := SustainedFrameMonitor.new()
