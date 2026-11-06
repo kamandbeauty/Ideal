@@ -50,11 +50,10 @@ jobs:
           path: dist/motionshot-debug.apk
           retention-days: 30
 
-  # Publishes a permanent download link (release asset) when the workflow is
-  # triggered manually (Actions -> Build APK -> Run workflow).
+  # Publishes a permanent download link as a release asset (tag apk-latest);
+  # each successful build overwrites the previous APK.
   release:
     needs: build
-    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Download APK
