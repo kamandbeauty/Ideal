@@ -1,4 +1,4 @@
-Source commit: dc94df82032439cfe3ebcb795b5a79fefdd35bf1
+Source commit: 7d95e2124783a30950d8d1f441d964b210ec57f9
 Engine: Godot 4.7.2-stable
 Signing: ephemeral development key; not a store release
 Validation: CI signatures, ARM64, ZIP CRC, landscape manifest and offline permissions; no device/emulator execution
