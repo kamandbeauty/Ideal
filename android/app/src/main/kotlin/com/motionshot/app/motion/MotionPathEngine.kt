@@ -622,7 +622,8 @@ class MotionPathEvaluator(val spec: MotionPathSpec) {
         val i0 = hi - 1
         val d = cum[hi] - cum[i0]
         if (d < 1e-12) return (i0 + 0.5) / LUT_SIZE
-        val u0 = i0 / LUT_SIZE.toDouble()
+        // (Int * 1.0) promotes to Double without an extension call
+        val u0 = i0 / (LUT_SIZE * 1.0)
         val du = 1.0 / LUT_SIZE
         val n = REFINE_STEPS
         val pp = rawPoint(spec, u0)
