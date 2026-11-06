@@ -1,10 +1,10 @@
 # QA report — ARTILLERY FRONTLINE vertical slice / MVP candidate
 
-Date: 2026-11-06  
-Branch: `arena/40ad7d87-ideal`  
-Verified build source commit: `e4407def4dda0dbfa802f97ba22976557b71f982`  
-Final package publication commit: `f6f3568` (see Git history for the full hash)  
-Engine: Godot **4.7.2 stable** (`4.7.2.stable.official.ed1daf0bf`)  
+Date: 2026-11-06
+Branch: `arena/40ad7d87-ideal`
+Verified build source commit: `e4407def4dda0dbfa802f97ba22976557b71f982`
+Final package publication commit: `f6f3568` (see Git history for the full hash)
+Engine: Godot **4.7.2 stable** (`4.7.2.stable.official.ed1daf0bf`)
 Asset authoring: Blender **5.0.1** in GitHub Actions
 
 ## Result summary

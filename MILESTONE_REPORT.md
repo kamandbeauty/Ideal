@@ -1,12 +1,12 @@
 # ARTILLERY FRONTLINE — milestone report
 
-Date: 2026-11-06  
-Branch: `arena/40ad7d87-ideal`  
-Repository: `kamandbeauty/Ideal`  
-Verified build source commit: **`e4407def4dda0dbfa802f97ba22976557b71f982`**  
-Final CI run: **42204972594** — validate and Android jobs successful  
-Package publication commit: **`f6f3568`**  
-Engine: Godot **4.7.2 stable**, standard GDScript build  
+Date: 2026-11-06
+Branch: `arena/40ad7d87-ideal`
+Repository: `kamandbeauty/Ideal`
+Verified build source commit: **`e4407def4dda0dbfa802f97ba22976557b71f982`**
+Final CI run: **42204972594** — validate and Android jobs successful
+Package publication commit: **`f6f3568`**
+Engine: Godot **4.7.2 stable**, standard GDScript build
 Original model authoring: Blender **5.0.1** via free GitHub Actions toolchain
 
 ## Outcome
