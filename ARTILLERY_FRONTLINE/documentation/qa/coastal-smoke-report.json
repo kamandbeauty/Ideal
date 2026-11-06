@@ -1,0 +1,87 @@
+{
+  "checks": [
+    {
+      "name": "coastal scene initialized",
+      "passed": true
+    },
+    {
+      "name": "at least 8 animated soldiers",
+      "passed": true
+    },
+    {
+      "name": "landing craft present",
+      "passed": true
+    },
+    {
+      "name": "mobile HUD present",
+      "passed": true
+    },
+    {
+      "name": "capture coastal-beach",
+      "passed": true
+    },
+    {
+      "name": "soldiers advance toward objectives",
+      "passed": true
+    },
+    {
+      "name": "amphibious craft moves",
+      "passed": true
+    },
+    {
+      "name": "touch drag aims weapon",
+      "passed": true
+    },
+    {
+      "name": "manual fire works",
+      "passed": true
+    },
+    {
+      "name": "capture coastal-fire",
+      "passed": true
+    },
+    {
+      "name": "automatic fire consumes ammunition",
+      "passed": true
+    },
+    {
+      "name": "reload starts",
+      "passed": true
+    },
+    {
+      "name": "reload completes",
+      "passed": true
+    },
+    {
+      "name": "rocket weapon selectable",
+      "passed": true
+    },
+    {
+      "name": "explosion effects active",
+      "passed": true
+    },
+    {
+      "name": "capture coastal-explosion",
+      "passed": true
+    },
+    {
+      "name": "repair support functions",
+      "passed": true
+    }
+  ],
+  "failures": 0,
+  "kills": 0,
+  "passed": true,
+  "performance": {
+    "draw_calls": 276,
+    "fps": 18.0,
+    "frame_ms": 55.54,
+    "objects": 1244,
+    "primitives": 68540,
+    "renderer": "Compatibility",
+    "scale": 0.62,
+    "tier": "low"
+  },
+  "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware",
+  "soldiers": 8
+}
