@@ -137,8 +137,9 @@ class Xorshift128Plus(seed: Long) {
      */
     fun irange(lo: Int, hiInclusive: Int): Int {
         val n = (hiInclusive - lo + 1).toLong()
-        // unsigned remainder as a stdlib extension (not a companion method)
-        return lo + nextU64().remainderUnsigned(n).toInt()
+        // unsigned 64-bit remainder via ULong (matches the Dart BigInt /
+        // Python unsigned-remainder semantics of the reference draw)
+        return lo + (nextU64().toULong() % n.toULong()).toLong().toInt()
     }
 
     fun bool(pTrue: Double = 0.5): Boolean = nextDouble() < pTrue
