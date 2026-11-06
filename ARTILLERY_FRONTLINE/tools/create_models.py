@@ -123,6 +123,7 @@ def finish(root,name):
     root.select_set(True)
     for o in bpy.data.objects:o.select_set(True)
     bpy.context.view_layer.objects.active=root
+    bpy.context.preferences.filepaths.save_version=0
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SRC,name+'.blend'))
     export_glb(root,os.path.join(OUT,name+'.glb'))
     print('CREATED',name, len(bpy.data.objects),'objects')

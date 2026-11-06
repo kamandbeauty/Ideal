@@ -69,17 +69,17 @@ func _build_lighting() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.38
+	env.ambient_light_energy = 0.46
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 1.08
+	env.tonemap_exposure = 1.0
 	env.tonemap_white = 6.0
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.72, 0.69, 0.60)
+	env.fog_light_color = Color(0.68, 0.70, 0.72)
 	env.fog_light_energy = 0.9
 	env.fog_density = 0.00055
-	env.fog_sky_affect = 0.18
-	env.fog_aerial_perspective = 0.35
+	env.fog_sky_affect = 0.06
+	env.fog_aerial_perspective = 0.22
 	env.fog_sun_scatter = 0.16
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 0.94
@@ -90,7 +90,7 @@ func _build_lighting() -> void:
 	sun.name = "LateAfternoonSun"
 	sun.rotation_degrees = Vector3(-32.0, -38.0, 0.0)
 	sun.light_color = Color(1.0, 0.86, 0.66)
-	sun.light_energy = 2.1
+	sun.light_energy = 1.45
 	sun.shadow_enabled = true
 	sun.shadow_bias = 0.85
 	sun.shadow_normal_bias = 1.6
@@ -235,7 +235,7 @@ func _road_strip(from: Vector3, to: Vector3, width: float, color: Color, lift: f
 	var instance := MeshInstance3D.new()
 	instance.mesh = mesh
 	var material: ShaderMaterial = road_material.duplicate() as ShaderMaterial
-	material.set_shader_parameter("tint", Vector3(color.r * 1.9, color.g * 1.95, color.b * 2.05))
+	material.set_shader_parameter("tint", Vector3(color.r * 3.1, color.g * 3.0, color.b * 2.9))
 	instance.material_override = material
 	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(instance)
@@ -620,7 +620,7 @@ func apply_quality(tier: String, settings: Dictionary) -> void:
 		env.glow_hdr_threshold = 1.05
 		env.glow_hdr_scale = 1.4
 		env.fog_density = 0.00055 if tier != "low" else 0.0009
-		env.fog_aerial_perspective = 0.35 if tier != "low" else 0.15
+		env.fog_aerial_perspective = 0.22 if tier != "low" else 0.12
 	for node in get_tree().get_nodes_in_group("environment_detail"):
 		if is_ancestor_of(node):
 			var count: int = int(node.get_meta("full_count", 1))

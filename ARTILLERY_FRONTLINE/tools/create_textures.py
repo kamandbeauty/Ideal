@@ -240,19 +240,19 @@ def sky():
     width, height = 2048, 1024
     yy, xx = np.mgrid[0:height, 0:width]
     v = yy / (height - 1)
-    zenith = np.array([58.0, 96.0, 138.0])
-    horizon = np.array([196.0, 184.0, 156.0])
-    ground = np.array([112.0, 101.0, 82.0])
-    sky_mask = np.clip(1.0 - v / 0.52, 0, 1) ** 0.62
+    zenith = np.array([44.0, 84.0, 132.0])
+    horizon = np.array([168.0, 180.0, 188.0])
+    ground = np.array([104.0, 96.0, 80.0])
+    sky_mask = np.clip(1.0 - v / 0.54, 0, 1) ** 0.42
     color = horizon[None, None, :] * (1 - sky_mask[:, :, None]) + zenith[None, None, :] * sky_mask[:, :, None]
     below = v > 0.52
     color[below] = ground[None, None, :]
     clouds_small = fbm(1024, 1110, 6, 1.65)
     clouds = np.asarray(Image.fromarray(np.uint8(clouds_small * 255)).resize((width, height), Image.BILINEAR), dtype=np.float64) / 255.0
-    cloud_band = np.exp(-((v - 0.30) / 0.16) ** 2)
+    cloud_band = np.exp(-((v - 0.36) / 0.18) ** 2)
     cloud_mask = np.clip((clouds - 0.52) * 3.0, 0, 1) * cloud_band
     color = color * (1 - cloud_mask[:, :, None] * 0.72) + np.array([232.0, 226.0, 210.0])[None, None, :] * cloud_mask[:, :, None] * 0.72
-    sun_u, sun_v = 0.735, 0.40
+    sun_u, sun_v = 0.735, 0.43
     du = np.minimum(np.abs(xx / width - sun_u), 1 - np.abs(xx / width - sun_u))
     glow = np.exp(-((du / 0.075) ** 2 + ((v - sun_v) / 0.085) ** 2))
     disk = np.exp(-((du / 0.010) ** 2 + ((v - sun_v) / 0.012) ** 2))

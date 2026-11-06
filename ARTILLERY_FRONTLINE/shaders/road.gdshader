@@ -4,7 +4,7 @@ uniform sampler2D gravel_albedo : source_color, filter_linear_mipmap_anisotropic
 uniform sampler2D gravel_normal : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D gravel_orm : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D edge_noise : filter_linear_mipmap, repeat_enable;
-uniform vec3 tint = vec3(0.82, 0.78, 0.68);
+uniform vec3 tint = vec3(1.25, 1.18, 1.02);
 varying vec3 world_position;
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;

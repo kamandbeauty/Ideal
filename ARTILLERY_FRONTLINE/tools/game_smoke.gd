@@ -55,6 +55,10 @@ func run() -> void:
 		while not target.health.is_destroyed and attempts < 5 and battle.active:
 			battle.select_target(id)
 			game.hud.solution_requested.emit()
+			var prediction_wait: float = 0.0
+			while not battle.targeting.prediction_valid and prediction_wait < 3.0:
+				await get_tree().create_timer(0.15).timeout
+				prediction_wait += 0.15
 			check("fire control " + id, battle.targeting.prediction_valid)
 			await get_tree().create_timer(0.3).timeout
 			var shots_before: int = battle.missions.shots

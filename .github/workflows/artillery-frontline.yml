@@ -42,7 +42,7 @@ jobs:
       - name: Import project and compile resources
         run: |
           godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1 || { tail -100 /tmp/import.log; exit 1; }
-          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' /tmp/import.log; then exit 1; fi
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' /tmp/import.log; then exit 1; fi
       - name: Run dependency-free unit and integration suites
         run: godot --headless --path "$PROJECT" --script res://tests/run_tests.gd
       - name: Check test report
