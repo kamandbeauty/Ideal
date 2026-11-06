@@ -42,7 +42,7 @@
     },
     {
       "name": "fire control t03",
-      "passed": false
+      "passed": true
     },
     {
       "name": "fire t03",
@@ -53,44 +53,12 @@
       "passed": true
     },
     {
-      "name": "fire control t03",
-      "passed": false
-    },
-    {
-      "name": "fire t03",
-      "passed": true
-    },
-    {
-      "name": "fire control t03",
-      "passed": false
-    },
-    {
-      "name": "fire t03",
-      "passed": true
-    },
-    {
-      "name": "fire control t03",
-      "passed": false
-    },
-    {
-      "name": "fire t03",
-      "passed": true
-    },
-    {
-      "name": "fire control t03",
-      "passed": false
-    },
-    {
-      "name": "fire t03",
-      "passed": true
-    },
-    {
       "name": "target destroyed t03",
-      "passed": false
+      "passed": true
     },
     {
       "name": "mission results displayed",
-      "passed": false
+      "passed": true
     },
     {
       "name": "capture mission-results",
@@ -98,25 +66,40 @@
     },
     {
       "name": "upgrade purchase persists",
-      "passed": false
+      "passed": true
     },
     {
       "name": "capture upgrades",
       "passed": true
     }
   ],
-  "failures": 8,
-  "mission": {},
-  "passed": false,
+  "failures": 0,
+  "mission": {
+    "accuracy": 100.0,
+    "coins": 534,
+    "hits": 2,
+    "mission_id": "sr01",
+    "objectives": 2,
+    "optional": false,
+    "points": 2,
+    "reason": "All primary targets neutralized",
+    "required": 2,
+    "shots": 2,
+    "star_gain": 3,
+    "stars": 3,
+    "success": true,
+    "time": 13.5791816363636
+  },
+  "passed": true,
   "performance": {
-    "draw_calls": 362,
-    "fps": 0.8,
-    "frame_ms": 1228.36,
-    "objects": 1194,
-    "primitives": 388138,
+    "draw_calls": 283,
+    "fps": 15.5,
+    "frame_ms": 64.38,
+    "objects": 1195,
+    "primitives": 124784,
     "renderer": "Compatibility",
-    "scale": 0.82,
-    "tier": "medium"
+    "scale": 0.62,
+    "tier": "low"
   },
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware"
 }
