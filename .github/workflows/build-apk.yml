@@ -71,7 +71,7 @@ jobs:
           flutter build apk --debug 2>&1 | tee build-log.txt
 
       - name: Post build log tail on failure
-        if: failure() && file_exists(build-log.txt)
+        if: failure() && hashFiles('build-log.txt') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
