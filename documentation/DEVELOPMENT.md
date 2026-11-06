@@ -18,7 +18,7 @@ This repository starts with an original, single-battlefield vertical slice. Oper
 ## Requirements
 
 - Godot **4.7.2 stable**, its matching export templates, and a graphics driver supporting the Mobile renderer or its OpenGL Compatibility fallback.
-- For Android: JDK 17, Godot's Android export templates, Android SDK platform 36, build-tools 36.1.0, platform-tools, and (for the Gradle AAB export) Android NDK 29.0.14206865. Configure the SDK and JDK paths in Godot Editor Settings or provide `ANDROID_HOME` and `JAVA_HOME` before the first editor run.
+- For Android: JDK 17, Godot's Android export templates, Android SDK platform 36, build-tools 36.1.0, platform-tools, and Android NDK 29.0.14206865 for the Gradle exports. The presets target Android 7.0 (API 24) and newer, with Vulkan falling back to OpenGL Compatibility when necessary. Configure the SDK and JDK paths in Godot Editor Settings or provide `ANDROID_HOME` and `JAVA_HOME` before the first editor run.
 - No asset store, paid service, internet permission, account, ads, or in-app purchases are needed by the installed game.
 
 ### Run tests
@@ -35,6 +35,18 @@ gdlint scripts tests
 
 Tests include analytic ballistics, drag, blast falloff, reload and ammo rules, range falloff, unique objective completion, backup recovery, quality hysteresis, swept collision, predicted vs. actual impact, and a scene-level mission flow. The visual smoke test also exercises touch input and captures rendered screenshots under Xvfb. Headless validation exercises the simulation and scene initialization but does not validate GPU rendering, sound output, touch hardware, or actual Android performance.
 
+### Optional Web preview
+
+Web is a convenience preview, not the Android deliverable. Install the matching non-threaded Web export template, then run:
+
+```sh
+mkdir -p preview
+godot --headless --path . --export-debug "Web Preview" preview/index.html
+python3 tools/serve_preview.py --directory preview --port 8000
+```
+
+The preview uses the Compatibility renderer and is served from the same origin with isolation headers; no external API or game service is used. `preview/` is generated and ignored by Git.
+
 ### Android debug exports
 
 Install matching 4.7.2 export templates and Android SDK/JDK first. A debug keystore must be available to Godot (the editor can generate one) or supplied with the `GODOT_ANDROID_KEYSTORE_DEBUG_PATH`, `GODOT_ANDROID_KEYSTORE_DEBUG_USER`, and `GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD` environment variables. Then:
@@ -47,7 +59,7 @@ godot --headless --path . --install-android-build-template --export-debug "Andro
 godot --headless --path . --export-debug "Android AAB" build/ARTILLERY_FRONTLINE-debug.aab
 ```
 
-Both Android deliverables use the Gradle template rather than direct APK patching; the latter produced duplicate provider authorities with the 4.7.2 template in this environment. The debug APK is for testing, not a store release. The GitHub Actions workflow generates a disposable debug keystore and uploads debug artifacts; its hosted build may need network access for tool installation. To create a release, configure a private release keystore and the `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `GODOT_ANDROID_KEYSTORE_RELEASE_USER`, and `GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD` environment variables from GitHub Secrets or a secure local environment. Never commit the keystore or credentials. Independently verify the signed artifacts and test installation on representative devices.
+Both Android deliverables use the Gradle template rather than direct APK patching; the latter produced duplicate provider authorities with the 4.7.2 template in this environment. The debug APK is for testing, not a store release. The GitHub Actions workflow generates a disposable debug keystore and uploads debug artifacts. Both the APK and bundle are signed with that disposable key for testing; the hosted build needs network access for tool installation. To create a release, configure a private release keystore and the `GODOT_ANDROID_KEYSTORE_RELEASE_PATH`, `GODOT_ANDROID_KEYSTORE_RELEASE_USER`, and `GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD` environment variables from GitHub Secrets or a secure local environment. Never commit the keystore or credentials. Independently verify the signed artifacts and test installation on representative devices.
 
 ## Known limitations / next work
 

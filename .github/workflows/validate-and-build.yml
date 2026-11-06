@@ -91,7 +91,7 @@ jobs:
           echo "/tmp/godot-bin" >> "$GITHUB_PATH"
           curl -fL --retry 3 -o /tmp/templates.tpz "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
           mkdir -p "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
-          unzip -j /tmp/templates.tpz 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/android_source.zip' 'templates/version.txt' -d "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          unzip -j /tmp/templates.tpz 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/android_source.zip' 'templates/web_nothreads_debug.zip' 'templates/version.txt' -d "$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
       - name: Generate an ephemeral debug signing key
         run: |
           mkdir -p "$HOME/.android" build
@@ -132,6 +132,16 @@ jobs:
             exit 1
           }
           test -s build/ARTILLERY_FRONTLINE-debug.aab
+      - name: Sign and verify debug bundle
+        run: |
+          jarsigner -keystore "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH" \
+            -storepass:env GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD \
+            -keypass:env GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD \
+            -sigalg SHA256withRSA -digestalg SHA-256 \
+            build/ARTILLERY_FRONTLINE-debug.aab "$GODOT_ANDROID_KEYSTORE_DEBUG_USER"
+          jarsigner -verify build/ARTILLERY_FRONTLINE-debug.aab | tee /tmp/aab-verification.log
+          grep -q 'jar verified' /tmp/aab-verification.log
+          echo "::notice title=AAB signature::Debug bundle signature verified (self-signed ephemeral key)"
       - name: Upload AAB
         uses: actions/upload-artifact@v4
         with:
@@ -145,9 +155,12 @@ jobs:
         run: |
           for extension in apk aab; do
             file="build/ARTILLERY_FRONTLINE-debug.$extension"
-            unzip -tq "$file" >/dev/null
+            python3 -c 'import sys,zipfile; z=zipfile.ZipFile(sys.argv[1]); bad=z.testzip(); assert bad is None, bad' "$file"
             python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$file" > /tmp/frontline-artifact.json
-            blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-artifact.json --jq .sha)
+            blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-artifact.json --jq .sha 2>/tmp/frontline-transfer.err) || {
+              echo "::error title=Artifact transfer failed::$(tail -n 10 /tmp/frontline-transfer.err | tr '\n' '|')"
+              exit 1
+            }
             echo "::notice title=DEBUG $extension blob::$blob"
             echo "::notice title=DEBUG $extension SHA256::$(sha256sum "$file")"
           done
@@ -167,6 +180,34 @@ jobs:
           name: ARTILLERY_FRONTLINE-emulator-x86_64
           path: build/ARTILLERY_FRONTLINE-emulator.apk
           if-no-files-found: error
+      - name: Export optional Web preview
+        shell: bash
+        run: |
+          set -o pipefail
+          mkdir -p build/web
+          Godot_v${GODOT_VERSION}-stable_linux.x86_64 --headless --path . --export-debug "Web Preview" build/web/index.html 2>&1 | tee /tmp/web-export.log || {
+            echo "::error title=Web export failed::$(tail -n 20 /tmp/web-export.log | tr '\n' '|')"
+            exit 1
+          }
+          test -s build/web/index.html
+          test -s build/web/index.wasm
+          test -s build/web/index.pck
+      - name: Upload Web preview
+        uses: actions/upload-artifact@v4
+        with:
+          name: ARTILLERY_FRONTLINE-web-preview
+          path: build/web/
+          if-no-files-found: error
+      - name: Transfer Web preview for local testing
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tar -czf /tmp/frontline-web.tar.gz -C build/web .
+          python3 -c 'import base64,json; print(json.dumps({"content":base64.b64encode(open("/tmp/frontline-web.tar.gz","rb").read()).decode(),"encoding":"base64"}))' > /tmp/frontline-web.json
+          blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-web.json --jq .sha)
+          echo "::notice title=Web preview blob::$blob"
+          echo "::notice title=Web preview SHA256::$(sha256sum /tmp/frontline-web.tar.gz)"
 
   visual:
     name: Rendered desktop and touch smoke test
@@ -227,6 +268,9 @@ jobs:
     needs: android
     runs-on: ubuntu-24.04
     timeout-minutes: 25
+    # Temporary emulator screenshot transfer; removed after inspection.
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
@@ -257,7 +301,13 @@ jobs:
           profile: pixel_2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -memory 2048
-          script: bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk
+          script: |
+            set -o pipefail
+            bash tests/android_smoke.sh build/ARTILLERY_FRONTLINE-emulator.apk 2>&1 | tee /tmp/android-smoke.log || {
+              echo "::error title=Android smoke failed::$(tail -n 20 /tmp/android-smoke.log | tr '\n' '|')"
+              exit 1
+            }
+            echo "::notice title=Android emulator smoke::$(tail -n 1 /tmp/android-smoke.log)"
       - name: Upload Android smoke evidence
         if: always() && hashFiles('build/android-menu.png') != ''
         uses: actions/upload-artifact@v4
@@ -268,3 +318,16 @@ jobs:
             build/android-gameplay.png
             build/android-logcat.txt
           if-no-files-found: error
+      - name: Transfer Android screenshots for visual inspection
+        if: always() && hashFiles('build/android-menu.png') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for image in menu gameplay; do
+            file="build/android-$image.png"
+            if [ -s "$file" ]; then
+              python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$file" > /tmp/frontline-screen.json
+              blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-screen.json --jq .sha)
+              echo "::notice title=Android $image blob::$blob"
+            fi
+          done

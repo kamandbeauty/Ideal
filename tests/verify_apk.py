@@ -14,6 +14,7 @@ abi = sys.argv[2] if len(sys.argv) > 2 else "arm64-v8a"
 apk = APK(path)
 assert apk.is_valid_APK(), "APK manifest could not be parsed"
 assert apk.package == "com.artilleryfrontline.game", apk.package
+assert int(apk.get_min_sdk_version()) == 24, apk.get_min_sdk_version()
 assert "android.permission.INTERNET" not in apk.get_permissions(), apk.get_permissions()
 manifest = apk.get_android_manifest_xml()
 activity = manifest.find("./application/activity[@%sname='com.godot.game.GodotApp']" % ANDROID)
@@ -26,4 +27,4 @@ with zipfile.ZipFile(path) as zf:
     assert f"lib/{abi}/libgodot_android.so" in zf.namelist(), f"Missing {abi} runtime"
     corrupt = zf.testzip()
     assert corrupt is None, f"Corrupt ZIP member: {corrupt}"
-print(f"APK manifest OK: {apk.package}; landscape; {abi}; no internet permission; unique providers")
+print(f"APK manifest OK: {apk.package}; Android 7.0+; landscape; {abi}; no internet permission; unique providers")
