@@ -174,3 +174,11 @@ defects were found and fixed before the tag - the analyzer's missing
 Locally: host core 139 checks, ASan/UBSan clean, JNI syntax, schema 43, project
 checker (now quote-aware when stripping comments, because a URL literal was being
 mistaken for a comment), and the Dart suite.
+
+### 0.4.1 — cancel is a first-class action
+The cancel control only appeared while transcribing, so a stalled model download
+on a bad network had no way out, and cancelling it surfaced the downloader's own
+abort message in red. The action now covers both operations, and a
+user-initiated cancel clears the state instead of reporting a failure.
+Published as `subflow-0.4.1-release.apk` (tag `subflow-v0.4.1`, CI
+`42208045373` on the branch, `42209456435` on the tag).
