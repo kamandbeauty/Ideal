@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "com.motionshot.app"
-    compileSdk = 35
+    // androidx.core 1.18+ (transitive) requires compileSdk 36.
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
