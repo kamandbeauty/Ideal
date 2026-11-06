@@ -21,6 +21,10 @@
       "passed": true
     },
     {
+      "name": "capture battlefield-ultra",
+      "passed": true
+    },
+    {
       "name": "fire control t01",
       "passed": true
     },
@@ -38,7 +42,7 @@
     },
     {
       "name": "fire control t03",
-      "passed": true
+      "passed": false
     },
     {
       "name": "fire t03",
@@ -49,12 +53,44 @@
       "passed": true
     },
     {
-      "name": "target destroyed t03",
+      "name": "fire control t03",
+      "passed": false
+    },
+    {
+      "name": "fire t03",
       "passed": true
     },
     {
-      "name": "mission results displayed",
+      "name": "fire control t03",
+      "passed": false
+    },
+    {
+      "name": "fire t03",
       "passed": true
+    },
+    {
+      "name": "fire control t03",
+      "passed": false
+    },
+    {
+      "name": "fire t03",
+      "passed": true
+    },
+    {
+      "name": "fire control t03",
+      "passed": false
+    },
+    {
+      "name": "fire t03",
+      "passed": true
+    },
+    {
+      "name": "target destroyed t03",
+      "passed": false
+    },
+    {
+      "name": "mission results displayed",
+      "passed": false
     },
     {
       "name": "capture mission-results",
@@ -62,40 +98,25 @@
     },
     {
       "name": "upgrade purchase persists",
-      "passed": true
+      "passed": false
     },
     {
       "name": "capture upgrades",
       "passed": true
     }
   ],
-  "failures": 0,
-  "mission": {
-    "accuracy": 100.0,
-    "coins": 535,
-    "hits": 2,
-    "mission_id": "sr01",
-    "objectives": 2,
-    "optional": false,
-    "points": 2,
-    "reason": "All primary targets neutralized",
-    "required": 2,
-    "shots": 2,
-    "star_gain": 3,
-    "stars": 3,
-    "success": true,
-    "time": 11.3000007777778
-  },
-  "passed": true,
+  "failures": 8,
+  "mission": {},
+  "passed": false,
   "performance": {
-    "draw_calls": 372,
-    "fps": 12.6,
-    "frame_ms": 79.48,
+    "draw_calls": 370,
+    "fps": 5.4,
+    "frame_ms": 184.28,
     "objects": 1189,
-    "primitives": 126158,
+    "primitives": 517452,
     "renderer": "Compatibility",
-    "scale": 0.82,
-    "tier": "medium"
+    "scale": 1.0,
+    "tier": "high"
   },
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware"
 }
