@@ -12,7 +12,7 @@ The sandbox originally had no Godot, Blender, Java, Android SDK, templates or de
 
 ## Automated build
 
-Run **ARTILLERY FRONTLINE** workflow on the session branch. It performs import, unit/integration tests, a software-rendered gameplay smoke test, then APK/AAB export. It verifies both APK signatures and certificate reports, the AAB jarsignature, ARM64 native libraries, project payload, ZIP CRC, package IDs, min/target SDK, decoded landscape orientation and absence of INTERNET permission. The Gradle source template is installed with Godot's `android/.build_version` identifier and a `build/.gdignore` marker.
+Run **ARTILLERY FRONTLINE** workflow on the session branch. It performs import, unit/integration tests, a software-rendered gameplay smoke test, then APK/AAB export. It explicitly JAR-signs the AAB when the Gradle exporter leaves it unsigned, then strict-verifies it. It verifies both APK signatures and certificate reports, the AAB jarsignature and META-INF signature block, ARM64 native libraries, project payload, ZIP CRC, package IDs, min/target SDK, decoded landscape orientation and absence of INTERNET permission. The Gradle source template is installed with Godot's `android/.build_version` identifier and a `build/.gdignore` marker.
 
 Presets:
 
@@ -22,7 +22,7 @@ Presets:
 
 ## Signing
 
-For development validation only, CI creates a random temporary RSA keystore in runner temp storage and exports debug-signed packages. These are installable test builds, **not** upload-to-Play release identities. Reinstalling a build from a different ephemeral key may require uninstalling the previous test build.
+For development validation only, CI creates a random temporary RSA keystore in runner temp storage, exports debug-signed APKs, and applies/verifies a JAR signature on the AAB with the same ephemeral key. These are installable test builds, **not** upload-to-Play release identities. Reinstalling a build from a different ephemeral key may require uninstalling the previous test build.
 
 For a persistent release identity, configure GitHub Secrets:
 
@@ -42,5 +42,7 @@ godot --headless --path ARTILLERY_FRONTLINE --export-release "Android AAB" res:/
 ```
 
 For a connected test device, `adb install -r delivery/Artillery-Frontline-arm64.apk` installs the primary test APK; use the `.compatibility` APK if Vulkan startup is unsupported. These commands were not executed in the sandbox.
+
+Always run `jarsigner -verify -strict delivery/Artillery-Frontline-arm64.aab` after a local AAB export; an unsigned bundle is rejected by CI even if the exporter exits successfully.
 
 A successful export is not an installation test. Device QA must cover touch comfort, safe areas, suspend/resume, thermal throttling, Vulkan and OpenGL startup, audio focus, save persistence after force-stop, and sustained frame time. No Android device/emulator was available in the initial sandbox.
