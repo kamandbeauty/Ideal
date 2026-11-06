@@ -11,7 +11,8 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
+// Viewport/ImageFit are the camera_math.dart classes, not the Flutter ones.
+import 'package:flutter/material.dart' hide Viewport, ImageFit;
 import 'package:flutter/painting.dart' show MatrixUtils;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

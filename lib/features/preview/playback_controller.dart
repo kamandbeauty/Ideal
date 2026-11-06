@@ -57,7 +57,8 @@ class PlaybackController extends StateNotifier<FrameState> {
     _transitions =
         project.photos.map((PhotoItem p) => p.transition).toList();
     final total = totalDuration(_durations);
-    final t = state.time.clamp(0.0, math.max(0.0, total));
+    // clamp() on a double returns num; _emit wants a double.
+    final t = state.time.clamp(0.0, math.max(0.0, total)).toDouble();
     _emit(t, state.playing);
   }
 

@@ -15,6 +15,11 @@ import '../motion/camera_math.dart';
 import '../../core/models/keyframe.dart';
 import '../../core/utils/easing.dart';
 
+/// `dart:math` has no `hypot`; this mirrors Python's `math.hypot(x, y)`
+/// (`sqrt(x*x + y*y)`) for the normalized coordinate range used here, so the
+/// port keeps the exact same operation sequence as the reference.
+double _hypot(double a, double b) => math.sqrt(a * a + b * b);
+
 // ---------------------------------------------------------------------------
 // constants (spec §12.2) — must match the Python reference and Kotlin.
 // ---------------------------------------------------------------------------
@@ -107,9 +112,9 @@ double _snapTurns(MotionPathSpec spec) {
     MotionPoint p2, MotionPoint p3, double w) {
   final t0 = 0.0;
   final t1 = t0 +
-      math.sqrt(math.hypot(p1.x - p0.x, p1.y - p0.y));
-  final t2 = t1 + math.sqrt(math.hypot(p2.x - p1.x, p2.y - p1.y));
-  final t3 = t2 + math.sqrt(math.hypot(p3.x - p2.x, p3.y - p2.y));
+      math.sqrt(_hypot(p1.x - p0.x, p1.y - p0.y));
+  final t2 = t1 + math.sqrt(_hypot(p2.x - p1.x, p2.y - p1.y));
+  final t3 = t2 + math.sqrt(_hypot(p3.x - p2.x, p3.y - p2.y));
   if (t2 - t1 < 1e-12) {
     return (x: p1.x, y: p1.y); // degenerate segment: p1 == p2
   }
@@ -179,9 +184,9 @@ double _snapTurns(MotionPathSpec spec) {
   bool atEnd,
 ) {
   final t0 = 0.0;
-  final t1 = t0 + math.sqrt(math.hypot(p1.x - p0.x, p1.y - p0.y));
-  final t2 = t1 + math.sqrt(math.hypot(p2.x - p1.x, p2.y - p1.y));
-  final t3 = t2 + math.sqrt(math.hypot(p3.x - p2.x, p3.y - p2.y));
+  final t1 = t0 + math.sqrt(_hypot(p1.x - p0.x, p1.y - p0.y));
+  final t2 = t1 + math.sqrt(_hypot(p2.x - p1.x, p2.y - p1.y));
+  final t3 = t2 + math.sqrt(_hypot(p3.x - p2.x, p3.y - p2.y));
   if (t2 - t1 < 1e-12) return (x: 0.0, y: 0.0);
   final ts = atEnd ? t2 : t1;
   final t0s = t0 - ts;
@@ -362,7 +367,7 @@ double _snapTurns(MotionPathSpec spec) {
   }
   final dx = b.x - a.x;
   final dy = b.y - a.y;
-  final m = math.hypot(dx, dy);
+  final m = _hypot(dx, dy);
   if (m < 1e-12) return (x: 0.0, y: 0.0);
   return (x: dx / m, y: dy / m);
 }
@@ -398,7 +403,7 @@ MotionPathLut buildArcLut(MotionPathSpec spec) {
     var s = 0.0;
     for (var k = 1; k <= kRefineSteps; k++) {
       final q = rawPathPoint(spec, (i - 1) * du + du * k / kRefineSteps);
-      s = s + math.hypot(q.x - p.x, q.y - p.y);
+      s = s + _hypot(q.x - p.x, q.y - p.y);
       p = q;
     }
     cum[i] = cum[i - 1] + s;
@@ -442,7 +447,7 @@ double paramAtArc(MotionPathSpec spec, MotionPathLut lut, double target) {
   final c = List<double>.filled(n + 1, 0.0);
   for (var k = 1; k <= n; k++) {
     final q = rawPathPoint(spec, u0 + du * k / n);
-    c[k] = c[k - 1] + math.hypot(q.x - p.x, q.y - p.y);
+    c[k] = c[k - 1] + _hypot(q.x - p.x, q.y - p.y);
     p = q;
   }
   final cTotal = c[n];
@@ -540,7 +545,7 @@ double _clampD(double v, double lo, double hi) => v < lo ? lo : (v > hi ? hi : v
 /// the maximum zoom / rotation the envelope reaches.
 MotionPathSpec sanitizePath(MotionPathSpec spec, ImageFit fit, Viewport vp) {
   final rMax =
-      math.max(math.abs(spec.startRotation), math.abs(spec.endRotation));
+      math.max(abs(spec.startRotation), abs(spec.endRotation));
   final sZoom = math.max(spec.startZoom, spec.endZoom);
   final sMin = minScaleAtRotation(fit, vp, rMax) * kScalePad;
   final startZoom = spec.startZoom >= sMin ? spec.startZoom : sMin;
@@ -583,7 +588,7 @@ List<MotionPoint> _resampleUniform(List<MotionPoint> pts, int n) {
   final cum = <double>[0.0];
   for (var i = 1; i < pts.length; i++) {
     cum.add(cum.last +
-        math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
+        _hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y));
   }
   final total = cum.last;
   if (total < 1e-12) return List<MotionPoint>.filled(n, pts[0], growable: false);
@@ -627,7 +632,7 @@ List<MotionPoint> smoothStroke(Iterable<MotionPoint> raw) {
   final pts = <MotionPoint>[];
   for (final p in raw) {
     if (pts.isNotEmpty &&
-        math.hypot(p.x - pts.last.x, p.y - pts.last.y) < kStrokeDedupeMinDist) {
+        _hypot(p.x - pts.last.x, p.y - pts.last.y) < kStrokeDedupeMinDist) {
       continue;
     }
     pts.add(p);

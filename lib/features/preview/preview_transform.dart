@@ -15,8 +15,11 @@ library;
 
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' show Matrix4;
 
-import 'package:flutter/painting.dart';
+// ImageFit here is the camera-math class from camera_math.dart, not the
+// Flutter enum of the same name.
+import 'package:flutter/painting.dart' hide ImageFit;
 
 import '../motion/camera_math.dart';
 

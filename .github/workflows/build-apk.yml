@@ -34,14 +34,34 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Fast full-program type check: the Dart compiler lists every error at
+      # once, so a single run reveals the whole remaining fix list. The log
+      # download host is unreachable from some networks, so on failure the
+      # error list is posted as a commit comment (readable via the API).
+      - name: Analyze Dart
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if flutter analyze --no-pub > analyze-log.txt 2>&1; then
+            echo "analyze: clean"
+          else
+            {
+              echo "Dart analysis failed (run ${GITHUB_RUN_ID})."
+              echo "Error count: $(grep -c 'error •' analyze-log.txt || true)"
+              echo '```'
+              grep 'error •' analyze-log.txt | head -120
+              echo '```'
+            } > commit-comment.md
+            gh api repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments \
+              -F body=@commit-comment.md
+            exit 1
+          fi
+
       - name: Build debug APK
         run: |
           set -o pipefail
           flutter build apk --debug 2>&1 | tee build-log.txt
 
-      # The log download host is unreachable from some networks, so on failure
-      # the last lines of the build log are posted as a commit comment
-      # (readable via the GitHub API).
       - name: Post build log tail on failure
         if: failure()
         env:

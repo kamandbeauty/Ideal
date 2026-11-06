@@ -228,7 +228,8 @@ class MotionPathSpec {
         .map((e) => MotionPoint.fromJson(Map<dynamic, dynamic>.from(e as Map)))
         .toList(growable: false);
     return MotionPathSpec(
-      preset: preset,
+      // isValid above guarantees preset is a non-null known name.
+      preset: preset!,
       centerX: (json['centerX'] as num?)?.toDouble() ?? 0.0,
       centerY: (json['centerY'] as num?)?.toDouble() ?? 0.0,
       radiusX: (json['radiusX'] as num?)?.toDouble() ?? 0.25,
