@@ -32,10 +32,10 @@ func _build_environment() -> void:
 	var environment_node := WorldEnvironment.new()
 	var environment := Environment.new()
 	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color("4b6d76")
-	sky_material.sky_horizon_color = Color("c2b18f")
+	sky_material.sky_top_color = Color("395963")
+	sky_material.sky_horizon_color = Color("92a09a")
 	sky_material.ground_bottom_color = Color("514b3c")
-	sky_material.ground_horizon_color = Color("c4b18a")
+	sky_material.ground_horizon_color = Color("a29274")
 	sky_material.sun_angle_max = 22.0
 	var sky := Sky.new()
 	sky.sky_material = sky_material
@@ -43,11 +43,16 @@ func _build_environment() -> void:
 	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color("c6c3ac")
-	environment.ambient_light_energy = 0.62
+	environment.ambient_light_energy = 0.38
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	environment.tonemap_exposure = 0.86
+	environment.adjustment_enabled = true
+	environment.adjustment_contrast = 1.08
+	environment.adjustment_saturation = 0.9
 	environment.fog_enabled = true
-	environment.fog_light_color = Color("b8a58a")
-	environment.fog_density = 0.0022
+	environment.fog_light_color = Color("9c917b")
+	environment.fog_density = 0.0018
+	environment.fog_sky_affect = 0.15
 	environment_node.environment = environment
 	add_child(environment_node)
 
@@ -55,7 +60,7 @@ func _build_environment() -> void:
 	sun.name = "AfternoonSun"
 	sun.rotation_degrees = Vector3(-49.0, -27.0, 0.0)
 	sun.light_color = Color("ffe5bd")
-	sun.light_energy = 1.2
+	sun.light_energy = 0.86
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 100.0
 	add_child(sun)

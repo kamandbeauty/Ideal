@@ -7,7 +7,7 @@ This repository starts with an original, single-battlefield vertical slice. Oper
 ## Architecture
 
 - `core/game.gd` composes systems and routes signals, input, results and save requests.
-- `artillery/weapon_config.gd` and `ammo_config.gd` define editable `Resource` types; `.tres` files contain the actual values. `weapon_state.gd` owns ammunition and reload rules independently of the model.
+- `artillery/weapon_config.gd` and `ammo_config.gd` define editable `Resource` types; `.tres` files contain the actual values. `weapon_state.gd` owns compatible ammunition and reload rules independently of the model. Weapon damage, effective range and accuracy are configurable. Dispersion is sampled when a round is chambered, so the displayed prediction is also the shot actually fired.
 - `ballistics/ballistics.gd` provides the same 60 Hz integrator for live shells and preview. The prediction performs a raycast every four integration steps; the maximum gravity-only chord error is under a centimetre. Each live shell sweeps its entire movement segment, preventing tunneling through thin collision bodies.
 - `projectiles/projectile_pool.gd` caps simultaneously active shells at six; `effects/effect_pool.gd` reuses five explosion effects and twelve scorch marks. Particle layers are one-shot GPU emitters, not unbounded rigid bodies.
 - `enemies/target.gd` uses lightweight scripted patrols, health, and staged damage/destruction. Terrain and static set dressing are not deformable; craters are pooled flat scorch meshes. Buildings are decorative and do not block shells. There is no enemy return fire in this slice.
@@ -33,7 +33,7 @@ gdformat --check scripts tests
 gdlint scripts tests
 ```
 
-Tests include analytic ballistics, drag, blast falloff, reload and ammo rules, unique objective completion, backup recovery, quality hysteresis, swept collision, predicted vs. actual impact, and a scene-level mission flow. Headless validation exercises the simulation and scene initialization but does not validate GPU rendering, sound output, touch hardware, or actual Android performance.
+Tests include analytic ballistics, drag, blast falloff, reload and ammo rules, range falloff, unique objective completion, backup recovery, quality hysteresis, swept collision, predicted vs. actual impact, and a scene-level mission flow. The visual smoke test also exercises touch input and captures rendered screenshots under Xvfb. Headless validation exercises the simulation and scene initialization but does not validate GPU rendering, sound output, touch hardware, or actual Android performance.
 
 ### Android debug exports
 

@@ -68,9 +68,9 @@ func _ready() -> void:
 
 
 func _spawn_targets() -> void:
-	_add_target("RADAR", "T-01  /  RADAR", Vector3(0, 0, -69), 120.0, 0.0)
-	_add_target("TANK", "T-02  /  ARMOR", Vector3(-22, 0, -63), 185.0, 5.5)
-	_add_target("TRANSPORT", "T-03  /  CONVOY", Vector3(23, 0, -93), 145.0, 7.0)
+	_add_target("RADAR", "T-01", Vector3(0, 0, -69), 120.0, 0.0)
+	_add_target("TANK", "T-02", Vector3(-22, 0, -63), 185.0, 5.5)
+	_add_target("TRANSPORT", "T-03", Vector3(23, 0, -93), 145.0, 7.0)
 
 
 func _add_target(kind: String, callsign: String, spawn: Vector3, hp: float, patrol: float) -> void:
@@ -265,12 +265,20 @@ func _on_impact(point: Vector3, collider: Object, ammo: AmmoConfig) -> void:
 	audio.play_sound("impact")
 	camera_rig.shake(0.65)
 	var pending: Array[Dictionary] = []
+	var horizontal_range := (
+		Vector2(point.x - gun.global_position.x, point.z - gun.global_position.z).length()
+	)
+	var weapon_damage := (
+		ammo.damage
+		* gun.config.damage_multiplier
+		* DamageModel.range_factor(horizontal_range, gun.config.effective_range)
+	)
 	for node in get_tree().get_nodes_in_group("damageable"):
 		var target := node as BattlefieldTarget
 		if target == null or target.is_destroyed:
 			continue
 		var damage := DamageModel.blast_damage(
-			ammo.damage,
+			weapon_damage,
 			ammo.blast_radius,
 			point.distance_to(target.damage_center()),
 			collider == target

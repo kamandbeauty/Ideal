@@ -16,7 +16,11 @@ var reload_remaining: float = 0.0
 
 func setup(weapon: WeaponConfig, ammo_types: Array[AmmoConfig]) -> void:
 	config = weapon
-	ammunition = ammo_types
+	ammunition.clear()
+	for ammo in ammo_types:
+		if weapon.compatible_ammunition.has(ammo.id):
+			ammunition.append(ammo)
+	assert(not ammunition.is_empty(), "Weapon needs at least one compatible ammunition type")
 	rounds.clear()
 	for ammo in ammunition:
 		rounds[ammo.id] = ammo.starting_rounds

@@ -166,6 +166,23 @@ func update_status(
 		_reload_button.text = "RELOAD !"
 	_set_selected(_he_button, gun.state.selected_index == 0)
 	_set_selected(_ap_button, gun.state.selected_index == 1)
+	var markers: Array[Dictionary] = []
+	for node in get_tree().get_nodes_in_group("damageable"):
+		var marked_target := node as BattlefieldTarget
+		if marked_target == null or marked_target.is_destroyed:
+			continue
+		var anchor := (
+			marked_target.global_position
+			+ Vector3.UP * (10.0 if marked_target.target_type == "RADAR" else 5.5)
+		)
+		if not camera.is_position_behind(anchor):
+			markers.append(
+				{
+					"position": camera.unproject_position(anchor),
+					"name": marked_target.callsign + "  " + marked_target.target_type
+				}
+			)
+	_reticle.update_markers(markers)
 	var target := preview.impact_collider as BattlefieldTarget
 	_target_panel.visible = is_instance_valid(target) and not target.is_destroyed
 	if _target_panel.visible:
@@ -189,6 +206,13 @@ func set_camera_labels(zoomed: bool, shell_cam: bool) -> void:
 func _build_gameplay() -> void:
 	_gameplay = _control(_root, Vector2.ZERO, Vector2.ZERO)
 	_gameplay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var vignette := ColorRect.new()
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var vignette_material := ShaderMaterial.new()
+	vignette_material.shader = load("res://shaders/vignette.gdshader")
+	vignette.material = vignette_material
+	_gameplay.add_child(vignette)
+	vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_reticle = AimReticle.new()
 	_gameplay.add_child(_reticle)
 

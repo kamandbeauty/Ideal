@@ -6,6 +6,10 @@
 script = ExtResource("1")
 display_name = "M-70 BASTION"
 muzzle_velocity = 35.0
+damage_multiplier = 1.0
+effective_range = 145.0
+accuracy = 0.98
+compatible_ammunition = PackedStringArray("he", "ap")
 reload_seconds = 2.4
 min_elevation_degrees = 8.0
 max_elevation_degrees = 65.0

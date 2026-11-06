@@ -55,6 +55,9 @@ jobs:
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 45
+    # Temporary artifact transfer uses the Git blob API; no branch is changed.
+    permissions:
+      contents: write
     env:
       GODOT_ANDROID_KEYSTORE_DEBUG_PATH: /home/runner/.android/frontline-debug.keystore
       GODOT_ANDROID_KEYSTORE_DEBUG_USER: androiddebugkey
@@ -103,6 +106,13 @@ jobs:
           }
           test -s build/ARTILLERY_FRONTLINE-debug.apk
           echo "::notice title=APK SHA256::$(sha256sum build/ARTILLERY_FRONTLINE-debug.apk)"
+      - name: Verify APK signature and manifest
+        run: |
+          "$ANDROID_HOME/build-tools/36.1.0/apksigner" verify --verbose build/ARTILLERY_FRONTLINE-debug.apk
+          manifest=$("$ANDROID_HOME/build-tools/36.1.0/aapt" dump permissions build/ARTILLERY_FRONTLINE-debug.apk | tr '\n' '|')
+          echo "::notice title=APK permissions::$manifest"
+          metadata=$("$ANDROID_HOME/build-tools/36.1.0/aapt" dump badging build/ARTILLERY_FRONTLINE-debug.apk | grep -E '^(package:|sdkVersion:|targetSdkVersion:|native-code:)' | tr '\n' '|')
+          echo "::notice title=APK metadata::$metadata"
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -132,6 +142,19 @@ jobs:
           name: ARTILLERY_FRONTLINE-debug-aab
           path: build/ARTILLERY_FRONTLINE-debug.aab
           if-no-files-found: error
+      - name: Transfer debug artifacts for local inspection
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for extension in apk aab; do
+            file="build/ARTILLERY_FRONTLINE-debug.$extension"
+            unzip -tq "$file" >/dev/null
+            python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "$file" > /tmp/frontline-artifact.json
+            blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/frontline-artifact.json --jq .sha)
+            echo "::notice title=DEBUG $extension blob::$blob"
+            echo "::notice title=DEBUG $extension SHA256::$(sha256sum "$file")"
+          done
 
   visual:
     name: Rendered desktop and touch smoke test
@@ -179,6 +202,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          python3 -c 'import base64,json; print(json.dumps({"content":base64.b64encode(open("build/visual-gameplay.png","rb").read()).decode(),"encoding":"base64"}))' > /tmp/screenshot-blob.json
-          blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/screenshot-blob.json --jq .sha)
-          echo "::notice title=Screenshot blob::$blob"
+          for screen in menu gameplay; do
+            python3 -c 'import base64,json,sys; print(json.dumps({"content":base64.b64encode(open(sys.argv[1],"rb").read()).decode(),"encoding":"base64"}))' "build/visual-$screen.png" > /tmp/screenshot-blob.json
+            blob=$(gh api --method POST "repos/$GITHUB_REPOSITORY/git/blobs" --input /tmp/screenshot-blob.json --jq .sha)
+            echo "::notice title=Screenshot $screen blob::$blob"
+          done

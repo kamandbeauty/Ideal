@@ -15,7 +15,7 @@ void fragment() {
 	vec2 p = world_pos.xz;
 	float grain = hash21(floor(p * 2.4));
 	float broad = sin(p.x * 0.12 + sin(p.y * 0.08) * 2.0) * 0.5 + 0.5;
-	vec3 sand = mix(vec3(0.37, 0.30, 0.20), vec3(0.52, 0.43, 0.29), broad * 0.38 + grain * 0.17);
+	vec3 sand = mix(vec3(0.25, 0.18, 0.10), vec3(0.40, 0.30, 0.18), broad * 0.38 + grain * 0.17);
 	ALBEDO = sand;
 	ROUGHNESS = 1.0;
 }

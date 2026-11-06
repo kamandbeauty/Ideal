@@ -98,9 +98,9 @@ func _build_model() -> void:
 		)
 		puff.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_label = Label3D.new()
-	_label.text = callsign
+	_label.text = callsign + "  /  " + target_type
 	_label.font_size = 40
-	_label.pixel_size = 0.016
+	_label.pixel_size = 0.025
 	_label.modulate = Color("f2c46f")
 	_label.outline_size = 6
 	_label.outline_modulate = Color("222820")

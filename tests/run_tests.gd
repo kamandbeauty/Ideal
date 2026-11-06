@@ -65,6 +65,8 @@ func _test_damage() -> void:
 	)
 	_check(DamageModel.blast_damage(100, 10, 10, false) == 0, "outside blast radius is safe")
 	_check(DamageModel.blast_damage(100, 0, 0, false) == 0, "zero radius avoids division by zero")
+	_check(DamageModel.range_factor(100, 145) == 1.0, "full damage inside effective range")
+	_check(DamageModel.range_factor(290, 145) == 0.5, "damage falls off beyond effective range")
 
 
 func _test_weapon_state() -> void:
@@ -81,6 +83,7 @@ func _test_weapon_state() -> void:
 	var types: Array[AmmoConfig] = [he, ap]
 	weapon_state.setup(weapon, types)
 	_check(weapon_state.can_fire(), "weapon starts chambered")
+	_check(weapon_state.ammunition.size() == 2, "weapon accepts configured compatible ammunition")
 	_check(
 		weapon_state.fire() and weapon_state.current_rounds() == 1,
 		"firing consumes exactly one round"

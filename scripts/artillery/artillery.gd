@@ -20,12 +20,18 @@ var _muzzle: Marker3D
 var _flash: OmniLight3D
 var _muzzle_flash: MeshInstance3D
 var _recoil_tween: Tween
+var _accuracy_rng := RandomNumberGenerator.new()
+var _yaw_dispersion: float = 0.0
+var _pitch_dispersion: float = 0.0
 
 
 func _ready() -> void:
 	assert(config != null and not ammo_types.is_empty())
 	state.setup(config, ammo_types)
 	state.reload_started.connect(_on_reload_started)
+	state.reload_finished.connect(_roll_dispersion)
+	_accuracy_rng.randomize()
+	_roll_dispersion()
 	_build_model()
 	_update_aim()
 
@@ -59,11 +65,18 @@ func muzzle_position() -> Vector3:
 
 
 func launch_velocity() -> Vector3:
-	return (
-		-_barrel_pivot.global_basis.z.normalized()
-		* config.muzzle_velocity
-		* state.current_ammo().velocity_multiplier
-	)
+	# Sample once per chamber, not at trigger time: the preview remains truthful.
+	var direction: Vector3 = -_barrel_pivot.global_basis.z.normalized()
+	direction = direction.rotated(Vector3.UP, _yaw_dispersion)
+	direction = direction.rotated(_barrel_pivot.global_basis.x.normalized(), _pitch_dispersion)
+	return direction * config.muzzle_velocity * state.current_ammo().velocity_multiplier
+
+
+func _roll_dispersion() -> void:
+	var spread := deg_to_rad((1.0 - clampf(config.accuracy, 0.0, 1.0)) * 2.0)
+	_yaw_dispersion = _accuracy_rng.randf_range(-spread, spread)
+	_pitch_dispersion = _accuracy_rng.randf_range(-spread, spread)
+	aim_changed.emit()
 
 
 func try_fire() -> bool:
