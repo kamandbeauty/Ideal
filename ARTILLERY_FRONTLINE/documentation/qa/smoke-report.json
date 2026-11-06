@@ -109,14 +109,14 @@
   "mission": {},
   "passed": false,
   "performance": {
-    "draw_calls": 970,
-    "fps": 0.9,
-    "frame_ms": 1120.97,
+    "draw_calls": 362,
+    "fps": 0.8,
+    "frame_ms": 1228.36,
     "objects": 1194,
-    "primitives": 492994,
+    "primitives": 388138,
     "renderer": "Compatibility",
-    "scale": 1.0,
-    "tier": "high"
+    "scale": 0.82,
+    "tier": "medium"
   },
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware"
 }
