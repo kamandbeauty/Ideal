@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/artillery/weapon_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+display_name = "M-70 BASTION"
+muzzle_velocity = 35.0
+reload_seconds = 2.4
+min_elevation_degrees = 8.0
+max_elevation_degrees = 65.0
+traverse_degrees = 48.0
+gravity = 9.81
+drag = 0.0

@@ -1,0 +1,16 @@
+# Godot generated data and export artifacts
+.godot/
+.import/
+build/
+dist/
+export.cfg
+export_credentials.cfg
+*.keystore
+*.jks
+*.apk
+*.aab
+*.pck
+*.zip
+*.log
+# Generated Gradle project (install with Godot's Android build template)
+android/

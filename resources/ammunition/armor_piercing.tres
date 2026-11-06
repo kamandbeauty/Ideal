@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AmmoConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/artillery/ammo_config.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = "ap"
+display_name = "ARMOR PIERCING"
+short_name = "AP"
+damage = 210.0
+blast_radius = 4.0
+velocity_multiplier = 1.08
+starting_rounds = 6
