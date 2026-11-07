@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Godot 4.4.1
+      - name: Install Godot 4.7.2
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.7.2
@@ -104,7 +104,7 @@ jobs:
           sdkmanager --install "platform-tools" "build-tools;34.0.0" "platforms;android-34" | tail -3
           sdkmanager --list_installed | head -20
 
-      - name: Install Godot 4.4.1 with Android export templates
+      - name: Install Godot 4.7.2 with Android export templates
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.7.2
@@ -208,7 +208,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Godot 4.4.1 with templates
+      - name: Install Godot 4.7.2 with templates
         uses: chickensoft-games/setup-godot@v2
         with:
           version: 4.7.2
