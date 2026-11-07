@@ -26,7 +26,7 @@
     },
     {
       "name": "weapon stays in lower foreground",
-      "passed": false
+      "passed": true
     },
     {
       "name": "muzzles point away from camera",
@@ -97,8 +97,12 @@
       "passed": true
     },
     {
+      "name": "emplacement survives the smoke engagement",
+      "passed": true
+    },
+    {
       "name": "repair works independently of airstrike cooldown",
-      "passed": false
+      "passed": true
     },
     {
       "name": "mission results panel appears",
@@ -109,15 +113,15 @@
       "passed": true
     }
   ],
-  "failures": 2,
+  "failures": 0,
   "kills": 0,
-  "passed": false,
+  "passed": true,
   "performance": {
-    "draw_calls": 289,
-    "fps": 21.6,
-    "frame_ms": 46.34,
-    "objects": 1682,
-    "primitives": 93056,
+    "draw_calls": 293,
+    "fps": 15.8,
+    "frame_ms": 63.31,
+    "objects": 1704,
+    "primitives": 101013,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
@@ -125,9 +129,9 @@
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware",
   "soldiers": 8,
   "weapon_screen_bounds": {
-    "h": 2861.046875,
-    "w": 4826.78369140625,
-    "x": -1414.2734375,
-    "y": 310.889526367188
+    "h": 3006.19458007812,
+    "w": 4826.81494140625,
+    "x": -1414.28430175781,
+    "y": 360.608642578125
   }
 }
