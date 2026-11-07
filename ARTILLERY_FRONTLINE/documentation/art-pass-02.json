@@ -2,7 +2,7 @@
   "pass": "art-pass-02",
   "models": {
     "soldier": {
-      "triangles": 5798,
+      "triangles": 5952,
       "pivots": [
         "ArmL",
         "ArmR",
