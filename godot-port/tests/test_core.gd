@@ -265,6 +265,25 @@ func _run() -> void:
 
 	var gameplay_scene = ResourceLoader.load("res://scenes/gameplay_screen.tscn")
 	failures += _check(gameplay_scene is PackedScene, "load native gameplay screen scene")
+
+	print("TEST STAGE 11: gameplay scene runtime smoke test")
+	var smoke_directory := "user://godot-screen-smoke"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(smoke_directory))
+	var screen_scene = ResourceLoader.load("res://scenes/gameplay_screen.tscn")
+	var screen = screen_scene.instantiate()
+	screen.set_meta("save_directory", smoke_directory)
+	root.add_child(screen)
+	await process_frame
+	failures += _check(screen.debug_cell_count() == 81, "gameplay screen builds a 9x9 interactive board")
+	failures += _check(screen.debug_run_status() == GameTypes.LevelStatus.PLAYING, "gameplay screen starts level one in playing state")
+	screen.queue_free()
+	await process_frame
+	for file_name in ["shazdeh-save.json", "shazdeh-save.json.bak", "shazdeh-save.json.tmp"]:
+		var cleanup_path := smoke_directory.path_join(file_name)
+		if FileAccess.file_exists(cleanup_path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(cleanup_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(smoke_directory))
+
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
 
