@@ -117,11 +117,11 @@
   "kills": 0,
   "passed": true,
   "performance": {
-    "draw_calls": 293,
-    "fps": 15.8,
-    "frame_ms": 63.31,
+    "draw_calls": 262,
+    "fps": 15.9,
+    "frame_ms": 62.75,
     "objects": 1704,
-    "primitives": 101013,
+    "primitives": 100224,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
@@ -129,9 +129,9 @@
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware",
   "soldiers": 8,
   "weapon_screen_bounds": {
-    "h": 3006.19458007812,
-    "w": 4826.81494140625,
-    "x": -1414.28430175781,
-    "y": 360.608642578125
+    "h": 2922.13623046875,
+    "w": 2635.9013671875,
+    "x": -597.950561523438,
+    "y": 444.667114257812
   }
 }
