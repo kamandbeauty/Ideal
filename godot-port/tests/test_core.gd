@@ -218,6 +218,19 @@ func _run() -> void:
 		failures += _check(seed_run.board.count_pieces() == 81, "seed %d fills all 81 cells" % seed)
 		failures += _check(seed_run.moves_left == 20 and seed_run.status == GameTypes.LevelStatus.PLAYING, "seed %d starts with the configured move budget" % seed)
 
+
+	var move_accounting_run = Run.new(hash_level, 0, 2026)
+	var legal_swap := _find_legal_swap(move_accounting_run.board)
+	failures += _check(legal_swap.size() == 4, "find a legal opening swap in the deterministic board")
+	if legal_swap.size() == 4:
+		var accepted_run_move = move_accounting_run.try_swap(legal_swap[0], legal_swap[1], legal_swap[2], legal_swap[3])
+		failures += _check(accepted_run_move.accepted and move_accounting_run.moves_left == 19 and move_accounting_run.moves_used == 1, "accepted LevelRun swap consumes exactly one move")
+		var rejected_run_move = move_accounting_run.try_swap(0, 0, 0, 0)
+		failures += _check(not rejected_run_move.accepted and move_accounting_run.moves_left == 19 and move_accounting_run.moves_used == 1, "rejected LevelRun swap consumes no move")
+		var moves_before_booster := move_accounting_run.moves_left
+		var run_booster = move_accounting_run.use_booster(GameTypes.BoosterKind.MALLET, 4, 4)
+		failures += _check(run_booster.accepted and move_accounting_run.moves_left == moves_before_booster and move_accounting_run.boosters_used.size() == 1, "LevelRun booster does not consume a move")
+
 	var run_a = Run.new(progression_level, 0, 12345)
 	var run_b = Run.new(progression_level, 0, 12345)
 	failures += _check(run_a.state_hash_hex() == run_b.state_hash_hex(), "same seed produces same initial replay hash")
@@ -351,3 +364,31 @@ func _check(condition: bool, label: String) -> int:
 		return 0
 	push_error("FAIL: " + label)
 	return 1
+
+func _find_legal_swap(board) -> Array[int]:
+	for y in range(board.height):
+		for x in range(board.width):
+			for direction in [Vector2i.RIGHT, Vector2i.UP]:
+				var other := Vector2i(x, y) + direction
+				if not board.in_bounds(other.x, other.y):
+					continue
+				var a = board.at(x, y)
+				var b = board.at_pos(other)
+				if a == null or b == null or not a.has_piece or not b.has_piece:
+					continue
+				var piece: int = a.piece
+				var power_up: int = a.power_up
+				a.piece = b.piece
+				a.power_up = b.power_up
+				b.piece = piece
+				b.power_up = power_up
+				var creates_match := Finder.has_match(board) or not Finder.find_squares(board).is_empty()
+				piece = a.piece
+				power_up = a.power_up
+				a.piece = b.piece
+				a.power_up = b.power_up
+				b.piece = piece
+				b.power_up = power_up
+				if creates_match:
+					return [x, y, other.x, other.y]
+	return []
