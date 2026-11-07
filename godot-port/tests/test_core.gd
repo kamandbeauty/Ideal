@@ -193,7 +193,7 @@ func _run() -> void:
 	failures += _check(not repeat_result.first_clear and wallet.potions == 23, "replay does not pay first-clear reward twice")
 	failures += _check(progression.highest_unlocked_level == 2 and Stars.from_run(run_a) == 3, "first clear unlocks next level and computes stars")
 	failures += _check(progression.try_complete_task("d1-t1", 3, wallet), "complete a task and spend its potion cost")
-	var potions_after_task := wallet.potions
+	var potions_after_task: int = wallet.potions
 	failures += _check(not progression.try_complete_task("d1-t1", 3, wallet) and wallet.potions == potions_after_task, "completed task cannot be charged twice")
 	var district_tasks: Array[Dictionary] = [
 		{"key": "d1-t2", "potion_cost": 2},
