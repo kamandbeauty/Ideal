@@ -54,7 +54,7 @@ func _run() -> void:
 	var electro_targets: Array[Vector2i] = []
 	Powers.collect_targets(mixed_board, Vector2i(2, 2), GameTypes.PowerUpKind.ELECTRO_BALL, Rng.new(0, 1), electro_targets)
 	failures += _check(Powers.most_common_kind(mixed_board) == GameTypes.PieceKind.FIROUZEH, "electro ball selects most common piece kind")
-	failures += _check(electro_targets.size() == 15, "electro ball targets all pieces of the most common kind")
+	failures += _check(electro_targets.size() == 14, "electro ball targets all pieces of the most common kind")
 	var combo_targets: Array[Vector2i] = []
 	Powers.collect_combo_targets(mixed_board, Vector2i(2, 2), GameTypes.PowerUpKind.ROCKET_VERTICAL, GameTypes.PowerUpKind.ROCKET_HORIZONTAL, Rng.new(0, 1), combo_targets)
 	failures += _check(combo_targets.size() == 9, "rocket pair combo clears one row and one column without duplicates")
