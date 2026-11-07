@@ -2,6 +2,7 @@ package com.motionshot.app.motion
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.ExifInterface
 import android.media.MediaMetadataRetriever
 import android.util.Log
 import java.io.File
@@ -89,15 +90,13 @@ class PhotoDecoder(
         try {
             retriever.setDataSource(path)
             // Videos report "video-rotation"; stills carry the EXIF
-            // orientation ("orientation"), reported as "6"/"90" or, on some
-            // OEMs, as "rotate_90". Reading only the video key left portrait
-            // photos unrotated, so the export framed them sideways.
+            // orientation (via ExifInterface). Reading only the video key
+            // left portrait photos unrotated, so the export framed them
+            // sideways.
             rotation = retriever
                     .extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
                     ?.toIntOrNull()
-                ?: parseOrientation(
-                    retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ORIENTATION),
-                )
+                ?: exifOrientation(path)
                 ?: 0
         } catch (e: Exception) {
             Log.d(TAG, "no metadata for $path: ${e.message}")
@@ -124,24 +123,30 @@ class PhotoDecoder(
         val exifRotation: Int,
     )
 
-    /** Normalises the many EXIF-orientation encodings to 0/90/180/270. */
-    private fun parseOrientation(raw: String?): Int? {
-        if (raw == null) return null
-        return when (raw) {
-            "0" -> 0
-            "1" -> 0
-            "90", "6" -> 90
-            "180", "3" -> 180
-            "270", "8" -> 270
-            "rotate_90" -> 90
-            "rotate_180" -> 180
-            "rotate_270" -> 270
-            else -> raw.toIntOrNull()?.let { when (it % 360) {
-                90 -> 90
-                180 -> 180
-                270 -> 270
+    /** EXIF orientation of a still image, normalised to 0/90/180/270. */
+    private fun exifOrientation(path: String): Int? {
+        return try {
+            val exif = ExifInterface(path)
+            when (
+                exif.getAttributeInt(
+                    ExifInterface.TAG_ORIENTATION,
+                    ExifInterface.ORIENTATION_UNDEFINED,
+                )
+            ) {
+                ExifInterface.ORIENTATION_ROTATE_90,
+                ExifInterface.ORIENTATION_TRANSVERSE,
+                -> 90
+
+                ExifInterface.ORIENTATION_ROTATE_180 -> 180
+
+                ExifInterface.ORIENTATION_ROTATE_270,
+                ExifInterface.ORIENTATION_TRANSPOSE,
+                -> 270
+
                 else -> 0
-            } }
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 
