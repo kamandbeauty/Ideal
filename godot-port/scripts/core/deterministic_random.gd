@@ -19,7 +19,7 @@ func _init(seed_high: int = 0, seed_low: int = 1) -> void:
 		_high = FALLBACK_HIGH
 		_low = FALLBACK_LOW
 
-func next_words() -> Vector2i:
+func next_words() -> Array[int]:
 	# x ^= x >> 12 (logical shift)
 	var old_high := _high
 	var old_low := _low
@@ -56,7 +56,7 @@ func next_words() -> Vector2i:
 	var output_low := low_sum & MASK32
 	var carry := low_sum >> 32
 	var output_high := (p2 + (p1 >> 16) + carry + ((_high * MULTIPLIER_LOW) & MASK32) + ((_low * MULTIPLIER_HIGH) & MASK32)) & MASK32
-	return Vector2i(output_high, output_low)
+	return [output_high, output_low]
 
 func next(max_exclusive: int) -> int:
 	if max_exclusive <= 0:
@@ -64,7 +64,7 @@ func next(max_exclusive: int) -> int:
 	var words := next_words()
 	var modulus := max_exclusive
 	var two32_mod := (4294967296 % modulus)
-	return int((((words.x % modulus) * two32_mod) + (words.y % modulus)) % modulus)
+	return int((((words[0] % modulus) * two32_mod) + (words[1] % modulus)) % modulus)
 
 func next_range(min_inclusive: int, max_exclusive: int) -> int:
 	if max_exclusive <= min_inclusive:
@@ -73,7 +73,7 @@ func next_range(min_inclusive: int, max_exclusive: int) -> int:
 
 func next_01() -> float:
 	var words := next_words()
-	return float(words.x >> 8) / 16777216.0
+	return float(words[0] >> 8) / 16777216.0
 
 func state_hex() -> String:
 	return "%08x%08x" % [_high, _low]
