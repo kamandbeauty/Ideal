@@ -144,8 +144,8 @@ class _AsrCloudCardState extends ConsumerState<AsrCloudCard> {
           Text('تشخیص گفتار', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 6),
           const Text(
-            'پیش‌فرض روی گوشی و بدون اینترنت است. اگر دقت مدل بزرگ‌تر را می‌خواهید، '
-            'می‌توانید صدای پروژه را به یک سرویس Whisper آنلاین بفرستید.',
+            'پیش‌فرض آنلاین است تا هیچ مدلی لازم نباشد دانلود شود. حالت «روی گوشی» '
+            'هم هست: کاملاً آفلاین و بدون حساب، به قیمت دانلود یک‌بارهٔ مدل.',
             style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.9),
           ),
           const SizedBox(height: 12),
@@ -259,19 +259,19 @@ class _ModeSwitch extends StatelessWidget {
       children: <Widget>[
         Expanded(
           child: _Tile(
-            label: 'روی گوشی (آفلاین)',
-            icon: Icons.smartphone_rounded,
-            selected: mode == AsrProviderMode.onDevice,
-            onTap: onChanged == null ? null : () => onChanged!(AsrProviderMode.onDevice),
+            label: 'آنلاین (بدون دانلود)',
+            icon: Icons.cloud_outlined,
+            selected: mode == AsrProviderMode.cloud,
+            onTap: onChanged == null ? null : () => onChanged!(AsrProviderMode.cloud),
           ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _Tile(
-            label: 'آنلاین (Whisper بزرگ)',
-            icon: Icons.cloud_outlined,
-            selected: mode == AsrProviderMode.cloud,
-            onTap: onChanged == null ? null : () => onChanged!(AsrProviderMode.cloud),
+            label: 'روی گوشی (آفلاین)',
+            icon: Icons.smartphone_rounded,
+            selected: mode == AsrProviderMode.onDevice,
+            onTap: onChanged == null ? null : () => onChanged!(AsrProviderMode.onDevice),
           ),
         ),
       ],

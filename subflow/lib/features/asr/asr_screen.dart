@@ -42,7 +42,7 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   String? _downloadingId;
   AsrDownloadProgress? _download;
   bool _userCancelled = false;
-  AsrProviderMode _mode = AsrProviderMode.onDevice;
+  AsrProviderMode _mode = AsrProviderMode.cloud;
   AsrCloudConfig _cloud = AsrCloudConfig.empty;
 
   static const List<Map<String, String>> _languages = <Map<String, String>>[
@@ -148,7 +148,10 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
           ),
           ],
           if (_mode == AsrProviderMode.cloud) ...<Widget>[
-            _CloudCard(config: _cloud, onOpenSettings: () => context.go('/settings')),
+            if (_cloud.ready)
+              _CloudCard(config: _cloud, onOpenSettings: () => context.go('/settings'))
+            else
+              const _CloudSetupCard(),
             const SizedBox(height: 18),
           ],
           const _SectionTitle(title: 'زبان گفتار'),
@@ -690,8 +693,8 @@ class _ProviderSwitch extends StatelessWidget {
 
   static const List<(AsrProviderMode, String, IconData)> _options =
       <(AsrProviderMode, String, IconData)>[
-    (AsrProviderMode.onDevice, 'روی گوشی', Icons.smartphone_rounded),
     (AsrProviderMode.cloud, 'آنلاین', Icons.cloud_outlined),
+    (AsrProviderMode.onDevice, 'روی گوشی', Icons.smartphone_rounded),
   ];
 
   @override
@@ -739,6 +742,288 @@ class _ProviderSwitch extends StatelessWidget {
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// The one-time setup for the online provider, answered where the problem
+/// appears instead of sending the user into a settings maze.
+///
+/// Online is the default on a fresh install precisely because it needs no model
+/// download; the single thing standing between the user and a transcript is a
+/// key, so the key is the only field that is in the way, with the free option
+/// preselected and the address and model already filled in.
+class _CloudSetupCard extends ConsumerStatefulWidget {
+  const _CloudSetupCard();
+
+  @override
+  ConsumerState<_CloudSetupCard> createState() => _CloudSetupCardState();
+}
+
+class _CloudSetupCardState extends ConsumerState<_CloudSetupCard> {
+  final TextEditingController _key = TextEditingController();
+  final TextEditingController _url = TextEditingController(text: AsrCloudPreset.groq.baseUrl);
+  final TextEditingController _model = TextEditingController(text: AsrCloudPreset.groq.model);
+
+  String _preset = AsrCloudPreset.groq.id;
+  bool _busy = false;
+  bool _obscure = true;
+  String? _status;
+  bool _statusOk = false;
+
+  @override
+  void dispose() {
+    _key.dispose();
+    _url.dispose();
+    _model.dispose();
+    super.dispose();
+  }
+
+  AsrCloudConfig get _config => AsrCloudConfig(
+        baseUrl: _url.text,
+        model: _model.text,
+        apiKey: _key.text,
+        presetId: _preset,
+      );
+
+  void _applyPreset(AsrCloudPreset preset) {
+    setState(() {
+      _preset = preset.id;
+      if (preset != AsrCloudPreset.custom) {
+        _url.text = preset.baseUrl;
+        _model.text = preset.model;
+      }
+      _status = null;
+    });
+  }
+
+  Future<void> _saveAndTest() async {
+    final AsrCloudConfig config = _config;
+    if (config.apiKey.trim().isEmpty) {
+      setState(() {
+        _statusOk = false;
+        _status = 'کلید API را وارد کنید.';
+      });
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _status = null;
+    });
+    await ref.read(asrSettingsControllerProvider).saveCloud(config);
+    final AsrCloudCheck check = await ref.read(asrServiceProvider).checkCloud(config);
+    if (!mounted) return;
+    final bool modelListed = check.models.isEmpty ||
+        check.models.any((String name) => name.contains(config.model.trim()));
+    setState(() {
+      _busy = false;
+      _statusOk = check.ok;
+      if (!check.ok) {
+        _status = check.error.isEmpty ? 'اتصال برقرار نشد.' : check.error;
+      } else if (!modelListed) {
+        _statusOk = false;
+        _status = 'کلید درست است اما مدل «${config.model.trim()}» در این سرویس نیست.';
+      } else {
+        _status = 'آماده است؛ حالا دکمهٔ «شروع تشخیص گفتار» را بزنید.';
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SfCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const Icon(Icons.cloud_outlined, size: 18, color: AppColors.primary),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'تشخیص گفتار آنلاین، بدون دانلود مدل',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'صدا به سرویس Whisper ارسال می‌شود و زیرنویس برمی‌گردد؛ هیچ فایل مدلی '
+            'دانلود نمی‌کنید. یک کلید API لازم است و Groq کلید رایگان می‌دهد.',
+            style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.9),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: AsrCloudPreset.all
+                .map((AsrCloudPreset preset) => _CloudPresetChip(
+                      preset: preset,
+                      selected: preset.id == _preset,
+                      onTap: _busy ? null : () => _applyPreset(preset),
+                    ))
+                .toList(growable: false),
+          ),
+          const SizedBox(height: 10),
+          if (_preset == AsrCloudPreset.custom.id) ...<Widget>[
+            _CloudField(
+              controller: _url,
+              label: 'آدرس سرویس',
+              hint: 'https://…/v1',
+              enabled: !_busy,
+            ),
+            const SizedBox(height: 10),
+            _CloudField(
+              controller: _model,
+              label: 'نام مدل',
+              hint: 'whisper-large-v3',
+              enabled: !_busy,
+            ),
+            const SizedBox(height: 10),
+          ] else
+            Text(
+              '${AsrCloudPreset.byId(_preset).note} • ${AsrCloudPreset.byId(_preset).model}',
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.8),
+            ),
+          const SizedBox(height: 10),
+          _CloudField(
+            controller: _key,
+            label: 'کلید API',
+            hint: _preset == AsrCloudPreset.groq.id ? 'gsk_…' : 'sk-…',
+            enabled: !_busy,
+            obscure: _obscure,
+            trailing: IconButton(
+              onPressed: () => setState(() => _obscure = !_obscure),
+              icon: Icon(
+                _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                size: 18,
+                color: AppColors.textMuted,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SelectableText(
+            _preset == AsrCloudPreset.groq.id
+                ? 'کلید رایگان: console.groq.com/keys'
+                : _preset == AsrCloudPreset.openai.id
+                    ? 'کلید: platform.openai.com/api-keys'
+                    : 'هر سرویس سازگار با OpenAI؛ اگر سرویس مستقیم باز نمی‌شود، آدرس پروکسی خودتان را بگذارید.',
+            style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted, height: 1.9),
+          ),
+          const SizedBox(height: 12),
+          SfPrimaryButton(
+            label: _busy ? 'در حال بررسی…' : 'ذخیره و تست اتصال',
+            onPressed: _busy ? null : _saveAndTest,
+          ),
+          if (_busy)
+            const Padding(
+              padding: EdgeInsets.only(top: 10),
+              child: LinearProgressIndicator(minHeight: 3),
+            ),
+          if (_status != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                _status!,
+                style: TextStyle(
+                  fontSize: 11.5,
+                  height: 1.9,
+                  color: _statusOk ? AppColors.success : AppColors.danger,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CloudPresetChip extends StatelessWidget {
+  const _CloudPresetChip({required this.preset, required this.selected, required this.onTap});
+
+  final AsrCloudPreset preset;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary.withOpacity(0.16) : AppColors.surfaceHigh,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: selected ? AppColors.primary : AppColors.outline),
+        ),
+        child: Text(
+          preset.label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: selected ? AppColors.primary : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CloudField extends StatelessWidget {
+  const _CloudField({
+    required this.controller,
+    required this.label,
+    required this.hint,
+    required this.enabled,
+    this.obscure = false,
+    this.trailing,
+  });
+
+  final TextEditingController controller;
+  final String label;
+  final String hint;
+  final bool enabled;
+  final bool obscure;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      enabled: enabled,
+      obscureText: obscure,
+      autocorrect: false,
+      enableSuggestions: false,
+      style: const TextStyle(fontSize: 12.5, color: AppColors.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        labelStyle: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+        hintStyle: const TextStyle(fontSize: 11.5, color: AppColors.textMuted),
+        suffixIcon: trailing,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        filled: true,
+        fillColor: AppColors.surfaceHigh,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(11),
+          borderSide: const BorderSide(color: AppColors.outline),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(11),
+          borderSide: const BorderSide(color: AppColors.outline),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(11),
+          borderSide: const BorderSide(color: AppColors.primary),
+        ),
       ),
     );
   }
