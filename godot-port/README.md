@@ -4,7 +4,8 @@ Independent Godot 4.x + GDScript client. The Unity project remains in `client/` 
 
 ## Implemented
 
-- Godot project configuration and native match-3 gameplay scene as the app entry point.
+- Godot project configuration with a Persian home screen as the app entry point.
+- Native home, gameplay, district-building, booster-shop and settings screens.
 - Imported all 85 original PNG art assets, both original Vazir fonts, ten chapter-one level JSON files and district metadata.
 - Level and district content loaders, full level/catalog validation, Persian metadata mapping and asset catalog.
 - Board/cell model, match detection, 2×2 squares, clusters and power-up spawn selection.
@@ -14,24 +15,26 @@ Independent Godot 4.x + GDScript client. The Unity project remains in `client/` 
 - Move resolver for swaps, boosters, cascades, chained triggers, clears, obstacle damage, gravity, refill and settle.
 - Wallet, booster inventory, lives/refill clock, star rating, level run, replay hash and progression.
 - Versioned JSON save codec and local file store with temporary writes and backup recovery.
-- Native 9×9 board UI with original background, piece, power-up and obstacle art; Persian goals/move labels and booster selection.
+- Native 9×9 board UI with original background, piece, power-up and obstacle art; Persian goals/move labels, booster selection and home navigation.
+- District construction tasks and chest rewards; coin-based booster shop; persistent settings toggles.
 
 ## Verification
 
 <badge color="success">Godot 4.4.1 headless CI passed</badge>
 
-Latest workflow: [Godot headless import and core tests](https://github.com/kamandbeauty/Ideal/actions/runs/42406840610)
+Latest workflow: [Godot headless import and core tests](https://github.com/kamandbeauty/Ideal/actions/runs/42407372225)
 
-- All listed GDScript files loaded successfully.
-- Core suite: 179 checks, 0 failures.
+- All 33 listed GDScript files loaded successfully.
+- Core suite: 1,722 checks, 0 failures.
 - C# RNG golden draws and state for seeds 1 and 42 match exactly.
 - C# FNV board-hash and seed-42 LevelRun hash reference vectors match.
 - Twenty opening-board seeds produce full boards without automatic matches and with legal moves.
-- All ten chapter-one levels pass full content/catalog validation; all three districts and twelve tasks load.
+- 500 legal-move attempts across the ten real chapter-one levels leave settled, full boards.
+- All ten levels, three districts and twelve build tasks load and validate.
 - Save, progression, economy, lives, booster, power-up and obstacle cases pass.
-- Gameplay scene was instantiated in headless mode; it created an 81-cell board and entered level-one playing state.
+- Gameplay, home, district, shop and settings screens instantiate successfully in headless smoke tests.
 
-This verifies the selected headless cases only. Exhaustive Unity/Godot event-by-event parity, every power-up pairing, complete visual polish, Android export, device performance, audio/animation/VFX and release readiness remain outstanding.
+This verifies selected headless cases only. Exhaustive Unity/Godot event-by-event parity, every power-up pairing, complete visual polish, Android export, device performance, audio/animation/VFX and release readiness remain outstanding.
 
 Run tests locally from the repository root:
 
