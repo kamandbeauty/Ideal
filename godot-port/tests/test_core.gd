@@ -192,6 +192,18 @@ func _run() -> void:
 	var repeat_result = progression.record_level_result(run_a, wallet)
 	failures += _check(not repeat_result.first_clear and wallet.potions == 23, "replay does not pay first-clear reward twice")
 	failures += _check(progression.highest_unlocked_level == 2 and Stars.from_run(run_a) == 3, "first clear unlocks next level and computes stars")
+	failures += _check(progression.try_complete_task("d1-t1", 3, wallet), "complete a task and spend its potion cost")
+	var potions_after_task := wallet.potions
+	failures += _check(not progression.try_complete_task("d1-t1", 3, wallet) and wallet.potions == potions_after_task, "completed task cannot be charged twice")
+	var district_tasks: Array[Dictionary] = [
+		{"key": "d1-t2", "potion_cost": 2},
+		{"key": "d1-t3", "potion_cost": 3}
+	]
+	var bulk_result = progression.try_complete_tasks(district_tasks, wallet)
+	failures += _check(bulk_result.success and bulk_result.completed == 2 and bulk_result.spent == 5, "complete a district batch all at once")
+	var chest_reward = preload("res://scripts/core/reward_bundle.gd").new(20, 5)
+	failures += _check(progression.try_claim_chest("d1", chest_reward, district_tasks, wallet), "claim chest after district tasks are complete")
+	failures += _check(not progression.try_claim_chest("d1", chest_reward, district_tasks, wallet), "district chest cannot be claimed twice")
 
 
 	print("TEST STAGE 9: save codec migration and backup persistence")
