@@ -47,7 +47,12 @@ jobs:
           cp /tmp/import.log "$PROJECT/documentation/qa/import.log"
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' /tmp/import.log; then exit 1; fi
       - name: Run dependency-free unit and integration suites
-        run: godot --headless --path "$PROJECT" --script res://tests/run_tests.gd
+        run: |
+          rc=0
+          godot --headless --path "$PROJECT" --script res://tests/run_tests.gd > /tmp/tests.log 2>&1 || rc=$?
+          cat /tmp/tests.log
+          cp /tmp/tests.log "$PROJECT/documentation/qa/tests.log"
+          exit "$rc"
       - name: Check test report
         run: python3 "$PROJECT/tools/check_report.py" artillery-test-results.json
       - name: Software-rendered gameplay smoke test
