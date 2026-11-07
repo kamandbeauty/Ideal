@@ -18,6 +18,8 @@ const ProgressionScript = preload("res://scripts/core/progression.gd")
 const Stars = preload("res://scripts/core/star_rating.gd")
 const Codec = preload("res://scripts/core/save_codec.gd")
 const Store = preload("res://scripts/core/save_store.gd")
+const ContentLoader = preload("res://scripts/core/level_content_loader.gd")
+const Catalog = preload("res://scripts/core/asset_catalog.gd")
 
 func _initialize() -> void:
 	create_timer(20.0).timeout.connect(_on_timeout)
@@ -249,6 +251,17 @@ func _run() -> void:
 		if FileAccess.file_exists(path):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(test_directory))
+
+
+	print("TEST STAGE 10: imported chapter content and art")
+	var loaded_level = ContentLoader.load_level(1)
+	failures += _check(loaded_level.level != null and loaded_level.errors.is_empty(), "load first shipped chapter level")
+	failures += _check(loaded_level.level.id == "ch01-001" and loaded_level.level.width == 9 and loaded_level.level.pieces.size() == 5, "map level metadata and piece names")
+	var chapter = ContentLoader.load_chapter("ch01", 10)
+	failures += _check(chapter.levels.size() == 10 and chapter.errors.is_empty(), "load all ten chapter-one levels")
+	failures += _check(Catalog.piece_texture(GameTypes.PieceKind.FIROUZEH) != null, "original piece art is available to Godot")
+	failures += _check(Catalog.power_up_texture(GameTypes.PowerUpKind.ROCKET_VERTICAL) != null, "original power-up art is available to Godot")
+	failures += _check(Catalog.obstacle_texture(GameTypes.ObstacleKind.CRATE) != null, "original obstacle art is available to Godot")
 
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
