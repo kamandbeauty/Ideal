@@ -119,24 +119,7 @@ jobs:
             -dname "CN=Android Debug,O=Android,C=US"
 
       - name: Point Godot's editor settings at the SDK and the debug key
-        run: python3 - <<'PY'
-          import os
-          from pathlib import Path
-          home = Path(os.environ["HOME"])
-          sdk = os.environ.get("ANDROID_HOME") or os.environ.get("ANDROID_SDK_ROOT", "")
-          java = os.environ.get("JAVA_HOME", "")
-          settings_dir = home / ".config" / "godot"
-          settings_dir.mkdir(parents=True, exist_ok=True)
-          (settings_dir / "editor_settings-4.4.tres").write_text(
-              '[gd_resource type="EditorSettings" format=3]\n\n[resource]\n'
-              f'export/android/android_sdk_path = "{sdk}"\n'
-              f'export/android/java_sdk_path = "{java}"\n'
-              f'export/android/debug_keystore = "{home}/.android/debug.keystore"\n'
-              'export/android/debug_keystore_user = "androiddebugkey"\n'
-              'export/android/debug_keystore_pass = "android"\n',
-              encoding="utf-8")
-          print(f"sdk={sdk} java={java}")
-          PY
+        run: python3 godot-port/tools/write_editor_settings.py
 
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
