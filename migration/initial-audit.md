@@ -38,7 +38,7 @@ The feature inventory at `replica/features.csv` describes 47 rows across must/sh
 - `replica/architecture.md` documents the intended architecture and core-loop scope.
 - `replica/recon.md` maps 28 source-game screens; the v1 product scope is a smaller single-player core loop, with social/live-ops explicitly out of scope.
 - `docs/art.md` states the current art contract contains 85 assets and that all 85 are present according to that document. It also notes that the current art is a deliberate flat-vector set and that some key artwork (notably the palace illustration) needs further polish to reach the stated professional visual target.
-- The art manifest and actual asset tree still need machine-counted verification before the final inventory is approved.
+- The Unity client art tree contains 85 PNG files, matching the 85 assets reported by `docs/art.md`; a per-asset manifest-to-file and dimensions/alpha validation is still required before final approval.
 - Preserve the project's own original art and branding. Do not copy proprietary assets from the referenced commercial game.
 
 ## Migration approach
@@ -55,7 +55,7 @@ The feature inventory at `replica/features.csv` describes 47 rows across must/sh
 ## Key risks and open questions
 
 - Unity C# compile and PlayMode/EditMode status is currently unverified due to the missing CI licence.
-- Full source inventory (all C# files, tests, JSON content, art files, fonts, audio, and plugin code) has not yet been counted from the repository tree.
+- The Unity client tree was machine-enumerated recursively: 196 entries (176 files, 20 directories), with 66 C# files, 85 PNGs, 12 JSON files, 5 assembly-definition files, 2 TTF fonts, 3 TXT files, 2 Markdown files, and 1 `.gitkeep`. The 12 JSON files include 10 chapter-one levels, one district definition, and the Unity package manifest. No audio files or large (>2 MB) blobs appear in the enumerated `client/` tree. This count is for `client/` only, not the entire monorepo.
 - The actual rendering pipeline and shader usage need verification; the architecture document's earlier Unity stack description may not match every current implementation detail.
 - Backend/API readiness and the exact boundary between offline local saves and server-authoritative progression need a contract-level review before porting.
 - Godot 4.x minor version, rendering backend (Forward+/Mobile/Compatibility), target Android API, and minimum device class must be selected after checking actual effects, textures, and performance targets.
@@ -63,7 +63,7 @@ The feature inventory at `replica/features.csv` describes 47 rows across must/sh
 
 ## Next audit deliverables
 
-- Machine-generated complete file inventory with counts by extension and directory.
+- Machine-generated Unity client file inventory: complete tree count and extension totals are recorded above; the path-by-path list and class-level dependency map remain to be generated.
 - Full C# class/dependency map and list of UnityEngine/TMPro/editor API references.
 - Complete feature-to-source-code mapping and implementation status.
 - Asset manifest reconciliation, including dimensions, formats, fonts, and audio.
