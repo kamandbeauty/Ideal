@@ -1,0 +1,36 @@
+name: godot-port
+
+on:
+  push:
+    branches: [feature/godot-migration]
+    paths:
+      - "godot-port/**"
+      - ".github/workflows/godot-port.yml"
+  pull_request:
+    branches: ["arena/d42cf39b-ideal"]
+    paths:
+      - "godot-port/**"
+      - ".github/workflows/godot-port.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  core-tests:
+    name: Godot 4 headless import and core tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.4.1
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+
+      - name: Import project and build global class cache
+        run: godot --headless --editor --path godot-port --quit
+
+      - name: Run core tests
+        run: godot --headless --path godot-port --script res://tests/test_core.gd
