@@ -10,10 +10,10 @@ const Codec = preload("res://scripts/core/save_codec.gd")
 const Store = preload("res://scripts/core/save_store.gd")
 
 var failures := 0
-var root: Window
+var tree_root: Window
 
 func _initialize() -> void:
-	root = get_root()
+	tree_root = get_root()
 	create_timer(30.0).timeout.connect(_on_timeout)
 	call_deferred("_run")
 
@@ -52,7 +52,7 @@ func _run() -> void:
 	failures += _check(UiKit.art_box("no_such_art",
 		UiTokens.BORDER_CARD) == null, "missing nine-slice art falls back to the rounded panel")
 	var host := Control.new()
-	root.add_child(host)
+	tree_root.add_child(host)
 	var panel := UiKit.panel(host, "panel", 10.0, 20.0, 100.0, 50.0, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 	failures += _check(panel.position.x == 10.0 and panel.position.y == 20.0 and panel.size.x == 100.0,
 		"panels are placed by their top-left corner in design units")
@@ -98,7 +98,7 @@ func _run() -> void:
 
 	print("UI STAGE 4: the board view's meaning of a touch")
 	var view := BoardView.new()
-	root.add_child(view)
+	tree_root.add_child(view)
 	view.setup(run, Vector2(383.0, 392.0))
 	failures += _check(view.get_child_count() == 81, "the view draws one widget per cell")
 	var expected := view.position_for(Vector2i(0, 0)) + Vector2(4.0, 4.0)
@@ -112,7 +112,7 @@ func _run() -> void:
 	for number in range(1, GameSession.LEVEL_COUNT + 1):
 		session.save.level_number = number
 		var screen := BoardScreen.new()
-		root.add_child(screen)
+		tree_root.add_child(screen)
 		screen.init_screen(session)
 		var started: bool = screen.start_level(number)
 		failures += _check(started, "level %d starts on the board screen" % number)

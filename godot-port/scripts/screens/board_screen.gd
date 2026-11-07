@@ -237,8 +237,8 @@ static func _swap_in_copy(board: BoardModel, a: Vector2i, b: Vector2i) -> void:
 	var second = board.at_pos(b)
 	if first == null or second == null:
 		return
-	var piece := first.piece
-	var power := first.power_up
+	var piece: int = first.piece
+	var power: int = first.power_up
 	first.piece = second.piece
 	first.power_up = second.power_up
 	second.piece = piece
