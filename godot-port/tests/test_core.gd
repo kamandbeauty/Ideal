@@ -220,6 +220,13 @@ func _run() -> void:
 	var repeat_result = progression.record_level_result(run_a, wallet)
 	failures += _check(not repeat_result.first_clear and wallet.potions == 23, "replay does not pay first-clear reward twice")
 	failures += _check(progression.highest_unlocked_level == 2 and Stars.from_run(run_a) == 3, "first clear unlocks next level and computes stars")
+	var no_effect_run = Run.new(progression_level, 0, 77)
+	no_effect_run.board.at(0, 0).blocked = true
+	var no_effect_booster = no_effect_run.use_booster(GameTypes.BoosterKind.MALLET, 0, 0)
+	failures += _check(no_effect_booster.accepted and no_effect_booster.events.is_empty(), "booster may be accepted but have no effect on a blocked cell")
+	failures += _check(no_effect_run.boosters_used.size() == 1, "accepted booster is recorded before refund")
+	no_effect_run.revert_last_booster(GameTypes.BoosterKind.MALLET)
+	failures += _check(no_effect_run.boosters_used.is_empty(), "no-effect booster refund removes it from replay history")
 	failures += _check(progression.try_complete_task("d1-t1", 3, wallet), "complete a task and spend its potion cost")
 	var potions_after_task: int = wallet.potions
 	failures += _check(not progression.try_complete_task("d1-t1", 3, wallet) and wallet.potions == potions_after_task, "completed task cannot be charged twice")
