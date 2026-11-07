@@ -8,7 +8,6 @@ uniform float wave_height = 0.18;
 uniform float wave_speed = 0.75;
 varying vec3 world_position;
 varying float wave_crest;
-varying float view_distance;
 
 float wave_field(vec2 p, float t) {
 	float a = sin(p.x * 0.052 + t * 0.95) * 0.48;
@@ -32,7 +31,7 @@ void vertex() {
 }
 
 void fragment() {
-	view_distance = distance(CAMERA_POSITION_WORLD, world_position);
+	float view_distance = length(VERTEX);
 	float shore = smoothstep(-85.0, 4.0, world_position.z);
 	vec3 water = mix(deep_color, shallow_color, shore);
 	float n1 = texture(water_noise, world_position.xz * 0.045 + vec2(TIME * 0.012, TIME * 0.008)).r;

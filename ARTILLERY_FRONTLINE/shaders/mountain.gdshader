@@ -6,13 +6,12 @@ uniform vec3 peak_color = vec3(0.38, 0.44, 0.49);
 uniform vec3 haze_color = vec3(0.55, 0.63, 0.69);
 varying vec3 world_position;
 varying vec3 world_normal;
-varying float view_distance;
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	world_normal = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 }
 void fragment() {
-	view_distance = distance(CAMERA_POSITION_WORLD, world_position);
+	float view_distance = length(VERTEX);
 	float altitude = clamp(world_position.y / 110.0, 0.0, 1.0);
 	float slope = clamp(1.0 - world_normal.y, 0.0, 1.0);
 	float n = texture(ridge_noise, world_position.xz * 0.004).r;

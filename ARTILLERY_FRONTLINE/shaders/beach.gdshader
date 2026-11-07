@@ -7,22 +7,17 @@ uniform sampler2D sand_orm : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform bool detail_enabled = true;
 uniform float normal_depth = 0.32;
 varying vec3 world_position;
-varying float view_distance;
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
-vec3 sand_sample(vec2 uv, float angle) {
-	float c = cos(angle), s = sin(angle);
-	vec2 ruv = mat2(vec2(c, -s), vec2(s, c)) * uv;
-	return texture(sand_albedo, ruv).rgb;
-}
 void fragment() {
-	view_distance = distance(CAMERA_POSITION_WORLD, world_position);
+	float view_distance = length(VERTEX);
 	vec2 uv = world_position.xz * 0.11;
 	float macro = texture(ground_noise, world_position.xz * 0.004).r;
 	float patch = texture(ground_noise, world_position.xz * 0.021 + vec2(8.3, 2.1)).r;
-	vec3 a = sand_sample(uv, 0.0);
-	vec3 b = sand_sample(uv * 1.7 + vec2(4.8, 9.2), 1.05);
+	vec2 ruv = vec2(uv.x * 0.5 - uv.y * 0.866, uv.x * 0.866 + uv.y * 0.5) * 1.7 + vec2(4.8, 9.2);
+	vec3 a = texture(sand_albedo, uv).rgb;
+	vec3 b = texture(sand_albedo, ruv).rgb;
 	vec3 base = mix(a, b, 0.45);
 	float detail_fade = 1.0 - smoothstep(35.0, 160.0, view_distance);
 	vec3 flat = vec3(0.55, 0.47, 0.35) * mix(0.86, 1.10, macro);
