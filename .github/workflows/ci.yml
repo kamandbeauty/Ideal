@@ -58,6 +58,25 @@ jobs:
           fi
           echo "ok: schema.sql is a create-once baseline"
 
+  # The migration audit is a claim about this repository, so it is re-derived on every push: if a
+  # C# file is added, deleted or moved, the inventory migration/02-inventory.csv must move with it.
+  # Without this, Phase 1's numbers rot quietly and every later phase quotes stale figures.
+  migration:
+    name: migration audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: inventory matches the tree
+        run: python3 migration/tools/audit.py --check
+
+      - name: the assumptions the plan rests on still hold
+        run: python3 migration/tools/check_audit.py
+
   # Tokens are code: the palette must pass WCAG AA and the generated C# must match the JSON.
   design:
     name: design tokens
