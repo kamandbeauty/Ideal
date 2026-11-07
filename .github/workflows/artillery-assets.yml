@@ -12,14 +12,14 @@ concurrency:
 jobs:
   blender:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
       - name: Install free Blender toolchain
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends blender
       - name: Author and export original models
         run: |
-          blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
+          blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py -- --only mounted_twin_hmg > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
           if grep -q 'Traceback (most recent call last)' /tmp/blender.log; then tail -80 /tmp/blender.log; exit 1; fi
       - name: Author original seamless PBR textures
         run: |
@@ -28,6 +28,13 @@ jobs:
           test -s ARTILLERY_FRONTLINE/assets/textures/pbr/sand_albedo.jpg
           test -s ARTILLERY_FRONTLINE/assets/textures/pbr/sand_normal.png
           test -s ARTILLERY_FRONTLINE/assets/textures/pbr/sky_panorama.jpg
+          test -s ARTILLERY_FRONTLINE/assets/textures/pbr/weapon_metal_albedo.jpg
+          test -s ARTILLERY_FRONTLINE/assets/textures/pbr/muzzle_flash.png
+      - name: Blender Cycles studio render of the revised weapon
+        run: |
+          blender --background --python ARTILLERY_FRONTLINE/tools/render_weapon_studio.py > /tmp/studio.log 2>&1 || { tail -100 /tmp/studio.log; exit 1; }
+          tail -12 /tmp/studio.log
+          test -s ARTILLERY_FRONTLINE/documentation/qa/art-pass-01/weapon-studio.png
       - name: Publish Blender diagnostics
         if: failure()
         run: |
@@ -44,11 +51,12 @@ jobs:
           mkdir -p ARTILLERY_FRONTLINE/documentation/qa
           blender --version > /tmp/blender-version.txt
           head -1 /tmp/blender-version.txt > ARTILLERY_FRONTLINE/documentation/blender-version.txt
+          python3 ARTILLERY_FRONTLINE/tools/verify_art_pass.py
       - name: Preserve generated assets on the active session branch
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
           touch ARTILLERY_FRONTLINE/assets/models/source/.gdignore
-          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: author original models and seamless PBR textures' ARTILLERY_FRONTLINE/assets/models ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/documentation/blender-version.txt
+          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: Blender art pass 01 twin HMG geometry, UV PBR and studio render' ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/assets/models/source/mounted_twin_hmg.blend ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/documentation/blender-version.txt ARTILLERY_FRONTLINE/documentation/qa/art-pass-01 ARTILLERY_FRONTLINE/documentation/art-pass-01.json
       - uses: actions/upload-artifact@v4
         with:
           name: original-blender-models
@@ -56,3 +64,5 @@ jobs:
             ARTILLERY_FRONTLINE/assets/models/*.glb
             ARTILLERY_FRONTLINE/assets/models/source/*.blend
             ARTILLERY_FRONTLINE/assets/textures/pbr/
+            ARTILLERY_FRONTLINE/documentation/qa/art-pass-01/
+            ARTILLERY_FRONTLINE/documentation/art-pass-01.json

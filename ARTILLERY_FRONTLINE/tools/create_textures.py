@@ -260,10 +260,75 @@ def sky():
     save_rgb("sky_panorama.jpg", color, quality=93)
 
 
+def weapon_metal():
+    """Parkerized gun steel: fine directional wear, not glossy plastic."""
+    size = 1024
+    yy, xx = np.mgrid[0:size, 0:size]
+    grain = periodic_noise(size, 1201, 0.7, 0.3)
+    brush = np.sin(yy * math.tau / 3.0 + grain * 2.0) * 0.5 + 0.5
+    wear = fbm(size, 1202, 5, 1.8)
+    rng = np.random.default_rng(1203)
+    scratches = np.zeros((size, size))
+    for _ in range(90):
+        y = int(rng.integers(0, size)); x = int(rng.integers(0, size)); length = int(rng.integers(12, 90))
+        scratches[y, x:x+length] = rng.uniform(0.25, 0.8)
+    scratches = np.asarray(Image.fromarray(np.uint8(scratches*255)).filter(ImageFilter.GaussianBlur(0.6)), dtype=float)/255.0
+    height = grain * 0.18 + brush * 0.05 - scratches * 0.35
+    base = np.array([54.0, 58.0, 60.0])
+    albedo = base[None, None, :] + ((wear - 0.5) * 14.0 + (grain - 0.5) * 8.0 + scratches * 26.0)[:, :, None]
+    save_rgb("weapon_metal_albedo.jpg", albedo)
+    save_normal("weapon_metal_normal.png", height, 1.6)
+    save_orm("weapon_metal_orm.png", 0.86 + 0.14 * wear, 0.42 + 0.22 * wear - scratches * 0.10, 0.90)
+
+
+def weapon_paint():
+    size = 1024
+    dents = fbm(size, 1210, 5, 1.9)
+    dust = fbm(size, 1211, 4, 1.4)
+    chips = speckles(size, 1212, 70, 1.2, 1.0)
+    scratches = np.clip((periodic_noise(size, 1213, 1.1, 0.25) - 0.74) * 8.0, 0, 1)
+    wear = np.clip(chips + scratches * 0.6, 0, 1)
+    height = dents * 0.25 - wear * 0.3
+    albedo = np.array([62.0, 70.0, 48.0])[None, None, :] + ((dents - 0.5) * 12.0 + (dust - 0.5) * 8.0)[:, :, None]
+    albedo = albedo * (1.0 - wear[:, :, None] * 0.55) + wear[:, :, None] * np.array([70.0, 72.0, 68.0])
+    save_rgb("weapon_paint_albedo.jpg", albedo)
+    save_normal("weapon_paint_normal.png", height, 2.0)
+    save_orm("weapon_paint_orm.png", 0.80 + 0.20 * dents, 0.62 + 0.22 * dust, 0.18 + wear * 0.55)
+
+
+def weapon_brass():
+    size = 512
+    wear = fbm(size, 1220, 4, 1.8)
+    grain = periodic_noise(size, 1221, 0.8, 0.3)
+    albedo = np.array([148.0, 112.0, 48.0])[None, None, :] + ((wear - 0.5) * 24.0 + (grain - 0.5) * 10.0)[:, :, None]
+    save_rgb("weapon_brass_albedo.jpg", albedo)
+    save_normal("weapon_brass_normal.png", grain * 0.15 + wear * 0.1, 1.2)
+    save_orm("weapon_brass_orm.png", 0.85 + 0.15 * wear, 0.30 + 0.20 * wear, 0.88)
+
+
+def muzzle_flash():
+    size = 256
+    yy, xx = np.mgrid[0:size, 0:size]
+    cx = cy = (size - 1) / 2
+    dx = (xx - cx) / cx; dy = (yy - cy) / cy
+    radius = np.sqrt(dx*dx + dy*dy)
+    angle = np.arctan2(dy, dx)
+    spikes = (np.cos(angle * 6.0) * 0.5 + 0.5) ** 3
+    core = np.exp(-(radius / 0.22) ** 2)
+    rays = np.exp(-(radius / (0.30 + spikes * 0.55)) ** 3) * (0.35 + spikes * 0.65)
+    alpha = np.clip(core + rays * 0.8, 0, 1)
+    color = np.zeros((size, size, 4))
+    color[:, :, 0] = 255
+    color[:, :, 1] = 180 + core * 70
+    color[:, :, 2] = 70 + core * 150
+    color[:, :, 3] = alpha * 255
+    Image.fromarray(color.astype(np.uint8), "RGBA").save(OUT / "muzzle_flash.png", optimize=True)
+
+
 if __name__ == "__main__":
     sand(); gravel(); rock()
     painted("paint_olive", 420, [78.0, 88.0, 62.0])
     painted("paint_sand", 450, [150.0, 132.0, 94.0])
-    steel(); fabric(); wood(); concrete(); rubber(); foliage(); sky()
+    steel(); weapon_metal(); weapon_paint(); weapon_brass(); muzzle_flash(); fabric(); wood(); concrete(); rubber(); foliage(); sky()
     files = sorted(p for p in OUT.iterdir() if p.is_file())
     print("CREATED_TEXTURES", len(files), "files", sum(p.stat().st_size for p in files), "bytes")

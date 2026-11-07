@@ -79,14 +79,23 @@ def bolts(parent,center,radius,count,axis='Z',r=.035,depth=.05,mat='Recoil steel
 def hose(parent,points,r=.035,mat='Rubber'):
     for a,b in zip(points[:-1],points[1:]):
         rod('Hydraulic hose',a,b,r,mat,parent)
+def torus(name,loc,major,minor,mat='Gun steel',parent=None,axis='Z',segments=32):
+    bpy.ops.mesh.primitive_torus_add(major_radius=major,minor_radius=minor,major_segments=segments,minor_segments=10,location=loc)
+    o=adopt(bpy.context.object,name,mat,parent)
+    if axis=='X':o.rotation_euler[1]=math.pi/2
+    if axis=='Y':o.rotation_euler[0]=math.pi/2
+    for p in o.data.polygons:p.use_smooth=True
+    return o
+
 def mesh(name,verts,faces,mat,parent=None):
     data=bpy.data.meshes.new(name);data.from_pydata(verts,[],faces);data.update()
     o=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(o)
     adopt(o,name,mat,parent);return o
 def reset(name):
     bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
-    for m in list(bpy.data.materials):
-        if m.users==0:bpy.data.materials.remove(m)
+    for block in (bpy.data.meshes,bpy.data.curves,bpy.data.materials,bpy.data.images):
+        for item in list(block):
+            if item.users==0:block.remove(item)
     M.clear()
     material('Field olive',(.19,.235,.15),.48,.62)
     material('Armor edge',(.29,.32,.22),.55,.56)
@@ -175,13 +184,28 @@ def export_glb(root,path):
         doc['nodes'].append(node)
         if o.type!='MESH':continue
         evaluated=o.evaluated_get(depsgraph);mesh=evaluated.to_mesh();mesh.calc_loop_triangles()
-        positions=[tuple(convert.to_3x3() @ v.co) for v in mesh.vertices]
-        normals=[tuple((convert.to_3x3() @ v.normal).normalized()) for v in mesh.vertices]
-        triangles=[tuple(t.vertices) for t in mesh.loop_triangles]
+        uv_layer=mesh.uv_layers.active
+        positions=[];normals=[];uvs=[];triangles=[];remap={}
+        rotation=convert.to_3x3()
+        for tri in mesh.loop_triangles:
+            face=[]
+            for loop_index in tri.loops:
+                vi=mesh.loops[loop_index].vertex_index
+                uv=tuple(uv_layer.data[loop_index].uv) if uv_layer else (0.0,0.0)
+                key=(vi,round(uv[0],6),round(uv[1],6))
+                if key not in remap:
+                    vertex=mesh.vertices[vi]
+                    remap[key]=len(positions)
+                    positions.append(tuple(rotation @ vertex.co))
+                    normals.append(tuple((rotation @ vertex.normal).normalized()))
+                    uvs.append(uv)
+                face.append(remap[key])
+            triangles.append(tuple(face))
         if not triangles:
             evaluated.to_mesh_clear();continue
         pa=accessor(positions,'f',3,34962,[min(p[k] for p in positions) for k in range(3)],[max(p[k] for p in positions) for k in range(3)])
         na=accessor(normals,'f',3,34962)
+        ua=accessor(uvs,'f',2,34962)
         ia=accessor(triangles,'I',3,34963)
         source=o.data.materials[0] if o.data.materials else None
         if source.name not in material_indices:
@@ -189,7 +213,7 @@ def export_glb(root,path):
             color=list(bs.inputs['Base Color'].default_value)
             pbr={'baseColorFactor':color,'metallicFactor':float(bs.inputs['Metallic'].default_value),'roughnessFactor':float(bs.inputs['Roughness'].default_value)}
             material_indices[source.name]=len(doc['materials']);doc['materials'].append({'name':source.name,'pbrMetallicRoughness':pbr,'doubleSided':False})
-        doc['meshes'].append({'name':o.data.name,'primitives':[{'attributes':{'POSITION':pa,'NORMAL':na},'indices':ia,'material':material_indices[source.name]}]})
+        doc['meshes'].append({'name':o.data.name,'primitives':[{'attributes':{'POSITION':pa,'NORMAL':na,'TEXCOORD_0':ua},'indices':ia,'material':material_indices[source.name]}]})
         node['mesh']=len(doc['meshes'])-1
         evaluated.to_mesh_clear()
     doc['buffers']=[{'byteLength':len(binary)}]
@@ -392,30 +416,96 @@ def weapon_base(r,shield=True):
     return empty('BarrelPivot',(0,0,1.28),r)
 
 def mounted_twin_hmg():
+    """Original twin .50-cal pedestal mount. Generic real-world mechanical
+    language; no proprietary game mesh, texture or UI is used. Dimensions are
+    metres. Animation pivots: RecoilL/R, CoverL/R, MuzzleL/R, EjectionL/R."""
     r=reset('MountedTwinHMG')
-    pivot=weapon_base(r,False)
-    for sx in [-1,1]:
-        box('Low side rail',(sx*.56,-.15,-.08),(.12,.75,.16),'Armor edge',pivot,.03)
-    box('Shared cradle',(0,-.1,.02),(1.05,.7,.22),'Armor edge',pivot,.06)
-    recoil=empty('RecoilAssembly',(0,0,0),pivot)
+    material('Weapon steel',(.075,.082,.085),.88,.48)
+    material('Weapon edge',(.18,.19,.19),.9,.38)
+    material('Weapon olive',(.105,.125,.082),.22,.7)
+    material('Weapon grip',(.025,.027,.026),.02,.92)
+    material('Weapon brass',(.46,.33,.12),.85,.34)
+    # Pedestal and traverse ring.
+    cyl('Base plate',(0,.18,.06),.44,.12,'Weapon olive',r,'Z',40)
+    bolts(r,(0,.18,.13),.35,10,'Z',.028,.035,'Weapon edge')
+    cyl('Pedestal column',(0,.18,.48),.17,.76,'Weapon olive',r,'Z',32)
+    for z in [.2,.62,.78]:cyl('Pedestal collar',(0,.18,z),.205,.055,'Weapon edge',r,'Z',32)
+    cyl('Traverse ring',(0,.12,.88),.39,.11,'Weapon steel',r,'Z',44)
+    bolts(r,(0,.12,.95),.32,12,'Z',.024,.03,'Weapon edge')
+    torus('Traverse handwheel',(.48,.18,.82),.16,.018,'Weapon edge',r,'X',28)
+    for i in range(4):
+        a=i*math.tau/4
+        rod('Handwheel spoke',(.48,.18,.82),(.48,.18+math.cos(a)*.15,.82+math.sin(a)*.15),.012,'Weapon steel',r)
+    cyl('Handwheel hub',(.48,.18,.82),.04,.08,'Weapon steel',r,'X',16)
+    # Cradle, trunnions and elevation gear.
+    box('Cradle bed',(0,.06,1.02),(.76,.58,.15),'Weapon olive',r,.035)
     for s in [-1,1]:
-        x=s*.3
-        box('Receiver',(x,-.18,0),(.34,.72,.26),'Gun steel',recoil,.05)
-        box('Top cover',(x,-.18,.16),(.3,.66,.06),'Armor edge',recoil,.025)
-        box('Feed tray',(x,-.05,.19),(.22,.3,.04),'Recoil steel',recoil,.015)
-        cyl('Barrel',(x,-1.35,0),.042,1.6,'Gun steel',recoil,'Y',20)
-        cyl('Cooling jacket',(x,-.93,0),.062,.62,'Armor edge',recoil,'Y',20)
-        for i in range(5):cyl('Jacket ring',(x,-.71-i*.11,0),.065,.025,'Gun steel',recoil,'Y',16)
-        box('Muzzle brake',(x,-2.19,0),(.11,.18,.11),'Gun steel',recoil,.02)
-        empty('MuzzleL' if s<0 else 'MuzzleR',(x,-2.31,0),recoil)
-        box('Ammo box',(s*.62,-.05,-.12),(.24,.4,.28),'Field olive',recoil,.035)
-        rod('Belt chute',(s*.48,-.12,.08),(s*.3,-.18,.08),.035,'Rubber',recoil)
-        box('Sight post',(x,-1.17,.2),(.04,.04,.16),'Gun steel',pivot,.01)
-    box('Breech',(0,.28,-.02),(.62,.26,.22),'Recoil steel',recoil,.03)
+        box('Cradle cheek',(s*.37,.02,1.12),(.075,.62,.30),'Weapon olive',r,.025)
+        cyl('Trunnion',(s*.40,0,1.15),.095,.10,'Weapon edge',r,'X',24)
+        bolts(r,(s*.455,0,1.15),.065,6,'X',.014,.02,'Weapon steel')
+        rod('Cradle brace',(s*.34,.30,.98),(s*.30,-.24,1.08),.025,'Weapon steel',r)
+    rod('Elevation screw',(0,.34,.92),(0,.34,1.16),.028,'Weapon edge',r)
+    torus('Elevation wheel',(0,.40,1.02),.11,.014,'Weapon edge',r,'Y',24)
+    pivot=empty('BarrelPivot',(0,0,1.15),r)
     for s in [-1,1]:
-        rod('Spade grip',(s*.34,.42,-.08),(s*.38,.62,-.16),.025,'Rubber',pivot)
-        cyl('Grip cap',(s*.38,.64,-.16),.035,.06,'Rubber',pivot,'Z',10)
-    hose(pivot,[(.5,.1,-.1),(.56,-.1,-.04),(.5,-.3,.02)],.02)
+        side='L' if s<0 else 'R'
+        x=s*.245
+        recoil=empty('Recoil'+side,(x,0,0),pivot)
+        empty('Receiver'+side,(0,-.05,.02),recoil)
+        # Receiver: chamfered body, side plates, rivets, ejection port.
+        box('Receiver body',(0,-.05,0),(.19,.68,.20),'Weapon steel',recoil,.018)
+        box('Receiver top rail',(0,-.05,.105),(.20,.62,.025),'Weapon edge',recoil,.008)
+        for ps in [-1,1]:
+            box('Receiver side plate',(ps*.098,-.06,-.005),(.014,.56,.145),'Weapon steel',recoil,.006)
+            for y in [-.28,-.14,0,.14,.26]:
+                cyl('Side rivet',(ps*.108,y,.035),.011,.012,'Weapon edge',recoil,'X',8)
+                cyl('Side rivet lower',(ps*.108,y,-.055),.011,.012,'Weapon edge',recoil,'X',8)
+        box('Ejection port',(s*.104,-.10,-.025),(.012,.16,.07),'Black bore',recoil,.004)
+        empty('Ejection'+side,(s*.13,-.10,-.03),recoil)
+        rod('Charging handle',(s*.11,.12,.02),(s*.20,.12,.02),.012,'Weapon edge',recoil)
+        cyl('Charging knob',(s*.215,.12,.02),.022,.05,'Weapon grip',recoil,'X',12)
+        # Hinged top cover and feed tray.
+        cover=empty('Cover'+side,(0,.22,.11),recoil)
+        box('Top cover',(0,-.245,.018),(.195,.50,.035),'Weapon steel',cover,.012)
+        box('Cover rib',(0,-.245,.040),(.055,.44,.014),'Weapon edge',cover,.005)
+        for y in [-.42,-.24,-.06]:
+            cyl('Cover hinge',(0,y,.005),.018,.21,'Weapon edge',cover,'X',12)
+        box('Feed tray',(0,-.08,.095),(.16,.24,.018),'Weapon edge',recoil,.005)
+        # Barrel, chamber, cooling rings and slotted muzzle brake.
+        cyl('Barrel chamber',(0,-.44,0),.043,.24,'Weapon steel',recoil,'Y',28)
+        cyl('Barrel',(0,-1.08,0),.026,1.08,'Weapon steel',recoil,'Y',28)
+        for i in range(7):cyl('Barrel ring',(0,-.60-i*.055,0),.034,.012,'Weapon edge',recoil,'Y',24)
+        cyl('Muzzle brake',(0,-1.68,0),.046,.16,'Weapon steel',recoil,'Y',28)
+        for ps in [-1,1]:
+            box('Brake port',(ps*.043,-1.68,0),(.012,.09,.045),'Black bore',recoil,.003)
+        cyl('Bore',(0,-1.765,0),.020,.012,'Black bore',recoil,'Y',20)
+        empty('Muzzle'+side,(0,-1.79,0),recoil)
+        # Sights: protected front post and rear aperture.
+        box('Front sight base',(0,-1.50,.055),(.05,.06,.035),'Weapon steel',recoil,.006)
+        box('Front sight post',(0,-1.50,.105),(.012,.018,.075),'Weapon edge',recoil,.003)
+        for ps in [-1,1]:box('Sight ear',(ps*.028,-1.50,.10),(.010,.025,.075),'Weapon steel',recoil,.003)
+        box('Rear sight base',(0,.16,.13),(.06,.05,.035),'Weapon steel',recoil,.006)
+        torus('Rear aperture',(0,.16,.19),.028,.006,'Weapon edge',recoil,'Y',20)
+        # Back plate, spade grips and butterfly trigger.
+        box('Back plate',(0,.31,0),(.20,.05,.21),'Weapon steel',recoil,.012)
+        for ps in [-1,1]:
+            rod('Spade grip',(ps*.07,.34,-.02),(ps*.105,.50,-.10),.020,'Weapon grip',recoil)
+            cyl('Grip cap',(ps*.108,.515,-.108),.026,.045,'Weapon grip',recoil,'Z',12)
+        box('Butterfly trigger',(0,.43,-.04),(.045,.025,.09),'Weapon edge',recoil,.006)
+        # Ammo can on the outboard side, with lid, ribs and latches.
+        ammo=empty('AmmoCan'+side,(s*.43,-.04,-.16),pivot)
+        box('Ammo can body',(0,0,0),(.24,.42,.28),'Weapon olive',ammo,.022)
+        box('Ammo can lid',(0,0,.15),(.25,.43,.035),'Weapon olive',ammo,.012)
+        for y in [-.14,0,.14]:box('Can rib',(0,y,.02),(.25,.025,.24),'Weapon olive',ammo,.006)
+        for ps in [-1,1]:box('Can latch',(ps*.125,-.10,.08),(.02,.06,.08),'Weapon edge',ammo,.004)
+        rod('Can handle',(-.08,0,.19),(.08,0,.19),.012,'Weapon edge',ammo)
+        # Visible disintegrating belt: brass cartridges walking into the feed tray.
+        for i in range(8):
+            bx=s*(.31-i*.027)
+            cyl('Belt cartridge',(bx,-.07,.105),.014,.105,'Weapon brass',pivot,'Y',12)
+            cyl('Belt tip',(bx,-.13,.105),.010,.025,'Weapon edge',pivot,'Y',10)
+            box('Belt link',(bx,-.045,.105),(.020,.035,.032),'Weapon steel',pivot,.003)
+        rod('Feed chute',(s*.34,-.04,.02),(s*.16,-.06,.08),.032,'Weapon olive',pivot)
     finish(r,'mounted_twin_hmg')
 
 def mounted_cannon():
@@ -577,7 +667,11 @@ def fighter():
         cyl('Drop tank',(s*2.2,.9,.35),.16,1.0,'Field olive',r,'Y',14)
     finish(r,'fighter')
 
+BUILDERS={'kestrel':kestrel,'warden':warden,'nomad':nomad,'sentry':sentry,'hangar':hangar,'mounted_twin_hmg':mounted_twin_hmg,'mounted_cannon':mounted_cannon,'mounted_rocket':mounted_rocket,'mounted_autocannon':mounted_autocannon,'soldier':soldier,'landing_craft':landing_craft,'helicopter':helicopter,'patrol_boat':patrol_boat,'bazooka':bazooka,'fighter':fighter}
+
 if __name__=='__main__':
-    kestrel();warden();nomad();sentry();hangar()
-    mounted_twin_hmg();mounted_cannon();mounted_rocket();mounted_autocannon()
-    soldier();landing_craft();helicopter();patrol_boat();bazooka();fighter()
+    args=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
+    only=args[args.index('--only')+1].split(',') if '--only' in args else list(BUILDERS)
+    for name in only:
+        if name not in BUILDERS:raise SystemExit('Unknown model: '+name)
+        BUILDERS[name]()

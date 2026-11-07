@@ -6,6 +6,7 @@ static var textures: Dictionary = {}
 static var surfaces: Dictionary = {}
 static var surface_data: Dictionary = {}
 static var weapon_surfaces: Dictionary = {}
+static var weapon_surface_data: Dictionary = {}
 static var detail_level: int = 512
 
 static func texture(name: String) -> Texture2D:
@@ -95,23 +96,54 @@ static func apply_quality(settings: Dictionary) -> void:
 		if not full_pbr:
 			material.roughness = float(data.get("roughness", 0.85))
 			material.metallic = float(data.get("metallic", 0.0))
+	for key in weapon_surfaces:
+		var material: StandardMaterial3D = weapon_surfaces[key]
+		var data: Dictionary = weapon_surface_data.get(key, {})
+		if material.normal_texture:
+			material.normal_enabled = full_pbr
+		var orm: Texture2D = data.get("orm", null)
+		if orm:
+			material.ao_enabled = full_pbr
+			material.roughness_texture = orm if full_pbr else null
+			material.metallic_texture = orm if full_pbr else null
+		if not full_pbr:
+			material.roughness = float(data.get("roughness", 0.6))
+			material.metallic = float(data.get("metallic", 0.2))
 
 
-static func weapon_surface(kind: String, tint: Color = Color.WHITE) -> StandardMaterial3D:
-	var key: String = kind + "|" + tint.to_html()
+static func weapon_surface(kind: String, tint: Color = Color.WHITE, use_uv: bool = false) -> StandardMaterial3D:
+	var key: String = kind + "|" + tint.to_html() + "|" + str(use_uv)
 	if weapon_surfaces.has(key):
 		return weapon_surfaces[key]
-	var result: StandardMaterial3D = surface(kind, tint, 5.5).duplicate() as StandardMaterial3D
-	result.uv1_triplanar_sharpness = 8.0
-	result.normal_scale = 0.16
-	result.roughness = 0.5 if kind == "steel" else 0.58
-	result.metallic = 0.78 if kind == "steel" else 0.35
+	var base_kind: String = kind
+	var uv_scale: float = 1.0 if use_uv else 3.0
+	var result: StandardMaterial3D = surface(base_kind, tint, uv_scale).duplicate() as StandardMaterial3D
+	if use_uv:
+		result.uv1_triplanar = false
+		result.uv1_world_triplanar = false
+	else:
+		result.uv1_world_triplanar = false
+		result.uv1_triplanar_sharpness = 8.0
+	result.normal_scale = 0.35 if use_uv else 0.16
+	result.roughness = 0.5 if kind in ["steel", "weapon_metal", "weapon_brass"] else 0.68
+	result.metallic = 0.9 if kind in ["steel", "weapon_metal", "weapon_brass"] else 0.2
 	weapon_surfaces[key] = result
+	weapon_surface_data[key] = {"orm": result.roughness_texture, "roughness": result.roughness, "metallic": result.metallic}
 	return result
 
 static func for_model_material(material_name: String, original: Material, viewmodel: bool = false) -> Material:
 	var lower: String = material_name.to_lower()
 	if viewmodel:
+		if "weapon steel" in lower:
+			return weapon_surface("weapon_metal", Color.WHITE, true)
+		if "weapon edge" in lower:
+			return weapon_surface("weapon_metal", Color(1.35, 1.35, 1.32), true)
+		if "weapon olive" in lower:
+			return weapon_surface("weapon_paint", Color.WHITE, true)
+		if "weapon grip" in lower:
+			return weapon_surface("rubber", Color.WHITE, true)
+		if "weapon brass" in lower:
+			return weapon_surface("weapon_brass", Color.WHITE, true)
 		if "gun steel" in lower:
 			return weapon_surface("steel", Color(0.36, 0.4, 0.39))
 		if "recoil steel" in lower:

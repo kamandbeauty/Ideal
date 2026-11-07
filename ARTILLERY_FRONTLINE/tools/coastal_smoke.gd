@@ -38,9 +38,18 @@ func run() -> void:
 	var height: float = get_viewport().get_visible_rect().size.y
 	check("weapon stays in lower foreground", bounds.position.y > height * 0.35)
 	var muzzles_forward: bool = true
+	var muzzle_band: bool = true
+	var width: float = get_viewport().get_visible_rect().size.x
+	var muzzle_x: Array[float] = []
 	for muzzle in coastal.weapon.muzzles:
 		muzzles_forward = muzzles_forward and coastal.weapon.to_local(muzzle.global_position).z < -1.0
+		var screen: Vector2 = coastal.camera.unproject_position(muzzle.global_position)
+		muzzle_x.append(screen.x)
+		muzzle_band = muzzle_band and screen.y > height * 0.42 and screen.y < height * 0.82
 	check("muzzles point away from camera", muzzles_forward)
+	check("muzzles stay in lower aiming band", muzzle_band)
+	check("twin muzzles visually separated", muzzle_x.size() != 2 or absf(muzzle_x[0] - muzzle_x[1]) > width * 0.04)
+	check("independent recoil pivots present", coastal.weapon.recoil_nodes.size() >= 1)
 	await capture("coastal-beach")
 	Profile.data.settings.quality = "low"
 	Graphics.apply_preference()
@@ -73,7 +82,9 @@ func run() -> void:
 	coastal.set_auto_fire(false)
 	check("automatic fire consumes ammunition", coastal.weapon.ammo < auto_before)
 	check("reload starts", coastal.weapon.start_reload())
-	await get_tree().create_timer(3.0).timeout
+	await get_tree().create_timer(1.0).timeout
+	await capture("coastal-weapon-reload")
+	await get_tree().create_timer(2.2).timeout
 	check("reload completes", coastal.weapon.ammo == int(coastal.weapon.config().magazine))
 	var tank: EnemyVehicle = coastal.vehicles[0]
 	coastal.aim_at(tank.global_position + Vector3.UP * 1.4)
@@ -99,7 +110,7 @@ func run() -> void:
 	await get_tree().create_timer(0.3).timeout
 	check("mission results panel appears", coastal.hud.result_panel.visible)
 	await capture("coastal-results")
-	var report: Dictionary = {"scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware", "checks": checks, "failures": failures, "passed": failures == 0, "performance": Graphics.snapshot(), "soldiers": coastal.soldiers.size(), "kills": coastal.kills, "weapon_screen_bounds": {"x": bounds.position.x, "y": bounds.position.y, "w": bounds.size.x, "h": bounds.size.y}}
+	var report: Dictionary = {"scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 01 weapon/camera; not Android hardware", "checks": checks, "failures": failures, "passed": failures == 0, "performance": Graphics.snapshot(), "soldiers": coastal.soldiers.size(), "kills": coastal.kills, "weapon_screen_bounds": {"x": bounds.position.x, "y": bounds.position.y, "w": bounds.size.x, "h": bounds.size.y}}
 	var file: FileAccess = FileAccess.open(output + "/coastal-smoke-report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "  "))
 	file.close()

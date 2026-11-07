@@ -39,8 +39,21 @@ func run(t: TestContext) -> void:
 	t.check(scene.crafts.size() >= 1, "Playable milestone includes landing craft")
 	t.equal(scene.living_targets().size(), scene.waves.remaining, "Enemy counter matches living hostile targets")
 	var bounds: Rect2 = scene.weapon.screen_bounds(scene.camera)
-	var viewport_height: float = scene.get_viewport().get_visible_rect().size.y
+	var viewport_size: Vector2 = scene.get_viewport().get_visible_rect().size
+	var viewport_height: float = viewport_size.y
 	t.check(bounds.position.y > viewport_height * 0.35, "Weapon viewmodel stays in the lower foreground instead of covering the battlefield")
+	t.check(scene.weapon.recoil_nodes.size() >= 1, "Weapon exposes at least one recoil pivot")
+	if scene.weapon.model_root and scene.weapon.model_root.find_child("RecoilL", true, false):
+		t.equal(scene.weapon.recoil_nodes.size(), 2, "Twin HMG animates each barrel independently")
+		t.equal(scene.weapon.cover_nodes.size(), 2, "Twin HMG has hinged feed covers for reload")
+		t.equal(scene.weapon.ejection_markers.size(), 2, "Twin HMG ejects brass from receiver ports")
+	var muzzle_screens: Array[Vector2] = []
+	for muzzle in scene.weapon.muzzles:
+		muzzle_screens.append(scene.camera.unproject_position(muzzle.global_position))
+	if muzzle_screens.size() == 2:
+		t.check(absf(muzzle_screens[0].x - muzzle_screens[1].x) > viewport_size.x * 0.04, "Twin muzzles remain visually separated on screen")
+		for point in muzzle_screens:
+			t.check(point.y > viewport_height * 0.42 and point.y < viewport_height * 0.82, "Muzzle sits in the lower aiming band, not over the horizon")
 	for muzzle in scene.weapon.muzzles:
 		t.check(scene.weapon.to_local(muzzle.global_position).z < -1.0, "Muzzle remains forward of the first-person camera")
 	for index in range(30):
@@ -63,6 +76,10 @@ func run(t: TestContext) -> void:
 	scene.weapon.cooldown = 0.0
 	var ammo: int = scene.weapon.ammo
 	t.check(scene.fire_once(), "Mounted weapon fires")
+	for index in range(40):
+		scene.weapon.tick(0.05)
+	for cover in scene.weapon.cover_nodes:
+		t.check(absf(cover.rotation.x) < 0.001, "Feed cover returns closed after the firing cycle")
 	t.equal(scene.weapon.ammo, ammo - 1, "Firing consumes ammunition")
 	scene.set_auto_fire(true)
 	t.check(scene.auto_fire, "Automatic fire toggle state is exposed")
