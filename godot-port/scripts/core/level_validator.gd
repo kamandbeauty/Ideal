@@ -24,6 +24,8 @@ static func validate(level: LevelDefinition) -> Array[String]:
 		errors.append(tag + ": height must be 7..10")
 	if level.move_limit < MIN_MOVE_LIMIT or level.move_limit > MAX_MOVE_LIMIT:
 		errors.append(tag + ": move_limit must be 5..100")
+	if level.type not in ["normal", "hard", "super_hard", "kingdom", "dark_kingdom"]:
+		errors.append(tag + ": unknown level type " + level.type)
 	if level.pieces.size() < 4 or level.pieces.size() > 6:
 		errors.append(tag + ": needs 4..6 piece kinds")
 	var seen_pieces: Dictionary = {}
