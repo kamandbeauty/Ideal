@@ -675,8 +675,8 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
             label: l10n.t('editor_duration'),
             value: photo.duration,
             min: AppLimits.minPhotoDuration,
-            max: 15,
-            divisions: 140,
+            max: AppLimits.maxPhotoDuration,
+            divisions: 590,
             format: (double v) => '${v.toStringAsFixed(1)}s',
             onChanged: (double v) => ref
                 .read(projectEditorProvider.notifier)

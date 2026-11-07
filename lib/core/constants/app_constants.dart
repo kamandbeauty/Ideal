@@ -83,7 +83,7 @@ enum AspectPreset {
 
   static AspectPreset parse(String? v) => AspectPreset.values.firstWhere(
         (e) => e.id == v,
-        orElse: () => AspectPreset.r16x9,
+        orElse: () => AspectPreset.r9x16,
       );
 }
 
@@ -142,8 +142,12 @@ class AppLimits {
   const AppLimits._();
 
   static const double minPhotoDuration = 1.0;
-  static const double maxPhotoDuration = 30.0;
+  static const double maxPhotoDuration = 60.0;
   static const double defaultPhotoDuration = 5.0;
+
+  /// Default camera-motion intensity: deliberately gentle, so a fresh
+  /// Auto Motion feels calm; users can push individual shots harder.
+  static const double defaultMotionIntensity = 0.35;
 
   static const double minTransition = 0.0;
   static const double maxTransition = 3.0;

@@ -13,6 +13,9 @@ import '../../app/providers.dart';
 import '../../app/router.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
+import '../../core/constants/app_constants.dart';
+import '../../core/errors/app_failure.dart';
+import '../../core/models/audio_settings.dart';
 import '../../core/models/photo_item.dart';
 import '../../core/models/project.dart';
 import '../../core/models/transition.dart';
@@ -33,6 +36,7 @@ class EditorScreen extends ConsumerStatefulWidget {
 class _EditorScreenState extends ConsumerState<EditorScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs = TabController(length: 4, vsync: this);
+  bool _syncing = false;
 
   @override
   void initState() {
@@ -401,9 +405,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
                   label: l10n.t('editor_duration'),
                   icon: Icons.timer_outlined,
                   value: photo.duration,
-                  min: 1,
-                  max: 15,
-                  divisions: 140,
+                  min: AppLimits.minPhotoDuration,
+                  max: AppLimits.maxPhotoDuration,
+                  divisions: 590,
                   format: (double v) => '${v.toStringAsFixed(1)}s',
                   onChanged: (double v) => notifier.setPhotoDuration(photo.id, v),
                 ),
@@ -416,6 +420,12 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
                           '${AppRoutes.motionEditor}?photo=${photo.id}'),
                       icon: const Icon(Icons.tune_rounded, size: 18),
                       label: Text(l10n.t('motion_title')),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          notifier.applyDurationToAll(photo.duration),
+                      icon: const Icon(Icons.all_inclusive_rounded, size: 18),
+                      label: Text(l10n.t('editor_apply_duration_all')),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => notifier.regeneratePhotoMotion(photo.id),
@@ -588,12 +598,67 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
                   onPressed: () => showAudioSheet(context, ref),
                   child: Text(l10n.t('audio_title')),
                 ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _syncing
+                      ? null
+                      : () => _syncCutsToSilence(context, audio),
+                  icon: _syncing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.graphic_eq_rounded, size: 18),
+                  label: Text(l10n.t('audio_sync_cuts')),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.t('audio_sync_hint'),
+                  style: context.theme.textTheme.bodySmall?.copyWith(
+                    color: context.theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ],
           ),
         ),
       ],
     );
+  }
+
+  /// Aligns every photo switch to the nearest quiet moment of the project's
+  /// audio. The silence map is decoded natively (a few seconds on long
+  /// tracks); the state change itself is a single undoable commit.
+  Future<void> _syncCutsToSilence(
+      BuildContext context, AudioSettings audio) async {
+    final l10n = context.l10n;
+    final path = audio.uri;
+    if (path == null || path.isEmpty || !File(path).existsSync()) {
+      context.snack(l10n.t('error_audioUnreadable'), isError: true);
+      return;
+    }
+    setState(() => _syncing = true);
+    try {
+      final silences =
+          await ref.read(bootstrapProvider).mediaPicker.analyzeSilences(path);
+      final moved = ref
+          .read(projectEditorProvider.notifier)
+          .syncToAudio(silences);
+      if (mounted) {
+        context.snack(
+            l10n.t(moved > 0 ? 'audio_synced' : 'audio_sync_none'));
+      }
+    } on AppFailure catch (e) {
+      if (mounted) context.snack(context.l10n.t(e.messageKey), isError: true);
+    } catch (e) {
+      debugPrint('silence sync failed: $e');
+      if (mounted) {
+        context.snack(context.l10n.t('error_unknown'), isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
   }
 
   // ----------------------------------------------------------------- project

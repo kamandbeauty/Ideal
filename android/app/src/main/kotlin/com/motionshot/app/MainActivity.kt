@@ -3,6 +3,7 @@ package com.motionshot.app
 import android.content.Intent
 import android.os.Bundle
 import com.motionshot.app.motion.ExportService
+import com.motionshot.app.motion.SilenceAnalyzer
 import com.motionshot.app.motion.StorageManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -62,6 +63,32 @@ class MainActivity : FlutterActivity() {
                         is AudioPicker.Outcome.Cancelled -> result.success(null)
                         is AudioPicker.Outcome.Failed ->
                             result.error(outcome.code, outcome.message, null)
+                    }
+                }
+                // Silence midpoints (seconds) of the given audio file; the
+                // decode is heavy, so it runs on a worker thread.
+                "analyzeSilences" -> {
+                    val path = call.argument<String>("path")
+                    if (path == null) {
+                        result.error("BAD_ARGUMENT", "missing path", null)
+                    } else {
+                        Thread {
+                            try {
+                                result.success(SilenceAnalyzer.analyze(path))
+                            } catch (e: SilenceAnalyzer.SilenceException) {
+                                result.error(
+                                    "AUDIO_UNREADABLE",
+                                    e.message ?: "silence analysis failed",
+                                    null,
+                                )
+                            } catch (e: Exception) {
+                                result.error(
+                                    "INTERNAL",
+                                    e.message ?: "silence analysis failed",
+                                    null,
+                                )
+                            }
+                        }.start()
                     }
                 }
                 else -> result.notImplemented()

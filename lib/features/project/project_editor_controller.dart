@@ -86,6 +86,11 @@ class ProjectEditorState {
 /// Project object, so 50 steps stays well under a megabyte).
 const int kMaxUndoSteps = 50;
 
+/// How far (in seconds) a photo switch may move when syncing to the
+/// quiet moments of the audio — far enough to feel musical, close enough
+/// to keep the pacing the user set.
+const double kSyncWindow = 2.0;
+
 class ProjectEditorController
     extends StateNotifier<ProjectEditorState?> {
   ProjectEditorController() : super(null);
@@ -235,23 +240,106 @@ class ProjectEditorController
     final cur = state;
     if (cur == null) return;
     final dur = seconds.clamp(AppLimits.minPhotoDuration,
-        AppLimits.maxPhotoDuration);
+        AppLimits.maxPhotoDuration).toDouble();
     final vp = cur.viewport;
-    _updatePhoto(photoId, (p) {
-      final m = p.motion;
-      if (m == null) return p.copyWith(duration: dur);
-      // A path is duration-relative; only the baked keyframes need re-baking.
-      final path = m.path;
-      if (path != null && p.width > 0 && p.height > 0) {
-        final fit = ImageFit.make(p.width, p.height, vp);
-        return p.copyWith(
-            duration: dur, motion: m.withPath(path, fit, vp, duration: dur));
-      }
+    _updatePhoto(photoId, (p) => _withDuration(p, dur, vp));
+  }
+
+  /// Applies [seconds] to every photo in one undo step.
+  void applyDurationToAll(double seconds) {
+    final cur = state;
+    if (cur == null) return;
+    final dur = seconds.clamp(AppLimits.minPhotoDuration,
+        AppLimits.maxPhotoDuration).toDouble();
+    final vp = cur.viewport;
+    _commit(cur.project.copyWith(
+      photos: <PhotoItem>[
+        for (final p in cur.project.photos) _withDuration(p, dur, vp),
+      ],
+    ));
+  }
+
+  /// Re-times [p] to [dur], keeping its motion: a path is duration-relative
+  /// (re-baked keyframes), plain keyframes are scaled.
+  static PhotoItem _withDuration(PhotoItem p, double dur, Viewport vp) {
+    final m = p.motion;
+    if (m == null) return p.copyWith(duration: dur);
+    final path = m.path;
+    if (path != null && p.width > 0 && p.height > 0) {
+      final fit = ImageFit.make(p.width, p.height, vp);
       return p.copyWith(
-        duration: dur,
-        motion: m.copyWith(keyframes: _retime(m.keyframes, dur)),
-      );
-    });
+          duration: dur, motion: m.withPath(path, fit, vp, duration: dur));
+    }
+    return p.copyWith(
+      duration: dur,
+      motion: m.copyWith(keyframes: _retime(m.keyframes, dur)),
+    );
+  }
+
+  /// Moves every photo switch to the nearest quiet moment of the project's
+  /// audio. [silenceMidpoints] are midpoints of silent spans, in seconds.
+  ///
+  /// Boundaries are adjusted left to right (so an earlier move shifts the
+  /// later targets), each shift is capped by the per-shot duration limits,
+  /// and a boundary is left alone when no silence lies within [kSyncWindow].
+  /// Returns how many boundaries moved (0 = nothing changed).
+  int syncToAudio(List<double> silenceMidpoints) {
+    final cur = state;
+    if (cur == null) return 0;
+    final photos = cur.project.photos;
+    if (photos.length < 2 || silenceMidpoints.isEmpty) return 0;
+    final sorted = silenceMidpoints.toList()..sort((a, b) => a.compareTo(b));
+    final newDurations = <double>[for (final p in photos) p.duration];
+    var boundary = 0.0;
+    var moved = 0;
+    for (var i = 0; i < newDurations.length - 1; i++) {
+      boundary += newDurations[i];
+      final best = _nearestSilence(sorted, boundary);
+      if (best == null) continue;
+      final nd = (newDurations[i] + (best - boundary)).clamp(
+          AppLimits.minPhotoDuration, AppLimits.maxPhotoDuration).toDouble();
+      final applied = nd - newDurations[i];
+      if (applied.abs() > 1e-3) {
+        newDurations[i] = nd;
+        boundary += applied;
+        moved++;
+      }
+    }
+    if (moved == 0) return 0;
+    final vp = cur.viewport;
+    _commit(cur.project.copyWith(
+      photos: <PhotoItem>[
+        for (var i = 0; i < photos.length; i++)
+          _withDuration(photos[i], newDurations[i], vp),
+      ],
+    ));
+    return moved;
+  }
+
+  /// Nearest silence midpoint to [t] within [kSyncWindow] seconds, else null.
+  static double? _nearestSilence(List<double> sorted, double t) {
+    if (sorted.isEmpty) return null;
+    var lo = 0;
+    var hi = sorted.length;
+    while (lo < hi) {
+      final mid = (lo + hi) ~/ 2;
+      if (sorted[mid] < t) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    double? best;
+    var bestDist = double.infinity;
+    for (final idx in <int>[lo, lo - 1]) {
+      if (idx < 0 || idx >= sorted.length) continue;
+      final d = (sorted[idx] - t).abs();
+      if (d < bestDist) {
+        bestDist = d;
+        best = sorted[idx];
+      }
+    }
+    return bestDist <= kSyncWindow ? best : null;
   }
 
   static List<Keyframe> _retime(List<Keyframe> kfs, double duration) {
@@ -333,7 +421,7 @@ class ProjectEditorController
       index: index,
       viewport: cur.viewport,
       projectSeed: cur.project.seed,
-      intensity: photo.motion?.intensity ?? 0.6,
+      intensity: photo.motion?.intensity ?? AppLimits.defaultMotionIntensity,
       previousType: prev?.motionType,
       protectManual: !force,
       previousPathPreset: prev?.path?.preset,
@@ -369,7 +457,7 @@ class ProjectEditorController
             index: index,
             projectSeed: cur.project.seed,
             viewport: vp,
-            intensity: 0.6,
+            intensity: AppLimits.defaultMotionIntensity,
             previousType: prevType,
           );
       return p.copyWith(motion: m.withPath(spec, fit, vp));
@@ -405,7 +493,7 @@ class ProjectEditorController
       photos: sources,
       viewport: vp,
       projectSeed: cur.project.seed,
-      intensity: intensity ?? 0.6,
+      intensity: intensity ?? AppLimits.defaultMotionIntensity,
       regenerate: regenerate,
       protectManual: protectManual,
     );

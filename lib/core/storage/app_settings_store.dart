@@ -80,7 +80,8 @@ class AppSettingsStore {
       localeCode: _prefs.getString(_kLocale) ?? 'fa',
       themeMode: theme,
       defaultExport: export,
-      defaultIntensity: _prefs.getDouble(_kIntensity) ?? 0.6,
+      defaultIntensity:
+          _prefs.getDouble(_kIntensity) ?? AppLimits.defaultMotionIntensity,
       defaultPhotoDuration:
           _prefs.getDouble(_kDuration) ?? AppLimits.defaultPhotoDuration,
       hasSeenOnboarding: _prefs.getBool(_kOnboarding) ?? false,

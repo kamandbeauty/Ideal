@@ -129,6 +129,23 @@ class MediaPickerService {
     }
   }
 
+  /// Midpoints (in seconds) of the quiet spans of an audio file, so the
+  /// editor can align photo switches to silences. Decoded natively
+  /// (MediaCodec); a few seconds for long tracks, runs off the main thread.
+  Future<List<double>> analyzeSilences(String path) async {
+    const channel = MethodChannel('motionshot/media');
+    try {
+      final list = await channel.invokeListMethod<double>(
+          'analyzeSilences', <String, Object>{'path': path});
+      return list ?? const <double>[];
+    } on MissingPluginException {
+      throw const AppFailure(FailureKind.audioUnreadable,
+          technicalDetail: 'media channel missing');
+    } on PlatformException catch (e) {
+      throw AppFailure.fromNative('${e.code}|${e.message}');
+    }
+  }
+
   static int _counter = 0;
   static String _newId() {
     _counter++;

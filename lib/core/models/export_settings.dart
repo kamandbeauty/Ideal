@@ -11,7 +11,8 @@ class ExportSettings {
     this.codec = VideoCodecPreset.h264,
     this.quality = QualityPreset.high,
     this.customBitrate = 0,
-    this.aspect = AspectPreset.r16x9,
+    // Default to vertical Reels size (9:16 -> 1080x1920 at 1080p).
+    this.aspect = AspectPreset.r9x16,
   });
 
   final ResolutionPreset resolution;
