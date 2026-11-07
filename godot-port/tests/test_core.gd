@@ -417,6 +417,13 @@ func _run() -> void:
 	failures += _check(whirlwind_result.accepted and whirlwind_result.pieces_cleared == 0, "whirlwind reshuffles without clearing pieces")
 	failures += _check(not Finder.has_match(whirlwind_board) and _is_board_full(whirlwind_board), "whirlwind leaves a full settled board")
 
+
+	print("TEST STAGE 15: home, district, shop and settings screen smoke tests")
+	failures += _check(await _smoke_ui_scene("res://scenes/home_screen.tscn", "user://home-screen-smoke"), "home screen instantiates")
+	failures += _check(await _smoke_ui_scene("res://scenes/district_screen.tscn", "user://district-screen-smoke"), "district screen instantiates")
+	failures += _check(await _smoke_ui_scene("res://scenes/shop_screen.tscn", "user://shop-screen-smoke"), "shop screen instantiates")
+	failures += _check(await _smoke_ui_scene("res://scenes/settings_screen.tscn", "user://settings-screen-smoke"), "settings screen instantiates")
+
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -465,3 +472,22 @@ func _is_board_full(board) -> bool:
 		if not cell.blocked and not cell.has_piece:
 			return false
 	return true
+
+func _smoke_ui_scene(scene_path: String, save_directory: String) -> bool:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(save_directory))
+	var packed = ResourceLoader.load(scene_path)
+	if not packed is PackedScene:
+		return false
+	var screen = packed.instantiate()
+	screen.set_meta("save_directory", save_directory)
+	root.add_child(screen)
+	await process_frame
+	var loaded_ok := screen.get_child_count() > 0
+	screen.queue_free()
+	await process_frame
+	for file_name in ["shazdeh-save.json", "shazdeh-save.json.bak", "shazdeh-save.json.tmp"]:
+		var cleanup_path := save_directory.path_join(file_name)
+		if FileAccess.file_exists(cleanup_path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(cleanup_path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(save_directory))
+	return loaded_ok
