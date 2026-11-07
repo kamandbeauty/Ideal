@@ -459,6 +459,7 @@ func _check(condition: bool, label: String) -> int:
 		print("PASS: " + label)
 		return 0
 	push_error("FAIL: " + label)
+	print("::error title=test_core::" + label)
 	return 1
 
 func _find_legal_swap(board) -> Array[int]:

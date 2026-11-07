@@ -25,12 +25,13 @@ func build() -> void:
 	UiKit.backdrop(self, "home_palace_lit")
 	UiKit.color_rect(self, "wash", Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.42))
 
-	UiKit.label(self, "title", TITLE, UiTokens.TYPE_DISPLAY, UiTokens.GOLD, HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(get_node("title"), 0.0, 132.0, UiTokens.CANVAS_WIDTH, 48.0)
+	var title := UiKit.label(self, "title", TITLE, UiTokens.TYPE_DISPLAY, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(title, 0.0, 132.0, UiTokens.CANVAS_WIDTH, 48.0)
 
-	UiKit.label(self, "subtitle", SUBTITLE, UiTokens.TYPE_BASE, UiTokens.TEXT_MUTED,
+	var subtitle := UiKit.label(self, "subtitle", SUBTITLE, UiTokens.TYPE_BASE, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(get_node("subtitle"), 0.0, 182.0, UiTokens.CANVAS_WIDTH, 26.0)
+	UiKit.place(subtitle, 0.0, 182.0, UiTokens.CANVAS_WIDTH, 26.0)
 
 	var card := UiKit.art_panel(self, "card", 28.0, 250.0, UiTokens.CANVAS_WIDTH - 56.0, 150.0,
 		"panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)

@@ -25,6 +25,7 @@ func _check(condition: bool, label: String) -> int:
 	if condition:
 		return 0
 	push_error("FAILED: " + label)
+	print("::error title=test_ui::" + label)
 	return 1
 
 func _run() -> void:

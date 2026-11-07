@@ -20,7 +20,10 @@ func _run() -> void:
 		var script_resource = ResourceLoader.load(path)
 		if script_resource == null or not script_resource is GDScript or not script_resource.can_instantiate():
 			push_error("GDScript failed to load: " + path)
+			print("::error file=godot-port/%s::GDScript does not compile" % path.replace("res://", ""))
 			failures += 1
+		else:
+			print("ok " + path)
 
 	print("GDScript validation: %d file(s), %d failure(s)" % [paths.size(), failures])
 	quit(1 if failures > 0 else 0)

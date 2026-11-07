@@ -165,10 +165,10 @@ static func button(parent: Node, node_name: String, text: String, x: float, y: f
 	node.add_theme_color_override("font_pressed_color", label_color)
 	node.add_theme_color_override("font_disabled_color", UiTokens.TEXT_MUTED)
 
-	var normal := box(face, radius)
-	var hover := box(face.lightened(0.08), radius)
-	var pressed := box(face.darkened(0.12), radius)
-	var disabled := box(Color(face.r, face.g, face.b, face.a * 0.45), radius)
+	var normal: StyleBox = box(face, radius)
+	var hover: StyleBox = box(face.lightened(0.08), radius)
+	var pressed: StyleBox = box(face.darkened(0.12), radius)
+	var disabled: StyleBox = box(Color(face.r, face.g, face.b, face.a * 0.45), radius)
 	if not art_id.is_empty():
 		var art := art_box(art_id, boundary_or(border, UiTokens.BORDER_BUTTON))
 		if art != null:

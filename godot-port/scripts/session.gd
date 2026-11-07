@@ -25,8 +25,8 @@ var chapter := CHAPTER
 
 ## Loads the save and every piece of content once. Anything that went wrong is collected instead of
 ## thrown, so a broken level file cannot stop the game from booting to a screen that explains it.
-static func load_session(save_clock: RefCounted, save_store: SaveStore, chapter_id: String = CHAPTER,
-		errors: Array[String] = []) -> GameSession:
+static func load_session(save_clock: RefCounted, save_store: SaveStore, chapter_id: String,
+		errors: Array[String]) -> GameSession:
 	var session := GameSession.new()
 	session.clock = save_clock
 	session.store = save_store

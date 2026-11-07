@@ -23,9 +23,9 @@ func build() -> void:
 	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 54.0, 84.0, 40.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)
 
-	UiKit.label(self, "title", "تنظیمات", UiTokens.TYPE_LG, UiTokens.TEXT,
+	var title := UiKit.label(self, "title", "تنظیمات", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(get_node("title"), 16.0, 54.0, UiTokens.CANVAS_WIDTH - 32.0, 40.0)
+	UiKit.place(title, 16.0, 54.0, UiTokens.CANVAS_WIDTH - 32.0, 40.0)
 
 	var labels := ["موسیقی", "جلوه‌های صوتی", "لرزش", "یادآوری تمرین"]
 	var keys := ["music_on", "sfx_on", "haptics_on", "push_on"]
