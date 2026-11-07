@@ -24,11 +24,20 @@ object SilenceAnalyzer {
     /** One window every 20 ms (50 windows per second). */
     private const val WINDOW_MS = 20L
 
-    /** Silence spans shorter than this many windows are ignored. */
-    private const val MIN_SILENCE_WINDOWS = 8 // 0.16 s
+    /**
+     * Silence spans shorter than this are ignored. Sub-200 ms gaps are the
+     * micro-pauses between words; sentence/phrase pauses are longer, so cuts
+     * should land in spans of at least ~0.26 s.
+     */
+    private const val MIN_SILENCE_WINDOWS = 13 // 0.26 s
 
-    /** RMS below `peak * factor` counts as quiet (about -18 dB). */
-    private const val RELATIVE_THRESHOLD = 0.126
+    /**
+     * RMS below `speechLevel * factor` counts as quiet (about -9 dB under
+     * the typical voice level). Relative to the 85th percentile (not the
+     * single loudest window) so one loud peak cannot lift the threshold and
+     * a quiet music bed cannot hide the real pauses.
+     */
+    private const val SILENCE_FACTOR = 0.35
 
     /** Absolute floor (float PCM scale) so near-silent files still work. */
     private const val ABSOLUTE_THRESHOLD = 0.004
@@ -67,11 +76,13 @@ object SilenceAnalyzer {
     }
 
     /**
-     * Returns the midpoints (in seconds) of every silence span in [path].
+     * Returns the midpoints (in seconds) of every sentence-length silence
+     * span in [path].
      *
-     * A span counts as silence when its 20 ms RMS stays below the louder
-     * content of the same file; the file's loudest window sets the
-     * reference so the detection follows the material itself.
+     * The threshold is derived from the file's own 85th-percentile RMS
+     * (its typical voice/music level), so the detected gaps are the pauses
+     * between phrases — including the quiet stretches between spoken
+     * sentences when a music bed keeps the floor above absolute silence.
      */
     fun analyze(path: String): List<Double> {
         val file = File(path)
@@ -220,8 +231,11 @@ object SilenceAnalyzer {
         val envelope = acc.envelope
         if (envelope.isEmpty()) return emptyList()
 
-        val peak = envelope.maxOrNull() ?: 0.0
-        val threshold = max(ABSOLUTE_THRESHOLD, peak * RELATIVE_THRESHOLD)
+        // Typical loud level = 85th percentile of the envelope (robust to
+        // single peaks; the quiet bed between sentences sits below it).
+        val ordered = envelope.sorted()
+        val speechLevel = ordered[max(0, (ordered.size * 85) / 100 - 1)]
+        val threshold = max(ABSOLUTE_THRESHOLD, speechLevel * SILENCE_FACTOR)
         val windowSeconds = (WINDOW_MS / 1000.0)
 
         val points = ArrayList<Double>()

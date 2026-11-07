@@ -33,6 +33,39 @@ class _AudioSheet extends ConsumerStatefulWidget {
 
 class _AudioSheetState extends ConsumerState<_AudioSheet> {
   bool _busy = false;
+  bool _syncing = false;
+
+  /// Aligns every photo switch to the nearest quiet moment of the project's
+  /// audio. The silence map is decoded natively (a few seconds on long
+  /// tracks); the state change itself is a single undoable commit.
+  Future<void> _syncCutsToSilence(AudioSettings audio) async {
+    final l10n = context.l10n;
+    final path = audio.uri;
+    if (path == null || path.isEmpty || !File(path).existsSync()) {
+      context.snack(l10n.t('error_audioUnreadable'), isError: true);
+      return;
+    }
+    setState(() => _syncing = true);
+    try {
+      final silences =
+          await ref.read(bootstrapProvider).mediaPicker.analyzeSilences(path);
+      final moved = ref
+          .read(projectEditorProvider.notifier)
+          .syncToAudio(silences);
+      if (mounted) {
+        context.snack(l10n.t(moved > 0 ? 'audio_synced' : 'audio_sync_none'));
+      }
+    } on AppFailure catch (e) {
+      if (mounted) context.snack(context.l10n.t(e.messageKey), isError: true);
+    } catch (e) {
+      debugPrint('silence sync failed: $e');
+      if (mounted) {
+        context.snack(context.l10n.t('error_unknown'), isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
 
   Future<void> _pick() async {
     setState(() => _busy = true);
@@ -177,6 +210,25 @@ class _AudioSheetState extends ConsumerState<_AudioSheet> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: AppTheme.s8),
+            OutlinedButton.icon(
+              onPressed: (_busy || _syncing) ? null : () => _syncCutsToSilence(audio),
+              icon: _syncing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.graphic_eq_rounded, size: 18),
+              label: Text(l10n.t('audio_sync_cuts')),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              l10n.t('audio_sync_hint'),
+              style: context.theme.textTheme.bodySmall?.copyWith(
+                color: context.theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
           const SizedBox(height: AppTheme.s16),

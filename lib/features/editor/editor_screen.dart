@@ -1,5 +1,7 @@
-/// The editor: preview, photo strip, motion + transition + audio + project
-/// panels, Auto Motion and Export entry points.
+/// The editor — InShot-style workspace:
+/// big canvas, centered transport, an icon+label tool bar, and a thumbnail
+/// timeline with a prominent "+" add button. Every tool opens a bottom
+/// sheet (motion, transition, music, duration, canvas/aspect).
 library;
 
 import 'dart:io';
@@ -15,16 +17,15 @@ import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/errors/app_failure.dart';
-import '../../core/models/audio_settings.dart';
 import '../../core/models/photo_item.dart';
 import '../../core/models/project.dart';
 import '../../core/models/transition.dart';
 import '../../core/utils/ratio_utils.dart';
+import '../transitions/timeline_engine.dart';
 import '../audio/audio_sheet.dart';
 import '../preview/motion_preview.dart';
 import '../preview/playback_controller.dart';
 import '../project/project_editor_controller.dart';
-import '../transitions/timeline_engine.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
   const EditorScreen({super.key});
@@ -33,10 +34,8 @@ class EditorScreen extends ConsumerStatefulWidget {
   ConsumerState<EditorScreen> createState() => _EditorScreenState();
 }
 
-class _EditorScreenState extends ConsumerState<EditorScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabs = TabController(length: 4, vsync: this);
-  bool _syncing = false;
+class _EditorScreenState extends ConsumerState<EditorScreen> {
+  bool _picking = false;
 
   @override
   void initState() {
@@ -49,12 +48,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
       if (st == null) return;
       ref.read(playbackProvider.notifier).bind(st.project);
     });
-  }
-
-  @override
-  void dispose() {
-    _tabs.dispose();
-    super.dispose();
   }
 
   @override
@@ -82,12 +75,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
     // Keep the playback clock bound to the current timeline. The listener
     // fires during build, so the bind is deferred until the frame is done
     // (mutating a provider mid-build is not allowed).
-    ref.listen<ProjectEditorState?>(projectEditorProvider, (_, ProjectEditorState? next) {
+    ref.listen<ProjectEditorState?>(projectEditorProvider,
+        (_, ProjectEditorState? next) {
       if (next == null) return;
       final changed = next.project;
       Future.microtask(
           () => ref.read(playbackProvider.notifier).bind(changed));
     });
+
+    final missing = project.missingPhotos.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -97,258 +93,514 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
         ),
         title: Text(project.name, overflow: TextOverflow.ellipsis),
         actions: <Widget>[
-          IconButton(
-            tooltip: l10n.t('editor_undo'),
-            onPressed: st.canUndo
-                ? () => ref.read(projectEditorProvider.notifier).undo()
-                : null,
-            icon: const Icon(Icons.undo_rounded),
-          ),
-          IconButton(
-            tooltip: l10n.t('editor_redo'),
-            onPressed: st.canRedo
-                ? () => ref.read(projectEditorProvider.notifier).redo()
-                : null,
-            icon: const Icon(Icons.redo_rounded),
-          ),
-          IconButton(
-            tooltip: l10n.t('editor_save'),
-            onPressed: () async {
-              try {
-                await ref.read(projectEditorProvider.notifier).save();
-                if (context.mounted) {
-                  context.snack(l10n.t('editor_saved'));
-                }
-              } catch (e) {
-                debugPrint('save failed: $e');
-                if (context.mounted) {
-                  context.snack(l10n.t('error_unknown'), isError: true);
-                }
+          // InShot-style "SAVE": one tap to the export screen.
+          TextButton(
+            onPressed: () {
+              if (missing) {
+                context.snack(l10n.t('error_photoMissing'), isError: true);
+                return;
               }
+              context.push(AppRoutes.export);
             },
-            icon: Icon(st.dirty
-                ? Icons.save_rounded
-                : Icons.cloud_done_outlined),
+            child: Text(
+              l10n.t('editor_export'),
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
-          IconButton(
-            tooltip: l10n.t('preview_title'),
-            onPressed: () => context.push(AppRoutes.preview),
-            icon: const Icon(Icons.play_circle_outline_rounded),
-          ),
+          const SizedBox(width: 4),
         ],
       ),
       body: SafeArea(
         bottom: false,
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints c) {
-            final wide = c.maxWidth >= 900;
-            if (wide) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Expanded(
-                    flex: 3,
-                    child: _previewColumn(context, l10n, st, playback),
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.s12, vertical: AppTheme.s4),
+                  child: MotionPreview(
+                    project: st.project,
+                    frame: playback,
+                    showSafeFrame: false,
                   ),
-                  const VerticalDivider(width: 1),
-                  Expanded(
-                    flex: 2,
-                    child: _panels(context, l10n, st),
-                  ),
-                ],
-              );
-            }
-            return Column(
-              children: <Widget>[
-                // _previewColumn contains its own Expanded, so it needs a
-                // bounded height here — a bare child of a Column gets an
-                // unbounded one and the layout blows up (black screen).
-                Expanded(
-                  flex: 3,
-                  child: _previewColumn(
-                      context, l10n, st, playback, compact: true),
                 ),
-                const SizedBox(height: 8),
-                Expanded(
-                  flex: 2,
-                  child: _panels(context, l10n, st),
-                ),
-              ],
-            );
-          },
+              ),
+            ),
+            _transport(context, l10n, st, playback),
+            _toolBar(context, l10n, st),
+            _timeline(context, l10n, st, playback),
+          ],
         ),
       ),
-      bottomNavigationBar: _bottomBar(context, l10n, st),
     );
   }
 
-  Widget _previewColumn(
-    BuildContext context,
-    L10n l10n,
-    ProjectEditorState st,
-    FrameState playback, {
-    bool compact = false,
-  }) {
-    final currentIndex = playback.layers.isEmpty
-        ? 0
-        : playback.layers.last.photoIndex;
+  // ------------------------------------------------------------- transport
+  Widget _transport(
+      BuildContext context, L10n l10n, ProjectEditorState st, FrameState playback) {
+    final ctrl = ref.read(playbackProvider.notifier);
+    final editor = ref.read(projectEditorProvider.notifier);
+    final subtle = IconButton.styleFrom(
+      backgroundColor: Colors.transparent,
+      foregroundColor: context.theme.colorScheme.onSurfaceVariant,
+    );
     return Padding(
-      padding: const EdgeInsets.all(AppTheme.s12),
-      child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Row(
         children: <Widget>[
-          Expanded(
-            child: Center(
-              child: MotionPreview(
-                project: st.project,
-                frame: playback,
-                showSafeFrame: false,
-              ),
+          IconButton(
+            tooltip: l10n.t('editor_undo'),
+            onPressed: st.canUndo ? () => editor.undo() : null,
+            style: subtle,
+            icon: const Icon(Icons.undo_rounded),
+          ),
+          IconButton(
+            tooltip: l10n.t('editor_redo'),
+            onPressed: st.canRedo ? () => editor.redo() : null,
+            style: subtle,
+            icon: const Icon(Icons.redo_rounded),
+          ),
+          const Spacer(),
+          IconButton(
+            tooltip: l10n.t('preview_previous'),
+            onPressed: ctrl.previousPhoto,
+            icon: const Icon(Icons.skip_previous_rounded),
+          ),
+          const SizedBox(width: 6),
+          IconButton.filled(
+            tooltip: playback.playing
+                ? l10n.t('preview_pause')
+                : l10n.t('preview_play'),
+            onPressed: ctrl.togglePlay,
+            style: IconButton.styleFrom(
+              minimumSize: const Size(52, 52),
+              backgroundColor: playback.playing
+                  ? const Color(0xFF2A2A38)
+                  : Colors.white,
+              foregroundColor: playback.playing
+                  ? Colors.white
+                  : const Color(0xFF14141F),
+              shape: const CircleBorder(),
+            ),
+            icon: Icon(
+              playback.playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+              size: 32,
             ),
           ),
-          const SizedBox(height: 8),
-          _transport(context, l10n, playback, currentIndex, st),
-          const SizedBox(height: 8),
-          _strip(context, l10n, st, currentIndex, compact: compact),
+          const SizedBox(width: 6),
+          IconButton(
+            tooltip: l10n.t('preview_next'),
+            onPressed: ctrl.nextPhoto,
+            icon: const Icon(Icons.skip_next_rounded),
+          ),
+          IconButton(
+            tooltip: l10n.t('preview_stop'),
+            onPressed: ctrl.stop,
+            icon: const Icon(Icons.stop_rounded),
+          ),
+          const Spacer(),
+          IconButton(
+            tooltip: l10n.t('preview_title'),
+            onPressed: () => context.push(AppRoutes.preview),
+            icon: const Icon(Icons.fullscreen_rounded),
+          ),
         ],
       ),
     );
   }
 
-  Widget _transport(
-    BuildContext context,
-    L10n l10n,
-    FrameState playback,
-    int currentIndex,
-    ProjectEditorState st,
-  ) {
-    final ctrl = ref.read(playbackProvider.notifier);
-    return Column(
-      children: <Widget>[
-        Row(
-          children: <Widget>[
-            IconButton(
-              tooltip: l10n.t('preview_previous'),
-              onPressed: ctrl.previousPhoto,
-              icon: const Icon(Icons.skip_previous_rounded),
-            ),
-            IconButton.filled(
-              tooltip: playback.playing
-                  ? l10n.t('preview_pause')
-                  : l10n.t('preview_play'),
-              onPressed: ctrl.togglePlay,
-              icon: Icon(playback.playing
-                  ? Icons.pause_rounded
-                  : Icons.play_arrow_rounded),
-            ),
-            IconButton(
-              tooltip: l10n.t('preview_stop'),
-              onPressed: ctrl.stop,
-              icon: const Icon(Icons.stop_rounded),
-            ),
-            IconButton(
-              tooltip: l10n.t('preview_next'),
-              onPressed: ctrl.nextPhoto,
-              icon: const Icon(Icons.skip_next_rounded),
-            ),
-            Expanded(
-              child: Slider(
-                value: playback.progress,
-                onChanged: (double v) => ctrl.seekFraction(v),
-                onChangeStart: (_) => ctrl.beginScrub(),
-                onChangeEnd: (_) => ctrl.endScrub(),
-              ),
-            ),
-            Text(
-              '${formatClockPrecise(playback.time)} / ${formatClock(playback.total)}',
-              style: context.theme.textTheme.labelSmall?.copyWith(
-                fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
-              ),
-            ),
-          ],
-        ),
-      ],
+  // ------------------------------------------------------------- tool bar
+  Widget _toolBar(BuildContext context, L10n l10n, ProjectEditorState st) {
+    final label = context.theme.textTheme.labelSmall?.copyWith(
+      fontSize: 10,
+      letterSpacing: 0.2,
+      color: context.theme.colorScheme.onSurfaceVariant,
     );
-  }
-
-  Widget _strip(
-    BuildContext context,
-    L10n l10n,
-    ProjectEditorState st,
-    int currentIndex, {
-    bool compact = false,
-  }) {
-    final photos = st.project.photos;
     return SizedBox(
-      height: compact ? 64 : 78,
-      child: ListView.separated(
+      height: 62,
+      child: ListView(
         scrollDirection: Axis.horizontal,
-        itemCount: photos.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 6),
-        itemBuilder: (BuildContext c, int i) {
-          final p = photos[i];
-          final selected = p.id == st.selectedPhotoId;
-          final path = p.thumbnailPath;
-          final exists = path != null && File(path).existsSync();
-          return SizedBox(
-            width: compact ? 64 : 78,
-            child: PhotoTile(
-              selected: selected || i == currentIndex,
-              missing: p.missing,
-              image: exists ? Image.file(File(path), fit: BoxFit.cover) : null,
-              badge: p.isLocked
-                  ? const Icon(Icons.lock_rounded, size: 14, color: Colors.white)
-                  : null,
-              onTap: () {
-                ref.read(projectEditorProvider.notifier).selectPhoto(p.id);
-                final notifier = ref.read(playbackProvider.notifier);
-                final segs =
-                    buildSegments(st.photoIds, st.durations, st.transitions);
-                if (i < segs.length) notifier.seek(segs[i].start + 0.001);
-              },
-              onLongPress: () => context.push(
-                  '${AppRoutes.motionEditor}?photo=${p.id}'),
-              overlay: i == currentIndex
-                  ? Align(
-                      alignment: AlignmentDirectional.bottomCenter,
-                      child: Container(
-                        height: 3,
-                        color: context.theme.colorScheme.primary,
-                      ),
-                    )
-                  : null,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        children: <Widget>[
+          _toolItem(
+            icon: Icons.crop_rounded,
+            label: l10n.t('tool_canvas'),
+            onTap: () => _openCanvasSheet(context, l10n, st),
+          ),
+          _toolItem(
+            icon: Icons.auto_awesome_motion_rounded,
+            label: l10n.t('tool_motion'),
+            onTap: () => _openToolSheet(
+              context,
+              l10n.t('tool_motion_title'),
+              _motionPanel(context, l10n, st),
             ),
-          );
-        },
+          ),
+          _toolItem(
+            icon: Icons.compare_arrows_rounded,
+            label: l10n.t('tool_transition'),
+            onTap: () => _openToolSheet(
+              context,
+              l10n.t('tool_transition_title'),
+              _transitionPanel(context, l10n, st),
+            ),
+          ),
+          _toolItem(
+            icon: Icons.music_note_rounded,
+            label: l10n.t('tool_music'),
+            onTap: () => showAudioSheet(context, ref),
+          ),
+          _toolItem(
+            icon: Icons.timer_rounded,
+            label: l10n.t('tool_duration'),
+            onTap: () => _openDurationSheet(context, l10n, st),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _panels(BuildContext context, L10n l10n, ProjectEditorState st) {
-    return Column(
-      children: <Widget>[
-        TabBar(
-          controller: _tabs,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          tabs: <Widget>[
-            Tab(text: l10n.t('editor_motion')),
-            Tab(text: l10n.t('editor_transition')),
-            Tab(text: l10n.t('editor_audio')),
-            Tab(text: l10n.t('editor_project')),
-          ],
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabs,
+  Widget _toolItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: 66,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          decoration: const BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Color(0xFF22222E), width: 1),
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              _motionPanel(context, l10n, st),
-              _transitionPanel(context, l10n, st),
-              _audioPanel(context, l10n, st),
-              _projectPanel(context, l10n, st),
+              Icon(icon, size: 24, color: context.theme.colorScheme.onSurface),
+              const SizedBox(height: 3),
+              Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.theme.textTheme.labelSmall
+                      ?.copyWith(fontSize: 10, letterSpacing: 0.2)),
             ],
           ),
         ),
-      ],
+      ),
+    );
+  }
+
+  // ------------------------------------------------------------- timeline
+  Widget _timeline(
+      BuildContext context, L10n l10n, ProjectEditorState st, FrameState playback) {
+    final photos = st.project.photos;
+    final currentIndex =
+        playback.layers.isEmpty ? 0 : playback.layers.last.photoIndex;
+    final clock = context.theme.textTheme.labelSmall?.copyWith(
+      color: context.theme.colorScheme.onSurfaceVariant,
+      fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 10),
+      child: Column(
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              _addButton(context, l10n),
+              const SizedBox(width: 10),
+              Expanded(
+                child: SizedBox(
+                  height: 54,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: photos.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 6),
+                    itemBuilder: (BuildContext c, int i) {
+                      final p = photos[i];
+                      final selected = p.id == st.selectedPhotoId;
+                      final path = p.thumbnailPath;
+                      final exists = path != null && File(path).existsSync();
+                      return SizedBox(
+                        width: 54,
+                        child: PhotoTile(
+                          selected: selected || i == currentIndex,
+                          missing: p.missing,
+                          image: exists
+                              ? Image.file(File(path), fit: BoxFit.cover)
+                              : null,
+                          badge: p.isLocked
+                              ? const Icon(Icons.lock_rounded,
+                                  size: 12, color: Colors.white)
+                              : null,
+                          onTap: () {
+                            ref
+                                .read(projectEditorProvider.notifier)
+                                .selectPhoto(p.id);
+                            final notifier =
+                                ref.read(playbackProvider.notifier);
+                            final segs = buildSegments(
+                                st.photoIds, st.durations, st.transitions);
+                            if (i < segs.length) {
+                              notifier.seek(segs[i].start + 0.001);
+                            }
+                          },
+                          onLongPress: () => context.push(
+                              '${AppRoutes.motionEditor}?photo=${p.id}'),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: <Widget>[
+              Text(formatClockPrecise(playback.time), style: clock),
+              const Spacer(),
+              Text('${currentIndex + 1}/${photos.length} · '
+                  '${formatClock(playback.total)}',
+                  style: clock),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// InShot-style red gradient "+" button: adds photos to this project.
+  Widget _addButton(BuildContext context, L10n l10n) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _picking ? null : () => _addPhotos(),
+        borderRadius: BorderRadius.circular(13),
+        child: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            gradient: const LinearGradient(
+              colors: <Color>[Color(0xFFFF5A6E), Color(0xFFC8145A)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: const Color(0xFFC8145A).withValues(alpha: 0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Center(
+            child: _picking
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.add_rounded,
+                    size: 26, color: Colors.white),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _addPhotos() async {
+    final l10n = context.l10n;
+    final bootstrap = ref.read(bootstrapProvider);
+    final settings = ref.read(settingsProvider);
+    setState(() => _picking = true);
+    try {
+      final picked = await bootstrap.mediaPicker.pickPhotos();
+      if (picked.isEmpty) return;
+      final photos = <PhotoItem>[];
+      for (final p in picked) {
+        String? thumb;
+        // Thumbnails are best-effort, same as the gallery flow.
+        try {
+          thumb = (await bootstrap.thumbs.generate(p.id, p.bytes)).path;
+        } catch (_) {
+          thumb = null;
+        }
+        photos.add(PhotoItem(
+          id: p.id,
+          sourceUri: p.path,
+          width: p.width,
+          height: p.height,
+          duration: settings.defaultPhotoDuration,
+          order: photos.length,
+          displayName: p.originalName,
+          thumbnailPath: thumb,
+        ));
+      }
+      final ctrl = ref.read(projectEditorProvider.notifier);
+      ctrl.addPhotos(photos);
+      // Motion for the newcomers only; existing shots keep theirs.
+      ctrl.autoMotion(intensity: settings.defaultIntensity);
+      if (mounted) {
+        context.snack(l10n.plural('editor_photos_added', photos.length));
+      }
+    } on AppFailure catch (e) {
+      if (mounted) context.snack(context.l10n.t(e.messageKey), isError: true);
+    } catch (e) {
+      debugPrint('add photos failed: $e');
+      if (mounted) {
+        context.snack(context.l10n.t('error_unknown'), isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _picking = false);
+    }
+  }
+
+  // ---------------------------------------------------------------- sheets
+  Future<void> _openToolSheet(
+      BuildContext context, String title, Widget content) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (BuildContext ctx) {
+        final h = MediaQuery.of(ctx).size.height;
+        return SizedBox(
+          height: (h * 0.62).clamp(340.0, 560.0).toDouble(),
+          child: Column(
+            children: <Widget>[
+              const SizedBox(height: 10),
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 10),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              ctx.theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600)),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      icon: const Icon(Icons.close_rounded, size: 20),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              Expanded(child: content),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Canvas / aspect + project facts (rename, totals, resolution).
+  Future<void> _openCanvasSheet(
+      BuildContext context, L10n l10n, ProjectEditorState st) {
+    final project = st.project;
+    final notifier = ref.read(projectEditorProvider.notifier);
+    return _openToolSheet(
+      context,
+      l10n.t('tool_canvas_title'),
+      ListView(
+        padding: const EdgeInsets.all(AppTheme.s16),
+        children: <Widget>[
+          Text(l10n.t('export_aspect'),
+              style: context.theme.textTheme.bodySmall?.copyWith(
+                  color: context.theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: <Widget>[
+              for (final a in AspectPreset.values)
+                ChoiceChip(
+                  label: Text(a == AspectPreset.original
+                      ? l10n.t('export_aspect_original')
+                      : a.id),
+                  selected: project.exportSettings.aspect == a,
+                  onSelected: (_) => notifier.setExportSettings(
+                      project.exportSettings.copyWith(aspect: a)),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.s16),
+          _kv(context, l10n.t('editor_total'),
+              formatClock(project.totalDuration)),
+          _kv(context, l10n.t('editor_photo'),
+              '${project.photos.length}'),
+          _kv(context, l10n.t('export_resolution'),
+              '${project.exportSettings.dimensions(project.firstPhotoAspect).width}'
+              '×${project.exportSettings.dimensions(project.firstPhotoAspect).height}'),
+          const SizedBox(height: AppTheme.s12),
+          TextField(
+            decoration: InputDecoration(
+              labelText: l10n.t('editor_project'),
+              isDense: true,
+              border: const OutlineInputBorder(),
+            ),
+            controller: TextEditingController(text: project.name),
+            onSubmitted: notifier.rename,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Per-shot duration (1–60 s) + "apply to all".
+  Future<void> _openDurationSheet(
+      BuildContext context, L10n l10n, ProjectEditorState st) {
+    final selected = st.selectedPhotoId ?? st.project.photos.first.id;
+    final photo = st.photoById(selected) ?? st.project.photos.first;
+    final notifier = ref.read(projectEditorProvider.notifier);
+    return _openToolSheet(
+      context,
+      l10n.t('tool_duration_title'),
+      ListView(
+        padding: const EdgeInsets.all(AppTheme.s16),
+        children: <Widget>[
+          Text(
+            l10n.t('editor_shot').replaceAll('{n}', '${photo.order + 1}'),
+            style: context.theme.textTheme.bodySmall?.copyWith(
+                color: context.theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: AppTheme.s12),
+          ValueSlider(
+            label: l10n.t('editor_duration'),
+            icon: Icons.timer_rounded,
+            value: photo.duration,
+            min: AppLimits.minPhotoDuration,
+            max: AppLimits.maxPhotoDuration,
+            divisions: 590,
+            format: (double v) => '${v.toStringAsFixed(1)}s',
+            onChanged: (double v) => notifier.setPhotoDuration(photo.id, v),
+          ),
+          const SizedBox(height: AppTheme.s12),
+          OutlinedButton.icon(
+            onPressed: () => notifier.applyDurationToAll(photo.duration),
+            icon: const Icon(Icons.all_inclusive_rounded, size: 18),
+            label: Text(l10n.t('editor_apply_duration_all')),
+          ),
+        ],
+      ),
     );
   }
 
@@ -401,16 +653,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
                   onChanged: (double v) =>
                       notifier.setMotionIntensity(photo.id, v),
                 ),
-                ValueSlider(
-                  label: l10n.t('editor_duration'),
-                  icon: Icons.timer_outlined,
-                  value: photo.duration,
-                  min: AppLimits.minPhotoDuration,
-                  max: AppLimits.maxPhotoDuration,
-                  divisions: 590,
-                  format: (double v) => '${v.toStringAsFixed(1)}s',
-                  onChanged: (double v) => notifier.setPhotoDuration(photo.id, v),
-                ),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
@@ -420,12 +662,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
                           '${AppRoutes.motionEditor}?photo=${photo.id}'),
                       icon: const Icon(Icons.tune_rounded, size: 18),
                       label: Text(l10n.t('motion_title')),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () =>
-                          notifier.applyDurationToAll(photo.duration),
-                      icon: const Icon(Icons.all_inclusive_rounded, size: 18),
-                      label: Text(l10n.t('editor_apply_duration_all')),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => notifier.regeneratePhotoMotion(photo.id),
@@ -462,7 +698,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
             children: <Widget>[
               FilledButton.icon(
                 onPressed: () => notifier.autoMotion(regenerate: false),
-                icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                icon: const Icon(Icons.play_arrow_rounded),
                 label: Text(l10n.t('editor_auto_motion')),
               ),
               OutlinedButton.icon(
@@ -475,7 +711,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
                   );
                   if (ok) notifier.regenerateAll();
                 },
-                icon: const Icon(Icons.refresh_rounded, size: 18),
+                icon: const Icon(Icons.refresh_rounded),
                 label: Text(l10n.t('editor_regenerate_all')),
               ),
             ],
@@ -530,6 +766,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
                   photo.transition.copyWith(duration: v),
                 ),
               ),
+              const SizedBox(height: AppTheme.s12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -554,179 +791,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
     );
   }
 
-  // ------------------------------------------------------------------- audio
-  Widget _audioPanel(BuildContext context, L10n l10n, ProjectEditorState st) {
-    final audio = st.project.audio;
-    final notifier = ref.read(projectEditorProvider.notifier);
-    return ListView(
-      padding: const EdgeInsets.all(AppTheme.s16),
-      children: <Widget>[
-        SectionCard(
-          title: l10n.t('audio_title'),
-          icon: Icons.music_note_outlined,
-          subtitle: l10n.t('audio_supported'),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              if (audio == null || !audio.hasAudio)
-                EmptyState(
-                  icon: Icons.library_music_outlined,
-                  title: l10n.t('audio_no_music'),
-                  action: FilledButton.icon(
-                    onPressed: () => showAudioSheet(context, ref),
-                    icon: const Icon(Icons.add_rounded),
-                    label: Text(l10n.t('audio_pick')),
-                  ),
-                )
-              else ...<Widget>[
-                Row(
-                  children: <Widget>[
-                    const Icon(Icons.audiotrack_rounded, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(audio.displayName,
-                          overflow: TextOverflow.ellipsis),
-                    ),
-                    TextButton(
-                      onPressed: () => notifier.setAudio(null),
-                      child: Text(l10n.t('audio_remove')),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                FilledButton.tonal(
-                  onPressed: () => showAudioSheet(context, ref),
-                  child: Text(l10n.t('audio_title')),
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: _syncing
-                      ? null
-                      : () => _syncCutsToSilence(context, audio),
-                  icon: _syncing
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.graphic_eq_rounded, size: 18),
-                  label: Text(l10n.t('audio_sync_cuts')),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  l10n.t('audio_sync_hint'),
-                  style: context.theme.textTheme.bodySmall?.copyWith(
-                    color: context.theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Aligns every photo switch to the nearest quiet moment of the project's
-  /// audio. The silence map is decoded natively (a few seconds on long
-  /// tracks); the state change itself is a single undoable commit.
-  Future<void> _syncCutsToSilence(
-      BuildContext context, AudioSettings audio) async {
-    final l10n = context.l10n;
-    final path = audio.uri;
-    if (path == null || path.isEmpty || !File(path).existsSync()) {
-      context.snack(l10n.t('error_audioUnreadable'), isError: true);
-      return;
-    }
-    setState(() => _syncing = true);
-    try {
-      final silences =
-          await ref.read(bootstrapProvider).mediaPicker.analyzeSilences(path);
-      final moved = ref
-          .read(projectEditorProvider.notifier)
-          .syncToAudio(silences);
-      if (mounted) {
-        context.snack(
-            l10n.t(moved > 0 ? 'audio_synced' : 'audio_sync_none'));
-      }
-    } on AppFailure catch (e) {
-      if (mounted) context.snack(context.l10n.t(e.messageKey), isError: true);
-    } catch (e) {
-      debugPrint('silence sync failed: $e');
-      if (mounted) {
-        context.snack(context.l10n.t('error_unknown'), isError: true);
-      }
-    } finally {
-      if (mounted) setState(() => _syncing = false);
-    }
-  }
-
-  // ----------------------------------------------------------------- project
-  Widget _projectPanel(
-      BuildContext context, L10n l10n, ProjectEditorState st) {
-    final notifier = ref.read(projectEditorProvider.notifier);
-    final project = st.project;
-    final caps = ref.watch(capabilitiesProvider);
-    return ListView(
-      padding: const EdgeInsets.all(AppTheme.s16),
-      children: <Widget>[
-        SectionCard(
-          title: l10n.t('editor_project'),
-          icon: Icons.movie_outlined,
-          child: Column(
-            children: <Widget>[
-              _kv(context, l10n.t('editor_total'), formatClock(project.totalDuration)),
-              _kv(context, l10n.t('editor_photo'),
-                  '${project.photos.length}'),
-              _kv(context, l10n.t('export_frames'),
-                  '${project.videoFrameCount}'),
-              _kv(context, l10n.t('export_aspect'),
-                  aspectLabel(project.outputAspect)),
-              _kv(context, l10n.t('export_resolution'),
-                  '${project.exportSettings.dimensions(project.firstPhotoAspect).width}'
-                  '×${project.exportSettings.dimensions(project.firstPhotoAspect).height}'),
-              const Divider(height: 24),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: l10n.t('editor_project'),
-                  isDense: true,
-                  border: const OutlineInputBorder(),
-                ),
-                controller: TextEditingController(text: project.name),
-                onSubmitted: notifier.rename,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: AppTheme.s12),
-        SectionCard(
-          title: l10n.t('settings_device'),
-          icon: Icons.memory_rounded,
-          child: caps.when(
-            data: (c) => Column(
-              children: <Widget>[
-                _kv(context, l10n.t('settings_device_encoder'), c.codecName),
-                _kv(
-                    context,
-                    l10n.t('settings_device_max'),
-                    '${c.maxWidth}×${c.maxHeight} @ ${c.maxFps}fps'),
-                _kv(context, l10n.t('settings_device_ram'),
-                    '${c.totalRamMb} MB'),
-                _kv(context, l10n.t('export_hardware'),
-                    c.hasGlEs3 ? 'OpenGL ES 3.0' : 'OpenGL ES 2.0'),
-              ],
-            ),
-            loading: () => const LinearProgressIndicator(),
-            error: (Object e, StackTrace s) => Text(
-              l10n.t('export_blocked'),
-              style: TextStyle(color: context.theme.colorScheme.error),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _kv(BuildContext context, String k, String v) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
@@ -744,44 +808,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
     );
   }
 
-  // --------------------------------------------------------------- bottom bar
-  Widget _bottomBar(
-      BuildContext context, L10n l10n, ProjectEditorState st) {
-    final missing = st.project.missingPhotos.isNotEmpty;
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: () =>
-                    ref.read(projectEditorProvider.notifier).autoMotion(),
-                icon: const Icon(Icons.auto_awesome_rounded, size: 18),
-                label: Text(l10n.t('editor_start')),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: GradientButton(
-                label: l10n.t('editor_export'),
-                icon: Icons.file_download_outlined,
-                onPressed: () {
-                  if (missing) {
-                    context.snack(l10n.t('error_photoMissing'), isError: true);
-                    return;
-                  }
-                  context.push(AppRoutes.export);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // ------------------------------------------------------------------ leave
   Future<void> _confirmLeave(
       BuildContext context, ProjectEditorState st) async {
     final l10n = context.l10n;
