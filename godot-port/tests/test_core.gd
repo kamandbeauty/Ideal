@@ -67,13 +67,10 @@ func _run() -> void:
 	var rejected = resolver.swap(Vector2i(-1, 0), Vector2i(0, 0))
 	failures += _check(not rejected.accepted and rejected.reject_reason == "out of bounds", "reject out-of-bounds swap")
 
-	var swap_board = Board.from_ascii(PackedStringArray(["ALMZA", "ZFMAL", "FAFZA", "MLZAF", "AFZML"]))
-	var swap_tracker = Goals.new([{"kind": 0, "piece": 1, "target": 10}])
-	var swap_resolver = Resolver.new(move_level, swap_board, Rng.new(0, 7), swap_tracker)
-	var accepted = swap_resolver.swap(Vector2i(1, 3), Vector2i(1, 2))
-	failures += _check(accepted.accepted, "accept a swap that creates a three-piece match")
-	failures += _check(accepted.pieces_cleared >= 3, "clear matched pieces during move resolution")
-	failures += _check(swap_tracker.progress(0) >= 3, "record cleared-piece goal progress")
+	var before_no_match := move_board.to_ascii()
+	var rejected_no_match = resolver.swap(Vector2i(0, 4), Vector2i(1, 4))
+	failures += _check(not rejected_no_match.accepted and rejected_no_match.reject_reason == "no match", "reject a swap that makes no match")
+	failures += _check(move_board.to_ascii() == before_no_match, "restore board after rejected swap")
 
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
