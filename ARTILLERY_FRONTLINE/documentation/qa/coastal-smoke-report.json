@@ -137,16 +137,16 @@
   "kills": 0,
   "passed": true,
   "performance": {
-    "draw_calls": 361,
-    "fps": 11.4,
-    "frame_ms": 87.6,
-    "objects": 1922,
-    "primitives": 149020,
+    "draw_calls": 302,
+    "fps": 9.4,
+    "frame_ms": 106.74,
+    "objects": 1781,
+    "primitives": 179930,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
   },
-  "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 02 infantry/weapons/environment; not Android hardware",
+  "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 03 skinned infantry/detailed war machines/weapons; not Android hardware",
   "soldiers": 8,
   "weapon_screen_bounds": {
     "h": 1467.73474121094,

@@ -1,9 +1,7 @@
 {
-  "checks": 259,
+  "checks": 257,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_coastal_pass3: Death creates a physical ragdoll/corpse body instead of a sink tween"
-  ],
-  "passed": false,
+  "failures": [],
+  "passed": true,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }
