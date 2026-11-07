@@ -48,8 +48,10 @@ func _run() -> void:
 	var level = Level.new()
 	level.width = 7
 	level.height = 7
-	level.pieces = [1, 2, 3, 4, 5]
-	level.goals = [{"kind": 0, "piece": 1, "target": 10}]
+	var level_pieces: Array[int] = [1, 2, 3, 4, 5]
+	level.pieces = level_pieces
+	var level_goals: Array[Dictionary] = [{"kind": 0, "piece": 1, "target": 10}]
+	level.goals = level_goals
 	var opening_a = Factory.create(level, 0, 12345)
 	var opening_b = Factory.create(level, 0, 12345)
 	failures += _check(not Finder.has_match(opening_a), "opening board contains no automatic match")
