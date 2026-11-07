@@ -124,11 +124,38 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
 
-      - name: Export the debug APK
+      - name: Export the debug APK (prebuilt template path)
+        id: export_template
+        continue-on-error: true
         run: |
+          set +e
           mkdir -p godot-port/build
-          godot --headless --path godot-port --export-debug "Android" build/princes-palace-debug.apk
-          ls -l godot-port/build
+          output=$(godot --headless --path godot-port --export-debug "Android" \
+            build/princes-palace-debug.apk 2>&1)
+          status=$?
+          echo "$output"
+          if [ $status -ne 0 ]; then
+            message=$(echo "$output" | grep -vE "^\s*$" | tail -6 | tr '\n' ' ' | cut -c1-600)
+            echo "::error file=.github/workflows/godot-port.yml::template export: $message"
+            exit 1
+          fi
+
+      - name: Install the Android build template and export with Gradle
+        if: steps.export_template.outcome == 'failure'
+        run: |
+          set +e
+          godot --headless --path godot-port --install-android-build-template
+          sed -i 's|gradle_build/use_gradle_build=false|gradle_build/use_gradle_build=true|' \
+            godot-port/export_presets.cfg
+          output=$(godot --headless --path godot-port --export-debug "Android" \
+            build/princes-palace-debug.apk 2>&1)
+          status=$?
+          echo "$output"
+          if [ $status -ne 0 ]; then
+            message=$(echo "$output" | grep -vE "^\s*$" | tail -6 | tr '\n' ' ' | cut -c1-600)
+            echo "::error file=.github/workflows/godot-port.yml::gradle export: $message"
+            exit 1
+          fi
 
       - name: Verify the APK really is an APK
         run: |
