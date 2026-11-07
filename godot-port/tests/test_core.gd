@@ -6,6 +6,8 @@ const Rng = preload("res://scripts/core/deterministic_random.gd")
 const Powers = preload("res://scripts/core/power_ups.gd")
 const Factory = preload("res://scripts/core/board_factory.gd")
 const Level = preload("res://scripts/core/level_definition.gd")
+const Goals = preload("res://scripts/core/goal_tracker.gd")
+const Resolver = preload("res://scripts/core/move_resolver.gd")
 
 func _initialize() -> void:
 	create_timer(20.0).timeout.connect(_on_timeout)
@@ -56,6 +58,29 @@ func _run() -> void:
 	var opening_b = Factory.create(level, 0, 12345)
 	failures += _check(not Finder.has_match(opening_a), "opening board contains no automatic match")
 	failures += _check(opening_a.to_ascii() == opening_b.to_ascii(), "opening board is reproducible from the same seed")
+	failures += _check(level.is_structurally_valid(), "valid level model passes structural validation")
+	failures += _check(Finder.has_possible_move(opening_a), "generated board has at least one legal move")
+
+	print("TEST STAGE 5: goal tracking and rejected moves")
+	var tracker = Goals.new(level.goals)
+	var changed = tracker.record_piece_cleared(1)
+	failures += _check(changed.size() == 1 and tracker.progress(0) == 1, "record matching piece goal progress")
+	var move_level = Level.new()
+	move_level.width = 5
+	move_level.height = 5
+	var move_pieces: Array[int] = [1, 2, 3, 4, 5]
+	move_level.pieces = move_pieces
+	var move_goals: Array[Dictionary] = [{"kind": 0, "piece": 1, "target": 10}]
+	move_level.goals = move_goals
+	var move_board = Board.from_ascii(PackedStringArray(["FLAFZ", "ZAFML", "MLFZA", "AFZML", "LZAMF"]))
+	var move_tracker = Goals.new(move_level.goals)
+	var resolver = Resolver.new(move_level, move_board, Rng.new(0, 99), move_tracker)
+	var rejected_bounds = resolver.swap(Vector2i(-1, 0), Vector2i(0, 0))
+	failures += _check(not rejected_bounds.accepted and rejected_bounds.reject_reason == "out of bounds", "reject out-of-bounds swap")
+	var before_rejected := move_board.to_ascii()
+	var rejected_match = resolver.swap(Vector2i(0, 4), Vector2i(1, 4))
+	failures += _check(not rejected_match.accepted and rejected_match.reject_reason == "no match", "reject swap that creates no match")
+	failures += _check(move_board.to_ascii() == before_rejected, "restore board after rejected swap")
 
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
