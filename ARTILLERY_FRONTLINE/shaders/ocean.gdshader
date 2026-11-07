@@ -29,10 +29,10 @@ void vertex() {
 	NORMAL = normalize(vec3(-(hx - h) * wave_height / e, 1.0, -(hz - h) * wave_height / e));
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	wave_crest = h;
-	view_distance = distance(CAMERA_POSITION_WORLD, world_position);
 }
 
 void fragment() {
+	view_distance = distance(CAMERA_POSITION_WORLD, world_position);
 	float shore = smoothstep(-85.0, 4.0, world_position.z);
 	vec3 water = mix(deep_color, shallow_color, shore);
 	float n1 = texture(water_noise, world_position.xz * 0.045 + vec2(TIME * 0.012, TIME * 0.008)).r;

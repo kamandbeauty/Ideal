@@ -10,7 +10,6 @@ varying vec3 world_position;
 varying float view_distance;
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	view_distance = distance(CAMERA_POSITION_WORLD, world_position);
 }
 vec3 sand_sample(vec2 uv, float angle) {
 	float c = cos(angle), s = sin(angle);
@@ -18,6 +17,7 @@ vec3 sand_sample(vec2 uv, float angle) {
 	return texture(sand_albedo, ruv).rgb;
 }
 void fragment() {
+	view_distance = distance(CAMERA_POSITION_WORLD, world_position);
 	vec2 uv = world_position.xz * 0.11;
 	float macro = texture(ground_noise, world_position.xz * 0.004).r;
 	float patch = texture(ground_noise, world_position.xz * 0.021 + vec2(8.3, 2.1)).r;

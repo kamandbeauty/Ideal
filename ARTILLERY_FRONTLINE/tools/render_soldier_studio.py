@@ -41,8 +41,8 @@ def area(name,loc,energy,size,target,color=(1,1,1)):
 area('Key',(2.4,-2.8,3.2),650,3.0,(0,0,1.0),(1.0,0.95,0.86))
 area('Fill',(-2.6,-1.6,1.8),260,2.5,(0,0,1.0),(0.78,0.86,1.0))
 area('Rim',(0.4,2.8,2.8),520,2.0,(0,0,1.1),(0.9,0.95,1.0))
-cd=bpy.data.cameras.new('Camera'); cd.lens=62; cam=bpy.data.objects.new('Camera',cd); bpy.context.collection.objects.link(cam)
-cam.location=(1.55,-2.35,1.35); cam.rotation_euler=(Vector((0,0,0.98))-cam.location).to_track_quat('-Z','Y').to_euler(); bpy.context.scene.camera=cam
+cd=bpy.data.cameras.new('Camera'); cd.lens=45; cam=bpy.data.objects.new('Camera',cd); bpy.context.collection.objects.link(cam)
+cam.location=(2.05,-3.25,1.50); cam.rotation_euler=(Vector((0,0,0.95))-cam.location).to_track_quat('-Z','Y').to_euler(); bpy.context.scene.camera=cam
 sc=bpy.context.scene; sc.render.engine='CYCLES'; sc.cycles.device='CPU'; sc.cycles.samples=96; sc.cycles.use_denoising=True
 sc.render.resolution_x=1100; sc.render.resolution_y=1400; sc.render.resolution_percentage=100; sc.render.image_settings.file_format='PNG'
 sc.render.filepath=os.path.join(OUT,'soldier-studio.png'); sc.view_settings.view_transform='AgX'; sc.view_settings.look='None'
