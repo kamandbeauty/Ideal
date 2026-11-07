@@ -168,9 +168,9 @@ object SilenceAnalyzer {
                                     while (fb.remaining() >= channels) {
                                         var peak = 0f
                                         for (c in 0 until channels) {
-                                            val s = fb.get()
-                                            val a = if (s < 0f) -s else s
-                                            if (a > peak) peak = a
+                                            var v: Float = fb.get()
+                                            if (v < 0f) v = -v
+                                            if (v > peak) peak = v
                                         }
                                         acc.feedFrame(peak)
                                     }
@@ -179,9 +179,9 @@ object SilenceAnalyzer {
                                     while (sb.remaining() >= channels) {
                                         var peak = 0
                                         for (c in 0 until channels) {
-                                            val s = sb.get()
-                                            val a = if (s < 0) -s else s
-                                            if (a > peak) peak = a
+                                            var v: Int = sb.get()
+                                            if (v < 0) v = -v
+                                            if (v > peak) peak = v
                                         }
                                         acc.feedFrame(peak / 32768f)
                                     }
