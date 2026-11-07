@@ -46,6 +46,18 @@ func _run() -> void:
 	for expected_value in expected:
 		failures += _check(rng_reference.next(97) == expected_value, "xorshift64* sequence value %d" % expected_value)
 
+
+	var rng_42 = Rng.new(0, 42)
+	var golden_high := [0x56ce4ab7, 0xc841eb53, 0xca466be0, 0xf1acc733, 0xc3af4dd7, 0xd5f30c22]
+	var golden_low := [0x719ba3a0, 0xebbb2dda, 0xc9980276, 0x4a7b70df, 0xfb900a06, 0x06dfcea3]
+	for index in range(6):
+		var draw: Array[int] = rng_42.next_words()
+		failures += _check(draw[0] == golden_high[index] and draw[1] == golden_low[index], "C# seed-42 RNG golden draw %d" % index)
+	failures += _check(rng_42.state_hex() == "c0d2f1a263e84ebf", "C# seed-42 RNG state after six draws")
+	var zero_seed_a = Rng.new(0, 0)
+	var zero_seed_b = Rng.new(Rng.FALLBACK_HIGH, Rng.FALLBACK_LOW)
+	failures += _check(zero_seed_a.next(97) == zero_seed_b.next(97), "zero seed uses the documented fallback state")
+
 	print("TEST STAGE 3: power-up target geometry")
 	var power_board = Board.new(5, 5)
 	var blast_targets: Array[Vector2i] = []
@@ -168,6 +180,20 @@ func _run() -> void:
 	clock.advance(LivesScript.REFILL_SECONDS)
 	failures += _check(lives.refresh() == 1 and lives.current == 5, "refill one life after thirty minutes")
 	failures += _check(lives.is_full and lives.next_refill_in_seconds == 0, "full lives pool has no refill countdown")
+
+
+	var hash_board = Board.from_ascii(PackedStringArray(["F..", "..."]))
+	failures += _check(StateHash.compute_board(hash_board) == "556036242e410b66", "C# FNV board-hash golden vector")
+	var hash_level = Level.new()
+	hash_level.width = 9
+	hash_level.height = 9
+	hash_level.move_limit = 20
+	var hash_pieces: Array[int] = [1, 2, 3, 4, 5]
+	hash_level.pieces = hash_pieces
+	var hash_goals: Array[Dictionary] = [{"kind": 0, "piece": 3, "target": 20}]
+	hash_level.goals = hash_goals
+	var hash_run = Run.new(hash_level, 0, 42)
+	failures += _check(hash_run.state_hash_hex() == "396f06d4828178f0", "C# LevelRun FNV state-hash golden vector for seed 42")
 
 	print("TEST STAGE 8: level run, state hash, stars and progression")
 	var progression_level = Level.new()
