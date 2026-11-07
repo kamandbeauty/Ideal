@@ -77,7 +77,12 @@ static func surface(kind: String, tint: Color = Color.WHITE, uv_scale: float = 1
 			result.metallic = 0.25
 			result.roughness = 0.6
 	surfaces[key] = result
-	surface_data[key] = {"orm": orm, "roughness": result.roughness, "metallic": result.metallic}
+	# Authored fallbacks for the low tier, where ORM textures are detached.
+	# Without these the ORM-driven scalar (1.0) would turn cloth fully metallic.
+	var metal_kinds: Array = ["steel", "weapon_metal", "weapon_brass"]
+	var fallback_metal: float = metallic if metallic >= 0.0 else (0.9 if kind in metal_kinds else (result.metallic if orm == null else 0.0))
+	var fallback_rough: float = roughness if roughness >= 0.0 else (0.45 if kind in metal_kinds else (result.roughness if orm == null else 0.78))
+	surface_data[key] = {"orm": orm, "roughness": fallback_rough, "metallic": fallback_metal}
 	return result
 
 static func apply_quality(settings: Dictionary) -> void:

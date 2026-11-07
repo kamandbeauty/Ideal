@@ -172,9 +172,16 @@ func _die() -> void:
 	collision_layer = 0
 	collision.set_deferred("disabled", true)
 	set_physics_process(false)
-	var tween: Tween = create_tween()
-	tween.tween_property(model_root, "rotation:x", -PI * 0.5, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tween.parallel().tween_property(model_root, "position:y", 0.12, 0.45)
+	var tween: Tween = create_tween().set_parallel(True)
+	tween.tween_property(model_root, "rotation:x", -0.5, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(model_root, "position:y", -0.62, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	for knee in [knee_l, knee_r]:
+		if knee:
+			tween.tween_property(knee, "rotation:x", 1.15, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if torso:
+		tween.tween_property(torso, "rotation:x", 0.55, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if head:
+		tween.tween_property(head, "rotation:x", 0.4, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	died.emit(self)
 
 func _physics_process(delta: float) -> void:

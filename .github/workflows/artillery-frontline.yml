@@ -194,6 +194,8 @@ jobs:
           jarsigner -verify -verbose:summary delivery/Artillery-Frontline-arm64.aab > delivery/aab-signature.txt
           grep -q 'jar verified' delivery/aab-signature.txt
           python3 "$PROJECT/tools/verify_packages.py" delivery
+          mkdir -p "$RUNNER_TEMP/compatibility-package"
+          mv delivery/Artillery-Frontline-compatibility.apk delivery/Artillery-Frontline-compatibility.apk.idsig "$RUNNER_TEMP/compatibility-package/" 2>/dev/null || true
           sha256sum delivery/*.apk delivery/*.aab > delivery/SHA256SUMS.txt
           {
             printf 'Source commit: %s\n' "$GITHUB_SHA"
@@ -208,6 +210,10 @@ jobs:
         with:
           name: android-qa-apk
           path: ${{ runner.temp }}/Artillery-Frontline-qa-x86_64.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-compatibility-apk
+          path: ${{ runner.temp }}/compatibility-package/
       - name: Publish downloadable packages to the session branch
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
