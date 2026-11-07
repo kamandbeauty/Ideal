@@ -124,27 +124,20 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
 
-      # A custom package id and explicit SDK levels are only honoured by a Gradle build, which needs the
-      # Android build template inside the project. Installing it here keeps the repository free of a
-      # generated Gradle tree while still exporting the real thing.
-      - name: Install the Android build template
-        run: |
-          godot --headless --path godot-port --install-android-build-template
-          test -f godot-port/android/build/build.gradle
-          chmod +x godot-port/android/build/gradlew
-          ls godot-port/android/build | head
-
       - name: Export the debug APK
         run: |
           set +e
           mkdir -p godot-port/build
-          output=$(godot --headless --path godot-port --export-debug "Android" \
+          # `timeout` because Godot runs the project when an argument is not recognised, and a hung
+          # export must fail the job in ten minutes rather than sit there until the job times out.
+          output=$(timeout 600 godot --headless --path godot-port --export-debug "Android" \
             build/princes-palace-debug.apk 2>&1)
           status=$?
           echo "$output"
           if [ $status -ne 0 ] || [ ! -s godot-port/build/princes-palace-debug.apk ]; then
-            reasons=$(echo "$output" | grep -iE "can only|must|invalid|missing|not found|requires|unsupported|unknown" \
-              | head -6 | tr '\n' '|' | cut -c1-1200)
+            reasons=$(echo "$output" | grep -iE "configuration|can only|must|cannot|invalid|missing|not found|requires|unsupported" \
+              | head -8 | tr '\n' '|' | cut -c1-1400)
+            head -5 <<< "$output" | tr '\n' '|'
             echo "::error file=.github/workflows/godot-port.yml::android export failed (exit $status): ${reasons:-no reason line in the output}"
             exit 1
           fi
