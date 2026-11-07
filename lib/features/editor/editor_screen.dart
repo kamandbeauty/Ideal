@@ -35,6 +35,19 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
   late final TabController _tabs = TabController(length: 4, vsync: this);
 
   @override
+  void initState() {
+    super.initState();
+    // Initial bind happens after the first frame: mutating a provider from
+    // inside build() is not allowed (Riverpod throws "Tried to modify a
+    // provider while the widget tree was building").
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final st = ref.read(projectEditorProvider);
+      if (st == null) return;
+      ref.read(playbackProvider.notifier).bind(st.project);
+    });
+  }
+
+  @override
   void dispose() {
     _tabs.dispose();
     super.dispose();
@@ -62,12 +75,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
     }
 
     final project = st.project;
-    // Keep the playback clock bound to the current timeline.
+    // Keep the playback clock bound to the current timeline. The listener
+    // fires during build, so the bind is deferred until the frame is done
+    // (mutating a provider mid-build is not allowed).
     ref.listen<ProjectEditorState?>(projectEditorProvider, (_, ProjectEditorState? next) {
       if (next == null) return;
-      ref.read(playbackProvider.notifier).bind(next.project);
+      final changed = next.project;
+      Future.microtask(
+          () => ref.read(playbackProvider.notifier).bind(changed));
     });
-    ref.read(playbackProvider.notifier).bind(project);
 
     return Scaffold(
       appBar: AppBar(

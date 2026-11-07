@@ -41,10 +41,13 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     // Keep the playback clock in sync if the project is edited while this
     // screen is open (e.g. via the per-shot motion editor): bind preserves
     // the playhead and playback state, it only re-derives durations.
+    // The listener fires during build, so the bind is deferred until the
+    // frame is done (mutating a provider mid-build is not allowed).
     ref.listen(projectEditorProvider, (_, next) {
-      if (next != null) {
-        ref.read(playbackProvider.notifier).bind(next.project);
-      }
+      if (next == null) return;
+      final changed = next.project;
+      Future.microtask(
+          () => ref.read(playbackProvider.notifier).bind(changed));
     });
     if (st == null) {
       return Scaffold(
