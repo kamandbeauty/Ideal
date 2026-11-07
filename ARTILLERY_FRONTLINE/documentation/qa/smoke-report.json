@@ -88,13 +88,13 @@
     "star_gain": 3,
     "stars": 3,
     "success": true,
-    "time": 13.4451403333334
+    "time": 13.3484116666667
   },
   "passed": true,
   "performance": {
     "draw_calls": 301,
-    "fps": 18.7,
-    "frame_ms": 53.55,
+    "fps": 12.6,
+    "frame_ms": 79.67,
     "objects": 1196,
     "primitives": 126252,
     "renderer": "Compatibility",
