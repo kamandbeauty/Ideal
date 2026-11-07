@@ -88,7 +88,7 @@ func _init_textures() -> void:
 			image.set_pixel(x, y, Color(1, 1, 1, clampf(alpha, 0.0, 1.0)))
 	puff_texture = ImageTexture.create_from_image(image)
 	fire_ramp = _gradient([Color(1.0, 0.92, 0.53, 1), Color(1.0, 0.38, 0.055, 0.95), Color(0.3, 0.11, 0.035, 0)], [0.0, 0.35, 1.0])
-	smoke_ramp = _gradient([Color(0.22, 0.20, 0.17, 0), Color(0.24, 0.22, 0.19, 0.72), Color(0.39, 0.36, 0.31, 0)], [0.0, 0.18, 1.0])
+	smoke_ramp = _gradient([Color(0.30, 0.28, 0.25, 0), Color(0.34, 0.32, 0.29, 0.52), Color(0.48, 0.46, 0.42, 0)], [0.0, 0.22, 1.0])
 	dust_ramp = _gradient([Color(0.59, 0.48, 0.32, 0.55), Color(0.65, 0.55, 0.40, 0.32), Color(0.65, 0.56, 0.43, 0)], [0.0, 0.4, 1.0])
 
 func _gradient(colors: Array[Color], offsets: Array[float]) -> GradientTexture1D:

@@ -21,6 +21,18 @@ var leg_r: Node3D
 var arm_l: Node3D
 var arm_r: Node3D
 var torso: Node3D
+var knee_l: Node3D
+var knee_r: Node3D
+var elbow_l: Node3D
+var elbow_r: Node3D
+var head_node: Node3D
+var rifle_node: Node3D
+var rifle_rest: Vector3 = Vector3.ZERO
+var arm_l_rest: Vector3 = Vector3.ZERO
+var arm_r_rest: Vector3 = Vector3.ZERO
+var fire_kick: float = 0.0
+var muzzle_flash: MeshInstance3D
+var muzzle_light: OmniLight3D
 var collision: CollisionShape3D
 var player_position: Vector3 = Vector3.ZERO
 var torso_rest_y: float = 0.0
@@ -59,6 +71,19 @@ func _build_model() -> void:
 		torso = model_root.find_child("Torso", true, false) as Node3D
 		if torso:
 			torso_rest_y = torso.position.y
+		knee_l = model_root.find_child("KneeL", true, false) as Node3D
+		knee_r = model_root.find_child("KneeR", true, false) as Node3D
+		elbow_l = model_root.find_child("ElbowL", true, false) as Node3D
+		elbow_r = model_root.find_child("ElbowR", true, false) as Node3D
+		head_node = model_root.find_child("Head", true, false) as Node3D
+		rifle_node = model_root.find_child("Rifle", true, false) as Node3D
+		if rifle_node:
+			rifle_rest = rifle_node.position
+		if arm_l:
+			arm_l_rest = arm_l.rotation
+		if arm_r:
+			arm_r_rest = arm_r.rotation
+		_build_muzzle_flash()
 	if model_root == null:
 		model_root = Node3D.new()
 		add_child(model_root)
@@ -71,6 +96,43 @@ func _build_model() -> void:
 		arm_l = _fallback_limb("ArmL", Vector3(-0.31, 1.38, 0), Vector3(0.12, 0.58, 0.14), uniform)
 		arm_r = _fallback_limb("ArmR", Vector3(0.31, 1.38, 0), Vector3(0.12, 0.58, 0.14), uniform)
 		MeshFactory.box(model_root, "Rifle", Vector3(0.18, 1.18, -0.28), Vector3(0.07, 0.09, 0.8), Color(0.12, 0.12, 0.1), true, "steel")
+
+func _build_muzzle_flash() -> void:
+	if model_root == null:
+		return
+	var muzzle: Node3D = model_root.find_child("Muzzle", true, false) as Node3D
+	if muzzle == null:
+		return
+	muzzle_flash = MeshInstance3D.new()
+	var quad := QuadMesh.new()
+	quad.size = Vector2(0.28, 0.28)
+	muzzle_flash.mesh = quad
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.albedo_color = Color(1.0, 0.78, 0.35, 0.9)
+	var flash_texture: Texture2D = MaterialLibrary.texture("muzzle_flash.png")
+	if flash_texture:
+		material.albedo_texture = flash_texture
+	muzzle_flash.material_override = material
+	muzzle_flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	muzzle_flash.visible = false
+	muzzle.add_child(muzzle_flash)
+	muzzle_light = OmniLight3D.new()
+	muzzle_light.light_color = Color(1.0, 0.62, 0.25)
+	muzzle_light.omni_range = 4.0
+	muzzle_light.light_energy = 0.0
+	muzzle.add_child(muzzle_light)
+
+func play_fire() -> void:
+	fire_kick = 1.0
+	if muzzle_flash:
+		muzzle_flash.visible = true
+		muzzle_flash.rotation.z = randf_range(0.0, TAU)
+	if muzzle_light:
+		muzzle_light.light_energy = 2.0
 
 func _fallback_limb(name: String, pivot: Vector3, size: Vector3, color: Color) -> Node3D:
 	var limb := Node3D.new()
@@ -144,15 +206,37 @@ func _physics_process(delta: float) -> void:
 		shoot_requested.emit(self, player_position)
 
 func _animate(delta: float, move_speed: float) -> void:
-	var amplitude: float = clampf(move_speed / 4.4, 0.0, 1.0) * 0.75
-	var phase: float = clock * (7.0 + move_speed)
+	var amplitude: float = clampf(move_speed / 4.4, 0.0, 1.0)
+	var phase: float = clock * (6.2 + move_speed * 0.9)
+	var stride: float = sin(phase) * 0.58 * amplitude
+	var bounce: float = absf(sin(phase)) * 0.03 * amplitude
+	fire_kick = maxf(0.0, fire_kick - delta * 7.0)
+	if muzzle_flash and fire_kick < 0.72:
+		muzzle_flash.visible = false
+	if muzzle_light:
+		muzzle_light.light_energy = maxf(0.0, muzzle_light.light_energy - delta * 24.0)
 	if leg_l:
-		leg_l.rotation.x = sin(phase) * amplitude
+		leg_l.rotation.x = stride
 	if leg_r:
-		leg_r.rotation.x = -sin(phase) * amplitude
+		leg_r.rotation.x = -stride
+	if knee_l:
+		knee_l.rotation.x = maxf(0.0, -sin(phase)) * 0.85 * amplitude + 0.06
+	if knee_r:
+		knee_r.rotation.x = maxf(0.0, sin(phase)) * 0.85 * amplitude + 0.06
 	if arm_l:
-		arm_l.rotation.x = -sin(phase) * amplitude * 0.7
+		arm_l.rotation = arm_l_rest + Vector3(-0.08 * amplitude * sin(phase) - fire_kick * 0.10, 0.0, 0.02 * amplitude * cos(phase))
 	if arm_r:
-		arm_r.rotation.x = sin(phase) * amplitude * 0.7
+		arm_r.rotation = arm_r_rest + Vector3(0.08 * amplitude * sin(phase) - fire_kick * 0.14, 0.0, -0.02 * amplitude * cos(phase))
+	if elbow_l:
+		elbow_l.rotation.x = -0.55 - 0.08 * amplitude - fire_kick * 0.08
+	if elbow_r:
+		elbow_r.rotation.x = -0.55 - 0.08 * amplitude - fire_kick * 0.10
 	if torso:
-		torso.position.y = torso_rest_y + absf(sin(phase)) * 0.035 * amplitude
+		torso.position.y = torso_rest_y + bounce
+		torso.rotation.x = 0.06 * amplitude - fire_kick * 0.05
+		torso.rotation.y = 0.04 * amplitude * sin(phase)
+	if head_node:
+		head_node.rotation.x = -0.04 * amplitude + fire_kick * 0.03
+	if rifle_node:
+		rifle_node.position = rifle_rest + Vector3(0.0, 0.0, bounce * 0.5 + fire_kick * 0.025)
+		rifle_node.rotation.x = -0.12 - fire_kick * 0.06

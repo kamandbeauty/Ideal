@@ -8,7 +8,7 @@ var sun: DirectionalLight3D
 var environment: WorldEnvironment
 var barrels: Array[CoastalBarrel] = []
 var cover_points: Array[Vector3] = []
-var landing_zones: Array[Vector3] = [Vector3(-38, 0, 8), Vector3(0, 0, 12), Vector3(38, 0, 8)]
+var landing_zones: Array[Vector3] = [Vector3(-30, 0, 26), Vector3(0, 0, 30), Vector3(30, 0, 26)]
 var rng := RandomNumberGenerator.new()
 
 static func height_at(x: float, z: float) -> float:
@@ -34,7 +34,7 @@ func _build_lighting() -> void:
 	if ResourceLoader.exists("res://assets/textures/pbr/sky_panorama.jpg"):
 		var panorama := PanoramaSkyMaterial.new()
 		panorama.panorama = load("res://assets/textures/pbr/sky_panorama.jpg")
-		panorama.energy_multiplier = 1.05
+		panorama.energy_multiplier = 0.92
 		sky.sky_material = panorama
 	else:
 		var sky_material := ProceduralSkyMaterial.new()
@@ -46,30 +46,30 @@ func _build_lighting() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.5
+	env.ambient_light_energy = 0.36
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 1.0
+	env.tonemap_exposure = 0.96
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.66, 0.72, 0.76)
-	env.fog_light_energy = 0.95
-	env.fog_density = 0.0009
-	env.fog_sky_affect = 0.12
-	env.fog_aerial_perspective = 0.25
+	env.fog_light_color = Color(0.58, 0.65, 0.70)
+	env.fog_light_energy = 0.82
+	env.fog_density = 0.00055
+	env.fog_sky_affect = 0.06
+	env.fog_aerial_perspective = 0.35
 	env.fog_sun_scatter = 0.12
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 0.96
-	env.adjustment_contrast = 1.06
+	env.adjustment_saturation = 0.92
+	env.adjustment_contrast = 1.08
 	environment.environment = env
 	add_child(environment)
 	sun = DirectionalLight3D.new()
 	sun.name = "CoastalSun"
 	sun.rotation_degrees = Vector3(-36.0, -24.0, 0.0)
 	sun.light_color = Color(1.0, 0.93, 0.82)
-	sun.light_energy = 1.55
+	sun.light_energy = 1.12
 	sun.shadow_enabled = true
-	sun.shadow_bias = 0.8
-	sun.shadow_normal_bias = 1.5
+	sun.shadow_bias = 0.5
+	sun.shadow_normal_bias = 1.0
 	sun.directional_shadow_max_distance = 200.0
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	add_child(sun)
@@ -144,6 +144,17 @@ func _build_terrain() -> void:
 func _build_ocean() -> void:
 	ocean_material = ShaderMaterial.new()
 	ocean_material.shader = load("res://shaders/ocean.gdshader")
+	var water_noise := FastNoiseLite.new()
+	water_noise.seed = 4411
+	water_noise.frequency = 0.055
+	water_noise.fractal_type = FastNoiseLite.FRACTAL_FBM
+	water_noise.fractal_octaves = 4
+	var water_texture := NoiseTexture2D.new()
+	water_texture.noise = water_noise
+	water_texture.seamless = true
+	water_texture.width = 256
+	water_texture.height = 256
+	ocean_material.set_shader_parameter("water_noise", water_texture)
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(1500, 1100)
 	plane.subdivide_width = 96
@@ -157,14 +168,25 @@ func _build_ocean() -> void:
 	add_child(ocean)
 
 func _build_mountains() -> void:
-	var rock: StandardMaterial3D = MaterialLibrary.surface("rock", Color(0.46, 0.51, 0.56), 0.35)
-	rock.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var rock := ShaderMaterial.new()
+	rock.shader = load("res://shaders/mountain.gdshader")
+	var ridge_noise := FastNoiseLite.new()
+	ridge_noise.seed = 7788
+	ridge_noise.frequency = 0.02
+	ridge_noise.fractal_type = FastNoiseLite.FRACTAL_FBM
+	ridge_noise.fractal_octaves = 4
+	var ridge_texture := NoiseTexture2D.new()
+	ridge_texture.noise = ridge_noise
+	ridge_texture.seamless = true
+	ridge_texture.width = 256
+	ridge_texture.height = 256
+	rock.set_shader_parameter("ridge_noise", ridge_texture)
 	var x_steps: int = 120
 	var z_steps: int = 18
 	var x_min: float = -950.0
 	var x_max: float = 950.0
-	var z_min: float = -780.0
-	var z_max: float = -470.0
+	var z_min: float = -1050.0
+	var z_max: float = -760.0
 	var vertices := PackedVector3Array()
 	var normals := PackedVector3Array()
 	var colors := PackedColorArray()
@@ -177,8 +199,8 @@ func _build_mountains() -> void:
 			vertices.append(Vector3(x, y, z))
 			var normal := Vector3(_ridge_height(x - 2, z, x_min, x_max, z_min, z_max) - _ridge_height(x + 2, z, x_min, x_max, z_min, z_max), 4.0, _ridge_height(x, z - 2, x_min, x_max, z_min, z_max) - _ridge_height(x, z + 2, x_min, x_max, z_min, z_max)).normalized()
 			normals.append(normal)
-			var altitude: float = clampf(y / 180.0, 0.0, 1.0)
-			var color: Color = Color(0.34, 0.38, 0.34).lerp(Color(0.68, 0.71, 0.74), altitude)
+			var altitude: float = clampf(y / 120.0, 0.0, 1.0)
+			var color: Color = Color(0.22, 0.27, 0.30).lerp(Color(0.42, 0.48, 0.53), altitude)
 			colors.append(color)
 	for zi in range(z_steps):
 		for xi in range(x_steps):
@@ -208,7 +230,7 @@ func _ridge_height(x: float, z: float, x_min: float, x_max: float, z_min: float,
 	height += sin(x * 0.021) * 14.0 + sin(x * 0.053 + 1.7) * 7.0
 	var zt: float = (z - z_min) / (z_max - z_min)
 	var xt: float = (x - x_min) / (x_max - x_min)
-	return maxf(0.0, height * 0.55 * sin(zt * PI) * smoothstep(0.0, 0.08, xt) * (1.0 - smoothstep(0.92, 1.0, xt)))
+	return maxf(0.0, height * 0.42 * sin(zt * PI) * smoothstep(0.0, 0.08, xt) * (1.0 - smoothstep(0.92, 1.0, xt)))
 
 func _build_defenses() -> void:
 	for x in [-70.0, -42.0, -14.0, 14.0, 42.0, 70.0]:
@@ -241,8 +263,8 @@ func _sandbag_line(center: Vector3, radius: float, count: int) -> void:
 	var mesh := SphereMesh.new()
 	mesh.radius = 1.0
 	mesh.height = 2.0
-	mesh.radial_segments = 12
-	mesh.rings = 6
+	mesh.radial_segments = 20
+	mesh.rings = 10
 	var bags := MultiMesh.new()
 	bags.transform_format = MultiMesh.TRANSFORM_3D
 	bags.mesh = mesh
@@ -256,7 +278,7 @@ func _sandbag_line(center: Vector3, radius: float, count: int) -> void:
 			bags.set_instance_transform(row * count + index, Transform3D(basis, point))
 	var instance := MultiMeshInstance3D.new()
 	instance.multimesh = bags
-	instance.material_override = MaterialLibrary.surface("fabric", Color(0.78, 0.74, 0.58), 1.7)
+	instance.material_override = MaterialLibrary.surface("fabric", Color(0.62, 0.58, 0.46), 0.9)
 	add_child(instance)
 
 func _build_structures() -> void:
@@ -329,4 +351,4 @@ func apply_quality(tier: String, settings: Dictionary) -> void:
 		env.ssao_intensity = 1.5
 		env.glow_enabled = bool(settings.get("glow", false))
 		env.glow_intensity = 0.28
-		env.fog_density = 0.0009 if tier != "low" else 0.0016
+		env.fog_density = 0.00055 if tier != "low" else 0.0016

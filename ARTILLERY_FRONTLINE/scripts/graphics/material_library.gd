@@ -154,6 +154,22 @@ static func for_model_material(material_name: String, original: Material, viewmo
 			return weapon_surface("rubber", Color(0.5, 0.5, 0.48))
 		if "brass" in lower:
 			return weapon_surface("steel", Color(0.78, 0.56, 0.22))
+	if "weapon steel" in lower:
+		return surface("weapon_metal", Color.WHITE, 1.0)
+	if "weapon edge" in lower:
+		return surface("weapon_metal", Color(1.3, 1.3, 1.28), 1.0)
+	if "weapon olive" in lower or "helmet steel" in lower:
+		return surface("weapon_paint", Color.WHITE, 1.0)
+	if "weapon grip" in lower:
+		return surface("rubber", Color.WHITE, 1.0)
+	if "weapon brass" in lower:
+		return surface("weapon_brass", Color.WHITE, 1.0)
+	if "rifle wood" in lower:
+		return surface("wood", Color(0.75, 0.62, 0.5), 1.2)
+	if "skin" in lower:
+		return surface("skin", Color.WHITE, 1.0)
+	if "leather" in lower:
+		return surface("leather", Color.WHITE, 1.2)
 	if "field olive" in lower or "armor edge" in lower:
 		return surface("paint_olive", Color.WHITE, 0.65)
 	if "sand armor" in lower:

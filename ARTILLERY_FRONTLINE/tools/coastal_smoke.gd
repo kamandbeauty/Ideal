@@ -51,6 +51,17 @@ func run() -> void:
 	check("twin muzzles visually separated", muzzle_x.size() != 2 or absf(muzzle_x[0] - muzzle_x[1]) > width * 0.04)
 	check("independent recoil pivots present", coastal.weapon.recoil_nodes.size() >= 1)
 	await capture("coastal-beach")
+	var focus_soldier: EnemySoldier = coastal.soldiers[0]
+	coastal.aim_at(focus_soldier.global_position + Vector3.UP * 1.2)
+	coastal.toggle_zoom()
+	await get_tree().create_timer(0.7).timeout
+	await capture("coastal-infantry")
+	coastal.toggle_zoom()
+	coastal.aim_yaw.rotation.y = 0.0
+	coastal.yaw_target = 0.0
+	coastal.yaw_current = 0.0
+	coastal.pitch_target = -4.0
+	coastal.pitch_current = -4.0
 	Profile.data.settings.quality = "low"
 	Graphics.apply_preference()
 	await get_tree().create_timer(0.6).timeout
@@ -110,7 +121,7 @@ func run() -> void:
 	await get_tree().create_timer(0.3).timeout
 	check("mission results panel appears", coastal.hud.result_panel.visible)
 	await capture("coastal-results")
-	var report: Dictionary = {"scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 01 weapon/camera; not Android hardware", "checks": checks, "failures": failures, "passed": failures == 0, "performance": Graphics.snapshot(), "soldiers": coastal.soldiers.size(), "kills": coastal.kills, "weapon_screen_bounds": {"x": bounds.position.x, "y": bounds.position.y, "w": bounds.size.x, "h": bounds.size.y}}
+	var report: Dictionary = {"scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 02 infantry/weapons/environment; not Android hardware", "checks": checks, "failures": failures, "passed": failures == 0, "performance": Graphics.snapshot(), "soldiers": coastal.soldiers.size(), "kills": coastal.kills, "weapon_screen_bounds": {"x": bounds.position.x, "y": bounds.position.y, "w": bounds.size.x, "h": bounds.size.y}}
 	var file: FileAccess = FileAccess.open(output + "/coastal-smoke-report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "  "))
 	file.close()

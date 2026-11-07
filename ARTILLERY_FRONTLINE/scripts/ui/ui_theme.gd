@@ -19,6 +19,9 @@ static func theme() -> Theme:
 	shared_theme.default_font = regular
 	shared_theme.default_font_size = 20
 	shared_theme.set_color("font_color", "Label", TEXT)
+	shared_theme.set_color("font_shadow_color", "Label", Color(0.0, 0.0, 0.0, 0.55))
+	shared_theme.set_constant("shadow_offset_x", "Label", 1)
+	shared_theme.set_constant("shadow_offset_y", "Label", 1)
 	shared_theme.set_stylebox("normal", "Button", style(PANEL, LINE))
 	shared_theme.set_stylebox("hover", "Button", style(Color(0.16, 0.21, 0.16), ACCENT))
 	shared_theme.set_stylebox("pressed", "Button", style(Color(0.24, 0.28, 0.19), ACCENT))

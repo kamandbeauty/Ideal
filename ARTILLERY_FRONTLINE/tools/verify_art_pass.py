@@ -67,3 +67,29 @@ report = {"pass": "art-pass-01", "model": "mounted_twin_hmg", "triangles": trian
 out = ROOT / "documentation/art-pass-01.json"
 out.write_text(json.dumps(report, indent=2) + "\n")
 print(json.dumps(report))
+
+
+def read_glb(path):
+    data = path.read_bytes()
+    size = struct.unpack_from("<I", data, 12)[0]
+    return json.loads(data[20:20+size])
+
+report2 = {"pass": "art-pass-02", "models": {}}
+soldier = read_glb(ROOT / "assets/models/soldier.glb")
+snodes = {n.get("name", "") for n in soldier["nodes"]}
+srequired = {"Hips", "Torso", "Head", "LegL", "LegR", "KneeL", "KneeR", "ArmL", "ArmR", "ElbowL", "ElbowR", "Rifle", "Muzzle"}
+assert srequired <= snodes, f"Missing soldier pivots: {srequired - snodes}"
+stris = sum(soldier["accessors"][p["indices"]]["count"] // 3 for m in soldier["meshes"] for p in m["primitives"])
+assert 6000 <= stris <= 60000, f"Soldier triangle budget: {stris}"
+assert all("TEXCOORD_0" in p["attributes"] for m in soldier["meshes"] for p in m["primitives"]), "Soldier UV0 missing"
+report2["models"]["soldier"] = {"triangles": stris, "pivots": sorted(srequired)}
+for name in ["mounted_cannon", "mounted_rocket", "mounted_autocannon", "bazooka"]:
+    doc = read_glb(ROOT / f"assets/models/{name}.glb")
+    nodes = {n.get("name", "") for n in doc["nodes"]}
+    assert {"BarrelPivot", "RecoilAssembly", "Muzzle"} <= nodes, f"{name} missing pivots"
+    tris = sum(doc["accessors"][p["indices"]]["count"] // 3 for m in doc["meshes"] for p in m["primitives"])
+    assert 3000 <= tris <= 80000, f"{name} triangle budget: {tris}"
+    assert all("TEXCOORD_0" in p["attributes"] for m in doc["meshes"] for p in m["primitives"]), f"{name} UV0 missing"
+    report2["models"][name] = {"triangles": tris}
+(ROOT / "documentation/art-pass-02.json").write_text(json.dumps(report2, indent=2) + "\n")
+print(json.dumps(report2))

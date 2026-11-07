@@ -176,6 +176,9 @@ func _build_top() -> void:
 	wave_pips.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(wave_pips)
 	threat_label = UITheme.label("THREAT AHEAD", 18, UITheme.ACCENT, true)
+	threat_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.85))
+	threat_label.add_theme_constant_override("shadow_offset_x", 1)
+	threat_label.add_theme_constant_override("shadow_offset_y", 2)
 	threat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	center.add_child(threat_label)
 	root.add_child(center)
@@ -295,7 +298,7 @@ func _build_bottom() -> void:
 		supports.add_child(button)
 	root.add_child(supports)
 	var ammo_box := UITheme.column(2)
-	weapon_label = UITheme.label("TWIN M2 HEAVY", 17, UITheme.MUTED, true)
+	weapon_label = UITheme.label("TWIN .50 HMG", 17, UITheme.MUTED, true)
 	ammo_label = UITheme.label("140 / 140", 30, UITheme.TEXT, true)
 	reserve_label = UITheme.label("RESERVE 999", 15, UITheme.MUTED)
 	ammo_box.add_child(weapon_label)
@@ -311,9 +314,9 @@ func _build_bottom() -> void:
 	ammo_box.add_child(buttons)
 	var ammo_panel := _glass(ammo_box, 10)
 	ammo_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	ammo_panel.offset_left = -280
+	ammo_panel.offset_left = -292
 	ammo_panel.offset_right = -18
-	ammo_panel.offset_top = -150
+	ammo_panel.offset_top = -182
 	ammo_panel.offset_bottom = -18
 	root.add_child(ammo_panel)
 	damage_overlay = ColorRect.new()

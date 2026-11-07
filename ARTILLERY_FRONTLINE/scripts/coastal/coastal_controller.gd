@@ -327,6 +327,7 @@ func _on_craft_destroyed(landing: LandingCraft) -> void:
 func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	if not active or soldier.is_dead():
 		return
+	soldier.play_fire()
 	var origin: Vector3 = soldier.global_position + Vector3.UP * 1.45
 	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
 	bullets.launch(origin, direction * 300.0, 0.0, 0.0)

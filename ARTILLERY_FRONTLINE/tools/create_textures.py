@@ -93,13 +93,13 @@ def sand():
     warp = fbm(size, 120, 5)
     yy, xx = np.mgrid[0:size, 0:size]
     ripple_phase = (xx * 13.0 + yy * 3.0 + warp * 5.0) * math.tau / size
-    ripples = (np.sin(ripple_phase) * 0.5 + 0.5) ** 1.6
+    ripples = (np.sin(ripple_phase) * 0.5 + 0.5) ** 2.2
     macro = fbm(size, 410, 6, 1.5)
     grain = periodic_noise(size, 777, 0.55, 0.35)
     pebbles = speckles(size, 91, 420, 2.2, 1.0)
-    height = macro * 0.34 + ripples * 0.20 + grain * 0.10 + pebbles * 0.18
+    height = macro * 0.38 + ripples * 0.055 + grain * 0.10 + pebbles * 0.16
     base = np.array([171.0, 146.0, 108.0])
-    variation = (macro - 0.5) * 42.0 + (grain - 0.5) * 20.0 - ripples * 10.0
+    variation = (macro - 0.5) * 46.0 + (grain - 0.5) * 18.0 - ripples * 3.0
     albedo = base[None, None, :] + variation[:, :, None]
     albedo += pebbles[:, :, None] * np.array([18.0, 14.0, 9.0])
     ao = 0.82 + 0.18 * normalized(height) - pebbles * 0.05
@@ -325,10 +325,33 @@ def muzzle_flash():
     Image.fromarray(color.astype(np.uint8), "RGBA").save(OUT / "muzzle_flash.png", optimize=True)
 
 
+def skin():
+    size = 512
+    pores = periodic_noise(size, 1301, 0.6, 0.4)
+    tone = fbm(size, 1302, 4, 1.7)
+    blush = fbm(size, 1303, 3, 1.3)
+    albedo = np.array([150.0, 108.0, 82.0])[None, None, :] + ((tone - 0.5) * 18.0)[:, :, None]
+    albedo[:, :, 0] += blush * 10.0
+    save_rgb("skin_albedo.jpg", albedo)
+    save_normal("skin_normal.png", pores * 0.12 + tone * 0.05, 1.0)
+    save_orm("skin_orm.png", 0.9 + 0.1 * tone, 0.62 + 0.18 * pores, 0.0)
+
+
+def leather():
+    size = 512
+    grain = periodic_noise(size, 1310, 0.7, 0.35)
+    creases = np.clip((fbm(size, 1311, 4, 2.2) - 0.55) * 6.0, 0, 1)
+    height = grain * 0.2 - creases * 0.3
+    albedo = np.array([46.0, 40.0, 34.0])[None, None, :] + ((grain - 0.5) * 12.0 - creases * 10.0)[:, :, None]
+    save_rgb("leather_albedo.jpg", albedo)
+    save_normal("leather_normal.png", height, 2.0)
+    save_orm("leather_orm.png", 0.8 + 0.2 * grain, 0.72 + 0.16 * creases, 0.02)
+
+
 if __name__ == "__main__":
     sand(); gravel(); rock()
     painted("paint_olive", 420, [78.0, 88.0, 62.0])
     painted("paint_sand", 450, [150.0, 132.0, 94.0])
-    steel(); weapon_metal(); weapon_paint(); weapon_brass(); muzzle_flash(); fabric(); wood(); concrete(); rubber(); foliage(); sky()
+    steel(); skin(); leather(); weapon_metal(); weapon_paint(); weapon_brass(); muzzle_flash(); fabric(); wood(); concrete(); rubber(); foliage(); sky()
     files = sorted(p for p in OUT.iterdir() if p.is_file())
     print("CREATED_TEXTURES", len(files), "files", sum(p.stat().st_size for p in files), "bytes")

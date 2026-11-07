@@ -16,10 +16,10 @@ const WEAPONS: Dictionary = {
 const ORDER: Array[String] = ["twin_hmg", "cannon", "rocket", "bazooka", "autocannon"]
 const VIEW_OFFSETS: Dictionary = {
 	"twin_hmg": Vector3(0.0, -1.58, -1.35),
-	"cannon": Vector3(0.0, -1.58, -1.15),
-	"rocket": Vector3(0.32, -1.52, -1.0),
-	"bazooka": Vector3(0.4, -1.46, -0.95),
-	"autocannon": Vector3(0.0, -1.58, -1.1)
+	"cannon": Vector3(0.0, -1.60, -1.20),
+	"rocket": Vector3(0.26, -1.56, -1.10),
+	"bazooka": Vector3(0.30, -1.52, -1.05),
+	"autocannon": Vector3(0.0, -1.60, -1.18)
 }
 
 var weapon_id: String = "twin_hmg"
