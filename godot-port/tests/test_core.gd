@@ -351,6 +351,24 @@ func _run() -> void:
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(cleanup_path))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(smoke_directory))
 
+
+	print("TEST STAGE 12: real chapter levels under repeated legal moves")
+	for content_level in chapter.levels:
+		for seed in range(1, 6):
+			var content_run = Run.new(content_level, 0, seed)
+			failures += _check(not Finder.has_match(content_run.board), "%s seed %d opens settled" % [content_level.id, seed])
+			failures += _check(Finder.has_possible_move(content_run.board), "%s seed %d opens playable" % [content_level.id, seed])
+			for move_index in range(10):
+				if content_run.status != GameTypes.LevelStatus.PLAYING:
+					break
+				var candidate := _find_legal_swap(content_run.board)
+				if candidate.size() != 4:
+					break
+				var move_result = content_run.try_swap(candidate[0], candidate[1], candidate[2], candidate[3])
+				failures += _check(move_result.accepted and move_result.pieces_cleared > 0, "%s seed %d move %d resolves" % [content_level.id, seed, move_index])
+				failures += _check(not Finder.has_match(content_run.board), "%s seed %d move %d leaves no match" % [content_level.id, seed, move_index])
+				failures += _check(_is_board_full(content_run.board), "%s seed %d move %d leaves no empty cells" % [content_level.id, seed, move_index])
+
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -392,3 +410,10 @@ func _find_legal_swap(board) -> Array[int]:
 				if creates_match:
 					return [x, y, other.x, other.y]
 	return []
+
+func _is_board_full(board) -> bool:
+	for pos in board.all_positions():
+		var cell = board.at_pos(pos)
+		if not cell.blocked and not cell.has_piece:
+			return false
+	return true
