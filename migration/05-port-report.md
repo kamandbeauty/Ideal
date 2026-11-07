@@ -14,9 +14,9 @@ audit used.
 | CI | `.github/workflows/godot-port.yml` (`godot-port` workflow: `headless`, `android-debug`) |
 | audit + decisions | [`01-audit.md`](01-audit.md), [`03-compatibility.md`](03-compatibility.md), [`README.md`](README.md) |
 
-Sizes at the time of writing: **42 GDScript files, 5,081 lines** — 26 core files (2,213 lines),
-6 kit files (874), 5 screens (869), 3 test files (702). Design space 415 × 738 dp, the same numbers as
-`client/Assets/Game/Ui/UiKit.cs`.
+Sizes at the time of writing: **44 GDScript files, 5,452 lines** plus ten generated audio cues
+(`assets/audio`, 6 MB) and 85 art plates.
+Design space 415 × 738 dp, the same numbers as `client/Assets/Game/Ui/UiKit.cs`. Engine: **Godot 4.7.2**.
 
 ---
 
@@ -77,13 +77,22 @@ screens — home, board, districts, shop, settings. Motion: swap 0.14 s, clear 0
 reject shake 0.16 s, with the settle pass derived from the event list the resolver returns.
 Interface: swipe and tap-tap, booster targeting, goal chips, result card with stars and rewards.
 
-Pending, explicitly:
-- **No audio.** The Unity project has no audio assets, so nothing was dropped, but a shipping game needs
-  music and match/clear/reward sounds. Not written yet.
-- **No spark/VFX layer.** `fx_spark`, `fx_ring`, `fx_coins` are imported and unused.
-- **No screen transition animation** (decision: polish after a device run).
+Added after the first playable build, to finish the presentation:
+- **Sound.** The Unity project shipped no audio, so `godot-port/tools/make_audio.py` synthesises ten
+  original cues (tap, swap, match, cascade, power-up, reject, reward, win, lose) and a 26-second palace
+  loop as 44.1 kHz WAV from sine partials and shaped noise — no samples, reproducible byte for byte.
+  `SoundDirector` plays them through a six-voice pool, honours `music_on`/`sfx_on` from the save, and is
+  a no-op in the headless suites.
+- **Particles.** `fx_spark` per cleared piece (tinted by piece colour), `fx_coins` on a first-clear
+  reward, `fx_ring` on a power-up; all self-freeing, all covered by a test that asserts they disappear.
+- **Transitions.** A 0.28 s dip to the background colour on every screen change (the motion token).
+- **Tutorial.** On the first attempt of level one — and only then — a hand animates between two cells
+  whose swap really does match, computed from the dealt board, and disappears on the first touch.
+
+Still pending, explicitly:
 - Layout has been reasoned from `BoardScreen.cs`'s constants and the design tokens, but not compared
   pixel-for-pixel on a device.
+- No audio mixing pass (no bus compressor, no ducking) — the cues are pre-gained in the player.
 
 ## Phase 6 — levels and progression · complete for chapter one
 
@@ -94,7 +103,7 @@ and checks each draws its own board size; `test_core.gd` plays 500 legal moves a
 Session rules ported with their tests: first-clear reward, unlock, star rating, task payment, chest
 claim, lives spend on loss and timed refill.
 
-## Phase 7 — testing and Android · toolchain ready, **no APK yet**
+## Phase 7 — testing and Android · **APK builds and is verified in CI**
 
 `android-debug` job: OpenJDK 17, Android command-line tools, `platform-tools`/`build-tools;34.0.0`/
 `platforms;android-34`, Godot with the official export templates, a debug keystore, editor settings
@@ -102,22 +111,23 @@ written from a checked-in script, then `--export-debug "Android"` into `godot-po
 verification step (non-empty, is a zip, contains `AndroidManifest.xml` and `classes.dex`) before
 uploading.
 
-**The export step fails, and no APK is claimed.** Godot 4.4.1 stops with "Cannot export project with
-preset \"Android\" due to configuration errors:" and an *empty* list, although the templates are
-installed, the SDK/JDK/keystore are registered, the icons are the exact sizes required, the preset was
-rewritten in the 4.4 schema, a stripped minimal preset fails identically, and a Linux export on the same
-runner succeeds. Full evidence, the failed hypotheses and the three next steps are in
-[`../godot-port/ANDROID_EXPORT.md`](../godot-port/ANDROID_EXPORT.md) (K1).
+**The export works.** The blocker (K1) was two configuration errors that Godot 4.4.1 refused to print
+and Godot 4.7.2 printed immediately: the preset asked for min SDK 23 while Godot's own library needs 24,
+and the project had ETC2/ASTC texture import switched off, which the Android exporter requires. Both are
+fixed, the engine was moved to 4.7.2, and the job now exports `princes-palace-debug.apk`, asserts that
+the file is a zip containing `AndroidManifest.xml` and `classes.dex`, and uploads it as the
+`princes-palace-debug-apk` artifact (~57 MB, armv7 + arm64). Evidence and the list of wrong hypotheses
+are in [`../godot-port/ANDROID_EXPORT.md`](../godot-port/ANDROID_EXPORT.md).
 
 Package id `com.shazdeh.palace`, version 1.0.0, min SDK 23, target SDK 34, portrait, `armeabi-v7a` +
 `arm64-v8a`.
 
-Pending: closing K1, a real device/emulator run, frame-time and memory profiling, the draw-call and
+Pending: installing that APK on hardware, frame-time and memory profiling, the draw-call and
 texture-memory budget from the audit's §3, release signing, an AAB, and the store listing.
 
 ## Phase 8 — release validation · not started
 
-Needs Phase 7's device results plus the parity fixtures from the audit's risk R1 (no working Unity build
+Needs the device results from Phase 7 plus the parity fixtures from the audit's risk R1 (no working Unity build
 exists to compare against, so parity has to be defined as the 152 C# tests, the design documents and
 the golden vectors — all of which the port currently reproduces).
 

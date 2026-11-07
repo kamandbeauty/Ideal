@@ -15,10 +15,10 @@ the code is written. A count of tests, a commit hash, an artifact — or it is p
 | **2** | Godot project init + headless CI | **complete** | `godot-port/project.godot` (415 × 738 dp, GL Compatibility, portrait), `scenes/main.tscn` → `AppRoot`; `godot-port` job: import, validate every `.gd`, suites, boot check — run `42411833253` |
 | **3** | asset migration (85 sprites, 2 fonts, 11 JSON) | **complete** | `godot-port/assets/art` 85 PNG, `godot-port/assets/fonts` Vazir Medium + Bold, `godot-port/content` 10 levels + chapter meta |
 | **4** | core gameplay reconstruction | **complete** | 26 files / 2,213 lines in `godot-port/scripts/core`; C# RNG and FNV golden vectors reproduce; see [`05-port-report.md`](05-port-report.md) |
-| **5** | UI, motion, audio, visual reconstruction | **playable, not finished** | 6 kit files + 5 screens (1,743 lines), swipe/tap/swap/clear/fall/reject, result card; no audio exists in the Unity project to port; no spark/VFX layer yet |
+| **5** | UI, motion, audio, visual reconstruction | **complete for chapter one** | kit + screens (1,743 lines), swipe/tap/swap/clear/fall/reject, sparks/coins/ring, fade on screen change, first-level tutorial, ten synthesised cues + a 26 s music loop, wired to the save's two switches |
 | **6** | levels + progression | **complete for chapter one** | ten levels, three districts, twelve tasks, chests, lives clock, stars, first-clear rewards — all driven through the screens and asserted in `tests/test_ui.gd` |
-| **7** | testing + Android optimisation | **APK builds; device work pending** | `Android debug APK` job exports, unzips and verifies the APK before uploading it; no device matrix, no profiling, no release signing yet |
-| **8** | release validation | not started | needs a device run, a store listing and the parity fixture suite that Phase 7's R1 requires |
+| **7** | testing + Android | **APK builds and is verified; device work pending** | `android-debug` job exports `princes-palace-debug.apk` (57 MB, armv7 + arm64), proves manifest + dex exist, uploads the artifact; no device run, no profiling, no release signing yet |
+| **8** | release validation | **not started — blocked on a device run** | needs the APK installed on hardware, a store listing, and the parity fixture suite that risk R1 requires |
 
 Phase 2 onwards lives in `godot-port/` on this branch. `client/` is untouched: the `unity project pin`
 job and `migration/tools/check_audit.py` both fail if a single Unity file changes.
