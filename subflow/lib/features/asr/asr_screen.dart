@@ -44,7 +44,6 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   bool _userCancelled = false;
   AsrProviderMode _mode = AsrProviderMode.onDevice;
   AsrCloudConfig _cloud = AsrCloudConfig.empty;
-  bool _modeLoaded = false;
 
   static const List<Map<String, String>> _languages = <Map<String, String>>[
     <String, String>{'code': 'auto', 'label': 'تشخیص خودکار'},
