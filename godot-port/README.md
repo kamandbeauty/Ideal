@@ -36,8 +36,10 @@ Not done yet, and deliberately not claimed:
 - No parity fixture suite over long move sequences (event order, counters and hashes compared
   move-for-move against C#). `migration/01-audit.md` §10 R1 explains why this needs a Unity run.
 - No sound: the Unity project has no audio assets either, so nothing was dropped.
-- No store-grade Android build (release signing, AAB, device matrix). CI produces and verifies a
-  **debug** APK; see `ANDROID_EXPORT.md`.
+- **No APK yet.** Godot 4.4.1's CLI refuses the Android export with an empty list of configuration
+  errors even though the templates, SDK, JDK, keystore and icons are all in place and a Linux export on
+  the same runner succeeds. This is documented as known problem **K1** in `ANDROID_EXPORT.md`, and the
+  `android-debug` CI job fails on purpose rather than uploading nothing and calling it a build.
 
 ## Persian
 
@@ -58,7 +60,8 @@ godot --headless --path godot-port --script res://tests/test_ui.gd
 godot --path godot-port                                       # play it
 ```
 
-CI (`.github/workflows/godot-port.yml`) runs exactly those first four steps on every push and then
-builds a debug APK and checks that the file really is an APK with a manifest and a dex inside. A green
-run therefore means "imported, every script compiled, the suites passed, the game booted to the title
-screen, and an installable APK exists" — not merely "the YAML was valid".
+CI (`.github/workflows/godot-port.yml`) runs exactly those first four steps on every push. The
+`headless` job is the gate: a green run means "the project imported, every script compiled, both suites
+passed, and the game booted to the title screen" — not merely "the YAML was valid". The `android-debug`
+job is separate and is currently red for the reason in `ANDROID_EXPORT.md` (K1); an `export-diagnostic`
+job exists to keep explaining it.

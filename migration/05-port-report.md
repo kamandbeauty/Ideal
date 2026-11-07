@@ -94,18 +94,26 @@ and checks each draws its own board size; `test_core.gd` plays 500 legal moves a
 Session rules ported with their tests: first-clear reward, unlock, star rating, task payment, chest
 claim, lives spend on loss and timed refill.
 
-## Phase 7 — testing and Android · APK builds, device work pending
+## Phase 7 — testing and Android · toolchain ready, **no APK yet**
 
 `android-debug` job: OpenJDK 17, Android command-line tools, `platform-tools`/`build-tools;34.0.0`/
-`platforms;android-34`, Godot with export templates, a debug keystore, editor settings written from a
-script, then `--export-debug "Android"` into `godot-port/build/`, then a **verification step** that the
-file is non-empty, is a zip, and contains `AndroidManifest.xml` and `classes.dex` before uploading it.
+`platforms;android-34`, Godot with the official export templates, a debug keystore, editor settings
+written from a checked-in script, then `--export-debug "Android"` into `godot-port/build/`, then a
+verification step (non-empty, is a zip, contains `AndroidManifest.xml` and `classes.dex`) before
+uploading.
+
+**The export step fails, and no APK is claimed.** Godot 4.4.1 stops with "Cannot export project with
+preset \"Android\" due to configuration errors:" and an *empty* list, although the templates are
+installed, the SDK/JDK/keystore are registered, the icons are the exact sizes required, the preset was
+rewritten in the 4.4 schema, a stripped minimal preset fails identically, and a Linux export on the same
+runner succeeds. Full evidence, the failed hypotheses and the three next steps are in
+[`../godot-port/ANDROID_EXPORT.md`](../godot-port/ANDROID_EXPORT.md) (K1).
 
 Package id `com.shazdeh.palace`, version 1.0.0, min SDK 23, target SDK 34, portrait, `armeabi-v7a` +
 `arm64-v8a`.
 
-Pending: a real device/emulator run, frame-time and memory profiling, draw-call and texture-memory
-budget from the audit's §3, release signing, an AAB, and the store listing.
+Pending: closing K1, a real device/emulator run, frame-time and memory profiling, the draw-call and
+texture-memory budget from the audit's §3, release signing, an AAB, and the store listing.
 
 ## Phase 8 — release validation · not started
 
