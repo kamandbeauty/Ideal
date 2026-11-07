@@ -209,6 +209,15 @@ func _run() -> void:
 	progression_level.pieces = progression_pieces
 	var progression_goals: Array[Dictionary] = [{"kind": 0, "piece": 1, "target": 1}]
 	progression_level.goals = progression_goals
+
+	print("TEST STAGE 8B: opening-board seed corpus")
+	for seed in range(1, 21):
+		var seed_run = Run.new(hash_level, 0, seed)
+		failures += _check(not Finder.has_match(seed_run.board), "seed %d opens without an automatic match" % seed)
+		failures += _check(Finder.has_possible_move(seed_run.board), "seed %d has at least one legal move" % seed)
+		failures += _check(seed_run.board.count_pieces() == 81, "seed %d fills all 81 cells" % seed)
+		failures += _check(seed_run.moves_left == 20 and seed_run.status == GameTypes.LevelStatus.PLAYING, "seed %d starts with the configured move budget" % seed)
+
 	var run_a = Run.new(progression_level, 0, 12345)
 	var run_b = Run.new(progression_level, 0, 12345)
 	failures += _check(run_a.state_hash_hex() == run_b.state_hash_hex(), "same seed produces same initial replay hash")
