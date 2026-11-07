@@ -227,7 +227,7 @@ func _run() -> void:
 		failures += _check(accepted_run_move.accepted and move_accounting_run.moves_left == 19 and move_accounting_run.moves_used == 1, "accepted LevelRun swap consumes exactly one move")
 		var rejected_run_move = move_accounting_run.try_swap(0, 0, 0, 0)
 		failures += _check(not rejected_run_move.accepted and move_accounting_run.moves_left == 19 and move_accounting_run.moves_used == 1, "rejected LevelRun swap consumes no move")
-		var moves_before_booster := move_accounting_run.moves_left
+		var moves_before_booster: int = move_accounting_run.moves_left
 		var run_booster = move_accounting_run.use_booster(GameTypes.BoosterKind.MALLET, 4, 4)
 		failures += _check(run_booster.accepted and move_accounting_run.moves_left == moves_before_booster and move_accounting_run.boosters_used.size() == 1, "LevelRun booster does not consume a move")
 
@@ -369,7 +369,7 @@ func _find_legal_swap(board) -> Array[int]:
 	for y in range(board.height):
 		for x in range(board.width):
 			for direction in [Vector2i.RIGHT, Vector2i.UP]:
-				var other := Vector2i(x, y) + direction
+				var other: Vector2i = Vector2i(x, y) + direction
 				if not board.in_bounds(other.x, other.y):
 					continue
 				var a = board.at(x, y)
