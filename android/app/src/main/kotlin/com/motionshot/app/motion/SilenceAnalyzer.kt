@@ -153,7 +153,7 @@ object SilenceAnalyzer {
                             }
                             // Frames per 20 ms window, at the real rate.
                             val framesPerWindow =
-                                (sampleRate / 1000 * WINDOW_MS).toLong().coerceAtLeast(1)
+                                ((sampleRate / 1000) * WINDOW_MS).coerceAtLeast(1L)
                             accumulator = WindowAccumulator(framesPerWindow)
                         }
                         outIdx >= 0 -> {
