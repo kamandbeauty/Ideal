@@ -1,0 +1,46 @@
+{
+  "pass": "art-pass-01",
+  "model": "mounted_twin_hmg",
+  "triangles": 16834,
+  "uv_primitives": 23,
+  "meshes": 23,
+  "materials": [
+    "Weapon edge",
+    "Weapon olive",
+    "Weapon brass",
+    "Weapon steel",
+    "Black bore",
+    "Weapon grip"
+  ],
+  "bounds_m": {
+    "min": [
+      -0.5650000125169754,
+      0.0,
+      -0.6200000047683716
+    ],
+    "max": [
+      0.5650000125169754,
+      1.407905515396299,
+      1.770999987595384
+    ],
+    "span": [
+      1.1300000250339508,
+      1.407905515396299,
+      2.3909999923637555
+    ]
+  },
+  "pivots": [
+    "BarrelPivot",
+    "CoverL",
+    "CoverR",
+    "EjectionL",
+    "EjectionR",
+    "MuzzleL",
+    "MuzzleR",
+    "ReceiverL",
+    "ReceiverR",
+    "RecoilL",
+    "RecoilR"
+  ],
+  "source": "Original Blender construction; no proprietary reference assets"
+}
