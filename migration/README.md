@@ -20,7 +20,29 @@ the code is written. A count of tests, a commit hash, an artifact — or it is p
 | 7 | testing + Android optimisation | not started | |
 | 8 | release validation | not started | |
 
-No Godot file exists yet in this repository. That is the correct state after Phase 1.
+No Godot runtime file exists on this branch. That is the correct state after Phase 1.
+
+## Relationship to draft PR #2 (`feature/godot-migration`)
+
+A parallel draft PR exists — **#2, "Draft: establish independent Godot migration workspace"**, head
+`feature/godot-migration`, 2 files (`migration/initial-audit.md`, `godot-port/README.md`). It was not
+created by this session; this session is bound to `arena/d42cf39b-ideal` and cannot push to that branch.
+The two attempts agree on the essentials and must be **reconciled, not merged blindly**:
+
+| claim | PR #2 | this audit | resolution |
+| --- | --- | --- | --- |
+| scope | `client/` 196 entries, 176 files | `client/Assets` 173 files | different scopes, both correct: 173 + `ProjectSettings/ProjectVersion.txt` + `Packages/manifest.json` + 1 = 176 |
+| JSON count | 12 in `client/` (10 levels, 1 district, 1 package manifest) | 11 content JSON + the package manifest | identical, counted differently |
+| tests | "150 tests" (from `docs/art.md`-era prose) | **152** `[Test]` methods, measured | 152 — the prose was stale |
+| serialised Unity assets | not stated | **0** scenes/prefabs/materials/shaders/anim/audio | this audit's §1/§3/§6 |
+| inventory + dependency map | listed as "next deliverable" | [`02-inventory.csv`](02-inventory.csv), [`04-dependency-graph.md`](04-dependency-graph.md) | delivered here |
+| renderer for Android | left open | **Compatibility (GLES3)**, D2 | answered here |
+| test framework | left open | **GUT**, D3 | answered here |
+
+Recommendation for the reviewer: keep this directory as the migration record, and reduce
+`migration/initial-audit.md` on that branch to a short pointer at [`01-audit.md`](01-audit.md) so there is
+one set of numbers. `godot-port/README.md` (the rules for the port directory) is worth keeping as-is —
+it says nothing this audit contradicts.
 
 ## How to reproduce the audit
 
@@ -50,8 +72,9 @@ the instruction is protecting is achieved by *directory* instead:
 - nothing is ever pushed to `main`; when Phase 2 lands, a pull request to `main` carries the migration,
   and the Unity project remains buildable on `main` exactly as it is today.
 
-If the reviewer can create the branch, the four commits of Phase 1 apply cleanly to it — they are pure
-additions (`migration/` only).
+If the reviewer can create the branch, the Phase 1 commit applies cleanly to it — it is pure addition
+(`migration/` + one CI job). Draft PR #2 already reserves that branch name, so the practical route is a
+cherry-pick of this commit onto `feature/godot-migration`.
 
 ## Decisions taken, with their reasons
 

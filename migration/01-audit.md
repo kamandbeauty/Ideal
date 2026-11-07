@@ -240,10 +240,12 @@ This is exactly phases 2–8 of the migration plan, so no work is done twice.
 
 ## 11. Decisions this audit asks the reviewer to confirm
 
-1. **Branch:** a new `feature/godot-migration` branch cannot be created from this session (the working
-   branch is fixed to `arena/d42cf39b-ideal`). The port is therefore isolated **by directory**
-   (`godot-port/`, `migration/`) on the current branch, `client/` stays untouched, and a PR to `main` is
-   opened at the Phase 2 milestone. Nothing is pushed to `main` directly.
+1. **Branch:** a new `feature/godot-migration` branch cannot be created *from this session* (the
+   working branch is fixed to `arena/d42cf39b-ideal`). That branch does already exist with a draft PR
+   **#2**, created outside this session, holding a short inventory and `godot-port/README.md`; the two
+   audit attempts are reconciled in [`README.md`](README.md). The port is isolated **by directory**
+   (`godot-port/`, `migration/`) here, `client/` stays untouched, and the Phase 1 commit is a pure
+   addition that cherry-picks onto that branch. Nothing is pushed to `main` directly.
 2. **Test framework:** GUT (lightweight, `-s` script runner) vs gdUnit4 (richer, heavier). Recommendation:
    **GUT**, because the suite is 152 plain assertions and CI needs the simplest possible headless runner.
 3. **Renderer:** **Compatibility (OpenGL ES 3.0)** as the default Android renderer. Rationale: pure 2D,
