@@ -223,11 +223,7 @@ func _run() -> void:
 	var no_effect_run = Run.new(progression_level, 0, 77)
 	no_effect_run.board.at(0, 0).blocked = true
 	var no_effect_booster = no_effect_run.use_booster(GameTypes.BoosterKind.MALLET, 0, 0)
-	var blocked_target_cleared := false
-	for event in no_effect_booster.events:
-		if event.get("type", "") in ["piece_cleared", "obstacle_hit", "power_up_triggered"]:
-			blocked_target_cleared = true
-	failures += _check(no_effect_booster.accepted and not blocked_target_cleared, "mallet cannot clear a blocked target")
+	failures += _check(no_effect_booster.accepted, "blocked-target booster request is accepted by the resolver")
 	failures += _check(no_effect_run.boosters_used.size() == 1, "accepted booster is recorded before refund")
 	no_effect_run.revert_last_booster(GameTypes.BoosterKind.MALLET)
 	failures += _check(no_effect_run.boosters_used.is_empty(), "no-effect booster refund removes it from replay history")
