@@ -1,0 +1,35 @@
+{
+  "pass": "art-pass-02",
+  "models": {
+    "soldier": {
+      "triangles": 5798,
+      "pivots": [
+        "ArmL",
+        "ArmR",
+        "ElbowL",
+        "ElbowR",
+        "Head",
+        "Hips",
+        "KneeL",
+        "KneeR",
+        "LegL",
+        "LegR",
+        "Muzzle",
+        "Rifle",
+        "Torso"
+      ]
+    },
+    "mounted_cannon": {
+      "triangles": 3737
+    },
+    "mounted_rocket": {
+      "triangles": 4210
+    },
+    "mounted_autocannon": {
+      "triangles": 4667
+    },
+    "bazooka": {
+      "triangles": 1531
+    }
+  }
+}
