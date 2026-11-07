@@ -12,6 +12,7 @@ library;
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 
@@ -54,9 +55,7 @@ class PreviewAudioPlayer {
     final gen = ++_generation;
     try {
       await _player.stop();
-      await _player.setAudioSources(
-        <AudioSource>[AudioSource.uri(Uri.file(path))],
-      );
+      await _player.setFilePath(path);
       await _player.setVolume(volume.clamp(0.0, 1.0));
       await _player.setLoopMode(loop ? LoopMode.one : LoopMode.off);
       _hasSource = true;
