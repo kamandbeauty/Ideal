@@ -51,6 +51,11 @@ def main(argv: list[str]) -> int:
     if not interesting:
         interesting = lines[-20:]
 
+    # Always republish the tail: the interesting-word filter can miss the one line that matters.
+    tail = lines[-30:]
+    if tail:
+        print(f"::error file={blame}::log tail: {encode(' | '.join(tail))}")
+
     emitted = 0
     chunk: list[str] = []
     size = 0
