@@ -30,7 +30,7 @@ jobs:
       - name: Install Godot 4.4.1
         uses: chickensoft-games/setup-godot@v2
         with:
-          version: 4.4.1
+          version: 4.7.2
           use-dotnet: false
 
       - name: Import project and build the global class cache
@@ -107,7 +107,7 @@ jobs:
       - name: Install Godot 4.4.1 with Android export templates
         uses: chickensoft-games/setup-godot@v2
         with:
-          version: 4.4.1
+          version: 4.7.2
           use-dotnet: false
           include-templates: true
 
@@ -127,12 +127,12 @@ jobs:
       - name: Make sure the Android export templates are installed
         run: |
           set -euo pipefail
-          TEMPLATES="$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          TEMPLATES="$HOME/.local/share/godot/export_templates/4.7.2.stable"
           if [ ! -f "$TEMPLATES/android_debug.apk" ]; then
             echo "android_debug.apk missing — installing the official export templates"
             mkdir -p "$TEMPLATES"
             curl -sSfL -o /tmp/templates.tpz \
-              https://github.com/godotengine/godot-builds/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
+              https://github.com/godotengine/godot-builds/releases/download/4.7.2-stable/Godot_v4.7.2-stable_export_templates.tpz
             rm -rf /tmp/templates && mkdir -p /tmp/templates
             unzip -q -o /tmp/templates.tpz -d /tmp/templates
             cp /tmp/templates/templates/* "$TEMPLATES"/
@@ -211,7 +211,7 @@ jobs:
       - name: Install Godot 4.4.1 with templates
         uses: chickensoft-games/setup-godot@v2
         with:
-          version: 4.4.1
+          version: 4.7.2
           use-dotnet: false
           include-templates: true
 
@@ -224,7 +224,7 @@ jobs:
           godot --headless --help > /tmp/help.txt 2>&1
           grep -iE "android|export" /tmp/help.txt > /tmp/help-android.txt
           python3 godot-port/tools/annotate_log.py /tmp/help-android.txt .github/workflows/godot-port.yml || true
-          ls -l "$HOME/.local/share/godot/export_templates/4.4.1.stable/" > /tmp/templates.txt 2>&1
+          ls -l "$HOME/.local/share/godot/export_templates/4.7.2.stable/" > /tmp/templates.txt 2>&1
           python3 godot-port/tools/annotate_log.py /tmp/templates.txt godot-port/export_presets.cfg || true
 
       - name: Try a Linux export to prove the export machinery works
