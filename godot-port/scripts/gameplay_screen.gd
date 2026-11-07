@@ -84,11 +84,18 @@ func _build_ui() -> void:
 	layout.add_theme_constant_override("separation", 18)
 	margin.add_child(layout)
 
+	var header := HBoxContainer.new()
+	layout.add_child(header)
+	var back_button := Button.new()
+	back_button.text = "بازگشت"
+	back_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
+	header.add_child(back_button)
 	var title := Label.new()
 	title.text = "قصرِ شاهزاده"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_font_size_override("font_size", 34)
-	layout.add_child(title)
+	header.add_child(title)
 
 	_moves_label = Label.new()
 	_moves_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
