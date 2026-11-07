@@ -341,6 +341,19 @@ class VideoBridge {
     }
   }
 
+  /// The most recent uncaught native crash, as captured locally, or null.
+  /// Shown on the export screen so a crash from a previous run can be read
+  /// (and forwarded) instead of the app dying silently.
+  Future<String?> getCrashLog() async {
+    try {
+      return await _method.invokeMethod<String>('getCrashLog');
+    } on MissingPluginException {
+      return null;
+    } on PlatformException {
+      return null;
+    }
+  }
+
   /// Progress events for every running session; filter by session id.
   Stream<ExportProgress> progressStream() {
     return _events.receiveBroadcastStream().map((event) {

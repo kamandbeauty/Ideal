@@ -25,6 +25,7 @@ import '../transitions/timeline_engine.dart';
 import '../audio/audio_sheet.dart';
 import '../preview/motion_preview.dart';
 import '../preview/playback_controller.dart';
+import '../preview/preview_audio.dart';
 import '../project/project_editor_controller.dart';
 
 class EditorScreen extends ConsumerStatefulWidget {
@@ -119,10 +120,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: AppTheme.s12, vertical: AppTheme.s4),
-                  child: MotionPreview(
-                    project: st.project,
-                    frame: playback,
-                    showSafeFrame: false,
+                  // Also plays the project's music in sync with the clock.
+                  child: PreviewAudioSync(
+                    child: MotionPreview(
+                      project: st.project,
+                      frame: playback,
+                      showSafeFrame: false,
+                    ),
                   ),
                 ),
               ),

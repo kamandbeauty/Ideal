@@ -317,27 +317,32 @@ class ExportManager {
               '${probed.durationMs}ms < ${expectedMs}ms');
     }
     _emit(_state.copyWith(stage: ExportStage.savingToGallery, progress: 0.995));
-    try {
-      final galleryUri = await _bridge.saveToGallery(result.path);
-      return NativeExportResult(
-        path: result.path,
-        width: probed.width,
-        height: probed.height,
-        fps: probed.fps,
-        durationMs: probed.durationMs,
-        frameCount: probed.frameCount,
-        bitrate: probed.bitrate,
-        codec: probed.codec,
-        sizeBytes: probed.sizeBytes,
-        galleryUri: galleryUri,
-        hasAudio: probed.hasAudio,
-      );
-    } on AppFailure catch (e) {
-      // The video is valid; only publishing failed. Report it without
-      // discarding the usable file.
-      debugPrint('gallery save failed: ${e.kind.name}');
-      return probed;
+    // The native worker already publishes to the gallery (so a finished
+    // export survives the app being closed); only save here when that did
+    // not happen.
+    String? galleryUri = result.galleryUri;
+    if (galleryUri == null) {
+      try {
+        galleryUri = await _bridge.saveToGallery(result.path);
+      } on AppFailure catch (e) {
+        // The video is valid; only publishing failed. Report it without
+        // discarding the usable file.
+        debugPrint('gallery save failed: ${e.kind.name}');
+      }
     }
+    return NativeExportResult(
+      path: result.path,
+      width: probed.width,
+      height: probed.height,
+      fps: probed.fps,
+      durationMs: probed.durationMs,
+      frameCount: probed.frameCount,
+      bitrate: probed.bitrate,
+      codec: probed.codec,
+      sizeBytes: probed.sizeBytes,
+      galleryUri: galleryUri,
+      hasAudio: probed.hasAudio,
+    );
   }
 
   Future<void> cancel() async {

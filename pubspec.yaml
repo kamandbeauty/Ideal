@@ -32,6 +32,9 @@ dependencies:
   # Media playback of the finished export
   video_player: ^2.9.1
 
+  # Background-music playback in the live preview (local files only)
+  just_audio: ^0.9.43
+
   # Photo import. On Android this routes through the system Photo Picker
   # (ACTION_PICK_IMAGES), so no storage permission is ever requested.
   image_picker: ^1.1.2

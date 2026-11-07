@@ -68,7 +68,18 @@ class VideoEncoder(
     val surface: Surface
         get() = inputSurface ?: throw EncoderException("encoder surface not created")
 
-    fun configure(): Surface {
+    fun configure(): Surface = try {
+        configureInner()
+    } catch (e: EncoderException) {
+        throw e
+    } catch (e: Exception) {
+        // OEM range objects sometimes report 0/absurd values; anything that
+        // throws here must surface as a controlled export failure, not a raw
+        // IllegalArgumentException from the middle of configuration.
+        throw EncoderException("failed to configure encoder: ${e.message}", e)
+    }
+
+    private fun configureInner(): Surface {
         val mediaCodecInfo: MediaCodecInfo = selectEncoder(mime)
             ?: throw EncoderException("no $mime encoder available on this device")
 
@@ -81,10 +92,14 @@ class VideoEncoder(
             ?: throw EncoderException("encoder ${mediaCodecInfo.name} has no video caps")
         val (w, h) = align(video, requestedWidth, requestedHeight)
         val supportedFps = fps.coerceIn(1, video.supportedFrameRates.upper.toInt().coerceAtLeast(fps))
-        val bitrate = requestedBitrate.coerceIn(
-            caps.videoCapabilities.bitrateRange.lower,
-            caps.videoCapabilities.bitrateRange.upper,
-        )
+        // Some OEMs report upper == 0 (unreported); clamping against that
+        // would throw, so skip the clamp when the range is unusable.
+        val br = caps.videoCapabilities.bitrateRange
+        val bitrate = if (br.upper > 0 && br.lower <= br.upper) {
+            requestedBitrate.coerceIn(br.lower, br.upper)
+        } else {
+            requestedBitrate
+        }
 
         val format = MediaFormat.createVideoFormat(mime, w, h).apply {
             setInteger(

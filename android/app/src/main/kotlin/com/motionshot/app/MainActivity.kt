@@ -29,6 +29,15 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppContextHolder.context = applicationContext
+        CrashLog.init(applicationContext)
+        // Capture JVM-level faults (Errors like NoSuchMethodError escape the
+        // worker's Exception catch and would otherwise kill the process
+        // silently) so the next run can show what happened.
+        val previous = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            CrashLog.append(thread.name, throwable)
+            previous?.uncaughtException(thread, throwable)
+        }
         // Remove exports from a previous session that never completed.
         StorageManager.cleanupTemp(File(cacheDir, "export").apply { mkdirs() })
         StorageManager.cleanupTemp(cacheDir)
@@ -104,9 +113,12 @@ class MainActivity : FlutterActivity() {
     }
 
     override fun onDestroy() {
-        ExportService.cancelAll()
-        bridge = null
-        ExportService.bridge = null
+        // Do NOT cancel exports here: a foreground export is meant to survive
+        // the activity being destroyed (app backgrounded, low-memory kill).
+        // The service finishes its job, publishes the video to the gallery,
+        // and emits the terminal event through the bridge of the *current*
+        // engine; if the process itself dies, the partial file is deleted by
+        // the worker's cleanup on the next start.
         super.onDestroy()
     }
 }

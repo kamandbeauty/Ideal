@@ -6,6 +6,7 @@
 library;
 
 import 'package:flutter/material.dart' hide ValueSlider;
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -31,10 +32,29 @@ class ExportScreen extends ConsumerStatefulWidget {
 class _ExportScreenState extends ConsumerState<ExportScreen> {
   ExportSettings? _draft;
 
+  /// Crash text captured by the native layer on a previous run, if any.
+  String? _crashLog;
+
   ExportSettings _settings(ProjectEditorState st) =>
       _draft ?? st.project.exportSettings;
 
   void _update(ExportSettings s) => setState(() => _draft = s);
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCrashLog();
+  }
+
+  Future<void> _loadCrashLog() async {
+    try {
+      final log = await ref.read(videoBridgeProvider).getCrashLog();
+      if (mounted && (log == null || log.isEmpty)) return;
+      setState(() => _crashLog = log);
+    } catch (_) {
+      // Diagnostic only; never block the export screen on it.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +83,10 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
         child: PageBody(
           child: ListView(
             children: <Widget>[
+              if (_crashLog != null) ...<Widget>[
+                _crashNotice(context, l10n),
+                const SizedBox(height: AppTheme.s12),
+              ],
               SectionCard(
                 title: l10n.t('export_resolution'),
                 icon: Icons.high_quality_outlined,
@@ -289,6 +313,69 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
           ],
         ),
       );
+
+  /// Shows the crash details captured by the native layer on a previous run,
+  /// so the user can read/copy them instead of the app dying silently.
+  Widget _crashNotice(BuildContext context, L10n l10n) {
+    final log = _crashLog!;
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.s12),
+      decoration: BoxDecoration(
+        color: AppColors.danger.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.danger.withValues(alpha: 0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const Icon(Icons.warning_amber_rounded,
+                  size: 18, color: AppColors.danger),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(l10n.t('export_crash_title'),
+                    style: context.theme.textTheme.bodySmall
+                        ?.copyWith(color: AppColors.danger)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(l10n.t('export_crash_hint'),
+              style: context.theme.textTheme.bodySmall
+                  ?.copyWith(color: context.theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 4),
+          ExpansionTile(
+            backgroundColor: Colors.transparent,
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: EdgeInsets.zero,
+            title: Text(l10n.t('error_details'),
+                style: context.theme.textTheme.bodySmall
+                    ?.copyWith(color: AppColors.danger)),
+            children: <Widget>[
+              const SizedBox(height: 4),
+              SelectableText(
+                log,
+                style: const TextStyle(
+                    fontSize: 10, fontFamily: 'monospace', height: 1.3),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: log));
+                    context.snack(l10n.t('crash_copied'));
+                  },
+                  child: Text(l10n.t('action_copy')),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _notice(BuildContext context, String text, {bool isWarning = false}) {
     final color = isWarning ? AppColors.amber : context.theme.colorScheme.secondary;

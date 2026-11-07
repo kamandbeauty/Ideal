@@ -14,6 +14,7 @@ import '../project/project_editor_controller.dart';
 import '../transitions/timeline_engine.dart';
 import 'motion_preview.dart';
 import 'playback_controller.dart';
+import 'preview_audio.dart';
 
 class PreviewScreen extends ConsumerStatefulWidget {
   const PreviewScreen({super.key});
@@ -88,7 +89,9 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.all(AppTheme.s16),
-                  child: MotionPreview(project: st.project, frame: frame),
+                  // Music plays here too, in sync with the playhead.
+                  child: PreviewAudioSync(
+                      child: MotionPreview(project: st.project, frame: frame)),
                 ),
               ),
             ),

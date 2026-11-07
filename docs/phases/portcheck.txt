@@ -3,7 +3,7 @@
 [PASS] member references
 [PASS] channel names agree
 [PASS] dart methods handled by kotlin
-[PASS] kotlin methods  — cancelExport, getCapabilities, isExportRunning, probeFile, probeRequest, saveToGallery, shareFile, startExport
+[PASS] kotlin methods  — cancelExport, getCapabilities, getCrashLog, isExportRunning, probeFile, probeRequest, saveToGallery, shareFile, startExport
 [PASS] error codes produced
 [PASS] protocol keys present on both sides
 [PASS] kotlin photoSeed parity

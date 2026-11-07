@@ -75,6 +75,7 @@ class AppFailure implements Exception {
       'PERMISSION_DENIED' => FailureKind.permissionDenied,
       'AUDIO_UNREADABLE' => FailureKind.audioUnreadable,
       'GL_FAILED' => FailureKind.glFailed,
+      'INTERNAL_ERROR' => FailureKind.internal,
       _ => FailureKind.unknown,
     };
     return AppFailure(kind, technicalDetail: detail);

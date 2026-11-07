@@ -193,6 +193,9 @@ class NativeBridge(
                         result.error("INTERNAL", "no app accepted the share intent", null)
                     }
                 }
+                "getCrashLog" -> {
+                    result.success(CrashLog.read())
+                }
                 else -> result.notImplemented()
             }
         } catch (e: SecurityException) {
@@ -263,11 +266,12 @@ class NativeBridge(
                             put("durationMs", result.durationMs)
                             put("frameCount", result.frameCount)
                             put("bitrate", result.bitrate)
-                            put("codec", result.codec)
-                            put("sizeBytes", result.sizeBytes)
-                            put("hasAudio", result.hasAudio)
-                            put("texturesCreated", result.texturesCreated)
-                            put("texturesEvicted", result.texturesEvicted)
+                    put("codec", result.codec)
+                    put("sizeBytes", result.sizeBytes)
+                    put("hasAudio", result.hasAudio)
+                    put("galleryUri", result.galleryUri)
+                    put("texturesCreated", result.texturesCreated)
+                    put("texturesEvicted", result.texturesEvicted)
                         },
                     )
                 }

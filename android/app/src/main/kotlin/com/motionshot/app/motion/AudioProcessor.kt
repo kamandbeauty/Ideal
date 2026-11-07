@@ -159,10 +159,16 @@ class AudioProcessor(
             var pcmOffsetFrames = 0L
             var inputDone = false
             var outputDone = false
+            var guard = 0
             val info = MediaCodec.BufferInfo()
             val bytesPerFrame = channels * 2 // 16-bit
 
             while (!outputDone) {
+                guard++
+                // A stuck encoder must not hang the export forever.
+                if (guard > 500_000) {
+                    throw AudioException("AAC encoder did not emit end-of-stream")
+                }
                 if (!inputDone) {
                     val inIdx = codec.dequeueInputBuffer(10_000)
                     if (inIdx >= 0) {
@@ -391,11 +397,15 @@ class AudioProcessor(
                     false
                 }
             } ?: false
+            // Float PCM (some WAV decoders) is 4 bytes per sample, not 2.
+            val bytesPerSample = if (isFloat) 4 else 2
+            val srcFrameCount = (total / (bytesPerSample.toLong() * srcChannels)).toInt()
+            if (srcFrameCount == 0 || sampleRate <= 0) return FloatArray(0)
 
             val outFrames = if (sampleRate == targetRate) {
-                (total / (2L * srcChannels)).toInt()
+                srcFrameCount
             } else {
-                ((total / (2L * srcChannels)) * targetRate / sampleRate).toInt()
+                (srcFrameCount * targetRate / sampleRate).toInt()
             }
             val out = FloatArray(outFrames.coerceAtLeast(0) * channels)
             if (sampleRate == targetRate && srcChannels == channels) {
@@ -413,22 +423,33 @@ class AudioProcessor(
             } else {
                 // Down-mix / resample: linear interpolation is adequate for a
                 // music bed and costs no external dependency.
-                val mono = FloatArray((total / (2L * srcChannels)).toInt())
+                val mono = FloatArray(srcFrameCount)
                 var idx = 0
                 for ((_, bytes) in chunks) {
                     val buf = ByteBuffer.wrap(bytes).order(ByteOrder.nativeOrder())
-                    val sb = buf.asShortBuffer()
-                    while (sb.hasRemaining()) {
+                    val fb = if (isFloat) buf.asFloatBuffer() else null
+                    val sb = if (isFloat) null else buf.asShortBuffer()
+                    while (true) {
                         var acc = 0f
+                        var got = 0
                         for (c in 0 until srcChannels) {
-                            if (!sb.hasRemaining()) break
-                            acc += sb.get() / 32768f
+                            if (fb != null) {
+                                if (!fb.hasRemaining()) break
+                                acc += fb.get()
+                                got++
+                            } else {
+                                if (sb == null || !sb.hasRemaining()) break
+                                acc += sb.get() / 32768f
+                                got++
+                            }
                         }
+                        if (got == 0) break
                         if (idx < mono.size) mono[idx++] = acc / srcChannels
                     }
                 }
                 val ratio = targetRate.toDouble() / sampleRate
                 val srcFrames = mono.size
+                if (srcFrames == 0) return out
                 val dstFrames = min((srcFrames * ratio).toInt(), outFrames)
                 for (i in 0 until dstFrames) {
                     val pos = i / ratio

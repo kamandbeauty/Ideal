@@ -2,6 +2,7 @@ package com.motionshot.app.motion
 
 import android.content.Context
 import android.media.MediaFormat
+import com.motionshot.app.CrashLog
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -53,6 +54,8 @@ class ExportWorker(
         val hasAudio: Boolean,
         val texturesCreated: Int,
         val texturesEvicted: Int,
+        /** content:// uri when the video was already published to the gallery. */
+        val galleryUri: String? = null,
     )
 
     private val cancelled = AtomicBoolean(false)
@@ -302,6 +305,20 @@ class ExportWorker(
                 return
             }
 
+            // Publish to the gallery natively: the export can finish while
+            // the activity is destroyed (backgrounded, low-memory kill), and
+            // the Dart side would never get the chance to do it.
+            val galleryUri = try {
+                StorageManager.saveVideoToGallery(
+                    context,
+                    File(request.outputPath),
+                    "MotionShot_${System.currentTimeMillis()}.mp4",
+                )?.toString()
+            } catch (e: Exception) {
+                Log.w(TAG, "gallery publish failed: ${e.message}")
+                null
+            }
+
             val stats = engine.textureStats()
             val result = ExportResult(
                 path = request.outputPath,
@@ -316,6 +333,7 @@ class ExportWorker(
                 hasAudio = encodedAudio != null && probe.hasAudio,
                 texturesCreated = stats.first,
                 texturesEvicted = stats.second,
+                galleryUri = galleryUri,
             )
             Log.i(TAG, "export done in ${SystemClock.elapsedRealtime() - startedAt}ms: $result")
             exportOk = true
@@ -335,6 +353,19 @@ class ExportWorker(
                 post { listener.onCancelled() }
             } else {
                 fail("ENCODER_FAILED", "${e.javaClass.simpleName}: ${e.message}")
+            }
+        } catch (e: Throwable) {
+            // JVM Errors (NoSuchMethodError on an OEM library, VerifyError,
+            // StackOverflowError, ...) escape the catches above and would
+            // otherwise kill the process with no user-visible explanation.
+            CrashLog.append("motionshot-export", e)
+            if (cancelled.get()) {
+                post { listener.onCancelled() }
+            } else {
+                fail(
+                    "INTERNAL_ERROR",
+                    "unexpected ${e.javaClass.simpleName}: ${e.message}",
+                )
             }
         } finally {
             activeEngine = null
