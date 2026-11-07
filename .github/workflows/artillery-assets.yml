@@ -36,8 +36,10 @@ jobs:
           tail -12 /tmp/studio.log
           test -s ARTILLERY_FRONTLINE/documentation/qa/art-pass-01/weapon-studio.png
       - name: Publish Blender diagnostics
-        if: failure()
+        if: always()
         run: |
+          tail -60 /tmp/studio.log 2>/dev/null || true
+          ls -l ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/documentation/qa/art-pass-01 || true
           if [ -f /tmp/blender.log ]; then
             tail -45 /tmp/blender.log | while IFS= read -r line; do echo "::error title=Blender log::${line}"; done
           else
@@ -51,13 +53,14 @@ jobs:
           mkdir -p ARTILLERY_FRONTLINE/documentation/qa
           blender --version > /tmp/blender-version.txt
           head -1 /tmp/blender-version.txt > ARTILLERY_FRONTLINE/documentation/blender-version.txt
-          python3 ARTILLERY_FRONTLINE/tools/verify_art_pass.py
+          python3 ARTILLERY_FRONTLINE/tools/verify_art_pass.py || { echo "::error::art-pass structural gate failed"; cat ARTILLERY_FRONTLINE/documentation/art-pass-01.json 2>/dev/null || true; exit 1; }
       - name: Preserve generated assets on the active session branch
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
           touch ARTILLERY_FRONTLINE/assets/models/source/.gdignore
           bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: Blender art pass 01 twin HMG geometry, UV PBR and studio render' ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/assets/models/source/mounted_twin_hmg.blend ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/documentation/blender-version.txt ARTILLERY_FRONTLINE/documentation/qa/art-pass-01 ARTILLERY_FRONTLINE/documentation/art-pass-01.json
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: original-blender-models
           path: |
@@ -66,3 +69,5 @@ jobs:
             ARTILLERY_FRONTLINE/assets/textures/pbr/
             ARTILLERY_FRONTLINE/documentation/qa/art-pass-01/
             ARTILLERY_FRONTLINE/documentation/art-pass-01.json
+            /tmp/blender.log
+            /tmp/studio.log
