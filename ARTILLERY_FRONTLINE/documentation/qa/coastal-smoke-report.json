@@ -33,6 +33,18 @@
       "passed": true
     },
     {
+      "name": "muzzles stay in lower aiming band",
+      "passed": true
+    },
+    {
+      "name": "twin muzzles visually separated",
+      "passed": true
+    },
+    {
+      "name": "independent recoil pivots present",
+      "passed": true
+    },
+    {
       "name": "capture coastal-beach",
       "passed": true
     },
@@ -66,6 +78,10 @@
     },
     {
       "name": "reload starts",
+      "passed": true
+    },
+    {
+      "name": "capture coastal-weapon-reload",
       "passed": true
     },
     {
@@ -117,21 +133,21 @@
   "kills": 0,
   "passed": true,
   "performance": {
-    "draw_calls": 262,
-    "fps": 15.9,
-    "frame_ms": 62.75,
+    "draw_calls": 280,
+    "fps": 20.6,
+    "frame_ms": 48.54,
     "objects": 1704,
-    "primitives": 100224,
+    "primitives": 100808,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
   },
-  "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware",
+  "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 01 weapon/camera; not Android hardware",
   "soldiers": 8,
   "weapon_screen_bounds": {
-    "h": 2922.13623046875,
-    "w": 2635.9013671875,
-    "x": -597.950561523438,
-    "y": 444.667114257812
+    "h": 1461.20495605469,
+    "w": 1380.69909667969,
+    "x": 29.6505546569824,
+    "y": 410.523315429688
   }
 }
