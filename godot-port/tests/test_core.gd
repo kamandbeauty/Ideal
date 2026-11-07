@@ -3,6 +3,7 @@ extends SceneTree
 const Board = preload("res://scripts/core/board_model.gd")
 const Finder = preload("res://scripts/core/match_finder.gd")
 const Rng = preload("res://scripts/core/deterministic_random.gd")
+const Powers = preload("res://scripts/core/power_ups.gd")
 
 func _initialize() -> void:
 	create_timer(20.0).timeout.connect(_on_timeout)
@@ -28,6 +29,18 @@ func _run() -> void:
 	var expected := [29, 42, 2, 14, 92, 33, 12, 87, 27]
 	for expected_value in expected:
 		failures += _check(rng_reference.next(97) == expected_value, "xorshift64* sequence value %d" % expected_value)
+
+	print("TEST STAGE 3: power-up target geometry")
+	var power_board = Board.new(5, 5)
+	var blast_targets: Array[Vector2i] = []
+	Powers.add_square(power_board, Vector2i(2, 2), 1, blast_targets)
+	failures += _check(blast_targets.size() == 9, "dynamite targets exactly a 3x3 area")
+	var row_targets: Array[Vector2i] = []
+	Powers.add_row(power_board, 2, row_targets)
+	failures += _check(row_targets.size() == 5, "rocket row target count")
+	var column_targets: Array[Vector2i] = []
+	Powers.add_column(power_board, 3, column_targets)
+	failures += _check(column_targets.size() == 5, "rocket column target count")
 
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
