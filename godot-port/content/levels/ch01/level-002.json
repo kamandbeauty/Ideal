@@ -1,0 +1,35 @@
+{
+  "id": "ch01-002",
+  "chapter": "ch01",
+  "number": 2,
+  "type": "normal",
+  "width": 9,
+  "height": 9,
+  "gravity": "down",
+  "move_limit": 22,
+  "pieces": [
+    "firouzeh",
+    "lajvard",
+    "aqiq",
+    "zomorrod",
+    "morvarid"
+  ],
+  "goals": [
+    {
+      "kind": "clear_pieces",
+      "piece": "firouzeh",
+      "target": 18
+    },
+    {
+      "kind": "clear_pieces",
+      "piece": "lajvard",
+      "target": 12
+    }
+  ],
+  "obstacles": [],
+  "blocked": [],
+  "reward_potions": 9,
+  "reward_coins": 12,
+  "stages": 1,
+  "notes": "two colours, teaches reading goals"
+}
