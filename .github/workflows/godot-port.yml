@@ -135,8 +135,9 @@ jobs:
           status=$?
           echo "$output"
           if [ $status -ne 0 ] || [ ! -s godot-port/build/princes-palace-debug.apk ]; then
-            message=$(echo "$output" | grep -vE "^\s*$" | tail -20 | tr '\n' '|' | cut -c1-1200)
-            echo "::error file=.github/workflows/godot-port.yml::android export failed (exit $status): $message"
+            reasons=$(echo "$output" | grep -iE "can only|must|invalid|missing|not found|requires|unsupported|unknown" \
+              | head -6 | tr '\n' '|' | cut -c1-1200)
+            echo "::error file=.github/workflows/godot-port.yml::android export failed (exit $status): ${reasons:-no reason line in the output}"
             exit 1
           fi
           ls -l godot-port/build
