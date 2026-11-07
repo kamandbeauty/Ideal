@@ -75,6 +75,9 @@ func next_01() -> float:
 	var words := next_words()
 	return float(words[0] >> 8) / 16777216.0
 
+func state_words() -> Array[int]:
+	return [_high, _low]
+
 func state_hex() -> String:
 	return "%08x%08x" % [_high, _low]
 
