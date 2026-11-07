@@ -4,7 +4,7 @@ The independent Godot build of the Unity game in `client/`. No Unity runtime, no
 this is a new project with its own scene, its own input, its own renderer, and the game's data and art
 copied across as plain files.
 
-Godot 4.4.1 · GDScript · `gl_compatibility` renderer · Android (portrait) and desktop.
+Godot 4.7.2 · GDScript · `gl_compatibility` renderer · Android (portrait) and desktop.
 
 ## What is where
 
@@ -36,10 +36,9 @@ Not done yet, and deliberately not claimed:
 - No parity fixture suite over long move sequences (event order, counters and hashes compared
   move-for-move against C#). `migration/01-audit.md` §10 R1 explains why this needs a Unity run.
 - No sound: the Unity project has no audio assets either, so nothing was dropped.
-- **No APK yet.** Godot 4.4.1's CLI refuses the Android export with an empty list of configuration
-  errors even though the templates, SDK, JDK, keystore and icons are all in place and a Linux export on
-  the same runner succeeds. This is documented as known problem **K1** in `ANDROID_EXPORT.md`, and the
-  `android-debug` CI job fails on purpose rather than uploading nothing and calling it a build.
+- **No device run yet.** The `android-debug` job builds `princes-palace-debug.apk`, proves it is a real
+  APK (manifest + dex) and uploads it as an artifact, but nobody has installed it on a phone, so there
+  are no frame-time, memory or touch numbers. See `ANDROID_EXPORT.md`.
 
 ## Persian
 
@@ -62,6 +61,6 @@ godot --path godot-port                                       # play it
 
 CI (`.github/workflows/godot-port.yml`) runs exactly those first four steps on every push. The
 `headless` job is the gate: a green run means "the project imported, every script compiled, both suites
-passed, and the game booted to the title screen" — not merely "the YAML was valid". The `android-debug`
-job is separate and is currently red for the reason in `ANDROID_EXPORT.md` (K1); an `export-diagnostic`
-job exists to keep explaining it.
+passed, and the game booted to the title screen" — not merely "the YAML was valid". `android-debug`
+builds and verifies the APK in the same run, and `export-diagnostic` is a probe kept around for the day
+an export is refused again.

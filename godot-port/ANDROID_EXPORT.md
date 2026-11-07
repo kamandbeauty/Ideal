@@ -11,51 +11,46 @@ Android build has got, so nobody has to guess from a red workflow.
 | package id | `com.shazdeh.palace` | `export_presets.cfg` |
 | version | code 1, name 1.0.0 | `export_presets.cfg` |
 | launcher icons | `assets/branding/icon_192.png`, `icon_432.png` (Godot rejects the 512 px source in these slots) | sizes checked in the repo |
+| texture compression | ETC2/ASTC import enabled, required by the Android exporter | `project.godot` |
 | architectures | `armeabi-v7a` + `arm64-v8a` | `export_presets.cfg` |
 | renderer | GL Compatibility (GLES3 class), decision D2 of the audit | `project.godot` |
+| engine | Godot 4.7.2 with its export templates | `project.godot`, CI |
 | toolchain | OpenJDK 17, Android command-line tools, `platform-tools`, `build-tools;34.0.0`, `platforms;android-34` | `android-debug` CI job: all install steps green |
 | export templates | official 4.4.1 `.tpz`, `android_debug.apk` present in `~/.local/share/godot/export_templates/4.4.1.stable/` | CI step "Make sure the Android export templates are installed" |
 | debug keystore | `~/.android/debug.keystore`, alias `androiddebugkey` | CI step, and `tools/write_editor_settings.py` registers it |
 
-## Known problem K1 — the CLI refuses the export with an empty reason
+## K1 — closed: the export works, and here is what was wrong
 
-`godot --headless --path godot-port --export-debug "Android" build/princes-palace-debug.apk` stops
-with:
+The Android export used to stop with `Cannot export project with preset "Android" due to configuration
+errors:` and an **empty** list of reasons. Godot 4.4.1 never printed them on the command line; Godot
+4.7.2 prints them, and there were exactly two:
 
 ```
-ERROR: Cannot export project with preset "Android" due to configuration errors:
-ERROR: Project export for preset "Android" failed.
+"Min SDK" cannot be lower than 24, which is the version needed by the Godot library.
+ETC2/ASTC texture compression is required for Android export. In Project Settings, search for 'ETC2'…
 ```
 
-and the list of configuration errors after the colon is **empty**. Everything that usually produces a
-named error there has been tested: the templates exist, the SDK/JDK paths are registered in
-`editor_settings-4.tres`, the keystore exists and is registered, the icons are the exact sizes Godot
-wants, the preset was rewritten in the Godot 4.4 schema (`version/code`, no Godot 3 keys), a stripped
-"minimal" preset fails identically, and the copy of the same preset with `use_gradle_build=true` never
-gets as far as reporting an error because the Gradle build takes longer than the probing budget.
+Fixes, both in the repository now:
 
-Two things this is **not**:
-- not a broken project — on the same runner a **Linux export succeeds** end to end (the pack is built
-  and written), so the export pipeline and the presets file itself are fine;
-- not a missing template — `android_debug.apk` is listed in the templates directory during the same
-  run.
+| cause | fix |
+| --- | --- |
+| min SDK was 23, Godot's own library needs 24 | `min_sdk` is 24 wherever a Gradle build is used; the template path uses Godot's default |
+| ETC2/ASTC import was off, and an Android export needs it for any GPU without full ASTC support | `rendering/textures/vram_compression/import_etc2_astc=true` in `project.godot` |
 
-Next things to try, in order of cost:
-1. On a workstation with a display, open *Project → Export → Android* once, read the error list Godot
-   shows in the dialog (it is populated there even when the CLI prints nothing), and fix that.
-2. Run the Gradle path with a 45-minute budget: `--install-android-build-template`, then
-   `gradle_build/use_gradle_build=true`, then export. Gradle is the only path that honours a custom
-   package id and explicit `min_sdk`/`target_sdk`, so it has to work before a release build anyway.
-3. If both stall, pin an older export template (4.3) as a control to see whether the failure is
-   version-specific.
+The `android-debug` job now exports `build/princes-palace-debug.apk` through the prebuilt template,
+then proves it: the file is non-empty, `file(1)` sees an Android package, `unzip -l` finds
+`AndroidManifest.xml` and `classes.dex`, and only then is it uploaded as the `princes-palace-debug-apk`
+artifact (~57 MB, armv7 + arm64).
 
-Until K1 is closed, the `android-debug` job stays **failing on purpose**: no APK is claimed, and no
-artifact is uploaded, because none was produced. The `headless` job — import, every script compiles,
-both suites, and a real boot to the title screen — is the gate that says the game itself works.
+Two lessons worth keeping:
+- an engine upgrade was the diagnostic tool. 4.4.1 swallowed the reasons; 4.7.2 printed them. When a
+  tool hides its error, check whether a newer one shows it before re-engineering around it.
+- the earlier hypotheses (templates, SDK, keystore, package id, preset schema, launcher icons) were all
+  wrong, but each was cheap to rule out and the log now records them so nobody repeats the search.
 
 ## Release checklist (unchanged, still ahead)
 
-- Close K1 and produce a debug APK that installs on a device.
+- Install the CI artifact on a real device (it is built and verified, but nobody has run it yet).
 - Device matrix run: match, cascade, booster, result, save/restore, lives refill, orientation, back
   gesture, low-memory behaviour.
 - Frame time on a low-end device at 1080 × 1920 (the art's reference resolution), and a check that the
