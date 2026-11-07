@@ -13,25 +13,15 @@ func _run() -> void:
 	quit(1 if _failures > 0 else 0)
 
 func _scan(path: String) -> void:
-	var directory := DirAccess.open(path)
-	if directory == null:
-		push_error("Cannot open script directory: " + path)
-		_failures += 1
-		return
-	directory.list_dir_begin()
-	var entry := directory.get_next()
-	while entry != "":
-		if entry.begins_with("."):
-			entry = directory.get_next()
+	for file_name in DirAccess.get_files_at(path):
+		if not file_name.ends_with(".gd"):
 			continue
-		var child_path := path.path_join(entry)
-		if directory.current_is_dir():
-			_scan(child_path)
-		elif entry.ends_with(".gd"):
-			_checked += 1
-			var script_resource = ResourceLoader.load(child_path, "GDScript", ResourceLoader.CACHE_MODE_IGNORE)
-			if script_resource == null or not script_resource is GDScript or not script_resource.can_instantiate():
-				push_error("GDScript failed to load: " + child_path)
-				_failures += 1
-		entry = directory.get_next()
-	directory.list_dir_end()
+		_checked += 1
+		var child_path := path.path_join(file_name)
+		var script_resource = ResourceLoader.load(child_path, "GDScript", ResourceLoader.CACHE_MODE_IGNORE)
+		if script_resource == null or not script_resource is GDScript or not script_resource.can_instantiate():
+			push_error("GDScript failed to load: " + child_path)
+			_failures += 1
+	for directory_name in DirAccess.get_directories_at(path):
+		if not directory_name.begins_with("."):
+			_scan(path.path_join(directory_name))
