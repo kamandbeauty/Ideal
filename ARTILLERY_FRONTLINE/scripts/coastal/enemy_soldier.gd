@@ -172,7 +172,7 @@ func _die() -> void:
 	collision_layer = 0
 	collision.set_deferred("disabled", true)
 	set_physics_process(false)
-	var tween: Tween = create_tween().set_parallel(True)
+	var tween: Tween = create_tween().set_parallel(true)
 	tween.tween_property(model_root, "rotation:x", -0.5, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(model_root, "position:y", -0.62, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	for knee in [knee_l, knee_r]:
