@@ -430,10 +430,6 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [0m
 SCRIPT ERROR: Parse Error: Identifier "True" not declared in the current scope.
           at: GDScript::reload (res://scripts/coastal/enemy_soldier.gd:175)
-SCRIPT ERROR: Parse Error: Identifier "head" not declared in the current scope.
-          at: GDScript::reload (res://scripts/coastal/enemy_soldier.gd:183)
-SCRIPT ERROR: Parse Error: Identifier "head" not declared in the current scope.
-          at: GDScript::reload (res://scripts/coastal/enemy_soldier.gd:184)
 SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
           at: GDScript::reload (res://scripts/coastal/coastal_controller.gd:0)
 SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
