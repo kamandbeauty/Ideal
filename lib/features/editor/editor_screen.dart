@@ -156,9 +156,19 @@ class _EditorScreenState extends ConsumerState<EditorScreen>
             }
             return Column(
               children: <Widget>[
-                _previewColumn(context, l10n, st, playback, compact: true),
+                // _previewColumn contains its own Expanded, so it needs a
+                // bounded height here — a bare child of a Column gets an
+                // unbounded one and the layout blows up (black screen).
+                Expanded(
+                  flex: 3,
+                  child: _previewColumn(
+                      context, l10n, st, playback, compact: true),
+                ),
                 const SizedBox(height: 8),
-                Expanded(child: _panels(context, l10n, st)),
+                Expanded(
+                  flex: 2,
+                  child: _panels(context, l10n, st),
+                ),
               ],
             );
           },
