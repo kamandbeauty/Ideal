@@ -32,7 +32,7 @@ var next_refill_in_seconds: int:
 		refresh()
 		if _data.lives >= _data.max_lives:
 			return 0
-		var elapsed := _clock.now_unix() - _data.lives_updated_at_unix
+		var elapsed: int = _clock.now_unix() - _data.lives_updated_at_unix
 		var remaining := REFILL_SECONDS - posmod(elapsed, REFILL_SECONDS)
 		if remaining <= 0:
 			remaining = REFILL_SECONDS
