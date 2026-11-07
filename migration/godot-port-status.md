@@ -8,50 +8,53 @@ Unity source baseline: `arena/d42cf39b-ideal`
 
 | Area | Status | Notes |
 |---|---|---|
-| Godot project scaffold | Created | `project.godot`, main scene, minimal app shell |
-| Shared game enums | Initial port | Numeric values align with Unity `Primitives.cs` |
-| Board model | Initial port | Cells, obstacles, pieces, power-ups, clone/copy, ASCII fixtures |
-| Match detection | Initial port | Horizontal/vertical runs, 2×2 squares, clusters and spawn selection |
-| Deterministic RNG | Initial port; reference-tested | xorshift64* represented as two 32-bit words; C# seed-1 vector and sequence pass |
-| Level definition | Initial port; tested | Structural validation and level metadata |
-| Board factory | Initial port; tested | Opening board avoids matches and reproduces from the same seed |
-| Goal tracker | Initial port; tested | Piece and obstacle-layer progress |
-| Power-up system | Initial port; partially tested | Blast geometry, electro-ball targeting, super clear and rocket pair combo |
-| Move resolver | Initial port; partially tested | Swap validation, accepted/rejected swaps, match clears, goal events, obstacle damage, four-match rocket creation, mallet-triggered rocket, gravity/refill/settle path |
-| GDScript loading | Passed | 11 script files load under Godot 4.4.1 |
-| Core headless tests | Passed | 34 checks, 0 failures |
-| Unity/Godot full parity | Not verified | Shared deterministic test corpus and event-by-event comparison still needed |
-| Remaining power-up combinations | Not fully tested | All pairings and long trigger chains need reference fixtures |
-| UI, animation, audio, VFX | Not started | Rebuild natively in Godot |
-| Assets and fonts | Not imported | Need source manifest reconciliation and import validation |
-| Save/progression/economy/backend | Not started | Must preserve save compatibility and server-authoritative contracts |
-| Android export | Not started | Renderer/API/device targets still require validation |
+| Godot project scaffold | Created | Main scene now points to the native gameplay screen |
+| Original art and fonts | Imported | 85 PNGs and both Vazir TTF files reused from original Git blobs |
+| Chapter-one content | Imported | Ten level JSON files and district metadata |
+| Content and asset loaders | Initial port; tested | Piece/goal/obstacle mappings and texture resolution |
+| Board model and match finder | Initial port; tested | Runs, squares, clusters and spawn selection |
+| Deterministic RNG | Reference-tested | xorshift64* state and sequence match C# seed-1 vector |
+| Board factory | Tested | Reproducible opening board without automatic matches |
+| Goal tracker and move resolver | Partially tested | Accepted/rejected swaps, clears, obstacle damage, rocket creation and mallet trigger |
+| Power-up system | Partially tested | Target geometry, electro-ball, super clear and rocket pair combo |
+| Wallet and booster inventory | Tested | Spend, grant, caps, buy and consume |
+| Lives and clock | Tested | Spending and timed refill |
+| Level run, state hash, stars | Initial port; tested | Same-seed replay hash and star thresholds |
+| Progression | Tested | First-clear reward, unlock, task payment and chest claim |
+| Save codec and store | Tested | JSON round-trip, v1 migration, corruption fallback and backup recovery |
+| Persian gameplay UI | Initial implementation | Board grid, original art, goals/moves and booster selection; not yet device-tested |
+| GDScript load validation | Passed | All listed scripts load under Godot 4.4.1 |
+| Headless test suite | Passed | 75 checks, 0 failures |
+| Full Unity/Godot parity | Not verified | Full event-order and state-hash fixture comparison remains |
+| UI animation/audio/VFX | Not complete | Visual polish and feedback remain |
+| Android export | Not started | Export templates, signing, API level and device tests remain |
 
 ## Current test evidence
 
-GitHub Actions run: [Godot 4 headless import and core tests](https://github.com/kamandbeauty/Ideal/actions/runs/42404951036)
+GitHub Actions: [Godot 4.4.1 headless import and core tests](https://github.com/kamandbeauty/Ideal/actions/runs/42406178554)
 
-Verified checks include:
-- Horizontal run detection, diagonal non-match, 2×2 square detection and board clone independence.
-- xorshift64* reference output, internal state and subsequent sequence values.
-- Dynamite area, rocket row/column, electro-ball most-common-color selection, super-electro-ball full clear and rocket pair cross.
-- Valid level structure, no automatic opening match, reproducible board generation and at least one legal move.
-- Goal progress, invalid swap rejection, no-match rejection and board restoration.
-- Accepted match swap, piece clearing, obstacle destruction and both goal progress types.
-- Four-piece rocket creation and mallet-triggered rocket column clear.
+The 75 passing checks cover:
+- Board and match detection, cloning, deterministic RNG sequence and board generation.
+- Power-up geometry, electro-ball target selection, super clear and rocket pair combo.
+- Goal progress, accepted/rejected swaps, obstacle damage, four-match rocket creation and mallet-triggered rocket.
+- Wallet, booster inventory, lives and refill timing.
+- Level run replay hash, stars, first-clear rewards, unlocks, task payments and chest claims.
+- Save JSON round-trip, v1 migration, corrupt-save fallback and backup restoration.
+- Loading all ten chapter-one levels, original art texture lookup and gameplay scene resource loading.
 
 ## Parity and correctness cautions
 
 - The current move resolver is a first translation of the inspected C# logic, not a certified behavior-equivalent implementation.
-- The port currently records move events as dictionaries rather than Unity event classes. Event names, positions, ordering, goal progress, counters and RNG state must be compared against the C# implementation.
-- Board refill and reshuffle order are deterministic contracts. Do not alter loop order or random call order casually.
-- The current CI validates scripts and selected deterministic cases; it does not compare the full C# and GDScript outputs.
-- No Android build, device test, or complete playable build has been produced.
+- The port currently records move events as dictionaries rather than Unity event classes. Event names, positions, ordering, goal progress, counters and RNG state must be compared against C#.
+- State-hash same-seed tests do not replace C# reference hashes for a corpus of known boards and runs.
+- All power-up pairings, obstacle layer edge cases, gravity-up cases, long cascades, reshuffle exhaustion and booster inventory edge cases still need shared fixtures.
+- The gameplay screen has passed script parsing and scene-resource loading, but has not yet been run on an Android device.
+- No Android APK/AAB or performance result exists yet.
 
 ## Next milestone
 
-1. Add shared C# → GDScript deterministic fixtures for all power-up types/pairs, obstacle layers, gravity directions, cascades, boosters and reshuffles.
-2. Port and test booster catalog/bag, wallet/economy, level-run state, progression, save data and server contract boundaries.
-3. Reconcile and import the project's original art, fonts and UI assets.
-4. Build the interactive native Godot board and Persian RTL screens.
-5. Add Android export templates, export presets, APK build and device-performance validation.
+1. Add a deterministic C# fixture export and compare exact board state, event order, counters, goals and RNG/hash outputs.
+2. Complete remaining power-up/booster, obstacle, gravity and cascade parity tests.
+3. Instantiate and exercise the gameplay scene in a Godot headless smoke test; then polish animations, selection feedback, win/lose panels and Persian RTL layout.
+4. Port district/home/shop/settings UI and wire SaveStore/Progression/Lives to all screens.
+5. Add Android export presets, build an APK, and test on representative Android devices.
