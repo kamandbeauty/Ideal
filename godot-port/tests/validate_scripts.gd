@@ -33,5 +33,5 @@ func _scan(path: String) -> void:
 			if script_resource == null or not script_resource is GDScript or not script_resource.can_instantiate():
 				push_error("GDScript failed to load: " + child_path)
 				_failures += 1
-	 entry = directory.get_next()
+		entry = directory.get_next()
 	directory.list_dir_end()
