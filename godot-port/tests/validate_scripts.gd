@@ -26,6 +26,7 @@ const SCRIPT_PATHS := [
 	"res://scripts/core/level_content_loader.gd",
 	"res://scripts/core/asset_catalog.gd",
 	"res://scripts/main.gd",
+	"res://scripts/gameplay_screen.gd",
 	"res://tests/test_core.gd"
 ]
 
