@@ -15,7 +15,7 @@ import os
 import sys
 from pathlib import Path
 
-VERSION_FILE_NAME = "editor_settings-4.4.tres"
+FILE_NAME = "editor_settings-4.tres"
 
 
 def main() -> int:
@@ -36,7 +36,7 @@ def main() -> int:
 
     settings_dir = home / ".config" / "godot"
     settings_dir.mkdir(parents=True, exist_ok=True)
-    path = settings_dir / VERSION_FILE_NAME
+    path = settings_dir / FILE_NAME
     path.write_text(
         '[gd_resource type="EditorSettings" format=3]\n'
         "\n"

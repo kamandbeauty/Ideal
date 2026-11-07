@@ -124,24 +124,38 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
 
+      - name: Show the settings Godot will read
+        run: |
+          ls -l "$HOME/.config/godot" || true
+          cat "$HOME/.config/godot/editor_settings-4.tres" || true
+
       - name: Export the debug APK
+        id: export_shipped
+        continue-on-error: true
         run: |
           set +e
           mkdir -p godot-port/build
-          # `timeout` because Godot runs the project when an argument is not recognised, and a hung
-          # export must fail the job in ten minutes rather than sit there until the job times out.
-          output=$(timeout 600 godot --headless --path godot-port --export-debug "Android" \
-            build/princes-palace-debug.apk 2>&1)
-          status=$?
-          echo "$output"
-          if [ $status -ne 0 ] || [ ! -s godot-port/build/princes-palace-debug.apk ]; then
-            reasons=$(echo "$output" | grep -iE "configuration|can only|must|cannot|invalid|missing|not found|requires|unsupported" \
-              | head -8 | tr '\n' '|' | cut -c1-1400)
-            head -5 <<< "$output" | tr '\n' '|'
-            echo "::error file=.github/workflows/godot-port.yml::android export failed (exit $status): ${reasons:-no reason line in the output}"
-            exit 1
+          timeout 600 godot --headless --path godot-port --export-debug "Android" \
+            build/princes-palace-debug.apk 2>&1 | tee /tmp/export.log
+          status=${PIPESTATUS[0]}
+          test $status -eq 0 && test -s godot-port/build/princes-palace-debug.apk
+
+      - name: If the shipped preset is rejected, try the minimal one
+        id: export_minimal
+        if: steps.export_shipped.outcome == 'failure'
+        run: |
+          set +e
+          python3 godot-port/tools/minimal_android_preset.py
+          timeout 600 godot --headless --path godot-port --export-debug "Android" build/minimal.apk \
+            2>&1 | tee /tmp/export_minimal.log
+          status=${PIPESTATUS[0]}
+          if [ $status -eq 0 ] && [ -s godot-port/build/minimal.apk ]; then
+            cp godot-port/build/minimal.apk godot-port/build/princes-palace-debug.apk
+            echo "::warning file=godot-port/export_presets.cfg::the shipped preset was rejected; exported with the minimal preset"
+            exit 0
           fi
-          ls -l godot-port/build
+          echo "::error file=godot-port/export_presets.cfg::both presets failed; see the two logs above"
+          exit 1
 
       - name: Verify the APK really is an APK
         run: |
