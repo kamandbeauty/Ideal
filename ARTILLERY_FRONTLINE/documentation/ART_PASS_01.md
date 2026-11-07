@@ -19,4 +19,4 @@ Chamfered receivers, riveted side plates, ejection ports, charging handles, hing
 - Camera offset retuned so muzzles sit in the lower aiming band and stay separated.
 
 ## Validation status
-Blender asset workflow and structural gate: passed. In-game software smoke and Android package rebuild: pending final CI on the committed GLB. No physical Android device QA is claimed.
+Blender asset workflow and structural gate: passed. Final main CI 42365207774: validate 244/0, coastal smoke 32/0, Android exports/signature checks passed. A final package refresh on the committed GLB is recorded in the delivery build status. No physical Android device QA is claimed.

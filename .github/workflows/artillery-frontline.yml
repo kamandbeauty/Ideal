@@ -1,4 +1,5 @@
 name: ARTILLERY FRONTLINE
+# Final package refresh for Blender art pass 01 (twin HMG UV PBR).
 on:
   push:
     branches: [arena/40ad7d87-ideal]
