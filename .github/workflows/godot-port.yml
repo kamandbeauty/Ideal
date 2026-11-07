@@ -121,6 +121,26 @@ jobs:
       - name: Point Godot's editor settings at the SDK and the debug key
         run: python3 godot-port/tools/write_editor_settings.py
 
+      # setup-godot installs the desktop templates; the Android ones are the reason an export fails with
+      # an empty "configuration errors" list, so make sure the official .tpz is unpacked where Godot
+      # looks for it, and publish the directory listing either way.
+      - name: Make sure the Android export templates are installed
+        run: |
+          set -euo pipefail
+          TEMPLATES="$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          if [ ! -f "$TEMPLATES/android_debug.apk" ]; then
+            echo "android_debug.apk missing — installing the official export templates"
+            mkdir -p "$TEMPLATES"
+            curl -sSfL -o /tmp/templates.tpz \
+              https://github.com/godotengine/godot-builds/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz
+            rm -rf /tmp/templates && mkdir -p /tmp/templates
+            unzip -q -o /tmp/templates.tpz -d /tmp/templates
+            cp /tmp/templates/templates/* "$TEMPLATES"/
+          fi
+          ls -l "$TEMPLATES" > /tmp/templates.txt
+          cat /tmp/templates.txt
+          test -f "$TEMPLATES/android_debug.apk"
+
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
 
