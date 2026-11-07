@@ -2,7 +2,7 @@ name: Author original Blender assets
 on:
   push:
     branches: [arena/40ad7d87-ideal]
-    paths: ['ARTILLERY_FRONTLINE/tools/create_models.py', 'ARTILLERY_FRONTLINE/tools/create_textures.py', '.github/workflows/artillery-assets.yml']
+    paths: ['ARTILLERY_FRONTLINE/tools/create_models.py', 'ARTILLERY_FRONTLINE/tools/create_textures.py', 'ARTILLERY_FRONTLINE/tools/render_weapon_studio.py', 'ARTILLERY_FRONTLINE/tools/verify_art_pass.py', '.github/workflows/artillery-assets.yml']
   workflow_dispatch:
 permissions:
   contents: write
