@@ -149,47 +149,37 @@ jobs:
           ls -l "$HOME/.config/godot" || true
           cat "$HOME/.config/godot/editor_settings-4.tres" || true
 
-      - name: Try the template export first (fast path)
+      - name: Export with the prebuilt template (fast path)
         id: export_template
         continue-on-error: true
         run: |
           set +e
           mkdir -p godot-port/build
-          timeout 180 godot --headless --path godot-port --export-debug "Android" \
+          timeout 240 godot --headless --path godot-port --export-debug "Android" \
             build/princes-palace-debug.apk > /tmp/template.log 2>&1
           echo "template export exit: $?"
           test -s godot-port/build/princes-palace-debug.apk
 
-      # Godot only honours a custom package id and explicit SDK levels through a Gradle build. That is
-      # the officially supported path for a shipping app, it is what the release build will use anyway,
-      # and it sidesteps the template exporter's empty "configuration errors" (known problem K1).
-      - name: Install the Android build template
+      # `--install-android-build-template` is a modifier for an export command, not a standalone
+      # action: it installs the Gradle tree and then exports in the same run. Gradle is also the only
+      # path that honours a custom package id and explicit SDK levels, which a store build needs.
+      - name: Export through a Gradle build
         if: steps.export_template.outcome == 'failure'
         run: |
-          set -euo pipefail
-          timeout 900 godot --headless --path godot-port --install-android-build-template
-          test -f godot-port/android/build/build.gradle
-          chmod +x godot-port/android/build/gradlew
+          set +e
           sed -i 's|gradle_build/use_gradle_build=false|gradle_build/use_gradle_build=true|' \
             godot-port/export_presets.cfg
           sed -i 's|gradle_build/min_sdk=""|gradle_build/min_sdk="23"|' godot-port/export_presets.cfg
           sed -i 's|gradle_build/target_sdk=""|gradle_build/target_sdk="34"|' godot-port/export_presets.cfg
-          grep -E "gradle_build|version/" godot-port/export_presets.cfg
-
-      - name: Export through Gradle
-        if: steps.export_template.outcome == 'failure'
-        run: |
-          set +e
-          timeout 1800 godot --headless --path godot-port --export-debug "Android" \
-            build/princes-palace-debug.apk > /tmp/gradle.log 2>&1
+          timeout 2400 godot --headless --path godot-port --install-android-build-template \
+            --export-debug "Android" build/princes-palace-debug.apk > /tmp/gradle.log 2>&1
           status=$?
           echo "gradle export exit: $status"
+          ls -l godot-port/build || true
           if [ $status -ne 0 ] || [ ! -s godot-port/build/princes-palace-debug.apk ]; then
-            python3 godot-port/tools/annotate_log.py /tmp/template.log godot-port/export_presets.cfg || true
             python3 godot-port/tools/annotate_log.py /tmp/gradle.log godot-port/export_presets.cfg || true
             exit 1
           fi
-          ls -l godot-port/build
 
       - name: Verify the APK really is an APK
         run: |
