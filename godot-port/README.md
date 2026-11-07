@@ -11,33 +11,36 @@ Independent Godot 4.x + GDScript client. The Unity project remains in `client/` 
 - Preserve Persian RTL, Persian numerals, product scope, and backend contracts.
 - Do not claim parity until matching deterministic tests pass.
 
-## Implemented source modules
+## Implemented
 
-- Godot project configuration and a minimal Persian-language app shell.
-- Shared numeric game enums matching the Unity core.
-- Board/cell model, cloning, ASCII fixtures and board inspection helpers.
-- Match detection for horizontal/vertical runs and 2×2 squares; clusters and power-up spawn selection.
-- Deterministic xorshift64* RNG represented as two 32-bit words to preserve unsigned 64-bit behavior in GDScript.
-- Level definition model and structural validation.
-- Goal progress tracking for piece and obstacle objectives.
-- Initial board generation, no-opening-match placement and deterministic reshuffle.
-- Power-up target shapes and combo targeting.
-- Move resolver for swaps, boosters, cascades, chained triggers, clears, obstacle damage, gravity, refill and settle/reshuffle.
-- Headless tests for match detection, RNG reference vectors, power-up targeting/combos, board generation, legal moves, goals, rejected/accepted swaps, obstacle damage, power-up creation and mallet-triggered rocket chains.
-- GitHub Actions workflow for Godot headless import, script loading validation and core tests.
+- Godot project configuration, Persian Vazir fonts and a native match-3 gameplay scene.
+- Imported all 85 original PNG art assets and both original Vazir font files into `godot-port/assets/`.
+- Imported all ten chapter-one level JSON files and the chapter district metadata.
+- Content loader maps JSON piece, goal, obstacle and gravity names to the Godot game model.
+- Asset catalog maps piece, power-up and obstacle enums to original textures.
+- Board/cell model, match detection, 2×2 squares, clusters and power-up spawn selection.
+- Deterministic xorshift64* RNG represented as two 32-bit words; C# reference sequence tests pass.
+- Level definition, board generation, goal tracking and power-up target/combo logic.
+- Move resolver for swaps, boosters, cascades, chained triggers, clears, obstacle damage, gravity, refill and settle.
+- Wallet, booster inventory, lives/refill clock, star rating, level run, replay hash and progression.
+- Versioned JSON save codec and local file store with temporary writes and backup recovery.
+- Native board UI with original background, piece, power-up and obstacle art; Persian goals/move labels and booster selection.
 
 ## Verification
 
 <badge color="success">Godot 4.4.1 headless CI passed</badge>
 
-- All 11 listed GDScript files loaded successfully.
-- Core test suite: 34 checks, 0 failures.
-- The xorshift64* sequence matches the C# reference vector for seed 1.
-- Board generation is reproducible for a fixed seed and starts without automatic matches.
-- A real swap creates a match, clears pieces, advances goals and damages an obstacle.
-- A four-piece match creates a rocket; using a mallet on a rocket triggers its column clear.
+Latest workflow: [Godot headless import and core tests](https://github.com/kamandbeauty/Ideal/actions/runs/42406178554)
 
-This confirms the tested core cases only. It does **not** yet prove full Unity/Godot event-by-event parity, all power-up pairings, full feature coverage, Android export, device performance, or a complete playable game.
+- All listed GDScript files loaded successfully.
+- Core suite: 75 checks, 0 failures.
+- Original chapter-one levels load and map correctly.
+- Imported piece, power-up and obstacle textures resolve in Godot.
+- Save round-trip, v1 migration and backup recovery tests pass.
+- Wallet, booster bag, lives, level progression, task completion and chest claims are covered.
+- Gameplay scene resource loads successfully.
+
+This verifies the selected headless cases only. Full Unity/Godot event-by-event parity, every power-up pairing, the complete visual experience, Android export, device performance, audio/animation/VFX and release readiness remain outstanding.
 
 Run tests locally from the repository root:
 
