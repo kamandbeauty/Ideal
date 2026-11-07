@@ -88,6 +88,8 @@ func _on_toggled(pressed: bool, key: String) -> void:
 		"haptics_on": session.save.haptics_on = pressed
 		"push_on": session.save.push_on = pressed
 	session.save_now()
+	if SoundDirector.instance != null:
+		SoundDirector.instance.apply_settings(session.save)
 
 func _on_back() -> void:
 	back_requested.emit()

@@ -79,6 +79,7 @@ func refresh() -> void:
 
 func _on_buy(kind: int) -> void:
 	if session.buy_booster(kind):
+		SoundDirector.play("reward")
 		_feedback.add_theme_color_override("font_color", UiTokens.SUCCESS)
 		_feedback.text = BoosterBag.booster_name(kind) + " خریداری شد"
 	else:

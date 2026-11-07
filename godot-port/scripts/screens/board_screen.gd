@@ -44,6 +44,8 @@ var _secondary: Button
 var _selected := Vector2i(-1, -1)
 var _booster_kind := -1
 var _finished := false
+var _hint_hand: TextureRect
+var _hint_move: Array[Vector2i] = []
 
 func build() -> void:
 	UiKit.backdrop(self, "board_backdrop_ch01")
@@ -87,6 +89,9 @@ func build() -> void:
 	_board.cell_tapped.connect(_on_cell_tapped)
 	_board.swipe_requested.connect(_on_swipe)
 
+	_hint_hand = UiKit.icon(self, "tutorial_hand", "tutorial_hand", 0.0, 0.0, 54.0, 54.0)
+	_hint_hand.visible = false
+
 	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_hint, 20.0, 552.0, UiTokens.CANVAS_WIDTH - 40.0, 22.0)
@@ -129,6 +134,7 @@ func start_level(level_to_play: int) -> bool:
 	_board.set_booster_mode(-1)
 	_board.setup(run, Vector2(UiTokens.CANVAS_WIDTH - BOARD_SIDE * 2.0, BOARD_HEIGHT))
 	refresh()
+	_maybe_teach()
 	return true
 
 func refresh() -> void:
@@ -189,6 +195,8 @@ static func _booster_icon(kind: int) -> String:
 func _on_cell_tapped(pos: Vector2i) -> void:
 	if run == null or run.status != GameTypes.LevelStatus.PLAYING or _board.is_busy():
 		return
+	_hide_hand()
+	SoundDirector.play("tap")
 	if _booster_kind >= 0:
 		_apply_booster(pos)
 		return
@@ -212,6 +220,7 @@ func _on_cell_tapped(pos: Vector2i) -> void:
 func _on_swipe(from: Vector2i, to: Vector2i) -> void:
 	if run == null or run.status != GameTypes.LevelStatus.PLAYING or _board.is_busy():
 		return
+	_hide_hand()
 	if _booster_kind >= 0:
 		return
 	_selected = Vector2i(-1, -1)
@@ -223,9 +232,15 @@ func _attempt_swap(from_pos: Vector2i, to_pos: Vector2i) -> void:
 	var result := run.try_swap(from_pos.x, from_pos.y, to_pos.x, to_pos.y)
 	if not bool(result.get("accepted", false)):
 		_hint.text = _reject_text(str(result.get("reject_reason", "")))
+		SoundDirector.play("reject")
 		await _board.animate_reject(from_pos, to_pos)
 		return
 	_hint.text = ""
+	SoundDirector.play("swap")
+	var cascades := int(result.get("cascades", 0))
+	SoundDirector.play("match" if cascades <= 1 else "cascade", 1.0 + 0.06 * float(mini(cascades, 5)))
+	if int(result.get("power_ups_created", 0)) > 0:
+		SoundDirector.play("power")
 	_swap_in_copy(before, from_pos, to_pos)
 	await _board.animate_swap(from_pos, to_pos)
 	await _board.play_result(before, result.get("events", []))
@@ -254,6 +269,7 @@ func _apply_booster(pos: Vector2i) -> void:
 		_hint.text = "این بوستر مصرف نشد"
 		return
 	_hint.text = ""
+	SoundDirector.play("power")
 	await _board.play_result(before, outcome["result"].get("events", []))
 	refresh()
 	_check_finished()
@@ -372,7 +388,60 @@ func _show_result(first_clear: bool, reward: RewardBundle) -> void:
 		_primary.text = "پایان فصل"
 	else:
 		_primary.text = "تلاش دوباره"
+	if won:
+		SoundDirector.play("win")
+		if first_clear and reward != null and not reward.is_empty:
+			Fx.coin_burst(_overlay_card, Vector2(OVERLAY_CARD_WIDTH * 0.5, 120.0))
+			SoundDirector.play("reward", 1.0, 2.0)
+	else:
+		SoundDirector.play("lose")
 	_overlay.visible = true
+
+## Level one, first attempt: point at a swap that exists on the board that was dealt.
+func _maybe_teach() -> void:
+	_hint_move.clear()
+	if _hint_hand == null or run == null or level_number != 1:
+		return
+	var record := session.save.find_level(1)
+	if record is Dictionary and int(record.get("plays", 0)) > 0:
+		return
+	var move := _find_hint_move()
+	if move.size() != 2:
+		return
+	_hint_move = [move[0], move[1]]
+	var from_center := _board.cell_center(move[0])
+	var to_center := _board.cell_center(move[1])
+	_hint_hand.position = from_center - Vector2(27.0, 27.0)
+	_hint_hand.visible = true
+	_hint.text = "برای شروع، این دو مهره را جابه‌جا کن"
+	var tween := _hint_hand.create_tween().set_loops()
+	tween.tween_property(_hint_hand, "position", to_center - Vector2(27.0, 27.0), 0.55) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_interval(0.25)
+	tween.tween_property(_hint_hand, "position", from_center - Vector2(27.0, 27.0), 0.55) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_interval(0.6)
+
+func _hide_hand() -> void:
+	if _hint_hand != null:
+		_hint_hand.visible = false
+		_hint_hand.modulate = Color(1, 1, 1, 1)
+
+## Returns the first adjacent pair whose swap creates a match, or an empty array.
+func _find_hint_move() -> Array[Vector2i]:
+	var board := run.board
+	for y in range(board.height):
+		for x in range(board.width):
+			for step in [Vector2i(1, 0), Vector2i(0, 1)]:
+				var target := Vector2i(x + step.x, y + step.y)
+				if not board.in_bounds(target.x, target.y):
+					continue
+				var trial := board.duplicate_board()
+				_swap_in_copy(trial, Vector2i(x, y), target)
+				if MatchFinder.has_match(trial):
+					var found: Array[Vector2i] = [Vector2i(x, y), target]
+					return found
+	return []
 
 func _on_primary() -> void:
 	_overlay.visible = false

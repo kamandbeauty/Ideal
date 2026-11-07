@@ -18,6 +18,8 @@ var districts: DistrictScreen
 var shop: ShopScreen
 var settings: SettingsScreen
 
+var sound: SoundDirector
+var _fade: ColorRect
 var _tick := 0.0
 var _current: UiScreen
 
@@ -71,11 +73,24 @@ func _boot() -> void:
 	settings.init_screen(session)
 	settings.back_requested.connect(_show_home)
 
+	sound = SoundDirector.new()
+	sound.name = "Sound"
+	add_child(sound)
+	sound.apply_settings(session.save)
+
 	# Added last so the strip draws above every screen.
 	top_bar = TopBar.new()
 	top_bar.name = "TopBar"
 	add_child(top_bar)
 	top_bar.build(session)
+
+	_fade = ColorRect.new()
+	_fade.name = "fade"
+	_fade.color = Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.0)
+	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_fade)
+	UiKit.stretch(_fade, 0.0, 0.0)
+	_fade.raise()
 
 	session.changed.connect(_refresh_all)
 	session.refresh_lives()
@@ -90,6 +105,16 @@ func _show_screen(target: UiScreen) -> void:
 	_current = target
 	target.refresh()
 	top_bar.refresh()
+	_fade_in()
+
+## A short dip to the background colour on every screen change: cheap, and it hides the pop of a
+## screen whose widgets are built the first time it is shown.
+func _fade_in() -> void:
+	if _fade == null:
+		return
+	_fade.color = Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.85)
+	var tween := create_tween()
+	tween.tween_property(_fade, "color:a", 0.0, UiTokens.MOTION_SCREEN)
 
 func _show_home() -> void:
 	board.clear()

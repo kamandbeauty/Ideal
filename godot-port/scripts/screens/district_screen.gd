@@ -152,6 +152,7 @@ func _on_task_pressed(district_index: int, task_index: int) -> void:
 	if task_index >= tasks.size():
 		return
 	if session.build_task(district, tasks[task_index]):
+		SoundDirector.play("reward")
 		session.notify_changed()
 		refresh()
 
@@ -166,6 +167,8 @@ func _on_chest_pressed(district_index: int) -> void:
 	if district_index >= session.districts.size():
 		return
 	if session.open_chest(session.districts[district_index]):
+		SoundDirector.play("reward", 1.15)
+		Fx.coin_burst(_cards[district_index], Vector2(_cards[district_index].size.x * 0.5, 40.0))
 		session.notify_changed()
 		refresh()
 

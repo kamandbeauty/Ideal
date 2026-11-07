@@ -67,6 +67,9 @@ func is_busy() -> bool:
 func position_for(pos: Vector2i) -> Vector2:
 	return grid_origin + Vector2(float(pos.x) * cell_size, float(pos.y) * cell_size)
 
+func cell_center(pos: Vector2i) -> Vector2:
+	return position_for(pos) + Vector2(cell_size, cell_size) * 0.5
+
 func cell_at(local_position: Vector2) -> Vector2i:
 	if run == null:
 		return Vector2i(-1, -1)
@@ -281,7 +284,7 @@ func play_result(before: BoardModel, events: Array) -> void:
 			continue
 		var pos = event.get("position", Vector2i(-1, -1))
 		if pos is Vector2i:
-			cleared[pos] = true
+			cleared[pos] = int(event.get("piece", GameTypes.PieceKind.NONE))
 
 	if not cleared.is_empty():
 		var tween := create_tween()
@@ -290,6 +293,8 @@ func play_result(before: BoardModel, events: Array) -> void:
 			var tile: Control = _tiles.get(pos)
 			if tile == null:
 				continue
+			Fx.spark(self, cell_center(pos), Fx.piece_tint(int(cleared[pos])), 8,
+				cell_size / 44.0)
 			tween.tween_property(tile, "scale", Vector2(0.2, 0.2), CLEAR_SECONDS)
 			tween.tween_property(tile, "modulate", Color(1, 1, 1, 0), CLEAR_SECONDS)
 		await tween.finished

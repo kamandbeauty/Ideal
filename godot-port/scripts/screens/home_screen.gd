@@ -108,6 +108,7 @@ func _stars_update(stars: int) -> void:
 		node.modulate = Color(1, 1, 1, 1) if index < stars else Color(0.35, 0.38, 0.45, 1.0)
 
 func _on_play() -> void:
+	SoundDirector.play("tap")
 	play_requested.emit()
 
 func _on_districts() -> void:

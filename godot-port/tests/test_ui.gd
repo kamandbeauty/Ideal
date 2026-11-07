@@ -130,5 +130,67 @@ func _run() -> void:
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(cleanup))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(directory))
 
+	print("UI STAGE 6: sound assets and the director")
+	for cue in SoundDirector.cue_names():
+		var cue_path: String = SoundDirector.CUE_PATHS[cue]
+		failures += _check(load(cue_path) is AudioStream, "cue '%s' loads as an AudioStream" % cue)
+	var music := load(SoundDirector.MUSIC_PATH)
+	failures += _check(music is AudioStreamWAV and music.get_length() > 20.0,
+		"the palace music loop is a real audio stream of at least twenty seconds")
+
+	var director := SoundDirector.new()
+	tree_root.add_child(director)
+	await process_frame
+	failures += _check(SoundDirector.instance == director, "the director registers itself for the static API")
+	failures += _check(director.has_cue("match") and director.has_cue("win") and director.has_cue("reject"),
+		"the director knows its cues")
+	director.apply_settings(session.save)
+	director.play_cue("match")
+	failures += _check(true, "playing a cue is safe under the headless audio driver")
+	director.sfx_enabled = false
+	director.play_cue("match")
+	failures += _check(true, "a muted cue is not an error")
+	director.queue_free()
+	await process_frame
+	failures += _check(SoundDirector.instance == null, "the director clears the static handle when it leaves")
+
+	print("UI STAGE 7: particles and the tutorial hand")
+	var fx_host := Control.new()
+	fx_host.name = "fx_host"
+	tree_root.add_child(fx_host)
+	Fx.spark(fx_host, Vector2(40.0, 40.0), UiTokens.ACCENT, 6)
+	Fx.coin_burst(fx_host, Vector2(40.0, 40.0), 6)
+	Fx.ring(fx_host, Vector2(40.0, 40.0), 60.0)
+	await process_frame
+	failures += _check(fx_host.get_child_count() >= 3, "sparks, coins and a ring attach to the host")
+	await create_timer(1.2).timeout
+	failures += _check(fx_host.get_child_count() == 0, "every effect frees itself")
+	fx_host.queue_free()
+	await process_frame
+
+	var tutorial_directory := "user://godot-tutorial-tests"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(tutorial_directory))
+	var tutorial_clock = Clock.new(1700000000)
+	var tutorial_save = Codec.new_save(tutorial_clock)
+	tutorial_save.level_number = 1
+	var tutorial_store = Store.new(tutorial_clock, tutorial_directory)
+	tutorial_store.save(tutorial_save)
+	var tutorial_errors: Array[String] = []
+	var tutorial_session = GameSession.load_session(tutorial_clock, tutorial_store, "ch01", tutorial_errors)
+	var tutorial_screen := BoardScreen.new()
+	tree_root.add_child(tutorial_screen)
+	tutorial_screen.init_screen(tutorial_session)
+	failures += _check(tutorial_screen.start_level(1), "the first level starts")
+	var hand := tutorial_screen.get_node_or_null("tutorial_hand") as TextureRect
+	failures += _check(hand != null and hand.visible, "a first-time player is shown a hand on a real swap")
+	failures += _check(hand != null and hand.texture != null, "the hand uses the shipped tutorial art")
+	tutorial_screen.queue_free()
+	await process_frame
+	for cleanup_name in ["shazdeh-save.json", "shazdeh-save.json.bak", "shazdeh-save.json.tmp"]:
+		var cleanup_file := tutorial_directory.path_join(cleanup_name)
+		if FileAccess.file_exists(cleanup_file):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(cleanup_file))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(tutorial_directory))
+
 	print("test_ui: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
