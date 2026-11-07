@@ -10,6 +10,17 @@ const SCRIPT_PATHS := [
 	"res://scripts/core/power_ups.gd",
 	"res://scripts/core/board_factory.gd",
 	"res://scripts/core/move_resolver.gd",
+	"res://scripts/core/save_data.gd",
+	"res://scripts/core/reward_bundle.gd",
+	"res://scripts/core/wallet.gd",
+	"res://scripts/core/booster_bag.gd",
+	"res://scripts/core/game_clock.gd",
+	"res://scripts/core/manual_clock.gd",
+	"res://scripts/core/lives.gd",
+	"res://scripts/core/star_rating.gd",
+	"res://scripts/core/state_hash.gd",
+	"res://scripts/core/level_run.gd",
+	"res://scripts/core/progression.gd",
 	"res://scripts/main.gd",
 	"res://tests/test_core.gd"
 ]
