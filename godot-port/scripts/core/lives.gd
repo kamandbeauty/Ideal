@@ -42,7 +42,7 @@ func refresh() -> int:
 	if _data.lives >= _data.max_lives:
 		_data.lives_updated_at_unix = _clock.now_unix()
 		return 0
-	var elapsed := _clock.now_unix() - _data.lives_updated_at_unix
+	var elapsed: int = _clock.now_unix() - _data.lives_updated_at_unix
 	if elapsed <= 0:
 		return 0
 	var gained := int(elapsed / REFILL_SECONDS)
