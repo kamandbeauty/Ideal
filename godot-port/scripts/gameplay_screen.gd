@@ -235,8 +235,10 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 			_refresh_board()
 			return
 		var booster_result := _run.use_booster(_selected_booster, pos.x, pos.y)
-		if not booster_result.accepted:
+		if not booster_result.accepted or not _booster_had_effect(booster_result):
 			_bag.grant(_selected_booster)
+			if booster_result.accepted:
+				_run.revert_last_booster(_selected_booster)
 		_selected_booster = -1
 		_store.save(_save)
 		_refresh_board()
@@ -273,3 +275,10 @@ func debug_cell_count() -> int:
 
 func debug_run_status() -> int:
 	return _run.status if _run != null else -1
+
+func _booster_had_effect(result: Dictionary) -> bool:
+	for event in result.events:
+		var event_type := str(event.get("type", ""))
+		if event_type in ["piece_cleared", "obstacle_hit", "power_up_triggered", "board_reshuffled"]:
+			return true
+	return false
