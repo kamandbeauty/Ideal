@@ -195,3 +195,50 @@ jobs:
           name: princes-palace-debug-apk
           path: godot-port/build/princes-palace-debug.apk
           if-no-files-found: error
+
+  export-diagnostic:
+    # Isolated probe: does *any* export work on this runner, and what does Godot's own CLI say about
+    # Android? It never gates anything — it exists so a refused Android export can be explained.
+    name: Export diagnostic
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.4.1 with templates
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.4.1
+          use-dotnet: false
+          include-templates: true
+
+      - name: Import project
+        run: godot --headless --editor --path godot-port --quit
+
+      - name: Record the CLI's Android options and the preset file as Godot sees it
+        run: |
+          set +e
+          godot --headless --help > /tmp/help.txt 2>&1
+          grep -iE "android|export" /tmp/help.txt > /tmp/help-android.txt
+          python3 godot-port/tools/annotate_log.py /tmp/help-android.txt .github/workflows/godot-port.yml || true
+          ls -l "$HOME/.local/share/godot/export_templates/4.4.1.stable/" > /tmp/templates.txt 2>&1
+          python3 godot-port/tools/annotate_log.py /tmp/templates.txt godot-port/export_presets.cfg || true
+
+      - name: Try a Linux export to prove the export machinery works
+        run: |
+          set +e
+          mkdir -p godot-port/build
+          timeout 300 godot --headless --path godot-port --export-debug "Linux" build/desktop.x86_64 \
+            > /tmp/linux.log 2>&1
+          echo "linux export exit: $?"
+          ls -l godot-port/build
+          python3 godot-port/tools/annotate_log.py /tmp/linux.log .github/workflows/godot-port.yml || true
+
+      - name: Try the Android export verbosely
+        run: |
+          set +e
+          timeout 300 godot --headless --verbose --path godot-port --export-debug "Android" \
+            build/probe.apk > /tmp/android.log 2>&1
+          echo "android export exit: $?"
+          python3 godot-port/tools/annotate_log.py /tmp/android.log godot-port/export_presets.cfg || true
