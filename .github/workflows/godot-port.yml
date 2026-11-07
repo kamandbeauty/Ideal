@@ -154,7 +154,9 @@ jobs:
             echo "::warning file=godot-port/export_presets.cfg::the shipped preset was rejected; exported with the minimal preset"
             exit 0
           fi
-          echo "::error file=godot-port/export_presets.cfg::both presets failed; see the two logs above"
+          echo "::error file=godot-port/export_presets.cfg::both presets failed"
+          python3 godot-port/tools/annotate_log.py /tmp/export.log godot-port/export_presets.cfg
+          python3 godot-port/tools/annotate_log.py /tmp/export_minimal.log godot-port/tools/minimal_android_preset.py
           exit 1
 
       - name: Verify the APK really is an APK
