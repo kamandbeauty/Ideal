@@ -291,3 +291,6 @@ func _booster_had_effect(result: Dictionary) -> bool:
 		if event_type in ["piece_cleared", "obstacle_hit", "power_up_triggered", "board_reshuffled"]:
 			return true
 	return false
+
+func debug_level_number() -> int:
+	return _level.number if _level != null else 0
