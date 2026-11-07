@@ -16,6 +16,7 @@ var _grid: GridContainer
 var _moves_label: Label
 var _goal_label: Label
 var _status_label: Label
+var _initial_status_message := ""
 var _booster_buttons: Array[Button] = []
 var _cell_buttons: Dictionary = {}
 
@@ -44,18 +45,15 @@ func _load_game_state() -> void:
 	_lives = Lives.new(_save, GameClock.new())
 
 	if _save.level_number > 10:
-		_status_label = Label.new()
-		_status_label.text = "فصلِ اوّل را کامل کرده‌ای؛ به‌زودی فصل بعدی می‌آید"
+		_initial_status_message = "فصلِ اوّل را کامل کرده‌ای؛ به‌زودی فصل بعدی می‌آید"
 		return
 	var content := LevelContentLoader.load_level(_save.level_number, "ch01")
 	if content.level == null or not content.errors.is_empty():
-		_status_label = Label.new()
-		_status_label.text = "بارگذاری مرحله ناموفق بود"
+		_initial_status_message = "بارگذاری مرحله ناموفق بود"
 		return
 	_level = content.level
 	if not _lives.try_spend():
-		_status_label = Label.new()
-		_status_label.text = "جان کافی برای شروع مرحله ندارید"
+		_initial_status_message = "جان کافی برای شروع مرحله ندارید"
 		return
 	_run = LevelRun.new(_level, 0, int(Time.get_unix_time_from_system()))
 	_store.save(_save)
@@ -140,8 +138,8 @@ func _build_ui() -> void:
 
 func _refresh_board() -> void:
 	if _run == null:
-		if _status_label != null and _status_label.text.is_empty():
-			_status_label.text = "مرحله آماده نشد"
+		if _status_label != null:
+			_status_label.text = _initial_status_message if not _initial_status_message.is_empty() else "مرحله آماده نشد"
 		return
 	_moves_label.text = "حرکت‌های باقی‌مانده: %d" % _run.moves_left
 	_goal_label.text = _build_goal_text()
