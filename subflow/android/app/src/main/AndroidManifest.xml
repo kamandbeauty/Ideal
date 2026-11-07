@@ -2,11 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!--
-      INTERNET exists for exactly one thing: fetching a Whisper model file when
-      the user taps "دریافت مدل". Nothing else in the app opens a socket - media
-      stays on the device and no audio, video, subtitle or project data is ever
-      uploaded. Keeping the permission next to that comment is deliberate: if a
-      future change starts sending media somewhere, it is visible here.
+      INTERNET has exactly two documented uses:
+
+      1. fetching a Whisper model file when the user taps "دریافت مدل";
+      2. the opt-in online provider, which uploads the extracted audio of one
+         project to the endpoint the user configured - only after the user
+         selects that provider and presses start.
+
+      Nothing else opens a socket. Video never leaves the device, and the
+      on-device engine uploads nothing at all. Keeping the permission next to
+      this comment is deliberate: if a future change starts sending more data
+      somewhere, it has to be written down here first.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
 

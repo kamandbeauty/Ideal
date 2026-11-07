@@ -64,4 +64,6 @@ class NativeMethods {
   static const String asrCatalog = 'asr.catalog';
   static const String asrDownloadModel = 'asr.downloadModel';
   static const String asrSelfTest = 'asr.selfTest';
+  static const String asrCloudTranscribe = 'asr.cloudTranscribe';
+  static const String asrCloudCheck = 'asr.cloudCheck';
 }

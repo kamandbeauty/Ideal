@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../core/constants.dart';
+import '../models/asr_provider.dart';
 
 /// One installed Whisper model (a ggml `.bin` copied into app storage).
 class AsrModel {
@@ -124,6 +125,15 @@ class AsrCapabilities {
       nativeError: '${map['nativeError'] ?? ''}',
     );
   }
+}
+
+/// Outcome of a credential check against an online service.
+class AsrCloudCheck {
+  const AsrCloudCheck({required this.ok, this.error = '', this.models = const <String>[]});
+
+  final bool ok;
+  final String error;
+  final List<String> models;
 }
 
 class AsrSegmentData {
@@ -307,6 +317,70 @@ class AsrService {
     );
     if (raw == null) return const <String, Object?>{};
     return raw.map((Object? key, Object? value) => MapEntry<String, Object?>('$key', value));
+  }
+
+  /// Uploads the project's audio to an OpenAI-compatible endpoint.
+  ///
+  /// The reply is normalised in Kotlin to the same JSON the native engine
+  /// returns, so [AsrResult] parses both without knowing the difference.
+  Future<AsrResult> transcribeCloud({
+    required String uri,
+    required AsrCloudConfig config,
+    required String language,
+    required int durationUs,
+    void Function(int value)? onProgress,
+  }) async {
+    StreamSubscription<dynamic>? subscription;
+    if (onProgress != null) {
+      subscription = _events.receiveBroadcastStream().listen((dynamic event) {
+        if (event is Map && event['event'] == 'cloud-progress') {
+          final Object? value = event['progress'];
+          if (value is num) onProgress(value.toInt());
+        }
+      });
+    }
+    try {
+      final String? payload = await _channel.invokeMethod<String>(
+        NativeMethods.asrCloudTranscribe,
+        <String, Object?>{
+          'uri': uri,
+          'baseUrl': config.baseUrl,
+          'apiKey': config.apiKey,
+          'model': config.model,
+          'language': language,
+          'durationUs': durationUs,
+        },
+      );
+      if (payload == null) return AsrResult.failure;
+      return AsrResult.fromJson(payload);
+    } on PlatformException catch (error) {
+      return AsrResult(ok: false, segments: const <AsrSegmentData>[], error: error.message);
+    } finally {
+      await subscription?.cancel();
+    }
+  }
+
+  /// Confirms that the URL and key work before a long upload is attempted.
+  Future<AsrCloudCheck> checkCloud(AsrCloudConfig config) async {
+    try {
+      final Map<Object?, Object?>? map = await _channel.invokeMapMethod<Object?, Object?>(
+        NativeMethods.asrCloudCheck,
+        <String, Object?>{'baseUrl': config.baseUrl, 'apiKey': config.apiKey},
+      );
+      if (map == null) return const AsrCloudCheck(ok: false, error: 'پاسخی دریافت نشد.');
+      final Object? models = map['models'];
+      return AsrCloudCheck(
+        ok: map['ok'] == true,
+        error: '${map['error'] ?? ''}',
+        models: models is List
+            ? models.map((Object? entry) => '$entry').toList(growable: false)
+            : const <String>[],
+      );
+    } on PlatformException catch (error) {
+      return AsrCloudCheck(ok: false, error: error.message ?? 'بررسی ناموفق بود.');
+    } on MissingPluginException {
+      return const AsrCloudCheck(ok: false, error: 'این نسخه از برنامه سرویس آنلاین را ندارد.');
+    }
   }
 
   Future<bool> deleteModel(String path) async {

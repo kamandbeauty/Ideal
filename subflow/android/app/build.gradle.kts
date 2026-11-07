@@ -36,8 +36,8 @@ android {
         // Android 8.0 / API 26 is the supported floor.
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "0.5.0"
+        versionCode = 9
+        versionName = "0.6.0"
 
         // ARM64 first; x86_64 is kept for the emulator only. 32-bit ARM is
         // deliberately excluded from Phase 1 because whisper.cpp models are

@@ -14,6 +14,7 @@ import '../database/dao/settings_dao.dart';
 import '../database/dao/subtitle_dao.dart';
 import '../features/subtitles/subtitle_document.dart';
 import '../features/subtitles/subtitle_editor_model.dart';
+import '../models/asr_provider.dart';
 import '../models/project.dart';
 import '../models/subtitle.dart';
 import '../models/subtitle_style.dart';
@@ -197,6 +198,44 @@ class AsrModelsController extends AsyncNotifier<List<AsrModel>> {
 
 final AsyncNotifierProvider<AsrModelsController, List<AsrModel>> asrModelsProvider =
     AsyncNotifierProvider<AsrModelsController, List<AsrModel>>(AsrModelsController.new);
+
+/// Where transcription happens: on the phone, or on an opt-in online service.
+final FutureProvider<AsrSettingsStore> asrSettingsStoreProvider =
+    FutureProvider<AsrSettingsStore>((Ref ref) async {
+  return AsrSettingsStore(await ref.watch(settingsDaoProvider.future));
+});
+
+final FutureProvider<AsrProviderMode> asrProviderModeProvider =
+    FutureProvider<AsrProviderMode>((Ref ref) async {
+  return (await ref.watch(asrSettingsStoreProvider.future)).mode();
+});
+
+final FutureProvider<AsrCloudConfig> asrCloudConfigProvider =
+    FutureProvider<AsrCloudConfig>((Ref ref) async {
+  return (await ref.watch(asrSettingsStoreProvider.future)).cloudConfig();
+});
+
+/// Writes the provider choice and credentials, then refreshes both readers.
+class AsrSettingsController {
+  const AsrSettingsController(this._ref);
+
+  final Ref _ref;
+
+  Future<void> setMode(AsrProviderMode mode) async {
+    final AsrSettingsStore store = await _ref.read(asrSettingsStoreProvider.future);
+    await store.setMode(mode);
+    _ref.invalidate(asrProviderModeProvider);
+  }
+
+  Future<void> saveCloud(AsrCloudConfig config) async {
+    final AsrSettingsStore store = await _ref.read(asrSettingsStoreProvider.future);
+    await store.saveCloudConfig(config);
+    _ref.invalidate(asrCloudConfigProvider);
+  }
+}
+
+final Provider<AsrSettingsController> asrSettingsControllerProvider =
+    Provider<AsrSettingsController>(AsrSettingsController.new);
 
 /// Models the app can fetch itself, with their installed state.
 final FutureProvider<List<AsrCatalogEntry>> asrCatalogProvider =

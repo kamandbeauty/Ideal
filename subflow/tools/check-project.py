@@ -273,12 +273,15 @@ for migration in manifest["migrations"]:
 # ------------------------------------------------------------- app manifest
 app_manifest = (ROOT / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
 # The product is offline: media, audio and subtitles never leave the device. The
-# single exception is the Whisper model downloader, which is user-initiated and
-# only fetches weights. That exception has to stay documented in the manifest and
-# must not drag in any other network-related permission.
+# exceptions are documented in the manifest: the Whisper model downloader (fetches
+# weights only) and the opt-in online transcription provider, which uploads the
+# audio of one project to an endpoint the user configured. Both have to stay
+# documented and must not drag in any other network-related permission.
 if "android.permission.INTERNET" in app_manifest:
     check("fetching a Whisper model" in app_manifest,
-          "INTERNET is only allowed for the documented Whisper model downloader")
+          "INTERNET is only allowed for the documented model downloader")
+    check("opt-in online provider" in app_manifest,
+          "the documented cloud provider exception must stay in the manifest")
     check("android.permission.ACCESS_NETWORK_STATE" not in app_manifest,
           "no extra network permissions: the downloader needs INTERNET only")
 else:

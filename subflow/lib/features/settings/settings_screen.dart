@@ -9,6 +9,7 @@ import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_card.dart';
 import '../../shared/widgets/sf_scaffold.dart';
 import '../../shared/widgets/stat_chip.dart';
+import 'asr_cloud_card.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -80,6 +81,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 14),
+          const AsrCloudCard(),
+          const SizedBox(height: 14),
           SfCard(
             child: SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
@@ -105,8 +108,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _StatusRow(implemented: true, label: 'پخش ویدئو با Media3 (فایل اصلی)'),
                 _StatusRow(implemented: true, label: 'موتور کیفیت خروجی و پلن رندر'),
                 _StatusRow(implemented: true, label: 'کدک SRT/ASS در هسته بومی'),
-                _StatusRow(implemented: false, label: 'تشخیص گفتار Whisper (فاز ۲)'),
-                _StatusRow(implemented: false, label: 'ویرایشگر زیرنویس و استایل (فاز ۳ و ۴)'),
+                _StatusRow(implemented: true, label: 'تشخیص گفتار Whisper: روی گوشی و آنلاین'),
+                _StatusRow(implemented: true, label: 'ویرایشگر زیرنویس و استایل'),
                 _StatusRow(implemented: false, label: 'واترمارک، افکت، رندر خروجی (فاز ۵ و ۶)'),
               ],
             ),

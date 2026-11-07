@@ -7,6 +7,7 @@ import '../../app/providers.dart';
 import '../../core/ids.dart';
 import '../../database/dao/subtitle_dao.dart';
 import '../../features/subtitles/subtitle_document.dart';
+import '../../models/asr_provider.dart';
 import '../../models/enums.dart';
 import '../../models/subtitle.dart';
 import '../../models/video_asset.dart';
@@ -41,6 +42,9 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   String? _downloadingId;
   AsrDownloadProgress? _download;
   bool _userCancelled = false;
+  AsrProviderMode _mode = AsrProviderMode.onDevice;
+  AsrCloudConfig _cloud = AsrCloudConfig.empty;
+  bool _modeLoaded = false;
 
   static const List<Map<String, String>> _languages = <Map<String, String>>[
     <String, String>{'code': 'auto', 'label': 'تشخیص خودکار'},
@@ -53,6 +57,10 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
     final AsyncValue<AsrCapabilities> capabilities = ref.watch(asrCapabilitiesProvider);
     final AsyncValue<List<AsrModel>> models = ref.watch(asrModelsProvider);
     final AsyncValue<ProjectDetail> detail = ref.watch(projectDetailProvider(widget.projectId));
+    final AsyncValue<AsrProviderMode> modeValue = ref.watch(asrProviderModeProvider);
+    final AsyncValue<AsrCloudConfig> cloudValue = ref.watch(asrCloudConfigProvider);
+    _mode = modeValue.valueOrNull ?? _mode;
+    _cloud = cloudValue.valueOrNull ?? _cloud;
 
     return SfScaffold(
       padded: false,
@@ -73,6 +81,13 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
         children: <Widget>[
+          _ProviderSwitch(
+            mode: _mode,
+            enabled: !_running && _downloadingId == null,
+            onChanged: _setMode,
+          ),
+          const SizedBox(height: 14),
+          if (_mode == AsrProviderMode.onDevice) ...<Widget>[
           _EngineCard(capabilities: capabilities),
           const SizedBox(height: 14),
           _SectionTitle(
@@ -132,7 +147,11 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
               );
             },
           ),
-          const SizedBox(height: 18),
+          ],
+          if (_mode == AsrProviderMode.cloud) ...<Widget>[
+            _CloudCard(config: _cloud, onOpenSettings: () => context.go('/settings')),
+            const SizedBox(height: 18),
+          ],
           const _SectionTitle(title: 'زبان گفتار'),
           const SizedBox(height: 8),
           Row(
@@ -170,21 +189,50 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
             progress: _progress,
             error: _error,
             detail: detail,
-            enabled: capabilities.valueOrNull?.available == true,
+            enabled: _mode == AsrProviderMode.cloud
+                ? _cloud.ready
+                : capabilities.valueOrNull?.available == true,
+            cloud: _mode == AsrProviderMode.cloud,
             onStart: _start,
             onCancel: _cancel,
           ),
           const SizedBox(height: 16),
-          const Text(
-            'مدلها فایل‌های ggml هستند و در خود برنامه نیستند: حجمشان از ۷۵ مگابایت '
-            '(tiny) تا چند گیگابایت است. برای فارسی، base یا small با کیفیت q5 بهترین '
-            'تعادل حجم و دقت روی گوشی است. همهٔ پردازش روی همین دستگاه انجام می‌شود و '
-            'هیچ صدایی جایی ارسال نمی‌شود.',
-            style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.9),
-          ),
+          if (_mode == AsrProviderMode.cloud)
+            const Text(
+              'صدا فقط برای همان درخواست به سرویس انتخابی فرستاده می‌شود و فایل موقت '
+              'بعد از پاسخ پاک می‌شود. کلید API در تنظیمات برنامه نگه داشته می‌شود و '
+              'به هیچ جای دیگری نمی‌رود.',
+              style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.9),
+            ),
+          if (_mode == AsrProviderMode.onDevice) ...<Widget>[
+            const Text(
+              'همهٔ پردازش روی همین دستگاه انجام می‌شود و هیچ صدایی جایی ارسال نمی‌شود. '
+              'برای فارسی، base یا small با کیفیت q5 بهترین تعادل حجم و دقت است.',
+              style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.9),
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: _running || _downloadingId != null ? null : _selfTest,
+                icon: const Icon(Icons.medical_information_outlined, size: 16),
+                label: const Text('تست کامل موتور (برای عیب‌یابی)'),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  Future<void> _setMode(AsrProviderMode mode) async {
+    if (mode == _mode) return;
+    setState(() {
+      _mode = mode;
+      _error = null;
+      _progress = 0;
+    });
+    await ref.read(asrSettingsControllerProvider).setMode(mode);
   }
 
   Future<void> _selfTest() async {
@@ -285,9 +333,15 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   }
 
   Future<void> _start() async {
+    final AsrProviderMode mode = _mode;
+    final AsrCloudConfig cloud = _cloud;
     final String? path = _selectedPath;
-    if (path == null) {
+    if (mode == AsrProviderMode.onDevice && path == null) {
       setState(() => _error = 'اول یک مدل Whisper اضافه کنید.');
+      return;
+    }
+    if (mode == AsrProviderMode.cloud && !cloud.ready) {
+      setState(() => _error = 'سرویس آنلاین تنظیم نشده است؛ در تنظیمات آدرس، مدل و کلید را وارد کنید.');
       return;
     }
     final ProjectDetail? project = ref.read(projectDetailProvider(widget.projectId)).valueOrNull;
@@ -302,15 +356,25 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
       _error = null;
     });
     final AsrService service = ref.read(asrServiceProvider);
-    final AsrResult result = await service.transcribe(
-      uri: asset.uri,
-      modelPath: path,
-      language: _language,
-      durationUs: asset.durationUs,
-      onProgress: (int value) {
-        if (mounted && _running) setState(() => _progress = value);
-      },
-    );
+    final AsrResult result = mode == AsrProviderMode.cloud
+        ? await service.transcribeCloud(
+            uri: asset.uri,
+            config: cloud,
+            language: _language,
+            durationUs: asset.durationUs,
+            onProgress: (int value) {
+              if (mounted && _running) setState(() => _progress = value);
+            },
+          )
+        : await service.transcribe(
+            uri: asset.uri,
+            modelPath: path!,
+            language: _language,
+            durationUs: asset.durationUs,
+            onProgress: (int value) {
+              if (mounted && _running) setState(() => _progress = value);
+            },
+          );
     if (!mounted) return;
     if (!result.ok) {
       setState(() {
@@ -617,6 +681,137 @@ class _ModelList extends StatelessWidget {
   }
 }
 
+/// "Where does the work happen" - the first decision on this screen.
+class _ProviderSwitch extends StatelessWidget {
+  const _ProviderSwitch({required this.mode, required this.enabled, required this.onChanged});
+
+  final AsrProviderMode mode;
+  final bool enabled;
+  final ValueChanged<AsrProviderMode> onChanged;
+
+  static const List<(AsrProviderMode, String, IconData)> _options =
+      <(AsrProviderMode, String, IconData)>[
+    (AsrProviderMode.onDevice, 'روی گوشی', Icons.smartphone_rounded),
+    (AsrProviderMode.cloud, 'آنلاین', Icons.cloud_outlined),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHigh,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.outline),
+      ),
+      child: Row(
+        children: <Widget>[
+          for (final option in _options)
+            Expanded(
+              child: GestureDetector(
+                onTap: enabled ? () => onChanged(option.$1) : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: option.$1 == mode ? AppColors.accentGradient : null,
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(
+                        option.$3,
+                        size: 15,
+                        color: option.$1 == mode ? Colors.white : AppColors.textMuted,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        option.$2,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: option.$1 == mode ? Colors.white : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Summary of the online service, with the one action that matters when it is
+/// not configured yet.
+class _CloudCard extends StatelessWidget {
+  const _CloudCard({required this.config, required this.onOpenSettings});
+
+  final AsrCloudConfig config;
+  final VoidCallback onOpenSettings;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool ready = config.ready;
+    return SfCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const Icon(
+                Icons.cloud_done_outlined,
+                size: 18,
+                color: AppColors.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                config.presetId == AsrCloudPreset.custom.id
+                    ? 'سرویس آنلاین'
+                    : 'سرویس ${AsrCloudPreset.byId(config.presetId).label}',
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: onOpenSettings,
+                child: const Text('تنظیمات'),
+              ),
+            ],
+          ),
+          if (ready) ...<Widget>[
+            const SizedBox(height: 4),
+            Text(
+              'مدل ${config.model} • ${config.host} • کلید ${config.maskedKey}',
+              style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, height: 1.9),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'زمان‌بندی جمله‌ها را همین سرویس می‌دهد؛ کیفیت زیرنویس فارسی با مدل‌های '
+              'بزرگ (large-v3) به‌طور محسوسی بهتر از مدل کوچک روی گوشی است.',
+              style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.9),
+            ),
+          ] else ...<Widget>[
+            const SizedBox(height: 6),
+            const Text(
+              'برای استفاده از Whisper آنلاین، آدرس سرویس و کلید API را در تنظیمات وارد '
+              'کنید. تا آن موقع دکمهٔ شروع فعال نمی‌شود.',
+              style: TextStyle(fontSize: 11.5, color: AppColors.warning, height: 1.9),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class _RunCard extends StatelessWidget {
   const _RunCard({
     required this.running,
@@ -624,6 +819,7 @@ class _RunCard extends StatelessWidget {
     required this.error,
     required this.detail,
     required this.enabled,
+    required this.cloud,
     required this.onStart,
     required this.onCancel,
   });
@@ -633,6 +829,7 @@ class _RunCard extends StatelessWidget {
   final String? error;
   final AsyncValue<ProjectDetail> detail;
   final bool enabled;
+  final bool cloud;
   final VoidCallback onStart;
   final Future<void> Function() onCancel;
 
@@ -673,10 +870,13 @@ class _RunCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            const Text(
-              'این کار روی گوشی انجام می‌شود؛ برای ویدئوی بلند چند دقیقه طول می‌کشد و '
-              'می‌توانید برنامه را باز بگذارید.',
-              style: TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.8),
+            Text(
+              cloud
+                  ? 'صدا در حال ارسال به سرویس آنلاین است؛ بسته به حجم ویدئو و سرعت '
+                      'اینترنت چند دقیقه طول می‌کشد.'
+                  : 'این کار روی گوشی انجام می‌شود؛ برای ویدئوی بلند چند دقیقه طول می‌کشد و '
+                      'می‌توانید برنامه را باز بگذارید.',
+              style: const TextStyle(fontSize: 11, color: AppColors.textMuted, height: 1.8),
             ),
           ] else ...<Widget>[
             if (error != null) ...<Widget>[

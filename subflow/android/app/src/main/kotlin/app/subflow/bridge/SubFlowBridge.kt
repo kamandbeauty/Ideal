@@ -7,6 +7,7 @@ import android.media.MediaCodecList
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import app.subflow.asr.CloudAsr
 import app.subflow.asr.WhisperEngine
 import app.subflow.core.NativeCore
 import app.subflow.media.MediaPicker
@@ -14,6 +15,7 @@ import app.subflow.media.VideoProbe
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The single native entry point for the app.
@@ -28,10 +30,17 @@ class SubFlowBridge(
     asrEvents: (Map<String, Any?>) -> Unit = {},
 ) : MethodChannel.MethodCallHandler {
 
+    private val emitAsr = asrEvents
     private val whisper = WhisperEngine(activity, asrEvents)
+    private val cloudCancelled = AtomicBoolean(false)
 
     private val io = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "subflow-bridge-io").apply { isDaemon = true }
+    }
+
+    /** Cloud uploads block on the network for minutes; never on the shared io thread. */
+    private val cloud = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "subflow-cloud-asr").apply { isDaemon = true }
     }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
@@ -52,6 +61,8 @@ class SubFlowBridge(
             BridgeContract.METHOD_ASR_CATALOG -> handleAsrCatalog(result)
             BridgeContract.METHOD_ASR_DOWNLOAD_MODEL -> handleAsrDownloadModel(call, result)
             BridgeContract.METHOD_ASR_SELF_TEST -> handleAsrSelfTest(call, result)
+            BridgeContract.METHOD_ASR_CLOUD_TRANSCRIBE -> handleCloudTranscribe(call, result)
+            BridgeContract.METHOD_ASR_CLOUD_CHECK -> handleCloudCheck(call, result)
             else -> result.notImplemented()
         }
     }
@@ -245,7 +256,54 @@ class SubFlowBridge(
         }
     }
 
+    /**
+     * Uploads the project's audio to an OpenAI-compatible endpoint. Slow and
+     * network-bound, so it runs on its own executor and the reply is the same
+     * JSON the native engine produces.
+     */
+    private fun handleCloudTranscribe(call: MethodCall, result: MethodChannel.Result) {
+        val uriString: String? = call.argument<String>("uri")
+        val baseUrl: String = call.argument<String>("baseUrl") ?: ""
+        val apiKey: String = call.argument<String>("apiKey") ?: ""
+        val model: String = call.argument<String>("model") ?: ""
+        val language: String = call.argument<String>("language") ?: "fa"
+        val durationUs: Long = (call.argument<Number>("durationUs") ?: 0).toLong()
+        if (uriString == null) {
+            result.success(
+                """{"ok":false,"error":"ویدئوی این پروژه پیدا نشد."}""",
+            )
+            return
+        }
+        cloudCancelled.set(false)
+        cloud.execute {
+            val json = CloudAsr.transcribe(
+                context = activity,
+                uri = Uri.parse(uriString),
+                durationUs = durationUs,
+                config = CloudAsr.Config(
+                    baseUrl = baseUrl,
+                    apiKey = apiKey,
+                    model = model,
+                    language = language,
+                ),
+                onProgress = { value -> emitAsr(mapOf("event" to "cloud-progress", "progress" to value)) },
+                isCancelled = { cloudCancelled.get() },
+            )
+            activity.runOnUiThread { result.success(json) }
+        }
+    }
+
+    private fun handleCloudCheck(call: MethodCall, result: MethodChannel.Result) {
+        val baseUrl: String = call.argument<String>("baseUrl") ?: ""
+        val apiKey: String = call.argument<String>("apiKey") ?: ""
+        cloud.execute {
+            val report = CloudAsr.check(baseUrl, apiKey)
+            activity.runOnUiThread { result.success(report) }
+        }
+    }
+
     private fun handleAsrCancel(result: MethodChannel.Result) {
+        cloudCancelled.set(true)
         Thread {
             whisper.cancel()
         }.start()
