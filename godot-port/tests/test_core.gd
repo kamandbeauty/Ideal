@@ -369,6 +369,54 @@ func _run() -> void:
 				failures += _check(not Finder.has_match(content_run.board), "%s seed %d move %d leaves no match" % [content_level.id, seed, move_index])
 				failures += _check(_is_board_full(content_run.board), "%s seed %d move %d leaves no empty cells" % [content_level.id, seed, move_index])
 
+
+	print("TEST STAGE 13: matcher shapes, clusters and spawn rules")
+	var vertical_board = Board.from_ascii(PackedStringArray(["F", "F", "F"]))
+	failures += _check(Finder.find_runs(vertical_board).size() == 1 and not Finder.find_runs(vertical_board)[0].horizontal, "detect a vertical run")
+	var long_run = Finder.find_runs(Board.from_ascii(PackedStringArray(["FFFFF"])))
+	failures += _check(long_run.size() == 1 and long_run[0].length == 5, "five pieces form one maximal run")
+	var stale_board = Board.from_ascii(PackedStringArray(["FLA", "LAF", "AFM"]))
+	failures += _check(not Finder.has_possible_move(stale_board), "detect a stale board with no legal swap")
+	var cross_runs: Array[Dictionary] = [
+		{"start": Vector2i(0, 1), "length": 3, "horizontal": true, "piece": GameTypes.PieceKind.AQIQ},
+		{"start": Vector2i(1, 0), "length": 3, "horizontal": false, "piece": GameTypes.PieceKind.AQIQ}
+	]
+	var cross_clusters = Finder.build_clusters(cross_runs)
+	failures += _check(cross_clusters.size() == 1 and cross_clusters[0].cells.size() == 5, "merge crossing runs into one five-cell cluster")
+	failures += _check(Finder.power_up_for(cross_clusters[0]) == GameTypes.PowerUpKind.DYNAMITE, "crossing cluster earns dynamite")
+	var four_runs: Array[Dictionary] = [{"start": Vector2i(0, 0), "length": 4, "horizontal": true, "piece": 3}]
+	var four_cluster = Finder.build_clusters(four_runs)[0]
+	failures += _check(Finder.power_up_for(four_cluster) == GameTypes.PowerUpKind.ROCKET_VERTICAL, "horizontal four earns vertical rocket")
+	failures += _check(Finder.choose_spawn_cell(four_cluster, Vector2i(3, 0), true) == Vector2i(3, 0), "power-up spawn prefers the player destination")
+	var five_runs: Array[Dictionary] = [{"start": Vector2i(0, 0), "length": 5, "horizontal": true, "piece": 4}]
+	failures += _check(Finder.power_up_for(Finder.build_clusters(five_runs)[0]) == GameTypes.PowerUpKind.ELECTRO_BALL, "five in a line earns electro ball")
+
+	print("TEST STAGE 14: edge-clipped power-up targets and obstacle layers")
+	var edge_targets: Array[Vector2i] = []
+	Powers.add_square(power_board, Vector2i(0, 0), 1, edge_targets)
+	failures += _check(edge_targets.size() == 4, "dynamite blast clips correctly at board corner")
+	var obstacle_board = Board.from_ascii(PackedStringArray(["AZMFL", "ZMFLA", "MFLAZ", "FLAZM", "LAZMF"]))
+	obstacle_board.at(1, 1).set_obstacle(GameTypes.ObstacleKind.FROST, 2)
+	var obstacle_level = Level.new()
+	obstacle_level.width = 5
+	obstacle_level.height = 5
+	obstacle_level.pieces = move_pieces
+	var obstacle_goals: Array[Dictionary] = [{"kind": GameTypes.GoalKind.CLEAR_OBSTACLE, "obstacle": GameTypes.ObstacleKind.FROST, "target": 2}]
+	obstacle_level.goals = obstacle_goals
+	var obstacle_tracker = Goals.new(obstacle_level.goals)
+	var obstacle_resolver = Resolver.new(obstacle_level, obstacle_board, Rng.new(0, 5), obstacle_tracker)
+	var first_frost_hit = obstacle_resolver.use_booster(GameTypes.BoosterKind.MALLET, Vector2i(1, 1))
+	failures += _check(first_frost_hit.accepted and obstacle_board.at(1, 1).obstacle_layers == 1, "first mallet hit removes one frost layer")
+	var second_frost_hit = obstacle_resolver.use_booster(GameTypes.BoosterKind.MALLET, Vector2i(1, 1))
+	failures += _check(second_frost_hit.accepted and not obstacle_board.at(1, 1).has_obstacle, "second mallet hit destroys two-layer frost")
+	failures += _check(obstacle_tracker.progress(0) == 2, "each obstacle layer advances the goal")
+
+	var whirlwind_board = Board.from_ascii(PackedStringArray(["AZMFL", "ZMFLA", "MFLAZ", "FLAZM", "LAZMF"]))
+	var whirlwind_resolver = Resolver.new(obstacle_level, whirlwind_board, Rng.new(0, 3), Goals.new(obstacle_level.goals))
+	var whirlwind_result = whirlwind_resolver.use_booster(GameTypes.BoosterKind.WHIRLWIND, Vector2i(2, 2))
+	failures += _check(whirlwind_result.accepted and whirlwind_result.pieces_cleared == 0, "whirlwind reshuffles without clearing pieces")
+	failures += _check(not Finder.has_match(whirlwind_board) and _is_board_full(whirlwind_board), "whirlwind leaves a full settled board")
+
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
 
