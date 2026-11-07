@@ -81,7 +81,7 @@ static func build(skeleton: Skeleton3D) -> PhysicalBoneSimulator3D:
 		if shape is CapsuleShape3D and not child_indices.is_empty():
 			var direction: Vector3 = skeleton.get_bone_rest(child_indices[0]).origin
 			if direction.length_squared() > 0.0001:
-				collision.rotation_quaternion = Quaternion(Vector3.UP, direction.normalized())
+				collision.quaternion = Quaternion(Vector3.UP, direction.normalized())
 		body.add_child(collision)
 		simulator.add_child(body)
 	simulator.active = true
