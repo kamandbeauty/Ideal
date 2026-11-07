@@ -263,6 +263,8 @@ func _run() -> void:
 	failures += _check(Catalog.power_up_texture(GameTypes.PowerUpKind.ROCKET_VERTICAL) != null, "original power-up art is available to Godot")
 	failures += _check(Catalog.obstacle_texture(GameTypes.ObstacleKind.CRATE) != null, "original obstacle art is available to Godot")
 
+	var gameplay_scene = ResourceLoader.load("res://scenes/gameplay_screen.tscn")
+	failures += _check(gameplay_scene is PackedScene, "load native gameplay screen scene")
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
 
