@@ -43,7 +43,11 @@ func _load_game_state() -> void:
 	_bag = BoosterBag.new(_save)
 	_lives = Lives.new(_save, GameClock.new())
 
-	var content := LevelContentLoader.load_level(1, "ch01")
+	if _save.level_number > 10:
+		_status_label = Label.new()
+		_status_label.text = "فصلِ اوّل را کامل کرده‌ای؛ به‌زودی فصل بعدی می‌آید"
+		return
+	var content := LevelContentLoader.load_level(_save.level_number, "ch01")
 	if content.level == null or not content.errors.is_empty():
 		_status_label = Label.new()
 		_status_label.text = "بارگذاری مرحله ناموفق بود"
@@ -91,7 +95,7 @@ func _build_ui() -> void:
 	back_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
 	header.add_child(back_button)
 	var title := Label.new()
-	title.text = "قصرِ شاهزاده"
+	title.text = "مرحلهٔ %d · قصرِ شاهزاده" % (_level.number if _level != null else 1)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_font_size_override("font_size", 34)
