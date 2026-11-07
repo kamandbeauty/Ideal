@@ -22,15 +22,47 @@ for mesh in doc["meshes"]:
 assert uv_primitives == len(doc["meshes"]), "Every weapon primitive must carry UV0"
 print("TRIANGLES", triangles, "UV_PRIMS", uv_primitives, "MESHES", len(doc["meshes"]))
 assert 8000 <= triangles <= 150000, f"Triangle budget out of range: {triangles}"
-positions = []
-for mesh in doc["meshes"]:
-    acc = doc["accessors"][mesh["primitives"][0]["attributes"]["POSITION"]]
-    positions.append((acc["min"], acc["max"]))
-lo = [min(p[0][i] for p in positions) for i in range(3)]
-hi = [max(p[1][i] for p in positions) for i in range(3)]
+def quat_matrix(q):
+    x, y, z, w = q
+    return [[1-2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w)],
+            [2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w)],
+            [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)]]
+
+def mul(a, b):
+    return [[sum(a[i][k]*b[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+
+def transform_point(m, t, p):
+    return [sum(m[i][k]*p[k] for k in range(3)) + t[i] for i in range(3)]
+
+world = {}
+def visit(index, parent_m, parent_t):
+    node = doc["nodes"][index]
+    r = quat_matrix(node.get("rotation", [0, 0, 0, 1]))
+    s = node.get("scale", [1, 1, 1])
+    m = mul(parent_m, [[r[i][j]*s[j] for j in range(3)] for i in range(3)])
+    t = transform_point(parent_m, parent_t, node.get("translation", [0, 0, 0]))
+    world[index] = (m, t)
+    for child in node.get("children", []):
+        visit(child, m, t)
+for root in doc["scenes"][doc.get("scene", 0)]["nodes"]:
+    visit(root, [[1,0,0],[0,1,0],[0,0,1]], [0,0,0])
+points = []
+for index, node in enumerate(doc["nodes"]):
+    if "mesh" not in node:
+        continue
+    m, t = world[index]
+    for prim in doc["meshes"][node["mesh"]]["primitives"]:
+        acc = doc["accessors"][prim["attributes"]["POSITION"]]
+        mn, mx = acc["min"], acc["max"]
+        for cx in (mn[0], mx[0]):
+            for cy in (mn[1], mx[1]):
+                for cz in (mn[2], mx[2]):
+                    points.append(transform_point(m, t, [cx, cy, cz]))
+lo = [min(p[i] for p in points) for i in range(3)]
+hi = [max(p[i] for p in points) for i in range(3)]
 span = [hi[i]-lo[i] for i in range(3)]
-print("LOCAL_BOUNDS_SPAN", span)
-assert span[0] < 2.0 and span[1] < 3.0 and span[2] < 2.0, f"Unexpected metre scale: {span}"
+print("WORLD_BOUNDS_SPAN", span)
+assert span[0] < 1.6 and span[1] < 2.6 and span[2] < 1.6, f"Unexpected metre scale: {span}"
 report = {"pass": "art-pass-01", "model": "mounted_twin_hmg", "triangles": triangles, "uv_primitives": uv_primitives, "meshes": len(doc["meshes"]), "materials": [m["name"] for m in doc["materials"]], "bounds_m": {"min": lo, "max": hi, "span": span}, "pivots": sorted(required), "source": "Original Blender construction; no proprietary reference assets"}
 out = ROOT / "documentation/art-pass-01.json"
 out.write_text(json.dumps(report, indent=2) + "\n")
