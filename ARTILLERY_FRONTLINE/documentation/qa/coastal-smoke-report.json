@@ -98,7 +98,7 @@
     },
     {
       "name": "rocket reaches and damages armor",
-      "passed": true
+      "passed": false
     },
     {
       "name": "bazooka weapon selectable",
@@ -133,15 +133,15 @@
       "passed": true
     }
   ],
-  "failures": 0,
+  "failures": 1,
   "kills": 0,
-  "passed": true,
+  "passed": false,
   "performance": {
-    "draw_calls": 338,
-    "fps": 13.7,
-    "frame_ms": 73.15,
-    "objects": 1912,
-    "primitives": 139949,
+    "draw_calls": 420,
+    "fps": 11.0,
+    "frame_ms": 91.22,
+    "objects": 1920,
+    "primitives": 151552,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
