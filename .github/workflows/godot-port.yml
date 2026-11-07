@@ -124,8 +124,16 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
 
-      # One export path, no fallbacks: if this fails the annotation below carries Godot's own words,
-      # which is worth more than a second speculative build that hides the first error.
+      # A custom package id and explicit SDK levels are only honoured by a Gradle build, which needs the
+      # Android build template inside the project. Installing it here keeps the repository free of a
+      # generated Gradle tree while still exporting the real thing.
+      - name: Install the Android build template
+        run: |
+          godot --headless --path godot-port --install-android-build-template
+          test -f godot-port/android/build/build.gradle
+          chmod +x godot-port/android/build/gradlew
+          ls godot-port/android/build | head
+
       - name: Export the debug APK
         run: |
           set +e
