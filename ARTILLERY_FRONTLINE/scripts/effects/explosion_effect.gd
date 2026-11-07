@@ -132,7 +132,7 @@ func _particles(name: String, amount: int, lifetime: float, ramp: GradientTextur
 	material.albedo_texture = puff_texture
 	if not emissive:
 		material.albedo_color = Color(0.42, 0.40, 0.37, 0.4) if name == "LayeredSmoke" else Color(0.62, 0.53, 0.38, 0.4)
-	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
 	if emissive:
 		material.albedo_color = Color(1.0, 0.62, 0.25, 0.9)
 		material.emission_enabled = true
@@ -170,7 +170,7 @@ func activate(point: Vector3, blast_radius: float, ground: float, quality_ratio:
 	_set_velocity(fire, 6.0 * effect_scale, 17.0 * effect_scale)
 	_set_velocity(smoke, 2.0 * effect_scale, 6.0 * effect_scale)
 	_set_velocity(dust, 8.0 * effect_scale, 19.0 * effect_scale)
-	dust.visible = not muzzle
+	dust.visible = not muzzle and quality_ratio > 0.75
 	shockwave.visible = not muzzle
 	shockwave.position = Vector3(0, ground - point.y + 0.2, 0)
 	shockwave.scale = Vector3.ONE * 0.1
