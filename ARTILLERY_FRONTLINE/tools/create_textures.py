@@ -285,15 +285,15 @@ def weapon_paint():
     size = 1024
     dents = fbm(size, 1210, 5, 1.9)
     dust = fbm(size, 1211, 4, 1.4)
-    chips = speckles(size, 1212, 70, 1.2, 1.0)
+    chips = speckles(size, 1212, 36, 1.1, 1.0)
     scratches = np.clip((periodic_noise(size, 1213, 1.1, 0.25) - 0.74) * 8.0, 0, 1)
     wear = np.clip(chips + scratches * 0.6, 0, 1)
     height = dents * 0.25 - wear * 0.3
-    albedo = np.array([62.0, 70.0, 48.0])[None, None, :] + ((dents - 0.5) * 12.0 + (dust - 0.5) * 8.0)[:, :, None]
-    albedo = albedo * (1.0 - wear[:, :, None] * 0.55) + wear[:, :, None] * np.array([70.0, 72.0, 68.0])
+    albedo = np.array([52.0, 58.0, 42.0])[None, None, :] + ((dents - 0.5) * 12.0 + (dust - 0.5) * 8.0)[:, :, None]
+    albedo = albedo * (1.0 - wear[:, :, None] * 0.55) + wear[:, :, None] * np.array([58.0, 60.0, 56.0])
     save_rgb("weapon_paint_albedo.jpg", albedo)
     save_normal("weapon_paint_normal.png", height, 2.0)
-    save_orm("weapon_paint_orm.png", 0.80 + 0.20 * dents, 0.62 + 0.22 * dust, 0.18 + wear * 0.55)
+    save_orm("weapon_paint_orm.png", 0.80 + 0.20 * dents, 0.70 + 0.18 * dust, 0.12 + wear * 0.40)
 
 
 def weapon_brass():

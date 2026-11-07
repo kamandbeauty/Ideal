@@ -101,11 +101,11 @@ area("Fill", (-3.6, -2.0, 2.4), 380, 3.0, (0, -0.4, 1.0), (0.78, 0.86, 1.0))
 area("Rim", (0.5, 3.6, 3.8), 650, 2.5, (0, 0, 1.1), (0.9, 0.95, 1.0))
 
 cam_data = bpy.data.cameras.new("StudioCamera")
-cam_data.lens = 50
+cam_data.lens = 45
 cam = bpy.data.objects.new("StudioCamera", cam_data)
 bpy.context.collection.objects.link(cam)
-cam.location = (2.75, -3.55, 2.30)
-direction = Vector((0, -0.58, 1.00)) - cam.location
+cam.location = (3.05, -4.05, 2.50)
+direction = Vector((0, -0.62, 1.00)) - cam.location
 cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
 bpy.context.scene.camera = cam
 

@@ -472,13 +472,13 @@ def mounted_twin_hmg():
             cyl('Cover hinge',(0,y,.005),.018,.21,'Weapon edge',cover,'X',12)
         box('Feed tray',(0,-.08,.095),(.16,.24,.018),'Weapon edge',recoil,.005)
         # Barrel, chamber, cooling rings and slotted muzzle brake.
-        cyl('Barrel chamber',(0,-.44,0),.043,.24,'Weapon steel',recoil,'Y',28)
-        cyl('Barrel',(0,-1.08,0),.026,1.08,'Weapon steel',recoil,'Y',28)
-        for i in range(7):cyl('Barrel ring',(0,-.60-i*.055,0),.034,.012,'Weapon edge',recoil,'Y',24)
-        cyl('Muzzle brake',(0,-1.68,0),.046,.16,'Weapon steel',recoil,'Y',28)
+        cyl('Barrel chamber',(0,-.44,0),.048,.24,'Weapon steel',recoil,'Y',28)
+        cyl('Barrel',(0,-1.08,0),.032,1.08,'Weapon steel',recoil,'Y',28)
+        for i in range(7):cyl('Barrel ring',(0,-.60-i*.055,0),.040,.012,'Weapon edge',recoil,'Y',24)
+        cyl('Muzzle brake',(0,-1.68,0),.052,.16,'Weapon steel',recoil,'Y',28)
         for ps in [-1,1]:
             box('Brake port',(ps*.043,-1.68,0),(.012,.09,.045),'Black bore',recoil,.003)
-        cyl('Bore',(0,-1.765,0),.020,.012,'Black bore',recoil,'Y',20)
+        cyl('Bore',(0,-1.765,0),.024,.012,'Black bore',recoil,'Y',20)
         empty('Muzzle'+side,(0,-1.79,0),recoil)
         # Sights: protected front post and rear aperture.
         box('Front sight base',(0,-1.50,.055),(.05,.06,.035),'Weapon steel',recoil,.006)
