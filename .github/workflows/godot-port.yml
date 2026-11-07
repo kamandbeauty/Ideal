@@ -6,14 +6,13 @@ on:
     paths:
       - "godot-port/**"
       - ".github/workflows/godot-port.yml"
-  pull_request:
-    branches: ["arena/d42cf39b-ideal"]
-    paths:
-      - "godot-port/**"
-      - ".github/workflows/godot-port.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: godot-port-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   core-tests:
