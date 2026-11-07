@@ -98,6 +98,12 @@ func run() -> void:
 	await get_tree().create_timer(2.2).timeout
 	check("reload completes", coastal.weapon.ammo == int(coastal.weapon.config().magazine))
 	var tank: EnemyVehicle = coastal.vehicles[0]
+	# Isolate the armor target: advancing infantry can otherwise intercept the
+	# rocket mid-flight, which tests crowd blocking rather than armor damage.
+	var soldier_layers: Array[int] = []
+	for unit in coastal.soldiers:
+		soldier_layers.append(unit.collision_layer)
+		unit.collision_layer = 0
 	coastal.aim_at(tank.global_position + Vector3.UP * 1.4)
 	await get_tree().create_timer(0.5).timeout
 	coastal.weapon.select("rocket")
@@ -105,6 +111,8 @@ func run() -> void:
 	check("rocket weapon selectable and fires", coastal.weapon.weapon_id == "rocket" and coastal.fire_once())
 	await get_tree().create_timer(2.0).timeout
 	check("rocket reaches and damages armor", tank.is_dead() or tank.health < tank.max_health)
+	for index in range(coastal.soldiers.size()):
+		coastal.soldiers[index].collision_layer = soldier_layers[index]
 	coastal.weapon.select("bazooka")
 	check("bazooka weapon selectable", coastal.weapon.weapon_id == "bazooka")
 	coastal.use_support("airstrike")

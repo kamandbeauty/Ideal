@@ -116,7 +116,6 @@ func _particles(name: String, amount: int, lifetime: float, ramp: GradientTextur
 	process.gravity = Vector3.ZERO
 	process.angular_velocity_min = -35.0
 	process.angular_velocity_max = 35.0
-	process.color_ramp = ramp
 	process.scale_min = 1.0
 	process.scale_max = 2.0
 	particles.process_material = process
@@ -129,10 +128,13 @@ func _particles(name: String, amount: int, lifetime: float, ramp: GradientTextur
 	material.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	material.billboard_keep_scale = true
-	material.vertex_color_use_as_albedo = true
+	material.vertex_color_use_as_albedo = false
 	material.albedo_texture = puff_texture
+	if not emissive:
+		material.albedo_color = Color(0.42, 0.40, 0.37, 0.4) if name == "LayeredSmoke" else Color(0.62, 0.53, 0.38, 0.4)
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	if emissive:
+		material.albedo_color = Color(1.0, 0.62, 0.25, 0.9)
 		material.emission_enabled = true
 		material.emission = Color(1.0, 0.35, 0.04)
 		material.emission_energy_multiplier = 2.0
@@ -162,7 +164,7 @@ func activate(point: Vector3, blast_radius: float, ground: float, quality_ratio:
 		particles.amount = maxi(4, int(base_amount * quality_ratio))
 		var process: ParticleProcessMaterial = particles.process_material as ParticleProcessMaterial
 		process.scale_min = (1.4 if particles == fire else 2.5) * effect_scale
-		process.scale_max = (3.8 if particles == fire else 6.0) * effect_scale
+		process.scale_max = (3.8 if particles == fire else (4.0 if particles == smoke else 5.0)) * minf(effect_scale, 1.2)
 		particles.restart()
 		particles.emitting = true
 	_set_velocity(fire, 6.0 * effect_scale, 17.0 * effect_scale)
@@ -185,6 +187,9 @@ func _process(delta: float) -> void:
 	if not active:
 		return
 	age += delta
+	(fire.material_override as StandardMaterial3D).albedo_color.a = 0.9 * maxf(0.0, 1.0 - age / 0.85)
+	(smoke.material_override as StandardMaterial3D).albedo_color.a = 0.42 * minf(age / 0.6, 1.0) * maxf(0.0, 1.0 - age / 5.2)
+	(dust.material_override as StandardMaterial3D).albedo_color.a = 0.4 * maxf(0.0, 1.0 - age / 2.3)
 	flash.light_energy = maxf(0.0, 18.0 * (1.0 - age / 0.28))
 	flash.visible = age < 0.28
 	if age < 0.65:
