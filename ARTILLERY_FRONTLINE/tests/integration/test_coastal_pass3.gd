@@ -74,6 +74,22 @@ func run(t: TestContext) -> void:
 	for index in range(30):
 		await t.tree.physics_frame
 	t.check(scene.player_health < player_health_before, "Enemy projectile damages the player only on real impact")
+	# Incoming fire must never paint decals/smoke onto the camera lens.
+	var shell_origin: Vector3 = scene.emplacement + Vector3(0, 1.2, -25)
+	var shell_velocity: Vector3 = (scene.emplacement + Vector3(0, 1.2, 0) - shell_origin).normalized() * 160.0
+	t.check(scene.bullets.launch(shell_origin, shell_velocity, 150.0, 5.0, 13), "Enemy blast shell launches at the player")
+	for index in range(40):
+		await t.tree.physics_frame
+	var lens_decal: bool = false
+	var lens_effect: bool = false
+	for crater in scene.effects.craters:
+		if crater.visible and crater.global_position.distance_to(scene.camera.global_position) < 4.0:
+			lens_decal = true
+	for effect in scene.effects.effects:
+		if effect.active and effect.global_position.distance_to(scene.camera.global_position) < 3.0:
+			lens_effect = true
+	t.check(not lens_decal, "Player impacts leave no persistent crater decal on the camera")
+	t.check(not lens_effect, "Player impacts spawn no smoke/fire effect on the camera lens")
 	# Camera-axis spread stays inside the configured cone at high pitch.
 	scene.pitch_target = 55.0
 	scene._process(0.2)

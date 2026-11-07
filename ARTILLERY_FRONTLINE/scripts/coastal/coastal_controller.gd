@@ -37,6 +37,7 @@ var support_charges: Dictionary = {"repair": 3, "airstrike": 2, "helicopter": 1,
 var airstrike_queue: Array[Dictionary] = []
 var support_flights: Array[Dictionary] = []
 var player_hitbox: StaticBody3D
+var camera_shake: float = 0.0
 var distant_clock: float = 0.0
 var auto_reload_delay: float = -1.0
 var emplacement := Vector3(0, 0, 58)
@@ -122,6 +123,7 @@ func start() -> void:
 	player_health = MAX_HEALTH
 	elapsed = 0.0
 	kills = 0
+	camera_shake = 0.0
 	support_charges = {"repair": 3, "airstrike": 2, "helicopter": 1, "airdrop": 2}
 	for id in support_timers:
 		support_timers[id] = 0.0
@@ -385,11 +387,17 @@ func _on_barrel_exploded(point: Vector3, radius: float) -> void:
 func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage: float, blast: float) -> void:
 	var killed: bool = false
 	if collider == player_hitbox:
+		# The hitbox surrounds the camera, so world-space decals/smoke here would
+		# stick to the lens. Feedback is the HUD damage flash + shake + sound;
+		# blast still splashes nearby hostiles without painting the screen.
 		_damage_player(damage)
 		if blast > 0.0:
-			_explode(point, normal, blast)
-		effects.explode(point, normal, 0.8, point.y, true)
-		Sound.play_at("impact", point, -10.0)
+			_explode_damage(point, blast)
+			camera_shake = maxf(camera_shake, 0.7)
+			Sound.play_at("explosion", point, -6.0)
+		else:
+			camera_shake = maxf(camera_shake, 0.28)
+			Sound.play_at("impact", point, -10.0)
 		return
 	if collider and collider.has_method("receive_damage") and damage > 0.0:
 		if collider is EnemySoldier:
@@ -410,6 +418,9 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 func _explode(point: Vector3, normal: Vector3, radius: float) -> void:
 	effects.explode(point, normal, radius, CoastalTerrain.height_at(point.x, point.z))
 	Sound.play_at("explosion", point, -4.0)
+	_explode_damage(point, radius)
+
+func _explode_damage(point: Vector3, radius: float, hurt_player: bool = true) -> void:
 	for soldier in soldiers:
 		if is_instance_valid(soldier) and not soldier.is_dead():
 			soldier.react_to_explosion(point, radius)
@@ -425,7 +436,7 @@ func _explode(point: Vector3, normal: Vector3, radius: float) -> void:
 	for barrel in battlefield.barrels:
 		if is_instance_valid(barrel) and not barrel.destroyed and barrel.global_position.distance_to(point) < radius * 1.4:
 			barrel.receive_damage(80.0)
-	if point.distance_to(emplacement) < radius * 0.8:
+	if hurt_player and point.distance_to(emplacement) < radius * 0.8:
 		_damage_player(120.0)
 
 func _damage_player(amount: float) -> void:
@@ -551,6 +562,14 @@ func _smooth_camera(delta: float) -> void:
 	aim_yaw.rotation.y = deg_to_rad(yaw_current)
 	aim_pitch.rotation.x = deg_to_rad(pitch_current)
 	camera.fov = lerpf(camera.fov, 30.0 if zoomed else 60.0, weight)
+	if camera_shake > 0.0:
+		camera_shake = maxf(0.0, camera_shake - delta * 2.4)
+		var amp: float = camera_shake * 0.05
+		camera.position = Vector3(randf_range(-amp, amp), randf_range(-amp, amp), 0.0)
+		camera.rotation.z = randf_range(-amp, amp) * 0.5
+	else:
+		camera.position = Vector3.ZERO
+		camera.rotation.z = 0.0
 
 func _state() -> Dictionary:
 	var bearing: float = 0.0
