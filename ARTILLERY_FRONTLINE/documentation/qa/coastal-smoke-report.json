@@ -9,11 +9,27 @@
       "passed": true
     },
     {
+      "name": "destructible tank present",
+      "passed": true
+    },
+    {
+      "name": "hostile aircraft present",
+      "passed": true
+    },
+    {
       "name": "landing craft present",
       "passed": true
     },
     {
       "name": "mobile HUD present",
+      "passed": true
+    },
+    {
+      "name": "weapon stays in lower foreground",
+      "passed": false
+    },
+    {
+      "name": "muzzles point away from camera",
       "passed": true
     },
     {
@@ -33,7 +49,11 @@
       "passed": true
     },
     {
-      "name": "manual fire works",
+      "name": "player position is fixed",
+      "passed": true
+    },
+    {
+      "name": "HUD fire button fires weapon",
       "passed": true
     },
     {
@@ -53,11 +73,23 @@
       "passed": true
     },
     {
-      "name": "rocket weapon selectable",
+      "name": "rocket weapon selectable and fires",
       "passed": true
     },
     {
-      "name": "explosion effects active",
+      "name": "rocket reaches and damages armor",
+      "passed": true
+    },
+    {
+      "name": "bazooka weapon selectable",
+      "passed": true
+    },
+    {
+      "name": "airstrike available in first round",
+      "passed": true
+    },
+    {
+      "name": "airstrike explosions active",
       "passed": true
     },
     {
@@ -65,23 +97,37 @@
       "passed": true
     },
     {
-      "name": "repair support functions",
+      "name": "repair works independently of airstrike cooldown",
+      "passed": false
+    },
+    {
+      "name": "mission results panel appears",
+      "passed": true
+    },
+    {
+      "name": "capture coastal-results",
       "passed": true
     }
   ],
-  "failures": 0,
+  "failures": 2,
   "kills": 0,
-  "passed": true,
+  "passed": false,
   "performance": {
-    "draw_calls": 276,
-    "fps": 18.0,
-    "frame_ms": 55.54,
-    "objects": 1244,
-    "primitives": 68540,
+    "draw_calls": 289,
+    "fps": 21.6,
+    "frame_ms": 46.34,
+    "objects": 1682,
+    "primitives": 93056,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
   },
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware",
-  "soldiers": 8
+  "soldiers": 8,
+  "weapon_screen_bounds": {
+    "h": 2861.046875,
+    "w": 4826.78369140625,
+    "x": -1414.2734375,
+    "y": 310.889526367188
+  }
 }
