@@ -46,6 +46,19 @@ func _run() -> void:
 	Powers.add_column(power_board, 3, column_targets)
 	failures += _check(column_targets.size() == 5, "rocket column target count")
 
+	print("TEST STAGE 3B: power-up target rules")
+	var mixed_board = Board.from_ascii(PackedStringArray(["FFFFF", "LLLLL", "FFLFL", "FLLFF", "LLFFF"]))
+	var all_targets: Array[Vector2i] = []
+	Powers.collect_targets(mixed_board, Vector2i(2, 2), GameTypes.PowerUpKind.SUPER_ELECTRO_BALL, Rng.new(0, 1), all_targets)
+	failures += _check(all_targets.size() == 25, "super electro ball targets every occupied cell")
+	var electro_targets: Array[Vector2i] = []
+	Powers.collect_targets(mixed_board, Vector2i(2, 2), GameTypes.PowerUpKind.ELECTRO_BALL, Rng.new(0, 1), electro_targets)
+	failures += _check(Powers.most_common_kind(mixed_board) == GameTypes.PieceKind.FIROUZEH, "electro ball selects most common piece kind")
+	failures += _check(electro_targets.size() == 15, "electro ball targets all pieces of the most common kind")
+	var combo_targets: Array[Vector2i] = []
+	Powers.collect_combo_targets(mixed_board, Vector2i(2, 2), GameTypes.PowerUpKind.ROCKET_VERTICAL, GameTypes.PowerUpKind.ROCKET_HORIZONTAL, Rng.new(0, 1), combo_targets)
+	failures += _check(combo_targets.size() == 9, "rocket pair combo clears one row and one column without duplicates")
+
 	print("TEST STAGE 4: deterministic opening board")
 	var level = Level.new()
 	level.width = 7
@@ -82,12 +95,23 @@ func _run() -> void:
 	failures += _check(not rejected_match.accepted and rejected_match.reject_reason == "no match", "reject swap that creates no match")
 	failures += _check(move_board.to_ascii() == before_rejected, "restore board after rejected swap")
 	var accepted_board = Board.from_ascii(PackedStringArray(["ALMZA", "ZFMAL", "FAFZA", "MLZAF", "AFZML"]))
-	var accepted_tracker = Goals.new(move_level.goals)
-	var accepted_resolver = Resolver.new(move_level, accepted_board, Rng.new(0, 7), accepted_tracker)
+	accepted_board.at(0, 2).set_obstacle(GameTypes.ObstacleKind.CRATE, 1)
+	var accepted_level = Level.new()
+	accepted_level.width = 5
+	accepted_level.height = 5
+	accepted_level.pieces = move_pieces
+	var accepted_goals: Array[Dictionary] = [
+		{"kind": GameTypes.GoalKind.CLEAR_PIECES, "piece": GameTypes.PieceKind.FIROUZEH, "target": 10},
+		{"kind": GameTypes.GoalKind.CLEAR_OBSTACLE, "obstacle": GameTypes.ObstacleKind.CRATE, "target": 1}
+	]
+	accepted_level.goals = accepted_goals
+	var accepted_tracker = Goals.new(accepted_level.goals)
+	var accepted_resolver = Resolver.new(accepted_level, accepted_board, Rng.new(0, 7), accepted_tracker)
 	var accepted_move = accepted_resolver.swap(Vector2i(1, 3), Vector2i(1, 2))
 	failures += _check(accepted_move.accepted, "accept swap that creates a three-piece match")
 	failures += _check(accepted_move.pieces_cleared >= 3, "clear matched pieces during accepted move")
-	failures += _check(accepted_tracker.progress(0) >= 3, "apply goal progress during accepted move")
+	failures += _check(accepted_tracker.progress(0) >= 3, "apply piece-goal progress during accepted move")
+	failures += _check(accepted_move.obstacles_destroyed == 1 and accepted_tracker.progress(1) == 1, "clear obstacle layer and advance obstacle goal")
 
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
