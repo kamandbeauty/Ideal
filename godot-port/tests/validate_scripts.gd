@@ -21,6 +21,8 @@ const SCRIPT_PATHS := [
 	"res://scripts/core/state_hash.gd",
 	"res://scripts/core/level_run.gd",
 	"res://scripts/core/progression.gd",
+	"res://scripts/core/save_codec.gd",
+	"res://scripts/core/save_store.gd",
 	"res://scripts/main.gd",
 	"res://tests/test_core.gd"
 ]
