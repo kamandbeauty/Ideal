@@ -20,6 +20,7 @@ const Codec = preload("res://scripts/core/save_codec.gd")
 const Store = preload("res://scripts/core/save_store.gd")
 const ContentLoader = preload("res://scripts/core/level_content_loader.gd")
 const Catalog = preload("res://scripts/core/asset_catalog.gd")
+const DistrictLoader = preload("res://scripts/core/district_content_loader.gd")
 
 func _initialize() -> void:
 	create_timer(20.0).timeout.connect(_on_timeout)
@@ -292,6 +293,17 @@ func _run() -> void:
 	failures += _check(loaded_level.level.id == "ch01-001" and loaded_level.level.width == 9 and loaded_level.level.pieces.size() == 5, "map level metadata and piece names")
 	var chapter = ContentLoader.load_chapter("ch01", 10)
 	failures += _check(chapter.levels.size() == 10 and chapter.errors.is_empty(), "load all ten chapter-one levels")
+
+	failures += _check(LevelValidator.validate(loaded_level.level).is_empty(), "first level passes full content validation")
+	failures += _check(LevelValidator.validate_catalog(chapter.levels).is_empty(), "chapter level catalog has unique ids and sequential numbers")
+	var district_content = DistrictLoader.load_chapter("ch01")
+	failures += _check(district_content.errors.is_empty() and district_content.districts.size() == 3, "load and validate all chapter-one districts")
+	var district_task_count := 0
+	for district in district_content.districts:
+		district_task_count += district.tasks.size()
+	failures += _check(district_task_count == 12, "map all twelve district build tasks")
+	failures += _check(district_content.districts[0].title == "میدانِ فیروزه", "preserve Persian district title")
+
 	failures += _check(Catalog.piece_texture(GameTypes.PieceKind.FIROUZEH) != null, "original piece art is available to Godot")
 	failures += _check(Catalog.power_up_texture(GameTypes.PowerUpKind.ROCKET_VERTICAL) != null, "original power-up art is available to Godot")
 	failures += _check(Catalog.obstacle_texture(GameTypes.ObstacleKind.CRATE) != null, "original obstacle art is available to Godot")
