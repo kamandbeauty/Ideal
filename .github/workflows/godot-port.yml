@@ -169,7 +169,7 @@ jobs:
           set +e
           sed -i 's|gradle_build/use_gradle_build=false|gradle_build/use_gradle_build=true|' \
             godot-port/export_presets.cfg
-          sed -i 's|gradle_build/min_sdk=""|gradle_build/min_sdk="23"|' godot-port/export_presets.cfg
+          sed -i 's|gradle_build/min_sdk=""|gradle_build/min_sdk="24"|' godot-port/export_presets.cfg
           sed -i 's|gradle_build/target_sdk=""|gradle_build/target_sdk="34"|' godot-port/export_presets.cfg
           timeout 2400 godot --headless --path godot-port --install-android-build-template \
             --export-debug "Android" build/princes-palace-debug.apk > /tmp/gradle.log 2>&1
