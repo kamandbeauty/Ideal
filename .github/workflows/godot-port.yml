@@ -237,6 +237,31 @@ jobs:
           ls -l godot-port/build
           python3 godot-port/tools/annotate_log.py /tmp/linux.log .github/workflows/godot-port.yml || true
 
+      - name: Narrow the Android failure to one stage
+        run: |
+          set +e
+          mkdir -p godot-port/build
+          # 1. pack only: no signing, no SDK, no keystore — does the preset validate at all?
+          timeout 300 godot --headless --path godot-port --export-pack "Android" build/game.pck \
+            > /tmp/pack.log 2>&1
+          echo "pack exit: $?" && ls -l godot-port/build/game.pck 2>/dev/null
+          python3 godot-port/tools/annotate_log.py /tmp/pack.log .github/workflows/godot-port.yml || true
+
+          # 2. unsigned APK: if this succeeds, signing is what refuses.
+          cp godot-port/export_presets.cfg /tmp/preset.bak
+          sed -i 's|package/signed=true|package/signed=false|' godot-port/export_presets.cfg
+          timeout 300 godot --headless --path godot-port --export-debug "Android" build/unsigned.apk \
+            > /tmp/unsigned.log 2>&1
+          echo "unsigned exit: $?" && ls -l godot-port/build/unsigned.apk 2>/dev/null
+          python3 godot-port/tools/annotate_log.py /tmp/unsigned.log .github/workflows/godot-port.yml || true
+
+          # 3. a release-mode export, in case only the debug path is broken.
+          cp /tmp/preset.bak godot-port/export_presets.cfg
+          timeout 300 godot --headless --path godot-port --export-release "Android" build/release.apk \
+            > /tmp/release.log 2>&1
+          echo "release exit: $?" && ls -l godot-port/build/release.apk 2>/dev/null
+          python3 godot-port/tools/annotate_log.py /tmp/release.log .github/workflows/godot-port.yml || true
+
       - name: Try the Android export verbosely
         run: |
           set +e
