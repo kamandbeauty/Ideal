@@ -3,6 +3,8 @@ extends Node3D
 ## Cheap distant activity that is not part of the kill counter: offshore patrol boat.
 var boat: Node3D
 var clock: float = 0.0
+var propellers: Array[Node3D] = []
+var radar: Node3D
 
 func _ready() -> void:
 	_build_boat()
@@ -15,6 +17,11 @@ func _build_boat() -> void:
 		var model: Node3D = load(path).instantiate()
 		boat.add_child(model)
 		MaterialLibrary.apply_to_model(model)
+		radar = model.find_child("Radar", true, false) as Node3D
+		for side in ["L", "R"]:
+			var prop: Node3D = model.find_child("Propeller" + side, true, false) as Node3D
+			if prop:
+				propellers.append(prop)
 	else:
 		MeshFactory.box(boat, "Hull", Vector3(0, 0.4, 0), Vector3(2.4, 1.0, 7.5), Color(0.35, 0.38, 0.36), true, "paint_sand")
 		MeshFactory.box(boat, "Cabin", Vector3(0, 1.2, 1.0), Vector3(1.6, 1.0, 2.0), Color(0.4, 0.42, 0.4), true, "paint_sand")
@@ -26,3 +33,8 @@ func tick(delta: float) -> void:
 		boat.position.x = 95.0 + sin(clock * 0.08) * 28.0
 		boat.position.y = 0.1 + sin(clock * 1.1) * 0.12
 		boat.rotation.z = sin(clock * 0.9) * 0.03
+		boat.rotation.x = sin(clock * 0.7) * 0.02
+	for prop in propellers:
+		prop.rotate_object_local(Vector3.FORWARD, delta * 22.0)
+	if radar:
+		radar.rotation.y += delta * 1.5

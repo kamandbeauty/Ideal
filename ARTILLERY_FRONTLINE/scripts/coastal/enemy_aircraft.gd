@@ -1,6 +1,7 @@
 class_name EnemyAircraft
 extends CharacterBody3D
-## Attack helicopter / fighter pass: a moving, shootable aerial threat.
+## Attack helicopter / fighter pass with spinning rotors, animated control
+## surfaces, afterburner, weapon pylons and a burning persistent crash wreck.
 signal died(aircraft: EnemyAircraft)
 signal damaged(aircraft: EnemyAircraft, ratio: float)
 signal shoot_requested(origin: Vector3, target: Vector3, damage: float, blast: float)
@@ -11,6 +12,11 @@ var max_health: float = 320.0
 var objective: Vector3 = Vector3.ZERO
 var model_root: Node3D
 var rotor: Node3D
+var tail_rotor: Node3D
+var ailerons: Array[Node3D] = []
+var elevators: Array[Node3D] = []
+var rudder: Node3D
+var afterburners: Array[Node3D] = []
 var collision: CollisionShape3D
 var dead: bool = false
 var clock: float = 0.0
@@ -20,6 +26,9 @@ var angular_speed: float = 0.16
 var phase: float = 0.0
 var shoot_cooldown: float = 3.0
 var crash_velocity: float = 0.0
+var crash_spin: float = 0.0
+var wrecked: bool = false
+var rotor_speed: float = 24.0
 
 func _ready() -> void:
 	collision_layer = 2
@@ -34,6 +43,7 @@ func _ready() -> void:
 	_build_model()
 
 func configure(target: Vector3, aircraft_kind: String = "helicopter", start_phase: float = 0.0) -> void:
+	var changed: bool = aircraft_kind != kind or model_root == null
 	kind = aircraft_kind
 	objective = target
 	phase = start_phase
@@ -49,6 +59,20 @@ func configure(target: Vector3, aircraft_kind: String = "helicopter", start_phas
 		angular_speed = 0.14
 	max_health = health
 	shoot_cooldown = randf_range(2.0, 4.0)
+	if changed and is_inside_tree():
+		if model_root:
+			model_root.queue_free()
+		model_root = null
+		rotor = null
+		tail_rotor = null
+		rudder = null
+		ailerons.clear()
+		elevators.clear()
+		afterburners.clear()
+		var shape := SphereShape3D.new()
+		shape.radius = 3.4 if kind == "helicopter" else 4.2
+		collision.shape = shape
+		_build_model()
 	_update_position(0.0)
 
 func _build_model() -> void:
@@ -58,6 +82,18 @@ func _build_model() -> void:
 		add_child(model_root)
 		MaterialLibrary.apply_to_model(model_root)
 		rotor = model_root.find_child("Rotor", true, false) as Node3D
+		tail_rotor = model_root.find_child("TailRotor", true, false) as Node3D
+		rudder = model_root.find_child("Rudder", true, false) as Node3D
+		for side in ["L", "R"]:
+			var aileron: Node3D = model_root.find_child("Aileron" + side, true, false) as Node3D
+			if aileron:
+				ailerons.append(aileron)
+			var elevator: Node3D = model_root.find_child("Elevator" + side, true, false) as Node3D
+			if elevator:
+				elevators.append(elevator)
+			var burner: Node3D = model_root.find_child("Afterburner" + side, true, false) as Node3D
+			if burner:
+				afterburners.append(burner)
 	if model_root == null:
 		model_root = Node3D.new()
 		add_child(model_root)
@@ -65,6 +101,7 @@ func _build_model() -> void:
 			MeshFactory.sphere(model_root, "Fuselage", Vector3.ZERO, Vector3(1.3, 1.1, 3.0), Color(0.28, 0.32, 0.26), "paint_olive")
 			MeshFactory.box(model_root, "Tail", Vector3(0, 0.3, 4.0), Vector3(0.3, 0.3, 4.5), Color(0.28, 0.32, 0.26), true, "paint_olive")
 			rotor = Node3D.new()
+			rotor.name = "Rotor"
 			rotor.position.y = 1.2
 			model_root.add_child(rotor)
 			MeshFactory.box(rotor, "BladeA", Vector3.ZERO, Vector3(8.5, 0.05, 0.25), Color(0.1, 0.11, 0.1), false, "steel")
@@ -97,6 +134,7 @@ func _die() -> void:
 	collision_layer = 0
 	collision.set_deferred("disabled", true)
 	crash_velocity = -6.0
+	crash_spin = randf_range(0.8, 1.8) * (1.0 if randf() > 0.5 else -1.0)
 	died.emit(self)
 
 func _update_position(delta: float) -> void:
@@ -108,18 +146,55 @@ func _update_position(delta: float) -> void:
 	if forward.length_squared() > 0.001:
 		rotation.y = atan2(forward.x, forward.z)
 		rotation.z = sin(angle) * 0.18
+		rotation.x = clampf(forward.y * 0.08, -0.12, 0.12)
+
+func _animate_flight(delta: float) -> void:
+	if kind == "helicopter":
+		rotor_speed = lerpf(rotor_speed, 24.0, delta * 2.0)
+		if rotor:
+			rotor.rotation.y += delta * rotor_speed
+		if tail_rotor:
+			tail_rotor.rotation.x += delta * rotor_speed * 4.5
+		if model_root:
+			model_root.position.y = sin(clock * 2.1) * 0.05
+	else:
+		if rotor:
+			rotor.rotation.y += delta * 30.0
+		var bank: float = rotation.z
+		for index in range(ailerons.size()):
+			var sign_value: float = 1.0 if index == 0 else -1.0
+			ailerons[index].rotation.x = bank * 1.6 * sign_value
+		for elevator in elevators:
+			elevator.rotation.x = -rotation.x * 1.2 + sin(clock * 0.9) * 0.03
+		if rudder:
+			rudder.rotation.y = -bank * 0.8
+		var burner_scale: float = 0.85 + sin(clock * 37.0) * 0.12
+		for burner in afterburners:
+			burner.scale = Vector3(1.0, burner_scale, 1.0)
 
 func _physics_process(delta: float) -> void:
 	if dead:
+		if wrecked:
+			return
+		rotor_speed = maxf(0.0, rotor_speed - delta * 10.0)
+		if rotor:
+			rotor.rotation.y += delta * rotor_speed
+		if tail_rotor:
+			tail_rotor.rotation.x += delta * rotor_speed * 3.0
 		crash_velocity -= 18.0 * delta
 		global_position.y += crash_velocity * delta
-		rotation.x += delta * 1.4
-		if global_position.y < CoastalTerrain.height_at(global_position.x, global_position.z) + 0.5:
-			queue_free()
+		rotation.x += delta * crash_spin
+		rotation.z += delta * crash_spin * 0.6
+		var ground: float = CoastalTerrain.height_at(global_position.x, global_position.z)
+		if global_position.y <= ground + 0.6:
+			global_position.y = ground + 0.6
+			wrecked = true
+			rotation.x = randf_range(-0.25, 0.25)
+			rotation.z = randf_range(-0.35, 0.35)
+			set_physics_process(false)
 		return
 	_update_position(delta)
-	if rotor:
-		rotor.rotation.y += delta * 24.0
+	_animate_flight(delta)
 	shoot_cooldown -= delta
 	if shoot_cooldown <= 0.0:
 		shoot_cooldown = 3.2 if kind == "helicopter" else 5.0

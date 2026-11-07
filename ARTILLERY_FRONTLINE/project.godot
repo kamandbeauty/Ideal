@@ -61,6 +61,8 @@ import/blender/enabled=false
 3d_physics/layer_1="Terrain and structures"
 3d_physics/layer_2="Enemy targets"
 3d_physics/layer_3="Destructible cover"
+3d_physics/layer_4="Player emplacement"
+3d_physics/layer_5="Persistent corpses"
 
 [debug]
 gdscript/warnings/untyped_declaration=0

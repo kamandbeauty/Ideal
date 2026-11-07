@@ -93,3 +93,36 @@ for name in ["mounted_cannon", "mounted_rocket", "mounted_autocannon", "bazooka"
     report2["models"][name] = {"triangles": tris}
 (ROOT / "documentation/art-pass-02.json").write_text(json.dumps(report2, indent=2) + "\n")
 print(json.dumps(report2))
+
+# Art pass 03: real skinning, organic infantry, and articulated war machines.
+assert soldier.get("skins"), "Soldier must export a glTF skin"
+skin = soldier["skins"][0]
+assert len(skin["joints"]) >= 11, "Soldier skeleton needs anatomical joints"
+assert "inverseBindMatrices" in skin, "Skin missing inverse bind matrices"
+skinned_prims = [p for m in soldier["meshes"] for p in m["primitives"] if "JOINTS_0" in p["attributes"]]
+assert skinned_prims, "Soldier has no skinned primitives"
+for prim in skinned_prims:
+    assert "WEIGHTS_0" in prim["attributes"], "Skinned primitive missing weights"
+    joints_acc = soldier["accessors"][prim["attributes"]["JOINTS_0"]]
+    weights_acc = soldier["accessors"][prim["attributes"]["WEIGHTS_0"]]
+    assert joints_acc["componentType"] == 5123 and joints_acc["type"] == "VEC4"
+    assert weights_acc["type"] == "VEC4"
+report3 = {"pass": "art-pass-03", "soldier": {"skinned_primitives": len(skinned_prims), "joints": len(skin["joints"]), "triangles": stris}, "machines": {}}
+machine_pivots = {
+    "warden": {"Turret", "BarrelPivot", "RecoilAssembly", "Muzzle", "WheelL0", "WheelR0"},
+    "nomad": {"Turret", "BarrelPivot", "RecoilAssembly", "Muzzle", "WheelL0", "WheelR0"},
+    "helicopter": {"Rotor", "TailRotor"},
+    "fighter": {"AileronL", "AileronR", "ElevatorL", "ElevatorR", "Rudder", "AfterburnerL", "AfterburnerR"},
+    "landing_craft": {"Ramp", "Radar", "PropellerL", "PropellerR"},
+    "patrol_boat": {"Radar", "PropellerL", "PropellerR", "BarrelPivot", "Muzzle"},
+}
+for name, required_pivots in machine_pivots.items():
+    doc = read_glb(ROOT / f"assets/models/{name}.glb")
+    nodes = {n.get("name", "") for n in doc["nodes"]}
+    missing = required_pivots - nodes
+    assert not missing, f"{name} missing animation pivots: {missing}"
+    tris = sum(doc["accessors"][p["indices"]]["count"] // 3 for m in doc["meshes"] for p in m["primitives"])
+    assert 1500 <= tris <= 150000, f"{name} triangle budget: {tris}"
+    report3["machines"][name] = {"triangles": tris, "pivots": sorted(required_pivots)}
+(ROOT / "documentation/art-pass-03.json").write_text(json.dumps(report3, indent=2) + "\n")
+print(json.dumps(report3))

@@ -63,8 +63,20 @@ class HudIcon extends Control:
 
 class Crosshair extends Control:
 	var hot: bool = false
+	var hit_timer: float = 0.0
+	var kill_timer: float = 0.0
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
+	func _process(delta: float) -> void:
+		if hit_timer > 0.0 or kill_timer > 0.0:
+			hit_timer = maxf(0.0, hit_timer - delta)
+			kill_timer = maxf(0.0, kill_timer - delta)
+			queue_redraw()
+	func confirm_hit(killed: bool) -> void:
+		hit_timer = 0.18
+		if killed:
+			kill_timer = 0.45
+		queue_redraw()
 	func _draw() -> void:
 		var c: Vector2 = size * 0.5
 		var color: Color = Color(0.55, 0.95, 0.5) if hot else Color(0.9, 0.95, 0.85, 0.85)
@@ -72,6 +84,12 @@ class Crosshair extends Control:
 		for dir in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
 			draw_line(c + dir * 20.0, c + dir * 32.0, color, 2.5, true)
 		draw_circle(c, 2.0, color)
+		if hit_timer > 0.0:
+			var alpha: float = clampf(hit_timer / 0.18, 0.0, 1.0)
+			var hit_color: Color = Color(1.0, 0.32, 0.22, alpha) if kill_timer > 0.0 else Color(1.0, 0.95, 0.75, alpha)
+			var radius: float = 12.0 if kill_timer > 0.0 else 9.0
+			for dir in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
+				draw_line(c + dir.normalized() * 6.0, c + dir.normalized() * radius, hit_color, 3.0, true)
 
 var root: Control
 var mission_label: Label
@@ -454,6 +472,11 @@ func show_result(success: bool, stats: Dictionary) -> void:
 	result_panel.visible = true
 	result_title.text = "BEACHHEAD HELD" if success else "EMPLACEMENT LOST"
 	result_body.text = "Rounds survived: %d\nEnemies neutralized: %d\nTime: %.1fs" % [int(stats.get("round", 1)), int(stats.get("kills", 0)), float(stats.get("time", 0.0))]
+
+func confirm_hit(killed: bool) -> void:
+	if crosshair:
+		crosshair.confirm_hit(killed)
+	Sound.play_ui("click" if not killed else "reload")
 
 func flash_damage() -> void:
 	if damage_overlay == null:

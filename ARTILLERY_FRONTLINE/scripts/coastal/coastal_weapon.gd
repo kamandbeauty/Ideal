@@ -242,10 +242,9 @@ func try_fire() -> bool:
 	var muzzle: Node3D = muzzles[barrel_index]
 	muzzle_index += 1
 	var origin: Vector3 = muzzle.global_position
+	# Spread is applied exactly once by the controller, in camera axes, after
+	# muzzle-to-crosshair convergence. Keep the raw bore direction here.
 	var direction: Vector3 = -global_transform.basis.z
-	var spread: float = deg_to_rad(float(data.spread))
-	direction = direction.rotated(Vector3.UP, rng.randf_range(-spread, spread))
-	direction = direction.rotated(Vector3.RIGHT, rng.randf_range(-spread, spread)).normalized()
 	var kick: float = 5.5 if float(data.blast) > 0.0 else 2.6
 	if not recoil_velocities.is_empty():
 		recoil_velocities[barrel_index % recoil_velocities.size()] += kick

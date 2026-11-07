@@ -16,6 +16,8 @@ var trail_instance: MeshInstance3D
 var trail_points := PackedVector3Array()
 var rocket_root: Node3D
 var trail_material: StandardMaterial3D
+var hit_mask: int = 7
+var excluded_rids: Array[RID] = []
 
 func _ready() -> void:
 	visual = MeshInstance3D.new()
@@ -73,7 +75,9 @@ func _ready() -> void:
 	add_child(trail_instance)
 	deactivate()
 
-func launch(origin: Vector3, initial_velocity: Vector3, hit_damage: float, blast_radius: float) -> void:
+func launch(origin: Vector3, initial_velocity: Vector3, hit_damage: float, blast_radius: float, collision_mask: int = 7, exclude: Array[RID] = []) -> void:
+	hit_mask = collision_mask
+	excluded_rids = exclude
 	global_position = origin
 	velocity = initial_velocity
 	damage = hit_damage
@@ -107,9 +111,10 @@ func _physics_process(delta: float) -> void:
 	if blast > 0.0:
 		velocity.y -= 2.2 * delta
 	var next: Vector3 = global_position + velocity * delta
-	var query := PhysicsRayQueryParameters3D.create(global_position, next, 7)
+	var query := PhysicsRayQueryParameters3D.create(global_position, next, hit_mask)
 	query.collide_with_areas = false
 	query.collide_with_bodies = true
+	query.exclude = excluded_rids
 	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	age += delta
 	if not hit.is_empty():

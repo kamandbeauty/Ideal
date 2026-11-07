@@ -19,7 +19,7 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends blender
       - name: Author and export original models
         run: |
-          blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py -- --only soldier,mounted_cannon,mounted_rocket,mounted_autocannon,bazooka > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
+          blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py -- --only soldier,warden,nomad,helicopter,fighter,landing_craft,patrol_boat,kestrel,mounted_twin_hmg,mounted_cannon,mounted_rocket,mounted_autocannon,bazooka > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
           if grep -q 'Traceback (most recent call last)' /tmp/blender.log; then tail -80 /tmp/blender.log; exit 1; fi
       - name: Author original seamless PBR textures
         run: |
@@ -68,7 +68,7 @@ jobs:
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
           touch ARTILLERY_FRONTLINE/assets/models/source/.gdignore
-          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: Blender art pass 02 infantry, remaining weapons and PBR surfaces' ARTILLERY_FRONTLINE/assets/models/soldier.glb ARTILLERY_FRONTLINE/assets/models/mounted_cannon.glb ARTILLERY_FRONTLINE/assets/models/mounted_rocket.glb ARTILLERY_FRONTLINE/assets/models/mounted_autocannon.glb ARTILLERY_FRONTLINE/assets/models/bazooka.glb ARTILLERY_FRONTLINE/assets/models/source/soldier.blend ARTILLERY_FRONTLINE/assets/models/source/mounted_cannon.blend ARTILLERY_FRONTLINE/assets/models/source/mounted_rocket.blend ARTILLERY_FRONTLINE/assets/models/source/mounted_autocannon.blend ARTILLERY_FRONTLINE/assets/models/source/bazooka.blend ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/documentation/blender-version.txt ARTILLERY_FRONTLINE/documentation/qa/art-pass-02 ARTILLERY_FRONTLINE/documentation/art-pass-02.json
+          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: art pass 03 skinned infantry, detailed war machines and weapons' ARTILLERY_FRONTLINE/assets/models/soldier.glb ARTILLERY_FRONTLINE/assets/models/warden.glb ARTILLERY_FRONTLINE/assets/models/nomad.glb ARTILLERY_FRONTLINE/assets/models/helicopter.glb ARTILLERY_FRONTLINE/assets/models/fighter.glb ARTILLERY_FRONTLINE/assets/models/landing_craft.glb ARTILLERY_FRONTLINE/assets/models/patrol_boat.glb ARTILLERY_FRONTLINE/assets/models/kestrel.glb ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/assets/models/mounted_cannon.glb ARTILLERY_FRONTLINE/assets/models/mounted_rocket.glb ARTILLERY_FRONTLINE/assets/models/mounted_autocannon.glb ARTILLERY_FRONTLINE/assets/models/bazooka.glb ARTILLERY_FRONTLINE/assets/models/source ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/documentation/blender-version.txt ARTILLERY_FRONTLINE/documentation/qa/art-pass-02 ARTILLERY_FRONTLINE/documentation/art-pass-02.json ARTILLERY_FRONTLINE/documentation/art-pass-03.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -81,6 +81,7 @@ jobs:
             ARTILLERY_FRONTLINE/documentation/qa/art-pass-02/
             ARTILLERY_FRONTLINE/documentation/art-pass-01.json
             ARTILLERY_FRONTLINE/documentation/art-pass-02.json
+            ARTILLERY_FRONTLINE/documentation/art-pass-03.json
             /tmp/soldier-studio.log
             /tmp/blender.log
             /tmp/studio.log

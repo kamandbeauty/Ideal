@@ -16,6 +16,9 @@ var health: float = 600.0
 var max_health: float = 600.0
 var dead: bool = false
 var collision: CollisionShape3D
+var propellers: Array[Node3D] = []
+var radar: Node3D
+var wake_clock: float = 0.0
 
 func configure(from: Vector3, to: Vector3) -> void:
 	start = from
@@ -41,6 +44,11 @@ func _ready() -> void:
 		add_child(model_root)
 		MaterialLibrary.apply_to_model(model_root)
 		ramp = model_root.find_child("Ramp", true, false) as Node3D
+		radar = model_root.find_child("Radar", true, false) as Node3D
+		for side in ["L", "R"]:
+			var prop: Node3D = model_root.find_child("Propeller" + side, true, false) as Node3D
+			if prop:
+				propellers.append(prop)
 	if model_root == null:
 		model_root = Node3D.new()
 		add_child(model_root)
@@ -64,7 +72,12 @@ func receive_damage(amount: float) -> void:
 		collision_layer = 0
 		collision.set_deferred("disabled", true)
 		if model_root:
-			model_root.visible = false
+			var tween: Tween = create_tween().set_parallel(true)
+			tween.tween_property(model_root, "rotation:z", 0.10, 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			tween.tween_property(model_root, "position:y", -0.12, 1.4)
+		if ramp:
+			var ramp_tween: Tween = create_tween()
+			ramp_tween.tween_property(ramp, "rotation:x", -0.35, 1.2)
 		died.emit(self)
 
 func react_to_explosion(point: Vector3, radius: float) -> void:
@@ -78,6 +91,11 @@ func tick(delta: float) -> void:
 	if dead:
 		return
 	bob_clock += delta
+	wake_clock += delta
+	for prop in propellers:
+		prop.rotate_object_local(Vector3.FORWARD, delta * (18.0 if not has_arrived else 4.0))
+	if radar:
+		radar.rotation.y += delta * 1.2
 	if not has_arrived:
 		progress = minf(1.0, progress + speed * delta)
 		var point: Vector3 = start.lerp(destination, progress)

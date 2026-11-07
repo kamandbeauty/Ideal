@@ -36,7 +36,7 @@ var support_timers: Dictionary = {"repair": 0.0, "airstrike": 0.0, "helicopter":
 var support_charges: Dictionary = {"repair": 3, "airstrike": 2, "helicopter": 1, "airdrop": 2}
 var airstrike_queue: Array[Dictionary] = []
 var support_flights: Array[Dictionary] = []
-var pending_enemy_hits: Array[Dictionary] = []
+var player_hitbox: StaticBody3D
 var distant_clock: float = 0.0
 var auto_reload_delay: float = -1.0
 var emplacement := Vector3(0, 0, 58)
@@ -56,6 +56,7 @@ func _ready() -> void:
 	background = CoastalBackgroundAction.new()
 	add_child(background)
 	_build_camera()
+	_build_player_hitbox()
 	weapon = CoastalWeapon.new()
 	camera.add_child(weapon)
 	weapon.position = Vector3.ZERO
@@ -85,6 +86,21 @@ func _build_camera() -> void:
 	camera.fov = 60.0
 	camera.current = true
 	aim_pitch.add_child(camera)
+
+func _build_player_hitbox() -> void:
+	player_hitbox = StaticBody3D.new()
+	player_hitbox.name = "PlayerEmplacement"
+	player_hitbox.collision_layer = 8
+	player_hitbox.collision_mask = 0
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(2.4, 2.2, 2.4)
+	var collision := CollisionShape3D.new()
+	collision.shape = shape
+	collision.position.y = 1.1
+	player_hitbox.add_child(collision)
+	player_hitbox.position = emplacement
+	player_hitbox.set_meta("coastal_controller", self)
+	add_child(player_hitbox)
 
 func _connect_hud() -> void:
 	hud.fire_down.connect(func(): firing = true)
@@ -127,7 +143,6 @@ func restart() -> void:
 			flight.node.queue_free()
 	support_flights.clear()
 	airstrike_queue.clear()
-	pending_enemy_hits.clear()
 	bullets.clear()
 	effects.clear()
 	weapon.resupply()
@@ -328,21 +343,22 @@ func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	if not active or soldier.is_dead():
 		return
 	soldier.play_fire()
-	var origin: Vector3 = soldier.global_position + Vector3.UP * 1.45
+	var muzzle: Node3D = soldier.find_child("Muzzle", true, false) as Node3D
+	var origin: Vector3 = muzzle.global_position if muzzle else soldier.global_position + Vector3.UP * 1.45
 	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
-	bullets.launch(origin, direction * 300.0, 0.0, 0.0)
+	var spread: float = deg_to_rad(1.1)
+	direction = direction.rotated(Vector3.UP, randf_range(-spread, spread))
+	direction = direction.rotated(Vector3.RIGHT, randf_range(-spread, spread)).normalized()
+	# Real projectile damage: terrain/cover/player mask, never friendly infantry.
+	bullets.launch(origin, direction * 300.0, randf_range(12.0, 22.0), 0.0, 13, [soldier.get_rid()])
 	effects.explode(origin, direction, 0.4, origin.y, true)
-	var distance: float = origin.distance_to(target)
-	if randf() < clampf(0.65 - distance / 300.0, 0.15, 0.6):
-		pending_enemy_hits.append({"time": distance / 300.0, "damage": randf_range(12.0, 22.0), "blast": 0.0})
 
 func _on_enemy_heavy_shoot(origin: Vector3, target: Vector3, damage: float, blast: float) -> void:
 	if not active:
 		return
 	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
-	bullets.launch(origin, direction * 160.0, 0.0, 0.0)
+	bullets.launch(origin, direction * 160.0, damage * randf_range(0.85, 1.15), blast, 13)
 	effects.explode(origin, direction, 1.2, origin.y, true)
-	pending_enemy_hits.append({"time": origin.distance_to(target) / 160.0, "damage": damage * randf_range(0.8, 1.15), "blast": blast})
 
 func _on_weapon_fired(origin: Vector3, _direction: Vector3, weapon_id: String) -> void:
 	var data: Dictionary = CoastalWeapon.WEAPONS[weapon_id]
@@ -353,9 +369,13 @@ func _on_weapon_fired(origin: Vector3, _direction: Vector3, weapon_id: String) -
 	if not hit.is_empty():
 		target = hit.position
 	var direction: Vector3 = (target - origin).normalized()
+	# Apply the weapon's cone once, around the camera's own axes, so vertical
+	# aim does not turn horizontal spread into a world-Y corkscrew.
 	var spread: float = deg_to_rad(float(data.spread))
-	direction = direction.rotated(Vector3.UP, randf_range(-spread, spread)).normalized()
-	bullets.launch(origin, direction * float(data.speed), float(data.damage), float(data.blast))
+	var basis: Basis = camera.global_transform.basis
+	direction = direction.rotated(basis.y.normalized(), randf_range(-spread, spread))
+	direction = direction.rotated(basis.x.normalized(), randf_range(-spread, spread)).normalized()
+	bullets.launch(origin, direction * float(data.speed), float(data.damage), float(data.blast), 7)
 	if float(data.blast) > 0.0:
 		effects.explode(origin, direction, 1.4, origin.y, true)
 
@@ -363,11 +383,27 @@ func _on_barrel_exploded(point: Vector3, radius: float) -> void:
 	_explode(point, Vector3.UP, radius)
 
 func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage: float, blast: float) -> void:
+	var killed: bool = false
+	if collider == player_hitbox:
+		_damage_player(damage)
+		if blast > 0.0:
+			_explode(point, normal, blast)
+		effects.explode(point, normal, 0.8, point.y, true)
+		Sound.play_at("impact", point, -10.0)
+		return
+	if collider and collider.has_method("receive_damage") and damage > 0.0:
+		if collider is EnemySoldier:
+			collider.call("receive_damage", damage, point, -normal)
+		else:
+			collider.call("receive_damage", damage)
+		if collider.has_method("is_dead"):
+			killed = bool(collider.call("is_dead"))
+		hud.confirm_hit(killed)
 	if blast > 0.0:
 		_explode(point, normal, blast)
+		if not killed:
+			hud.confirm_hit(false)
 		return
-	if collider and collider.has_method("receive_damage"):
-		collider.call("receive_damage", damage)
 	effects.explode(point, normal, 0.55, point.y, true)
 	Sound.play_at("impact", point, -18.0)
 
@@ -458,7 +494,6 @@ func _process(delta: float) -> void:
 	weapon.tick(delta)
 	for id in support_timers:
 		support_timers[id] = maxf(0.0, float(support_timers[id]) - delta)
-	_tick_pending_hits(delta)
 	_tick_airstrikes(delta)
 	_tick_support_flights(delta)
 	if (firing or auto_fire) and weapon.can_fire():
@@ -478,16 +513,6 @@ func _process(delta: float) -> void:
 		point.y = maxf(0.0, CoastalTerrain.height_at(point.x, point.z))
 		effects.explode(point, Vector3.UP, randf_range(3.0, 6.0), point.y)
 	hud.update_state(_state())
-
-func _tick_pending_hits(delta: float) -> void:
-	for index in range(pending_enemy_hits.size() - 1, -1, -1):
-		var hit: Dictionary = pending_enemy_hits[index]
-		hit.time -= delta
-		if hit.time <= 0.0:
-			pending_enemy_hits.remove_at(index)
-			_damage_player(float(hit.damage))
-			if float(hit.blast) > 0.0:
-				effects.explode(emplacement + Vector3.UP * 0.5, Vector3.UP, float(hit.blast), emplacement.y)
 
 func _tick_airstrikes(delta: float) -> void:
 	for index in range(airstrike_queue.size() - 1, -1, -1):

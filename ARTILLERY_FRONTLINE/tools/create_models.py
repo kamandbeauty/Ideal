@@ -11,6 +11,7 @@ OUT=os.path.join(ROOT,'assets','models')
 SRC=os.path.join(OUT,'source')
 os.makedirs(SRC,exist_ok=True)
 M={}
+SKIN_BONES=['Hips','Torso','Head','LegL','KneeL','LegR','KneeR','ArmL','ElbowL','ArmR','ElbowR']
 def material(name,color,metal=0.,rough=.65):
     m=bpy.data.materials.new(name); m.diffuse_color=(*color,1)
     m.use_nodes=True
@@ -148,7 +149,7 @@ def merge_children(parent):
         for o in objects:o.select_set(True)
         bpy.context.view_layer.objects.active=objects[0]
         bpy.ops.object.join();objects[0].name=parent.name+'_'+key.replace(' ','_')
-def finish(root,name):
+def finish(root,name,skin=False):
     empty_names=[o.name for o in bpy.data.objects if o.type=='EMPTY']
     for object_name in empty_names:
         o=bpy.data.objects.get(object_name)
@@ -159,26 +160,38 @@ def finish(root,name):
     bpy.context.view_layer.objects.active=root
     bpy.context.preferences.filepaths.save_version=0
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SRC,name+'.blend'))
-    export_glb(root,os.path.join(OUT,name+'.glb'))
+    export_glb(root,os.path.join(OUT,name+'.glb'),skin=skin)
     print('CREATED',name, len(bpy.data.objects),'objects')
 
-def wheel(parent,x,y,z,r=.91,width=.48):
-    cyl('Tire',(x,y,z),r,width,'Rubber',parent,'X',32)
-    cyl('Rim',(x+math.copysign(width*.52,x),y,z),r*.57,.06,'Armor edge',parent,'X',24)
-    bolts(parent,(x+math.copysign(width*.56,x),y,z),r*.40,8,'X',.03,.05)
-    cyl('Hub',(x+math.copysign(width*.64,x),y,z),r*.22,.14,'Gun steel',parent,'X',20)
+def wheel(parent,x,y,z,r=.91,width=.48,pivot_name=None):
+    side=1 if x>=0 else -1
+    if pivot_name:
+        hub=empty(pivot_name,(x,y,z),parent)
+        cx,cy,cz=0,0,0
+    else:
+        hub=parent
+        cx,cy,cz=x,y,z
+    cyl('Tire',(cx,cy,cz),r,width,'Rubber',hub,'X',32)
+    cyl('Rim',(cx+side*width*.52,cy,cz),r*.57,.06,'Armor edge',hub,'X',24)
+    bolts(hub,(cx+side*width*.56,cy,cz),r*.40,8,'X',.03,.05)
+    cyl('Hub',(cx+side*width*.64,cy,cz),r*.22,.14,'Gun steel',hub,'X',20)
+    cyl('Brake drum',(cx-side*width*.30,cy,cz),r*.34,.10,'Gun steel',hub,'X',18)
     for i in range(8):
         a=i*math.tau/8
-        cyl('Hub bolt',(x+math.copysign(width*.68,x),y+math.sin(a)*r*.38,z+math.cos(a)*r*.38),.045,.06,'Recoil steel',parent,'X',6)
+        cyl('Hub bolt',(cx+side*width*.68,cy+math.sin(a)*r*.38,cz+math.cos(a)*r*.38),.045,.06,'Recoil steel',hub,'X',6)
     for i in range(24):
         a=i*math.tau/24
-        o=box('Tread',(x,y+math.sin(a)*r,z+math.cos(a)*r),(.52,.14,.08),'Rubber',parent,.015)
+        o=box('Tread',(cx,cy+math.sin(a)*r,cz+math.cos(a)*r),(.52,.14,.08),'Rubber',hub,.015)
         o.rotation_euler[0]=-a
+    return hub
 
-def export_glb(root,path):
+def export_glb(root,path,skin=False):
     """Direct standards-compliant GLB writer, independent of Blender's bundled
     glTF addon (Ubuntu's Blender package has an incompatible addon runtime).
     Evaluated geometry and named animation pivots are preserved exactly.
+    When skin=True, meshes carrying vertex groups named after pivot empties are
+    exported as glTF skins (JOINTS_0/WEIGHTS_0 + inverse bind matrices), so Godot
+    imports a real Skeleton3D instead of a pile of rigid robot parts.
     """
     convert=Matrix(((1,0,0,0),(0,0,1,0),(0,-1,0,0),(0,0,0,1)))
     inverse=convert.inverted()
@@ -194,11 +207,23 @@ def export_glb(root,path):
         payload=struct.pack('<'+fmt*(len(values)*components),*[c for v in values for c in v]) if components>1 else struct.pack('<'+fmt*len(values),*values)
         view=len(doc['bufferViews']);doc['bufferViews'].append({'buffer':0,'byteOffset':len(binary),'byteLength':len(payload),'target':target})
         binary.extend(payload)
-        typ={1:'SCALAR',2:'VEC2',3:'VEC3',4:'VEC4'}[components]
-        component_type={'f':5126,'I':5125,'H':5123}[fmt]
+        typ={1:'SCALAR',2:'VEC2',3:'VEC3',4:'VEC4',16:'MAT4'}[components]
+        component_type={'f':5126,'I':5125,'H':5123,'B':5121}[fmt]
         a={'bufferView':view,'componentType':component_type,'count':len(values),'type':typ}
         if minimum is not None:a['min']=minimum;a['max']=maximum
         index=len(doc['accessors']);doc['accessors'].append(a);return index
+    joint_objects=[o for o in objects if o.type=='EMPTY' and o.name in SKIN_BONES] if skin else []
+    joint_index={o.name:i for i,o in enumerate(joint_objects)}
+    skin_index=None
+    if joint_objects:
+        flat=[]
+        for j in joint_objects:
+            world=convert @ j.matrix_world @ inverse
+            m=world.inverted()
+            # glTF matrices are column-major: one VEC16 per joint.
+            flat.append(tuple(m[r][c] for c in range(4) for r in range(4)))
+        doc['skins']=[{'name':'SoldierSkin','joints':[indices[j.name] for j in joint_objects],'inverseBindMatrices':accessor(flat,'f',16,None)}]
+        skin_index=0
     depsgraph=bpy.context.evaluated_depsgraph_get()
     for o in objects:
         matrix=convert @ o.matrix_local @ inverse
@@ -212,6 +237,8 @@ def export_glb(root,path):
         uv_layer=mesh.uv_layers.active
         positions=[];normals=[];uvs=[];triangles=[];remap={}
         rotation=convert.to_3x3()
+        weighted=skin_index is not None and any(g.name in joint_index for g in o.vertex_groups)
+        joints=[];weights=[]
         for tri in mesh.loop_triangles:
             face=[]
             for loop_index in tri.loops:
@@ -224,6 +251,12 @@ def export_glb(root,path):
                     positions.append(tuple(rotation @ vertex.co))
                     normals.append(tuple((rotation @ vertex.normal).normalized()))
                     uvs.append(uv)
+                    if weighted:
+                        groups=sorted(((g.group,g.weight) for g in vertex.groups if o.vertex_groups[g.group].name in joint_index),key=lambda x:-x[1])[:4]
+                        total=sum(w for _,w in groups) or 1.0
+                        jj=[joint_index[o.vertex_groups[g].name] for g,_ in groups]+[0]*(4-len(groups))
+                        ww=[w/total for _,w in groups]+[0.0]*(4-len(groups))
+                        joints.append(tuple(jj));weights.append(tuple(ww))
                 face.append(remap[key])
             triangles.append(tuple(face))
         if not triangles:
@@ -238,7 +271,12 @@ def export_glb(root,path):
             color=list(bs.inputs['Base Color'].default_value)
             pbr={'baseColorFactor':color,'metallicFactor':float(bs.inputs['Metallic'].default_value),'roughnessFactor':float(bs.inputs['Roughness'].default_value)}
             material_indices[source.name]=len(doc['materials']);doc['materials'].append({'name':source.name,'pbrMetallicRoughness':pbr,'doubleSided':False})
-        doc['meshes'].append({'name':o.data.name,'primitives':[{'attributes':{'POSITION':pa,'NORMAL':na,'TEXCOORD_0':ua},'indices':ia,'material':material_indices[source.name]}]})
+        attributes={'POSITION':pa,'NORMAL':na,'TEXCOORD_0':ua}
+        if weighted:
+            attributes['JOINTS_0']=accessor(joints,'H',4,34962)
+            attributes['WEIGHTS_0']=accessor(weights,'f',4,34962)
+            node['skin']=skin_index
+        doc['meshes'].append({'name':o.data.name,'primitives':[{'attributes':attributes,'indices':ia,'material':material_indices[source.name]}]})
         node['mesh']=len(doc['meshes'])-1
         evaluated.to_mesh_clear()
     doc['buffers']=[{'byteLength':len(binary)}]
@@ -315,13 +353,23 @@ def kestrel():
 def warden():
     r=reset('Warden')
     for s in [-1,1]:
+        side='L' if s<0 else 'R'
         box('Track belt',(s*2.0,0,.78),(.8,6.9,1.35),'Rubber',r,.3)
-        for y in [-2.5,-1.25,0,1.25,2.5]:wheel(r,s*2.16,y,.75,.58,.45)
+        for wi,y in enumerate([-2.5,-1.25,0,1.25,2.5]):wheel(r,s*2.16,y,.75,.58,.45,'Wheel%s%d'%(side,wi))
+        wheel(r,s*2.16,-3.05,1.05,.42,.40,.34,'Wheel%sSprocket'%side)
+        wheel(r,s*2.16,3.05,1.05,.42,.40,.34,'Wheel%sIdler'%side)
         for i in range(26):
             box('Track shoe',(s*2.0,-3.25+i*.25,1.47),(.87,.18,.1),'Gun steel',r,.012)
             box('Track shoe lower',(s*2.0,-3.25+i*.25,.12),(.87,.18,.08),'Gun steel',r,.01)
+            box('Track grouser',(s*2.0,-3.25+i*.25,.05),(.87,.05,.04),'Recoil steel',r,.005)
+            cyl('Track pin',(s*2.42,-3.25+i*.25,1.47),.025,.04,'Recoil steel',r,'X',6)
         box('Side skirt',(s*2.3,0,1.65),(.22,6.6,.65),'Field olive',r,.05)
-        for i in range(6):box('ERA skirt',(s*2.44,-2.55+i*1.02,1.72),(.18,.88,.5),'Armor edge',r,.04)
+        for i in range(6):
+            box('ERA skirt',(s*2.44,-2.55+i*1.02,1.72),(.18,.88,.5),'Armor edge',r,.04)
+            bolts(r,(s*2.54,-2.55+i*1.02,1.72),.18,4,'X',.018,.03)
+        for i in range(5):box('Skirt hinge',(s*2.42,-2.2+i*1.1,2.0),(.10,.16,.08),'Gun steel',r,.015)
+        rod('Tow cable',(s*2.35,-2.8,2.05),(s*2.35,2.6,2.05),.025,'Gun steel',r)
+        for y in [-2.8,2.6]:torus('Cable clamp',(s*2.35,y,2.05),.04,.012,'Recoil steel',r,'Y',10)
     box('Lower hull',(0,0,1.25),(3.7,6.4,1.0),'Field olive',r,.18)
     for s in [-1,1]:
         for i in range(8): cyl('Hull rivet',(s*1.82,-2.8+i*.8,1.82),.035,.04,'Recoil steel',r,'X',6)
@@ -333,10 +381,31 @@ def warden():
     box('Turret weld',(0,-1.42,.95),(2.5,.04,.05),'Gun steel',turret,.01)
     for s in [-1,1]:
         for i in range(3):box('Cheek armor',(s*1.13,-.9+i*.58,.62),(.48,.5,.65),'Armor edge',turret,.08,(0,s*.18,0))
-    cyl('Tank gun',(0,-3.2,.55),.12,4.2,'Gun steel',turret,'Y')
-    cyl('Fume extractor',(0,-2.6,.55),.2,.75,'Field olive',turret,'Y')
-    cyl('Muzzle',(0,-5.32,.55),.15,.18,'Gun steel',turret,'Y')
-    cyl('Bore',(0,-5.42,.55),.09,.02,'Black bore',turret,'Y')
+    pivot=empty('BarrelPivot',(0,-1.25,.55),turret)
+    recoil=empty('RecoilAssembly',(0,0,0),pivot)
+    cyl('Tank gun',(0,-1.95,0),.12,4.2,'Gun steel',recoil,'Y')
+    cyl('Fume extractor',(0,-1.35,0),.2,.75,'Field olive',recoil,'Y')
+    cyl('Thermal sleeve',(0,-2.6,0),.145,1.4,'Armor edge',recoil,'Y',20)
+    for y in [-.7,-1.9,-3.2]:torus('Barrel collar',(0,y,0),.15,.02,'Gun steel',recoil,'Y',18)
+    cyl('Muzzle brake',(0,-4.07,0),.15,.18,'Gun steel',recoil,'Y')
+    cyl('Bore',(0,-4.17,0),.09,.02,'Black bore',recoil,'Y')
+    empty('Muzzle',(0,-4.22,0),recoil)
+    box('Breech',(0,.35,0),(.42,.6,.42),'Gun steel',pivot,.06)
+    rod('Recoil cylinder L',(-.22,.1,-.05),(-.22,-.9,-.05),.05,'Recoil steel',pivot)
+    rod('Recoil cylinder R',(.22,.1,-.05),(.22,-.9,-.05),.05,'Recoil steel',pivot)
+    cyl('Commander cupola',(.65,.5,1.06),.42,.16,'Armor edge',turret,'Z',20)
+    for i in range(6):box('Vision block',(.65+math.cos(i*math.tau/6)*.34,.5+math.sin(i*math.tau/6)*.34,1.16),(.12,.08,.08),'Glass',turret,.01)
+    box('Loader hatch',(-.65,.5,1.02),(.62,.62,.10),'Armor edge',turret,.05)
+    rod('Hatch handle',(-.85,.5,1.1),(-.45,.5,1.1),.02,'Gun steel',turret)
+    box('AA mount',(.65,.5,1.28),(.12,.12,.22),'Gun steel',turret,.02)
+    cyl('AA gun',(.65,.28,1.42),.025,.55,'Gun steel',turret,'Y',10)
+    box('Gun shield',(.65,.42,1.42),(.22,.03,.16),'Armor edge',turret,.01)
+    for s in [-1,1]:
+        box('Smoke launcher bank',(s*1.25,-.7,.75),(.16,.34,.18),'Gun steel',turret,.02)
+        for i in range(3):cyl('Smoke tube',(s*1.34,-.82+i*.12,.82),.03,.14,'Black bore',turret,'X',8)
+    box('Laser rangefinder',(0,-1.35,.95),(.5,.18,.14),'Armor edge',turret,.02)
+    cyl('Rangefinder lens L',(-.18,-1.45,.95),.045,.02,'Glass',turret,'Y',12)
+    cyl('Rangefinder lens R',(.18,-1.45,.95),.045,.02,'Glass',turret,'Y',12)
     for x in [-.65,.65]:
         cyl('Hatch',(x,.5,1.02),.4,.12,'Armor edge',turret)
         bolts(turret,(x,.5,1.1),.32,8,'Z',.025,.035)
@@ -352,7 +421,11 @@ def nomad():
     r=reset('Nomad')
     box('Chassis',(0,0,.95),(2.5,7.6,.35),'Gun steel',r,.08)
     for x in [-1.55,1.55]:
-        for y in [-2.65,.8,2.55]:wheel(r,x,y,.82,.73,.46)
+        side='L' if x<0 else 'R'
+        for wi,y in enumerate([-2.65,.8,2.55]):wheel(r,x,y,.82,.73,.46,'Wheel%s%d'%(side,wi))
+        for y in [-2.65,.8,2.55]:
+            box('Leaf spring',(x*.82,y,1.15),(.12,.9,.08),'Gun steel',r,.015)
+            cyl('Shock absorber',(x*.72,y,1.45),.05,.5,'Recoil steel',r,'Z',10)
     box('Armored cab',(0,-2.45,2.0),(2.65,2.3,1.9),'Sand armor',r,.16)
     for s in [-1,1]:
         for i in range(4): cyl('Cab rivet',(s*1.3,-3.2+i*.5,2.7),.03,.04,'Recoil steel',r,'X',6)
@@ -365,6 +438,15 @@ def nomad():
         rod('Mirror arm',(x,-3.2,2.5),(x*1.25,-3.3,2.5),.035,'Gun steel',r)
         box('Mirror',(x*1.25,-3.3,2.5),(.1,.2,.32),'Gun steel',r,.03)
         box('Headlight',(x*.73,-4.07,1.55),(.4,.04,.25),'Lamp',r,.04)
+    turret=empty('Turret',(0,-2.2,3.05),r)
+    cyl('Turret ring',(0,0,0),.42,.12,'Gun steel',turret,'Z',20)
+    pivot=empty('BarrelPivot',(0,0,.12),turret)
+    recoil=empty('RecoilAssembly',(0,0,0),pivot)
+    box('Gun shield',(0,-.18,.12),(.5,.06,.34),'Armor edge',pivot,.03)
+    cyl('Autocannon',(0,-.55,.12),.035,.9,'Gun steel',recoil,'Y',12)
+    cyl('Flash hider',(0,-1.02,.12),.05,.12,'Gun steel',recoil,'Y',12)
+    empty('Muzzle',(0,-1.10,.12),recoil)
+    box('Ammo box',(.28,.05,.05),(.18,.24,.18),'Field olive',pivot,.02)
     box('Cargo bed',(0,1.45,1.5),(2.7,4.7,.5),'Field olive',r,.06)
     box('Canvas load',(0,1.45,2.45),(2.6,4.5,1.6),'Canvas',r,.3)
     for y in [-.5,.8,2.1,3.45]:
@@ -639,9 +721,85 @@ def mounted_autocannon():
     for s in [-1,1]:rod('Spade grip',(s*.10,.30,-.04),(s*.14,.46,-.12),.018,'Weapon grip',pivot)
     finish(r,'mounted_autocannon')
 
+def _bone_segments(r):
+    """World-space deformation segments for the named pivot empties."""
+    bpy.context.view_layer.update()
+    objs={o.name:o for o in r.children_recursive if o.type=='EMPTY'}
+    def world(name):return objs[name].matrix_world.translation.copy()
+    def tail(name,length):
+        o=objs[name];return o.matrix_world @ Vector((0,0,-length))
+    segs=[]
+    pairs=[('Hips','Torso'),('Torso','Head'),('LegL','KneeL'),('LegR','KneeR'),('ArmL','ElbowL'),('ArmR','ElbowR')]
+    for a,b in pairs:segs.append((a,world(a),world(b)))
+    segs.append(('KneeL',world('KneeL'),tail('KneeL',.47)))
+    segs.append(('KneeR',world('KneeR'),tail('KneeR',.47)))
+    segs.append(('ElbowL',world('ElbowL'),tail('ElbowL',.27)))
+    segs.append(('ElbowR',world('ElbowR'),tail('ElbowR',.27)))
+    segs.append(('Head',world('Head'),world('Head')+Vector((0,0,.16))))
+    return segs
+
+def _closest_segment(p,segs):
+    best=[]
+    for name,a,b in segs:
+        ab=b-a;den=max(ab.length_squared,1e-8)
+        t=max(0.0,min(1.0,(p-a).dot(ab)/den))
+        d=(p-(a+ab*t)).length
+        best.append((d,name))
+    best.sort()
+    return best
+
+def skin_soldier(r):
+    """Fuse the uniform into one continuous organic surface and bind every mesh
+    to the pivot skeleton. Gear stays rigid on its bone; cloth blends across
+    joints so knees/elbows/shoulders deform instead of rotating like robot parts."""
+    bpy.context.view_layer.update()
+    body=[o for o in r.children_recursive if o.type=='MESH' and o.data.materials and o.data.materials[0].name in ('Uniform','Uniform dark')]
+    if len(body)>1:
+        bpy.ops.object.select_all(action='DESELECT')
+        for o in body:o.select_set(True)
+        bpy.context.view_layer.objects.active=body[0]
+        bpy.ops.object.join()
+        fused=bpy.context.object;fused.name='OrganicUniform'
+        bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+        rem=fused.modifiers.new('Continuous cloth','REMESH');rem.mode='VOXEL';rem.voxel_size=.022;rem.use_smooth_shade=True
+        bpy.ops.object.modifier_apply(modifier=rem.name)
+        sm=fused.modifiers.new('Relax cloth','SMOOTH');sm.factor=.8;sm.iterations=4
+        bpy.ops.object.modifier_apply(modifier=sm.name)
+    segs=_bone_segments(r)
+    meshes=[o for o in r.children_recursive if o.type=='MESH']
+    for o in meshes:
+        for g in list(o.vertex_groups):o.vertex_groups.remove(g)
+        groups={name:o.vertex_groups.new(name=name) for name in SKIN_BONES}
+        fused=o.name=='OrganicUniform'
+        parent_bone=None
+        p=o.parent
+        under_rifle=False
+        while p is not None:
+            if p.name=='Rifle':under_rifle=True
+            if p.name in SKIN_BONES:parent_bone=p.name;break
+            p=p.parent
+        if under_rifle:
+            continue
+        if parent_bone is None:parent_bone='Torso'
+        mw=o.matrix_world.copy()
+        for v in o.data.vertices:
+            if fused:
+                wp=mw @ v.co
+                near=_closest_segment(wp,segs)[:3]
+                weights=[1.0/max(d,0.015)**4 for d,_ in near]
+                total=sum(weights)
+                for (d,name),w in zip(near,weights):groups[name].add([v.index],w/total,'REPLACE')
+            else:
+                groups[parent_bone].add([v.index],1.0,'REPLACE')
+        # Bake into root space; the glTF skin, not the node transform, drives it.
+        o.parent=r;o.matrix_parent_inverse=Matrix.Identity(4);o.matrix_world=mw
+        bpy.ops.object.select_all(action='DESELECT');o.select_set(True);bpy.context.view_layer.objects.active=o
+        bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
+    bpy.context.view_layer.update()
+
 def soldier():
-    """Original 1.82 m infantryman with smooth anatomy, layered uniform and gear.
-    Pivots: Hips, Torso, Head, LegL/R, KneeL/R, ArmL/R, ElbowL/R, Rifle."""
+    """Original 1.82 m infantryman: continuous skinned uniform, anatomical gait,
+    authored rifle grip, layered gear. Pivots become a real Godot Skeleton3D."""
     r=reset('Soldier')
     material('Uniform',(.21,.24,.16),0.,.92)
     material('Uniform dark',(.14,.17,.11),0.,.94)
@@ -749,52 +907,127 @@ def soldier():
     box('Trigger guard',(0,.08,-.05),(.03,.06,.012),'Weapon steel',rifle,.004)
     empty('Muzzle',(0,-.47,.01),rifle)
     rod('Sling',(.02,.20,-.03),(.02,-.20,-.04),.008,'Webbing',rifle)
-    finish(r,'soldier')
+    skin_soldier(r)
+    finish(r,'soldier',skin=True)
 
 def landing_craft():
     r=reset('LandingCraft')
     box('Hull',(0,0,.8),(4.2,11.5,1.6),'Sand armor',r,.35)
     box('Deck',(0,.2,1.65),(3.8,10.5,.16),'Field olive',r,.06)
-    for s in [-1,1]:box('Gunwale',(s*2.0,0,1.9),(.18,11.0,.5),'Sand armor',r,.08)
+    for s in [-1,1]:
+        box('Gunwale',(s*2.0,0,1.9),(.18,11.0,.5),'Sand armor',r,.08)
+        for i in range(10):box('Hull rib',(s*2.1,-4.5+i*1.0,.9),(.06,.10,1.2),'Armor edge',r,.015)
+        for y in [-3,-1,1,3]:
+            box('Cleat',(s*1.9,y,2.15),(.12,.3,.12),'Gun steel',r,.02)
+            torus('Tire fender',(s*2.15,y,.9),.22,.07,'Rubber',r,'X',14)
     ramp=empty('Ramp',(0,-5.7,1.2),r)
     box('Ramp plate',(0,-1.4,0),(3.6,2.8,.16),'Armor edge',r,.05)
-    for s in [-1,1]:rod('Ramp cable',(s*1.7,-5.5,2.2),(s*1.7,-7.8,1.3),.03,'Gun steel',r)
+    for i in range(8):box('Ramp tread',(0,-.3-i*.32,.10),(3.4,.06,.04),'Gun steel',r,.005)
+    for s in [-1,1]:
+        box('Ramp hinge',(s*1.6,-.1,0),(.22,.18,.22),'Gun steel',r,.03)
+        rod('Ramp cable',(s*1.7,-5.5,2.2),(s*1.7,-7.8,1.3),.03,'Gun steel',r)
+        cyl('Ramp winch',(s*1.7,-5.3,2.2),.10,.16,'Gun steel',r,'X',12)
     box('Superstructure',(0,3.8,2.6),(2.6,2.4,1.8),'Sand armor',r,.16)
     box('Bridge glass',(0,2.55,2.9),(2.2,.05,.6),'Glass',r,.02)
+    for x in [-.7,0,.7]:box('Window divider',(x,2.53,2.9),(.05,.06,.62),'Gun steel',r,.005)
+    box('Bridge roof',(0,3.8,3.55),(2.7,2.5,.12),'Armor edge',r,.04)
     cyl('Mast',(0,4.2,4.0),.06,1.8,'Gun steel',r,'Z',10)
-    box('Radar',(0,4.2,4.9),(.7,.12,.16),'Gun steel',r,.02)
-    for y in [-3,-1,1,3]:box('Cleat',(1.9,y,2.15),(.12,.3,.12),'Gun steel',r,.02)
+    radar=empty('Radar',(0,4.2,4.9),r)
+    box('Radar bar',(0,0,0),(.7,.12,.16),'Gun steel',radar,.02)
+    rod('Radar brace',(0,0,-.1),(0,0,-.4),.03,'Gun steel',radar)
+    for s in [-1,1]:
+        cyl('Exhaust',(s*.9,4.6,3.2),.07,.5,'Gun steel',r,'Z',10)
+        prop=empty('Propeller%s'%('L' if s<0 else 'R'),(s*1.2,5.4,.35),r)
+        cyl('Prop hub',(0,0,0),.08,.14,'Recoil steel',prop,'Y',10)
+        for i in range(3):
+            a=i*math.tau/3
+            blade=box('Prop blade',(math.cos(a)*.22,0,math.sin(a)*.22),(.34,.03,.10),'Recoil steel',prop,.01)
+            blade.rotation_euler[1]=a
+        rod('Shaft',(s*1.2,4.8,.35),(s*1.2,5.4,.35),.04,'Gun steel',r)
+        box('Rudder',(s*1.2,5.7,.35),(.06,.4,.5),'Armor edge',r,.02)
+    box('Bow gun shield',(0,-4.6,2.1),(.6,.08,.4),'Armor edge',r,.03)
+    cyl('Bow gun',(0,-4.9,2.2),.03,.6,'Gun steel',r,'Y',10)
     finish(r,'landing_craft')
 
 def helicopter():
     r=reset('Helicopter')
-    sphere('Fuselage',(0,0,1.1),(1.1,2.6,1.1),'Field olive',r,22,14)
-    box('Cabin glass',(0,-1.9,1.3),(.9,.7,.6),'Glass',r,.12)
+    sphere('Fuselage',(0,0,1.1),(1.1,2.6,1.1),'Field olive',r,24,16)
+    sphere('Nose',(0,-2.2,1.0),(.75,.8,.7),'Field olive',r,20,12)
+    box('Cabin glass',(0,-1.9,1.45),(.95,.75,.55),'Glass',r,.12)
+    box('Glass divider',(0,-2.28,1.45),(.04,.06,.56),'Gun steel',r,.005)
+    for s in [-1,1]:
+        box('Side window',(s*1.02,-.6,1.45),(.05,.9,.45),'Glass',r,.03)
+        box('Door frame',(s*1.05,-.1,1.1),(.06,1.2,.9),'Armor edge',r,.03)
+        box('Door handle',(s*1.1,-.5,1.1),(.04,.16,.04),'Gun steel',r,.01)
+        for i in range(6):cyl('Fuselage rivet',(s*1.08,-1.4+i*.5,1.8),.015,.02,'Recoil steel',r,'X',6)
+    box('Engine housing',(0,.6,2.0),(1.0,1.6,.5),'Armor edge',r,.12)
+    for s in [-1,1]:
+        cyl('Exhaust',(s*.55,1.3,2.0),.12,.4,'Gun steel',r,'Y',12)
+        cyl('Exhaust bore',(s*.55,1.52,2.0),.09,.02,'Black bore',r,'Y',12)
+        box('Stub wing',(s*1.3,-.1,1.0),(.9,.5,.12),'Field olive',r,.04)
+        cyl('Rocket pod',(s*1.5,-.35,.85),.14,.7,'Gun steel',r,'Y',12)
+        for i in range(4):cyl('Pod tube',(s*1.5+math.cos(i*math.tau/4)*.07,-.72,.85+math.sin(i*math.tau/4)*.07),.03,.02,'Black bore',r,'Y',8)
+        cyl('Gun pod',(s*1.1,-.5,.75),.08,.6,'Gun steel',r,'Y',10)
     box('Tail boom',(0,3.4,1.3),(.34,4.2,.34),'Field olive',r,.1)
+    for i in range(5):box('Boom rib',(0,1.8+i*.7,1.3),(.38,.06,.38),'Armor edge',r,.01)
     box('Tail fin',(0,5.3,1.9),(.12,.7,1.2),'Armor edge',r,.05)
-    rotor=empty('Rotor',(0,0,2.25),r)
-    cyl('Rotor hub',(0,0,0),.14,.18,'Gun steel',rotor,'Z',12)
+    box('Horizontal stabilizer',(0,4.9,1.4),(1.6,.4,.06),'Field olive',r,.02)
+    rotor=empty('Rotor',(0,0,2.35),r)
+    cyl('Rotor mast',(0,0,-.12),.08,.25,'Gun steel',rotor,'Z',10)
+    cyl('Rotor hub',(0,0,0),.16,.18,'Gun steel',rotor,'Z',12)
     for i in range(4):
         a=i*math.tau/4
+        rod('Pitch link',(math.cos(a)*.12,math.sin(a)*.12,.05),(math.cos(a)*.35,math.sin(a)*.35,.06),.015,'Recoil steel',rotor)
         blade=box('Blade',(math.cos(a)*2.4,math.sin(a)*2.4,.06),(4.8,.22,.04),'Black bore',rotor,.01)
         blade.rotation_euler[2]=a
+        box('Blade tip',(math.cos(a)*4.65,math.sin(a)*4.65,.06),(.3,.24,.05),'Warning',rotor,.01).rotation_euler[2]=a
     tail=empty('TailRotor',(0.22,5.3,1.9),r)
-    box('Tail blade',(0,0,0),(.04,.9,.08),'Black bore',tail,.005)
+    cyl('Tail hub',(0,0,0),.05,.08,'Gun steel',tail,'X',8)
+    for i in range(4):
+        a=i*math.tau/4
+        blade=box('Tail blade',(0,math.cos(a)*.28,math.sin(a)*.28),(.04,.5,.07),'Black bore',tail,.005)
+        blade.rotation_euler[0]=a
     for s in [-1,1]:
         rod('Skid',(s*.8,-1.4,.15),(s*.8,1.6,.15),.05,'Gun steel',r)
         rod('Skid strut F',(s*.7,-.9,.2),(s*.8,-.9,.7),.04,'Gun steel',r)
         rod('Skid strut R',(s*.7,.9,.2),(s*.8,.9,.7),.04,'Gun steel',r)
+        rod('Skid brace',(s*.8,-.9,.2),(s*.8,.9,.2),.03,'Gun steel',r)
+    rod('Antenna',(0,2.0,1.6),(0,2.2,2.6),.012,'Gun steel',r)
+    cyl('Pitot tube',(0,-2.9,.9),.015,.3,'Recoil steel',r,'Y',8)
     finish(r,'helicopter')
 
 def patrol_boat():
     r=reset('PatrolBoat')
     box('Hull',(0,0,.5),(2.2,7.0,1.0),'Sand armor',r,.28)
+    mesh('Bow wedge',[(-1.1,-3.5,.0),(1.1,-3.5,.0),(0,-4.4,.5),(-1.1,-3.5,1.0),(1.1,-3.5,1.0)],[(0,1,2),(0,2,3),(1,4,2),(3,2,4),(0,3,4,1)],'Sand armor',r)
     box('Deck',(0,0,1.05),(2.0,6.4,.12),'Field olive',r,.05)
+    for s in [-1,1]:
+        box('Gunwale',(s*1.0,0,1.25),(.10,6.6,.25),'Armor edge',r,.03)
+        for i in range(6):box('Hull strake',(s*1.12,-2.5+i, .55),(.05,.8,.08),'Gun steel',r,.01)
+        for y in [-2,-0.5,1.5,2.8]:torus('Fender',(s*1.15,y,.75),.14,.05,'Rubber',r,'X',12)
     box('Cabin',(0,.8,1.7),(1.5,1.8,1.1),'Sand armor',r,.12)
     box('Cabin glass',(0,-.12,1.85),(1.2,.05,.45),'Glass',r,.02)
+    for x in [-.4,0,.4]:box('Window divider',(x,-.14,1.85),(.04,.06,.47),'Gun steel',r,.005)
+    box('Cabin roof',(0,.8,2.3),(1.6,1.9,.10),'Armor edge',r,.03)
     cyl('Mast',(0,1.4,2.8),.04,1.2,'Gun steel',r,'Z',8)
-    cyl('Bow gun',(0,-2.2,1.35),.08,.7,'Gun steel',r,'Y',12)
-    box('Gun shield',(0,-1.9,1.45),(.5,.08,.4),'Armor edge',r,.03)
+    radar=empty('Radar',(0,1.4,3.4),r)
+    box('Radar bar',(0,0,0),(.5,.08,.10),'Gun steel',radar,.015)
+    rod('Whip antenna',(.6,1.6,2.3),(.65,1.7,3.6),.01,'Gun steel',r)
+    pivot=empty('BarrelPivot',(0,-2.0,1.3),r)
+    box('Gun shield',(0,-.1,.1),(.5,.08,.4),'Armor edge',pivot,.03)
+    recoil=empty('RecoilAssembly',(0,0,0),pivot)
+    cyl('Bow gun',(0,-.35,.1),.04,.7,'Gun steel',recoil,'Y',12)
+    empty('Muzzle',(0,-.72,.1),recoil)
+    box('Ammo box',(.25,.1,.0),(.16,.2,.14),'Field olive',pivot,.02)
+    for s in [-1,1]:
+        prop=empty('Propeller%s'%('L' if s<0 else 'R'),(s*.6,3.4,.2),r)
+        cyl('Prop hub',(0,0,0),.06,.1,'Recoil steel',prop,'Y',8)
+        for i in range(3):
+            a=i*math.tau/3
+            box('Prop blade',(math.cos(a)*.16,0,math.sin(a)*.16),(.24,.02,.08),'Recoil steel',prop,.008).rotation_euler[1]=a
+        box('Rudder',(s*.6,3.7,.2),(.05,.3,.4),'Armor edge',r,.015)
+    box('Depth charge rack',(0,2.8,1.25),(1.0,.6,.2),'Gun steel',r,.03)
+    for x in [-.3,0,.3]:cyl('Depth charge',(x,2.8,1.45),.10,.3,'Field olive',r,'Y',10)
     finish(r,'patrol_boat')
 def bazooka():
     r=reset('Bazooka')
@@ -829,16 +1062,46 @@ def bazooka():
 
 def fighter():
     r=reset('Fighter')
-    sphere('Fuselage',(0,0,1.0),(.62,4.6,.72),'Sand armor',r,24,14)
+    sphere('Fuselage',(0,0,1.0),(.62,4.6,.72),'Sand armor',r,28,16)
+    sphere('Nose cone',(0,-4.3,1.0),(.30,.7,.32),'Armor edge',r,18,10)
+    rod('Pitot',(0,-4.9,1.0),(0,-5.3,1.0),.015,'Recoil steel',r)
     sphere('Canopy',(0,-1.7,1.55),(.42,1.1,.42),'Glass',r,20,12)
+    box('Canopy frame',(0,-1.7,1.75),(.05,1.8,.05),'Gun steel',r,.01)
+    box('Ejection seat',(0,-1.5,1.35),(.3,.4,.3),'Black bore',r,.03)
     mesh('Main wing',[(-.55,-.4,1.0),(-4.4,1.3,.82),(-3.7,2.2,.82),(-.5,1.2,1.0),(.55,-.4,1.0),(4.4,1.3,.82),(3.7,2.2,.82),(.5,1.2,1.0)],[(0,1,2,3),(4,7,6,5),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],'Sand armor',r)
-    mesh('Tail wing',[(-.4,3.4,1.1),(-1.9,4.3,1.0),(-1.5,4.8,1.0),(-.3,4.2,1.1),(.4,3.4,1.1),(1.9,4.3,1.0),(1.5,4.8,1.0),(.3,4.2,1.1)],[(0,1,2,3),(4,7,6,5)],'Sand armor',r)
+    for s in [-1,1]:
+        side='L' if s<0 else 'R'
+        aileron=empty('Aileron'+side,(s*3.2,1.85,.84),r)
+        box('Aileron surface',(0,0,0),(1.3,.35,.05),'Armor edge',aileron,.015)
+        box('Wing fence',(s*2.4,.9,1.0),(.05,.9,.18),'Sand armor',r,.01)
+        cyl('Wingtip missile',(s*4.35,1.5,.82),.06,.8,'Gun steel',r,'Y',10)
+        cyl('Missile nose',(s*4.35,1.08,.82),.04,.12,'Warning',r,'Y',10)
+        for i in range(4):
+            a=i*math.tau/4
+            box('Missile fin',(s*4.35+math.cos(a)*.06,1.85,.82+math.sin(a)*.06),(.02,.16,.08),'Gun steel',r,.005)
+    mesh('Tail wing',[(-.4,3.4,1.1),(-1.9,4.3,1.0),(-1.5,4.8,1.0),(-.3,4.2,1.1),(.4,3.4,1.1),(1.9,4.3,1.0),(1.5,4.8,1.0),(.3,4.2,1.1)],[(0,1,2,3),(4,7,6,5),(0,4,5,1),(1,5,6,2),(2,6,7,3),(3,7,4,0)],'Sand armor',r)
+    for s in [-1,1]:
+        side='L' if s<0 else 'R'
+        elevator=empty('Elevator'+side,(s*1.1,4.5,1.05),r)
+        box('Elevator surface',(0,0,0),(1.0,.3,.05),'Armor edge',elevator,.012)
     box('Vertical tail',(0,3.9,1.9),(.12,1.3,1.5),'Sand armor',r,.05)
+    rudder=empty('Rudder',(0,4.45,2.0),r)
+    box('Rudder surface',(0,0,0),(.10,.35,1.2),'Armor edge',rudder,.02)
     for s in [-1,1]:
         cyl('Engine nozzle',(s*.32,4.35,.95),.24,.3,'Gun steel',r,'Y',18)
+        for i in range(12):
+            a=i*math.tau/12
+            box('Nozzle petal',(s*.32+math.cos(a)*.22,4.48,.95+math.sin(a)*.22),(.06,.10,.05),'Recoil steel',r,.01)
+        burner=empty('Afterburner%s'%('L' if s<0 else 'R'),(s*.32,4.55,.95),r)
+        cyl('Burner glow',(0,0,0),(.16),.04,'Lamp',burner,'Y',12)
         cyl('Intake',(s*.5,-.6,.7),.22,.5,'Black bore',r,'Y',16)
+        box('Intake lip',(s*.5,-.85,.7),(.5,.06,.5),'Armor edge',r,.02)
         box('Pylon',(s*2.2,.9,.65),(.12,.8,.3),'Gun steel',r,.02)
         cyl('Drop tank',(s*2.2,.9,.35),.16,1.0,'Field olive',r,'Y',14)
+        for y in [.55,1.25]:torus('Tank strap',(s*2.2,y,.35),.17,.015,'Gun steel',r,'Y',12)
+        box('Gear door',(s*.45,.2,.45),(.08,.9,.06),'Armor edge',r,.01)
+    for i in range(6):box('Spine panel',(0,-.5+i*.7,1.72),(.5,.05,.04),'Armor edge',r,.005)
+    rod('Antenna',(0,2.2,1.6),(0,2.4,2.3),.012,'Gun steel',r)
     finish(r,'fighter')
 
 BUILDERS={'kestrel':kestrel,'warden':warden,'nomad':nomad,'sentry':sentry,'hangar':hangar,'mounted_twin_hmg':mounted_twin_hmg,'mounted_cannon':mounted_cannon,'mounted_rocket':mounted_rocket,'mounted_autocannon':mounted_autocannon,'soldier':soldier,'landing_craft':landing_craft,'helicopter':helicopter,'patrol_boat':patrol_boat,'bazooka':bazooka,'fighter':fighter}
