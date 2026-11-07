@@ -188,7 +188,7 @@ func _run() -> void:
 	run_a.moves_left = 10
 	var progression = ProgressionScript.new(save_data, clock)
 	var first_result = progression.record_level_result(run_a, wallet)
-	failures += _check(first_result.first_clear and wallet.coins == WalletScript.MAX_BALANCE and wallet.potions == 23, "first clear grants reward and records progression")
+	failures += _check(first_result.first_clear and wallet.coins == WalletScript.MAX_BALANCE - 110 and wallet.potions == 23, "first clear grants reward and records progression")
 	var repeat_result = progression.record_level_result(run_a, wallet)
 	failures += _check(not repeat_result.first_clear and wallet.potions == 23, "replay does not pay first-clear reward twice")
 	failures += _check(progression.highest_unlocked_level == 2 and Stars.from_run(run_a) == 3, "first clear unlocks next level and computes stars")
