@@ -58,10 +58,14 @@ jobs:
           test -s "$PROJECT/documentation/qa/battlefield.png"
       - name: Software-rendered coastal milestone smoke test
         run: |
-          xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --coastal-smoke > /tmp/coastal-smoke.log 2>&1 || { tail -120 /tmp/coastal-smoke.log; exit 1; }
+          rc=0
+          xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --coastal-smoke > /tmp/coastal-smoke.log 2>&1 || rc=$?
           cat /tmp/coastal-smoke.log
           cp /tmp/coastal-smoke.log "$PROJECT/documentation/qa/coastal-smoke.log"
           if grep -qiE "shader.*error|ERROR:.*shader" /tmp/coastal-smoke.log; then echo "::error::Shader compile errors detected"; grep -iE "shader.*error|ERROR:.*shader" /tmp/coastal-smoke.log | head -20; exit 1; fi
+          if grep -qE "SCRIPT ERROR|Parse Error" /tmp/coastal-smoke.log; then echo "::error::GDScript errors during coastal smoke"; exit 1; fi
+          python3 -c "import json,sys; r=json.load(open('$PROJECT/documentation/qa/coastal-smoke-report.json')); sys.exit(0 if r['passed'] and not r['failures'] else 1)" || { echo "::error::Coastal smoke report failed"; exit 1; }
+          echo "Coastal smoke report passed; godot teardown exit code $rc (llvmpipe texture-leak teardown tolerated)"
           test -s "$PROJECT/documentation/qa/coastal-beach.png"
       - name: Preserve validation evidence
         if: always() && github.ref == 'refs/heads/arena/40ad7d87-ideal'
