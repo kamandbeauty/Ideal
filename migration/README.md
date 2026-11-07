@@ -11,16 +11,17 @@ the code is written. A count of tests, a commit hash, an artifact — or it is p
 
 | phase | scope | state | evidence |
 | --- | --- | --- | --- |
-| **1** | repository audit + feasibility | **complete, awaiting review** | [`01-audit.md`](01-audit.md) · [`02-inventory.csv`](02-inventory.csv) (173 files) · [`03-compatibility.md`](03-compatibility.md) · [`04-dependency-graph.md`](04-dependency-graph.md) |
-| 2 | Godot project init + Persian spike + headless CI | **not started** | blocked on review of Phase 1 |
-| 3 | asset migration (85 sprites, 2 fonts, 11 JSON) | not started | |
-| 4 | core gameplay reconstruction (2,607 lines) | not started | |
-| 5 | UI, motion, audio, visual reconstruction | not started | |
-| 6 | levels + progression | not started | |
-| 7 | testing + Android optimisation | not started | |
-| 8 | release validation | not started | |
+| **1** | repository audit + feasibility | **complete** | [`01-audit.md`](01-audit.md) · [`02-inventory.csv`](02-inventory.csv) (173 files) · [`03-compatibility.md`](03-compatibility.md) · [`04-dependency-graph.md`](04-dependency-graph.md) |
+| **2** | Godot project init + headless CI | **complete** | `godot-port/project.godot` (415 × 738 dp, GL Compatibility, portrait), `scenes/main.tscn` → `AppRoot`; `godot-port` job: import, validate every `.gd`, suites, boot check — run `42411833253` |
+| **3** | asset migration (85 sprites, 2 fonts, 11 JSON) | **complete** | `godot-port/assets/art` 85 PNG, `godot-port/assets/fonts` Vazir Medium + Bold, `godot-port/content` 10 levels + chapter meta |
+| **4** | core gameplay reconstruction | **complete** | 26 files / 2,213 lines in `godot-port/scripts/core`; C# RNG and FNV golden vectors reproduce; see [`05-port-report.md`](05-port-report.md) |
+| **5** | UI, motion, audio, visual reconstruction | **playable, not finished** | 6 kit files + 5 screens (1,743 lines), swipe/tap/swap/clear/fall/reject, result card; no audio exists in the Unity project to port; no spark/VFX layer yet |
+| **6** | levels + progression | **complete for chapter one** | ten levels, three districts, twelve tasks, chests, lives clock, stars, first-clear rewards — all driven through the screens and asserted in `tests/test_ui.gd` |
+| **7** | testing + Android optimisation | **APK builds; device work pending** | `Android debug APK` job exports, unzips and verifies the APK before uploading it; no device matrix, no profiling, no release signing yet |
+| **8** | release validation | not started | needs a device run, a store listing and the parity fixture suite that Phase 7's R1 requires |
 
-No Godot runtime file exists on this branch. That is the correct state after Phase 1.
+Phase 2 onwards lives in `godot-port/` on this branch. `client/` is untouched: the `unity project pin`
+job and `migration/tools/check_audit.py` both fail if a single Unity file changes.
 
 ## Relationship to draft PR #2 (`feature/godot-migration`)
 

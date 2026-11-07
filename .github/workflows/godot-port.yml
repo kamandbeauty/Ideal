@@ -124,9 +124,9 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
 
-      - name: Export the debug APK (prebuilt template path)
-        id: export_template
-        continue-on-error: true
+      # One export path, no fallbacks: if this fails the annotation below carries Godot's own words,
+      # which is worth more than a second speculative build that hides the first error.
+      - name: Export the debug APK
         run: |
           set +e
           mkdir -p godot-port/build
@@ -134,28 +134,12 @@ jobs:
             build/princes-palace-debug.apk 2>&1)
           status=$?
           echo "$output"
-          if [ $status -ne 0 ]; then
-            message=$(echo "$output" | grep -vE "^\s*$" | tail -6 | tr '\n' ' ' | cut -c1-600)
-            echo "::error file=.github/workflows/godot-port.yml::template export: $message"
+          if [ $status -ne 0 ] || [ ! -s godot-port/build/princes-palace-debug.apk ]; then
+            message=$(echo "$output" | grep -vE "^\s*$" | tail -8 | tr '\n' ' ' | cut -c1-700)
+            echo "::error file=.github/workflows/godot-port.yml::android export failed (exit $status): $message"
             exit 1
           fi
-
-      - name: Install the Android build template and export with Gradle
-        if: steps.export_template.outcome == 'failure'
-        run: |
-          set +e
-          godot --headless --path godot-port --install-android-build-template
-          sed -i 's|gradle_build/use_gradle_build=false|gradle_build/use_gradle_build=true|' \
-            godot-port/export_presets.cfg
-          output=$(godot --headless --path godot-port --export-debug "Android" \
-            build/princes-palace-debug.apk 2>&1)
-          status=$?
-          echo "$output"
-          if [ $status -ne 0 ]; then
-            message=$(echo "$output" | grep -vE "^\s*$" | tail -6 | tr '\n' ' ' | cut -c1-600)
-            echo "::error file=.github/workflows/godot-port.yml::gradle export: $message"
-            exit 1
-          fi
+          ls -l godot-port/build
 
       - name: Verify the APK really is an APK
         run: |
