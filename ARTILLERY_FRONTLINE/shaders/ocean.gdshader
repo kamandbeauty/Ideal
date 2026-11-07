@@ -39,14 +39,14 @@ void fragment() {
 	float ripple = (n1 - 0.5) * 0.10 + (n2 - 0.5) * 0.06;
 	float crest_foam = smoothstep(0.62, 0.95, wave_crest + (n1 - 0.5) * 0.5) * 0.22;
 	float shore_noise = texture(water_noise, world_position.xz * 0.18 + vec2(TIME * 0.03, 0.0)).r;
-	float shore_foam = (1.0 - smoothstep(0.0, 12.0, abs(world_position.z - 1.0))) * smoothstep(0.42, 0.72, shore_noise) * 0.55;
-	float distance_fade = 1.0 - smoothstep(120.0, 650.0, view_distance);
+	float shore_foam = (1.0 - smoothstep(0.0, 12.0, abs(world_position.z + 13.0))) * smoothstep(0.42, 0.72, shore_noise) * 0.55;
+	float distance_fade = 1.0 - smoothstep(250.0, 900.0, view_distance);
 	ALBEDO = water + foam_color * clamp((crest_foam + shore_foam + ripple) * mix(0.45, 1.0, distance_fade), 0.0, 0.65);
 	float nx = (n1 - 0.5) * 0.22 + (n2 - 0.5) * 0.14;
 	float nz = (texture(water_noise, world_position.zx * 0.09 + vec2(0.0, TIME * 0.014)).r - 0.5) * 0.20;
 	NORMAL_MAP = normalize(vec3(0.5 + nx, 0.5 + nz, 1.0));
 	NORMAL_MAP_DEPTH = 0.45 * distance_fade;
-	ROUGHNESS = mix(0.16, 0.30, 1.0 - distance_fade);
+	ROUGHNESS = mix(0.30, 0.42, 1.0 - distance_fade);
 	METALLIC = 0.0;
-	SPECULAR = 0.5;
+	SPECULAR = 0.25;
 }

@@ -5,7 +5,7 @@ uniform sampler2D sand_albedo : source_color, filter_linear_mipmap_anisotropic, 
 uniform sampler2D sand_normal : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D sand_orm : filter_linear_mipmap_anisotropic, repeat_enable;
 uniform bool detail_enabled = true;
-uniform float normal_depth = 0.32;
+uniform float normal_depth = 0.16;
 varying vec3 world_position;
 void vertex() {
 	world_position = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;

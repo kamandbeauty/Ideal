@@ -278,7 +278,7 @@ func _sandbag_line(center: Vector3, radius: float, count: int) -> void:
 			bags.set_instance_transform(row * count + index, Transform3D(basis, point))
 	var instance := MultiMeshInstance3D.new()
 	instance.multimesh = bags
-	instance.material_override = MaterialLibrary.surface("fabric", Color(0.62, 0.58, 0.46), 0.9)
+	instance.material_override = MaterialLibrary.surface("fabric", Color(0.52, 0.49, 0.40), 0.3)
 	add_child(instance)
 
 func _build_structures() -> void:

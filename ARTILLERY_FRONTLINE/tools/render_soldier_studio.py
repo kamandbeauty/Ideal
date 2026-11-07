@@ -21,7 +21,7 @@ for m in bpy.data.materials:
     a=img(nodes,kind+'_albedo.jpg'); links.new(a.outputs['Color'],bs.inputs['Base Color'])
     if base in ['Uniform','Uniform dark']:
         mix=nodes.new('ShaderNodeMixRGB'); mix.blend_type='MULTIPLY'; mix.inputs[0].default_value=1.0
-        mix.inputs[2].default_value=(0.42,0.48,0.32,1) if base=='Uniform' else (0.28,0.33,0.22,1)
+        mix.inputs[2].default_value=(0.20,0.24,0.15,1) if base=='Uniform' else (0.13,0.16,0.10,1)
         links.new(a.outputs['Color'],mix.inputs[1]); links.new(mix.outputs['Color'],bs.inputs['Base Color'])
     if base=='Webbing':
         mix=nodes.new('ShaderNodeMixRGB'); mix.blend_type='MULTIPLY'; mix.inputs[0].default_value=1.0; mix.inputs[2].default_value=(0.30,0.34,0.24,1)
@@ -38,7 +38,7 @@ def area(name,loc,energy,size,target,color=(1,1,1)):
     d=bpy.data.lights.new(name,'AREA'); d.energy=energy; d.size=size; d.color=color
     o=bpy.data.objects.new(name,d); bpy.context.collection.objects.link(o); o.location=loc
     o.rotation_euler=(Vector(target)-o.location).to_track_quat('-Z','Y').to_euler()
-area('Key',(2.4,-2.8,3.2),650,3.0,(0,0,1.0),(1.0,0.95,0.86))
+area('Key',(2.4,-2.8,3.2),420,3.0,(0,0,1.0),(1.0,0.98,0.94))
 area('Fill',(-2.6,-1.6,1.8),260,2.5,(0,0,1.0),(0.78,0.86,1.0))
 area('Rim',(0.4,2.8,2.8),520,2.0,(0,0,1.1),(0.9,0.95,1.0))
 cd=bpy.data.cameras.new('Camera'); cd.lens=45; cam=bpy.data.objects.new('Camera',cd); bpy.context.collection.objects.link(cam)

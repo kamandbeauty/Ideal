@@ -684,6 +684,7 @@ def soldier():
     sphere('Skull',(0,0,.02),(.092,.10,.115),'Skin',head,22,14)
     sphere('Jaw',(0,-.015,-.045),(.075,.08,.065),'Skin',head,18,12)
     sphere('Nose',(0,-.10,.00),(.018,.028,.035),'Skin',head,12,8)
+    box('Mouth',(0,-.088,-.052),(.034,.012,.006),'Leather',head,.002)
     for s in [-1,1]:
         sphere('Ear',(s*.092,0,.01),(.014,.025,.035),'Skin',head,10,8)
         sphere('Brow',(s*.035,-.085,.045),(.028,.014,.010),'Uniform dark',head,10,6)
@@ -701,9 +702,10 @@ def soldier():
         sphere('Knee pad'+side,(0,-.055,0),(.055,.035,.06),'Uniform dark',knee,12,8)
         loft('Shin'+side,[(0,.060,.065,0,0),(-.20,.052,.058,0,.005),(-.38,.045,.050,0,.01)],'Uniform',knee,16)
         torus('Gaiter'+side,(0,.01,-.30),.052,.012,'Webbing',knee,'Z',14)
-        box('Boot'+side,(0,-.035,-.42),(.105,.20,.09),'Leather',knee,.025)
-        box('Sole'+side,(0,-.04,-.465),(.11,.21,.025),'Rubber',knee,.008)
-        for z in [-.36,-.39,-.42]:box('Lace'+side,(0,-.075,z),(.07,.012,.008),'Webbing',knee,.002)
+        cyl('Ankle'+side,(0,0,-.40),.046,.12,'Uniform dark',knee,'Z',12)
+        box('Boot'+side,(0,-.035,-.47),(.105,.20,.09),'Leather',knee,.025)
+        box('Sole'+side,(0,-.04,-.515),(.11,.21,.025),'Rubber',knee,.008)
+        for z in [-.41,-.44,-.47]:box('Lace'+side,(0,-.075,z),(.07,.012,.008),'Webbing',knee,.002)
     # Arms posed to carry the rifle at low ready.
     for s in [-1,1]:
         side='L' if s<0 else 'R'

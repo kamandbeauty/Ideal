@@ -97,7 +97,7 @@ def sand():
     macro = fbm(size, 410, 6, 1.5)
     grain = periodic_noise(size, 777, 0.55, 0.35)
     pebbles = speckles(size, 91, 420, 2.2, 1.0)
-    height = macro * 0.38 + ripples * 0.055 + grain * 0.10 + pebbles * 0.16
+    height = macro * 0.38 + ripples * 0.02 + grain * 0.10 + pebbles * 0.16
     base = np.array([171.0, 146.0, 108.0])
     variation = (macro - 0.5) * 46.0 + (grain - 0.5) * 18.0 - ripples * 3.0
     albedo = base[None, None, :] + variation[:, :, None]
