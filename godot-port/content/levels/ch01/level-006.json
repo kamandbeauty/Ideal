@@ -1,0 +1,72 @@
+{
+  "id": "ch01-006",
+  "chapter": "ch01",
+  "number": 6,
+  "type": "hard",
+  "width": 9,
+  "height": 9,
+  "gravity": "down",
+  "move_limit": 20,
+  "pieces": [
+    "firouzeh",
+    "lajvard",
+    "aqiq",
+    "zomorrod",
+    "morvarid"
+  ],
+  "goals": [
+    {
+      "kind": "clear_obstacle",
+      "obstacle": "crate",
+      "target": 6
+    },
+    {
+      "kind": "clear_pieces",
+      "piece": "aqiq",
+      "target": 15
+    }
+  ],
+  "obstacles": [
+    {
+      "x": 3,
+      "y": 5,
+      "kind": "crate",
+      "layers": 1
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "kind": "crate",
+      "layers": 1
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "kind": "crate",
+      "layers": 1
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "kind": "crate",
+      "layers": 1
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "kind": "crate",
+      "layers": 1
+    },
+    {
+      "x": 5,
+      "y": 2,
+      "kind": "crate",
+      "layers": 1
+    }
+  ],
+  "blocked": [],
+  "reward_potions": 12,
+  "reward_coins": 16,
+  "stages": 1,
+  "notes": "first hard level: a wall of crates in the middle"
+}

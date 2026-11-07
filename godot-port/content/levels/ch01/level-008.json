@@ -1,0 +1,54 @@
+{
+  "id": "ch01-008",
+  "chapter": "ch01",
+  "number": 8,
+  "type": "hard",
+  "width": 9,
+  "height": 9,
+  "gravity": "down",
+  "move_limit": 20,
+  "pieces": [
+    "firouzeh",
+    "lajvard",
+    "aqiq",
+    "zomorrod",
+    "morvarid"
+  ],
+  "goals": [
+    {
+      "kind": "clear_pieces",
+      "piece": "lajvard",
+      "target": 20
+    },
+    {
+      "kind": "clear_obstacle",
+      "obstacle": "vial",
+      "target": 3
+    }
+  ],
+  "obstacles": [
+    {
+      "x": 0,
+      "y": 4,
+      "kind": "vial",
+      "layers": 1
+    },
+    {
+      "x": 8,
+      "y": 4,
+      "kind": "vial",
+      "layers": 1
+    },
+    {
+      "x": 4,
+      "y": 0,
+      "kind": "vial",
+      "layers": 1
+    }
+  ],
+  "blocked": [],
+  "reward_potions": 12,
+  "reward_coins": 18,
+  "stages": 1,
+  "notes": "vials on the edges: power-ups become the answer"
+}

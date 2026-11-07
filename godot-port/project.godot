@@ -1,0 +1,35 @@
+; کاخِ شازده / Prince's Palace — independent Godot 4 project.
+; The design space is 415 x 738 dp, the same numbers client/Assets/Game/Ui/UiKit.cs uses, so a
+; layout value in the port and a value in the design document are the same number.
+
+config_version=5
+
+[application]
+
+config/name="Prince's Palace"
+config/description="کاخِ شازده — an independent Godot 4 build of the match-3 palace game."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+boot_splash/bg_color=Color(0.0431, 0.102, 0.1843, 1)
+config/icon="res://assets/art/app_icon.png"
+
+[display]
+
+window/size/viewport_width=415
+window/size/viewport_height=738
+window/size/window_width_override=540
+window/size/window_height_override=960
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/handheld/orientation=1
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=1
+environment/defaults/default_clear_color=Color(0.0431, 0.102, 0.1843, 1)
