@@ -113,6 +113,24 @@ func _run() -> void:
 	failures += _check(accepted_tracker.progress(0) >= 3, "apply piece-goal progress during accepted move")
 	failures += _check(accepted_move.obstacles_destroyed == 1 and accepted_tracker.progress(1) == 1, "clear obstacle layer and advance obstacle goal")
 
+
+	print("TEST STAGE 6: power-up creation and chained activation")
+	var four_match_board = Board.from_ascii(PackedStringArray(["ALMZA", "ZFMAL", "FAFFZ", "MLZAF", "AFZML"]))
+	var four_match_resolver = Resolver.new(move_level, four_match_board, Rng.new(0, 17), Goals.new(move_level.goals))
+	var four_match_result = four_match_resolver.swap(Vector2i(1, 3), Vector2i(1, 2))
+	failures += _check(four_match_result.accepted and four_match_result.power_ups_created >= 1, "four-piece match creates a rocket power-up")
+
+	var booster_board = move_board.duplicate_board()
+	booster_board.at(2, 2).power_up = GameTypes.PowerUpKind.ROCKET_VERTICAL
+	var booster_resolver = Resolver.new(move_level, booster_board, Rng.new(0, 23), Goals.new(move_level.goals))
+	var booster_result = booster_resolver.use_booster(GameTypes.BoosterKind.MALLET, Vector2i(2, 2))
+	var saw_trigger_event := false
+	for event in booster_result.events:
+		if event.get("type", "") == "power_up_triggered":
+			saw_trigger_event = true
+	failures += _check(booster_result.accepted and saw_trigger_event, "mallet triggers a power-up on its target")
+	failures += _check(booster_result.pieces_cleared >= 5, "triggered vertical rocket clears its column")
+
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
 
