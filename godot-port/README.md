@@ -23,17 +23,27 @@ Independent Godot 4.x + GDScript client. The Unity project remains in `client/` 
 - Initial board generation, no-opening-match placement and deterministic reshuffle.
 - Power-up target shapes and combo targeting.
 - Move resolver for swaps, boosters, cascades, chained triggers, clears, obstacle damage, gravity, refill and settle/reshuffle.
-- Headless test script with a reference RNG vector and basic gameplay cases.
-- GitHub Actions workflow for Godot headless import and core tests.
+- Headless tests for match detection, RNG reference vectors, power-up targeting/combos, board generation, legal moves, goals, rejected/accepted swaps, obstacle damage, power-up creation and mallet-triggered rocket chains.
+- GitHub Actions workflow for Godot headless import, script loading validation and core tests.
 
-## Verification status
+## Verification
 
-All items above are source additions only. **The Godot workflow has not yet reported a run**, so GDScript parsing, tests, import, Android export and gameplay parity remain unverified. This is not yet a playable or feature-complete game.
+<badge color="success">Godot 4.4.1 headless CI passed</badge>
+
+- All 11 listed GDScript files loaded successfully.
+- Core test suite: 34 checks, 0 failures.
+- The xorshift64* sequence matches the C# reference vector for seed 1.
+- Board generation is reproducible for a fixed seed and starts without automatic matches.
+- A real swap creates a match, clears pieces, advances goals and damages an obstacle.
+- A four-piece match creates a rocket; using a mallet on a rocket triggers its column clear.
+
+This confirms the tested core cases only. It does **not** yet prove full Unity/Godot event-by-event parity, all power-up pairings, full feature coverage, Android export, device performance, or a complete playable game.
 
 Run tests locally from the repository root:
 
 ```sh
 godot --headless --editor --path godot-port --quit
+godot --headless --path godot-port --script res://tests/validate_scripts.gd
 godot --headless --path godot-port --script res://tests/test_core.gd
 ```
 
