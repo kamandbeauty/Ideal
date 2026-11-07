@@ -16,6 +16,8 @@ const LivesScript = preload("res://scripts/core/lives.gd")
 const Run = preload("res://scripts/core/level_run.gd")
 const ProgressionScript = preload("res://scripts/core/progression.gd")
 const Stars = preload("res://scripts/core/star_rating.gd")
+const Codec = preload("res://scripts/core/save_codec.gd")
+const Store = preload("res://scripts/core/save_store.gd")
 
 func _initialize() -> void:
 	create_timer(20.0).timeout.connect(_on_timeout)
@@ -190,6 +192,51 @@ func _run() -> void:
 	var repeat_result = progression.record_level_result(run_a, wallet)
 	failures += _check(not repeat_result.first_clear and wallet.potions == 23, "replay does not pay first-clear reward twice")
 	failures += _check(progression.highest_unlocked_level == 2 and Stars.from_run(run_a) == 3, "first clear unlocks next level and computes stars")
+
+
+	print("TEST STAGE 9: save codec migration and backup persistence")
+	var save_clock = Clock.new(1700000000)
+	var fresh_save = Codec.new_save(save_clock)
+	failures += _check(fresh_save.version == Save.CURRENT_VERSION and fresh_save.boosters.size() == Bag.SLOTS, "new save uses current version and starter booster slots")
+	var fresh_bag = Bag.new(fresh_save)
+	failures += _check(fresh_bag.count(GameTypes.BoosterKind.MALLET) == Bag.START_OWNED, "new save grants one of each booster")
+	fresh_save.coins = 1234
+	fresh_save.potions = 56
+	fresh_save.level_number = 7
+	var level_record = fresh_save.get_or_create_level(3)
+	level_record.plays = 4
+	level_record.cleared = true
+	level_record.best_moves_left = 9
+	level_record.last_replay_hash = "c0d2f1a263e84ebf"
+	var encoded_save := Codec.encode(fresh_save)
+	var decoded_save = Codec.decode(encoded_save, save_clock)
+	failures += _check(decoded_save.errors.is_empty(), "save JSON round-trip has no errors")
+	failures += _check(decoded_save.data.coins == 1234 and decoded_save.data.potions == 56 and decoded_save.data.level_number == 7, "save JSON round-trip preserves balances and level")
+	failures += _check(decoded_save.data.find_level(3).get("last_replay_hash", "") == "c0d2f1a263e84ebf", "save JSON round-trip preserves level records")
+	var migrated = Codec.decode("{\"version\":1,\"coins\":40,\"potions\":90}", save_clock)
+	failures += _check(migrated.data.version == Save.CURRENT_VERSION and migrated.data.boosters.size() == Bag.SLOTS, "v1 save migrates to v2 with starter boosters")
+	var corrupt = Codec.decode("{ broken", save_clock)
+	failures += _check(corrupt.data != null and not corrupt.errors.is_empty(), "corrupt save returns a fresh playable save")
+
+	var test_directory := "user://godot-save-tests"
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(test_directory))
+	var store = Store.new(save_clock, test_directory)
+	var stored_save = Codec.new_save(save_clock)
+	stored_save.potions = 10
+	failures += _check(store.save(stored_save), "write first save file")
+	stored_save.potions = 20
+	failures += _check(store.save(stored_save), "write second save and retain backup")
+	var loaded_store = store.load_save()
+	failures += _check(loaded_store.data.potions == 20, "load current save from disk")
+	var broken_file = FileAccess.open(store.location, FileAccess.WRITE)
+	broken_file.store_string("broken json")
+	broken_file.close()
+	var recovered_store = store.load_save()
+	failures += _check(recovered_store.data.potions == 10 and recovered_store.errors.has("recovered from backup save"), "recover last known good backup after corruption")
+	for path in [store.location, store.location + ".bak", store.location + ".tmp"]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(test_directory))
 
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
