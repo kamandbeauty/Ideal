@@ -11,22 +11,30 @@ Independent Godot 4.x + GDScript client. The Unity project remains in `client/` 
 - Preserve Persian RTL, Persian numerals, product scope, and backend contracts.
 - Do not claim parity until matching deterministic tests pass.
 
-## Current implementation
+## Implemented source modules
 
-- Godot project configuration and a minimal Persian RTL-capable app shell.
+- Godot project configuration and a minimal Persian-language app shell.
 - Shared numeric game enums matching the Unity core.
-- Board model: cells, pieces, power-ups, obstacles, bounds, clone/copy, ASCII fixtures.
-- Match finder: horizontal/vertical runs, 2×2 squares, run clusters, power-up selection, legal-move detection.
-- Initial headless test script for board cloning and match detection.
+- Board/cell model, cloning, ASCII fixtures and board inspection helpers.
+- Match detection for horizontal/vertical runs and 2×2 squares; clusters and power-up spawn selection.
+- Deterministic xorshift64* RNG represented as two 32-bit words to preserve unsigned 64-bit behavior in GDScript.
+- Level definition model and structural validation.
+- Goal progress tracking for piece and obstacle objectives.
+- Initial board generation, no-opening-match placement and deterministic reshuffle.
+- Power-up target shapes and combo targeting.
+- Move resolver for swaps, boosters, cascades, chained triggers, clears, obstacle damage, gravity, refill and settle/reshuffle.
+- Headless test script with a reference RNG vector and basic gameplay cases.
+- GitHub Actions workflow for Godot headless import and core tests.
 
 ## Verification status
 
-The files have been committed, but **Godot has not yet been run in this environment**. Script parsing, test execution, asset import, and Android export remain unverified. Do not treat the test script as passing until a Godot 4 executable runs it successfully.
+All items above are source additions only. **The Godot workflow has not yet reported a run**, so GDScript parsing, tests, import, Android export and gameplay parity remain unverified. This is not yet a playable or feature-complete game.
 
-Run tests from this directory with:
+Run tests locally from the repository root:
 
 ```sh
-godot --headless --path . --script res://tests/test_core.gd
+godot --headless --editor --path godot-port --quit
+godot --headless --path godot-port --script res://tests/test_core.gd
 ```
 
 See [the migration audit](../migration/initial-audit.md) and [current port status](../migration/godot-port-status.md).
