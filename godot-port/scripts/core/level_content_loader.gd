@@ -78,8 +78,7 @@ static func parse_level(source: Dictionary) -> Dictionary:
 			continue
 		level.blocked.append(Vector2i(int(parts[0]), int(parts[1])))
 
-	if not level.is_structurally_valid():
-		errors.append("level %d: failed structural validation" % level.number)
+	errors.append_array(LevelValidator.validate(level))
 	return {"level": level, "errors": errors}
 
 static func load_chapter(chapter: String = "ch01", count: int = 10) -> Dictionary:
@@ -91,6 +90,7 @@ static func load_chapter(chapter: String = "ch01", count: int = 10) -> Dictionar
 			errors.append(message)
 		if result.level != null:
 			levels.append(result.level)
+	errors.append_array(LevelValidator.validate_catalog(levels))
 	return {"levels": levels, "errors": errors}
 
 static func _piece_from_name(value: String) -> int:
