@@ -293,16 +293,16 @@ func _on_round_started(round_number: int, setup: Dictionary) -> void:
 
 func _spawn_vehicle(spawn: Vector3, kind: String) -> void:
 	var vehicle := EnemyVehicle.new()
-	vehicle.configure(spawn, emplacement, kind)
 	add_child(vehicle)
+	vehicle.configure(spawn, emplacement, kind)
 	vehicle.died.connect(_on_vehicle_destroyed)
 	vehicle.shoot_requested.connect(_on_enemy_heavy_shoot)
 	vehicles.append(vehicle)
 
 func _spawn_aircraft(kind: String, phase: float) -> void:
 	var plane := EnemyAircraft.new()
-	plane.configure(emplacement, kind, phase)
 	add_child(plane)
+	plane.configure(emplacement, kind, phase)
 	plane.died.connect(_on_aircraft_destroyed)
 	plane.shoot_requested.connect(_on_enemy_heavy_shoot)
 	aircraft.append(plane)

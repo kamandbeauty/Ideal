@@ -364,14 +364,14 @@ func _eject_casing() -> void:
 	casing.mesh = mesh
 	casing.material_override = MaterialLibrary.weapon_surface("weapon_brass", Color.WHITE, true)
 	casing.top_level = true
+	var casing_parent: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
+	casing_parent.add_child(casing)
 	var eject_index: int = (muzzle_index - 1) % maxi(ejection_markers.size(), 1)
 	if not ejection_markers.is_empty():
 		casing.global_position = ejection_markers[eject_index].global_position
 	else:
 		casing.global_position = global_position + global_transform.basis.x * 0.22 + Vector3.UP * -0.05
 	casing.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var casing_parent: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
-	casing_parent.add_child(casing)
 	casings.append({"node": casing, "velocity": global_transform.basis.x * rng.randf_range(1.4, 2.6) + Vector3.UP * rng.randf_range(1.2, 2.2), "age": 0.0})
 
 func _tick_casings(delta: float) -> void:

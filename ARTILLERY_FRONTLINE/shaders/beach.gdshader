@@ -20,8 +20,8 @@ void fragment() {
 	vec3 b = texture(sand_albedo, ruv).rgb;
 	vec3 base = mix(a, b, 0.45);
 	float detail_fade = 1.0 - smoothstep(35.0, 160.0, view_distance);
-	vec3 flat = vec3(0.55, 0.47, 0.35) * mix(0.86, 1.10, macro);
-	ALBEDO = mix(flat, base * mix(0.84, 1.06, macro) * mix(0.92, 1.08, patch), detail_fade) * COLOR.rgb;
+	vec3 flat_color = vec3(0.55, 0.47, 0.35) * mix(0.86, 1.10, macro);
+	ALBEDO = mix(flat_color, base * mix(0.84, 1.06, macro) * mix(0.92, 1.08, patch), detail_fade) * COLOR.rgb;
 	float wet = 1.0 - smoothstep(0.0, 1.6, world_position.y);
 	ALBEDO *= mix(1.0, 0.48, wet);
 	float foam_noise = texture(ground_noise, world_position.xz * 0.35 + vec2(TIME * 0.015, 0.0)).r;

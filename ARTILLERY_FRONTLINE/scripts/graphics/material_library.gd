@@ -181,9 +181,9 @@ static func for_model_material(material_name: String, original: Material, viewmo
 	if "canvas" in lower:
 		return surface("fabric", Color.WHITE, 1.1)
 	if "uniform" in lower:
-		return surface("fabric", Color(0.58, 0.62, 0.46), 1.5)
+		return surface("fabric", Color(0.36, 0.40, 0.28), 1.5)
 	if "webbing" in lower:
-		return surface("fabric", Color(0.34, 0.36, 0.28), 1.8)
+		return surface("fabric", Color(0.22, 0.24, 0.18), 1.8)
 	if "brass" in lower:
 		return surface("steel", Color(0.78, 0.56, 0.22), 1.2, 0.8, 0.35)
 	if "glass" in lower:

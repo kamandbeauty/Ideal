@@ -53,7 +53,7 @@ func _build_lighting() -> void:
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.58, 0.65, 0.70)
 	env.fog_light_energy = 0.82
-	env.fog_density = 0.00055
+	env.fog_density = 0.00045
 	env.fog_sky_affect = 0.06
 	env.fog_aerial_perspective = 0.35
 	env.fog_sun_scatter = 0.12
@@ -351,4 +351,4 @@ func apply_quality(tier: String, settings: Dictionary) -> void:
 		env.ssao_intensity = 1.5
 		env.glow_enabled = bool(settings.get("glow", false))
 		env.glow_intensity = 0.28
-		env.fog_density = 0.00055 if tier != "low" else 0.0016
+		env.fog_density = 0.00045 if tier != "low" else 0.0007

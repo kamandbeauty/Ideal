@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_disabled, diffuse_burley, specular_schlick_ggx, depth_draw_alpha_prepass;
+render_mode cull_disabled, diffuse_burley, specular_schlick_ggx;
 uniform sampler2D card : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
 uniform float wind_strength = 0.10;
 varying float tint;

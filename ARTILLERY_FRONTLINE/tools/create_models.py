@@ -708,18 +708,34 @@ def soldier():
     for s in [-1,1]:
         side='L' if s<0 else 'R'
         arm=empty('Arm'+side,(s*.215,0,.44),torso)
-        arm.rotation_euler[0]=-0.95
-        arm.rotation_euler[2]=s*0.18
+        if s<0: arm_l,elbow_l=arm,None
+        else: arm_r,elbow_r=arm,None
         sphere('Shoulder'+side,(0,0,0),(.065,.07,.075),'Uniform',arm,14,10)
         loft('Upper arm'+side,[(0,.055,.06,0,0),(-.14,.050,.052,0,0),(-.27,.042,.045,0,0)],'Uniform',arm,14)
         elbow=empty('Elbow'+side,(0,0,-.27),arm)
-        elbow.rotation_euler[0]=-0.55
+        if s<0: elbow_l=elbow
+        else: elbow_r=elbow
         loft('Forearm'+side,[(0,.042,.045,0,0),(-.12,.036,.04,0,0),(-.24,.030,.034,0,0)],'Uniform',elbow,14)
         sphere('Glove'+side,(0,-.005,-.27),(.035,.045,.055),'Webbing',elbow,12,8)
         for f in range(3):box('Finger'+side,(s*(f-1)*.014,-.02,-.30),(.012,.035,.018),'Webbing',elbow,.004)
     # Rifle: wood furniture, steel receiver, barrel, sights, magazine and sling.
-    rifle=empty('Rifle',(.10,-.22,.22),torso)
-    rifle.rotation_euler[0]=-0.12
+    rifle=empty('Rifle',(.08,-.20,.24),torso)
+    rifle.rotation_euler=(-0.10,0.0,0.06)
+    bpy.context.view_layer.update()
+    rmat=rifle.rotation_euler.to_matrix()
+    grip_t=Vector(rifle.location)+rmat@Vector((0,-.10,-.06))
+    guard_t=Vector(rifle.location)+rmat@Vector((0,-.30,.01))
+    def pose_arm(arm,elbow,shoulder,target,pole):
+        L1,L2=.27,.27
+        d=Vector(target)-Vector(shoulder); dist=min(max(d.length,.12),L1+L2-.015); dn=d.normalized()
+        a=(L1*L1-L2*L2+dist*dist)/(2*dist); h=math.sqrt(max(L1*L1-a*a,0.0))
+        pv=Vector(pole)-Vector(shoulder); pv=(pv-dn*pv.dot(dn)).normalized()
+        E=Vector(shoulder)+dn*a+pv*h
+        arm.rotation_euler=(E-Vector(shoulder)).to_track_quat('-Z','Y').to_euler()
+        local=arm.rotation_euler.to_matrix().inverted()@(Vector(target)-E)
+        elbow.rotation_euler=local.to_track_quat('-Z','Y').to_euler()
+    pose_arm(arm_r,elbow_r,(.215,0,.44),grip_t,(.80,-.35,.15))
+    pose_arm(arm_l,elbow_l,(-.215,0,.44),guard_t,(-.80,-.35,.15))
     box('Stock',(0,.18,-.01),(.05,.22,.09),'Rifle wood',rifle,.02)
     box('Receiver',(0,0,0),(.055,.20,.075),'Weapon steel',rifle,.012)
     box('Handguard',(0,-.16,.005),(.05,.16,.06),'Rifle wood',rifle,.015)
