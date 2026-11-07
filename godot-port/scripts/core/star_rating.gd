@@ -6,6 +6,11 @@ const MIN_STARS := 1
 const SECOND_AT_PERCENT := 25
 const THIRD_AT_PERCENT := 50
 
+static func from_run(run) -> int:
+	if run == null or run.level == null or run.status != GameTypes.LevelStatus.WON:
+		return 0
+	return from_moves(run.level.move_limit, run.moves_left)
+
 static func from_moves(move_limit: int, moves_left: int) -> int:
 	moves_left = maxi(0, moves_left)
 	if move_limit <= 0:
