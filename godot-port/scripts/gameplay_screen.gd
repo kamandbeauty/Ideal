@@ -33,7 +33,8 @@ func _apply_theme() -> void:
 	theme = ui_theme
 
 func _load_game_state() -> void:
-	_store = SaveStore.new()
+	var save_directory := str(get_meta("save_directory", ""))
+	_store = SaveStore.new(null, save_directory)
 	var loaded := _store.load_save()
 	_save = loaded.data
 	if not FileAccess.file_exists(_store.location):
@@ -266,3 +267,9 @@ func _on_booster_pressed(kind: int) -> void:
 		_selected_booster = kind
 	_selected = Vector2i(-1, -1)
 	_refresh_board()
+
+func debug_cell_count() -> int:
+	return _cell_buttons.size()
+
+func debug_run_status() -> int:
+	return _run.status if _run != null else -1
