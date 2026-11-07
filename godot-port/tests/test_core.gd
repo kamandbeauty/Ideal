@@ -8,6 +8,14 @@ const Factory = preload("res://scripts/core/board_factory.gd")
 const Level = preload("res://scripts/core/level_definition.gd")
 const Goals = preload("res://scripts/core/goal_tracker.gd")
 const Resolver = preload("res://scripts/core/move_resolver.gd")
+const Save = preload("res://scripts/core/save_data.gd")
+const WalletScript = preload("res://scripts/core/wallet.gd")
+const Bag = preload("res://scripts/core/booster_bag.gd")
+const Clock = preload("res://scripts/core/manual_clock.gd")
+const LivesScript = preload("res://scripts/core/lives.gd")
+const Run = preload("res://scripts/core/level_run.gd")
+const ProgressionScript = preload("res://scripts/core/progression.gd")
+const Stars = preload("res://scripts/core/star_rating.gd")
 
 func _initialize() -> void:
 	create_timer(20.0).timeout.connect(_on_timeout)
@@ -130,6 +138,58 @@ func _run() -> void:
 			saw_trigger_event = true
 	failures += _check(booster_result.accepted and saw_trigger_event, "mallet triggers a power-up on its target")
 	failures += _check(booster_result.pieces_cleared >= 5, "triggered vertical rocket clears its column")
+
+
+	print("TEST STAGE 7: wallet, booster inventory and lives")
+	var save_data = Save.new()
+	save_data.coins = 200
+	save_data.potions = 20
+	var wallet = WalletScript.new(save_data)
+	failures += _check(wallet.try_spend_coins(40) and wallet.coins == 160, "wallet spends affordable coins")
+	failures += _check(not wallet.try_spend_coins(1000) and wallet.coins == 160, "wallet refuses overspending")
+	wallet.grant(999999999, 1)
+	failures += _check(wallet.coins == WalletScript.MAX_BALANCE, "wallet clamps balance to configured maximum")
+	var bag = Bag.new(save_data)
+	bag.grant(GameTypes.BoosterKind.MALLET, 2)
+	failures += _check(bag.count(GameTypes.BoosterKind.MALLET) == 2, "booster bag grants inventory")
+	failures += _check(bag.buy(GameTypes.BoosterKind.RAM, wallet, 2) and bag.count(GameTypes.BoosterKind.RAM) == 2, "booster bag buys a requested quantity")
+	failures += _check(bag.try_consume(GameTypes.BoosterKind.RAM) and bag.count(GameTypes.BoosterKind.RAM) == 1, "booster bag consumes one item")
+
+	var clock = Clock.new(1700000000)
+	save_data.lives = 5
+	save_data.max_lives = 5
+	save_data.lives_updated_at_unix = clock.now_unix()
+	var lives = LivesScript.new(save_data, clock)
+	failures += _check(lives.try_spend() and lives.current == 4, "spend one life")
+	clock.advance(LivesScript.REFILL_SECONDS)
+	failures += _check(lives.refresh() == 1 and lives.current == 5, "refill one life after thirty minutes")
+	failures += _check(lives.is_full and lives.next_refill_in_seconds == 0, "full lives pool has no refill countdown")
+
+	print("TEST STAGE 8: level run, state hash, stars and progression")
+	var progression_level = Level.new()
+	progression_level.id = "test-01"
+	progression_level.number = 1
+	progression_level.width = 7
+	progression_level.height = 7
+	progression_level.move_limit = 20
+	progression_level.reward_coins = 10
+	progression_level.reward_potions = 2
+	var progression_pieces: Array[int] = [1, 2, 3, 4, 5]
+	progression_level.pieces = progression_pieces
+	var progression_goals: Array[Dictionary] = [{"kind": 0, "piece": 1, "target": 1}]
+	progression_level.goals = progression_goals
+	var run_a = Run.new(progression_level, 0, 12345)
+	var run_b = Run.new(progression_level, 0, 12345)
+	failures += _check(run_a.state_hash_hex() == run_b.state_hash_hex(), "same seed produces same initial replay hash")
+	failures += _check(Stars.from_moves(20, 4) == 1 and Stars.from_moves(20, 5) == 2 and Stars.from_moves(20, 10) == 3, "star thresholds use exact integer percentages")
+	run_a.status = GameTypes.LevelStatus.WON
+	run_a.moves_left = 10
+	var progression = ProgressionScript.new(save_data, clock)
+	var first_result = progression.record_level_result(run_a, wallet)
+	failures += _check(first_result.first_clear and wallet.coins == WalletScript.MAX_BALANCE and wallet.potions == 23, "first clear grants reward and records progression")
+	var repeat_result = progression.record_level_result(run_a, wallet)
+	failures += _check(not repeat_result.first_clear and wallet.potions == 23, "replay does not pay first-clear reward twice")
+	failures += _check(progression.highest_unlocked_level == 2 and Stars.from_run(run_a) == 3, "first clear unlocks next level and computes stars")
 
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
