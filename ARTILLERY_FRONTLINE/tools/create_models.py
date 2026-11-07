@@ -356,8 +356,8 @@ def warden():
         side='L' if s<0 else 'R'
         box('Track belt',(s*2.0,0,.78),(.8,6.9,1.35),'Rubber',r,.3)
         for wi,y in enumerate([-2.5,-1.25,0,1.25,2.5]):wheel(r,s*2.16,y,.75,.58,.45,'Wheel%s%d'%(side,wi))
-        wheel(r,s*2.16,-3.05,1.05,.42,.40,.34,'Wheel%sSprocket'%side)
-        wheel(r,s*2.16,3.05,1.05,.42,.40,.34,'Wheel%sIdler'%side)
+        wheel(r,s*2.16,-3.05,1.05,.42,.40,'Wheel%sSprocket'%side)
+        wheel(r,s*2.16,3.05,1.05,.42,.40,'Wheel%sIdler'%side)
         for i in range(26):
             box('Track shoe',(s*2.0,-3.25+i*.25,1.47),(.87,.18,.1),'Gun steel',r,.012)
             box('Track shoe lower',(s*2.0,-3.25+i*.25,.12),(.87,.18,.08),'Gun steel',r,.01)

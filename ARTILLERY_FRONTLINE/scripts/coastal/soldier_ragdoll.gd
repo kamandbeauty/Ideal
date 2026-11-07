@@ -32,8 +32,8 @@ static func build(skeleton: Skeleton3D) -> PhysicalBoneSimulator3D:
 		body.mass = float(MASS.get(bone_name, 4.0))
 		body.friction = 0.85
 		body.bounce = 0.02
-		body.linear_damp_mode = RigidBody3D.DAMP_MODE_REPLACE
-		body.angular_damp_mode = RigidBody3D.DAMP_MODE_REPLACE
+		body.linear_damp_mode = PhysicalBone3D.DAMP_MODE_REPLACE
+		body.angular_damp_mode = PhysicalBone3D.DAMP_MODE_REPLACE
 		body.linear_damp = 0.35
 		body.angular_damp = 0.65
 		body.can_sleep = true
