@@ -39,6 +39,7 @@ jobs:
         if: always()
         run: |
           tail -60 /tmp/studio.log 2>/dev/null || true
+          tail -40 /tmp/verify-art.log 2>/dev/null || true
           ls -l ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/documentation/qa/art-pass-01 || true
           if [ -f /tmp/blender.log ]; then
             tail -45 /tmp/blender.log | while IFS= read -r line; do echo "::error title=Blender log::${line}"; done
@@ -53,7 +54,8 @@ jobs:
           mkdir -p ARTILLERY_FRONTLINE/documentation/qa
           blender --version > /tmp/blender-version.txt
           head -1 /tmp/blender-version.txt > ARTILLERY_FRONTLINE/documentation/blender-version.txt
-          python3 ARTILLERY_FRONTLINE/tools/verify_art_pass.py || { echo "::error::art-pass structural gate failed"; cat ARTILLERY_FRONTLINE/documentation/art-pass-01.json 2>/dev/null || true; exit 1; }
+          python3 ARTILLERY_FRONTLINE/tools/verify_art_pass.py > /tmp/verify-art.log 2>&1 || { tail -40 /tmp/verify-art.log | while IFS= read -r line; do echo "::error title=Art gate::${line}"; done; exit 1; }
+          cat /tmp/verify-art.log
       - name: Preserve generated assets on the active session branch
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
@@ -71,3 +73,4 @@ jobs:
             ARTILLERY_FRONTLINE/documentation/art-pass-01.json
             /tmp/blender.log
             /tmp/studio.log
+            /tmp/verify-art.log
