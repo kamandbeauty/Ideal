@@ -659,7 +659,7 @@ def soldier():
     torso=empty('Torso',(0,0,.20),hips)
     loft('Jacket',[(0,.17,.12,0,0),(.12,.19,.13,0,0),(.28,.21,.14,0,-.01),(.42,.20,.13,0,-.01),(.50,.12,.10,0,0)],'Uniform',torso,22)
     # Collar, shoulder seams and front placket.
-    torus('Collar',(0,0,.50),.105,.022,'Uniform dark',torus,'Z',20)
+    torus('Collar',(0,0,.50),.105,.022,'Uniform dark',torso,'Z',20)
     box('Placket',(0,-.135,.28),(.035,.012,.34),'Uniform dark',torso,.004)
     for z in [.16,.24,.32,.40]:cyl('Button',(0,-.145,z),.008,.006,'Recoil steel',torso,'Y',8)
     for s in [-1,1]:
