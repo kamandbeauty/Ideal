@@ -29,6 +29,10 @@ const SCRIPT_PATHS := [
 	"res://scripts/core/district_content_loader.gd",
 	"res://scripts/main.gd",
 	"res://scripts/gameplay_screen.gd",
+	"res://scripts/home_screen.gd",
+	"res://scripts/district_screen.gd",
+	"res://scripts/shop_screen.gd",
+	"res://scripts/settings_screen.gd",
 	"res://tests/test_core.gd"
 ]
 
