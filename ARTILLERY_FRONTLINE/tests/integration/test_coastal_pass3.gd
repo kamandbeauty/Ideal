@@ -19,9 +19,21 @@ func run(t: TestContext) -> void:
 		landing.speed = 0.0
 	t.check(scene.player_hitbox != null and scene.player_hitbox.collision_layer == 8, "Player emplacement has a real projectile hitbox")
 	var soldier: EnemySoldier = scene.soldiers[0]
-	soldier.global_position = scene.emplacement + Vector3(0, 0, -30)
-	soldier.global_position.y = CoastalTerrain.height_at(soldier.global_position.x, soldier.global_position.z)
+	var saved_layers: Array[int] = []
+	for unit in scene.soldiers:
+		saved_layers.append(unit.collision_layer)
+		if unit != soldier:
+			unit.collision_layer = 0
+	for vehicle in scene.vehicles:
+		vehicle.collision_layer = 0
+	for plane in scene.aircraft:
+		plane.collision_layer = 0
+	for landing in scene.crafts:
+		landing.collision_layer = 0
+	soldier.collision_layer = 2
+	soldier.global_position = Vector3(0, CoastalTerrain.height_at(0, 20), 20)
 	soldier.rotation = Vector3.ZERO
+	await t.tree.physics_frame
 	await t.tree.physics_frame
 	var health_before: float = soldier.health
 	var origin: Vector3 = soldier.global_position + Vector3(0, 1.1, 6)
@@ -48,8 +60,10 @@ func run(t: TestContext) -> void:
 		if hips >= 0:
 			corpse_y = (soldier.skeleton.global_transform * soldier.skeleton.get_bone_global_pose(hips).origin).y
 	elif soldier.fallback_body:
-		corpse_y = soldier.fallback_body.global_position.y
-	var ground: float = CoastalTerrain.height_at(soldier.global_position.x, soldier.global_position.z)
+		var corpse_shape: CollisionShape3D = soldier.fallback_body.get_child(0) as CollisionShape3D
+		corpse_y = corpse_shape.global_position.y if corpse_shape else soldier.fallback_body.global_position.y
+	var corpse_xz: Vector3 = soldier.fallback_body.global_position if soldier.fallback_body else soldier.global_position
+	var ground: float = CoastalTerrain.height_at(corpse_xz.x, corpse_xz.z)
 	t.check(corpse_y > ground - 0.35, "Corpse is thrown down and rests on the terrain instead of sinking")
 	t.check(soldier.model_root.visible, "Persistent corpse remains visible after settling")
 	# Incoming enemy fire must be a real projectile, not scheduled fake damage.
@@ -72,6 +86,8 @@ func run(t: TestContext) -> void:
 		direction = direction.rotated(basis.x.normalized(), randf_range(-spread, spread)).normalized()
 		max_angle = maxf(max_angle, rad_to_deg(forward.angle_to(direction)))
 	t.check(max_angle <= float(CoastalWeapon.WEAPONS.twin_hmg.spread) * 1.5 + 0.01, "Spread is applied once in camera axes, not doubled/world-corkscrewed")
+	for index in range(scene.soldiers.size()):
+		scene.soldiers[index].collision_layer = saved_layers[index]
 	# War-machine articulation pivots are present when the detailed assets exist.
 	var tank: EnemyVehicle = scene.vehicles[0]
 	if tank.model_root and tank.model_root.find_child("WheelL0", true, false):
