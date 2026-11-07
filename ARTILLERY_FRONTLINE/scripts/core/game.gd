@@ -181,8 +181,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _back() -> void:
-	if is_instance_valid(coastal) and coastal.active:
-		coastal.set_paused(not coastal.paused)
+	if is_instance_valid(coastal):
+		if coastal.active:
+			coastal.set_paused(not coastal.paused)
+		else:
+			return_to_command()
 		return
 	if menus.visible:
 		match menus.current:

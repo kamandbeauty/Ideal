@@ -5,6 +5,7 @@ const ROOT: String = "res://assets/textures/pbr/"
 static var textures: Dictionary = {}
 static var surfaces: Dictionary = {}
 static var surface_data: Dictionary = {}
+static var weapon_surfaces: Dictionary = {}
 static var detail_level: int = 512
 
 static func texture(name: String) -> Texture2D:
@@ -95,8 +96,32 @@ static func apply_quality(settings: Dictionary) -> void:
 			material.roughness = float(data.get("roughness", 0.85))
 			material.metallic = float(data.get("metallic", 0.0))
 
-static func for_model_material(material_name: String, original: Material) -> Material:
+
+static func weapon_surface(kind: String, tint: Color = Color.WHITE) -> StandardMaterial3D:
+	var key: String = kind + "|" + tint.to_html()
+	if weapon_surfaces.has(key):
+		return weapon_surfaces[key]
+	var result: StandardMaterial3D = surface(kind, tint, 5.5).duplicate() as StandardMaterial3D
+	result.uv1_triplanar_sharpness = 8.0
+	result.normal_scale = 0.16
+	result.roughness = 0.48 if kind == "steel" else 0.62
+	result.metallic = 0.78 if kind == "steel" else 0.35
+	weapon_surfaces[key] = result
+	return result
+
+static func for_model_material(material_name: String, original: Material, viewmodel: bool = false) -> Material:
 	var lower: String = material_name.to_lower()
+	if viewmodel:
+		if "gun steel" in lower:
+			return weapon_surface("steel", Color(0.5, 0.54, 0.53))
+		if "recoil steel" in lower:
+			return weapon_surface("steel", Color(0.72, 0.75, 0.74))
+		if "field olive" in lower or "armor edge" in lower:
+			return weapon_surface("paint_olive", Color(0.78, 0.82, 0.7))
+		if "rubber" in lower:
+			return weapon_surface("rubber", Color(0.5, 0.5, 0.48))
+		if "brass" in lower:
+			return weapon_surface("steel", Color(0.78, 0.56, 0.22))
 	if "field olive" in lower or "armor edge" in lower:
 		return surface("paint_olive", Color.WHITE, 0.65)
 	if "sand armor" in lower:
@@ -123,7 +148,7 @@ static func for_model_material(material_name: String, original: Material) -> Mat
 		return surface("warning")
 	return original
 
-static func apply_to_model(root: Node3D) -> void:
+static func apply_to_model(root: Node3D, viewmodel: bool = false) -> void:
 	for child in root.find_children("*", "MeshInstance3D", true, false):
 		var instance: MeshInstance3D = child as MeshInstance3D
 		if instance.mesh == null:
@@ -131,6 +156,6 @@ static func apply_to_model(root: Node3D) -> void:
 		for surface_index in range(instance.mesh.get_surface_count()):
 			var original: Material = instance.mesh.surface_get_material(surface_index)
 			var material_name: String = original.resource_name if original else instance.name
-			var upgraded: Material = for_model_material(material_name, original)
+			var upgraded: Material = for_model_material(material_name, original, viewmodel)
 			if upgraded != null and upgraded != original:
 				instance.set_surface_override_material(surface_index, upgraded)

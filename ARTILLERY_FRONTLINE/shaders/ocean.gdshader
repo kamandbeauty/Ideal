@@ -34,8 +34,13 @@ void fragment() {
 	float crest_foam = smoothstep(0.55, 0.92, wave_crest) * 0.30;
 	float shore_foam = (1.0 - smoothstep(0.0, 10.0, abs(world_position.z - 1.5))) * 0.45;
 	float ripple = sin(world_position.x * 1.7 + TIME * 1.2) * sin(world_position.z * 1.9 - TIME) * 0.04;
-	ALBEDO = water + foam_color * clamp(crest_foam + shore_foam + ripple, 0.0, 0.65);
-	ROUGHNESS = 0.16;
+	float streak = smoothstep(0.75, 0.95, sin(world_position.z * 0.55 - TIME * 1.4 + sin(world_position.x * 0.08) * 2.0)) * shore * 0.18;
+	ALBEDO = water + foam_color * clamp(crest_foam + shore_foam + ripple + streak, 0.0, 0.7);
+	float nx = sin(world_position.x * 0.9 + TIME * 1.3) * 0.06 + sin(world_position.z * 1.7 - TIME) * 0.04;
+	float nz = cos(world_position.z * 0.8 + TIME * 1.1) * 0.06;
+	NORMAL_MAP = vec3(0.5 + nx, 0.5 + nz, 1.0);
+	NORMAL_MAP_DEPTH = 0.6;
+	ROUGHNESS = 0.14;
 	METALLIC = 0.0;
 	SPECULAR = 0.65;
 }

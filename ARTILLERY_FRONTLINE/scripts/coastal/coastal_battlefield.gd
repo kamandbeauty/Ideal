@@ -53,7 +53,7 @@ func _build_lighting() -> void:
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.66, 0.72, 0.76)
 	env.fog_light_energy = 0.95
-	env.fog_density = 0.0011
+	env.fog_density = 0.0016
 	env.fog_sky_affect = 0.12
 	env.fog_aerial_perspective = 0.42
 	env.fog_sun_scatter = 0.12
@@ -157,22 +157,58 @@ func _build_ocean() -> void:
 	add_child(ocean)
 
 func _build_mountains() -> void:
-	var rock: StandardMaterial3D = MaterialLibrary.surface("rock", Color(0.68, 0.7, 0.72), 0.18)
-	for index in range(9):
-		var x: float = lerpf(-520.0, 520.0, float(index) / 8.0) + rng.randf_range(-40, 40)
-		var z: float = -520.0 - rng.randf_range(0, 120)
-		var height: float = rng.randf_range(70, 150)
-		var cone := CylinderMesh.new()
-		cone.top_radius = 0.0
-		cone.bottom_radius = rng.randf_range(80, 150)
-		cone.height = height
-		cone.radial_segments = 12
-		var mountain := MeshInstance3D.new()
-		mountain.mesh = cone
-		mountain.material_override = rock
-		mountain.position = Vector3(x, height * 0.5 - 6.0, z)
-		mountain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(mountain)
+	var rock: StandardMaterial3D = MaterialLibrary.surface("rock", Color(0.62, 0.66, 0.7), 0.35)
+	rock.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var x_steps: int = 120
+	var z_steps: int = 18
+	var x_min: float = -950.0
+	var x_max: float = 950.0
+	var z_min: float = -780.0
+	var z_max: float = -470.0
+	var vertices := PackedVector3Array()
+	var normals := PackedVector3Array()
+	var colors := PackedColorArray()
+	var indices := PackedInt32Array()
+	for zi in range(z_steps + 1):
+		for xi in range(x_steps + 1):
+			var x: float = lerpf(x_min, x_max, float(xi) / x_steps)
+			var z: float = lerpf(z_min, z_max, float(zi) / z_steps)
+			var y: float = _ridge_height(x, z, x_min, x_max, z_min, z_max)
+			vertices.append(Vector3(x, y, z))
+			var normal := Vector3(_ridge_height(x - 2, z, x_min, x_max, z_min, z_max) - _ridge_height(x + 2, z, x_min, x_max, z_min, z_max), 4.0, _ridge_height(x, z - 2, x_min, x_max, z_min, z_max) - _ridge_height(x, z + 2, x_min, x_max, z_min, z_max)).normalized()
+			normals.append(normal)
+			var altitude: float = clampf(y / 180.0, 0.0, 1.0)
+			var color: Color = Color(0.34, 0.38, 0.34).lerp(Color(0.68, 0.71, 0.74), altitude)
+			colors.append(color)
+	for zi in range(z_steps):
+		for xi in range(x_steps):
+			var i: int = zi * (x_steps + 1) + xi
+			indices.append_array(PackedInt32Array([i, i + 1, i + x_steps + 1, i + 1, i + x_steps + 2, i + x_steps + 1]))
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_NORMAL] = normals
+	arrays[Mesh.ARRAY_COLOR] = colors
+	arrays[Mesh.ARRAY_INDEX] = indices
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var instance := MeshInstance3D.new()
+	instance.name = "DistantMountainRange"
+	instance.mesh = mesh
+	instance.material_override = rock
+	instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(instance)
+
+func _ridge_height(x: float, z: float, x_min: float, x_max: float, z_min: float, z_max: float) -> float:
+	var peaks: Array[Vector3] = [Vector3(-720, 150, 190), Vector3(-430, 185, 230), Vector3(-140, 130, 180), Vector3(150, 205, 260), Vector3(430, 160, 210), Vector3(720, 140, 190)]
+	var height: float = 0.0
+	for peak in peaks:
+		var dx: float = (x - peak.x) / peak.z
+		height += peak.y * exp(-dx * dx)
+	height += sin(x * 0.021) * 14.0 + sin(x * 0.053 + 1.7) * 7.0
+	var zt: float = (z - z_min) / (z_max - z_min)
+	var xt: float = (x - x_min) / (x_max - x_min)
+	return maxf(0.0, height * sin(zt * PI) * smoothstep(0.0, 0.08, xt) * (1.0 - smoothstep(0.92, 1.0, xt)))
 
 func _build_defenses() -> void:
 	for x in [-70.0, -42.0, -14.0, 14.0, 42.0, 70.0]:
@@ -293,4 +329,4 @@ func apply_quality(tier: String, settings: Dictionary) -> void:
 		env.ssao_intensity = 1.5
 		env.glow_enabled = bool(settings.get("glow", false))
 		env.glow_intensity = 0.28
-		env.fog_density = 0.0011 if tier != "low" else 0.0016
+		env.fog_density = 0.0016 if tier != "low" else 0.0016

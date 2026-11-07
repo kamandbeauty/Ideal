@@ -1,9 +1,10 @@
 class_name CoastalController
 extends Node3D
-## Playable first visual milestone: first-person mounted weapons on a coastal beachhead.
+## Fixed-position combined-arms coastal wave defense. The camera never translates.
 signal exit_requested
 signal mission_finished(success: bool)
 
+const MAX_HEALTH: float = 3000.0
 var battlefield: CoastalBattlefield
 var effects: EffectPool
 var bullets: CoastalBulletPool
@@ -16,12 +17,15 @@ var aim_yaw: Node3D
 var aim_pitch: Node3D
 var craft: LandingCraft
 var soldiers: Array[EnemySoldier] = []
+var vehicles: Array[EnemyVehicle] = []
+var aircraft: Array[EnemyAircraft] = []
+var crafts: Array[LandingCraft] = []
 var active: bool = false
 var paused: bool = false
 var auto_fire: bool = false
 var firing: bool = false
 var zoomed: bool = false
-var player_health: float = 100.0
+var player_health: float = MAX_HEALTH
 var elapsed: float = 0.0
 var kills: int = 0
 var yaw_target: float = 0.0
@@ -29,7 +33,10 @@ var pitch_target: float = -4.0
 var yaw_current: float = 0.0
 var pitch_current: float = -4.0
 var support_timers: Dictionary = {"repair": 0.0, "airstrike": 0.0, "helicopter": 0.0, "airdrop": 0.0}
+var support_charges: Dictionary = {"repair": 3, "airstrike": 2, "helicopter": 1, "airdrop": 2}
 var airstrike_queue: Array[Dictionary] = []
+var support_flights: Array[Dictionary] = []
+var pending_enemy_hits: Array[Dictionary] = []
 var distant_clock: float = 0.0
 var auto_reload_delay: float = -1.0
 var emplacement := Vector3(0, 0, 58)
@@ -51,7 +58,7 @@ func _ready() -> void:
 	_build_camera()
 	weapon = CoastalWeapon.new()
 	camera.add_child(weapon)
-	weapon.position = Vector3(0.0, -0.48, -0.85)
+	weapon.position = Vector3.ZERO
 	weapon.fired.connect(_on_weapon_fired)
 	hud = CoastalHUD.new()
 	hud.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -61,15 +68,12 @@ func _ready() -> void:
 	add_child(waves)
 	waves.round_started.connect(_on_round_started)
 	waves.mission_finished.connect(_on_mission_finished)
-	craft = LandingCraft.new()
-	add_child(craft)
-	craft.configure(Vector3(0, 0, -190), Vector3(0, 0, -18))
 	start()
 
 func _build_camera() -> void:
 	aim_yaw = Node3D.new()
 	aim_yaw.name = "AimYaw"
-	aim_yaw.position = emplacement + Vector3.UP * 1.2
+	aim_yaw.position = emplacement + Vector3.UP * 1.65
 	add_child(aim_yaw)
 	aim_pitch = Node3D.new()
 	aim_pitch.name = "AimPitch"
@@ -99,25 +103,39 @@ func _connect_hud() -> void:
 func start() -> void:
 	active = true
 	paused = false
-	player_health = 100.0
+	player_health = MAX_HEALTH
 	elapsed = 0.0
 	kills = 0
+	support_charges = {"repair": 3, "airstrike": 2, "helicopter": 1, "airdrop": 2}
+	for id in support_timers:
+		support_timers[id] = 0.0
 	waves.start()
 
 func restart() -> void:
 	get_tree().paused = false
-	for soldier in soldiers:
-		if is_instance_valid(soldier):
-			soldier.queue_free()
+	for group in [soldiers, vehicles, aircraft, crafts]:
+		for node in group:
+			if is_instance_valid(node):
+				node.queue_free()
 	soldiers.clear()
+	vehicles.clear()
+	aircraft.clear()
+	crafts.clear()
+	craft = null
+	for flight in support_flights:
+		if is_instance_valid(flight.node):
+			flight.node.queue_free()
+	support_flights.clear()
+	airstrike_queue.clear()
+	pending_enemy_hits.clear()
 	bullets.clear()
 	effects.clear()
 	weapon.resupply()
+	weapon.select("twin_hmg")
+	yaw_target = 0.0
+	pitch_target = -4.0
 	hud.result_panel.visible = false
 	hud.set_paused(false)
-	craft.has_arrived = false
-	craft.progress = 0.0
-	craft.global_position = craft.start
 	start()
 
 func set_paused(value: bool) -> void:
@@ -129,11 +147,18 @@ func aim_drag(relative: Vector2) -> void:
 	if paused or not active:
 		return
 	var sensitivity: float = float(Profile.data.settings.sensitivity)
-	yaw_target = clampf(yaw_target - relative.x * 0.08 * sensitivity, -78.0, 78.0)
-	pitch_target = clampf(pitch_target - relative.y * 0.06 * sensitivity, -28.0, 32.0)
+	yaw_target = wrapf(yaw_target - relative.x * 0.08 * sensitivity, -180.0, 180.0)
+	pitch_target = clampf(pitch_target - relative.y * 0.06 * sensitivity, -35.0, 65.0)
+
+func aim_at(world_point: Vector3) -> void:
+	var direction: Vector3 = (world_point - camera.global_position).normalized()
+	yaw_target = rad_to_deg(atan2(-direction.x, -direction.z))
+	pitch_target = clampf(rad_to_deg(asin(clampf(direction.y, -1.0, 1.0))), -35.0, 65.0)
 
 func set_auto_fire(enabled: bool) -> void:
 	auto_fire = enabled
+	if hud:
+		hud.auto_check.button_pressed = enabled
 
 func toggle_zoom() -> void:
 	zoomed = not zoomed
@@ -148,27 +173,67 @@ func fire_once() -> bool:
 	return weapon.try_fire()
 
 func use_support(id: String) -> void:
-	if not active or paused or not id in waves.supports() or float(support_timers.get(id, 0.0)) > 0.0:
+	if not active or paused or not id in waves.supports():
 		return
+	if int(support_charges.get(id, 0)) <= 0 or float(support_timers.get(id, 0.0)) > 0.0:
+		return
+	if id == "repair" and player_health >= MAX_HEALTH:
+		return
+	support_charges[id] = int(support_charges[id]) - 1
 	match id:
 		"repair":
-			player_health = minf(100.0, player_health + 38.0)
+			player_health = minf(MAX_HEALTH, player_health + 900.0)
 			support_timers[id] = 18.0
 			Sound.play_ui("reload")
 		"airstrike":
 			support_timers[id] = 26.0
-			var target: Vector3 = _aim_ground_point(180.0)
+			var target: Vector3 = _strike_target()
 			for index in range(5):
 				airstrike_queue.append({"time": 1.1 + index * 0.18, "point": target + Vector3((index - 2) * 9.0, 0, -index * 4.0)})
+			_spawn_support_flight("jet", target)
 		"helicopter":
 			support_timers[id] = 34.0
-			for soldier in soldiers:
-				if is_instance_valid(soldier) and not soldier.is_dead():
-					airstrike_queue.append({"time": 0.6 + randf() * 1.2, "point": soldier.global_position})
+			_spawn_support_flight("helicopter", _strike_target())
 		"airdrop":
 			support_timers[id] = 30.0
 			weapon.resupply()
-			player_health = minf(100.0, player_health + 12.0)
+			player_health = minf(MAX_HEALTH, player_health + 600.0)
+
+func _strike_target() -> Vector3:
+	if pitch_target > 12.0:
+		var nearest: Node3D = _nearest_ground_target()
+		if nearest:
+			return nearest.global_position
+	return _aim_ground_point(220.0)
+
+func _nearest_ground_target() -> Node3D:
+	var best: Node3D = null
+	var best_distance: float = INF
+	for group in [soldiers, vehicles, crafts]:
+		for node in group:
+			if is_instance_valid(node) and not node.is_dead():
+				var distance: float = node.global_position.distance_to(emplacement)
+				if distance < best_distance:
+					best_distance = distance
+					best = node
+	return best
+
+func _spawn_support_flight(kind: String, target: Vector3) -> void:
+	var node := Node3D.new()
+	var path: String = "res://assets/models/fighter.glb" if kind == "jet" else "res://assets/models/helicopter.glb"
+	if ResourceLoader.exists(path):
+		var model: Node3D = load(path).instantiate()
+		node.add_child(model)
+		MaterialLibrary.apply_to_model(model)
+	else:
+		MeshFactory.sphere(node, "SupportAircraft", Vector3.ZERO, Vector3(1.2, 1.0, 3.5), Color(0.35, 0.4, 0.34), "paint_olive")
+	add_child(node)
+	var direction := Vector3(1, 0, 0.25).normalized()
+	var speed: float = 120.0 if kind == "jet" else 18.0
+	var duration: float = 3.4 if kind == "jet" else 7.0
+	node.global_position = target + Vector3(-direction.x * speed * duration * 0.5, 55.0 if kind == "jet" else 32.0, -direction.z * speed * duration * 0.5)
+	node.rotation.y = atan2(direction.x, direction.z)
+	support_flights.append({"node": node, "kind": kind, "age": 0.0, "duration": duration, "direction": direction, "speed": speed, "target": target, "next_strike": 0.8, "rotor": node.find_child("Rotor", true, false)})
 
 func _aim_ground_point(max_distance: float) -> Vector3:
 	var origin: Vector3 = camera.global_position
@@ -177,30 +242,87 @@ func _aim_ground_point(max_distance: float) -> Vector3:
 	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():
 		return hit.position
-	return origin + direction * 120.0
+	var point: Vector3 = origin + direction * 120.0
+	point.y = CoastalTerrain.height_at(point.x, point.z)
+	return point
+
+func _spawn_zones(round_number: int) -> Array[Vector3]:
+	var zones: Array[Vector3] = battlefield.landing_zones.duplicate()
+	if round_number >= 2:
+		zones.append_array([Vector3(-92, 0, 24), Vector3(92, 0, 28)])
+	if round_number >= 3:
+		zones.append_array([Vector3(-40, 0, 104), Vector3(42, 0, 108)])
+	return zones
 
 func _on_round_started(round_number: int, setup: Dictionary) -> void:
+	var zones: Array[Vector3] = _spawn_zones(round_number)
 	var count: int = int(setup.soldiers)
 	for index in range(count):
-		var zone: Vector3 = battlefield.landing_zones[index % battlefield.landing_zones.size()]
-		var spawn: Vector3 = zone + Vector3(randf_range(-14.0, 14.0), 0.0, randf_range(-8.0, 8.0) - index * 1.5)
+		var zone: Vector3 = zones[index % zones.size()]
+		var spawn: Vector3 = zone + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0) - index * 1.2)
 		spawn.y = CoastalTerrain.height_at(spawn.x, spawn.z)
 		var soldier := EnemySoldier.new()
 		add_child(soldier)
-		soldier.configure(spawn, emplacement + Vector3(randf_range(-8, 8), 0, randf_range(-4, 4)), battlefield.random_cover())
-		soldier.died.connect(_on_soldier_died)
+		soldier.configure(spawn, emplacement + Vector3(randf_range(-6, 6), 0, randf_range(-4, 4)), battlefield.random_cover())
+		soldier.speed = 4.2 + round_number * 0.35
+		soldier.died.connect(func(_s): _register_kill())
 		soldier.shoot_requested.connect(_on_enemy_shoot)
 		soldiers.append(soldier)
-	if round_number == 1:
-		craft.configure(Vector3(0, 0, -190), Vector3(0, 0, -18))
-	else:
-		craft.has_arrived = false
-		craft.progress = 0.0
-		craft.configure(Vector3(-42, 0, -200), Vector3(-42, 0, -24))
+	for index in range(int(setup.tanks)):
+		var spawn := Vector3(-28.0 + index * 56.0, 0.0, -6.0 - index * 8.0)
+		spawn.y = CoastalTerrain.height_at(spawn.x, spawn.z)
+		_spawn_vehicle(spawn, "tank")
+	for index in range(int(setup.transports)):
+		var side: float = -1.0 if index % 2 == 0 else 1.0
+		var spawn := Vector3(side * 86.0, 0.0, 34.0)
+		spawn.y = CoastalTerrain.height_at(spawn.x, spawn.z)
+		_spawn_vehicle(spawn, "transport")
+	for index in range(int(setup.helicopters)):
+		_spawn_aircraft("helicopter", PI * 0.5 + index * 1.7)
+	for index in range(int(setup.fighters)):
+		_spawn_aircraft("fighter", PI * 1.2 + index * 2.1)
+	for index in range(int(setup.craft)):
+		var x: float = -34.0 + index * 68.0
+		var landing := LandingCraft.new()
+		add_child(landing)
+		landing.configure(Vector3(x, 0, -190.0 - index * 20.0), Vector3(x, 0, -20.0))
+		landing.died.connect(_on_craft_destroyed)
+		crafts.append(landing)
+		if craft == null:
+			craft = landing
 
-func _on_soldier_died(_soldier: EnemySoldier) -> void:
+func _spawn_vehicle(spawn: Vector3, kind: String) -> void:
+	var vehicle := EnemyVehicle.new()
+	vehicle.configure(spawn, emplacement, kind)
+	add_child(vehicle)
+	vehicle.died.connect(_on_vehicle_destroyed)
+	vehicle.shoot_requested.connect(_on_enemy_heavy_shoot)
+	vehicles.append(vehicle)
+
+func _spawn_aircraft(kind: String, phase: float) -> void:
+	var plane := EnemyAircraft.new()
+	plane.configure(emplacement, kind, phase)
+	add_child(plane)
+	plane.died.connect(_on_aircraft_destroyed)
+	plane.shoot_requested.connect(_on_enemy_heavy_shoot)
+	aircraft.append(plane)
+
+func _register_kill() -> void:
 	kills += 1
 	waves.register_kill()
+
+func _on_vehicle_destroyed(vehicle: EnemyVehicle) -> void:
+	_register_kill()
+	_explode(vehicle.global_position + Vector3.UP * 1.2, Vector3.UP, 7.0)
+
+func _on_aircraft_destroyed(plane: EnemyAircraft) -> void:
+	_register_kill()
+	effects.explode(plane.global_position, Vector3.UP, 8.0, CoastalTerrain.height_at(plane.global_position.x, plane.global_position.z))
+	Sound.play_at("explosion", plane.global_position, -4.0)
+
+func _on_craft_destroyed(landing: LandingCraft) -> void:
+	_register_kill()
+	_explode(landing.global_position + Vector3.UP, Vector3.UP, 8.0)
 
 func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	if not active or soldier.is_dead():
@@ -208,15 +330,30 @@ func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	var origin: Vector3 = soldier.global_position + Vector3.UP * 1.45
 	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
 	bullets.launch(origin, direction * 300.0, 0.0, 0.0)
+	effects.explode(origin, direction, 0.4, origin.y, true)
 	var distance: float = origin.distance_to(target)
-	if randf() < clampf(0.55 - distance / 400.0, 0.08, 0.5):
-		player_health = maxf(0.0, player_health - randf_range(1.5, 3.5))
-		hud.flash_damage()
-		if player_health <= 0.0:
-			_finish(false)
+	if randf() < clampf(0.65 - distance / 300.0, 0.15, 0.6):
+		pending_enemy_hits.append({"time": distance / 300.0, "damage": randf_range(18.0, 32.0), "blast": 0.0})
 
-func _on_weapon_fired(origin: Vector3, direction: Vector3, weapon_id: String) -> void:
+func _on_enemy_heavy_shoot(origin: Vector3, target: Vector3, damage: float, blast: float) -> void:
+	if not active:
+		return
+	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
+	bullets.launch(origin, direction * 160.0, 0.0, 0.0)
+	effects.explode(origin, direction, 1.2, origin.y, true)
+	pending_enemy_hits.append({"time": origin.distance_to(target) / 160.0, "damage": damage * randf_range(0.8, 1.15), "blast": blast})
+
+func _on_weapon_fired(origin: Vector3, _direction: Vector3, weapon_id: String) -> void:
 	var data: Dictionary = CoastalWeapon.WEAPONS[weapon_id]
+	var aim_direction: Vector3 = -camera.global_transform.basis.z
+	var target: Vector3 = camera.global_position + aim_direction * 500.0
+	var query := PhysicsRayQueryParameters3D.create(camera.global_position, target, 7)
+	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
+	if not hit.is_empty():
+		target = hit.position
+	var direction: Vector3 = (target - origin).normalized()
+	var spread: float = deg_to_rad(float(data.spread))
+	direction = direction.rotated(Vector3.UP, randf_range(-spread, spread)).normalized()
 	bullets.launch(origin, direction * float(data.speed), float(data.damage), float(data.blast))
 	if float(data.blast) > 0.0:
 		effects.explode(origin, direction, 1.4, origin.y, true)
@@ -239,12 +376,36 @@ func _explode(point: Vector3, normal: Vector3, radius: float) -> void:
 	for soldier in soldiers:
 		if is_instance_valid(soldier) and not soldier.is_dead():
 			soldier.react_to_explosion(point, radius)
+	for vehicle in vehicles:
+		if is_instance_valid(vehicle) and not vehicle.is_dead():
+			vehicle.react_to_explosion(point, radius)
+	for plane in aircraft:
+		if is_instance_valid(plane) and not plane.is_dead():
+			plane.react_to_explosion(point, radius)
+	for landing in crafts:
+		if is_instance_valid(landing) and not landing.is_dead():
+			landing.react_to_explosion(point, radius)
 	for barrel in battlefield.barrels:
-		if is_instance_valid(barrel) and barrel.global_position.distance_to(point) < radius * 1.4:
+		if is_instance_valid(barrel) and not barrel.destroyed and barrel.global_position.distance_to(point) < radius * 1.4:
 			barrel.receive_damage(80.0)
 	if point.distance_to(emplacement) < radius * 0.8:
-		player_health = maxf(0.0, player_health - 12.0)
-		hud.flash_damage()
+		_damage_player(120.0)
+
+func _damage_player(amount: float) -> void:
+	if not active:
+		return
+	player_health = maxf(0.0, player_health - amount)
+	hud.flash_damage()
+	if player_health <= 0.0:
+		_finish(false)
+
+func living_targets() -> Array[Node3D]:
+	var result: Array[Node3D] = []
+	for group in [soldiers, vehicles, aircraft, crafts]:
+		for node in group:
+			if is_instance_valid(node) and not node.is_dead():
+				result.append(node)
+	return result
 
 func _on_mission_finished(success: bool) -> void:
 	_finish(success)
@@ -254,7 +415,8 @@ func _finish(success: bool) -> void:
 		return
 	active = false
 	firing = false
-	hud.show_result(success, {"round": waves.round_index + 1, "kills": kills, "time": elapsed})
+	var survived: int = waves.round_index + 1 if success else waves.round_index
+	hud.show_result(success, {"round": survived, "kills": kills, "time": elapsed})
 	mission_finished.emit(success)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -264,13 +426,20 @@ func _unhandled_input(event: InputEvent) -> void:
 		aim_drag(event.relative)
 	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT):
 		aim_drag(event.relative)
+	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		firing = event.pressed
+	elif event is InputEventKey and event.keycode == KEY_SPACE:
+		firing = event.pressed
 	elif event is InputEventKey and event.pressed and not event.echo:
 		match event.keycode:
-			KEY_SPACE: firing = true
 			KEY_R: reload()
 			KEY_Z: toggle_zoom()
 			KEY_Q: cycle_weapon()
 			KEY_F: set_auto_fire(not auto_fire)
+			KEY_1: use_support("repair")
+			KEY_2: use_support("airstrike")
+			KEY_3: use_support("helicopter")
+			KEY_4: use_support("airdrop")
 
 func _process(delta: float) -> void:
 	if paused:
@@ -282,18 +451,15 @@ func _process(delta: float) -> void:
 	distant_clock += delta
 	waves.tick(delta)
 	background.tick(delta)
-	craft.tick(delta)
+	for landing in crafts:
+		if is_instance_valid(landing):
+			landing.tick(delta)
 	weapon.tick(delta)
 	for id in support_timers:
 		support_timers[id] = maxf(0.0, float(support_timers[id]) - delta)
-	for index in range(airstrike_queue.size() - 1, -1, -1):
-		var strike: Dictionary = airstrike_queue[index]
-		strike.time -= delta
-		if strike.time <= 0.0:
-			var point: Vector3 = strike.point
-			point.y = CoastalTerrain.height_at(point.x, point.z)
-			_explode(point, Vector3.UP, 8.0)
-			airstrike_queue.remove_at(index)
+	_tick_pending_hits(delta)
+	_tick_airstrikes(delta)
+	_tick_support_flights(delta)
 	if (firing or auto_fire) and weapon.can_fire():
 		weapon.try_fire()
 	if weapon.ammo <= 0 and weapon.reload_remaining <= 0.0:
@@ -305,24 +471,73 @@ func _process(delta: float) -> void:
 			auto_reload_delay = -1.0
 	else:
 		auto_reload_delay = -1.0
-	if distant_clock > 5.0:
+	if distant_clock > 6.0:
 		distant_clock = 0.0
 		var point := Vector3(randf_range(-180, 180), 0.0, randf_range(-160, -80))
 		point.y = maxf(0.0, CoastalTerrain.height_at(point.x, point.z))
 		effects.explode(point, Vector3.UP, randf_range(3.0, 6.0), point.y)
 	hud.update_state(_state())
 
+func _tick_pending_hits(delta: float) -> void:
+	for index in range(pending_enemy_hits.size() - 1, -1, -1):
+		var hit: Dictionary = pending_enemy_hits[index]
+		hit.time -= delta
+		if hit.time <= 0.0:
+			pending_enemy_hits.remove_at(index)
+			_damage_player(float(hit.damage))
+			if float(hit.blast) > 0.0:
+				effects.explode(emplacement + Vector3.UP * 0.5, Vector3.UP, float(hit.blast), emplacement.y)
+
+func _tick_airstrikes(delta: float) -> void:
+	for index in range(airstrike_queue.size() - 1, -1, -1):
+		var strike: Dictionary = airstrike_queue[index]
+		strike.time -= delta
+		if strike.time <= 0.0:
+			var point: Vector3 = strike.point
+			point.y = CoastalTerrain.height_at(point.x, point.z)
+			_explode(point, Vector3.UP, 9.0)
+			airstrike_queue.remove_at(index)
+
+func _tick_support_flights(delta: float) -> void:
+	for index in range(support_flights.size() - 1, -1, -1):
+		var flight: Dictionary = support_flights[index]
+		var node: Node3D = flight.node
+		if not is_instance_valid(node):
+			support_flights.remove_at(index)
+			continue
+		flight.age += delta
+		node.global_position += flight.direction * float(flight.speed) * delta
+		if flight.rotor and is_instance_valid(flight.rotor):
+			flight.rotor.rotation.y += delta * 24.0
+		if flight.kind == "helicopter" and float(flight.age) >= float(flight.next_strike):
+			flight.next_strike += 0.9
+			var target: Node3D = _nearest_ground_target()
+			if target:
+				airstrike_queue.append({"time": 0.35, "point": target.global_position})
+		if float(flight.age) >= float(flight.duration):
+			node.queue_free()
+			support_flights.remove_at(index)
+
 func _smooth_camera(delta: float) -> void:
 	var weight: float = 1.0 - exp(-delta * 10.0)
-	yaw_current = lerpf(yaw_current, yaw_target, weight)
+	yaw_current = wrapf(yaw_current + wrapf(yaw_target - yaw_current, -180.0, 180.0) * weight, -180.0, 180.0)
 	pitch_current = lerpf(pitch_current, pitch_target, weight)
 	aim_yaw.rotation.y = deg_to_rad(yaw_current)
 	aim_pitch.rotation.x = deg_to_rad(pitch_current)
 	camera.fov = lerpf(camera.fov, 30.0 if zoomed else 60.0, weight)
 
 func _state() -> Dictionary:
-	var any_cooldown: bool = false
-	for id in support_timers:
-		if float(support_timers[id]) > 0.0:
-			any_cooldown = true
-	return {"mission": "TIDE WALL", "remaining": waves.remaining, "round": waves.round_index + 1, "rounds": waves.total_rounds(), "time": elapsed, "health": player_health, "ammo": weapon.ammo, "magazine": int(weapon.config().magazine), "weapon": String(weapon.config().display), "weapon_id": weapon.weapon_id, "reloading": weapon.reload_remaining > 0.0, "auto": auto_fire, "supports": waves.supports(), "support_cooldown": any_cooldown}
+	var bearing: float = 0.0
+	var distance: float = 0.0
+	var nearest: Node3D = null
+	var best: float = INF
+	for node in living_targets():
+		var d: float = node.global_position.distance_to(emplacement)
+		if d < best:
+			best = d
+			nearest = node
+	if nearest:
+		var offset: Vector3 = nearest.global_position - camera.global_position
+		bearing = wrapf(rad_to_deg(atan2(-offset.x, -offset.z)) - yaw_current, -180.0, 180.0)
+		distance = best
+	return {"mission": "TIDE WALL", "label": waves.current_label(), "remaining": waves.remaining, "round": waves.round_index + 1, "rounds": waves.total_rounds(), "time": elapsed, "health": player_health, "health_max": MAX_HEALTH, "ammo": weapon.ammo, "magazine": int(weapon.config().magazine), "reserve": weapon.reserve, "weapon": String(weapon.config().display), "weapon_id": weapon.weapon_id, "reloading": weapon.reload_remaining > 0.0, "auto": auto_fire, "supports": waves.supports(), "support_cooldowns": support_timers.duplicate(), "support_charges": support_charges.duplicate(), "intermission": waves.intermission, "threat_bearing": bearing, "threat_distance": distance}

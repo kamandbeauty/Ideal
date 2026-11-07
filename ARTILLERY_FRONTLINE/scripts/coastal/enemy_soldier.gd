@@ -23,6 +23,7 @@ var arm_r: Node3D
 var torso: Node3D
 var collision: CollisionShape3D
 var player_position: Vector3 = Vector3.ZERO
+var torso_rest_y: float = 0.0
 
 func _ready() -> void:
 	collision_layer = 2
@@ -56,6 +57,8 @@ func _build_model() -> void:
 		arm_l = model_root.find_child("ArmL", true, false) as Node3D
 		arm_r = model_root.find_child("ArmR", true, false) as Node3D
 		torso = model_root.find_child("Torso", true, false) as Node3D
+		if torso:
+			torso_rest_y = torso.position.y
 	if model_root == null:
 		model_root = Node3D.new()
 		add_child(model_root)
@@ -152,4 +155,4 @@ func _animate(delta: float, move_speed: float) -> void:
 	if arm_r:
 		arm_r.rotation.x = sin(phase) * amplitude * 0.7
 	if torso:
-		torso.position.y = 1.12 + absf(sin(phase)) * 0.035 * amplitude
+		torso.position.y = torso_rest_y + absf(sin(phase)) * 0.035 * amplitude

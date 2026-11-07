@@ -7,12 +7,20 @@ signal reload_finished
 signal ammo_changed(current: int, magazine: int)
 
 const WEAPONS: Dictionary = {
-	"twin_hmg": {"display": "TWIN M2 HEAVY", "model": "res://assets/models/mounted_twin_hmg.glb", "interval": 0.085, "damage": 20.0, "magazine": 140, "reload": 2.3, "speed": 430.0, "spread": 0.75, "blast": 0.0, "automatic": true},
-	"cannon": {"display": "105MM SINGLE CANNON", "model": "res://assets/models/mounted_cannon.glb", "interval": 1.15, "damage": 150.0, "magazine": 12, "reload": 3.4, "speed": 260.0, "spread": 0.18, "blast": 5.5, "automatic": false},
-	"rocket": {"display": "ROCKET POD", "model": "res://assets/models/mounted_rocket.glb", "interval": 0.72, "damage": 170.0, "magazine": 6, "reload": 3.0, "speed": 110.0, "spread": 0.35, "blast": 9.0, "automatic": false},
+	"twin_hmg": {"display": "TWIN M2 HEAVY", "model": "res://assets/models/mounted_twin_hmg.glb", "interval": 0.085, "damage": 20.0, "magazine": 140, "reload": 2.3, "speed": 430.0, "spread": 0.65, "blast": 0.0, "automatic": true},
+	"cannon": {"display": "105MM CANNON", "model": "res://assets/models/mounted_cannon.glb", "interval": 1.15, "damage": 150.0, "magazine": 12, "reload": 3.4, "speed": 260.0, "spread": 0.18, "blast": 5.5, "automatic": false},
+	"rocket": {"display": "ROCKET POD", "model": "res://assets/models/mounted_rocket.glb", "interval": 0.72, "damage": 170.0, "magazine": 6, "reload": 3.0, "speed": 115.0, "spread": 0.35, "blast": 9.0, "automatic": false},
+	"bazooka": {"display": "M9 BAZOOKA", "model": "res://assets/models/bazooka.glb", "interval": 1.05, "damage": 240.0, "magazine": 4, "reload": 3.2, "speed": 140.0, "spread": 0.25, "blast": 6.5, "automatic": false},
 	"autocannon": {"display": "30MM AUTOCANNON", "model": "res://assets/models/mounted_autocannon.glb", "interval": 0.16, "damage": 42.0, "magazine": 70, "reload": 2.7, "speed": 380.0, "spread": 0.45, "blast": 2.2, "automatic": true}
 }
-const ORDER: Array[String] = ["twin_hmg", "cannon", "rocket", "autocannon"]
+const ORDER: Array[String] = ["twin_hmg", "cannon", "rocket", "bazooka", "autocannon"]
+const VIEW_OFFSETS: Dictionary = {
+	"twin_hmg": Vector3(0.0, -1.62, -1.05),
+	"cannon": Vector3(0.0, -1.58, -1.15),
+	"rocket": Vector3(0.32, -1.52, -1.0),
+	"bazooka": Vector3(0.4, -1.46, -0.95),
+	"autocannon": Vector3(0.0, -1.58, -1.1)
+}
 
 var weapon_id: String = "twin_hmg"
 var ammo: int = 140
@@ -23,6 +31,7 @@ var heat: float = 0.0
 var shots_since_belt: int = 0
 var model_root: Node3D
 var recoil_node: Node3D
+var recoil_rest: Vector3 = Vector3.ZERO
 var breech_node: Node3D
 var spin_node: Node3D
 var muzzles: Array[Node3D] = []
@@ -44,15 +53,22 @@ func _ready() -> void:
 func config() -> Dictionary:
 	return WEAPONS[weapon_id]
 
+func view_offset() -> Vector3:
+	return VIEW_OFFSETS.get(weapon_id, Vector3(0, -1.58, -1.05))
+
 func configure(id: String) -> void:
 	if not WEAPONS.has(id):
+		return
+	if id == weapon_id and model_root != null:
 		return
 	ammo_store[weapon_id] = ammo
 	weapon_id = id
 	ammo = int(ammo_store.get(id, int(config().magazine)))
 	reload_remaining = 0.0
-	cooldown = 0.15
+	cooldown = 0.25
 	heat = 0.0
+	recoil_offset = 0.0
+	recoil_velocity = 0.0
 	_build_model()
 	ammo_changed.emit(ammo, int(config().magazine))
 
@@ -73,12 +89,17 @@ func _build_model() -> void:
 	recoil_node = null
 	breech_node = null
 	spin_node = null
+	if is_instance_valid(flash_light):
+		flash_light.queue_free()
+	if is_instance_valid(heat_smoke):
+		heat_smoke.queue_free()
 	var path: String = String(config().model)
 	if ResourceLoader.exists(path):
 		model_root = load(path).instantiate()
 		model_root.rotation.y = PI
+		model_root.position = view_offset()
 		add_child(model_root)
-		MaterialLibrary.apply_to_model(model_root)
+		MaterialLibrary.apply_to_model(model_root, true)
 		recoil_node = model_root.find_child("RecoilAssembly", true, false) as Node3D
 		breech_node = model_root.find_child("Breech", true, false) as Node3D
 		spin_node = model_root.find_child("BarrelSpin", true, false) as Node3D
@@ -88,16 +109,18 @@ func _build_model() -> void:
 				muzzles.append(marker)
 	if model_root == null:
 		_build_fallback()
+	if recoil_node:
+		recoil_rest = recoil_node.position
 	if muzzles.is_empty():
 		var marker := Marker3D.new()
 		marker.name = "MuzzleFallback"
-		marker.position = Vector3(0, 0.02, -1.65)
+		marker.position = view_offset() + Vector3(0, 0.02, -1.65)
 		add_child(marker)
 		muzzles.append(marker)
 	for muzzle in muzzles:
 		var flash := MeshInstance3D.new()
 		var quad := QuadMesh.new()
-		quad.size = Vector2(0.55, 0.55)
+		quad.size = Vector2(0.5, 0.5)
 		flash.mesh = quad
 		var material := StandardMaterial3D.new()
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -117,19 +140,18 @@ func _build_model() -> void:
 	flash_light.light_color = Color(1.0, 0.62, 0.25)
 	flash_light.omni_range = 7.0
 	flash_light.light_energy = 0.0
-	flash_light.position = Vector3(0, 0.0, -1.4)
+	flash_light.position = view_offset() + Vector3(0, 0.0, -1.4)
 	add_child(flash_light)
 	_build_heat_smoke()
 
 func _build_fallback() -> void:
 	model_root = Node3D.new()
 	model_root.name = "FallbackWeapon"
+	model_root.position = view_offset()
 	add_child(model_root)
-	var steel: StandardMaterial3D = MaterialLibrary.surface("steel", Color(0.75, 0.78, 0.74), 1.4)
-	var olive: StandardMaterial3D = MaterialLibrary.surface("paint_olive", Color.WHITE, 1.2)
-	MeshFactory.box(model_root, "Receiver", Vector3(0, 0, -0.35), Vector3(0.34, 0.26, 0.95), Color.WHITE, true, "steel")
-	MeshFactory.box(model_root, "AmmoBox", Vector3(0.28, -0.16, -0.15), Vector3(0.26, 0.24, 0.42), Color.WHITE, true, "paint_olive")
-	var barrel := MeshFactory.cylinder(model_root, "Barrel", Vector3(0, 0.02, -1.15), 0.055, 1.35, Color.WHITE, 18, "steel")
+	MeshFactory.box(model_root, "Receiver", Vector3(0, 0, -0.35), Vector3(0.34, 0.26, 0.95), Color(0.4, 0.44, 0.42), true, "steel")
+	MeshFactory.box(model_root, "AmmoBox", Vector3(0.28, -0.16, -0.15), Vector3(0.26, 0.24, 0.42), Color(0.3, 0.34, 0.24), true, "paint_olive")
+	var barrel := MeshFactory.cylinder(model_root, "Barrel", Vector3(0, 0.02, -1.15), 0.055, 1.35, Color(0.35, 0.38, 0.36), 18, "steel")
 	barrel.rotation.x = PI * 0.5
 	var marker := Marker3D.new()
 	marker.name = "Muzzle"
@@ -137,6 +159,7 @@ func _build_fallback() -> void:
 	model_root.add_child(marker)
 	muzzles.append(marker)
 	recoil_node = model_root
+	recoil_rest = model_root.position
 
 func _build_heat_smoke() -> void:
 	heat_smoke = GPUParticles3D.new()
@@ -144,7 +167,7 @@ func _build_heat_smoke() -> void:
 	heat_smoke.amount = 10
 	heat_smoke.lifetime = 1.4
 	heat_smoke.emitting = false
-	heat_smoke.position = Vector3(0, 0.08, -1.5)
+	heat_smoke.position = view_offset() + Vector3(0, 0.08, -1.5)
 	var process := ParticleProcessMaterial.new()
 	process.direction = Vector3.UP
 	process.spread = 24.0
@@ -198,7 +221,7 @@ func try_fire() -> bool:
 	_eject_casing()
 	if weapon_id == "twin_hmg":
 		Sound.play_at("hmg", origin, -12.0, rng.randf_range(0.92, 1.08))
-	elif weapon_id == "rocket":
+	elif weapon_id == "rocket" or weapon_id == "bazooka":
 		Sound.play_at("rocket", origin, -6.0, rng.randf_range(0.9, 1.05))
 	else:
 		Sound.play_at("cannon", origin, -9.0, 1.05)
@@ -216,6 +239,8 @@ func start_reload() -> bool:
 
 func resupply() -> void:
 	reserve = 999
+	for id in ORDER:
+		ammo_store[id] = int(WEAPONS[id].magazine)
 	ammo = int(config().magazine)
 	reload_remaining = 0.0
 	ammo_changed.emit(ammo, int(config().magazine))
@@ -228,22 +253,24 @@ func tick(delta: float) -> void:
 	if reload_remaining > 0.0:
 		reload_remaining = maxf(0.0, reload_remaining - delta)
 		if breech_node:
-			breech_node.rotation.z = sin((1.0 - reload_remaining / float(config().reload)) * PI) * 0.9
+			breech_node.rotation.x = sin((1.0 - reload_remaining / float(config().reload)) * PI) * 0.45
 		if reload_remaining <= 0.0:
 			var needed: int = int(config().magazine) - ammo
 			var taken: int = mini(needed, reserve)
 			ammo += taken
 			reserve -= taken
+			ammo_store[weapon_id] = ammo
 			if breech_node:
-				breech_node.rotation.z = 0.0
+				breech_node.rotation.x = 0.0
 			reload_finished.emit()
 			ammo_changed.emit(ammo, int(config().magazine))
 	recoil_velocity += (-recoil_offset * 120.0 - recoil_velocity * 18.0) * delta
 	recoil_offset += recoil_velocity * delta
 	if recoil_node:
-		recoil_node.position.z = recoil_offset * 0.08
-	if spin_node and weapon_id == "twin_hmg":
-		spin_node.rotation.z += delta * (2.0 + heat * 14.0)
+		recoil_node.position = recoil_rest + Vector3(0, 0, -recoil_offset * 0.08)
+	# Twin barrels are fixed; only the centered autocannon shroud may spin.
+	if spin_node and weapon_id == "autocannon":
+		spin_node.rotation.z += delta * (2.0 + heat * 10.0)
 	if flash_light:
 		flash_light.light_energy = maxf(0.0, flash_light.light_energy - delta * 42.0)
 	for index in range(flash_timers.size()):
@@ -253,7 +280,28 @@ func tick(delta: float) -> void:
 				flashes[index].visible = false
 	_tick_casings(delta)
 
+func screen_bounds(active_camera: Camera3D) -> Rect2:
+	var result := Rect2()
+	var first: bool = true
+	if model_root == null:
+		return result
+	for child in model_root.find_children("*", "MeshInstance3D", true, false):
+		var instance: MeshInstance3D = child as MeshInstance3D
+		if instance.mesh == null:
+			continue
+		var aabb: AABB = instance.mesh.get_aabb()
+		for corner in [Vector3(aabb.position.x, aabb.position.y, aabb.position.z), Vector3((aabb.position + aabb.size).x, aabb.position.y, aabb.position.z), Vector3(aabb.position.x, (aabb.position + aabb.size).y, aabb.position.z), Vector3(aabb.position.x, aabb.position.y, (aabb.position + aabb.size).z), Vector3((aabb.position + aabb.size).x, (aabb.position + aabb.size).y, aabb.position.z), Vector3((aabb.position + aabb.size).x, aabb.position.y, (aabb.position + aabb.size).z), Vector3(aabb.position.x, (aabb.position + aabb.size).y, (aabb.position + aabb.size).z), (aabb.position + aabb.size)]:
+			var screen: Vector2 = active_camera.unproject_position(instance.global_transform * corner)
+			if first:
+				result = Rect2(screen, Vector2.ZERO)
+				first = false
+			else:
+				result = result.expand(screen)
+	return result
+
 func _eject_casing() -> void:
+	if weapon_id == "rocket" or weapon_id == "bazooka":
+		return
 	if casings.size() > 22:
 		var old: Dictionary = casings.pop_front()
 		if is_instance_valid(old.node):
@@ -262,7 +310,7 @@ func _eject_casing() -> void:
 	var mesh := BoxMesh.new()
 	mesh.size = Vector3(0.035, 0.035, 0.11) if weapon_id == "twin_hmg" else Vector3(0.07, 0.07, 0.22)
 	casing.mesh = mesh
-	casing.material_override = MaterialLibrary.surface("steel", Color(0.85, 0.62, 0.25), 2.0, 0.7, 0.35)
+	casing.material_override = MaterialLibrary.weapon_surface("steel", Color(0.85, 0.62, 0.25))
 	casing.top_level = true
 	casing.global_position = global_position + global_transform.basis.x * 0.22 + Vector3.UP * -0.05
 	casing.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

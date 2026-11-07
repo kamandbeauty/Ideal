@@ -1,49 +1,60 @@
 class_name WaveManager
 extends Node
-## Round-based landing waves for the coastal milestone.
+## Combined-arms landing waves for the fixed coastal emplacement.
 signal round_started(round_number: int, setup: Dictionary)
 signal remaining_changed(remaining: int)
+signal intermission_changed(seconds: float)
 signal mission_finished(success: bool)
 
 const ROUNDS: Array[Dictionary] = [
-	{"soldiers": 8, "craft": 1, "label": "FIRST LANDING", "support": ["repair"]},
-	{"soldiers": 12, "craft": 1, "label": "ARMORED PUSH", "support": ["repair", "airstrike"]},
-	{"soldiers": 16, "craft": 2, "label": "FINAL ASSAULT", "support": ["repair", "airstrike", "helicopter", "airdrop"]}
+	{"soldiers": 8, "tanks": 1, "transports": 0, "helicopters": 1, "fighters": 0, "craft": 1, "label": "FIRST LANDING", "support": ["repair", "airstrike"]},
+	{"soldiers": 12, "tanks": 1, "transports": 1, "helicopters": 1, "fighters": 1, "craft": 2, "label": "ARMORED PUSH", "support": ["repair", "airstrike", "helicopter"]},
+	{"soldiers": 16, "tanks": 2, "transports": 1, "helicopters": 1, "fighters": 1, "craft": 2, "label": "FINAL ASSAULT", "support": ["repair", "airstrike", "helicopter", "airdrop"]}
 ]
+const INTERMISSION: float = 6.0
 var round_index: int = -1
 var remaining: int = 0
 var active: bool = false
 var intermission: float = 0.0
 
+static func target_count(setup: Dictionary) -> int:
+	return int(setup.soldiers) + int(setup.tanks) + int(setup.transports) + int(setup.helicopters) + int(setup.fighters) + int(setup.craft)
+
 func start() -> void:
 	round_index = -1
+	remaining = 0
+	intermission = 0.0
 	active = true
 	_next_round()
 
 func _next_round() -> void:
 	round_index += 1
+	intermission = 0.0
+	intermission_changed.emit(0.0)
 	if round_index >= ROUNDS.size():
 		active = false
 		mission_finished.emit(true)
 		return
 	var setup: Dictionary = ROUNDS[round_index]
-	remaining = int(setup.soldiers)
+	remaining = target_count(setup)
 	remaining_changed.emit(remaining)
 	round_started.emit(round_index + 1, setup)
 
 func register_kill() -> void:
-	if not active:
+	if not active or intermission > 0.0:
 		return
 	remaining = maxi(0, remaining - 1)
 	remaining_changed.emit(remaining)
 	if remaining <= 0:
-		intermission = 3.0
+		intermission = INTERMISSION
+		intermission_changed.emit(intermission)
 
 func tick(delta: float) -> void:
 	if not active:
 		return
 	if intermission > 0.0:
-		intermission -= delta
+		intermission = maxf(0.0, intermission - delta)
+		intermission_changed.emit(intermission)
 		if intermission <= 0.0:
 			_next_round()
 
@@ -54,7 +65,7 @@ func current_label() -> String:
 
 func supports() -> Array:
 	if round_index < 0 or round_index >= ROUNDS.size():
-		return ["repair"]
+		return ["repair", "airstrike"]
 	return ROUNDS[round_index].support
 
 func total_rounds() -> int:

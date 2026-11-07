@@ -14,6 +14,8 @@ var visual: MeshInstance3D
 var trail: ImmediateMesh
 var trail_instance: MeshInstance3D
 var trail_points := PackedVector3Array()
+var rocket_root: Node3D
+var trail_material: StandardMaterial3D
 
 func _ready() -> void:
 	visual = MeshInstance3D.new()
@@ -32,11 +34,37 @@ func _ready() -> void:
 	visual.material_override = material
 	visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(visual)
+	rocket_root = Node3D.new()
+	rocket_root.visible = false
+	var body := MeshFactory.cylinder(rocket_root, "RocketBody", Vector3.ZERO, 0.07, 0.6, Color(0.32, 0.35, 0.3), 14, "paint_olive")
+	body.rotation.x = PI * 0.5
+	var nose := MeshInstance3D.new()
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0.0
+	cone.bottom_radius = 0.07
+	cone.height = 0.22
+	cone.radial_segments = 14
+	nose.mesh = cone
+	nose.material_override = MeshFactory.material(Color(0.5, 0.42, 0.25), 0.4, 0.5)
+	nose.position.z = -0.4
+	nose.rotation.x = -PI * 0.5
+	rocket_root.add_child(nose)
+	for side in [-1.0, 1.0]:
+		MeshFactory.box(rocket_root, "Fin", Vector3(side * 0.1, 0, 0.26), Vector3(0.16, 0.02, 0.18), Color(0.25, 0.27, 0.24), false, "steel")
+	var glow := MeshFactory.sphere(rocket_root, "MotorGlow", Vector3(0, 0, 0.34), Vector3(0.09, 0.09, 0.16), Color(1.0, 0.6, 0.2))
+	var glow_mat := StandardMaterial3D.new()
+	glow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow_mat.albedo_color = Color(1.0, 0.65, 0.25)
+	glow_mat.emission_enabled = true
+	glow_mat.emission = Color(1.0, 0.5, 0.15)
+	glow_mat.emission_energy_multiplier = 3.0
+	glow.material_override = glow_mat
+	add_child(rocket_root)
 	trail = ImmediateMesh.new()
 	trail_instance = MeshInstance3D.new()
 	trail_instance.mesh = trail
 	trail_instance.top_level = true
-	var trail_material := StandardMaterial3D.new()
+	trail_material = StandardMaterial3D.new()
 	trail_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	trail_material.albedo_color = Color(1.0, 0.78, 0.4, 0.55)
 	trail_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -57,7 +85,13 @@ func launch(origin: Vector3, initial_velocity: Vector3, hit_damage: float, blast
 	trail_instance.visible = true
 	trail_points.clear()
 	trail_points.append(origin)
-	visual.scale = Vector3.ONE * (2.2 if blast_radius > 0.0 else 1.0)
+	var heavy: bool = blast_radius >= 6.0
+	visual.visible = not heavy
+	rocket_root.visible = heavy
+	if heavy:
+		trail_material.albedo_color = Color(0.7, 0.68, 0.62, 0.4)
+	else:
+		trail_material.albedo_color = Color(1.0, 0.78, 0.4, 0.55)
 	set_physics_process(true)
 
 func deactivate() -> void:
@@ -84,6 +118,8 @@ func _physics_process(delta: float) -> void:
 		impacted.emit(hit.position, hit.normal, hit.collider, damage, blast)
 		return
 	global_position = next
+	if rocket_root.visible and velocity.length_squared() > 0.01:
+		rocket_root.look_at(global_position + velocity, Vector3.UP)
 	trail_points.append(global_position)
 	if trail_points.size() > 14:
 		trail_points.remove_at(0)
