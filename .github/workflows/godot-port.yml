@@ -32,5 +32,8 @@ jobs:
       - name: Import project and build global class cache
         run: godot --headless --editor --path godot-port --quit
 
+      - name: Validate every GDScript file
+        run: godot --headless --path godot-port --script res://tests/validate_scripts.gd
+
       - name: Run core tests
         run: godot --headless --path godot-port --script res://tests/test_core.gd
