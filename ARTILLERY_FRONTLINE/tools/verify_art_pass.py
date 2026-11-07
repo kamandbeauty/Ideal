@@ -62,7 +62,7 @@ lo = [min(p[i] for p in points) for i in range(3)]
 hi = [max(p[i] for p in points) for i in range(3)]
 span = [hi[i]-lo[i] for i in range(3)]
 print("WORLD_BOUNDS_SPAN", span)
-assert span[0] < 1.6 and span[1] < 2.6 and span[2] < 1.6, f"Unexpected metre scale: {span}"
+assert span[0] < 1.6 and span[1] < 1.6 and span[2] < 2.6, f"Unexpected metre scale: {span}"
 report = {"pass": "art-pass-01", "model": "mounted_twin_hmg", "triangles": triangles, "uv_primitives": uv_primitives, "meshes": len(doc["meshes"]), "materials": [m["name"] for m in doc["materials"]], "bounds_m": {"min": lo, "max": hi, "span": span}, "pivots": sorted(required), "source": "Original Blender construction; no proprietary reference assets"}
 out = ROOT / "documentation/art-pass-01.json"
 out.write_text(json.dumps(report, indent=2) + "\n")
