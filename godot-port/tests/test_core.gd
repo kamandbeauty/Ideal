@@ -482,7 +482,7 @@ func _smoke_ui_scene(scene_path: String, save_directory: String) -> bool:
 	screen.set_meta("save_directory", save_directory)
 	root.add_child(screen)
 	await process_frame
-	var loaded_ok := screen.get_child_count() > 0
+	var loaded_ok: bool = screen.get_child_count() > 0
 	screen.queue_free()
 	await process_frame
 	for file_name in ["shazdeh-save.json", "shazdeh-save.json.bak", "shazdeh-save.json.tmp"]:
