@@ -39,6 +39,23 @@ jobs:
       - name: Validate every GDScript file
         run: godot --headless --path godot-port --script res://tests/validate_scripts.gd
 
+      - name: Report the exact parse error of every failing script
+        if: failure()
+        run: |
+          set +e
+          for file in $(find godot-port -name '*.gd' -not -path '*/.godot/*' | sort); do
+            res="res://${file#godot-port/}"
+            output=$(godot --headless --path godot-port --check-only --script "$res" 2>&1)
+            status=$?
+            if [ $status -ne 0 ]; then
+              echo "--- $file (exit $status)"
+              echo "$output"
+              message=$(echo "$output" | grep -E "Parse Error|SCRIPT ERROR|error|Error" | head -2 | tr '\n' ' ' | cut -c1-400)
+              echo "::error file=$file::$message"
+            fi
+          done
+          exit 0
+
       - name: Core tests (rules, determinism, save, content)
         run: godot --headless --path godot-port --script res://tests/test_core.gd
 
