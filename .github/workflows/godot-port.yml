@@ -149,35 +149,47 @@ jobs:
           ls -l "$HOME/.config/godot" || true
           cat "$HOME/.config/godot/editor_settings-4.tres" || true
 
-      - name: Export the debug APK
-        id: export_shipped
+      - name: Try the template export first (fast path)
+        id: export_template
         continue-on-error: true
         run: |
           set +e
           mkdir -p godot-port/build
-          timeout 600 godot --headless --path godot-port --export-debug "Android" \
-            build/princes-palace-debug.apk 2>&1 | tee /tmp/export.log
-          status=${PIPESTATUS[0]}
-          test $status -eq 0 && test -s godot-port/build/princes-palace-debug.apk
+          timeout 180 godot --headless --path godot-port --export-debug "Android" \
+            build/princes-palace-debug.apk > /tmp/template.log 2>&1
+          echo "template export exit: $?"
+          test -s godot-port/build/princes-palace-debug.apk
 
-      - name: If the shipped preset is rejected, try the minimal one
-        id: export_minimal
-        if: steps.export_shipped.outcome == 'failure'
+      # Godot only honours a custom package id and explicit SDK levels through a Gradle build. That is
+      # the officially supported path for a shipping app, it is what the release build will use anyway,
+      # and it sidesteps the template exporter's empty "configuration errors" (known problem K1).
+      - name: Install the Android build template
+        if: steps.export_template.outcome == 'failure'
+        run: |
+          set -euo pipefail
+          timeout 900 godot --headless --path godot-port --install-android-build-template
+          test -f godot-port/android/build/build.gradle
+          chmod +x godot-port/android/build/gradlew
+          sed -i 's|gradle_build/use_gradle_build=false|gradle_build/use_gradle_build=true|' \
+            godot-port/export_presets.cfg
+          sed -i 's|gradle_build/min_sdk=""|gradle_build/min_sdk="23"|' godot-port/export_presets.cfg
+          sed -i 's|gradle_build/target_sdk=""|gradle_build/target_sdk="34"|' godot-port/export_presets.cfg
+          grep -E "gradle_build|version/" godot-port/export_presets.cfg
+
+      - name: Export through Gradle
+        if: steps.export_template.outcome == 'failure'
         run: |
           set +e
-          python3 godot-port/tools/minimal_android_preset.py
-          timeout 600 godot --headless --path godot-port --export-debug "Android" build/minimal.apk \
-            2>&1 | tee /tmp/export_minimal.log
-          status=${PIPESTATUS[0]}
-          if [ $status -eq 0 ] && [ -s godot-port/build/minimal.apk ]; then
-            cp godot-port/build/minimal.apk godot-port/build/princes-palace-debug.apk
-            echo "::warning file=godot-port/export_presets.cfg::the shipped preset was rejected; exported with the minimal preset"
-            exit 0
+          timeout 1800 godot --headless --path godot-port --export-debug "Android" \
+            build/princes-palace-debug.apk > /tmp/gradle.log 2>&1
+          status=$?
+          echo "gradle export exit: $status"
+          if [ $status -ne 0 ] || [ ! -s godot-port/build/princes-palace-debug.apk ]; then
+            python3 godot-port/tools/annotate_log.py /tmp/template.log godot-port/export_presets.cfg || true
+            python3 godot-port/tools/annotate_log.py /tmp/gradle.log godot-port/export_presets.cfg || true
+            exit 1
           fi
-          echo "::error file=godot-port/export_presets.cfg::both presets failed"
-          python3 godot-port/tools/annotate_log.py /tmp/export.log godot-port/export_presets.cfg
-          python3 godot-port/tools/annotate_log.py /tmp/export_minimal.log godot-port/tools/minimal_android_preset.py
-          exit 1
+          ls -l godot-port/build
 
       - name: Verify the APK really is an APK
         run: |
