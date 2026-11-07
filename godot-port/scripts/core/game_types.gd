@@ -36,3 +36,5 @@ enum ObstacleKind {
 enum GoalKind { CLEAR_PIECES = 0, CLEAR_OBSTACLE = 1 }
 enum GravityDirection { DOWN = 0, UP = 1 }
 enum BoosterKind { MALLET = 0, RAM = 1, AUGER = 2, WHIRLWIND = 3, FALCON = 4 }
+
+enum MoveKind { REJECTED = 0, SWAP = 1, BOOSTER = 2 }
