@@ -8,7 +8,7 @@ var sun: DirectionalLight3D
 var environment: WorldEnvironment
 var barrels: Array[CoastalBarrel] = []
 var cover_points: Array[Vector3] = []
-var landing_zones: Array[Vector3] = [Vector3(-42, 0, -46), Vector3(0, 0, -52), Vector3(44, 0, -44)]
+var landing_zones: Array[Vector3] = [Vector3(-38, 0, 8), Vector3(0, 0, 12), Vector3(38, 0, 8)]
 var rng := RandomNumberGenerator.new()
 
 static func height_at(x: float, z: float) -> float:
@@ -53,9 +53,9 @@ func _build_lighting() -> void:
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.66, 0.72, 0.76)
 	env.fog_light_energy = 0.95
-	env.fog_density = 0.0016
+	env.fog_density = 0.0009
 	env.fog_sky_affect = 0.12
-	env.fog_aerial_perspective = 0.42
+	env.fog_aerial_perspective = 0.25
 	env.fog_sun_scatter = 0.12
 	env.adjustment_enabled = true
 	env.adjustment_saturation = 0.96
@@ -157,7 +157,7 @@ func _build_ocean() -> void:
 	add_child(ocean)
 
 func _build_mountains() -> void:
-	var rock: StandardMaterial3D = MaterialLibrary.surface("rock", Color(0.62, 0.66, 0.7), 0.35)
+	var rock: StandardMaterial3D = MaterialLibrary.surface("rock", Color(0.46, 0.51, 0.56), 0.35)
 	rock.cull_mode = BaseMaterial3D.CULL_DISABLED
 	var x_steps: int = 120
 	var z_steps: int = 18
@@ -208,7 +208,7 @@ func _ridge_height(x: float, z: float, x_min: float, x_max: float, z_min: float,
 	height += sin(x * 0.021) * 14.0 + sin(x * 0.053 + 1.7) * 7.0
 	var zt: float = (z - z_min) / (z_max - z_min)
 	var xt: float = (x - x_min) / (x_max - x_min)
-	return maxf(0.0, height * sin(zt * PI) * smoothstep(0.0, 0.08, xt) * (1.0 - smoothstep(0.92, 1.0, xt)))
+	return maxf(0.0, height * 0.55 * sin(zt * PI) * smoothstep(0.0, 0.08, xt) * (1.0 - smoothstep(0.92, 1.0, xt)))
 
 func _build_defenses() -> void:
 	for x in [-70.0, -42.0, -14.0, 14.0, 42.0, 70.0]:
@@ -329,4 +329,4 @@ func apply_quality(tier: String, settings: Dictionary) -> void:
 		env.ssao_intensity = 1.5
 		env.glow_enabled = bool(settings.get("glow", false))
 		env.glow_intensity = 0.28
-		env.fog_density = 0.0016 if tier != "low" else 0.0016
+		env.fog_density = 0.0009 if tier != "low" else 0.0016

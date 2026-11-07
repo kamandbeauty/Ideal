@@ -199,6 +199,7 @@ func _build_top() -> void:
 	panel.offset_left = -340
 	panel.offset_right = -18
 	panel.offset_top = 14
+	panel.offset_bottom = 122
 	root.add_child(panel)
 
 func _circular(kind: String, label_text: String, diameter: float, action: Callable) -> Button:

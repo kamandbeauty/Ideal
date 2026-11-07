@@ -264,12 +264,12 @@ func _on_round_started(round_number: int, setup: Dictionary) -> void:
 		var soldier := EnemySoldier.new()
 		add_child(soldier)
 		soldier.configure(spawn, emplacement + Vector3(randf_range(-6, 6), 0, randf_range(-4, 4)), battlefield.random_cover())
-		soldier.speed = 4.2 + round_number * 0.35
+		soldier.speed = 2.4 + round_number * 0.3
 		soldier.died.connect(func(_s): _register_kill())
 		soldier.shoot_requested.connect(_on_enemy_shoot)
 		soldiers.append(soldier)
 	for index in range(int(setup.tanks)):
-		var spawn := Vector3(-28.0 + index * 56.0, 0.0, -6.0 - index * 8.0)
+		var spawn := Vector3(-28.0 + index * 56.0, 0.0, 12.0 - index * 6.0)
 		spawn.y = CoastalTerrain.height_at(spawn.x, spawn.z)
 		_spawn_vehicle(spawn, "tank")
 	for index in range(int(setup.transports)):
@@ -285,7 +285,7 @@ func _on_round_started(round_number: int, setup: Dictionary) -> void:
 		var x: float = -34.0 + index * 68.0
 		var landing := LandingCraft.new()
 		add_child(landing)
-		landing.configure(Vector3(x, 0, -190.0 - index * 20.0), Vector3(x, 0, -20.0))
+		landing.configure(Vector3(x, 0, -190.0 - index * 20.0), Vector3(x, 0, -12.0))
 		landing.died.connect(_on_craft_destroyed)
 		crafts.append(landing)
 		if craft == null:
@@ -333,7 +333,7 @@ func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	effects.explode(origin, direction, 0.4, origin.y, true)
 	var distance: float = origin.distance_to(target)
 	if randf() < clampf(0.65 - distance / 300.0, 0.15, 0.6):
-		pending_enemy_hits.append({"time": distance / 300.0, "damage": randf_range(18.0, 32.0), "blast": 0.0})
+		pending_enemy_hits.append({"time": distance / 300.0, "damage": randf_range(12.0, 22.0), "blast": 0.0})
 
 func _on_enemy_heavy_shoot(origin: Vector3, target: Vector3, damage: float, blast: float) -> void:
 	if not active:

@@ -393,7 +393,9 @@ def weapon_base(r,shield=True):
 
 def mounted_twin_hmg():
     r=reset('MountedTwinHMG')
-    pivot=weapon_base(r)
+    pivot=weapon_base(r,False)
+    for sx in [-1,1]:
+        box('Low side rail',(sx*.56,-.15,-.08),(.12,.75,.16),'Armor edge',pivot,.03)
     box('Shared cradle',(0,-.1,.02),(1.05,.7,.22),'Armor edge',pivot,.06)
     recoil=empty('RecoilAssembly',(0,0,0),pivot)
     for s in [-1,1]:

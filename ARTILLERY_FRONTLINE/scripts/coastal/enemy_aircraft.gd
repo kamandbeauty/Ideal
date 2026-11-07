@@ -123,4 +123,4 @@ func _physics_process(delta: float) -> void:
 	shoot_cooldown -= delta
 	if shoot_cooldown <= 0.0:
 		shoot_cooldown = 3.2 if kind == "helicopter" else 5.0
-		shoot_requested.emit(global_position, objective, 75.0 if kind == "helicopter" else 120.0, 3.0 if kind == "helicopter" else 4.0)
+		shoot_requested.emit(global_position, objective, 55.0 if kind == "helicopter" else 90.0, 3.0 if kind == "helicopter" else 4.0)

@@ -104,7 +104,7 @@ static func weapon_surface(kind: String, tint: Color = Color.WHITE) -> StandardM
 	var result: StandardMaterial3D = surface(kind, tint, 5.5).duplicate() as StandardMaterial3D
 	result.uv1_triplanar_sharpness = 8.0
 	result.normal_scale = 0.16
-	result.roughness = 0.48 if kind == "steel" else 0.62
+	result.roughness = 0.5 if kind == "steel" else 0.58
 	result.metallic = 0.78 if kind == "steel" else 0.35
 	weapon_surfaces[key] = result
 	return result
@@ -113,11 +113,11 @@ static func for_model_material(material_name: String, original: Material, viewmo
 	var lower: String = material_name.to_lower()
 	if viewmodel:
 		if "gun steel" in lower:
-			return weapon_surface("steel", Color(0.5, 0.54, 0.53))
+			return weapon_surface("steel", Color(0.36, 0.4, 0.39))
 		if "recoil steel" in lower:
 			return weapon_surface("steel", Color(0.72, 0.75, 0.74))
 		if "field olive" in lower or "armor edge" in lower:
-			return weapon_surface("paint_olive", Color(0.78, 0.82, 0.7))
+			return weapon_surface("paint_olive", Color(0.42, 0.47, 0.36))
 		if "rubber" in lower:
 			return weapon_surface("rubber", Color(0.5, 0.5, 0.48))
 		if "brass" in lower:

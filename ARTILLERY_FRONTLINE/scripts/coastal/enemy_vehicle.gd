@@ -110,4 +110,4 @@ func _physics_process(delta: float) -> void:
 	if shoot_cooldown <= 0.0 and distance < 170.0:
 		shoot_cooldown = 4.6 if kind == "tank" else 2.6
 		var origin: Vector3 = global_position + Vector3.UP * 2.2 - global_transform.basis.z * 3.0
-		shoot_requested.emit(origin, objective, 180.0 if kind == "tank" else 30.0, 5.0 if kind == "tank" else 0.0)
+		shoot_requested.emit(origin, objective, 150.0 if kind == "tank" else 22.0, 5.0 if kind == "tank" else 0.0)
