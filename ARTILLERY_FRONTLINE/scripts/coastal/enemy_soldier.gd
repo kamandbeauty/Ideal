@@ -180,8 +180,8 @@ func _die() -> void:
 			tween.tween_property(knee, "rotation:x", 1.15, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	if torso:
 		tween.tween_property(torso, "rotation:x", 0.55, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	if head:
-		tween.tween_property(head, "rotation:x", 0.4, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if head_node:
+		tween.tween_property(head_node, "rotation:x", 0.4, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	died.emit(self)
 
 func _physics_process(delta: float) -> void:
