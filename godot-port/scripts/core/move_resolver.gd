@@ -196,7 +196,7 @@ func _apply_clears(cells: Array[Vector2i], result: Dictionary) -> void:
 func _damage_obstacle(pos: Vector2i, cell, result: Dictionary) -> void:
 	var obstacle_kind: int = cell.obstacle
 	cell.obstacle_layers -= 1
-	var destroyed := cell.obstacle_layers <= 0
+	var destroyed: bool = cell.obstacle_layers <= 0
 	_add_event(result, {"type": "obstacle_hit", "position": pos, "kind": obstacle_kind, "layers_left": cell.obstacle_layers, "destroyed": destroyed})
 	_emit_goal_progress(_goals.record_obstacle_layer(obstacle_kind), result)
 	if destroyed:
