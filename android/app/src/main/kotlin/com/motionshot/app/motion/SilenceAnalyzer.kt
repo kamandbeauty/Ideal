@@ -179,9 +179,13 @@ object SilenceAnalyzer {
                                     while (sb.remaining() >= channels) {
                                         var peak = 0
                                         for (c in 0 until channels) {
-                                            var v: Int = sb.get()
-                                            if (v < 0) v = -v
-                                            if (v > peak) peak = v
+                                            // .toInt() keeps this compiling whether K2
+                                            // maps the platform ShortBuffer.get() to
+                                            // Int (Java) or Short.
+                                            val sample: Int = sb.get().toInt()
+                                            val absSample =
+                                                if (sample < 0) -sample else sample
+                                            if (absSample > peak) peak = absSample
                                         }
                                         acc.feedFrame(peak / 32768f)
                                     }
