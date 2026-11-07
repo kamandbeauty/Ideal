@@ -4,6 +4,8 @@ const Board = preload("res://scripts/core/board_model.gd")
 const Finder = preload("res://scripts/core/match_finder.gd")
 const Rng = preload("res://scripts/core/deterministic_random.gd")
 const Powers = preload("res://scripts/core/power_ups.gd")
+const Factory = preload("res://scripts/core/board_factory.gd")
+const Level = preload("res://scripts/core/level_definition.gd")
 
 func _initialize() -> void:
 	create_timer(20.0).timeout.connect(_on_timeout)
@@ -41,6 +43,17 @@ func _run() -> void:
 	var column_targets: Array[Vector2i] = []
 	Powers.add_column(power_board, 3, column_targets)
 	failures += _check(column_targets.size() == 5, "rocket column target count")
+
+	print("TEST STAGE 4: deterministic opening board")
+	var level = Level.new()
+	level.width = 7
+	level.height = 7
+	level.pieces = [1, 2, 3, 4, 5]
+	level.goals = [{"kind": 0, "piece": 1, "target": 10}]
+	var opening_a = Factory.create(level, 0, 12345)
+	var opening_b = Factory.create(level, 0, 12345)
+	failures += _check(not Finder.has_match(opening_a), "opening board contains no automatic match")
+	failures += _check(opening_a.to_ascii() == opening_b.to_ascii(), "opening board is reproducible from the same seed")
 
 	print("Godot core tests: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
