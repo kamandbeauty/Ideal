@@ -4,6 +4,16 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Release signing (docs/RELEASE.md): the key lives in android/key.properties,
+// committed so the CI pipeline can sign. Missing file -> debug key fallback,
+// so local `flutter build apk --release` profiling keeps working.
+val keyPropertiesFile = rootProject.file("key.properties")
+val keyProperties = java.util.Properties().apply {
+    if (keyPropertiesFile.exists()) {
+        keyPropertiesFile.inputStream().use { load(it) }
+    }
+}
+
 android {
     namespace = "com.motionshot.app"
     // androidx.core 1.18+ (transitive) requires compileSdk 36.
@@ -45,17 +55,31 @@ android {
     }
 
 
+    signingConfigs {
+        create("release") {
+            if (keyPropertiesFile.exists()) {
+                storeFile = file(keyProperties.getProperty("storeFile"))
+                storeType = "pkcs12"
+                storePassword = keyProperties.getProperty("storePassword")
+                keyAlias = keyProperties.getProperty("keyAlias")
+                keyPassword = keyProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Signed with the upload key configured in the release pipeline;
-            // see docs/RELEASE.md.
-            signingConfig = signingConfigs.getByName("debug")
-            isMinifyEnabled = true
-            isShrinkResources = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            signingConfig = if (keyPropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
+            // R8/resource shrinking off for the first release cut: the
+            // plugin set (video_player, just_audio, sqflite, image_picker)
+            // is untested under shrinking. Revisit once the release build
+            // is proven stable on device.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
         debug {
             applicationIdSuffix = ".debug"

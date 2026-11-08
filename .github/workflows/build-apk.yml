@@ -65,10 +65,13 @@ jobs:
             grep 'warning •' analyze-log.txt | head -20
           fi
 
-      - name: Build debug APK
+      # Release (AOT) APKs, one per ABI: a debug APK is ~145 MB (unstripped
+      # symbols, debug engine, JIT); a release split per ABI is ~3x smaller
+      # and runs 3-10x faster. Signing key: android/key.properties.
+      - name: Build release APKs (per ABI)
         run: |
           set -o pipefail
-          flutter build apk --debug 2>&1 | tee build-log.txt
+          flutter build apk --release --split-per-abi 2>&1 | tee build-log.txt
 
       - name: Post build log tail on failure
         if: failure() && hashFiles('build-log.txt') != ''
@@ -84,17 +87,19 @@ jobs:
           gh api repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments \
             -F body=@commit-comment.md
 
-      - name: Collect APK
+      - name: Collect APKs
         run: |
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-debug.apk dist/motionshot-debug.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/motionshot-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/motionshot-armeabi-v7a.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/motionshot-x86_64.apk
           ls -lh dist/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: motionshot-apk
-          path: dist/motionshot-debug.apk
+          path: dist/*.apk
           retention-days: 30
 
   # Publishes a permanent download link as a release asset (tag apk-latest);
@@ -115,9 +120,14 @@ jobs:
           tag_name: apk-latest
           name: MotionShot APK
           body: |
-            MotionShot — debug APK (build ${{ github.sha }})
+            MotionShot — release APK (build ${{ github.sha }})
 
-            Install: copy `motionshot-debug.apk` to the phone and open it
+            Pick your file:
+            - `motionshot-arm64-v8a.apk` — every phone from ~2017 onward (choose this)
+            - `motionshot-armeabi-v7a.apk` — older 32-bit devices
+            - `motionshot-x86_64.apk` — emulators
+
+            Install: copy the APK to the phone and open it
             (allow "install unknown apps").
           files: dist/*.apk
           fail_on_unmatched_files: true

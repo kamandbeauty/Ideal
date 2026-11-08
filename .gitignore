@@ -16,6 +16,14 @@ android/key.properties
 *.jks
 *.keystore
 
+# Exception: this project's release key is committed on purpose so the
+# GitHub Actions pipeline (no secrets access from this token) can sign
+# release builds. It is a personal, direct-install app (no Play Store);
+# rotate by regenerating the key + key.properties together (one-time
+# reinstall on devices).
+!android/key.properties
+!android/app/keystore/
+
 # Python validation harness
 __pycache__/
 *.pyc

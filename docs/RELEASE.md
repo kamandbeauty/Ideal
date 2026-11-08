@@ -32,14 +32,23 @@ timeline, transition, PRNG, bitrate, and `ExportRequest` implementations.
 
 ## 3. Signing Configuration
 
-Create `android/key.properties` (git-ignored) before building a production AAB/APK:
+`android/key.properties` + `android/app/keystore/motionshot-release.p12` are
+**committed** (an intentional exception in `.gitignore`) because the CI
+pipeline has no secrets access. The APKs are installed directly on phones
+outside the Play Store, so Play-Store-grade key secrecy does not apply; the
+cost of a leaked key is limited to someone pushing a fake "update" through
+this repository, which is already under the owner's control.
 
 ```properties
 storePassword=<keystore-password>
 keyPassword=<key-password>
-keyAlias=upload
-storeFile=/secure/path/to/motionshot-upload.jks
+keyAlias=motionshot
+storeFile=keystore/motionshot-release.p12
 ```
+
+**Rotating the key**: regenerate the `.p12` (any keytool/cryptography
+PKCS12 with alias `motionshot`), replace the file + both passwords in
+`key.properties`, commit. Devices must reinstall once after a rotation.
 
 When `key.properties` is absent, `release` falls back to the local debug key so
 local profiling builds (`flutter build apk --release`) work out of the box.
