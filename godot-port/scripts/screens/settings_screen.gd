@@ -89,6 +89,7 @@ func build() -> void:
 	version.add_theme_font_override("font", UiKit.medium_font())
 	version.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
 	version.add_theme_color_override("font_color", UiTokens.TEXT_MUTED)
+	version.clip_text = true
 	add_child(version)
 	UiKit.place(version, 16.0, 516.0, UiTokens.CANVAS_WIDTH - 32.0, 20.0)
 
@@ -121,8 +122,10 @@ func _paint_switch(entry: Dictionary) -> void:
 	var width: float = UiKit.SWITCH_WIDTH
 	var x := width - 27.0 if toggle.button_pressed else 3.0
 	knob.position = Vector2(x, 3.0)
+	# A knob is a knob: light against the track. ON_GOLD is nearly black (it is gold-surface text), and
+	# a black dot on a gold track reads as "off" no matter which end it sits on.
 	knob.add_theme_stylebox_override("panel",
-		UiKit.box(UiTokens.ON_GOLD if toggle.button_pressed else UiTokens.TEXT_MUTED, 12))
+		UiKit.box(UiTokens.TEXT if toggle.button_pressed else UiTokens.TEXT_MUTED, 12))
 
 func _on_toggled(pressed: bool, key: String) -> void:
 	if session == null or session.save == null:
