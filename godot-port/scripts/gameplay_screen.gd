@@ -435,9 +435,9 @@ func _play_powerup_sweep(origin: Vector2i, kind: int) -> void:
 	var origin_button: Button = _cell_buttons.get(origin)
 	if origin_button == null:
 		return
-	var center := _fx_layer.to_local(origin_button.get_global_rect().get_center())
-	var board_rect := _grid.get_global_rect()
-	var local_rect := Rect2(_fx_layer.to_local(board_rect.position), board_rect.size)
+	var center: Vector2 = _fx_layer.to_local(origin_button.get_global_rect().get_center())
+	var board_rect: Rect2 = _grid.get_global_rect()
+	var local_rect: Rect2 = Rect2(_fx_layer.to_local(board_rect.position), board_rect.size)
 	var line := Line2D.new()
 	line.width = 7.0
 	line.default_color = Color(0.55, 0.94, 1.0, 0.0)
