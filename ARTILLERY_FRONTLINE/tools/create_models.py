@@ -205,9 +205,12 @@ def export_glb(root,path,skin=False):
         """Pack a diffuse atlas into the GLB binary chunk. Image bufferViews must
         not carry a `target`, so this bypasses accessor()."""
         nonlocal binary
-        key=image.filepath
+        key=image.name
         if key in image_indices:return image_indices[key]
-        with open(bpy.path.abspath(image.filepath),'rb') as handle:payload=handle.read()
+        if image.packed_file:
+            payload=bytes(image.packed_file.data)
+        else:
+            with open(bpy.path.abspath(image.filepath),'rb') as handle:payload=handle.read()
         while len(binary)%4:binary.append(0)
         view=len(doc['bufferViews'])
         doc['bufferViews'].append({'buffer':0,'byteOffset':len(binary),'byteLength':len(payload)})
@@ -773,6 +776,9 @@ def _atlas_material(name,texture,rough):
         raise RuntimeError('missing decoded atlas %s'%path)
     image=bpy.data.images.load(path,check_existing=True)
     image.colorspace_settings.name='sRGB'
+    # Pack so soldier.blend stays self-contained: the studio renderer opens it on
+    # a different machine, where an absolute atlas path would not resolve.
+    if not image.packed_file:image.pack()
     nodes=m.node_tree.nodes
     tex=nodes.new('ShaderNodeTexImage');tex.image=image;tex.interpolation='Linear'
     m.node_tree.links.new(tex.outputs['Color'],nodes.get('Principled BSDF').inputs['Base Color'])

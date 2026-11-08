@@ -19,6 +19,7 @@ func run(t: TestContext) -> void:
 		landing.speed = 0.0
 	t.check(scene.player_hitbox != null and scene.player_hitbox.collision_layer == 8, "Player emplacement has a real projectile hitbox")
 	var soldier: EnemySoldier = scene.soldiers[0]
+	_assert_uploaded_infantry(t, soldier)
 	var saved_layers: Array[int] = []
 	for unit in scene.soldiers:
 		saved_layers.append(unit.collision_layer)
@@ -117,3 +118,43 @@ func run(t: TestContext) -> void:
 		t.check(helicopter.tail_rotor != null, "Helicopter exposes an animated tail rotor")
 	scene.queue_free()
 	await t.tree.process_frame
+
+## The attacking infantry must be the user-supplied mesh, not the old procedural
+## stand-in: three diffuse atlases, a real skin, and the authored rifle grip.
+func _assert_uploaded_infantry(t: TestContext, soldier: EnemySoldier) -> void:
+	if not ResourceLoader.exists("res://assets/models/soldier.glb"):
+		return
+	var root: Node3D = soldier.model_root
+	t.check(soldier.skeleton != null, "Uploaded infantry imports as a real Skeleton3D")
+	if soldier.skeleton == null:
+		return
+	for bone_name in SoldierRagdoll.BONES:
+		t.check(soldier.skeleton.find_bone(bone_name) >= 0, "Uploaded rig keeps bone %s" % bone_name)
+	var atlases: Dictionary = {}
+	var skinned_surfaces: int = 0
+	for child in root.find_children("*", "MeshInstance3D", true, false):
+		var instance: MeshInstance3D = child as MeshInstance3D
+		if instance.mesh == null:
+			continue
+		if instance.skin != null:
+			skinned_surfaces += instance.mesh.get_surface_count()
+		for surface_index in range(instance.mesh.get_surface_count()):
+			var material: Material = instance.get_active_material(surface_index)
+			var standard: StandardMaterial3D = material as StandardMaterial3D
+			if standard == null:
+				continue
+			if "Uploaded infantry" in material.resource_name:
+				atlases[material.resource_name] = true
+				t.check(standard.albedo_texture != null, "%s keeps its embedded diffuse atlas" % material.resource_name)
+				t.check(not standard.uv1_triplanar, "%s samples the authored UVs, not triplanar" % material.resource_name)
+	t.check(skinned_surfaces >= 3, "All three infantry meshes are bound to the skeleton")
+	t.check(atlases.size() == 3, "Body, gear and head atlases all survive the glTF import")
+	# The grip is baked into the rest pose, so the weapon must already be in the
+	# hands before any animation runs.
+	var rifle: Node3D = root.find_child("Rifle", true, false) as Node3D
+	var muzzle: Node3D = root.find_child("Muzzle", true, false) as Node3D
+	t.check(rifle != null and muzzle != null, "Uploaded infantry carries a rifle and a muzzle marker")
+	if rifle and muzzle:
+		var chest: Vector3 = soldier.global_position + Vector3(0, 1.30, 0)
+		t.check(rifle.global_position.distance_to(chest) < 0.65, "Rifle rests against the chest in the authored rest pose")
+		t.check(muzzle.global_position.distance_to(rifle.global_position) > 0.30, "Muzzle sits at the end of the barrel, not on the receiver")

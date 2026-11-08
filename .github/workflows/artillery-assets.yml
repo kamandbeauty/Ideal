@@ -2,7 +2,7 @@ name: Author original Blender assets
 on:
   push:
     branches: [arena/40ad7d87-ideal]
-    paths: ['ARTILLERY_FRONTLINE/tools/create_models.py', 'ARTILLERY_FRONTLINE/tools/create_textures.py', 'ARTILLERY_FRONTLINE/tools/render_weapon_studio.py', 'ARTILLERY_FRONTLINE/tools/render_soldier_studio.py', 'ARTILLERY_FRONTLINE/tools/verify_art_pass.py', '.github/workflows/artillery-assets.yml']
+    paths: ['ARTILLERY_FRONTLINE/tools/import_max_soldier.py', 'ARTILLERY_FRONTLINE/assets/models/source/uploaded_soldier.json', 'D0307048A1.max', '*.dds', 'ARTILLERY_FRONTLINE/tools/create_models.py', 'ARTILLERY_FRONTLINE/tools/create_textures.py', 'ARTILLERY_FRONTLINE/tools/render_weapon_studio.py', 'ARTILLERY_FRONTLINE/tools/render_soldier_studio.py', 'ARTILLERY_FRONTLINE/tools/verify_art_pass.py', '.github/workflows/artillery-assets.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -17,6 +17,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install free Blender toolchain
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends blender
+      - name: Convert the user-supplied 3ds Max infantry source
+        run: |
+          python3 ARTILLERY_FRONTLINE/tools/import_max_soldier.py
+          test -s ARTILLERY_FRONTLINE/assets/models/source/uploaded_soldier.json
+          test -s ARTILLERY_FRONTLINE/assets/textures/uploaded/soldier_body.png
+          test -s ARTILLERY_FRONTLINE/assets/textures/uploaded/soldier_gear.png
+          test -s ARTILLERY_FRONTLINE/assets/textures/uploaded/soldier_head.png
       - name: Author and export original models
         run: |
           blender --background --python ARTILLERY_FRONTLINE/tools/create_models.py -- --only soldier,warden,nomad,helicopter,fighter,landing_craft,patrol_boat,kestrel,mounted_twin_hmg,mounted_cannon,mounted_rocket,mounted_autocannon,bazooka > /tmp/blender.log 2>&1 || { tail -80 /tmp/blender.log; exit 1; }
@@ -68,7 +75,7 @@ jobs:
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
           touch ARTILLERY_FRONTLINE/assets/models/source/.gdignore
-          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: art pass 03 skinned infantry, detailed war machines and weapons' ARTILLERY_FRONTLINE/assets/models/soldier.glb ARTILLERY_FRONTLINE/assets/models/warden.glb ARTILLERY_FRONTLINE/assets/models/nomad.glb ARTILLERY_FRONTLINE/assets/models/helicopter.glb ARTILLERY_FRONTLINE/assets/models/fighter.glb ARTILLERY_FRONTLINE/assets/models/landing_craft.glb ARTILLERY_FRONTLINE/assets/models/patrol_boat.glb ARTILLERY_FRONTLINE/assets/models/kestrel.glb ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/assets/models/mounted_cannon.glb ARTILLERY_FRONTLINE/assets/models/mounted_rocket.glb ARTILLERY_FRONTLINE/assets/models/mounted_autocannon.glb ARTILLERY_FRONTLINE/assets/models/bazooka.glb ARTILLERY_FRONTLINE/assets/models/source ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/documentation/blender-version.txt ARTILLERY_FRONTLINE/documentation/qa/art-pass-02 ARTILLERY_FRONTLINE/documentation/art-pass-02.json ARTILLERY_FRONTLINE/documentation/art-pass-03.json
+          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: uploaded infantry mesh with embedded atlases, authored rig and original rifle' ARTILLERY_FRONTLINE/assets/models/soldier.glb ARTILLERY_FRONTLINE/assets/models/warden.glb ARTILLERY_FRONTLINE/assets/models/nomad.glb ARTILLERY_FRONTLINE/assets/models/helicopter.glb ARTILLERY_FRONTLINE/assets/models/fighter.glb ARTILLERY_FRONTLINE/assets/models/landing_craft.glb ARTILLERY_FRONTLINE/assets/models/patrol_boat.glb ARTILLERY_FRONTLINE/assets/models/kestrel.glb ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/assets/models/mounted_cannon.glb ARTILLERY_FRONTLINE/assets/models/mounted_rocket.glb ARTILLERY_FRONTLINE/assets/models/mounted_autocannon.glb ARTILLERY_FRONTLINE/assets/models/bazooka.glb ARTILLERY_FRONTLINE/assets/models/source ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/assets/textures/uploaded ARTILLERY_FRONTLINE/documentation/blender-version.txt ARTILLERY_FRONTLINE/documentation/qa/art-pass-02 ARTILLERY_FRONTLINE/documentation/art-pass-02.json ARTILLERY_FRONTLINE/documentation/art-pass-03.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -77,6 +84,7 @@ jobs:
             ARTILLERY_FRONTLINE/assets/models/*.glb
             ARTILLERY_FRONTLINE/assets/models/source/*.blend
             ARTILLERY_FRONTLINE/assets/textures/pbr/
+            ARTILLERY_FRONTLINE/assets/textures/uploaded/
             ARTILLERY_FRONTLINE/documentation/qa/art-pass-01/
             ARTILLERY_FRONTLINE/documentation/qa/art-pass-02/
             ARTILLERY_FRONTLINE/documentation/art-pass-01.json
