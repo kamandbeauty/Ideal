@@ -86,6 +86,8 @@ Added after the first playable build, to finish the presentation:
 - **Particles.** `fx_spark` per cleared piece (tinted by piece colour), `fx_coins` on a first-clear
   reward, `fx_ring` on a power-up; all self-freeing, all covered by a test that asserts they disappear.
 - **Transitions.** A 0.28 s dip to the background colour on every screen change (the motion token).
+- **Weight and haptics.** Tiles squash on landing; the phone ticks on an accepted swap, thumps on a
+  reject and on a cascade longer than two, honouring `haptics_on` and no-opping on desktop.
 - **Tutorial.** On the first attempt of level one — and only then — a hand animates between two cells
   whose swap really does match, computed from the dealt board, and disappears on the first touch.
 
