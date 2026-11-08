@@ -332,7 +332,7 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
           xvfb-run -a -s "-screen 0 1200x2500x24" \
             godot --path godot-port --display-driver x11 --rendering-driver opengl3 \
-              --resolution 415x738 res://tests/capture.tscn > /tmp/capture.log 2>&1
+              --resolution 738x415 res://tests/capture.tscn > /tmp/capture.log 2>&1
           status=$?
           echo "capture exit: $status"
           grep -n "capture\|art\] missing\|ERROR" /tmp/capture.log | head -40
