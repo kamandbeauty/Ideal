@@ -55,7 +55,7 @@ func build() -> void:
 		toggle.add_theme_stylebox_override("pressed", UiKit.box(UiTokens.GOLD, 16))
 		toggle.add_theme_stylebox_override("hover_pressed", UiKit.box(UiTokens.GOLD, 16))
 		row.add_child(toggle)
-		UiKit.place(toggle, 8.0, (ROW_HEIGHT - 30.0) * 0.5, 56.0, 30.0)
+		UiKit.place(toggle, 8.0, (ROW_HEIGHT - 30.0) * 0.5, UiKit.SWITCH_WIDTH, 30.0)
 
 		var knob := Panel.new()
 		knob.name = "knob"
@@ -91,8 +91,8 @@ func build() -> void:
 	var about := UiKit.art_panel(self, "about", 16.0, 556.0, UiTokens.CANVAS_WIDTH - 32.0, 96.0,
 		"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 	var about_text := UiKit.label(about, "about_text",
-		"کاخِ شازده — بازی مستقل با موتور گودو\nبدون تصویر تولیدشده با هوش مصنوعی؛ همهٔ هنر از کد کشیده شده",
-		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
+		"کاخِ شازده — بازی مستقل با موتور گودو\nهمهٔ هنر از کد کشیده شده، بدون تصویر تولیدشده با هوش مصنوعی",
+		UiTokens.TYPE_SM, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(about_text, 12.0, 8.0, UiTokens.CANVAS_WIDTH - 56.0, 80.0)
 	about_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
@@ -112,8 +112,11 @@ func refresh() -> void:
 func _paint_switch(entry: Dictionary) -> void:
 	var toggle: Button = entry["toggle"]
 	var knob: Panel = entry["knob"]
-	var width: float = toggle.size.x
-	knob.position = Vector2(width - 27.0 if toggle.button_pressed else 3.0, 3.0)
+	# The row inherits the RTL layout direction, which mirrors a child's x. Pin the knob explicitly so
+	# "on" is the right-hand end regardless of how the parent is mirrored.
+	var width: float = UiKit.SWITCH_WIDTH
+	var x := width - 27.0 if toggle.button_pressed else 3.0
+	knob.position = Vector2(x, 3.0)
 	knob.add_theme_stylebox_override("panel",
 		UiKit.box(UiTokens.ON_GOLD if toggle.button_pressed else UiTokens.TEXT_MUTED, 12))
 

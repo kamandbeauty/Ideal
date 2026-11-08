@@ -12,6 +12,8 @@ extends RefCounted
 
 const W := UiTokens.CANVAS_WIDTH
 const H := UiTokens.CANVAS_HEIGHT
+## Track width of a settings switch. Shared so the screen and the knob agree on the travel.
+const SWITCH_WIDTH := 56.0
 
 static var _medium: Font = null
 static var _bold: Font = null
