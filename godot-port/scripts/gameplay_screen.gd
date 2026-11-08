@@ -23,6 +23,7 @@ var _fx_layer: Control
 var _board_panel: PanelContainer
 var _animate_next_refresh := false
 var _end_overlay: Control
+var _input_locked := false
 
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_RTL
@@ -279,7 +280,7 @@ func _piece_name_fa(kind: int) -> String:
 		_: return "مهره"
 
 func _on_cell_pressed(pos: Vector2i) -> void:
-	if _run == null or _run.status != GameTypes.LevelStatus.PLAYING:
+	if _run == null or _run.status != GameTypes.LevelStatus.PLAYING or _input_locked:
 		return
 	if _selected_booster >= 0:
 		if not _bag.try_consume(_selected_booster):
@@ -306,18 +307,22 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 		_selected = Vector2i(-1, -1)
 		_refresh_board()
 		return
-	var result := _run.try_swap(_selected.x, _selected.y, pos.x, pos.y)
+	var from_pos := _selected
+	var from_texture := _cell_texture_at(from_pos)
+	var to_texture := _cell_texture_at(pos)
+	var result := _run.try_swap(from_pos.x, from_pos.y, pos.x, pos.y)
 	_selected = Vector2i(-1, -1)
 	if result.accepted:
 		_play_result_fx(result)
 		_animate_next_refresh = true
-	else:
-		_play_reject_fx(pos)
-	if result.accepted:
 		if _run.status == GameTypes.LevelStatus.WON:
 			var progression := Progression.new(_save, GameClock.new())
 			progression.record_level_result(_run, _wallet)
 			_store.save(_save)
+		_input_locked = true
+		_animate_swap_and_refresh(from_pos, pos, from_texture, to_texture)
+		return
+	_play_reject_fx(pos)
 	_refresh_board()
 
 func _on_booster_pressed(kind: int) -> void:
@@ -536,3 +541,52 @@ func _ensure_end_overlay() -> void:
 	intro.set_parallel(true)
 	intro.tween_property(panel, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	intro.tween_property(panel, "modulate", Color.WHITE, 0.2)
+
+
+func _cell_texture_at(pos: Vector2i) -> Texture2D:
+	if _run == null:
+		return null
+	var cell = _run.board.at_pos(pos)
+	if cell == null:
+		return null
+	if cell.power_up != GameTypes.PowerUpKind.NONE:
+		return AssetCatalog.power_up_texture(cell.power_up)
+	if cell.has_piece:
+		return AssetCatalog.piece_texture(cell.piece)
+	return null
+
+func _animate_swap_and_refresh(from_pos: Vector2i, to_pos: Vector2i, from_texture: Texture2D, to_texture: Texture2D) -> void:
+	var from_button: Button = _cell_buttons.get(from_pos)
+	var to_button: Button = _cell_buttons.get(to_pos)
+	if from_button == null or to_button == null or from_texture == null or to_texture == null:
+		_input_locked = false
+		_refresh_board()
+		return
+	var from_center: Vector2 = _fx_layer.to_local(from_button.get_global_rect().get_center())
+	var to_center: Vector2 = _fx_layer.to_local(to_button.get_global_rect().get_center())
+	var sprite_size := Vector2(CELL_SIZE * 0.82, CELL_SIZE * 0.82)
+	var sprite_a := _make_swap_sprite(from_texture, from_center, sprite_size)
+	var sprite_b := _make_swap_sprite(to_texture, to_center, sprite_size)
+	_fx_layer.add_child(sprite_a)
+	_fx_layer.add_child(sprite_b)
+	from_button.modulate.a = 0.0
+	to_button.modulate.a = 0.0
+	var motion := create_tween()
+	motion.set_parallel(true)
+	motion.tween_property(sprite_a, "position", to_center - sprite_size / 2.0, 0.17).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	motion.tween_property(sprite_b, "position", from_center - sprite_size / 2.0, 0.17).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	await motion.finished
+	sprite_a.queue_free()
+	sprite_b.queue_free()
+	_input_locked = false
+	_refresh_board()
+
+func _make_swap_sprite(texture: Texture2D, center: Vector2, sprite_size: Vector2) -> TextureRect:
+	var sprite := TextureRect.new()
+	sprite.texture = texture
+	sprite.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sprite.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	sprite.size = sprite_size
+	sprite.position = center - sprite_size / 2.0
+	sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return sprite
