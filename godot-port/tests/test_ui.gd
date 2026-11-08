@@ -174,6 +174,15 @@ func _run() -> void:
 			failures += _check(score_label.get_rect().position.y >= 244.0
 				and score_label.get_rect().end.y <= 300.0,
 				"level %d keeps the score between the goal chips and the boosters" % number)
+		# A "+" or a "×" between a Persian word and a number is bidi-neutral, and the run it splits can
+		# come out reading backwards. The bubble has to say it with words.
+		screen._show_combo(3, 300)
+		var combo_popup := screen.get_node_or_null("combo_popup") as Label
+		failures += _check(combo_popup != null
+			and combo_popup.text.ends_with(PersianText.number(300) + " امتیاز")
+			and combo_popup.text.contains(PersianText.number(3))
+			and not combo_popup.text.contains("+") and not combo_popup.text.contains("×"),
+			"level %d names the combo bonus in words, not bidi-neutral symbols" % number)
 		screen.queue_free()
 		await process_frame
 	view.queue_free()

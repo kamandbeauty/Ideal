@@ -67,7 +67,6 @@ func _ready() -> void:
 	if combo_popup != null:
 		combo_popup.modulate = Color(1, 1, 1, 1)
 		combo_popup.scale = Vector2.ONE
-		combo_popup.position -= Vector2(0.0, 18.0)
 	await _frames(2)
 	await _shot("08-combo")
 	if combo_popup != null:

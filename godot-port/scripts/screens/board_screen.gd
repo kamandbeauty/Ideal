@@ -337,7 +337,10 @@ func _play_result_cues(result: Dictionary) -> void:
 func _show_combo(combo_count: int, combo_bonus: int) -> void:
 	var popup := UiKit.label(self, "combo_popup", "", UiTokens.TYPE_LG, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	popup.text = "کمبو ×" + PersianText.number(combo_count) + "  +" \
+	# Words and Persian digits only. A "+" or a "×" between a word and a number is a neutral character
+	# in the bidi algorithm, and the run it splits can come out reading backwards on screen; a sentence
+	# with a Persian connector cannot.
+	popup.text = "کمبو " + PersianText.number(combo_count) + " و پاداش " \
 		+ PersianText.number(combo_bonus) + " امتیاز"
 	UiKit.place(popup, BOARD_LEFT, BOARD_TOP + 8.0, BOARD_SIZE, 34.0)
 	popup.modulate = Color(1, 1, 1, 0)
