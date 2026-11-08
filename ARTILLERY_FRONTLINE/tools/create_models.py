@@ -197,10 +197,29 @@ def export_glb(root,path,skin=False):
     inverse=convert.inverted()
     objects=[root]+list(root.children_recursive)
     indices={o.name:i for i,o in enumerate(objects)}
-    doc={'asset':{'version':'2.0','generator':'ARTILLERY FRONTLINE original Blender pipeline'},
+    doc={'asset':{'version':'2.0','generator':'ARTILLERY FRONTLINE asset pipeline'},
          'scene':0,'scenes':[{'nodes':[0]}],'nodes':[],'meshes':[],'materials':[],
-         'accessors':[],'bufferViews':[],'buffers':[]}
-    material_indices={}; binary=bytearray()
+         'accessors':[],'bufferViews':[],'buffers':[],'images':[],'textures':[],'samplers':[]}
+    material_indices={}; image_indices={}; binary=bytearray()
+    def embed_image(image):
+        """Pack a diffuse atlas into the GLB binary chunk. Image bufferViews must
+        not carry a `target`, so this bypasses accessor()."""
+        nonlocal binary
+        key=image.filepath
+        if key in image_indices:return image_indices[key]
+        with open(bpy.path.abspath(image.filepath),'rb') as handle:payload=handle.read()
+        while len(binary)%4:binary.append(0)
+        view=len(doc['bufferViews'])
+        doc['bufferViews'].append({'buffer':0,'byteOffset':len(binary),'byteLength':len(payload)})
+        binary.extend(payload)
+        source=len(doc['images'])
+        doc['images'].append({'name':image.name,'mimeType':'image/png','bufferView':view})
+        if not doc['samplers']:
+            # Linear + mipmaps, repeat wrap: matches Godot's default import.
+            doc['samplers'].append({'magFilter':9729,'minFilter':9987,'wrapS':10497,'wrapT':10497})
+        doc['textures'].append({'sampler':0,'source':source})
+        image_indices[key]=len(doc['textures'])-1
+        return image_indices[key]
     def accessor(values,fmt,components,target,minimum=None,maximum=None):
         nonlocal binary
         while len(binary)%4:binary.append(0)
@@ -250,7 +269,8 @@ def export_glb(root,path,skin=False):
                     remap[key]=len(positions)
                     positions.append(tuple(rotation @ vertex.co))
                     normals.append(tuple((rotation @ vertex.normal).normalized()))
-                    uvs.append(uv)
+                    # Blender/3ds Max UVs are V-up; glTF TEXCOORD_0 is V-down.
+                    uvs.append((uv[0],1.0-uv[1]))
                     if weighted:
                         groups=sorted(((g.group,g.weight) for g in vertex.groups if o.vertex_groups[g.group].name in joint_index),key=lambda x:-x[1])[:4]
                         total=sum(w for _,w in groups) or 1.0
@@ -264,13 +284,21 @@ def export_glb(root,path,skin=False):
         pa=accessor(positions,'f',3,34962,[min(p[k] for p in positions) for k in range(3)],[max(p[k] for p in positions) for k in range(3)])
         na=accessor(normals,'f',3,34962)
         ua=accessor(uvs,'f',2,34962)
-        ia=accessor(triangles,'I',3,34963)
+        # glTF indices are SCALAR, not VEC3: one component per corner. Packing
+        # them as VEC3 made every accessor report a third of the real triangle
+        # count and is rejected by strict validators.
+        ia=accessor([c for tri in triangles for c in tri],'I',1,34963)
         source=o.data.materials[0] if o.data.materials else None
         if source.name not in material_indices:
             bs=source.node_tree.nodes.get('Principled BSDF')
             color=list(bs.inputs['Base Color'].default_value)
             pbr={'baseColorFactor':color,'metallicFactor':float(bs.inputs['Metallic'].default_value),'roughnessFactor':float(bs.inputs['Roughness'].default_value)}
-            material_indices[source.name]=len(doc['materials']);doc['materials'].append({'name':source.name,'pbrMetallicRoughness':pbr,'doubleSided':False})
+            entry={'name':source.name,'pbrMetallicRoughness':pbr,'doubleSided':False,'alphaMode':'OPAQUE'}
+            link=bs.inputs['Base Color'].links
+            if link and link[0].from_node.type=='TEX_IMAGE' and link[0].from_node.image:
+                pbr['baseColorTexture']={'index':embed_image(link[0].from_node.image),'texCoord':0}
+                pbr['baseColorFactor']=[1.0,1.0,1.0,1.0]
+            material_indices[source.name]=len(doc['materials']);doc['materials'].append(entry)
         attributes={'POSITION':pa,'NORMAL':na,'TEXCOORD_0':ua}
         if weighted:
             attributes['JOINTS_0']=accessor(joints,'H',4,34962)
@@ -280,6 +308,9 @@ def export_glb(root,path,skin=False):
         node['mesh']=len(doc['meshes'])-1
         evaluated.to_mesh_clear()
     doc['buffers']=[{'byteLength':len(binary)}]
+    # glTF forbids empty arrays; only the infantry carries embedded atlases.
+    for key in ('images','textures','samplers'):
+        if not doc[key]:del doc[key]
     encoded=json.dumps(doc,separators=(',',':')).encode('utf8')
     while len(encoded)%4:encoded+=b' '
     while len(binary)%4:binary.append(0)
@@ -721,193 +752,112 @@ def mounted_autocannon():
     for s in [-1,1]:rod('Spade grip',(s*.10,.30,-.04),(s*.14,.46,-.12),.018,'Weapon grip',pivot)
     finish(r,'mounted_autocannon')
 
-def _bone_segments(r):
-    """World-space deformation segments for the named pivot empties."""
-    bpy.context.view_layer.update()
-    objs={o.name:o for o in r.children_recursive if o.type=='EMPTY'}
-    def world(name):return objs[name].matrix_world.translation.copy()
-    def tail(name,length):
-        o=objs[name];return o.matrix_world @ Vector((0,0,-length))
-    segs=[]
-    pairs=[('Hips','Torso'),('Torso','Head'),('LegL','KneeL'),('LegR','KneeR'),('ArmL','ElbowL'),('ArmR','ElbowR')]
-    for a,b in pairs:segs.append((a,world(a),world(b)))
-    segs.append(('KneeL',world('KneeL'),tail('KneeL',.47)))
-    segs.append(('KneeR',world('KneeR'),tail('KneeR',.47)))
-    segs.append(('ElbowL',world('ElbowL'),tail('ElbowL',.27)))
-    segs.append(('ElbowR',world('ElbowR'),tail('ElbowR',.27)))
-    segs.append(('Head',world('Head'),world('Head')+Vector((0,0,.16))))
-    return segs
+def _load_uploaded_infantry():
+    """Read the converter's output. Fails loudly rather than silently shipping
+    the old procedural stand-in, so CI cannot drift from the uploaded source."""
+    path=os.path.join(SRC,'uploaded_soldier.json')
+    if not os.path.exists(path):
+        raise RuntimeError('uploaded_soldier.json is missing; run '
+                           'tools/import_max_soldier.py before create_models.py')
+    with open(path,encoding='utf8') as handle:doc=json.load(handle)
+    if doc.get('schema')!='artillery.uploaded-infantry/2':
+        raise RuntimeError('unexpected infantry schema %r'%doc.get('schema'))
+    return doc
 
-def _closest_segment(p,segs):
-    best=[]
-    for name,a,b in segs:
-        ab=b-a;den=max(ab.length_squared,1e-8)
-        t=max(0.0,min(1.0,(p-a).dot(ab)/den))
-        d=(p-(a+ab*t)).length
-        best.append((d,name))
-    best.sort()
-    return best
+def _atlas_material(name,texture,rough):
+    """Diffuse-atlas material. The atlases are UV-mapped, not triplanar, so the
+    runtime MaterialLibrary deliberately leaves these three names untouched."""
+    m=material(name,(1,1,1),0.,rough)
+    path=os.path.join(ROOT,'assets','textures','uploaded',texture)
+    if not os.path.exists(path):
+        raise RuntimeError('missing decoded atlas %s'%path)
+    image=bpy.data.images.load(path,check_existing=True)
+    image.colorspace_settings.name='sRGB'
+    nodes=m.node_tree.nodes
+    tex=nodes.new('ShaderNodeTexImage');tex.image=image;tex.interpolation='Linear'
+    m.node_tree.links.new(tex.outputs['Color'],nodes.get('Principled BSDF').inputs['Base Color'])
+    return m
 
-def skin_soldier(r):
-    """Fuse the uniform into one continuous organic surface and bind every mesh
-    to the pivot skeleton. Gear stays rigid on its bone; cloth blends across
-    joints so knees/elbows/shoulders deform instead of rotating like robot parts."""
-    bpy.context.view_layer.update()
-    body=[o for o in r.children_recursive if o.type=='MESH' and o.data.materials and o.data.materials[0].name in ('Uniform','Uniform dark')]
-    if len(body)>1:
-        bpy.ops.object.select_all(action='DESELECT')
-        for o in body:o.select_set(True)
-        bpy.context.view_layer.objects.active=body[0]
-        bpy.ops.object.join()
-        fused=bpy.context.object;fused.name='OrganicUniform'
-        bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-        rem=fused.modifiers.new('Continuous cloth','REMESH');rem.mode='VOXEL';rem.voxel_size=.022;rem.use_smooth_shade=True
-        bpy.ops.object.modifier_apply(modifier=rem.name)
-        sm=fused.modifiers.new('Relax cloth','SMOOTH');sm.factor=.8;sm.iterations=4
-        bpy.ops.object.modifier_apply(modifier=sm.name)
-    segs=_bone_segments(r)
-    meshes=[o for o in r.children_recursive if o.type=='MESH']
-    for o in meshes:
-        for g in list(o.vertex_groups):o.vertex_groups.remove(g)
-        groups={name:o.vertex_groups.new(name=name) for name in SKIN_BONES}
-        fused=o.name=='OrganicUniform'
-        parent_bone=None
-        p=o.parent
-        under_rifle=False
-        while p is not None:
-            if p.name=='Rifle':under_rifle=True
-            if p.name in SKIN_BONES:parent_bone=p.name;break
-            p=p.parent
-        if under_rifle:
-            continue
-        if parent_bone is None:parent_bone='Torso'
-        mw=o.matrix_world.copy()
-        for v in o.data.vertices:
-            if fused:
-                wp=mw @ v.co
-                near=_closest_segment(wp,segs)[:3]
-                weights=[1.0/max(d,0.015)**4 for d,_ in near]
-                total=sum(weights)
-                for (d,name),w in zip(near,weights):groups[name].add([v.index],w/total,'REPLACE')
-            else:
-                groups[parent_bone].add([v.index],1.0,'REPLACE')
-        # Bake into root space; the glTF skin, not the node transform, drives it.
-        o.parent=r;o.matrix_parent_inverse=Matrix.Identity(4);o.matrix_world=mw
-        bpy.ops.object.select_all(action='DESELECT');o.select_set(True);bpy.context.view_layer.objects.active=o
-        bpy.ops.object.transform_apply(location=True,rotation=True,scale=True)
-    bpy.context.view_layer.update()
+def _infantry_mesh(name,doc,root,group_names):
+    """One mesh per atlas. Splitting by material keeps export_glb's one-primitive
+    -per-mesh contract and avoids a multi-material Godot surface."""
+    names=[m['name'] for m in doc['materials']]
+    keep=[i for i,m in enumerate(doc['face_material']) if names[m]==name]
+    if not keep:return None
+    faces=[doc['faces'][i] for i in keep]
+    map_faces=[doc['map_faces'][i] for i in keep]
+    remap={};verts=[];weights=[]
+    for face in faces:
+        for vi in face:
+            if vi not in remap:
+                remap[vi]=len(verts)
+                verts.append(doc['vertices'][vi])
+                weights.append(doc['weights'][vi])
+    data=bpy.data.meshes.new(name)
+    data.from_pydata(verts,[],[tuple(remap[v] for v in f) for f in faces])
+    data.update()
+    o=bpy.data.objects.new(name,data);bpy.context.collection.objects.link(o)
+    o.parent=root
+    o.data.materials.append(M[name])
+    uv=data.uv_layers.new(name='UVMap')
+    for pi,poly in enumerate(data.polygons):
+        for li,corner in zip(poly.loop_indices,range(3)):
+            uv.data[li].uv=doc['uvs'][map_faces[pi][corner]]
+        # Hard edges are already duplicated at the smoothing-group seams, so a
+        # plain averaged normal reproduces the 3ds Max shading.
+        poly.use_smooth=True
+    groups={g:o.vertex_groups.new(name=g) for g in group_names}
+    for vi,influences in enumerate(weights):
+        for joint,weight in influences:
+            if weight>1e-5:groups[group_names[joint]].add([vi],weight,'REPLACE')
+    return o
 
 def soldier():
-    """Original 1.82 m infantryman: continuous skinned uniform, anatomical gait,
-    authored rifle grip, layered gear. Pivots become a real Godot Skeleton3D."""
+    """User-supplied 3ds Max infantryman, re-rigged for the coastal gait.
+
+    Geometry, UVs, atlases, the 11-bone skeleton, the skin weights and the baked
+    low-ready rifle grip all come from tools/import_max_soldier.py. This builder
+    only instantiates them and adds the project's original rifle, so the asset
+    stays reproducible in CI from the uploaded source files.
+    """
     r=reset('Soldier')
-    material('Uniform',(.21,.24,.16),0.,.92)
-    material('Uniform dark',(.14,.17,.11),0.,.94)
-    material('Webbing',(.10,.12,.08),0.,.95)
-    material('Skin',(.42,.30,.22),0.,.72)
-    material('Leather',(.07,.06,.05),.05,.82)
+    doc=_load_uploaded_infantry()
+    bones=[j['name'] for j in doc['joints']]
+    if bones!=SKIN_BONES:
+        raise RuntimeError('rig order %s does not match SKIN_BONES'%bones)
     material('Rifle wood',(.24,.15,.08),.05,.68)
-    material('Helmet steel',(.13,.16,.11),.35,.62)
     material('Weapon steel',(.075,.082,.085),.88,.48)
     material('Weapon edge',(.18,.19,.19),.9,.38)
-    hips=empty('Hips',(0,0,.95),r)
-    loft('Pelvis',[(0,.15,.11,0,0),(.10,.17,.12,0,0),(.20,.16,.11,0,0)],'Uniform',hips,18)
-    box('Belt',(0,0,.18),(.35,.25,.055),'Leather',hips,.02)
-    box('Belt buckle',(0,-.125,.18),(.06,.015,.05),'Recoil steel',hips,.005)
-    torso=empty('Torso',(0,0,.20),hips)
-    loft('Jacket',[(0,.17,.12,0,0),(.12,.19,.13,0,0),(.28,.21,.14,0,-.01),(.42,.20,.13,0,-.01),(.50,.12,.10,0,0)],'Uniform',torso,22)
-    # Collar, shoulder seams and front placket.
-    torus('Collar',(0,0,.50),.105,.022,'Uniform dark',torso,'Z',20)
-    box('Placket',(0,-.135,.28),(.035,.012,.34),'Uniform dark',torso,.004)
-    for z in [.16,.24,.32,.40]:cyl('Button',(0,-.145,z),.008,.006,'Recoil steel',torso,'Y',8)
-    for s in [-1,1]:
-        torus('Shoulder seam',(s*.19,0,.43),.075,.012,'Uniform dark',torso,'X',16)
-    # Plate carrier / webbing with pouches and straps.
-    box('Vest front',(0,-.145,.28),(.30,.045,.30),'Webbing',torso,.025)
-    box('Vest back',(0,.14,.28),(.30,.04,.30),'Webbing',torso,.025)
-    for s in [-1,1]:
-        box('Shoulder strap',(s*.11,0,.46),(.055,.28,.035),'Webbing',torso,.012)
-        for x in [-.09,.09]:
-            box('Mag pouch',(x,-.185,.18),(.075,.055,.12),'Webbing',torso,.012)
-            box('Pouch flap',(x,-.19,.235),(.078,.06,.025),'Uniform dark',torso,.006)
-    box('Radio pouch',(.16,-.10,.36),(.06,.07,.11),'Webbing',torso,.012)
-    rod('Radio antenna',(.16,-.10,.42),(.18,-.08,.62),.006,'Rubber',torso)
-    box('Backpack',(0,.19,.28),(.28,.12,.32),'Canvas',torso,.04)
-    torus('Bedroll',(0,.24,.46),.075,.035,'Canvas',torso,'X',16)
-    for s in [-1,1]:box('Pack strap',(s*.10,.155,.28),(.04,.02,.30),'Webbing',torso,.006)
-    cyl('Canteen',(-.17,.08,.12),.055,.04,'Uniform dark',torso,'X',14)
-    # Neck and head with facial landmarks.
-    cyl('Neck',(0,0,.54),.055,.09,'Skin',torso,'Z',14)
-    head=empty('Head',(0,0,.62),torso)
-    sphere('Skull',(0,0,.02),(.092,.10,.115),'Skin',head,22,14)
-    sphere('Jaw',(0,-.015,-.045),(.075,.08,.065),'Skin',head,18,12)
-    sphere('Nose',(0,-.10,.00),(.018,.028,.035),'Skin',head,12,8)
-    box('Mouth',(0,-.088,-.052),(.034,.012,.006),'Leather',head,.002)
-    for s in [-1,1]:
-        sphere('Ear',(s*.092,0,.01),(.014,.025,.035),'Skin',head,10,8)
-        sphere('Brow',(s*.035,-.085,.045),(.028,.014,.010),'Uniform dark',head,10,6)
-        sphere('Eye',(s*.034,-.092,.032),(.012,.008,.007),'Black bore',head,8,6)
-    sphere('Helmet dome',(0,.005,.075),(.108,.115,.085),'Helmet steel',head,24,14)
-    torus('Helmet rim',(0,.005,.035),.108,.010,'Helmet steel',head,'Z',24)
-    box('Helmet band',(0,.005,.055),(.22,.23,.018),'Webbing',head,.006)
-    for s in [-1,1]:rod('Chin strap',(s*.085,-.02,.02),(s*.055,-.075,-.055),.006,'Webbing',head)
-    # Legs with knees and boots.
-    for s in [-1,1]:
-        side='L' if s<0 else 'R'
-        leg=empty('Leg'+side,(s*.105,0,-.02),hips)
-        loft('Thigh'+side,[(0,.085,.09,0,0),(-.18,.078,.082,0,0),(-.40,.062,.068,0,-.005)],'Uniform',leg,16)
-        knee=empty('Knee'+side,(0,-.005,-.40),leg)
-        sphere('Knee pad'+side,(0,-.055,0),(.055,.035,.06),'Uniform dark',knee,12,8)
-        loft('Shin'+side,[(0,.060,.065,0,0),(-.20,.052,.058,0,.005),(-.38,.045,.050,0,.01)],'Uniform',knee,16)
-        torus('Gaiter'+side,(0,.01,-.30),.052,.012,'Webbing',knee,'Z',14)
-        cyl('Ankle'+side,(0,0,-.40),.046,.12,'Uniform dark',knee,'Z',12)
-        box('Boot'+side,(0,-.035,-.47),(.105,.20,.09),'Leather',knee,.025)
-        box('Sole'+side,(0,-.04,-.515),(.11,.21,.025),'Rubber',knee,.008)
-        for z in [-.41,-.44,-.47]:box('Lace'+side,(0,-.075,z),(.07,.012,.008),'Webbing',knee,.002)
-    # Arms posed to carry the rifle at low ready.
-    for s in [-1,1]:
-        side='L' if s<0 else 'R'
-        arm=empty('Arm'+side,(s*.215,0,.44),torso)
-        if s<0: arm_l,elbow_l=arm,None
-        else: arm_r,elbow_r=arm,None
-        sphere('Shoulder'+side,(0,0,0),(.065,.07,.075),'Uniform',arm,14,10)
-        loft('Upper arm'+side,[(0,.055,.06,0,0),(-.14,.050,.052,0,0),(-.27,.042,.045,0,0)],'Uniform',arm,14)
-        elbow=empty('Elbow'+side,(0,0,-.27),arm)
-        if s<0: elbow_l=elbow
-        else: elbow_r=elbow
-        loft('Forearm'+side,[(0,.042,.045,0,0),(-.12,.036,.04,0,0),(-.24,.030,.034,0,0)],'Uniform',elbow,14)
-        sphere('Glove'+side,(0,-.005,-.27),(.035,.045,.055),'Webbing',elbow,12,8)
-        for f in range(3):box('Finger'+side,(s*(f-1)*.014,-.02,-.30),(.012,.035,.018),'Webbing',elbow,.004)
-    # Rifle: wood furniture, steel receiver, barrel, sights, magazine and sling.
-    rifle=empty('Rifle',(.08,-.20,.24),torso)
-    rifle.rotation_euler=(-0.10,0.0,0.06)
-    bpy.context.view_layer.update()
-    rmat=rifle.rotation_euler.to_matrix()
-    grip_t=Vector(rifle.location)+rmat@Vector((0,-.10,-.06))
-    guard_t=Vector(rifle.location)+rmat@Vector((0,-.30,.01))
-    def pose_arm(arm,elbow,shoulder,target,pole):
-        L1,L2=.27,.27
-        d=Vector(target)-Vector(shoulder); dist=min(max(d.length,.12),L1+L2-.015); dn=d.normalized()
-        a=(L1*L1-L2*L2+dist*dist)/(2*dist); h=math.sqrt(max(L1*L1-a*a,0.0))
-        pv=Vector(pole)-Vector(shoulder); pv=(pv-dn*pv.dot(dn)).normalized()
-        E=Vector(shoulder)+dn*a+pv*h
-        arm.rotation_euler=(E-Vector(shoulder)).to_track_quat('-Z','Y').to_euler()
-        local=arm.rotation_euler.to_matrix().inverted()@(Vector(target)-E)
-        elbow.rotation_euler=local.to_track_quat('-Z','Y').to_euler()
-    pose_arm(arm_r,elbow_r,(.215,0,.44),grip_t,(.80,-.35,.15))
-    pose_arm(arm_l,elbow_l,(-.215,0,.44),guard_t,(-.80,-.35,.15))
-    box('Stock',(0,.18,-.01),(.05,.22,.09),'Rifle wood',rifle,.02)
-    box('Receiver',(0,0,0),(.055,.20,.075),'Weapon steel',rifle,.012)
-    box('Handguard',(0,-.16,.005),(.05,.16,.06),'Rifle wood',rifle,.015)
-    cyl('Barrel',(0,-.34,.01),.012,.24,'Weapon steel',rifle,'Y',12)
-    cyl('Gas tube',(0,-.28,.035),.008,.16,'Weapon edge',rifle,'Y',10)
-    box('Front sight',(0,-.44,.035),(.012,.015,.035),'Weapon steel',rifle,.003)
-    box('Rear sight',(0,.04,.05),(.03,.02,.025),'Weapon steel',rifle,.004)
-    box('Magazine',(0,.02,-.075),(.04,.08,.10),'Weapon steel',rifle,.012)
-    box('Trigger guard',(0,.08,-.05),(.03,.06,.012),'Weapon steel',rifle,.004)
-    empty('Muzzle',(0,-.47,.01),rifle)
-    rod('Sling',(.02,.20,-.03),(.02,-.20,-.04),.008,'Webbing',rifle)
-    skin_soldier(r)
+    # One mesh per distinct atlas. Material index 3 reuses the body atlas, so
+    # collapse duplicates onto the first index that declared the name.
+    canonical={}
+    for index,entry in enumerate(doc['materials']):
+        canonical.setdefault(entry['name'],index)
+    for name,index in canonical.items():
+        entry=doc['materials'][index]
+        _atlas_material(name,entry['texture'],.62 if 'head' in name else .86)
+    pivots={}
+    for record in doc['joints']:
+        parent=pivots[record['parent']] if record['parent'] else r
+        pivot=empty(record['name'],record['translation'],parent)
+        pivot.rotation_mode='QUATERNION'
+        x,y,z,w=record['rotation']
+        pivot.rotation_quaternion=(w,x,y,z)
+        pivots[record['name']]=pivot
+    for name in canonical:
+        _infantry_mesh(name,doc,r,bones)
+    # Original rifle. The grip is already baked into the mesh, so the weapon is
+    # rigidly parented to Torso and never re-solved at runtime.
+    spec=doc['rifle']
+    rifle=empty('Rifle',spec['translation'],pivots[spec['parent']])
+    rifle.rotation_euler=spec['rotation_euler']
+    for part in spec['parts']:
+        loc=part['location'];dim=part['dimensions']
+        if part['kind']=='box':
+            box(part['name'],loc,dim,part['material'],rifle,part['extra'])
+        else:
+            cyl(part['name'],loc,dim[0],dim[1],part['material'],rifle,part['extra'],14)
+    empty('Muzzle',spec['muzzle_translation'],rifle)
     finish(r,'soldier',skin=True)
 
 def landing_craft():

@@ -2,7 +2,7 @@
   "pass": "art-pass-02",
   "models": {
     "soldier": {
-      "triangles": 7932,
+      "triangles": 4487,
       "pivots": [
         "ArmL",
         "ArmR",
@@ -17,19 +17,26 @@
         "Muzzle",
         "Rifle",
         "Torso"
-      ]
+      ],
+      "atlases": [
+        "Uploaded infantry body",
+        "Uploaded infantry gear",
+        "Uploaded infantry head"
+      ],
+      "embedded_images": 3,
+      "source": "User-supplied D0307048A1.max + 3 DDS atlases; rig and rifle authored by tools/import_max_soldier.py"
     },
     "mounted_cannon": {
-      "triangles": 3737
+      "triangles": 11224
     },
     "mounted_rocket": {
-      "triangles": 4210
+      "triangles": 12648
     },
     "mounted_autocannon": {
-      "triangles": 4667
+      "triangles": 14016
     },
     "bazooka": {
-      "triangles": 1531
+      "triangles": 4608
     }
   }
 }

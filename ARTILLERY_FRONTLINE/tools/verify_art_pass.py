@@ -80,9 +80,25 @@ snodes = {n.get("name", "") for n in soldier["nodes"]}
 srequired = {"Hips", "Torso", "Head", "LegL", "LegR", "KneeL", "KneeR", "ArmL", "ArmR", "ElbowL", "ElbowR", "Rifle", "Muzzle"}
 assert srequired <= snodes, f"Missing soldier pivots: {srequired - snodes}"
 stris = sum(soldier["accessors"][p["indices"]]["count"] // 3 for m in soldier["meshes"] for p in m["primitives"])
-assert 4000 <= stris <= 60000, f"Soldier triangle budget: {stris}"
+# The infantry now comes from the user-supplied 3ds Max mesh (1,927 source
+# triangles) instead of the lofted procedural stand-in, plus the original rifle.
+# The old 4,000 floor described the stand-in's density, not a quality target.
+assert 1200 <= stris <= 60000, f"Soldier triangle budget: {stris}"
 assert all("TEXCOORD_0" in p["attributes"] for m in soldier["meshes"] for p in m["primitives"]), "Soldier UV0 missing"
-report2["models"]["soldier"] = {"triangles": stris, "pivots": sorted(srequired)}
+# The uploaded atlases must survive the export as embedded glTF textures.
+assert soldier.get("images") and soldier.get("textures"), "Soldier atlases were not embedded"
+atlas_materials = [m for m in soldier["materials"] if m["name"].startswith("Uploaded infantry")]
+assert len(atlas_materials) == 3, f"Expected 3 infantry atlases, found {len(atlas_materials)}"
+for m in atlas_materials:
+    assert "baseColorTexture" in m["pbrMetallicRoughness"], f"{m['name']} lost its diffuse atlas"
+    assert m.get("alphaMode", "OPAQUE") == "OPAQUE", f"{m['name']} must be opaque"
+for view_index in {soldier["images"][i]["bufferView"] for i in range(len(soldier["images"]))}:
+    assert "target" not in soldier["bufferViews"][view_index], "Image bufferView must not declare a target"
+assert len(soldier["images"]) == 3, f"Expected 3 embedded images, found {len(soldier['images'])}"
+report2["models"]["soldier"] = {"triangles": stris, "pivots": sorted(srequired),
+                                "atlases": [m["name"] for m in atlas_materials],
+                                "embedded_images": len(soldier["images"]),
+                                "source": "User-supplied D0307048A1.max + 3 DDS atlases; rig and rifle authored by tools/import_max_soldier.py"}
 for name in ["mounted_cannon", "mounted_rocket", "mounted_autocannon", "bazooka"]:
     doc = read_glb(ROOT / f"assets/models/{name}.glb")
     nodes = {n.get("name", "") for n in doc["nodes"]}
@@ -122,7 +138,10 @@ for name, required_pivots in machine_pivots.items():
     missing = required_pivots - nodes
     assert not missing, f"{name} missing animation pivots: {missing}"
     tris = sum(doc["accessors"][p["indices"]]["count"] // 3 for m in doc["meshes"] for p in m["primitives"])
-    assert 1500 <= tris <= 150000, f"{name} triangle budget: {tris}"
+    # Index accessors used to be written as VEC3, so `count // 3` under-reported
+    # every model by 3x. These are the true triangle counts now that indices are
+    # SCALAR; the ceiling moved with the corrected measurement, not the geometry.
+    assert 1500 <= tris <= 400000, f"{name} triangle budget: {tris}"
     report3["machines"][name] = {"triangles": tris, "pivots": sorted(required_pivots)}
 (ROOT / "documentation/art-pass-03.json").write_text(json.dumps(report3, indent=2) + "\n")
 print(json.dumps(report3))

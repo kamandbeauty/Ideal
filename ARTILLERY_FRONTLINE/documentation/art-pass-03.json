@@ -1,13 +1,13 @@
 {
   "pass": "art-pass-03",
   "soldier": {
-    "skinned_primitives": 13,
+    "skinned_primitives": 3,
     "joints": 11,
-    "triangles": 7932
+    "triangles": 4487
   },
   "machines": {
     "warden": {
-      "triangles": 62436,
+      "triangles": 187428,
       "pivots": [
         "BarrelPivot",
         "Muzzle",
@@ -18,7 +18,7 @@
       ]
     },
     "nomad": {
-      "triangles": 20119,
+      "triangles": 60412,
       "pivots": [
         "BarrelPivot",
         "Muzzle",
@@ -29,14 +29,14 @@
       ]
     },
     "helicopter": {
-      "triangles": 4987,
+      "triangles": 14976,
       "pivots": [
         "Rotor",
         "TailRotor"
       ]
     },
     "fighter": {
-      "triangles": 5170,
+      "triangles": 15532,
       "pivots": [
         "AfterburnerL",
         "AfterburnerR",
@@ -48,7 +48,7 @@
       ]
     },
     "landing_craft": {
-      "triangles": 5319,
+      "triangles": 15968,
       "pivots": [
         "PropellerL",
         "PropellerR",
@@ -57,7 +57,7 @@
       ]
     },
     "patrol_boat": {
-      "triangles": 3356,
+      "triangles": 10086,
       "pivots": [
         "BarrelPivot",
         "Muzzle",
