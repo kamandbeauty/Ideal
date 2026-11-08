@@ -47,7 +47,7 @@ object WatermarkTexture {
         } ?: return null
         val canvas = Canvas(bitmap)
 
-        val opacity = spec.opacity.coerceIn(0f, 1f)
+        val opacity = spec.opacity.coerceIn(0.0, 1.0)
         val fontSizePx = (spec.fontScale * outputHeight).toInt().coerceAtLeast(8)
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = fontSizePx.toFloat()

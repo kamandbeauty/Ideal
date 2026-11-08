@@ -160,8 +160,9 @@ class MediaPickerService {
         return (0.0, const <double>[]);
       }
       final duration = (result[0] as num).toDouble();
-      final peaks =
-          (result[1] as List).map((e) => (e as num).toDouble()).toList();
+      final peaks = (result[1] as List<dynamic>)
+          .map((e) => (e as num).toDouble())
+          .toList();
       return (duration, peaks);
     } on MissingPluginException {
       throw const AppFailure(FailureKind.audioUnreadable,

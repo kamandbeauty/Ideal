@@ -15,8 +15,6 @@ import kotlin.math.max
  * duration in seconds (used to tile the pattern for looped music).
  */
 object Waveform {
-    private const val TAG = "Waveform"
-
     class WaveformException(message: String, cause: Throwable? = null) :
         Exception(message, cause)
 
@@ -132,7 +130,8 @@ object Waveform {
                 }
                 val out = FloatArray(b)
                 for (i in amps.indices) {
-                    val t = (ptsList[i].toDouble() / durationUs).coerceIn(0.0, 1.0 - 1e-9)
+                    val t = (ptsList[i].toDouble() / durationUs.toDouble())
+                        .coerceIn(0.0, 1.0 - 1e-9)
                     val idx = (t * b).toInt()
                     if (amps[i] > out[idx]) out[idx] = amps[i]
                 }

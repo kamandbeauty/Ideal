@@ -502,11 +502,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     ),
                   ),
                 if (photo.isLocked)
-                  Positioned(
+                  const Positioned(
                     top: 2,
                     left: 2,
-                    child: Icon(Icons.lock_rounded, size: 12,
-                        color: Colors.white),
+                    child: Icon(Icons.lock_rounded,
+                        size: 12, color: Colors.white),
                   ),
                 // Duration label when there is room.
                 if (wide)
@@ -606,10 +606,10 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                       wm.text,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF9FF3E2),
+                        color: Color(0xFF9FF3E2),
                       ),
                     ),
                   ),

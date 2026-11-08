@@ -355,7 +355,9 @@ class VideoBridge {
       }
       return (
         (result[0] as num).toDouble(),
-        (result[1] as List).map((e) => (e as num).toDouble()).toList()
+        (result[1] as List<dynamic>)
+            .map((e) => (e as num).toDouble())
+            .toList()
       );
     } on MissingPluginException {
       throw BridgeUnavailable('waveform needs the native layer');
