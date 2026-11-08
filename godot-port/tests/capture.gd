@@ -13,7 +13,10 @@ var _report_lines: Array[String] = []
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SHOTS))
+	# Both calls, because DisplayServer alone leaves the window at the shape the project started with
+	# and the first shots then come out portrait while the stage underneath is landscape.
 	DisplayServer.window_set_size(Vector2i(738, 415))
+	get_window().size = Vector2i(738, 415)
 	await _frames(2)
 
 	var app: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
