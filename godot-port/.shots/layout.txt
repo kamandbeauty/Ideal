@@ -8,6 +8,11 @@ SWITCH haptics_on pressed=true saved=true knob=(29.0, 3.0) (24.0, 24.0) toggle_r
 SWITCH push_on pressed=true saved=true knob=(29.0, 3.0) (24.0, 24.0) toggle_rect=[P: (24.0, 325.0), S: (56.0, 30.0)] rtl=false
 STATE shop :: home=0 board=0 districts=0 shop=1 settings=0 :: root=(415.0, 738.0)
 LAYOUT shop :: 0 control(s) escape their parent
+DUMP row_1 [P: (16.0, 214.0), S: (383.0, 72.0)]
+DUMP   icon [P: (26.0, 228.0), S: (44.0, 44.0)]
+DUMP   name [P: (78.0, 222.0), S: (171.0, 27.0)] text=قوچ
+DUMP   owned [P: (78.0, 250.0), S: (171.0, 20.0)] text=در اختیار: ۱ از ۹
+DUMP   buy [P: (261.0, 232.0), S: (128.0, 36.0)] text=۶۰ سکه disabled=true
 STATE districts :: home=0 board=0 districts=1 shop=0 settings=0 :: root=(415.0, 738.0)
 LAYOUT districts :: 0 control(s) escape their parent
 DUMP district_0 [P: (12.0, 120.0), S: (379.0, 250.0)]
