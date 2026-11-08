@@ -54,6 +54,25 @@ func _ready() -> void:
 	await _frames(30)
 	_report(app, "board")
 	await _shot("05-board")
+
+	# The combo bubble lives for nine tenths of a second inside a chain, so a camera that waits for one
+	# would photograph an empty board. Ask the real screen to show a real bonus, pin the tween to its
+	# legible frame, and shoot the element a player would actually see.
+	var board_screen = app.get("board")
+	board_screen.run.score = 4820
+	board_screen.refresh()
+	board_screen._show_combo(3, 300)
+	await _frames(2)
+	var combo_popup := board_screen.get_node_or_null("combo_popup") as Label
+	if combo_popup != null:
+		combo_popup.modulate = Color(1, 1, 1, 1)
+		combo_popup.scale = Vector2.ONE
+		combo_popup.position -= Vector2(0.0, 18.0)
+	await _frames(2)
+	await _shot("08-combo")
+	if combo_popup != null:
+		combo_popup.queue_free()
+
 	# A 20:9 phone is where the old layout letterboxed the art and cropped the content.
 	DisplayServer.window_set_size(Vector2i(2400, 1080))
 	get_window().size = Vector2i(2400, 1080)
