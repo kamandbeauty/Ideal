@@ -47,6 +47,8 @@ static func texture(art_id: String) -> Texture2D:
 	var loaded: Texture2D = null
 	if ResourceLoader.exists(path):
 		loaded = load(path) as Texture2D
+	if loaded == null:
+		push_warning("[art] missing " + path)
 	_textures[path] = loaded
 	return loaded
 

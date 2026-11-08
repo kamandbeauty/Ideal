@@ -33,9 +33,15 @@ static func obstacle_path(kind: int) -> String:
 		_: return ""
 
 static func texture(path: String) -> Texture2D:
-	if path.is_empty() or not ResourceLoader.exists(path):
+	if path.is_empty():
 		return null
-	return load(path) as Texture2D
+	if not ResourceLoader.exists(path):
+		push_warning("[art] missing " + path)
+		return null
+	var loaded := load(path) as Texture2D
+	if loaded == null:
+		push_warning("[art] missing " + path)
+	return loaded
 
 static func piece_texture(kind: int) -> Texture2D:
 	return texture(piece_path(kind))

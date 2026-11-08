@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: godot-port-${{ github.ref }}
@@ -269,3 +269,49 @@ jobs:
             build/probe.apk > /tmp/android.log 2>&1
           echo "android export exit: $?"
           python3 godot-port/tools/annotate_log.py /tmp/android.log godot-port/export_presets.cfg || true
+
+  visual:
+    # Renders the real game under Xvfb and publishes a PNG of every screen on the branch, so layout
+    # regressions are something you can look at instead of argue about. Not a gate — a camera.
+    name: Visual capture of every screen
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Godot 4.7.2
+        uses: chickensoft-games/setup-godot@v2
+        with:
+          version: 4.7.2
+          use-dotnet: false
+
+      - name: Install a software OpenGL stack and a virtual display
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 mesa-utils
+
+      - name: Import the project
+        run: godot --headless --editor --path godot-port --quit
+
+      - name: Render every screen
+        run: |
+          set +e
+          LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe \
+          xvfb-run -a -s "-screen 0 415x738x24" \
+            godot --path godot-port --display-driver x11 --rendering-driver opengl3 \
+              --resolution 415x738 res://tests/capture.tscn > /tmp/capture.log 2>&1
+          status=$?
+          echo "capture exit: $status"
+          grep -n "capture\|art\] missing\|ERROR" /tmp/capture.log | head -40
+          ls -l godot-port/.shots || true
+          exit $status
+
+      - name: Publish the screenshots on the branch
+        run: |
+          set -e
+          test -d godot-port/.shots
+          git config user.name "godot-port bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f godot-port/.shots
+          git commit -m "ci: visual capture of every screen [skip ci]" || exit 0
+          git push origin HEAD:${GITHUB_REF_NAME}
