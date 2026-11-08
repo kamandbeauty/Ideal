@@ -398,11 +398,31 @@ SHOULDER = (0.201, 0.032, 1.489)
 ELBOW = (0.395, 0.038, 1.284)
 UPPER_ARM = 0.282
 FOREARM = 0.249
-RIFLE_LOCAL = (0.09, -0.15, 0.21)
-RIFLE_EULER = (-0.10, 0.0, -0.25)
-GRIP_LOCAL = (0.0, -0.09, -0.055)
-GUARD_LOCAL = (0.0, -0.26, 0.005)
+RIFLE_LOCAL = (0.07, -0.26, 0.22)
+RIFLE_EULER = (-0.30, 0.0, -0.72)
+GRIP_LOCAL = (0.0, 0.09, -0.06)
+GUARD_LOCAL = (0.0, -0.20, 0.005)
 MUZZLE_LOCAL = (0.0, -0.47, 0.01)
+
+# Original rifle geometry, authored as data so create_models.py and the local
+# preview build exactly the same weapon. Local -Y is down the barrel.
+# (kind, name, location, dimensions, material, extra)
+RIFLE_PARTS = [
+    ("box", "Stock", (0.0, 0.19, -0.015), (0.048, 0.20, 0.085), "Rifle wood", 0.018),
+    ("box", "Butt plate", (0.0, 0.29, -0.015), (0.05, 0.022, 0.095), "Weapon edge", 0.004),
+    ("box", "Receiver", (0.0, 0.02, 0.0), (0.055, 0.20, 0.075), "Weapon steel", 0.010),
+    ("box", "Dust cover", (0.0, 0.02, 0.045), (0.05, 0.19, 0.022), "Weapon edge", 0.006),
+    ("box", "Pistol grip", (0.0, 0.10, -0.075), (0.038, 0.05, 0.11), "Rifle wood", 0.012),
+    ("box", "Trigger guard", (0.0, 0.045, -0.05), (0.03, 0.07, 0.012), "Weapon steel", 0.004),
+    ("box", "Magazine", (0.0, -0.03, -0.085), (0.042, 0.075, 0.13), "Weapon steel", 0.012),
+    ("box", "Handguard", (0.0, -0.17, 0.005), (0.05, 0.17, 0.062), "Rifle wood", 0.014),
+    ("box", "Gas block", (0.0, -0.27, 0.035), (0.03, 0.035, 0.045), "Weapon steel", 0.005),
+    ("cyl", "Barrel", (0.0, -0.35, 0.008), (0.012, 0.26), "Weapon steel", "Y"),
+    ("cyl", "Gas tube", (0.0, -0.24, 0.038), (0.009, 0.16), "Weapon edge", "Y"),
+    ("box", "Front sight", (0.0, -0.45, 0.035), (0.014, 0.016, 0.04), "Weapon steel", 0.003),
+    ("box", "Rear sight", (0.0, -0.06, 0.05), (0.032, 0.022, 0.026), "Weapon steel", 0.004),
+    ("cyl", "Muzzle brake", (0.0, -0.465, 0.008), (0.017, 0.045), "Weapon edge", "Y"),
+]
 
 BONE_ORDER = ["Hips", "Torso", "Head", "LegL", "KneeL", "LegR", "KneeR",
               "ArmL", "ElbowL", "ArmR", "ElbowR"]
@@ -656,6 +676,10 @@ def author_rig(vertices, faces, vertex_component):
     return baked, normals, weights, joint_records, {
         "parent": "Torso", "translation": list(RIFLE_LOCAL), "rotation_euler": list(RIFLE_EULER),
         "muzzle_translation": list(MUZZLE_LOCAL),
+        "grip_local": list(GRIP_LOCAL), "guard_local": list(GUARD_LOCAL),
+        "parts": [{"kind": kind, "name": name, "location": list(loc),
+                   "dimensions": list(dim), "material": mat, "extra": extra}
+                  for kind, name, loc, dim, mat, extra in RIFLE_PARTS],
     }
 
 
