@@ -38,3 +38,4 @@ DUMP     chest_icon [P: (33.0, 329.0), S: (24.0, 24.0)]
 DUMP     chest_label [P: (60.0, 324.0), S: (70.0, 34.0)] text=باز کن
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(415.0, 738.0)
 LAYOUT board :: 0 control(s) escape their parent
+CONTACT 2171x770
