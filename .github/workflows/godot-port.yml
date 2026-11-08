@@ -82,6 +82,11 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
 
+      - name: Install project Android build template
+        run: |
+          godot --headless --path godot-port --install-android-build-template
+          test -f godot-port/android/build/build.gradle
+
       - name: Export debug APK
         env:
           GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
