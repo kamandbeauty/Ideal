@@ -19,6 +19,8 @@ var _status_label: Label
 var _initial_status_message := ""
 var _booster_buttons: Array[Button] = []
 var _cell_buttons: Dictionary = {}
+var _fx_layer: Control
+var _board_panel: PanelContainer
 
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_RTL
@@ -129,6 +131,7 @@ func _build_ui() -> void:
 	board_style.content_margin_top = 9
 	board_style.content_margin_bottom = 9
 	board_panel.add_theme_stylebox_override("panel", board_style)
+	_board_panel = board_panel
 	board_center.add_child(board_panel)
 
 	_grid = GridContainer.new()
@@ -139,6 +142,11 @@ func _build_ui() -> void:
 	board_panel.add_child(_grid)
 	var columns := _level.width if _level != null else 9
 	CELL_SIZE = clampi(int((get_viewport_rect().size.x - 70.0 - float(columns - 1) * CELL_GAP) / float(columns)), 42, 66)
+
+	_fx_layer = Control.new()
+	_fx_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_fx_layer)
 
 	var booster_row := HBoxContainer.new()
 	booster_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -267,6 +275,8 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 			_refresh_board()
 			return
 		var booster_result := _run.use_booster(_selected_booster, pos.x, pos.y)
+		if booster_result.accepted:
+			_play_result_fx(booster_result)
 		if not booster_result.accepted or not _booster_had_effect(booster_result):
 			_bag.grant(_selected_booster)
 			if booster_result.accepted:
@@ -285,6 +295,10 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 		return
 	var result := _run.try_swap(_selected.x, _selected.y, pos.x, pos.y)
 	_selected = Vector2i(-1, -1)
+	if result.accepted:
+		_play_result_fx(result)
+	else:
+		_play_reject_fx(pos)
 	if result.accepted:
 		if _run.status == GameTypes.LevelStatus.WON:
 			var progression := Progression.new(_save, GameClock.new())
@@ -317,3 +331,83 @@ func _booster_had_effect(result: Dictionary) -> bool:
 
 func debug_level_number() -> int:
 	return _level.number if _level != null else 0
+
+func _play_result_fx(result: Dictionary) -> void:
+	if _fx_layer == null:
+		return
+	var cleared := 0
+	var obstacle_hits := 0
+	var created_powerups := 0
+	var cascades := 0
+	for event in result.get("events", []):
+		var event_type := str(event.get("type", ""))
+		match event_type:
+			"piece_cleared":
+				cleared += 1
+				if cleared <= 24:
+					_spawn_cell_fx(Vector2i(event.position.x, event.position.y), "res://assets/art/fx_spark.png", Color(1.0, 0.88, 0.48), 0.42)
+			"obstacle_hit":
+				obstacle_hits += 1
+				_spawn_cell_fx(Vector2i(event.position.x, event.position.y), "res://assets/art/fx_ring.png", Color(1.0, 0.65, 0.35), 0.58)
+			"power_up_created":
+				created_powerups += 1
+				_spawn_cell_fx(Vector2i(event.position.x, event.position.y), "res://assets/art/fx_ring.png", Color(0.55, 0.95, 1.0), 0.78)
+			"power_up_triggered":
+				_spawn_cell_fx(Vector2i(event.position.x, event.position.y), "res://assets/art/fx_spark.png", Color(0.7, 0.95, 1.0), 0.72)
+			"cascade":
+				cascades += 1
+	if cascades > 0 or cleared >= 5 or created_powerups > 0:
+		_spawn_board_pulse(Color(0.85, 0.72, 0.36) if cascades > 0 else Color(0.45, 0.9, 0.88))
+	if cleared >= 8 or cascades >= 2:
+		_shake_board(5.0 if cascades >= 2 else 2.5)
+	if obstacle_hits > 0 and cleared == 0:
+		_spawn_board_pulse(Color(1.0, 0.48, 0.32))
+
+func _spawn_cell_fx(pos: Vector2i, texture_path: String, tint: Color, intensity: float) -> void:
+	var button: Button = _cell_buttons.get(pos)
+	if button == null:
+		return
+	var texture := AssetCatalog.texture(texture_path)
+	if texture == null:
+		return
+	var fx := TextureRect.new()
+	fx.texture = texture
+	fx.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	fx.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var fx_size := Vector2(CELL_SIZE * 1.65, CELL_SIZE * 1.65)
+	fx.size = fx_size
+	fx.pivot_offset = fx_size / 2.0
+	var center := button.get_global_rect().get_center()
+	fx.position = _fx_layer.to_local(center) - fx_size / 2.0
+	fx.modulate = Color(tint.r, tint.g, tint.b, 0.0)
+	fx.scale = Vector2(0.35, 0.35)
+	_fx_layer.add_child(fx)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(fx, "modulate:a", intensity, 0.08)
+	tween.tween_property(fx, "scale", Vector2(1.15, 1.15), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_property(fx, "modulate:a", 0.0, 0.22)
+	tween.tween_callback(fx.queue_free).set_delay(0.32)
+
+func _spawn_board_pulse(tint: Color) -> void:
+	if _board_panel == null:
+		return
+	var original := _board_panel.modulate
+	var tween := create_tween()
+	tween.tween_property(_board_panel, "modulate", tint, 0.07)
+	tween.tween_property(_board_panel, "modulate", original, 0.24)
+
+func _shake_board(amount: float) -> void:
+	if _board_panel == null:
+		return
+	var origin := _board_panel.position
+	var tween := create_tween()
+	for index in range(4):
+		var direction := -1.0 if index % 2 == 0 else 1.0
+		tween.tween_property(_board_panel, "position:x", origin.x + amount * direction, 0.035)
+	tween.tween_property(_board_panel, "position", origin, 0.045)
+
+func _play_reject_fx(pos: Vector2i) -> void:
+	_spawn_cell_fx(pos, "res://assets/art/fx_ring.png", Color(1.0, 0.35, 0.28), 0.55)
+	_shake_board(2.0)
