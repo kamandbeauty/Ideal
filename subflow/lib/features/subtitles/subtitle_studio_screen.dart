@@ -18,6 +18,7 @@ import '../../shared/widgets/sf_card.dart';
 import 'studio_waveform.dart';
 import 'studio_widgets.dart';
 import '../editor/widgets/native_player_view.dart';
+import '../effects/caption_effect.dart';
 import '../effects/caption_preset.dart';
 import '../effects/preset_style_mapper.dart';
 import '../effects/presets_library.dart';
