@@ -1,32 +1,11 @@
 STATE boot :: home=1 board=0 districts=0 shop=0 settings=0 :: root=(415.0, 738.0)
-LAYOUT boot :: 4 control(s) escape their parent
-LAYOUT boot :: title [P: (0.0, 132.0), S: (415.0, 56.0)] in HomeScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT boot :: subtitle [P: (0.0, 182.0), S: (415.0, 27.0)] in HomeScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT boot :: card [P: (28.0, 250.0), S: (359.0, 150.0)] in HomeScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT boot :: hint [P: (24.0, 590.0), S: (367.0, 40.0)] in HomeScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
+LAYOUT boot :: 0 control(s) escape their parent
 STATE settings :: home=0 board=0 districts=0 shop=0 settings=1 :: root=(415.0, 738.0)
-LAYOUT settings :: 7 control(s) escape their parent
-LAYOUT settings :: title [P: (16.0, 54.0), S: (383.0, 40.0)] in SettingsScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT settings :: row_0 [P: (16.0, 120.0), S: (383.0, 56.0)] in SettingsScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT settings :: row_1 [P: (16.0, 184.0), S: (383.0, 56.0)] in SettingsScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT settings :: row_2 [P: (16.0, 248.0), S: (383.0, 56.0)] in SettingsScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT settings :: row_3 [P: (16.0, 312.0), S: (383.0, 56.0)] in SettingsScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT settings :: sample [P: (16.0, 400.0), S: (383.0, 96.0)] in SettingsScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT settings :: version [P: (16.0, 512.0), S: (383.0, 20.0)] in SettingsScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
+LAYOUT settings :: 0 control(s) escape their parent
 STATE shop :: home=0 board=0 districts=0 shop=1 settings=0 :: root=(415.0, 738.0)
-LAYOUT shop :: 8 control(s) escape their parent
-LAYOUT shop :: title [P: (16.0, 54.0), S: (383.0, 40.0)] in ShopScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT shop :: coins [P: (16.0, 98.0), S: (383.0, 24.0)] in ShopScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT shop :: row_0 [P: (16.0, 132.0), S: (383.0, 72.0)] in ShopScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT shop :: row_1 [P: (16.0, 214.0), S: (383.0, 72.0)] in ShopScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT shop :: row_2 [P: (16.0, 296.0), S: (383.0, 72.0)] in ShopScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT shop :: row_3 [P: (16.0, 378.0), S: (383.0, 72.0)] in ShopScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT shop :: row_4 [P: (16.0, 460.0), S: (383.0, 72.0)] in ShopScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT shop :: feedback [P: (16.0, 620.0), S: (383.0, 40.0)] in ShopScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
+LAYOUT shop :: 0 control(s) escape their parent
 STATE districts :: home=0 board=0 districts=1 shop=0 settings=0 :: root=(415.0, 738.0)
-LAYOUT districts :: 2 control(s) escape their parent
-LAYOUT districts :: title [P: (16.0, 54.0), S: (383.0, 40.0)] in DistrictScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT districts :: potions [P: (16.0, 96.0), S: (383.0, 20.0)] in DistrictScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
+LAYOUT districts :: 0 control(s) escape their parent
 DUMP district_0 [P: (12.0, 120.0), S: (379.0, 250.0)]
 DUMP   plate [P: (12.0, 120.0), S: (379.0, 250.0)]
 DUMP   plate_veil [P: (12.0, 120.0), S: (379.0, 250.0)]
@@ -48,8 +27,4 @@ DUMP   build_all [P: (144.0, 324.0), S: (110.0, 34.0)] text=ساخت همه (۱�
 DUMP   chest [P: (26.0, 324.0), S: (112.0, 34.0)] text=باز کن disabled=true
 DUMP     chest_icon [P: (32.0, 329.0), S: (24.0, 24.0)]
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(415.0, 738.0)
-LAYOUT board :: 4 control(s) escape their parent
-LAYOUT board :: level [P: (96.0, 54.0), S: (223.0, 40.0)] in BoardScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT board :: moves [P: (16.0, 54.0), S: (76.0, 40.0)] in BoardScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT board :: goal_0 [P: (16.0, 102.0), S: (123.6667, 32.0)] in BoardScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
-LAYOUT board :: hint [P: (20.0, 552.0), S: (375.0, 22.0)] in BoardScreen [P: (0.0, 0.0), S: (0.0, 0.0)]
+LAYOUT board :: 0 control(s) escape their parent
