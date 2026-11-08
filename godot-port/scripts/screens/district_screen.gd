@@ -20,6 +20,7 @@ var _row_buttons: Array[Button] = []
 var _district_buttons: Array[Button] = []
 var _chest_buttons: Array[Button] = []
 var _chest_icons: Array[TextureRect] = []
+var _chest_labels: Array[Label] = []
 var _district_titles: Array[Label] = []
 var _plates: Array[TextureRect] = []
 var _task_rows: Array[Dictionary] = []
@@ -117,9 +118,13 @@ func _build_card(index: int) -> void:
 	var chest_button := UiKit.button(card, "chest", "صندوق", 14.0, CARD_HEIGHT - 46.0, 112.0, 34.0,
 		UiTokens.GOLD, UiTokens.ON_GOLD, Callable(self, "_on_chest_pressed").bind(index),
 		UiTokens.RADIUS_MD)
-	chest_button.add_theme_font_size_override("font_size", UiTokens.TYPE_SM)
-	chest_button.alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_chest_icons.append(UiKit.icon(chest_button, "chest_icon", "reward_chest", 6.0, 5.0, 24.0, 24.0))
+	# A Button cannot inset its own text, so the icon and the word are separate children — the same
+	# pattern the booster bar uses. Before this, the chest label drew on top of the chest.
+	_chest_icons.append(UiKit.icon(chest_button, "chest_icon", "reward_chest", 7.0, 5.0, 24.0, 24.0))
+	var chest_label := UiKit.label(chest_button, "chest_label", "", UiTokens.TYPE_XS, UiTokens.ON_GOLD,
+		HORIZONTAL_ALIGNMENT_RIGHT)
+	UiKit.place(chest_label, 34.0, 0.0, 112.0 - 42.0, 34.0)
+	_chest_labels.append(chest_label)
 	_chest_buttons.append(chest_button)
 
 func refresh() -> void:
@@ -175,7 +180,7 @@ func refresh() -> void:
 		var chest_open := session.is_chest_open(district)
 		_chest_icons[index].texture = UiKit.texture("reward_chest_open" if chest_open
 			else "reward_chest")
-		_chest_buttons[index].text = "باز شد" if chest_open else "باز کن"
+		_chest_labels[index].text = "باز شد" if chest_open else "باز کن"
 		_chest_buttons[index].disabled = chest_open or not built
 		_chest_buttons[index].modulate = Color(1, 1, 1, 1) if not _chest_buttons[index].disabled \
 			else Color(0.55, 0.55, 0.6, 1)
