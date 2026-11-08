@@ -29,6 +29,19 @@ var _is_paused := false
 var _pause_overlay: Control
 var _pause_button: Button
 
+func _play_sfx(sound_name: String, pitch: float = 1.0, volume_db: float = -3.0) -> void:
+	var sound_path := "res://assets/audio/%s.wav" % sound_name
+	if not ResourceLoader.exists(sound_path):
+		return
+	var player := AudioStreamPlayer.new()
+	player.stream = load(sound_path) as AudioStream
+	player.pitch_scale = pitch
+	player.volume_db = volume_db
+	player.bus = "Master"
+	add_child(player)
+	player.finished.connect(player.queue_free)
+	player.play()
+
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_RTL
 	_apply_theme()
@@ -310,6 +323,7 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 			return
 		var booster_result := _run.use_booster(_selected_booster, pos.x, pos.y)
 		if booster_result.accepted:
+			_play_sfx("booster", 0.96 + float(_selected_booster) * 0.07, -2.0)
 			_play_result_fx(booster_result)
 			_animate_next_refresh = true
 		if not booster_result.accepted or not _booster_had_effect(booster_result):
@@ -383,6 +397,7 @@ func _play_result_fx(result: Dictionary) -> void:
 	var obstacle_hits := 0
 	var created_powerups := 0
 	var cascades := 0
+	var triggered_powerups := 0
 	for event in result.get("events", []):
 		var event_type := str(event.get("type", ""))
 		match event_type:
@@ -397,11 +412,22 @@ func _play_result_fx(result: Dictionary) -> void:
 				created_powerups += 1
 				_spawn_cell_fx(Vector2i(event.position.x, event.position.y), "res://assets/art/fx_ring.png", Color(0.55, 0.95, 1.0), 0.78)
 			"power_up_triggered":
+				triggered_powerups += 1
 				var origin := Vector2i(event.position.x, event.position.y)
 				_spawn_cell_fx(origin, "res://assets/art/fx_spark.png", Color(0.7, 0.95, 1.0), 0.82)
 				_play_powerup_sweep(origin, int(event.get("kind", 0)))
 			"cascade":
 				cascades += 1
+	if cleared > 0:
+		_play_sfx("clear", 0.94 + minf(float(cleared), 12.0) * 0.018, -2.5)
+	if obstacle_hits > 0:
+		_play_sfx("obstacle", 0.96 + minf(float(obstacle_hits), 5.0) * 0.045, -1.5)
+	if created_powerups > 0:
+		_play_sfx("powerup_create", 1.0 + minf(float(created_powerups), 3.0) * 0.08, -1.0)
+	if triggered_powerups > 0:
+		_play_sfx("powerup", 0.92 + minf(float(triggered_powerups), 4.0) * 0.06, -0.5)
+	if cascades > 0:
+		_play_sfx("cascade", 0.92 + minf(float(cascades), 4.0) * 0.12, -1.0)
 	if cleared > 0 or obstacle_hits > 0 or created_powerups > 0:
 		_show_clear_summary(cleared, obstacle_hits, created_powerups, cascades)
 	if cascades > 0 or cleared >= 5 or created_powerups > 0:
@@ -457,6 +483,7 @@ func _shake_board(amount: float) -> void:
 	tween.tween_property(_board_panel, "position", origin, 0.045)
 
 func _play_reject_fx(pos: Vector2i) -> void:
+	_play_sfx("reject", 1.0, -4.0)
 	_spawn_cell_fx(pos, "res://assets/art/fx_ring.png", Color(1.0, 0.35, 0.28), 0.55)
 	_shake_board(2.0)
 
@@ -531,6 +558,7 @@ func _ensure_end_overlay() -> void:
 	column.add_theme_constant_override("separation", 14)
 	panel.add_child(column)
 	var won := _run.status == GameTypes.LevelStatus.WON
+	_play_sfx("win" if won else "lose", 1.0, -1.0)
 	var heading := Label.new()
 	heading.text = "آفرین! باغ شکوفا شد" if won else "این بار نشد!"
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -600,7 +628,7 @@ func _capture_board_visuals() -> Array[Dictionary]:
 			continue
 		var key := "%d:%d" % [cell.piece, cell.power_up]
 		var button: Button = _cell_buttons.get(pos)
-		var center := _fx_layer.to_local(button.get_global_rect().get_center()) if button != null else Vector2.ZERO
+		var center: Vector2 = _fx_layer.to_local(button.get_global_rect().get_center()) if button != null else Vector2.ZERO
 		visuals.append({"position": pos, "key": key, "texture": texture, "center": center})
 
 	return visuals
@@ -642,19 +670,20 @@ func _animate_board_transition(before_visuals: Array[Dictionary]) -> void:
 	var targets: Array[Vector2] = []
 	var sprite_size := Vector2(CELL_SIZE * 0.78, CELL_SIZE * 0.78)
 	for destination in after_visuals:
-		var target_pos: Vector2i = destination.position
+		var target_pos: Vector2i = destination["position"]
 		var target_button: Button = _cell_buttons.get(target_pos)
 		if target_button == null:
 			continue
-		var target_center := _fx_layer.to_local(target_button.get_global_rect().get_center())
+		var target_center: Vector2 = _fx_layer.to_local(target_button.get_global_rect().get_center())
 		var best_source := -1
 		var best_distance := INF
 		for source_index in unused_sources:
 			var source: Dictionary = before_visuals[source_index]
 			if source.key != destination.key:
 				continue
-			var source_pos: Vector2i = source.position
-			var distance := source.center.distance_squared_to(target_center)
+			var source_pos: Vector2i = source["position"]
+			var source_center: Vector2 = source["center"]
+			var distance: float = source_center.distance_squared_to(target_center)
 			if source_pos.x == target_pos.x:
 				distance *= 0.72
 			if distance < best_distance:
@@ -662,11 +691,12 @@ func _animate_board_transition(before_visuals: Array[Dictionary]) -> void:
 				best_source = source_index
 		var start_center := target_center
 		if best_source >= 0:
-			start_center = before_visuals[best_source].center
+			start_center = before_visuals[best_source]["center"]
 			unused_sources.erase(best_source)
 		else:
 			start_center.y -= CELL_SIZE * float(_run.board.height)
-		var sprite := _make_swap_sprite(destination.texture, start_center, sprite_size)
+		var target_texture: Texture2D = destination["texture"]
+		var sprite := _make_swap_sprite(target_texture, start_center, sprite_size)
 		sprite.scale = Vector2(0.82, 0.82)
 		sprite.modulate.a = 0.85
 		_fx_layer.add_child(sprite)
