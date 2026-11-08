@@ -305,7 +305,7 @@ jobs:
           grep -n "capture\|art\] missing\|ERROR" /tmp/capture.log | head -40
           ls -l godot-port/.shots || true
           echo "--- annotations ---"
-          grep -hE "SCRIPT ERROR|\[art\] missing|\[capture\] STATE" /tmp/capture.log | head -8 | while IFS= read -r line; do
+          grep -hE "SCRIPT ERROR|\[art\] missing|\[capture\] STATE|\[capture\] ART" /tmp/capture.log | head -10 | while IFS= read -r line; do
             echo "::warning title=capture::$line"
           done
           exit $status

@@ -60,10 +60,15 @@ func refresh() -> void:
 	_coins.text = PersianText.number(_session.wallet.coins) + " " + COIN_WORD
 	_potions.text = PersianText.number(_session.wallet.potions) + " " + POTION_WORD
 	_lives.text = PersianText.number(_session.lives.current) + " " + LIFE_WORD
+	# "۵ جان / پر" stacked in a 44 px pill is two lines of mush; only show the clock line when there is
+	# actually a countdown, and centre the lives number when there is not.
+	_timer.visible = not _session.lives.is_full
 	if _session.lives.is_full:
-		_timer.text = FULL_WORD
+		_timer.text = ""
+		UiKit.place(_lives, 4.0, 0.0, PILL_WIDTH - 40.0, PILL_HEIGHT)
 	else:
 		_timer.text = PersianText.time(_session.lives.next_refill_in_seconds)
+		UiKit.place(_lives, 4.0, 1.0, PILL_WIDTH - 40.0, 22.0)
 	for entry in [[_coins, PILL_WIDTH - 42.0], [_potions, PILL_WIDTH - 42.0], [_lives, PILL_WIDTH - 42.0],
 			[_timer, PILL_WIDTH - 42.0]]:
 		UiKit.fit_font(entry[0], float(entry[1]))
