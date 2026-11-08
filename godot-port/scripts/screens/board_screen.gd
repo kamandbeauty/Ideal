@@ -64,7 +64,11 @@ func build() -> void:
 		UiTokens.RADIUS_MD)
 	_moves_label = UiKit.label(moves_pill, "value", "", UiTokens.TYPE_BASE, UiTokens.ACCENT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.stretch(_moves_label, 4.0, 0.0)
+	UiKit.place(_moves_label, 4.0, 0.0, 68.0, 26.0)
+	# A bare number in the corner says nothing: the word under it says what the number spends.
+	var moves_word := UiKit.label(moves_pill, "word", "حرکت", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
+		HORIZONTAL_ALIGNMENT_CENTER)
+	UiKit.place(moves_word, 4.0, 25.0, 68.0, 14.0)
 
 	# ---- goal chips ------------------------------------------------------------------------------
 	var chip_gap := 6.0
