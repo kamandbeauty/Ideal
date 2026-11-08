@@ -6,7 +6,10 @@ extends Node
 ## overlaps; only a picture catches "the palace art never drew".
 
 const SHOTS := "res://.shots"
+const REPORT := "res://.shots/layout.txt"
 const SETTLE_FRAMES := 12
+
+var _report_lines: Array[String] = []
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SHOTS))
@@ -29,6 +32,8 @@ func _ready() -> void:
 	await _shot("03-shop")
 	app._show_districts()
 	await _frames(SETTLE_FRAMES)
+	_report(app, "districts")
+	_dump(app.get("districts"), "district_0", 40)
 	await _shot("04-districts")
 	app._show_home()
 	await _frames(4)
@@ -45,8 +50,18 @@ func _ready() -> void:
 	await _frames(6)
 	await _shot("07-home-phone-20x9")
 
+	_save_report()
 	print("[capture] wrote the whole set to %s" % SHOTS)
 	get_tree().quit()
+
+## Everything printed above, plus the rect dumps, as a text file next to the pictures.
+func _save_report() -> void:
+	var file := FileAccess.open(REPORT, FileAccess.WRITE)
+	if file == null:
+		return
+	file.store_string("\n".join(_report_lines))
+	file.close()
+	print("[capture] report: %s (%d lines)" % [REPORT, _report_lines.size()])
 
 ## One greppable line per shot: which views claim to be visible, and how big the root really is.
 ## A screen that should be hidden but is not is a composition bug that only a picture would show,
@@ -59,7 +74,7 @@ func _report(app: Node, tag: String) -> void:
 			parts.append("%s=null" % key)
 		else:
 			parts.append("%s=%d" % [key, 1 if view.visible else 0])
-	print("[capture] STATE %s :: %s :: root=%s" % [tag, " ".join(parts), str(app.size)])
+	_log("STATE %s :: %s :: root=%s" % [tag, " ".join(parts), str(app.size)])
 	var art = app.get("_bg")
 	var stage = app.get("_stage")
 	var tex = art.texture if art != null else null
@@ -72,21 +87,21 @@ func _report(app: Node, tag: String) -> void:
 		scrim.modulate.a if scrim != null else 0.0])
 	var escapes: Array[String] = []
 	_audit(app, escapes)
-	print("[capture] LAYOUT %s :: %d control(s) escape their parent" % [tag, escapes.size()])
+	_log("LAYOUT %s :: %d control(s) escape their parent" % [tag, escapes.size()])
 	for line in escapes.slice(0, 8):
-		print("[capture] LAYOUT %s :: %s" % [tag, line])
+		_log("LAYOUT %s :: %s" % [tag, line])
 
 ## Print the real screen rect of every visible control under one node, with its text. Pixels say
 ## "something is wrong"; these numbers say what and where.
 func _dump(node: Node, start_name: String, limit: int) -> void:
 	var start := node.get_node_or_null(start_name) if node != null else null
 	if start == null:
-		print("[capture] DUMP %s missing" % start_name)
+		_log("DUMP %s missing" % start_name)
 		return
 	var lines: Array[String] = []
 	_collect_rects(start, lines, 0)
 	for line in lines.slice(0, limit):
-		print("[capture] DUMP %s" % line)
+		_log("DUMP " + line)
 
 func _collect_rects(node: Node, out: Array[String], depth: int) -> void:
 	if out.size() > 80:
@@ -111,6 +126,10 @@ func _audit(node: Node, out: Array[String]) -> void:
 			if (child is Label or child is Panel) and not parent.get_global_rect().grow(1.0).encloses(control.get_global_rect()):
 				out.append("%s in %s" % [control.name, parent.name])
 		_audit(child, out)
+
+func _log(line: String) -> void:
+	_report_lines.append(line)
+	print("[capture] " + line)
 
 func _frames(count: int) -> void:
 	for _i in range(count):
