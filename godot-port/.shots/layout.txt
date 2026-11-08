@@ -24,7 +24,8 @@ DUMP     title [P: (102.0, 268.0), S: (275.0, 34.0)] text=حجره‌های با
 DUMP     build [P: (26.0, 270.0), S: (70.0, 30.0)] text=۴۰ disabled=true
 DUMP   task_4 [P: (26.0, 306.0), S: (351.0, 34.0)]
 DUMP   build_all [P: (144.0, 324.0), S: (110.0, 34.0)] text=ساخت همه (۱۳۰) disabled=true
-DUMP   chest [P: (26.0, 324.0), S: (112.0, 34.0)] text=باز کن disabled=true
-DUMP     chest_icon [P: (32.0, 329.0), S: (24.0, 24.0)]
+DUMP   chest [P: (26.0, 324.0), S: (112.0, 34.0)] text=صندوق disabled=true
+DUMP     chest_icon [P: (33.0, 329.0), S: (24.0, 24.0)]
+DUMP     chest_label [P: (60.0, 324.0), S: (70.0, 34.0)] text=باز کن
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(415.0, 738.0)
 LAYOUT board :: 0 control(s) escape their parent
