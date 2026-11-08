@@ -52,13 +52,13 @@ func _build_ui() -> void:
 	center.add_child(layout)
 
 	var title := Label.new()
-	title.text = "قصرِ شاهزاده"
+	title.text = "باغ شازده"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 48)
 	layout.add_child(title)
 
 	var subtitle := Label.new()
-	subtitle.text = "یک قلمرو را از دلِ بازی بساز"
+	subtitle.text = "جواهرها را جور کن و باغِ شاهزاده را آباد کن"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	layout.add_child(subtitle)
 
