@@ -115,7 +115,9 @@ func _build_card(index: int) -> void:
 	district_button.add_theme_font_size_override("font_size", UiTokens.TYPE_SM)
 	_district_buttons.append(district_button)
 
-	var chest_button := UiKit.button(card, "chest", "صندوق", 14.0, CARD_HEIGHT - 46.0, 112.0, 34.0,
+	# Empty button text: the word is drawn by chest_label below, because a Button paints its own text
+	# centred and would land it on top of the icon.
+	var chest_button := UiKit.button(card, "chest", "", 14.0, CARD_HEIGHT - 46.0, 112.0, 34.0,
 		UiTokens.GOLD, UiTokens.ON_GOLD, Callable(self, "_on_chest_pressed").bind(index),
 		UiTokens.RADIUS_MD)
 	# A Button cannot inset its own text, so the icon and the word are separate children — the same
