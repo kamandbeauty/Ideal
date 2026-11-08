@@ -133,7 +133,7 @@ func _build_ui() -> void:
 	start_button.custom_minimum_size = Vector2(0, 66)
 	start_button.add_theme_font_size_override("font_size", 22)
 	_style_button(start_button, Color(0.69, 0.43, 0.13, 1.0), Color(1.0, 0.88, 0.56), 18)
-	start_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/gameplay_screen.tscn"))
+	start_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/level_map_screen.tscn"))
 	hero_body.add_child(start_button)
 
 	var section_title := Label.new()

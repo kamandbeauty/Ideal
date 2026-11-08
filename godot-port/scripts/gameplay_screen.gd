@@ -110,10 +110,16 @@ func _load_game_state() -> void:
 	_bag = BoosterBag.new(_save)
 	_lives = Lives.new(_save, GameClock.new())
 
-	if _save.level_number > 10:
+	var selected_level := _save.level_number
+	if get_tree().root.has_meta("selected_level_number"):
+		selected_level = int(get_tree().root.get_meta("selected_level_number"))
+		get_tree().root.remove_meta("selected_level_number")
+	if selected_level < 1 or selected_level > _save.level_number:
+		selected_level = _save.level_number
+	if selected_level > 10:
 		_initial_status_message = "فصلِ اوّل را کامل کرده‌ای؛ به‌زودی فصل بعدی می‌آید"
 		return
-	var content := LevelContentLoader.load_level(_save.level_number, "ch01")
+	var content := LevelContentLoader.load_level(selected_level, "ch01")
 	if content.level == null or not content.errors.is_empty():
 		_initial_status_message = "بارگذاری مرحله ناموفق بود"
 		return

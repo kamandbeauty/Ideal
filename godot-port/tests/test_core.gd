@@ -437,6 +437,7 @@ func _run() -> void:
 	print("TEST STAGE 15: home, district, shop and settings screen smoke tests")
 	failures += _check(await _smoke_ui_scene("res://scenes/home_screen.tscn", "user://home-screen-smoke"), "home screen instantiates")
 	failures += _check(await _smoke_ui_scene("res://scenes/district_screen.tscn", "user://district-screen-smoke"), "district screen instantiates")
+	failures += _check(await _smoke_ui_scene("res://scenes/level_map_screen.tscn", "user://level-map-screen-smoke"), "level map screen instantiates")
 	failures += _check(await _smoke_ui_scene("res://scenes/shop_screen.tscn", "user://shop-screen-smoke"), "shop screen instantiates")
 	failures += _check(await _smoke_ui_scene("res://scenes/settings_screen.tscn", "user://settings-screen-smoke"), "settings screen instantiates")
 
