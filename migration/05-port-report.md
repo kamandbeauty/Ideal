@@ -89,9 +89,26 @@ Added after the first playable build, to finish the presentation:
 - **Tutorial.** On the first attempt of level one — and only then — a hand animates between two cells
   whose swap really does match, computed from the dealt board, and disappears on the first touch.
 
+The first real device run then contradicted all of it, which is the useful part:
+
+| what the phone showed | what it actually was |
+| --- | --- |
+| every screen stacked in one frame | `_fade.raise()` — Godot 3 API. It threw inside `_boot()`, so `_show_home()` never ran and five screens stayed visible |
+| HUD numbers floating outside their pills | `UiKit.place()` set `custom_minimum_size`, and a Label's minimum is its own text, so every label refused its rect and drew centred on a huge one |
+| the palace, the board floor and the map were missing | they were the only widgets sized by anchors, and `set_anchors_preset()` keeps the current (0x0) rect — every screen was 0x0 too |
+| the palace was cropped to a strip | a 1024x768 plate stretched over a 20:9 window with `stretch/aspect = keep` |
+
+All four are fixed, with tests: the real AppRoot must show exactly one view, every screen must fill the
+design space, and no label may escape the panel it sits in. The window art is now a full-bleed layer
+that each screen declares (art, wash, crop anchor, edge scrim), the 415x738 stage is centred inside it,
+and the stretch aspect is `expand`. A `visual` CI job renders the game under Xvfb at both 415x738 and
+1080x2400 and commits the pictures plus a layout report to `godot-port/.shots/`, so the next regression
+is visible in a diff instead of reported by a player.
+
 Still pending, explicitly:
-- Layout has been reasoned from `BoardScreen.cs`'s constants and the design tokens, but not compared
-  pixel-for-pixel on a device.
+- Layout is now reviewed by picture, but not against the Unity original side by side, and not on a
+  short phone (the 20:9 shot is the tallest case).
+- No frame-time or memory numbers on hardware.
 - No audio mixing pass (no bus compressor, no ducking) — the cues are pre-gained in the player.
 
 ## Phase 6 — levels and progression · complete for chapter one

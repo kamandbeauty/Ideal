@@ -36,9 +36,19 @@ Not done yet, and deliberately not claimed:
 - No parity fixture suite over long move sequences (event order, counters and hashes compared
   move-for-move against C#). `migration/01-audit.md` §10 R1 explains why this needs a Unity run.
 - No sound: the Unity project has no audio assets either, so nothing was dropped.
-- **No device run yet.** The `android-debug` job builds `princes-palace-debug.apk`, proves it is a real
-  APK (manifest + dex) and uploads it as an artifact, but nobody has installed it on a phone, so there
-  are no frame-time, memory or touch numbers. See `ANDROID_EXPORT.md`.
+- **First device run happened, and it found bugs the tests could not.** The APK from the artifact
+  installed and ran, and the screenshots showed the layout piled into one screen with the HUD numbers
+  floating outside their pills. Three real defects were behind it — a Godot 3 API call (`raise()`) that
+  aborted startup, `UiKit.place()` forcing a minimum size on every control so labels refused to shrink,
+  and `set_anchors_preset()` leaving every screen 0x0 — plus the full-bleed art being the only widget
+  sized by anchors, which is why the palace, the board backdrop and the map never drew. All fixed, and
+  the suite now has assertions for each: one view visible at a time, every screen filling the design
+  space, no label escaping its panel.
+- **The screenshots are in the repository.** A `visual` CI job renders the real game under Xvfb on both
+  a 415x738 window and a 1080x2400 phone shape and commits the PNGs to `godot-port/.shots/`, with
+  `layout.txt` next to them containing every visible control's rect, the switch states, and a list of
+  any control that escapes its parent. It reported 0 escapes for all five screens on the last run.
+- **Still no measured performance.** Frame time, memory and touch latency on hardware are unmeasured.
 
 ## Persian
 
