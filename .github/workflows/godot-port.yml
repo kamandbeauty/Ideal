@@ -318,4 +318,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f godot-port/.shots
           git commit -m "ci: visual capture of every screen [skip ci]" || exit 0
+          git pull --rebase origin "${GITHUB_REF_NAME}" || true
           git push origin HEAD:${GITHUB_REF_NAME}
