@@ -35,6 +35,7 @@ object CloudAsr {
         val apiKey: String,
         val model: String,
         val language: String,
+        val translate: Boolean = false,
     )
 
     private const val TAG = "SubFlowCloudAsr"
@@ -166,7 +167,8 @@ object CloudAsr {
 
         var connection: HttpURLConnection? = null
         try {
-            connection = (URL("$base/audio/transcriptions") as HttpURLConnection).apply {
+            val endpoint = if (config.translate) "audio/translations" else "audio/transcriptions"
+            connection = (URL("$base/$endpoint") as HttpURLConnection).apply {
                 requestMethod = "POST"
                 doOutput = true
                 connectTimeout = 30_000

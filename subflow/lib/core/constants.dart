@@ -50,6 +50,8 @@ class NativeMethods {
 
   static const String pickVideo = 'media.pickVideo';
   static const String probeVideo = 'media.probe';
+  static const String thumbnail = 'media.thumbnail';
+  static const String waveform = 'media.waveform';
   static const String fileExists = 'media.fileExists';
   static const String capabilities = 'device.capabilities';
   static const String writeSrt = 'subtitle.writeSrt';

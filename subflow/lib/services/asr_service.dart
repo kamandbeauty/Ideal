@@ -333,6 +333,7 @@ class AsrService {
     required AsrCloudConfig config,
     required String language,
     required int durationUs,
+    bool translate = false,
     void Function(int value)? onProgress,
   }) async {
     StreamSubscription<dynamic>? subscription;
@@ -354,6 +355,7 @@ class AsrService {
           'model': config.model,
           'language': language,
           'durationUs': durationUs,
+          'translate': translate,
         },
       );
       if (payload == null) return AsrResult.failure;
@@ -415,6 +417,7 @@ class AsrService {
     required String modelPath,
     required String language,
     required int durationUs,
+    bool translate = false,
     void Function(int value)? onProgress,
   }) async {
     StreamSubscription<dynamic>? subscription;
@@ -434,6 +437,7 @@ class AsrService {
           'modelPath': modelPath,
           'language': language,
           'durationUs': durationUs,
+          'translate': translate,
         },
       );
       if (payload == null) return AsrResult.failure;

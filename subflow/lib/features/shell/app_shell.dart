@@ -14,9 +14,13 @@ class AppShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   static const List<_ShellDestination> _destinations = <_ShellDestination>[
-    _ShellDestination(icon: Icons.video_library_outlined, activeIcon: Icons.video_library_rounded, label: 'پروژه‌ها'),
-    _ShellDestination(icon: Icons.auto_awesome_outlined, activeIcon: Icons.auto_awesome_rounded, label: 'استایل‌ها'),
-    _ShellDestination(icon: Icons.tune_outlined, activeIcon: Icons.tune_rounded, label: 'تنظیمات'),
+    _ShellDestination(icon: Icons.home_outlined, activeIcon: Icons.home_rounded, label: 'خانه'),
+    _ShellDestination(
+      icon: Icons.video_library_outlined,
+      activeIcon: Icons.video_library_rounded,
+      label: 'پروژه‌ها',
+    ),
+    _ShellDestination(icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'تنظیمات'),
   ];
 
   @override
@@ -29,12 +33,12 @@ class AppShell extends StatelessWidget {
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
             color: AppColors.surface,
-            border: Border(top: BorderSide(color: AppColors.outline)),
+            border: Border(top: BorderSide(color: AppColors.outline, width: 0.6)),
           ),
           child: SafeArea(
             top: false,
             child: SizedBox(
-              height: 62,
+              height: 64,
               child: Row(
                 children: List<Widget>.generate(_destinations.length, (int index) {
                   final _ShellDestination destination = _destinations[index];
@@ -50,8 +54,8 @@ class AppShell extends StatelessWidget {
                         children: <Widget>[
                           Icon(
                             selected ? destination.activeIcon : destination.icon,
-                            size: 22,
-                            color: selected ? AppColors.primary : AppColors.textMuted,
+                            size: 23,
+                            color: selected ? AppColors.primarySoft : AppColors.textMuted,
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -59,7 +63,7 @@ class AppShell extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 10.5,
                               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                              color: selected ? AppColors.textPrimary : AppColors.textMuted,
+                              color: selected ? AppColors.primarySoft : AppColors.textMuted,
                             ),
                           ),
                         ],

@@ -41,7 +41,12 @@ object NativeCore {
 
     external fun nativeAsrProgress(): Int
 
-    external fun nativeAsrTranscribe(pcm: FloatArray, language: String, threads: Int): String
+    external fun nativeAsrTranscribe(
+        pcm: FloatArray,
+        language: String,
+        threads: Int,
+        translate: Boolean,
+    ): String
 
     external fun nativeWriteSrt(starts: LongArray, ends: LongArray, texts: Array<String>): String
 

@@ -20,7 +20,7 @@ final GoRouter subFlowRouter = GoRouter(
   initialLocation: '/',
   routes: <RouteBase>[
     GoRoute(path: '/', builder: (_, __) => const SplashScreen()),
-    // Bottom-bar frame: projects, caption looks, settings. Every deeper screen
+    // Bottom-bar frame: home, projects, settings. Every deeper screen
     // is pushed on top so tab state survives, which is how short-form editors
     // behave and why there is no welcome carousel in front of it.
     StatefulShellRoute.indexedStack(
@@ -32,10 +32,7 @@ final GoRouter subFlowRouter = GoRouter(
         ),
         StatefulShellBranch(
           routes: <RouteBase>[
-            GoRoute(
-              path: '/styles',
-              builder: (_, __) => const CaptionGalleryScreen(embedded: true),
-            ),
+            GoRoute(path: '/projects', builder: (_, __) => const ProjectListScreen()),
           ],
         ),
         StatefulShellBranch(
@@ -45,7 +42,6 @@ final GoRouter subFlowRouter = GoRouter(
         ),
       ],
     ),
-    GoRoute(path: '/projects', builder: (_, __) => const ProjectListScreen()),
     GoRoute(path: '/import', builder: (_, __) => const VideoImportScreen()),
     GoRoute(
       path: '/project/:id',
@@ -54,8 +50,10 @@ final GoRouter subFlowRouter = GoRouter(
     ),
     GoRoute(
       path: '/project/:id/asr',
-      builder: (_, GoRouterState state) =>
-          AsrScreen(projectId: state.pathParameters['id'] ?? ''),
+      builder: (_, GoRouterState state) => AsrScreen(
+        projectId: state.pathParameters['id'] ?? '',
+        translate: state.uri.queryParameters['translate'] == '1',
+      ),
     ),
     GoRoute(
       path: '/project/:id/subtitles',

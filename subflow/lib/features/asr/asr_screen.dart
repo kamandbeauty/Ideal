@@ -24,9 +24,13 @@ import '../../shared/widgets/sf_scaffold.dart';
 /// works: an engine that is actually compiled into the APK, and a ggml model the
 /// user supplied. Both are reported up front; nothing pretends to transcribe.
 class AsrScreen extends ConsumerStatefulWidget {
-  const AsrScreen({required this.projectId, super.key});
+  const AsrScreen({required this.projectId, this.translate = false, super.key});
 
   final String projectId;
+
+  /// Opened from the "translate" tile: speech is recognised in the source
+  /// language and written out in English.
+  final bool translate;
 
   @override
   ConsumerState<AsrScreen> createState() => _AsrScreenState();
@@ -34,6 +38,7 @@ class AsrScreen extends ConsumerStatefulWidget {
 
 class _AsrScreenState extends ConsumerState<AsrScreen> {
   String _language = 'fa';
+  late bool _translate = widget.translate;
   String? _selectedPath;
   bool _running = false;
   int _progress = 0;
@@ -185,7 +190,24 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
               );
             }).toList(growable: false),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 8),
+          Row(
+            children: <Widget>[
+              const Icon(Icons.translate_rounded, size: 17, color: AppColors.textSecondary),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'ترجمه به انگلیسی (به‌جای متن اصلی)',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
+              ),
+              Switch(
+                value: _translate,
+                onChanged: _running ? null : (bool value) => setState(() => _translate = value),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
           _RunCard(
             running: _running,
             progress: _progress,
@@ -368,6 +390,7 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
             config: cloud,
             language: _language,
             durationUs: asset.durationUs,
+            translate: _translate,
             onProgress: (int value) {
               if (mounted && _running) setState(() => _progress = value);
             },
@@ -377,6 +400,7 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
             modelPath: path!,
             language: _language,
             durationUs: asset.durationUs,
+            translate: _translate,
             onProgress: (int value) {
               if (mounted && _running) setState(() => _progress = value);
             },

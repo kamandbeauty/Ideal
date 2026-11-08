@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import app.subflow.asr.CloudAsr
+import app.subflow.asr.WhisperAudio
 import app.subflow.asr.WhisperEngine
 import app.subflow.core.NativeCore
 import app.subflow.media.MediaPicker
@@ -47,6 +48,8 @@ class SubFlowBridge(
         when (call.method) {
             BridgeContract.METHOD_PICK_VIDEO -> handlePickVideo(result)
             BridgeContract.METHOD_PROBE_VIDEO -> handleProbe(call, result)
+            BridgeContract.METHOD_THUMBNAIL -> handleThumbnail(call, result)
+            BridgeContract.METHOD_WAVEFORM -> handleWaveform(call, result)
             BridgeContract.METHOD_FILE_EXISTS -> handleFileExists(call, result)
             BridgeContract.METHOD_CAPABILITIES -> handleCapabilities(result)
             BridgeContract.METHOD_WRITE_SRT -> handleWriteSrt(call, result)
@@ -90,6 +93,56 @@ class SubFlowBridge(
                     }
                 )
             }
+        }
+    }
+
+    /**
+     * One frame from the video, cached on disk. Project cards show a real frame
+     * instead of a grey box, and the same file feeds the editor's filmstrip.
+     * Failure is not fatal: the Dart side falls back to a gradient tile.
+     */
+    private fun handleThumbnail(call: MethodCall, result: MethodChannel.Result) {
+        val uriString: String? = call.argument<String>("uri")
+        val timeMs: Long = (call.argument<Number>("timeMs") ?: 1000).toLong()
+        val widthPx: Int = (call.argument<Number>("width") ?: 480).toInt()
+        val key: String = call.argument<String>("key") ?: uriString.orEmpty()
+        if (uriString.isNullOrEmpty()) {
+            result.error("bad_args", "uri is required", null)
+            return
+        }
+        io.execute {
+            val path = Thumbnails.frame(activity, Uri.parse(uriString), key, timeMs, widthPx)
+            activity.runOnUiThread { result.success(path) }
+        }
+    }
+
+    /**
+     * Amplitude buckets for the timeline. Decoding the first 90 s of audio is
+     * cheap and gives the strip real shape instead of a decorative sine wave.
+     */
+    private fun handleWaveform(call: MethodCall, result: MethodChannel.Result) {
+        val uriString: String? = call.argument<String>("uri")
+        val buckets: Int = (call.argument<Number>("buckets") ?: 72).toInt()
+        if (uriString.isNullOrEmpty()) {
+            result.success(emptyList<Int>())
+            return
+        }
+        io.execute {
+            val values = try {
+                val pcm = WhisperAudio.decode(
+                    context = activity,
+                    uri = Uri.parse(uriString),
+                    durationUs = 0,
+                    onProgress = {},
+                    isCancelled = { false },
+                    maxSeconds = 90.0,
+                )
+                WhisperAudio.buckets(pcm, buckets)
+            } catch (error: Exception) {
+                Log.w(TAG, "waveform failed", error)
+                emptyList<Int>()
+            }
+            activity.runOnUiThread { result.success(values) }
         }
     }
 
@@ -195,9 +248,10 @@ class SubFlowBridge(
         }
         val language: String = call.argument<String>("language") ?: "auto"
         val durationUs: Long = (call.argument<Number>("durationUs") ?: 0).toLong()
+        val translate: Boolean = call.argument<Boolean>("translate") ?: false
         io.execute {
             val json = try {
-                whisper.transcribe(Uri.parse(uriString), modelPath, language, durationUs)
+                whisper.transcribe(Uri.parse(uriString), modelPath, language, durationUs, translate)
             } catch (error: Exception) {
                 Log.e(TAG, "transcription failed", error)
                 val message = (error.message ?: "transcription failed").replace('"', ' ')
@@ -240,6 +294,7 @@ class SubFlowBridge(
         val modelPath: String? = call.argument<String>("modelPath")
         val language: String = call.argument<String>("language") ?: "fa"
         val durationUs: Long = (call.argument<Number>("durationUs") ?: 0).toLong()
+        val translate: Boolean = call.argument<Boolean>("translate") ?: false
         io.execute {
             val report = try {
                 whisper.selfTest(
@@ -268,6 +323,7 @@ class SubFlowBridge(
         val model: String = call.argument<String>("model") ?: ""
         val language: String = call.argument<String>("language") ?: "fa"
         val durationUs: Long = (call.argument<Number>("durationUs") ?: 0).toLong()
+        val translate: Boolean = call.argument<Boolean>("translate") ?: false
         if (uriString == null) {
             result.success(
                 """{"ok":false,"error":"ویدئوی این پروژه پیدا نشد."}""",
@@ -285,6 +341,7 @@ class SubFlowBridge(
                     apiKey = apiKey,
                     model = model,
                     language = language,
+                    translate = translate,
                 ),
                 onProgress = { value -> emitAsr(mapOf("event" to "cloud-progress", "progress" to value)) },
                 isCancelled = { cloudCancelled.get() },

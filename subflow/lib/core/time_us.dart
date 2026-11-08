@@ -45,6 +45,13 @@ class TimeUs {
   }
 
   /// `mm:ss.mmm` for the editor where frame-accurate scrubbing matters.
+  /// `mm:ss`, for badges on thumbnails and timeline labels.
+  static String compact(int us) {
+    final int safe = us < 0 ? 0 : us;
+    final int totalSeconds = safe ~/ perSecond;
+    return '${_two(totalSeconds ~/ 60)}:${_two(totalSeconds % 60)}';
+  }
+
   static String precise(int us) {
     final int safe = us < 0 ? 0 : us;
     final int ms = (safe ~/ perMillisecond) % 1000;

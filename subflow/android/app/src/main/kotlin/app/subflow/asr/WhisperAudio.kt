@@ -200,6 +200,28 @@ object WhisperAudio {
         return peak
     }
 
+    /**
+     * Peak amplitude per bucket, scaled to 0..1000, for the timeline strip.
+     * Peak (not RMS) keeps quiet speech visible at phone size.
+     */
+    fun buckets(pcm: FloatArray, count: Int): List<Int> {
+        if (pcm.isEmpty() || count <= 0) return emptyList()
+        val size = (pcm.size + count - 1) / count
+        val out = ArrayList<Int>(count)
+        var index = 0
+        while (index < pcm.size) {
+            var peak = 0f
+            val end = minOf(pcm.size, index + size)
+            for (i in index until end) {
+                val value = kotlin.math.abs(pcm[i])
+                if (value > peak) peak = value
+            }
+            out.add((peak.coerceIn(0f, 1f) * 1000).toInt())
+            index = end
+        }
+        return out
+    }
+
     private fun resample(source: FloatSink, sampleRate: Int): FloatArray {
         if (sampleRate <= 0 || sampleRate == TARGET_RATE) return source.toArray()
         val ratio = sampleRate.toDouble() / TARGET_RATE

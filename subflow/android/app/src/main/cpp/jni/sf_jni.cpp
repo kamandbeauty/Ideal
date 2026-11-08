@@ -328,7 +328,7 @@ Java_app_subflow_core_NativeCore_nativeAsrProgress(JNIEnv* /*env*/, jclass /*cla
 JNIEXPORT jstring JNICALL
 Java_app_subflow_core_NativeCore_nativeAsrTranscribe(JNIEnv* env, jclass /*clazz*/,
                                                      jfloatArray pcm, jstring language,
-                                                     jint threads) {
+                                                     jint threads, jboolean translate) {
   if (pcm == nullptr) {
     return env->NewStringUTF(ErrorJson("no audio").c_str());
   }
@@ -344,6 +344,7 @@ Java_app_subflow_core_NativeCore_nativeAsrTranscribe(JNIEnv* env, jclass /*clazz
   sf::AsrOptions options;
   options.threads = static_cast<int>(threads);
   options.language = ToStdString(env, language);
+  options.translate = translate == JNI_TRUE;
 
   std::vector<sf::AsrSegment> segments;
   std::string error;

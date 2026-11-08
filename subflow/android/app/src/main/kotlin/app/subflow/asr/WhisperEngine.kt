@@ -407,7 +407,7 @@ class WhisperEngine(
         }
 
         val transcribeStart = System.currentTimeMillis()
-        val json = NativeCore.nativeAsrTranscribe(pcm, language, recommendedThreads())
+        val json = NativeCore.nativeAsrTranscribe(pcm, language, recommendedThreads(), false)
         report["transcribeMs"] = System.currentTimeMillis() - transcribeStart
         report["transcribeOk"] = isOk(json)
         report["transcribe"] = json?.take(400) ?: ""
@@ -424,7 +424,13 @@ class WhisperEngine(
      * Decodes the video's audio, transcribes it and returns the native JSON:
      * `{"ok":true,"segments":[[startUs,endUs,"text"],…]}` or `{"ok":false,…}`.
      */
-    fun transcribe(uri: Uri, modelPath: String, language: String, durationUs: Long): String {
+    fun transcribe(
+        uri: Uri,
+        modelPath: String,
+        language: String,
+        durationUs: Long,
+        translate: Boolean = false,
+    ): String {
         synchronized(lock) {
             cancelled.set(false)
             if (!NativeCore.isReady) return errorJson("هستهٔ بومی اجرا نشد؛ این نسخه روی این دستگاه کار نمی‌کند.")
@@ -479,7 +485,7 @@ class WhisperEngine(
             poller.start()
 
             val json = try {
-                NativeCore.nativeAsrTranscribe(pcm, language, recommendedThreads())
+                NativeCore.nativeAsrTranscribe(pcm, language, recommendedThreads(), translate)
             } finally {
                 stopPolling.set(true)
                 poller.interrupt()

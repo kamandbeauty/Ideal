@@ -19,6 +19,8 @@ object BridgeContract {
     // Inbound (Dart -> Kotlin)
     const val METHOD_PICK_VIDEO = "media.pickVideo"
     const val METHOD_PROBE_VIDEO = "media.probe"
+    const val METHOD_THUMBNAIL = "media.thumbnail"
+    const val METHOD_WAVEFORM = "media.waveform"
     const val METHOD_FILE_EXISTS = "media.fileExists"
     const val METHOD_CAPABILITIES = "device.capabilities"
     const val METHOD_WRITE_SRT = "subtitle.writeSrt"

@@ -15,7 +15,8 @@ import '../../services/subtitle_export_service.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_button.dart';
 import '../../shared/widgets/sf_card.dart';
-import '../../shared/widgets/sf_scaffold.dart';
+import 'studio_waveform.dart';
+import 'studio_widgets.dart';
 import '../editor/widgets/native_player_view.dart';
 import '../effects/caption_preset.dart';
 import '../effects/preset_style_mapper.dart';
@@ -43,6 +44,9 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
   CaptionPreset _preset = PresetsLibrary.byId('viral-fa');
   SubtitleStyle? _style;
   bool _exporting = false;
+  StudioTool _tool = StudioTool.style;
+  bool _fullscreen = false;
+  bool _rainbow = false;
 
   @override
   void initState() {
@@ -79,220 +83,519 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
     final ProjectDetail? detail = ref.watch(projectDetailProvider(widget.projectId)).valueOrNull;
     final VideoAsset? asset = detail?.asset;
 
-    return SfScaffold(
-      appBar: AppBar(
-        title: const Text('استودیوی زیرنویس'),
-        actions: <Widget>[
-          snapshot.maybeWhen(
-            data: (SubtitleEditorSnapshot data) => Row(
-              children: <Widget>[
-                IconButton(
-                  tooltip: 'واگرد',
-                  onPressed: data.canUndo ? _notifier.undo : null,
-                  icon: const Icon(Icons.undo_rounded),
-                ),
-                IconButton(
-                  tooltip: 'ازنو',
-                  onPressed: data.canRedo ? _notifier.redo : null,
-                  icon: const Icon(Icons.redo_rounded),
-                ),
-              ],
-            ),
-            orElse: () => const SizedBox.shrink(),
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      child: snapshot.when(
-        loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        error: (Object error, StackTrace stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text('$error',
+    return Scaffold(
+      backgroundColor: AppColors.base,
+      body: SafeArea(
+        child: snapshot.when(
+          loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          error: (Object error, StackTrace stack) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                '$error',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: AppColors.danger, height: 1.8)),
+                style: const TextStyle(color: AppColors.danger, height: 1.8),
+              ),
+            ),
           ),
+          data: (SubtitleEditorSnapshot data) => _buildEditor(data, asset),
         ),
-        data: (SubtitleEditorSnapshot data) => _buildBody(data, asset),
       ),
     );
   }
 
-  Widget _buildBody(SubtitleEditorSnapshot snapshot, VideoAsset? asset) {
+  Widget _buildEditor(SubtitleEditorSnapshot snapshot, VideoAsset? asset) {
     final SubtitleDocument document = snapshot.document;
     return Column(
       children: <Widget>[
-        if (asset != null) _playerHeader(snapshot, asset),
-        _toolbar(snapshot, asset),
+        if (!_fullscreen)
+          StudioTopBar(
+            title: 'ویرایش زیرنویس',
+            exporting: _exporting,
+            onBack: () => context.pop(),
+            onExport: snapshot.document.isEmpty || _exporting
+                ? null
+                : () => _exportDialog(snapshot, asset),
+          ),
         Expanded(
-          child: document.isEmpty
-              ? _emptyState()
-              : ListView.separated(
-                  padding: const EdgeInsets.only(top: 8, bottom: 24),
-                  itemCount: document.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
-                  itemBuilder: (BuildContext context, int index) => _SegmentTile(
-                    segment: document.segments[index],
-                    index: index,
-                    selected: document.segments[index].id == snapshot.selectionId,
-                    onTap: () => _openSegmentSheet(document.segments[index].id),
-                    onSplit: () => _notifier.split(document.segments[index].id, _playheadUs),
-                    onMerge: () => _notifier.mergeWithNext(document.segments[index].id),
-                    onDelete: () => _confirmDelete(document.segments[index]),
-                  ),
+          child: asset == null
+              ? _noAssetState()
+              : Column(
+                  children: <Widget>[
+                    Flexible(flex: 5, child: _stage(snapshot, asset)),
+                    if (!_fullscreen)
+                      Flexible(
+                        flex: 6,
+                        child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(8, 2, 8, 0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            _transport(snapshot),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                              child: StudioTimeline(
+                                segments: document.segments,
+                                durationUs: _player.state.value.durationUs,
+                                positionUs: _player.state.value.positionUs,
+                                onSeek: _player.seekTo,
+                                onBlockTap: (SubtitleSegment segment) =>
+                                    _openSegmentSheet(segment.id),
+                                waveform: _waveform(asset),
+                                strip: Filmstrip(uri: asset.uri, durationUs: asset.durationUs),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            StudioToolRow(tool: _tool, onSelect: _selectTool),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              height: 208,
+                              child: SingleChildScrollView(child: _panel(snapshot, asset)),
+                            ),
+                          ],
+                        ),
+                        ),
+                      ),
+                  ],
                 ),
         ),
       ],
     );
   }
 
-  Widget _playerHeader(SubtitleEditorSnapshot snapshot, VideoAsset asset) {
-    return Column(
-      children: <Widget>[
-        ValueListenableBuilder<SfPlayerState>(
-          valueListenable: _player.state,
-          builder: (BuildContext context, SfPlayerState state, Widget? child) {
-            final SubtitleDocument document = snapshot.document;
-            final int position = state.positionUs;
-            final int? index = document.indexAt(position);
-            final SubtitleSegment? segment = index == null ? null : document.segments[index];
-            final int activeWord = segment == null ? -1 : (document.wordIndexAt(segment.id, position) ?? -1);
-            final List<double> fills = segment == null
-                ? const <double>[]
-                : segment.words
-                    .map((SubtitleWord word) => word.endUs <= position
-                        ? 1.0
-                        : (position <= word.startUs
-                            ? 0.0
-                            : ((position - word.startUs) / (word.endUs - word.startUs))
-                                .clamp(0.0, 1.0)
-                                .toDouble()))
-                    .toList(growable: false);
-            return Stack(
+  Widget _stage(SubtitleEditorSnapshot snapshot, VideoAsset asset) {
+    return ValueListenableBuilder<SfPlayerState>(
+      valueListenable: _player.state,
+      builder: (BuildContext context, SfPlayerState state, Widget? child) {
+        final SubtitleDocument document = snapshot.document;
+        final int position = state.positionUs;
+        final int? index = document.indexAt(position);
+        final SubtitleSegment? segment = index == null ? null : document.segments[index];
+        final int activeWord =
+            segment == null ? -1 : (document.wordIndexAt(segment.id, position) ?? -1);
+        final List<double> fills = segment == null
+            ? const <double>[]
+            : segment.words
+                .map((SubtitleWord word) => word.endUs <= position
+                    ? 1.0
+                    : (position <= word.startUs
+                        ? 0.0
+                        : ((position - word.startUs) / (word.endUs - word.startUs))
+                            .clamp(0.0, 1.0)
+                            .toDouble()))
+                .toList(growable: false);
+        return CaptionStage(
+          hasCaption: segment != null,
+          onTap: () => state.isPlaying ? _player.pause() : _player.play(),
+          player: NativeVideoPlayer(uri: asset.uri, controller: _player),
+          caption: CaptionSurface(
+            preset: _preset,
+            text: segment?.text ?? '',
+            activeWord: activeWord,
+            wordFills: fills,
+            minFontSize: 9,
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _transport(SubtitleEditorSnapshot snapshot) {
+    return ValueListenableBuilder<SfPlayerState>(
+      valueListenable: _player.state,
+      builder: (BuildContext context, SfPlayerState state, Widget? child) {
+        return StudioTransportRow(
+          playing: state.isPlaying,
+          positionUs: state.positionUs,
+          durationUs: state.durationUs,
+          onPlayPause: () => state.isPlaying ? _player.pause() : _player.play(),
+          canUndo: snapshot.canUndo,
+          canRedo: snapshot.canRedo,
+          onUndo: _notifier.undo,
+          onRedo: _notifier.redo,
+          onFullscreen: () => setState(() => _fullscreen = !_fullscreen),
+        );
+      },
+    );
+  }
+
+  List<int> _waveform(VideoAsset asset) {
+    final AsyncValue<List<int>> values =
+        ref.watch(waveformProvider(WaveformRequest(uri: asset.uri, durationUs: asset.durationUs)));
+    return values.valueOrNull ?? const <int>[];
+  }
+
+  void _selectTool(StudioTool tool) {
+    if (tool == StudioTool.more) {
+      _openMoreSheet();
+      return;
+    }
+    setState(() => _tool = tool);
+  }
+
+  Widget _panel(SubtitleEditorSnapshot snapshot, VideoAsset? asset) {
+    switch (_tool) {
+      case StudioTool.style:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _panelLabel('استایل'),
+            const SizedBox(height: 4),
+            StudioPresetRow(
+              presets: _faPresets,
+              currentId: _preset.id,
+              onPick: _applyPreset,
+            ),
+            const SizedBox(height: 8),
+            _panelLabel('رنگ'),
+            const SizedBox(height: 4),
+            StudioColorRow(current: _preset.textColor, onPick: _applyColor, rainbowSelected: _rainbow),
+            const SizedBox(height: 6),
+            _panelLabel('جایگاه'),
+            const SizedBox(height: 6),
+            _positionRow(),
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: _pickStyle,
+              icon: const Icon(Icons.grid_view_rounded, size: 16),
+              label: const Text('گالری کامل استایل‌ها و افکت‌ها'),
+            ),
+          ],
+        );
+      case StudioTool.color:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _panelLabel('رنگ متن'),
+            const SizedBox(height: 6),
+            StudioColorRow(current: _preset.textColor, onPick: _applyColor, rainbowSelected: _rainbow),
+            const SizedBox(height: 10),
+            _panelLabel('رنگ تأکید کلمه'),
+            const SizedBox(height: 6),
+            StudioColorRow(current: _preset.accentColor, onPick: _applyAccent),
+          ],
+        );
+      case StudioTool.animation:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _panelLabel('انیمیشن ورود'),
+            const SizedBox(height: 6),
+            _animationRow(),
+            const SizedBox(height: 10),
+            _panelLabel('افکت کلمه'),
+            const SizedBox(height: 6),
+            _wordEffectRow(),
+          ],
+        );
+      case StudioTool.position:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _panelLabel('جایگاه زیرنویس'),
+            const SizedBox(height: 8),
+            _positionRow(),
+            const SizedBox(height: 12),
+            _panelLabel('عرض کپشن'),
+            const SizedBox(height: 6),
+            Row(
               children: <Widget>[
-                NativeVideoPlayer(uri: asset.uri, controller: _player),
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CaptionSurface(
-                      preset: _preset,
-                      text: segment?.text ?? '',
-                      activeWord: activeWord,
-                      wordFills: fills,
+                for (final (double value, String label) in <(double, String)>[
+                  (0.7, 'باریک'),
+                  (0.88, 'معمولی'),
+                  (1.0, 'کامل'),
+                ])
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: _chipButton(
+                      label,
+                      selected: (_preset.widthFraction - value).abs() < 0.02,
+                      onTap: () => _applyPreset(_preset.copyWith(widthFraction: value)),
                     ),
                   ),
-                ),
               ],
-            );
-          },
+            ),
+          ],
+        );
+      case StudioTool.more:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _panelLabel(String text) => Padding(
+        padding: const EdgeInsets.only(left: 4),
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 11, color: AppColors.textMuted),
         ),
-        const SizedBox(height: 8),
-        ValueListenableBuilder<SfPlayerState>(
-          valueListenable: _player.state,
-          builder: (BuildContext context, SfPlayerState state, Widget? child) {
-            final int duration = state.durationUs;
-            final int position = state.positionUs > duration ? duration : state.positionUs;
-            return Row(
-              children: <Widget>[
-                IconButton.filled(
-                  onPressed: () => state.isPlaying ? _player.pause() : _player.play(),
-                  icon: Icon(state.isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded),
-                  style: IconButton.styleFrom(backgroundColor: AppColors.primary),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  '${TimeUs.precise(position)} / ${TimeUs.precise(duration)}',
-                  textDirection: TextDirection.ltr,
-                  style: const TextStyle(
-                    fontSize: 11.5,
-                    color: AppColors.textSecondary,
-                    fontFeatures: <FontFeature>[FontFeature.tabularFigures()],
-                  ),
-                ),
-                Expanded(
-                  child: Slider(
-                    value: duration == 0 ? 0 : position.clamp(0, duration).toDouble(),
-                    max: duration == 0 ? 1 : duration.toDouble(),
-                    onChanged: duration == 0 ? null : (double value) => _player.seekTo(value.round()),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+      );
+
+  List<CaptionPreset> get _faPresets {
+    final List<CaptionPreset> persian =
+        PresetsLibrary.all.where((CaptionPreset p) => p.language == 'fa').toList(growable: false);
+    return persian.isEmpty ? PresetsLibrary.all.take(10).toList(growable: false) : persian.take(12).toList(growable: false);
+  }
+
+  Widget _positionRow() {
+    return Row(
+      children: <Widget>[
+        for (final (double value, String label) in <(double, String)>[
+          (0.14, 'بالا'),
+          (0.5, 'وسط'),
+          (0.82, 'پایین'),
+        ])
+          Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: _chipButton(
+              label,
+              selected: (_preset.positionY - value).abs() < 0.06,
+              onTap: () => _applyPreset(_preset.copyWith(positionY: value)),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _toolbar(SubtitleEditorSnapshot snapshot, VideoAsset? asset) {
+  Widget _animationRow() {
+    const List<(CaptionAnimation, String)> options = <(CaptionAnimation, String)>[
+      (CaptionAnimation.fade, 'محو'),
+      (CaptionAnimation.slideUp, 'از پایین'),
+      (CaptionAnimation.zoomIn, 'بزرگ‌شدن'),
+      (CaptionAnimation.pop, 'پاپ'),
+      (CaptionAnimation.bounce, 'پرش'),
+      (CaptionAnimation.blurIn, 'بلور'),
+    ];
     return SizedBox(
-      height: 46,
+      height: 36,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: <Widget>[
-          _ToolButton(
-            icon: Icons.add_rounded,
-            label: 'افزودن',
-            onTap: () => _notifier.insertAt(_playheadUs),
-          ),
-          _ToolButton(
-            icon: Icons.auto_awesome_rounded,
-            label: 'استایل',
-            onTap: _pickStyle,
-          ),
-          _ToolButton(
-            icon: Icons.copy_all_rounded,
-            label: 'کپی استایل',
-            onTap: snapshot.selectionId == null ? null : _notifier.copyStyle,
-          ),
-          _ToolButton(
-            icon: Icons.content_paste_rounded,
-            label: 'چسباندن',
-            onTap: snapshot.clipboardStyleId == null ? null : () => _notifier.pasteStyle(),
-          ),
-          _ToolButton(
-            icon: Icons.timer_outlined,
-            label: 'جابه‌جایی',
-            onTap: snapshot.selectionId == null ? null : _shiftAllDialog,
-          ),
-          _ToolButton(
-            icon: Icons.save_alt_rounded,
-            label: _exporting ? 'در حال خروجی' : 'خروجی زیرنویس',
-            onTap: _exporting || snapshot.document.isEmpty ? null : () => _exportDialog(snapshot, asset),
-          ),
+          for (final (CaptionAnimation animation, String label) in options)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _chipButton(
+                label,
+                selected: _preset.effects.enter == animation,
+                onTap: () => _applyPreset(
+                  _preset.copyWith(effects: _preset.effects.copyWith(enter: animation)),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _emptyState() {
+  Widget _wordEffectRow() {
+    const List<(CaptionWordEffect, String)> options = <(CaptionWordEffect, String)>[
+      (CaptionWordEffect.karaokeFill, 'کاراوکه'),
+      (CaptionWordEffect.activeColor, 'رنگ کلمه'),
+      (CaptionWordEffect.activeScale, 'بزرگ‌شدن'),
+      (CaptionWordEffect.wordPop, 'پاپ'),
+      (CaptionWordEffect.activeBackground, 'پس‌زمینه'),
+      (CaptionWordEffect.none, 'بدون'),
+    ];
+    return SizedBox(
+      height: 36,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: <Widget>[
+          for (final (CaptionWordEffect effect, String label) in options)
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _chipButton(
+                label,
+                selected: _preset.effects.wordEffect == effect,
+                onTap: () => _applyPreset(
+                  _preset.copyWith(effects: _preset.effects.copyWith(wordEffect: effect)),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chipButton(String label, {required bool selected, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary.withOpacity(0.18) : AppColors.card,
+          borderRadius: BorderRadius.circular(9),
+          border: Border.all(color: selected ? AppColors.primary : AppColors.outline),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: selected ? AppColors.primarySoft : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _applyColor(int color) {
+    if (color == 0) return;
+    setState(() => _rainbow = color == -1);
+    if (color == -1) {
+      // A gradient caption: white core with a blue-violet tail, which is what the
+      // rainbow swatch promises.
+      _applyPreset(_preset.copyWith(textColor: 0xFFFFFF, gradientEnd: 0x5B8CFF));
+      return;
+    }
+    _applyPreset(_preset.copyWith(textColor: color, clearGradient: true));
+  }
+
+  void _applyAccent(int color) {
+    if (color == 0 || color == -1) return;
+    _applyPreset(_preset.copyWith(accentColor: color));
+  }
+
+  Future<void> _applyPreset(CaptionPreset preset) async {
+    final SubtitleStyle style = PresetStyleMapper.toStyle(
+      preset,
+      id: 'style-${widget.projectId}',
+      projectId: widget.projectId,
+    );
+    await _notifier.applyStyle(style);
+    if (!mounted) return;
+    setState(() {
+      _preset = preset;
+      _style = style;
+    });
+  }
+
+  void _openMoreSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (BuildContext sheetContext) => SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            _SheetAction(
+              icon: Icons.add_rounded,
+              label: 'افزودن زیرنویس در این لحظه',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _notifier.insertAt(_playheadUs);
+              },
+            ),
+            _SheetAction(
+              icon: Icons.list_alt_rounded,
+              label: 'فهرست متن‌ها',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _openSegmentsSheet();
+              },
+            ),
+            _SheetAction(
+              icon: Icons.copy_all_rounded,
+              label: 'کپی استایل',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _notifier.copyStyle();
+              },
+            ),
+            _SheetAction(
+              icon: Icons.timer_outlined,
+              label: 'جابه‌جایی کل زیرنویس',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _shiftAllDialog();
+              },
+            ),
+            _SheetAction(
+              icon: Icons.graphic_eq_rounded,
+              label: 'تشخیص گفتار',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                context.push('/project/${widget.projectId}/asr');
+              },
+            ),
+            _SheetAction(
+              icon: Icons.tune_rounded,
+              label: 'تنظیمات پروژه',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                context.push('/project/${widget.projectId}');
+              },
+            ),
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openSegmentsSheet() {
+    final SubtitleEditorSnapshot? snapshot =
+        ref.read(subtitleEditorProvider(widget.projectId)).valueOrNull;
+    if (snapshot == null) return;
+    final SubtitleDocument document = snapshot.document;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      builder: (BuildContext sheetContext) => SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+            itemCount: document.segments.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            itemBuilder: (BuildContext context, int index) => _SegmentTile(
+              segment: document.segments[index],
+              index: index,
+              selected: false,
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _openSegmentSheet(document.segments[index].id);
+              },
+              onSplit: () => _notifier.split(document.segments[index].id, _playheadUs),
+              onMerge: () => _notifier.mergeWithNext(document.segments[index].id),
+              onDelete: () => _confirmDelete(document.segments[index]),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The project's video is gone (moved or deleted): say so, and offer the one
+  /// action that helps.
+  Widget _noAssetState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.all(24),
         child: SfCard(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              const Icon(Icons.subtitles_off_rounded, color: AppColors.textMuted, size: 32),
+              const Icon(Icons.videocam_off_outlined, size: 30, color: AppColors.textMuted),
               const SizedBox(height: 12),
-              Text('هنوز زیرنویسی نیست', style: Theme.of(context).textTheme.titleMedium),
+              const Text(
+                'ویدئوی این پروژه در دسترس نیست',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 8),
               const Text(
-                'تشخیص گفتار Whisper صدا را روی همین گوشی به متن تبدیل می‌کند و زیرنویس را '
-                'همین‌جا می‌سازد؛ اگر ترجیح می‌دهی دستی کار کنی، پخش را متوقف کن، «افزودن» را بزن و '
-                'متن و زمان را وارد کن.',
+                'فایل از حافظهٔ گوشی پاک یا جابه‌جا شده است. برای دیدن و ویرایش زیرنویس، فایل '
+                'را دوباره وارد کنید.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.9),
-              ),
-              const SizedBox(height: 16),
-              SfPrimaryButton(
-                label: 'تشخیص خودکار گفتار',
-                icon: Icons.graphic_eq_rounded,
-                onPressed: () => context.push('/project/${widget.projectId}/asr'),
-              ),
-              const SizedBox(height: 10),
-              TextButton(
-                onPressed: () => _notifier.insertAt(_playheadUs),
-                child: const Text('افزودن زیرنویس در این لحظه'),
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.8),
               ),
             ],
           ),

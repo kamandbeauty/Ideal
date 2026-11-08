@@ -34,6 +34,45 @@ class NativeBridge {
     }
   }
 
+  /// A JPEG frame for a video, or null when the platform declines. Callers must
+  /// treat null as "show a placeholder", never as an error to surface.
+  Future<String?> thumbnail({
+    required String uri,
+    required String key,
+    int timeMs = 1000,
+    int width = 480,
+  }) async {
+    try {
+      return await _channel.invokeMethod<String>(NativeMethods.thumbnail, <String, Object?>{
+        'uri': uri,
+        'key': key,
+        'timeMs': timeMs,
+        'width': width,
+      });
+    } on PlatformException {
+      return null;
+    } on MissingPluginException {
+      return null;
+    }
+  }
+
+  /// Peak amplitudes (0..1000) for the timeline. An empty list means "no audio
+  /// could be decoded", which the timeline renders as a flat strip.
+  Future<List<int>> waveform({required String uri, int buckets = 72}) async {
+    try {
+      final List<Object?>? raw = await _channel.invokeListMethod<Object?>(
+        NativeMethods.waveform,
+        <String, Object?>{'uri': uri, 'buckets': buckets},
+      );
+      if (raw == null) return const <int>[];
+      return raw.whereType<num>().map((num value) => value.toInt()).toList(growable: false);
+    } on PlatformException {
+      return const <int>[];
+    } on MissingPluginException {
+      return const <int>[];
+    }
+  }
+
   Future<VideoProbeResult> probeVideo(String uri) async {
     try {
       final Map<Object?, Object?>? result = await _channel

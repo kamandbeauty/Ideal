@@ -99,6 +99,8 @@ class CaptionPreset {
     double? positionY,
     double? widthFraction,
     CaptionEffects? effects,
+    int? gradientEnd,
+    bool clearGradient = false,
   }) {
     return CaptionPreset(
       id: id,
@@ -117,7 +119,7 @@ class CaptionPreset {
       shadowOffsetY: shadowOffsetY,
       glowRadius: glowRadius ?? this.glowRadius,
       glowColor: glowColor,
-      gradientEnd: gradientEnd,
+      gradientEnd: clearGradient ? null : (gradientEnd ?? this.gradientEnd),
       boxBackground: boxBackground,
       backgroundColor: backgroundColor,
       backgroundOpacity: backgroundOpacity,

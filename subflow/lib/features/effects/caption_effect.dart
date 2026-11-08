@@ -105,6 +105,28 @@ class CaptionEffects {
 
   static const CaptionEffects none = CaptionEffects(enter: CaptionAnimation.none, exit: CaptionExit.none);
 
+  CaptionEffects copyWith({
+    CaptionAnimation? enter,
+    CaptionExit? exit,
+    CaptionWordEffect? wordEffect,
+    int? durationMs,
+    int? delayMs,
+    CaptionEasing? easing,
+    double? intensity,
+    bool? pulse,
+  }) {
+    return CaptionEffects(
+      enter: enter ?? this.enter,
+      exit: exit ?? this.exit,
+      wordEffect: wordEffect ?? this.wordEffect,
+      durationMs: durationMs ?? this.durationMs,
+      delayMs: delayMs ?? this.delayMs,
+      easing: easing ?? this.easing,
+      intensity: intensity ?? this.intensity,
+      pulse: pulse ?? this.pulse,
+    );
+  }
+
   factory CaptionEffects.fromMap(Map<String, Object?> map) {
     T pick<T extends Enum>(List<T> values, Object? raw, T fallback) {
       if (raw is! String) return fallback;
