@@ -17,12 +17,15 @@ func _ready() -> void:
 	add_child(app)
 	await _frames(20)
 
+	_report(app, "boot")
 	await _shot("01-home")
 	app._show_settings()
 	await _frames(SETTLE_FRAMES)
+	_report(app, "settings")
 	await _shot("02-settings")
 	app._show_shop()
 	await _frames(SETTLE_FRAMES)
+	_report(app, "shop")
 	await _shot("03-shop")
 	app._show_districts()
 	await _frames(SETTLE_FRAMES)
@@ -31,9 +34,23 @@ func _ready() -> void:
 	await _frames(4)
 	app._play(1)
 	await _frames(30)
+	_report(app, "board")
 	await _shot("05-board")
 	print("[capture] wrote %d shots to %s" % [5, SHOTS])
 	get_tree().quit()
+
+## One greppable line per shot: which views claim to be visible, and how big the root really is.
+## A screen that should be hidden but is not is a composition bug that only a picture would show,
+## so the numbers go into the log where CI can turn them into an annotation.
+func _report(app: Node, tag: String) -> void:
+	var parts: Array[String] = []
+	for key in ["home", "board", "districts", "shop", "settings"]:
+		var view = app.get(key)
+		if view == null:
+			parts.append("%s=null" % key)
+		else:
+			parts.append("%s=%d" % [key, 1 if view.visible else 0])
+	print("[capture] STATE %s :: %s :: root=%s" % [tag, " ".join(parts), str(app.size)])
 
 func _frames(count: int) -> void:
 	for _i in range(count):
