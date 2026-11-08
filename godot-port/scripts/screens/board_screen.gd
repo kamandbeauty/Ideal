@@ -342,7 +342,15 @@ func _show_combo(combo_count: int, combo_bonus: int) -> void:
 	# with a Persian connector cannot.
 	popup.text = "کمبو " + PersianText.number(combo_count) + " و پاداش " \
 		+ PersianText.number(combo_bonus) + " امتیاز"
-	UiKit.place(popup, BOARD_LEFT, BOARD_TOP + 8.0, BOARD_SIZE, 34.0)
+	# Over the middle of the board, because that is where the chain the player is watching just happened,
+	# and above it in the draw order so the pieces cannot cut the words in half.
+	var start_y := BOARD_TOP + BOARD_SIZE * 0.5 - 17.0
+	UiKit.place(popup, BOARD_LEFT, start_y, BOARD_SIZE, 34.0)
+	popup.z_index = 50
+	# An outline, not a panel: the words have to stay readable over whichever piece is behind them
+	# without a code-drawn rectangle appearing on top of the art.
+	popup.add_theme_constant_override("outline_size", 6)
+	popup.add_theme_color_override("font_outline_color", UiTokens.BG)
 	popup.modulate = Color(1, 1, 1, 0)
 	popup.scale = Vector2(0.82, 0.82)
 	popup.pivot_offset = Vector2(BOARD_SIZE * 0.5, 17.0)
@@ -350,7 +358,8 @@ func _show_combo(combo_count: int, combo_bonus: int) -> void:
 	tween.set_parallel(true)
 	tween.tween_property(popup, "modulate:a", 1.0, 0.12)
 	tween.tween_property(popup, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(popup, "position:y", -26.0, 0.75).set_delay(0.12)
+	# Relative, not absolute: the bubble floats up 26 px from where it started, it does not fly to y=-26.
+	tween.tween_property(popup, "position:y", start_y - 26.0, 0.75).set_delay(0.12)
 	tween.tween_property(popup, "modulate:a", 0.0, 0.22).set_delay(0.68)
 	tween.chain().tween_callback(popup.queue_free)
 
