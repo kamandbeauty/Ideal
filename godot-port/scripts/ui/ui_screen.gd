@@ -31,7 +31,10 @@ func set_backdrop(art_id: String, wash_alpha: float, anchor_x: float = 0.5, anch
 
 func init_screen(new_session: GameSession) -> void:
 	session = new_session
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	# set_anchors_and_offsets_preset, not set_anchors_preset: the latter keeps the control's current
+	# rect by writing offsets, and a fresh Control's rect is 0x0 — so the screen would stay 0x0 and
+	# only look right because every widget inside it is placed absolutely.
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if not built:
 		build()
 		built = true

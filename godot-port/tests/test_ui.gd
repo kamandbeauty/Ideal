@@ -242,6 +242,12 @@ func _run() -> void:
 		await process_frame
 	failures += _check(_visible_views(app) == ["home"],
 		"boot shows the title screen and nothing else, got %s" % str(_visible_views(app)))
+	# set_anchors_preset() keeps a control's current rect; a 0x0 screen still *looks* right because its
+	# children are placed absolutely, and every anchor-based child inside it silently collapses.
+	for key in ["home", "board", "districts", "shop", "settings"]:
+		var view = app.get(key) as Control
+		failures += _check(view.size == Vector2(UiTokens.CANVAS_WIDTH, UiTokens.CANVAS_HEIGHT),
+			"the %s screen fills the design space, got %s" % [key, str(view.size)])
 	app._show_settings()
 	await process_frame
 	failures += _check(_visible_views(app) == ["settings"],

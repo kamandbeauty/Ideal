@@ -29,7 +29,7 @@ var _tick := 0.0
 var _current: UiScreen
 
 func _ready() -> void:
-	set_anchors_preset(Control.PRESET_FULL_RECT)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_boot()
 
 func _boot() -> void:

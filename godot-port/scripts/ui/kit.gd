@@ -96,7 +96,7 @@ static func place(control: Control, x: float, y: float, width: float, height: fl
 
 ## Fills the parent, inset by the same amount on both sides.
 static func stretch(control: Control, inset_x: float = 0.0, inset_y: float = 0.0) -> Control:
-	control.set_anchors_preset(Control.PRESET_FULL_RECT)
+	control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	control.offset_left = inset_x
 	control.offset_top = inset_y
 	control.offset_right = -inset_x
