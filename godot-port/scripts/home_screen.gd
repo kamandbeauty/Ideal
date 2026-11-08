@@ -48,15 +48,22 @@ func _build_ui() -> void:
 	var layout := VBoxContainer.new()
 	layout.custom_minimum_size = Vector2(560, 0)
 	layout.alignment = BoxContainer.ALIGNMENT_CENTER
-	layout.add_theme_constant_override("separation", 20)
+	layout.add_theme_constant_override("separation", 14)
 	center.add_child(layout)
 
 	var title := Label.new()
 	title.text = "باغ شازده"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.66))
 	layout.add_child(title)
 
+	var emblem := TextureRect.new()
+	emblem.texture = AssetCatalog.texture("res://assets/art/icon_crown.png")
+	emblem.custom_minimum_size = Vector2(78, 78)
+	emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	layout.add_child(emblem)
 	var subtitle := Label.new()
 	subtitle.text = "جواهرها را جور کن و باغِ شاهزاده را آباد کن"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -76,7 +83,21 @@ func _build_ui() -> void:
 func _add_menu_button(parent: VBoxContainer, label: String, scene_path: String) -> void:
 	var button := Button.new()
 	button.text = label
-	button.custom_minimum_size = Vector2(0, 62)
+	button.custom_minimum_size = Vector2(0, 60)
+	button.add_theme_font_size_override("font_size", 21)
+	button.add_theme_color_override("font_color", Color(1.0, 0.92, 0.76))
+	var normal := StyleBoxFlat.new()
+	normal.bg_color = Color(0.08, 0.24, 0.25, 0.96)
+	normal.border_color = Color(0.8, 0.65, 0.34, 0.85)
+	normal.set_border_width_all(2)
+	normal.set_corner_radius_all(14)
+	button.add_theme_stylebox_override("normal", normal)
+	var hover := StyleBoxFlat.new()
+	hover.bg_color = Color(0.14, 0.34, 0.32, 1)
+	hover.border_color = Color(1.0, 0.82, 0.48, 1)
+	hover.set_border_width_all(2)
+	hover.set_corner_radius_all(14)
+	button.add_theme_stylebox_override("hover", hover)
 	button.pressed.connect(func() -> void:
 		get_tree().change_scene_to_file(scene_path)
 	)
