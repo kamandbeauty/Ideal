@@ -9,6 +9,7 @@ var seed_low: int
 var random: DeterministicRandom
 var moves_left: int
 var moves_used := 0
+var score := 0
 var potions_earned := 0
 var coins_earned := 0
 var status: int = GameTypes.LevelStatus.PLAYING
@@ -39,6 +40,7 @@ func try_swap(from_x: int, from_y: int, to_x: int, to_y: int) -> Dictionary:
 		return result
 	moves_left -= 1
 	moves_used += 1
+	_award_score(result)
 	_evaluate()
 	return result
 
@@ -49,8 +51,28 @@ func use_booster(kind: int, x: int, y: int) -> Dictionary:
 	if not result.accepted:
 		return result
 	boosters_used.append(kind)
+	_award_score(result)
 	_evaluate()
 	return result
+
+
+func _award_score(result: Dictionary) -> void:
+	var earned := 0
+	for event in result.get("events", []):
+		match str(event.get("type", "")):
+			"piece_cleared":
+				earned += 50
+			"obstacle_hit":
+				earned += 100
+			"power_up_created":
+				earned += 300
+			"power_up_triggered":
+				earned += 180
+			"cascade":
+				earned += 250
+	score += earned
+	result["score_delta"] = earned
+	result["score_total"] = score
 
 func revert_last_booster(kind: int) -> void:
 	for index in range(boosters_used.size() - 1, -1, -1):
