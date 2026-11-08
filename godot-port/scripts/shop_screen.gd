@@ -205,7 +205,7 @@ func _add_booster_card(kind: int) -> void:
 	_style_button(one, Color(0.12, 0.31, 0.23), Color(0.72, 0.82, 0.51), 10)
 	actions.add_child(one)
 	var three := Button.new()
-	three.text = "خرید ۳"
+	three.text = "خرید %s" % _fa(quantity)
 	three.custom_minimum_size = Vector2(82, 35)
 	var quantity := mini(3, BoosterBag.MAX_OWNED - _bag.count(kind))
 	three.disabled = quantity <= 0 or _wallet.coins < BoosterBag.price(kind) * quantity
