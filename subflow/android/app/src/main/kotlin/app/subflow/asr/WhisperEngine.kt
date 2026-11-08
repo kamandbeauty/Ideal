@@ -146,9 +146,22 @@ class WhisperEngine(
         file.inputStream().use { stream ->
             if (stream.read(magic) != 4) throw IOException("فایل مدل خالی است.")
         }
-        if (String(magic) != "ggml") {
+        if (!isGgmlMagic(magic)) {
             throw IOException("این فایل مدل Whisper نیست.")
         }
+    }
+
+    /**
+     * Real ggml files do **not** start with the text "ggml": the magic is the
+     * uint32 0x67676d6c written little-endian, so the bytes on disk read "lmgg".
+     * Accepting only the string rejected every genuine whisper.cpp model - the
+     * download finished and verification then called it "not a Whisper model".
+     * Both orders (and the older container magics) are accepted here.
+     */
+    private fun isGgmlMagic(magic: ByteArray): Boolean {
+        if (magic.size < 4) return false
+        val text = String(magic, 0, 4, Charsets.ISO_8859_1)
+        return text in GGML_MAGICS
     }
 
     private fun verifyDownloaded(file: File) {
@@ -296,7 +309,7 @@ class WhisperEngine(
                     digest.update(buffer, 0, read)
                     total += read
                 }
-                if (magic.size < 4 || String(magic) != "ggml") {
+                if (!isGgmlMagic(magic)) {
                     temp.delete()
                     throw IllegalStateException(
                         "این فایل مدل Whisper نیست. فایل ggml با پسوند .bin انتخاب کنید."
@@ -534,6 +547,10 @@ class WhisperEngine(
         const val BUILTIN_ID = "builtin-base-q5_1"
         private const val BUILTIN_LABEL = "مدل همراه برنامه (base، فارسی)"
         private const val MIN_MODEL_BYTES = 20L * 1024 * 1024
+
+        // "ggml" (big-endian writer) and its little-endian twin "lmgg", plus the
+        // older ggml container magics that whisper.cpp models in the wild still use.
+        private val GGML_MAGICS = setOf("ggml", "lmgg", "ggmf", "fmgg", "ggjt", "tjgg", "gguf", "fugg")
         private const val REPO = "ggerganov/whisper.cpp"
 
         // Three sizes, all quantised so a phone download stays reasonable. base

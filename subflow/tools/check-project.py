@@ -306,6 +306,9 @@ check("assets/models/*.bin" in gitignore, "the bundled model must never be commi
 engine = (ROOT / "android/app/src/main/kotlin/app/subflow/asr/WhisperEngine.kt").read_text(encoding="utf-8")
 check("BUILTIN_ASSET" in engine, "WhisperEngine must know the bundled model asset")
 check("ensureBuiltIn" in engine, "the bundled model must be copied out of the APK on first use")
+check("lmgg" in engine, "ggml magic is little-endian on disk: \"lmgg\" must be accepted too")
+check('String(magic) != "ggml"' not in engine,
+      "no magic check may compare the raw bytes to the string \"ggml\"")
 check("openFd(BUILTIN_ASSET)" in engine, "the bundled asset must be opened uncompressed (openFd)")
 workflow = (workspace_root / ".github/workflows/subflow-android.yml").read_text(encoding="utf-8")
 check("tools/fetch-bundled-model.sh" in workflow, "CI must fetch the bundled model before building")

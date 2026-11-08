@@ -14,9 +14,16 @@ MIN_BYTES=$((20 * 1024 * 1024))
 
 mkdir -p "$DEST"
 
+# ggml stores its magic as the uint32 0x67676d6c, which lands on disk as the bytes
+# "lmgg" on little-endian writers (the string "ggml" is the big-endian spelling).
+# Both are accepted, plus the older container magics still found in the wild.
 is_valid() {
   [ -s "$1" ] || return 1
-  [ "$(head -c 4 "$1")" = "ggml" ] || return 1
+  MAGIC=$(head -c 4 "$1" | od -An -tx1 | tr -d ' \n')
+  case "$MAGIC" in
+    67676d6c|6c6d6767|67676d66|666d6767|67676a74|746a6767|67677566|66756767) ;;
+    *) return 1 ;;
+  esac
   [ "$(wc -c < "$1")" -ge "$MIN_BYTES" ] || return 1
   return 0
 }
