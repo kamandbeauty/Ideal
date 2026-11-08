@@ -48,8 +48,7 @@ var _hint_hand: TextureRect
 var _hint_move: Array[Vector2i] = []
 
 func build() -> void:
-	UiKit.backdrop(self, "board_backdrop_ch01")
-	UiKit.color_rect(self, "wash", Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.30))
+	set_backdrop("board_backdrop_ch01", 0.30)
 
 	# ---- header: back (right, RTL), level, moves (left) ------------------------------------------
 	UiKit.button(self, "home", "خانه", UiTokens.CANVAS_WIDTH - 16.0 - 76.0, 54.0, 76.0, 40.0,

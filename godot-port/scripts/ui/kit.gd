@@ -247,16 +247,6 @@ static func backdrop(parent: Node, art_id: String, tint: Color = Color(0, 0, 0, 
 		return node
 	return node
 
-## One line describing the full-bleed layer of a screen, for the capture job's log.
-static func describe_backdrop(owner: Node) -> String:
-	var node := owner.get_node_or_null("backdrop") as TextureRect
-	if node == null:
-		return "backdrop=none"
-	var tex := node.texture
-	return "backdrop=%s tex=%s rect=%s vis=%s" % [
-		node.get_path(), "null" if tex == null else str(tex.get_size()),
-		str(node.get_global_rect()), str(node.visible)]
-
 static func color_rect(parent: Node, node_name: String, color: Color) -> ColorRect:
 	var node := ColorRect.new()
 	node.name = node_name

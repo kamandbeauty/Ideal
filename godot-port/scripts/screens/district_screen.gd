@@ -23,8 +23,7 @@ var _district_titles: Array[Label] = []
 var _task_rows: Array[Dictionary] = []
 
 func build() -> void:
-	UiKit.backdrop(self, "map_backdrop")
-	UiKit.color_rect(self, "wash", Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.55))
+	set_backdrop("map_backdrop", 0.55)
 
 	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 54.0, 84.0, 40.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)

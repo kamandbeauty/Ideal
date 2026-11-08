@@ -9,6 +9,16 @@ extends Control
 var session: GameSession
 var built := false
 
+## Full-window art and wash for this screen. Screens declare them instead of drawing them, because on
+## a 20:9 phone the picture has to cover more than the 415x738 design space — AppRoot owns the layer
+## that fills whatever the device actually is, and the screens own only their content.
+var backdrop_art := ""
+var wash_color := Color(0, 0, 0, 0)
+
+func set_backdrop(art_id: String, wash_alpha: float) -> void:
+	backdrop_art = art_id
+	wash_color = Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, wash_alpha)
+
 func init_screen(new_session: GameSession) -> void:
 	session = new_session
 	set_anchors_preset(Control.PRESET_FULL_RECT)

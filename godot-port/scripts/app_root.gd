@@ -19,6 +19,9 @@ var shop: ShopScreen
 var settings: SettingsScreen
 
 var sound: SoundDirector
+var _stage: Control
+var _bg: TextureRect
+var _wash: ColorRect
 var _fade: ColorRect
 var _tick := 0.0
 var _current: UiScreen
@@ -38,9 +41,34 @@ func _boot() -> void:
 	print("[boot] save at %s — level %d, %d potions, %d lives" % [
 		store.location, session.current_level, session.wallet.potions, session.lives.current])
 
+	# The picture fills whatever the device is; the content stays in the 415x738 design space and is
+	# centred inside it. Before this, a 20:9 phone letterboxed the art into a flat-colour band and a
+	# shorter window cropped it.
+	_bg = TextureRect.new()
+	_bg.name = "window_art"
+	_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_bg)
+	UiKit.stretch(_bg)
+
+	_wash = ColorRect.new()
+	_wash.name = "window_wash"
+	_wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_wash)
+	UiKit.stretch(_wash)
+
+	_stage = Control.new()
+	_stage.name = "stage"
+	_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_stage)
+	_stage.position = Vector2.ZERO
+	_stage.size = Vector2(UiTokens.CANVAS_WIDTH, UiTokens.CANVAS_HEIGHT)
+	_center_stage()
+
 	home = HomeScreen.new()
 	home.name = "HomeScreen"
-	add_child(home)
+	_stage.add_child(home)
 	home.init_screen(session)
 	home.play_requested.connect(_on_play_requested)
 	home.districts_requested.connect(_show_districts)
@@ -49,7 +77,7 @@ func _boot() -> void:
 
 	board = BoardScreen.new()
 	board.name = "BoardScreen"
-	add_child(board)
+	_stage.add_child(board)
 	board.init_screen(session)
 	board.home_requested.connect(_show_home)
 	board.next_level_requested.connect(_play)
@@ -57,19 +85,19 @@ func _boot() -> void:
 
 	districts = DistrictScreen.new()
 	districts.name = "DistrictScreen"
-	add_child(districts)
+	_stage.add_child(districts)
 	districts.init_screen(session)
 	districts.back_requested.connect(_show_home)
 
 	shop = ShopScreen.new()
 	shop.name = "ShopScreen"
-	add_child(shop)
+	_stage.add_child(shop)
 	shop.init_screen(session)
 	shop.back_requested.connect(_show_home)
 
 	settings = SettingsScreen.new()
 	settings.name = "SettingsScreen"
-	add_child(settings)
+	_stage.add_child(settings)
 	settings.init_screen(session)
 	settings.back_requested.connect(_show_home)
 
@@ -81,7 +109,7 @@ func _boot() -> void:
 	# Added last so the strip draws above every screen.
 	top_bar = TopBar.new()
 	top_bar.name = "TopBar"
-	add_child(top_bar)
+	_stage.add_child(top_bar)
 	top_bar.build(session)
 
 	_fade = ColorRect.new()
@@ -103,6 +131,9 @@ func _show_screen(target: UiScreen) -> void:
 	for screen in [home, board, districts, shop, settings]:
 		screen.set_visible_screen(screen == target)
 	_current = target
+	_bg.texture = UiKit.texture(target.backdrop_art)
+	_wash.color = target.wash_color
+	_center_stage()
 	target.refresh()
 	top_bar.refresh()
 	_fade_in()
@@ -163,6 +194,21 @@ func _refresh_all() -> void:
 	top_bar.refresh()
 	if _current != null:
 		_current.refresh()
+
+## Centre the design space in the real window. With the stretch aspect set to `expand`, the root
+## control is the device's shape, so a tall phone gets extra picture above and below the game instead
+## of the game being cropped to it.
+func _center_stage() -> void:
+	if _stage == null:
+		return
+	var visible_size := get_viewport_rect().size
+	_stage.position = Vector2(
+		maxf(0.0, (visible_size.x - UiTokens.CANVAS_WIDTH) * 0.5),
+		maxf(0.0, (visible_size.y - UiTokens.CANVAS_HEIGHT) * 0.5))
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		_center_stage()
 
 ## Android's back gesture returns to the title screen instead of quitting the game.
 func _unhandled_input(event: InputEvent) -> void:

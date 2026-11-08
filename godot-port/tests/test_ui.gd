@@ -253,6 +253,20 @@ func _run() -> void:
 		await process_frame
 	failures += _check(_visible_views(app) == ["board"],
 		"playing replaces the title screen, got %s" % str(_visible_views(app)))
+	# A settings switch that renders "off" while the save says "on" is a lie the player acts on.
+	app._show_settings()
+	await process_frame
+	var settings_screen = app.get("settings")
+	for entry in settings_screen.get("_switches"):
+		var toggle: CheckButton = entry["toggle"]
+		var want := bool(app.session.save.get(str(entry["key"])))
+		failures += _check(toggle.button_pressed == want,
+			"the %s switch shows the saved value" % str(entry["key"]))
+	app._show_home()
+	await process_frame
+	app._play(1)
+	for _i in range(3):
+		await process_frame
 	var escaped := _escaped_labels(app, 1.0)
 	failures += _check(escaped.is_empty(),
 		"every label sits inside the panel it was placed in: %s" % ", ".join(escaped))

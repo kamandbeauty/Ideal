@@ -51,10 +51,14 @@ func _report(app: Node, tag: String) -> void:
 		else:
 			parts.append("%s=%d" % [key, 1 if view.visible else 0])
 	print("[capture] STATE %s :: %s :: root=%s" % [tag, " ".join(parts), str(app.size)])
-	for key in ["home", "board", "districts", "shop", "settings"]:
-		var view = app.get(key)
-		if view != null and view.visible:
-			print("[capture] ART %s :: %s :: screen=%s" % [tag, UiKit.describe_backdrop(view), str(view.size)])
+	var art = app.get("_bg")
+	var stage = app.get("_stage")
+	var tex = art.texture if art != null else null
+	print("[capture] ART %s :: window_art=%s :: art_rect=%s :: stage=%s :: viewport=%s" % [
+		tag, "null" if tex == null else str(tex.get_size()),
+		str(art.get_global_rect()) if art != null else "-",
+		str(stage.position) + " " + str(stage.size) if stage != null else "-",
+		str(app.get_viewport_rect().size)])
 	var escapes: Array[String] = []
 	_audit(app, escapes)
 	print("[capture] LAYOUT %s :: %d control(s) escape their parent" % [tag, escapes.size()])

@@ -14,8 +14,7 @@ var _coins: Label
 var _feedback: Label
 
 func build() -> void:
-	UiKit.backdrop(self, "store_feature")
-	UiKit.color_rect(self, "wash", Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.62))
+	set_backdrop("store_feature", 0.62)
 
 	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 54.0, 84.0, 40.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)
