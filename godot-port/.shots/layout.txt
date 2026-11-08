@@ -2,10 +2,10 @@ STATE boot :: home=1 board=0 districts=0 shop=0 settings=0 :: root=(415.0, 738.0
 LAYOUT boot :: 0 control(s) escape their parent
 STATE settings :: home=0 board=0 districts=0 shop=0 settings=1 :: root=(415.0, 738.0)
 LAYOUT settings :: 0 control(s) escape their parent
-SWITCH music_on pressed=true saved=true
-SWITCH sfx_on pressed=true saved=true
-SWITCH haptics_on pressed=true saved=true
-SWITCH push_on pressed=true saved=true
+SWITCH music_on pressed=true saved=true knob=(29.0, 3.0) (24.0, 24.0) toggle_rect=[P: (24.0, 133.0), S: (56.0, 30.0)] rtl=false
+SWITCH sfx_on pressed=true saved=true knob=(29.0, 3.0) (24.0, 24.0) toggle_rect=[P: (24.0, 197.0), S: (56.0, 30.0)] rtl=false
+SWITCH haptics_on pressed=true saved=true knob=(29.0, 3.0) (24.0, 24.0) toggle_rect=[P: (24.0, 261.0), S: (56.0, 30.0)] rtl=false
+SWITCH push_on pressed=true saved=true knob=(29.0, 3.0) (24.0, 24.0) toggle_rect=[P: (24.0, 325.0), S: (56.0, 30.0)] rtl=false
 STATE shop :: home=0 board=0 districts=0 shop=1 settings=0 :: root=(415.0, 738.0)
 LAYOUT shop :: 0 control(s) escape their parent
 STATE districts :: home=0 board=0 districts=1 shop=0 settings=0 :: root=(415.0, 738.0)
