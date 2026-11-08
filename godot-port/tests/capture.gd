@@ -94,7 +94,7 @@ func _report(app: Node, tag: String) -> void:
 ## Print the real screen rect of every visible control under one node, with its text. Pixels say
 ## "something is wrong"; these numbers say what and where.
 func _dump(node: Node, start_name: String, limit: int) -> void:
-	var start := node.get_node_or_null(start_name) if node != null else null
+	var start := _find_by_name(node, start_name) if node != null else null
 	if start == null:
 		_log("DUMP %s missing" % start_name)
 		return
@@ -102,6 +102,17 @@ func _dump(node: Node, start_name: String, limit: int) -> void:
 	_collect_rects(start, lines, 0)
 	for line in lines.slice(0, limit):
 		_log("DUMP " + line)
+
+func _find_by_name(node: Node, wanted: String) -> Node:
+	if node == null:
+		return null
+	if node.name == wanted:
+		return node
+	for child in node.get_children():
+		var found := _find_by_name(child, wanted)
+		if found != null:
+			return found
+	return null
 
 func _collect_rects(node: Node, out: Array[String], depth: int) -> void:
 	if out.size() > 80:
@@ -119,6 +130,8 @@ func _collect_rects(node: Node, out: Array[String], depth: int) -> void:
 		_collect_rects(child, out, depth)
 
 func _audit(node: Node, out: Array[String]) -> void:
+	if node is Control and not (node as Control).visible:
+		return
 	for child in node.get_children():
 		if child is Control and child.visible and child.get_parent() is Control:
 			var control := child as Control
