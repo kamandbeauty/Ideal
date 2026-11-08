@@ -22,7 +22,7 @@ var _stars: Array[TextureRect] = []
 var _chapter_label: Label
 
 func build() -> void:
-	set_backdrop("home_palace_lit", 0.42)
+	set_backdrop("home_palace_lit", 0.52)
 
 	var title := UiKit.label(self, "title", TITLE, UiTokens.TYPE_DISPLAY, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)

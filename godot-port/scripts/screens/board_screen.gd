@@ -26,6 +26,8 @@ var level_number := 0
 
 var _board: BoardView
 var _level_label: Label
+const HAND_SIZE := 44.0
+
 var _moves_label: Label
 var _hint: Label
 var _goal_chips: Array[Panel] = []
@@ -88,7 +90,7 @@ func build() -> void:
 	_board.cell_tapped.connect(_on_cell_tapped)
 	_board.swipe_requested.connect(_on_swipe)
 
-	_hint_hand = UiKit.icon(self, "tutorial_hand", "tutorial_hand", 0.0, 0.0, 54.0, 54.0)
+	_hint_hand = UiKit.icon(self, "tutorial_hand", "tutorial_hand", 0.0, 0.0, HAND_SIZE, HAND_SIZE)
 	_hint_hand.visible = false
 
 	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
@@ -409,17 +411,20 @@ func _maybe_teach() -> void:
 	if move.size() != 2:
 		return
 	_hint_move = [move[0], move[1]]
-	# cell_center() is in the board's own space; the hand is a child of the screen.
+	# cell_center() is in the board's own space; the hand is a child of the screen. The offset is the
+	# hand's half size, so its centre — where the fingertip is drawn — lands on the piece.
+	var half := Vector2(HAND_SIZE * 0.5, HAND_SIZE * 0.5)
 	var from_center: Vector2 = _board.position + _board.cell_center(move[0])
 	var to_center: Vector2 = _board.position + _board.cell_center(move[1])
-	_hint_hand.position = from_center - Vector2(27.0, 27.0)
+	_hint_hand.size = Vector2(HAND_SIZE, HAND_SIZE)
+	_hint_hand.position = from_center - half
 	_hint_hand.visible = true
 	_hint.text = "برای شروع، این دو مهره را جابه‌جا کن"
 	var tween := _hint_hand.create_tween().set_loops()
-	tween.tween_property(_hint_hand, "position", to_center - Vector2(27.0, 27.0), 0.55) \
+	tween.tween_property(_hint_hand, "position", to_center - half, 0.55) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_interval(0.25)
-	tween.tween_property(_hint_hand, "position", from_center - Vector2(27.0, 27.0), 0.55) \
+	tween.tween_property(_hint_hand, "position", from_center - half, 0.55) \
 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_interval(0.6)
 

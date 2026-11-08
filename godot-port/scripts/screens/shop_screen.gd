@@ -33,13 +33,16 @@ func build() -> void:
 
 		UiKit.icon(row, "icon", _booster_icon(kind), 10.0, (ROW_HEIGHT - 44.0) * 0.5, 44.0, 44.0)
 
+		# The name and the stock line share the width the price button leaves, and both are measured
+		# against the panel, not against the panel minus a magic 200.
+		var text_width := (UiTokens.CANVAS_WIDTH - 32.0) - 62.0 - 138.0 - 12.0
 		var name_label := UiKit.label(row, "name", BoosterBag.booster_name(kind), UiTokens.TYPE_BASE,
 			UiTokens.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, true)
-		UiKit.place(name_label, 62.0, 8.0, UiTokens.CANVAS_WIDTH - 32.0 - 200.0, 26.0)
+		UiKit.place(name_label, 62.0, 8.0, text_width, 26.0)
 
 		var owned := UiKit.label(row, "owned", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(owned, 62.0, 36.0, UiTokens.CANVAS_WIDTH - 32.0 - 200.0, 20.0)
+		UiKit.place(owned, 62.0, 36.0, text_width, 20.0)
 
 		var price := UiKit.button(row, "buy", "", UiTokens.CANVAS_WIDTH - 32.0 - 138.0, 18.0, 128.0, 36.0,
 			UiTokens.GOLD, UiTokens.ON_GOLD, Callable(self, "_on_buy").bind(kind), UiTokens.RADIUS_MD)
