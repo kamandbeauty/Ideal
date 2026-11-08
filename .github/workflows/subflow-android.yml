@@ -144,6 +144,26 @@ jobs:
           done || true
           exit 1
 
+      # The Gradle distribution is ~130 MB and its redirect has failed on this
+      # runner before, which has nothing to do with the code. Cache it and retry
+      # the download instead of discovering it inside `flutter build apk`.
+      - name: Warm Gradle distribution
+        working-directory: subflow/android
+        run: |
+          for attempt in 1 2 3; do
+            if ./gradlew --version > /tmp/gradle-warm.log 2>&1; then
+              tail -n 4 /tmp/gradle-warm.log
+              exit 0
+            fi
+            echo "gradle warm-up attempt $attempt failed"
+            sleep 10
+          done
+          tail -n 20 /tmp/gradle-warm.log
+          tail -n 5 /tmp/gradle-warm.log | while IFS= read -r line; do
+            [ -n "$line" ] && echo "::error title=gradle warm-up::$(echo "$line" | cut -c1-300)"
+          done
+          exit 1
+
       - name: Write release keystore (when configured)
         if: env.ANDROID_KEYSTORE_BASE64 != ''
         working-directory: subflow/android
