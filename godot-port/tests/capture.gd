@@ -51,6 +51,20 @@ func _report(app: Node, tag: String) -> void:
 		else:
 			parts.append("%s=%d" % [key, 1 if view.visible else 0])
 	print("[capture] STATE %s :: %s :: root=%s" % [tag, " ".join(parts), str(app.size)])
+	var escapes: Array[String] = []
+	_audit(app, escapes)
+	print("[capture] LAYOUT %s :: %d control(s) escape their parent" % [tag, escapes.size()])
+	for line in escapes.slice(0, 8):
+		print("[capture] LAYOUT %s :: %s" % [tag, line])
+
+func _audit(node: Node, out: Array[String]) -> void:
+	for child in node.get_children():
+		if child is Control and child.visible and child.get_parent() is Control:
+			var control := child as Control
+			var parent := control.get_parent() as Control
+			if (child is Label or child is Panel) and not parent.get_global_rect().grow(1.0).encloses(control.get_global_rect()):
+				out.append("%s in %s" % [control.name, parent.name])
+		_audit(child, out)
 
 func _frames(count: int) -> void:
 	for _i in range(count):

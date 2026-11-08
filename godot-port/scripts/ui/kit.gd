@@ -85,10 +85,13 @@ static func art_box(art_id: String, border: int) -> StyleBoxTexture:
 	return style
 
 ## Places a control by its top-left corner in design units, like the C# Place().
+##
+## Deliberately does NOT touch custom_minimum_size: a Control clamps its size up to its own minimum,
+## and forcing one here made every label refuse to shrink and then draw itself centred on a rect far
+## wider than its pill. Size is the only thing a fixed layout should set.
 static func place(control: Control, x: float, y: float, width: float, height: float) -> Control:
 	control.position = Vector2(x, y)
 	control.size = Vector2(width, height)
-	control.custom_minimum_size = Vector2(width, height)
 	return control
 
 ## Fills the parent, inset by the same amount on both sides.
@@ -135,9 +138,32 @@ static func label(parent: Node, node_name: String, text: String, size: int, colo
 	node.add_theme_color_override("font_color", color)
 	node.add_theme_color_override("font_shadow_color", UiTokens.SHADOW)
 	node.add_theme_constant_override("shadow_offset_y", 1)
+	# Without this a Label reports its own text as its minimum width, refuses the rect it is given and
+	# spills outside its panel. Autowrap turns clipping off by itself, so wrapping labels are unaffected.
+	node.clip_text = true
 	parent.add_child(node)
 	place(node, 0.0, 0.0, W, float(size) * 1.5)
 	return node
+
+## Shrinks a label's font until its text fits the width it was given, and remembers the size it started
+## at so a counter that grows and shrinks ("۹" then "۱۲۳") settles back to the design size.
+static func fit_font(node: Label, max_width: float, min_size: int = 10) -> void:
+	if node == null:
+		return
+	var font := node.get_theme_font("font")
+	if font == null:
+		return
+	if not node.has_meta("fit_base"):
+		node.set_meta("fit_base", node.get_theme_font_size("font_size"))
+	var base := int(node.get_meta("fit_base"))
+	var text := node.text
+	if text.is_empty():
+		node.add_theme_font_size_override("font_size", base)
+		return
+	var size := base
+	while size > min_size and font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > max_width:
+		size -= 1
+	node.add_theme_font_size_override("font_size", size)
 
 ## A label whose text is already shaped/numbered by the caller (counters, timers).
 static func raw_label(parent: Node, node_name: String, size: int, color: Color,

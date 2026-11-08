@@ -21,6 +21,45 @@ func _on_timeout() -> void:
 	push_error("test_ui timed out")
 	quit(1)
 
+## The five views AppRoot owns, named in the order they are layered, filtered to the visible ones.
+func _visible_views(app: Node) -> Array:
+	var out := []
+	for key in ["home", "board", "districts", "shop", "settings"]:
+		var view = app.get(key)
+		if view != null and view.visible:
+			out.append(key)
+	return out
+
+## Labels whose rect escapes the panel they were placed in. This is the bug class that made the HUD
+## numbers float outside their pills: a Label reports its text as its minimum size, so a fixed rect is
+## only honoured when it clips.
+func _escaped_labels(node: Node, slack: float) -> Array:
+	var out := []
+	for child in node.get_children():
+		if child is Label and child.visible and child.get_parent() is Control:
+			var label := child as Label
+			var parent := label.get_parent() as Control
+			if parent is Panel or parent is Button:
+				if not parent.get_global_rect().grow(slack).encloses(label.get_global_rect()):
+					out.append("%s in %s" % [label.name, parent.name])
+		out.append_array(_escaped_labels(child, slack))
+	return out
+
+## Visible controls that reach past the design space, ignoring the full-bleed layers that are meant to.
+func _outside_canvas(app: Node, slack: float) -> Array:
+	var canvas := Rect2(Vector2.ZERO, Vector2(UiTokens.CANVAS_WIDTH, UiTokens.CANVAS_HEIGHT)).grow(slack)
+	var out := []
+	for view in ["home", "board", "districts", "shop", "settings"]:
+		var screen = app.get(view)
+		if screen == null or not screen.visible:
+			continue
+		for child in screen.get_children():
+			if child is Control and child.visible and not (child is ColorRect) and not (child is TextureRect):
+				var control := child as Control
+				if not canvas.encloses(control.get_global_rect()):
+					out.append("%s %s" % [control.name, str(control.get_global_rect())])
+	return out
+
 func _check(condition: bool, label: String) -> int:
 	if condition:
 		return 0
@@ -191,6 +230,37 @@ func _run() -> void:
 		if FileAccess.file_exists(cleanup_file):
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(cleanup_file))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(tutorial_directory))
+
+	print("UI STAGE 8: the real AppRoot composes one screen at a time")
+	var app := (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	tree_root.add_child(app)
+	for _i in range(4):
+		await process_frame
+	failures += _check(_visible_views(app) == ["home"],
+		"boot shows the title screen and nothing else, got %s" % str(_visible_views(app)))
+	app._show_settings()
+	await process_frame
+	failures += _check(_visible_views(app) == ["settings"],
+		"settings replaces the title screen, got %s" % str(_visible_views(app)))
+	app._show_shop()
+	await process_frame
+	failures += _check(_visible_views(app) == ["shop"],
+		"shop replaces settings, got %s" % str(_visible_views(app)))
+	app._show_home()
+	await process_frame
+	app._play(1)
+	for _i in range(4):
+		await process_frame
+	failures += _check(_visible_views(app) == ["board"],
+		"playing replaces the title screen, got %s" % str(_visible_views(app)))
+	var escaped := _escaped_labels(app, 1.0)
+	failures += _check(escaped.is_empty(),
+		"every label sits inside the panel it was placed in: %s" % ", ".join(escaped))
+	var outside := _outside_canvas(app, 2.0)
+	failures += _check(outside.is_empty(),
+		"nothing draws outside the %dx%d design space: %s" % [int(UiTokens.CANVAS_WIDTH), int(UiTokens.CANVAS_HEIGHT), ", ".join(outside)])
+	app.queue_free()
+	await process_frame
 
 	print("test_ui: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)

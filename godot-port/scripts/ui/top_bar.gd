@@ -64,3 +64,6 @@ func refresh() -> void:
 		_timer.text = FULL_WORD
 	else:
 		_timer.text = PersianText.time(_session.lives.next_refill_in_seconds)
+	for entry in [[_coins, PILL_WIDTH - 42.0], [_potions, PILL_WIDTH - 42.0], [_lives, PILL_WIDTH - 42.0],
+			[_timer, PILL_WIDTH - 42.0]]:
+		UiKit.fit_font(entry[0], float(entry[1]))

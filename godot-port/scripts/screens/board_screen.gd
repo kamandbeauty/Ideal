@@ -150,6 +150,7 @@ func refresh() -> void:
 		return
 	_level_label.text = "مرحله " + PersianText.number(level_number)
 	_moves_label.text = PersianText.number(run.moves_left)
+	UiKit.fit_font(_moves_label, 68.0)
 
 func refresh_goals() -> void:
 	for index in range(_goal_chips.size()):
@@ -409,8 +410,9 @@ func _maybe_teach() -> void:
 	if move.size() != 2:
 		return
 	_hint_move = [move[0], move[1]]
-	var from_center := _board.cell_center(move[0])
-	var to_center := _board.cell_center(move[1])
+	# cell_center() is in the board's own space; the hand is a child of the screen.
+	var from_center: Vector2 = _board.position + _board.cell_center(move[0])
+	var to_center: Vector2 = _board.position + _board.cell_center(move[1])
 	_hint_hand.position = from_center - Vector2(27.0, 27.0)
 	_hint_hand.visible = true
 	_hint.text = "برای شروع، این دو مهره را جابه‌جا کن"

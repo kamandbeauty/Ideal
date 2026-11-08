@@ -90,7 +90,7 @@ func _boot() -> void:
 	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_fade)
 	UiKit.stretch(_fade, 0.0, 0.0)
-	_fade.raise()
+	_fade.move_to_front()
 
 	session.changed.connect(_refresh_all)
 	session.refresh_lives()
