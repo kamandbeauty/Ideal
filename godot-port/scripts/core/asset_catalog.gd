@@ -20,6 +20,15 @@ static func power_up_path(kind: int) -> String:
 		GameTypes.PowerUpKind.SUPER_ELECTRO_BALL: return "res://assets/art/powerup_electro_super.png"
 		_: return ""
 
+static func booster_path(kind: int) -> String:
+	match kind:
+		GameTypes.BoosterKind.MALLET: return "res://assets/art/booster_mallet.png"
+		GameTypes.BoosterKind.RAM: return "res://assets/art/booster_ram.png"
+		GameTypes.BoosterKind.AUGER: return "res://assets/art/booster_auger.png"
+		GameTypes.BoosterKind.WHIRLWIND: return "res://assets/art/booster_whirlwind.png"
+		GameTypes.BoosterKind.FALCON: return "res://assets/art/booster_falcon.png"
+		_: return ""
+
 static func obstacle_path(kind: int) -> String:
 	match kind:
 		GameTypes.ObstacleKind.CRATE: return "res://assets/art/obstacle_crate.png"
@@ -45,3 +54,6 @@ static func power_up_texture(kind: int) -> Texture2D:
 
 static func obstacle_texture(kind: int) -> Texture2D:
 	return texture(obstacle_path(kind))
+
+static func booster_texture(kind: int) -> Texture2D:
+	return texture(booster_path(kind))
