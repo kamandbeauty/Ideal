@@ -42,11 +42,12 @@ func build() -> void:
 		var row := UiKit.art_panel(self, "row_%d" % index, x, y, ROW_W, ROW_HEIGHT,
 			"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 
-		UiKit.icon(row, "glyph", icons[index], 58.0, (ROW_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
+		# The switch occupies 8..64, so the glyph starts after it: at 58 the note sat on the track.
+		UiKit.icon(row, "glyph", icons[index], 72.0, (ROW_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
 
 		var caption := UiKit.label(row, "caption", labels[index], UiTokens.TYPE_BASE, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(caption, 92.0, 0.0, ROW_W - 92.0 - 12.0, ROW_HEIGHT)
+		UiKit.place(caption, 104.0, 0.0, ROW_W - 104.0 - 12.0, ROW_HEIGHT)
 
 		# A CheckButton's default theme draws a small tick, not a switch. This is a real switch: a track
 		# picture from assets/ui/ and a knob that slides along it.

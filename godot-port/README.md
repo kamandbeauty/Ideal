@@ -4,7 +4,13 @@ The independent Godot build of the Unity game in `client/`. No Unity runtime, no
 this is a new project with its own scene, its own input, its own renderer, and the game's data and art
 copied across as plain files.
 
-Godot 4.7.2 · GDScript · `gl_compatibility` renderer · Android (portrait) and desktop.
+Godot 4.7.2 · GDScript · `gl_compatibility` renderer · **landscape** (738 × 415 dp) on Android and desktop.
+
+**Every pixel on screen is a picture.** The game art is the 85 plates from the Unity project, byte for
+byte (`assets/art/`); the panels, buttons, pills, chips, switch tracks, knobs, washes and hairlines are
+PNGs in `assets/ui/`, baked by `tools/make_ui_art.py` and nine-sliced by `UiKit`. `StyleBoxFlat` and
+`ColorRect` survive only as fallbacks for a missing texture — a screen that draws a rectangle the engine
+rounded at runtime is a bug now, not a style.
 
 ## What is where
 
