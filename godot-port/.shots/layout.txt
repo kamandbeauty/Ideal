@@ -1,50 +1,53 @@
 STATE boot :: home=1 board=0 districts=0 shop=0 settings=0 :: root=(415.0, 738.0)
-LAYOUT boot :: 25 control(s) escape their parent
+LAYOUT boot :: 4 control(s) escape their parent
 LAYOUT boot :: title in HomeScreen
 LAYOUT boot :: subtitle in HomeScreen
 LAYOUT boot :: card in HomeScreen
 LAYOUT boot :: hint in HomeScreen
-LAYOUT boot :: level in BoardScreen
-LAYOUT boot :: moves in BoardScreen
-LAYOUT boot :: hint in BoardScreen
-LAYOUT boot :: card in result
 STATE settings :: home=0 board=0 districts=0 shop=0 settings=1 :: root=(415.0, 738.0)
-LAYOUT settings :: 25 control(s) escape their parent
-LAYOUT settings :: title in HomeScreen
-LAYOUT settings :: subtitle in HomeScreen
-LAYOUT settings :: card in HomeScreen
-LAYOUT settings :: hint in HomeScreen
-LAYOUT settings :: level in BoardScreen
-LAYOUT settings :: moves in BoardScreen
-LAYOUT settings :: hint in BoardScreen
-LAYOUT settings :: card in result
+LAYOUT settings :: 7 control(s) escape their parent
+LAYOUT settings :: title in SettingsScreen
+LAYOUT settings :: row_0 in SettingsScreen
+LAYOUT settings :: row_1 in SettingsScreen
+LAYOUT settings :: row_2 in SettingsScreen
+LAYOUT settings :: row_3 in SettingsScreen
+LAYOUT settings :: sample in SettingsScreen
+LAYOUT settings :: version in SettingsScreen
 STATE shop :: home=0 board=0 districts=0 shop=1 settings=0 :: root=(415.0, 738.0)
-LAYOUT shop :: 25 control(s) escape their parent
-LAYOUT shop :: title in HomeScreen
-LAYOUT shop :: subtitle in HomeScreen
-LAYOUT shop :: card in HomeScreen
-LAYOUT shop :: hint in HomeScreen
-LAYOUT shop :: level in BoardScreen
-LAYOUT shop :: moves in BoardScreen
-LAYOUT shop :: hint in BoardScreen
-LAYOUT shop :: card in result
+LAYOUT shop :: 8 control(s) escape their parent
+LAYOUT shop :: title in ShopScreen
+LAYOUT shop :: coins in ShopScreen
+LAYOUT shop :: row_0 in ShopScreen
+LAYOUT shop :: row_1 in ShopScreen
+LAYOUT shop :: row_2 in ShopScreen
+LAYOUT shop :: row_3 in ShopScreen
+LAYOUT shop :: row_4 in ShopScreen
+LAYOUT shop :: feedback in ShopScreen
 STATE districts :: home=0 board=0 districts=1 shop=0 settings=0 :: root=(415.0, 738.0)
-LAYOUT districts :: 25 control(s) escape their parent
-LAYOUT districts :: title in HomeScreen
-LAYOUT districts :: subtitle in HomeScreen
-LAYOUT districts :: card in HomeScreen
-LAYOUT districts :: hint in HomeScreen
-LAYOUT districts :: level in BoardScreen
-LAYOUT districts :: moves in BoardScreen
-LAYOUT districts :: hint in BoardScreen
-LAYOUT districts :: card in result
-DUMP district_0 missing
+LAYOUT districts :: 2 control(s) escape their parent
+LAYOUT districts :: title in DistrictScreen
+LAYOUT districts :: potions in DistrictScreen
+DUMP district_0 [P: (12.0, 120.0), S: (379.0, 250.0)]
+DUMP   plate [P: (12.0, 120.0), S: (379.0, 250.0)]
+DUMP   title [P: (26.0, 126.0), S: (351.0, 27.0)] text=میدانِ فیروزه
+DUMP   task_0 [P: (26.0, 154.0), S: (351.0, 34.0)]
+DUMP     title [P: (102.0, 154.0), S: (275.0, 34.0)] text=حوضِ فیروزه
+DUMP     build [P: (26.0, 156.0), S: (70.0, 30.0)] text=۲۵ disabled=true
+DUMP   task_1 [P: (26.0, 192.0), S: (351.0, 34.0)]
+DUMP     title [P: (102.0, 192.0), S: (275.0, 34.0)] text=کاشی‌کاریِ دیوار
+DUMP     build [P: (26.0, 194.0), S: (70.0, 30.0)] text=۳۰ disabled=true
+DUMP   task_2 [P: (26.0, 230.0), S: (351.0, 34.0)]
+DUMP     title [P: (102.0, 230.0), S: (275.0, 34.0)] text=رواقِ ورودی
+DUMP     build [P: (26.0, 232.0), S: (70.0, 30.0)] text=۳۵ disabled=true
+DUMP   task_3 [P: (26.0, 268.0), S: (351.0, 34.0)]
+DUMP     title [P: (102.0, 268.0), S: (275.0, 34.0)] text=حجره‌های بازار
+DUMP     build [P: (26.0, 270.0), S: (70.0, 30.0)] text=۴۰ disabled=true
+DUMP   task_4 [P: (26.0, 306.0), S: (351.0, 34.0)]
+DUMP   build_all [P: (118.0, 324.0), S: (110.0, 34.0)] text=ساخت همه (۱۳۰) disabled=true
+DUMP   chest [P: (26.0, 324.0), S: (84.0, 34.0)] text=باز کن disabled=true
+DUMP     chest_icon [P: (32.0, 329.0), S: (24.0, 24.0)]
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(415.0, 738.0)
-LAYOUT board :: 26 control(s) escape their parent
-LAYOUT board :: title in HomeScreen
-LAYOUT board :: subtitle in HomeScreen
-LAYOUT board :: card in HomeScreen
-LAYOUT board :: hint in HomeScreen
+LAYOUT board :: 4 control(s) escape their parent
 LAYOUT board :: level in BoardScreen
 LAYOUT board :: moves in BoardScreen
 LAYOUT board :: goal_0 in BoardScreen
