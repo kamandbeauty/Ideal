@@ -223,14 +223,19 @@ func _refresh_board() -> void:
 					piece_view.offset_bottom = -5
 					piece_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 					if _animate_next_refresh:
-						piece_view.scale = Vector2(0.62, 0.62)
-						piece_view.modulate = Color(1, 1, 1, 0.45)
+						piece_view.scale = Vector2(0.72, 0.72)
+						piece_view.modulate = Color(1, 1, 1, 0.35)
+						piece_view.offset_top = -CELL_SIZE * 1.15
+						piece_view.offset_bottom = -CELL_SIZE * 1.15
 					button.add_child(piece_view)
 					if _animate_next_refresh:
+						var stagger := float((x * 3 + (_run.board.height - 1 - y)) % 7) * 0.018
 						var appear := create_tween()
 						appear.set_parallel(true)
-						appear.tween_property(piece_view, "scale", Vector2.ONE, 0.22).set_delay(float((x + y) % 5) * 0.018).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-						appear.tween_property(piece_view, "modulate", Color.WHITE, 0.16).set_delay(float((x + y) % 5) * 0.018)
+						appear.tween_property(piece_view, "scale", Vector2.ONE, 0.25).set_delay(stagger).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+						appear.tween_property(piece_view, "modulate", Color.WHITE, 0.2).set_delay(stagger)
+						appear.tween_property(piece_view, "offset_top", 5.0, 0.25).set_delay(stagger).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+						appear.tween_property(piece_view, "offset_bottom", -5.0, 0.25).set_delay(stagger).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 				if cell.has_obstacle:
 					var obstacle_texture := AssetCatalog.obstacle_texture(cell.obstacle)
 					if obstacle_texture != null:
