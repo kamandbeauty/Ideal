@@ -228,7 +228,8 @@ jobs:
             gh release create "$TAG" --title "کاخِ شازده — latest debug build" --notes "$note"
           fi
           gh release upload "$TAG" "$apk" --clobber
-          gh release view "$TAG" --json assets --jq '.assets[] | "\(.name) \(.size) bytes → \(.url)"
+          gh release view "$TAG" --json assets --jq '.assets[] | .name + " " + (.size|tostring) + " bytes"'
+          echo "download: https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/princes-palace-debug.apk"
 
   export-diagnostic:
     # Isolated probe: does *any* export work on this runner, and what does Godot's own CLI say about
