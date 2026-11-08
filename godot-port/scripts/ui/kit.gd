@@ -263,14 +263,16 @@ static func button(parent: Node, node_name: String, text: String, x: float, y: f
 	var hover: StyleBox = box(face.lightened(0.08), radius)
 	var pressed: StyleBox = box(face.darkened(0.12), radius)
 	var disabled: StyleBox = box(Color(face.r, face.g, face.b, face.a * 0.45), radius)
-	var art_id := plate_art(face, height)
+	# `plate_id`, not `art_id`: the parameter of this function is already called art_id, and the
+	# engine's parser rejects the shadowing (gdtoolkit's parser does not, which is why CI caught it).
+	var plate_id := plate_art(face, height)
 	var border_art := plate_border(height)
-	var plate := ui_box(art_id, border_art)
+	var plate := ui_box(plate_id, border_art)
 	if plate != null:
 		normal = plate
-		var hover_plate := ui_box(art_id, border_art, Color(1.07, 1.07, 1.07, 1))
-		var press_plate := ui_box(art_id, border_art, Color(0.86, 0.86, 0.86, 1))
-		var off_plate := ui_box(art_id, border_art, Color(0.62, 0.62, 0.62, 0.92))
+		var hover_plate := ui_box(plate_id, border_art, Color(1.07, 1.07, 1.07, 1))
+		var press_plate := ui_box(plate_id, border_art, Color(0.86, 0.86, 0.86, 1))
+		var off_plate := ui_box(plate_id, border_art, Color(0.62, 0.62, 0.62, 0.92))
 		hover = hover_plate if hover_plate != null else plate
 		pressed = press_plate if press_plate != null else plate
 		disabled = off_plate if off_plate != null else disabled
