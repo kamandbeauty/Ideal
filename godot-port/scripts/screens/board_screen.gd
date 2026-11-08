@@ -423,9 +423,11 @@ func _build_overlay() -> void:
 		(OVERLAY_CARD_WIDTH - 210.0) * 0.5, 10.0, 210.0, 58.0)
 	banner.name = "banner"
 
-	_result_title = UiKit.label(_overlay_card, "title", "", UiTokens.TYPE_XL, UiTokens.GOLD,
+	# The Unity banner plate is a frame with nothing printed on it, so the title goes inside the frame:
+	# otherwise the first thing a player sees at the end of a level is an empty ornate box.
+	_result_title = UiKit.label(_overlay_card, "title", "", UiTokens.TYPE_LG, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_result_title, 16.0, 72.0, OVERLAY_CARD_WIDTH - 32.0, 36.0)
+	UiKit.place(_result_title, 115.0, 10.0, 210.0, 58.0)
 
 	var star_size := 34.0
 	var star_gap := 10.0
@@ -437,7 +439,7 @@ func _build_overlay() -> void:
 
 	_result_body = UiKit.label(_overlay_card, "body", "", UiTokens.TYPE_SM, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_result_body, 20.0, 150.0, OVERLAY_CARD_WIDTH - 40.0, 48.0)
+	UiKit.place(_result_body, 20.0, 146.0, OVERLAY_CARD_WIDTH - 40.0, 56.0)
 	_result_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	_primary = UiKit.button(_overlay_card, "primary", "", 20.0, 204.0, OVERLAY_CARD_WIDTH - 40.0,
@@ -457,6 +459,7 @@ func _show_result(first_clear: bool, reward: RewardBundle) -> void:
 			else Color(0.3, 0.33, 0.4, 1.0)
 
 	_result_title.text = "مرحله کامل شد" if won else "حرکت‌ها تمام شد"
+	UiKit.fit_font(_result_title, 190.0)
 	var body := ""
 	if won:
 		# Two lines at most: this label has a fixed box, and a third line would be clipped. The score

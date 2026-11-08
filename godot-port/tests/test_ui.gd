@@ -188,6 +188,22 @@ func _run() -> void:
 			and combo_popup.text.contains(PersianText.number(3))
 			and not combo_popup.text.contains("+") and not combo_popup.text.contains("×"),
 			"level %d names the combo bonus in words, not bidi-neutral symbols" % number)
+		# The result card is a fixed box with a two line body: prove both lines are written and that the
+		# font's own line height leaves them inside it, and that the title sits on the banner frame.
+		screen.run.status = GameTypes.LevelStatus.WON
+		screen.run.score = 4820
+		screen._show_result(true, RewardBundle.none())
+		await process_frame
+		var result_body := screen.get("_result_body") as Label
+		var result_title := screen.get("_result_title") as Label
+		var overlay_card := screen.get("_overlay_card") as Panel
+		var banner := overlay_card.get_node_or_null("banner") as TextureRect
+		failures += _check(result_body != null and result_body.text.split("\n").size() == 2
+			and result_body.get_line_height() * result_body.get_line_count() <= result_body.size.y,
+			"level %d writes a two line result inside its box" % number)
+		failures += _check(result_title != null and banner != null and banner.visible
+			and banner.get_rect().encloses(result_title.get_rect()),
+			"level %d writes the result title on the banner" % number)
 		failures += _check(combo_popup == null or not combo_popup.text.is_empty(),
 			"level %d writes the combo bonus on the toast" % number)
 		screen.queue_free()
