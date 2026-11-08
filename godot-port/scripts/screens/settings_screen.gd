@@ -49,6 +49,10 @@ func build() -> void:
 		toggle.text = ""
 		toggle.toggle_mode = true
 		toggle.focus_mode = Control.FOCUS_NONE
+		# The row is RTL, and an RTL container mirrors the x of every child it positions — including the
+		# knob inside the switch. The switch is a piece of hardware, not text: keep it LTR so "on" is
+		# always the right-hand end.
+		toggle.layout_direction = Control.LAYOUT_DIRECTION_LTR
 		toggle.add_theme_stylebox_override("focus", UiKit.box(UiTokens.TRANSPARENT))
 		toggle.add_theme_stylebox_override("normal", UiKit.box(UiTokens.SURFACE_RAISED, 16))
 		toggle.add_theme_stylebox_override("hover", UiKit.box(UiTokens.SURFACE_RAISED.lightened(0.08), 16))
