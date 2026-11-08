@@ -28,14 +28,19 @@ func build() -> void:
 
 	var labels := ["موسیقی", "جلوه‌های صوتی", "لرزش", "یادآوری تمرین"]
 	var keys := ["music_on", "sfx_on", "haptics_on", "push_on"]
+	# One icon per row, drawn from the shipped set, so the screen says what each switch controls before
+	# a player reads it.
+	var icons := ["icon_music", "icon_sound", "icon_vibration", "icon_push"]
 	for index in range(labels.size()):
 		var y := 120.0 + float(index) * (ROW_HEIGHT + 8.0)
 		var row := UiKit.art_panel(self, "row_%d" % index, 16.0, y, UiTokens.CANVAS_WIDTH - 32.0,
 			ROW_HEIGHT, "panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 
+		UiKit.icon(row, "glyph", icons[index], 62.0, (ROW_HEIGHT - 28.0) * 0.5, 28.0, 28.0)
+
 		var caption := UiKit.label(row, "caption", labels[index], UiTokens.TYPE_BASE, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(caption, 70.0, 0.0, UiTokens.CANVAS_WIDTH - 32.0 - 80.0, ROW_HEIGHT)
+		UiKit.place(caption, 100.0, 0.0, UiTokens.CANVAS_WIDTH - 32.0 - 110.0, ROW_HEIGHT)
 
 		var toggle := CheckButton.new()
 		toggle.name = "toggle"
@@ -47,7 +52,7 @@ func build() -> void:
 		toggle.toggled.connect(Callable(self, "_on_toggled").bind(keys[index]))
 		_switches.append({"key": keys[index], "toggle": toggle})
 
-	var sample_panel := UiKit.art_panel(self, "sample", 16.0, 400.0, UiTokens.CANVAS_WIDTH - 32.0, 96.0,
+	var sample_panel := UiKit.art_panel(self, "sample", 16.0, 404.0, UiTokens.CANVAS_WIDTH - 32.0, 96.0,
 		"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 	_sample = UiKit.label(sample_panel, "sample_text", SAMPLE, UiTokens.TYPE_BASE, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER)
@@ -66,7 +71,15 @@ func build() -> void:
 	version.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
 	version.add_theme_color_override("font_color", UiTokens.TEXT_MUTED)
 	add_child(version)
-	UiKit.place(version, 16.0, 512.0, UiTokens.CANVAS_WIDTH - 32.0, 20.0)
+	UiKit.place(version, 16.0, 516.0, UiTokens.CANVAS_WIDTH - 32.0, 20.0)
+
+	var about := UiKit.art_panel(self, "about", 16.0, 556.0, UiTokens.CANVAS_WIDTH - 32.0, 96.0,
+		"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
+	var about_text := UiKit.label(about, "about_text",
+		"کاخِ شازده — بازی مستقل با موتور گودو\nبدون تصویر تولیدشده با هوش مصنوعی؛ همهٔ هنر از کد کشیده شده",
+		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
+	UiKit.place(about_text, 12.0, 8.0, UiTokens.CANVAS_WIDTH - 56.0, 80.0)
+	about_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 func refresh() -> void:
 	if session == null:
