@@ -355,6 +355,63 @@ class MotionConformanceTest {
         }
     }
 
+    /**
+     * The GL convention is pinned here: at scale = 1 a cover-fitted image
+     * spans the full frame — NDC [-1, 1] in the covering dimension. This is
+     * the same convention the Dart preview matrix and the Python reference
+     * (tools/validate/motionshot/renderer.py, spec §7.1) use, so export and
+     * preview frame identically.
+     */
+    /**
+     * The GL convention is pinned here: at scale = 1 a cover-fitted image
+     * spans the full frame — NDC [-1, 1] in the covering dimension — and the
+     * bitmap's top row lands at the top of the frame (quad v is flipped, so
+     * v = 0 is the image TOP). Same convention as the Dart preview matrix
+     * and the Python reference (tools/validate/motionshot/renderer.py,
+     * spec §7.1), so export and preview frame identically.
+     */
+    @Test
+    fun cameraMatrixCoverScaleSpansFullFrame() {
+        // Portrait 9:16 viewport with an identical-aspect photo.
+        val vp = Viewport(9.0 / 16.0)
+        val fit = ImageFit.make(1080, 1920, vp)
+        val m = com.motionshot.app.motion.cameraMatrix(
+            CameraState(0.0, 0.0, 1.0, 0.0), fit, vp,
+        )
+        fun ndc(u: Double, v: Double): Pair<Double, Double> =
+            (m[0] * u + m[4] * v + m[12]).toDouble() to
+                (m[1] * u + m[5] * v + m[13]).toDouble()
+        // (u, v): v = 0 is the image top (flipped texture).
+        val imageTopLeft = ndc(0.0, 0.0)
+        val imageTopRight = ndc(1.0, 0.0)
+        val imageBottomLeft = ndc(0.0, 1.0)
+        val imageBottomRight = ndc(1.0, 1.0)
+        assertClose(-1.0, imageTopLeft.first, 1e-9, "left edge")
+        assertClose(1.0, imageTopRight.first, 1e-9, "right edge")
+        assertClose(1.0, imageTopLeft.second, 1e-9, "top edge at top of frame")
+        assertClose(-1.0, imageBottomLeft.second, 1e-9, "bottom edge at bottom of frame")
+        assertEquals(imageTopLeft.first, imageBottomLeft.first, 1e-9, "vertical left side")
+        assertEquals(imageTopRight.first, imageBottomRight.first, 1e-9, "vertical right side")
+
+        // Landscape 16:9 with a 4:3 photo: the WIDTH is the covering
+        // dimension at the min scale; the height must overflow the frame.
+        val vpL = Viewport(16.0 / 9.0)
+        val fitL = ImageFit.make(4000, 3000, vpL)
+        val sMin = minScaleAtRotation(fitL, vpL, 0.0)
+        val mL = com.motionshot.app.motion.cameraMatrix(
+            CameraState(0.0, 0.0, sMin, 0.0), fitL, vpL,
+        )
+        fun ndcL(u: Double, v: Double): Pair<Double, Double> =
+            (mL[0] * u + mL[4] * v + mL[12]).toDouble() to
+                (mL[1] * u + mL[5] * v + mL[13]).toDouble()
+        val l = ndcL(0.0, 0.5)
+        val r = ndcL(1.0, 0.5)
+        assertClose(-1.0, l.first, 1e-9, "cover dim left")
+        assertClose(1.0, r.first, 1e-9, "cover dim right")
+        assertTrue("image top must overflow", ndcL(0.0, 0.0).second > 1.0)
+        assertTrue("image bottom must overflow", ndcL(0.0, 1.0).second < -1.0)
+    }
+
     @Test
     fun cameraMatrixIsFiniteAndMapsCentreToCentre() {
         val vp = Viewport(16.0 / 9.0)

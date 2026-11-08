@@ -341,6 +341,29 @@ class VideoBridge {
     }
   }
 
+  /// Amplitude envelope of an audio file for the music timeline.
+  /// Returns (sourceDurationSec, peaks 0..1) — see `Waveform.kt`.
+  /// (`getWaveform` lives on the media channel, not the render channel.)
+  Future<(double, List<double>)> waveform(
+      String path, {int buckets = 600}) async {
+    const media = MethodChannel('motionshot/media');
+    try {
+      final result = await media.invokeListMethod<Object?>(
+          'getWaveform', <String, dynamic>{'path': path, 'buckets': buckets});
+      if (result == null || result.length < 2) {
+        return (0.0, const <double>[]);
+      }
+      return (
+        (result[0] as num).toDouble(),
+        (result[1] as List).map((e) => (e as num).toDouble()).toList()
+      );
+    } on MissingPluginException {
+      throw BridgeUnavailable('waveform needs the native layer');
+    } on PlatformException catch (e) {
+      throw AppFailure.fromNative('${e.code}|${e.message}');
+    }
+  }
+
   /// The most recent uncaught native crash, as captured locally, or null.
   /// Shown on the export screen so a crash from a previous run can be read
   /// (and forwarded) instead of the app dying silently.

@@ -237,6 +237,8 @@ class _TimelinePainter extends CustomPainter {
       _paintLayer(canvas, size, vp, draw);
     }
 
+    _paintWatermark(canvas, size);
+
     if (showSafeFrame) {
       final p = Paint()
         ..style = PaintingStyle.stroke
@@ -262,7 +264,15 @@ class _TimelinePainter extends CustomPainter {
     final t = draw.freezeMotion
         ? photo.duration
         : draw.localTime.clamp(0.0, photo.duration);
-    final cam = motion.sample(t, fit, vp);
+    CameraState cam = motion.sample(t, fit, vp);
+
+    // User zoom on top of the camera scale, clamped so zoom-out stops at
+    // exact cover (the frame never reveals empty space).
+    if (photo.zoomFactor != 1.0) {
+      final minScale = minScaleAtRotation(fit, vp, cam.rotation);
+      cam = cam.copyWith(
+          scale: (cam.scale * photo.zoomFactor).clamp(minScale, 8.0).toDouble());
+    }
 
     final matrix = previewMatrix(
       cam: cam,
@@ -274,10 +284,11 @@ class _TimelinePainter extends CustomPainter {
       offsetY: draw.offsetY,
     );
 
+    final layerAlpha = (draw.alpha * photo.opacity).clamp(0.0, 1.0).toDouble();
     final paint = Paint()
       ..filterQuality = FilterQuality.medium
       ..isAntiAlias = true
-      ..color = Colors.white.withValues(alpha: draw.alpha.clamp(0.0, 1.0));
+      ..color = Colors.white.withValues(alpha: layerAlpha);
     if (draw.blurRadius > 0.5) {
       final sigma = draw.blurRadius * (size.height / 1080.0) * 0.55;
       paint.imageFilter = ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma);
@@ -292,6 +303,65 @@ class _TimelinePainter extends CustomPainter {
       const Rect.fromLTWH(0, 0, 1, 1),
       paint,
     );
+    canvas.restore();
+  }
+
+  /// Text watermark with its dark chip (spec: WatermarkSpec — the native
+  /// renderer draws the identical layout from the same contract).
+  void _paintWatermark(Canvas canvas, Size size) {
+    final w = project.watermark;
+    if (w == null || !w.visibleAt(frame.time)) return;
+
+    final fontSize = (w.fontScale.clamp(0.01, 0.25) * size.height).toDouble();
+    final tp = TextPainter(
+      text: TextSpan(
+        text: w.text,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.w600,
+          color: Colors.white
+              .withValues(alpha: w.opacity.clamp(0.0, 1.0).toDouble()),
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+
+    final padX = fontSize * 0.5;
+    final padY = fontSize * 0.3;
+    final chip = Rect.fromLTWH(-padX, -padY, tp.width + padX * 2,
+        tp.height + padY * 2);
+    final margin = 0.02;
+    double x;
+    switch (w.col) {
+      case 0:
+        x = size.width * margin;
+        break;
+      case 2:
+        x = size.width - size.width * margin - tp.width;
+        break;
+      default:
+        x = (size.width - tp.width) / 2;
+    }
+    double y;
+    switch (w.row) {
+      case 0:
+        y = size.height * margin;
+        break;
+      case 2:
+        y = size.height - size.height * margin - tp.height;
+        break;
+      default:
+        y = (size.height - tp.height) / 2;
+    }
+
+    canvas.save();
+    canvas.translate(x, y);
+    final chipPaint = Paint()
+      ..color = Colors.black
+          .withValues(alpha: (w.opacity * 0.45).clamp(0.0, 1.0).toDouble());
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(chip, Radius.circular(fontSize * 0.3)), chipPaint);
+    tp.paint(canvas, Offset.zero);
     canvas.restore();
   }
 

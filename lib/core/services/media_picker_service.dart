@@ -146,6 +146,31 @@ class MediaPickerService {
     }
   }
 
+  /// Amplitude envelope for the music timeline, decoded natively
+  /// (`Waveform.kt`). Returns the source duration in seconds and ~[buckets]
+  /// peak values in 0..1 (normalized by the global peak). Runs off the main
+  /// thread; a few seconds for long tracks.
+  Future<(double, List<double>)> waveform(
+      String path, {int buckets = 600}) async {
+    const channel = MethodChannel('motionshot/media');
+    try {
+      final result = await channel.invokeListMethod<Object?>(
+          'getWaveform', <String, Object>{'path': path, 'buckets': buckets});
+      if (result == null || result.length < 2) {
+        return (0.0, const <double>[]);
+      }
+      final duration = (result[0] as num).toDouble();
+      final peaks =
+          (result[1] as List).map((e) => (e as num).toDouble()).toList();
+      return (duration, peaks);
+    } on MissingPluginException {
+      throw const AppFailure(FailureKind.audioUnreadable,
+          technicalDetail: 'media channel missing');
+    } on PlatformException catch (e) {
+      throw AppFailure.fromNative('${e.code}|${e.message}');
+    }
+  }
+
   static int _counter = 0;
   static String _newId() {
     _counter++;

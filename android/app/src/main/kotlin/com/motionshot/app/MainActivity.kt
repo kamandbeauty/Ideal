@@ -5,6 +5,7 @@ import android.os.Bundle
 import com.motionshot.app.motion.ExportService
 import com.motionshot.app.motion.SilenceAnalyzer
 import com.motionshot.app.motion.StorageManager
+import com.motionshot.app.motion.Waveform
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -100,6 +101,28 @@ class MainActivity : FlutterActivity() {
                         }.start()
                     }
                 }
+                "getWaveform" -> {
+                    val path = call.argument<String>("path")
+                    val buckets = call.argument<Int>("buckets") ?: 600
+                    if (path == null) {
+                        result.error("BAD_ARGUMENT", "missing path", null)
+                    } else {
+                        Thread {
+                            try {
+                                val (durationSec, peaks) = Waveform.extract(path, buckets)
+                                // [sourceDurationSec, peaks]
+                                result.success(listOf(durationSec, peaks))
+                            } catch (e: Exception) {
+                                result.error(
+                                    "AUDIO_UNREADABLE",
+                                    e.message ?: "waveform extraction failed",
+                                    null,
+                                )
+                            }
+                        }.start()
+                    }
+                }
+
                 else -> result.notImplemented()
             }
         }

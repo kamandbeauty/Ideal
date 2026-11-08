@@ -5,6 +5,7 @@
 library;
 
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart' hide ValueSlider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,7 @@ import '../../core/errors/app_failure.dart';
 import '../../core/models/photo_item.dart';
 import '../../core/models/project.dart';
 import '../../core/models/transition.dart';
+import '../../core/models/watermark.dart';
 import '../../core/utils/ratio_utils.dart';
 import '../transitions/timeline_engine.dart';
 import '../audio/audio_sheet.dart';
@@ -37,6 +39,11 @@ class EditorScreen extends ConsumerStatefulWidget {
 
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   bool _picking = false;
+
+  /// Local (uncommitted) drag of the watermark lane: move the whole range
+  /// or resize one edge. A single `setWatermark` commit happens on release
+  /// so undo gets one entry per drag, not one per frame.
+  _WmDrag? _wmDrag;
 
   @override
   void initState() {
@@ -251,6 +258,16 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             ),
           ),
           _toolItem(
+            icon: Icons.center_focus_strong_rounded,
+            label: l10n.t('tool_photo'),
+            onTap: () => _openPhotoSheet(context, l10n, st),
+          ),
+          _toolItem(
+            icon: Icons.title_rounded,
+            label: l10n.t('tool_watermark'),
+            onTap: () => _openWatermarkSheet(context, l10n),
+          ),
+          _toolItem(
             icon: Icons.music_note_rounded,
             label: l10n.t('tool_music'),
             onTap: () => showAudioSheet(context, ref),
@@ -298,11 +315,15 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   }
 
   // ------------------------------------------------------------- timeline
+  /// The bottom timeline: a time-proportional photo strip, an optional
+  /// watermark lane and an optional music lane with a real waveform.
   Widget _timeline(
       BuildContext context, L10n l10n, ProjectEditorState st, FrameState playback) {
     final photos = st.project.photos;
     final currentIndex =
         playback.layers.isEmpty ? 0 : playback.layers.last.photoIndex;
+    final watermark = st.project.watermark;
+    final audio = st.project.audio;
     final clock = context.theme.textTheme.labelSmall?.copyWith(
       color: context.theme.colorScheme.onSurfaceVariant,
       fontFeatures: const <FontFeature>[FontFeature.tabularFigures()],
@@ -317,51 +338,18 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               _addButton(context, l10n),
               const SizedBox(width: 10),
               Expanded(
-                child: SizedBox(
-                  height: 54,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: photos.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 6),
-                    itemBuilder: (BuildContext c, int i) {
-                      final p = photos[i];
-                      final selected = p.id == st.selectedPhotoId;
-                      final path = p.thumbnailPath;
-                      final exists = path != null && File(path).existsSync();
-                      return SizedBox(
-                        width: 54,
-                        child: PhotoTile(
-                          selected: selected || i == currentIndex,
-                          missing: p.missing,
-                          image: exists
-                              ? Image.file(File(path), fit: BoxFit.cover)
-                              : null,
-                          badge: p.isLocked
-                              ? const Icon(Icons.lock_rounded,
-                                  size: 12, color: Colors.white)
-                              : null,
-                          onTap: () {
-                            ref
-                                .read(projectEditorProvider.notifier)
-                                .selectPhoto(p.id);
-                            final notifier =
-                                ref.read(playbackProvider.notifier);
-                            final segs = buildSegments(
-                                st.photoIds, st.durations, st.transitions);
-                            if (i < segs.length) {
-                              notifier.seek(segs[i].start + 0.001);
-                            }
-                          },
-                          onLongPress: () => context.push(
-                              '${AppRoutes.motionEditor}?photo=${p.id}'),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                child: _photoTimeline(context, st, playback),
               ),
             ],
           ),
+          if (watermark != null) ...<Widget>[
+            const SizedBox(height: 6),
+            _watermarkLane(st, playback),
+          ],
+          if (audio?.hasAudio ?? false) ...<Widget>[
+            const SizedBox(height: 6),
+            _musicLane(context, l10n, st, playback),
+          ],
           const SizedBox(height: 6),
           Row(
             children: <Widget>[
@@ -374,6 +362,422 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Photos on ONE timeline, each segment's width proportional to its
+  /// duration (with a minimum tappable width). Time always flows
+  /// left→right, so the content is pinned to LTR even in RTL locales.
+  Widget _photoTimeline(
+      BuildContext context, ProjectEditorState st, FrameState playback) {
+    final segs = buildSegments(st.photoIds, st.durations, st.transitions);
+    final total = st.project.totalDuration;
+    if (segs.isEmpty || total <= 0) return const SizedBox.shrink();
+
+    return LayoutBuilder(
+      builder: (BuildContext c, BoxConstraints constraints) {
+        const minW = 44.0;
+        final gap = 3.0;
+        final available = (constraints.maxWidth - gap * (segs.length - 1))
+            .clamp(40.0, 1e6)
+            .toDouble();
+        final baseUnit = available / total;
+        final currentIdx =
+            playback.layers.isEmpty ? -1 : playback.layers.last.photoIndex;
+        var widths = <double>[
+          for (final s in segs) math.max(s.duration * baseUnit, minW),
+        ];
+        var contentW =
+            widths.reduce((a, b) => a + b) + gap * (segs.length - 1);
+        if (contentW < available) {
+          // Everything hit the minimum — scale up to fill the row.
+          final k = available / contentW;
+          widths = <double>[for (final w in widths) w * k];
+          contentW = available;
+        }
+        final scrollable = contentW > constraints.maxWidth + 0.5;
+
+        Widget content = Directionality(
+          textDirection: TextDirection.ltr,
+          child: SizedBox(
+            width: contentW,
+            height: 54,
+            child: Stack(
+              children: <Widget>[
+                Row(
+                  children: <Widget>[
+                    for (var i = 0; i < segs.length; i++) ...<Widget>[
+                      if (i > 0) SizedBox(width: gap),
+                      SizedBox(
+                        width: widths[i],
+                        child: _segmentTile(
+                          context,
+                          photo: st.project.photos[segs[i].index],
+                          start: segs[i].start,
+                          selected:
+                              st.project.photos[segs[i].index].id ==
+                                  st.selectedPhotoId,
+                          isCurrent: i == currentIdx,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                // Playhead, synced with the preview clock.
+                Positioned(
+                  left: (playback.time / total * contentW)
+                      .clamp(0.0, contentW)
+                      .toDouble(),
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 2,
+                    color: const Color(0xFFFF3B5C),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+        return scrollable
+            ? SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: content,
+              )
+            : content;
+      },
+    );
+  }
+
+  /// One proportional segment: thumbnail, selection ring, duration and lock.
+  Widget _segmentTile(
+    BuildContext context, {
+    required PhotoItem photo,
+    required double start,
+    required bool selected,
+    required int isCurrent,
+  }) {
+    final path = photo.thumbnailPath;
+    final exists = path != null && File(path).existsSync();
+    final ring = selected
+        ? const Color(0xFFFF3B5C)
+        : isCurrent
+            ? const Color(0xFFFFC24B)
+            : Colors.transparent;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        ref.read(projectEditorProvider.notifier).selectPhoto(photo.id);
+        ref.read(playbackProvider.notifier).seek(start + 0.001);
+      },
+      onLongPress: () =>
+          context.push('${AppRoutes.motionEditor}?photo=${photo.id}'),
+      child: LayoutBuilder(
+        builder: (BuildContext c, BoxConstraints box) {
+          final wide = box.maxWidth >= 56;
+          return Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: ring,
+                width: selected || isCurrent ? 2 : 1,
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                if (exists)
+                  Image.file(File(path), fit: BoxFit.cover)
+                else
+                  Container(
+                    color: const Color(0xFF22222E),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      photo.missing
+                          ? Icons.broken_image_rounded
+                          : Icons.image_outlined,
+                      size: 18,
+                      color: context.theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                if (photo.isLocked)
+                  Positioned(
+                    top: 2,
+                    left: 2,
+                    child: Icon(Icons.lock_rounded, size: 12,
+                        color: Colors.white),
+                  ),
+                // Duration label when there is room.
+                if (wide)
+                  Positioned(
+                    right: 4,
+                    bottom: 3,
+                    child: Text(
+                      '${photo.duration.toStringAsFixed(1)}s',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        shadows: <Shadow>[
+                          Shadow(
+                              color: Colors.black.withValues(alpha: 0.7),
+                              blurRadius: 2),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ----------------------------------------------------------- watermark
+  /// The watermark's range on the global timeline: drag the body to move it,
+  /// drag either edge to resize it. One undo entry per finished drag.
+  Widget _watermarkLane(ProjectEditorState st, FrameState playback) {
+    final wm = st.project.watermark!;
+    final total = st.project.totalDuration;
+    if (total <= 0) return const SizedBox.shrink();
+    const minLen = 0.3;
+    final start = _wmDrag?.start ?? wm.start;
+    final end = _wmDrag?.end ?? wm.end;
+
+    void commit() {
+      if (_wmDrag == null) return;
+      final s = _wmDrag!.start;
+      final e = _wmDrag!.end;
+      setState(() => _wmDrag = null);
+      if ((s - wm.start).abs() > 0.001 || (e - wm.end).abs() > 0.001) {
+        ref.read(projectEditorProvider.notifier).setWatermark(
+            wm.copyWith(start: s, end: e));
+      }
+    }
+
+    return LayoutBuilder(
+      builder: (BuildContext c, BoxConstraints box) {
+        final W = box.maxWidth;
+        if (W <= 0) return const SizedBox.shrink();
+        double px(double t) => t / total * W;
+
+        return SizedBox(
+          height: 34,
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B1B26),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              // The range bar (drag to move).
+              Positioned(
+                left: px(start),
+                width: (px(end) - px(start)).clamp(28.0, W).toDouble(),
+                top: 5,
+                bottom: 5,
+                child: GestureDetector(
+                  onHorizontalDragStart: (d) => setState(() => _wmDrag =
+                      _WmDrag(wm.start, wm.end, wm.start, wm.end)),
+                  onHorizontalDragUpdate: (d) {
+                    final dSec = d.delta.dx / W * total;
+                    final cur = _wmDrag!;
+                    final len = cur.baseEnd - cur.baseStart;
+                    var s = cur.baseStart + dSec;
+                    s = s.clamp(0.0, total - len).toDouble();
+                    cur.start = s;
+                    cur.end = s + len;
+                    setState(() {});
+                  },
+                  onHorizontalDragEnd: (_) => commit(),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF46E0C0).withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF46E0C0)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      wm.text,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF9FF3E2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Edge handles (wider hit zones on top of the bar).
+              Positioned(
+                left: (px(start) - 11).clamp(0.0, W).toDouble(),
+                width: 22,
+                top: 0,
+                bottom: 0,
+                child: GestureDetector(
+                  onHorizontalDragStart: (d) => setState(() => _wmDrag =
+                      _WmDrag(wm.start, wm.end, wm.start, wm.end)),
+                  onHorizontalDragUpdate: (d) {
+                    final dSec = d.delta.dx / W * total;
+                    final cur = _wmDrag!;
+                    final s =
+                        (cur.baseStart + dSec).clamp(0.0, cur.baseEnd - minLen).toDouble();
+                    cur.start = s;
+                    setState(() {});
+                  },
+                  onHorizontalDragEnd: (_) => commit(),
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      width: 4,
+                      margin: const EdgeInsets.only(left: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF46E0C0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: (px(end) - 11).clamp(0.0, W).toDouble(),
+                width: 22,
+                top: 0,
+                bottom: 0,
+                child: GestureDetector(
+                  onHorizontalDragStart: (d) => setState(() => _wmDrag =
+                      _WmDrag(wm.start, wm.end, wm.start, wm.end)),
+                  onHorizontalDragUpdate: (d) {
+                    final dSec = d.delta.dx / W * total;
+                    final cur = _wmDrag!;
+                    final e = (cur.baseEnd + dSec)
+                        .clamp(cur.baseStart + minLen, total)
+                        .toDouble();
+                    cur.end = e;
+                    setState(() {});
+                  },
+                  onHorizontalDragEnd: (_) => commit(),
+                  child: Container(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: 4,
+                      margin: const EdgeInsets.only(right: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF46E0C0),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Playhead, aligned with the photo strip above.
+              Positioned(
+                left: (playback.time / total * W).clamp(0.0, W).toDouble(),
+                top: 0,
+                bottom: 0,
+                width: 2,
+                child: Container(color: const Color(0xFFFF3B5C)),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ---------------------------------------------------------------- music
+  /// The music lane: the track's REAL decoded waveform over the video length
+  /// (tiled when the track loops; flat once it ends when it doesn't).
+  /// Tapping anywhere seeks the playhead to that moment.
+  Widget _musicLane(
+      BuildContext context, L10n l10n, ProjectEditorState st, FrameState playback) {
+    final audio = st.project.audio!;
+    final wf = ref.watch(audioWaveformProvider);
+    final uri = audio.uri!;
+    // Kick off the (cached, native) decode for the current track.
+    Future.microtask(
+        () => ref.read(audioWaveformProvider.notifier).load(uri));
+    final value = wf.valueOrNull;
+    final peaks = value?.$2 ?? const <double>[];
+    final srcDur = value?.$1 ?? 0.0;
+    final total = st.project.totalDuration;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Icon(Icons.music_note_rounded,
+                size: 13, color: context.theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                audio.displayName.isNotEmpty ? audio.displayName : l10n.t('tool_music'),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.theme.textTheme.bodySmall?.copyWith(
+                    color: context.theme.colorScheme.onSurfaceVariant),
+              ),
+            ),
+            if (wf.isLoading)
+              const SizedBox(
+                  width: 12, height: 12,
+                  child: CircularProgressIndicator(strokeWidth: 1.5))
+            else if (peaks.isEmpty)
+              Text(l10n.t('waveform_unavailable'),
+                  style: context.theme.textTheme.labelSmall?.copyWith(
+                      color: context.theme.colorScheme.onSurfaceVariant)),
+            if (peaks.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: Text(
+                  l10n.t('music_tap_seek'),
+                  style: context.theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 9,
+                      color: context.theme.colorScheme.onSurfaceVariant),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        LayoutBuilder(
+          builder: (BuildContext c, BoxConstraints box) {
+            final W = box.maxWidth;
+            return SizedBox(
+              height: 30,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTapDown: (d) {
+                  if (W <= 0 || total <= 0) return;
+                  ref.read(playbackProvider.notifier).seek(
+                      (d.localPosition.dx / W * total)
+                          .clamp(0.0, total)
+                          .toDouble());
+                },
+                child: CustomPaint(
+                  size: const Size.infinite,
+                  painter: _WaveformPainter(
+                    peaks: peaks,
+                    sourceDuration: srcDur,
+                    loop: audio.loop,
+                    trimStart: audio.trimStart,
+                    trimEnd: audio.trimEnd,
+                    total: total,
+                    playhead: playback.time,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 
@@ -812,6 +1216,70 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     );
   }
 
+  // --------------------------------------------------------------- photo
+  /// Per-photo look: zoom (0.5..3.0) and opacity (0.2..1.0).
+  Future<void> _openPhotoSheet(
+      BuildContext context, L10n l10n, ProjectEditorState st) {
+    final selectedId = st.selectedPhotoId;
+    final photo = selectedId != null ? st.photoById(selectedId) : null;
+    final notifier = ref.read(projectEditorProvider.notifier);
+    if (photo == null) {
+      return _openToolSheet(
+        context,
+        l10n.t('tool_photo_title'),
+        Padding(
+          padding: const EdgeInsets.all(AppTheme.s16),
+          child: Text(l10n.t('hint_select_photo_first')),
+        ),
+      );
+    }
+    return _openToolSheet(
+      context,
+      l10n.t('tool_photo_title'),
+      ListView(
+        padding: const EdgeInsets.all(AppTheme.s16),
+        children: <Widget>[
+          Text(
+            l10n.t('editor_shot').replaceAll('{n}', '${photo.order + 1}'),
+            style: context.theme.textTheme.bodySmall?.copyWith(
+                color: context.theme.colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: AppTheme.s12),
+          ValueSlider(
+            label: l10n.t('photo_zoom'),
+            icon: Icons.zoom_out_map_rounded,
+            value: photo.zoomFactor,
+            min: 0.5,
+            max: 3.0,
+            divisions: 50,
+            format: (double v) => '${v.toStringAsFixed(2)}x',
+            onChanged: (double v) => notifier.setPhotoZoom(photo.id, v),
+          ),
+          const SizedBox(height: AppTheme.s12),
+          ValueSlider(
+            label: l10n.t('photo_opacity'),
+            icon: Icons.texture_rounded,
+            value: photo.opacity,
+            min: 0.2,
+            max: 1.0,
+            divisions: 40,
+            format: (double v) => '${(v * 100).round()}%',
+            onChanged: (double v) => notifier.setPhotoOpacity(photo.id, v),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ----------------------------------------------------------- watermark
+  Future<void> _openWatermarkSheet(BuildContext context, L10n l10n) {
+    return _openToolSheet(
+      context,
+      l10n.t('tool_watermark_title'),
+      _WatermarkEditor(),
+    );
+  }
+
   // ------------------------------------------------------------------ leave
   Future<void> _confirmLeave(
       BuildContext context, ProjectEditorState st) async {
@@ -849,4 +1317,261 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     }
     if (context.mounted) context.go(AppRoutes.home);
   }
+}
+
+/// Watermark settings: text, size, opacity, 3×3 position, start/end.
+/// Like the other sliders in the app, every change commits immediately
+/// (the timeline lane additionally supports direct range dragging).
+class _WatermarkEditor extends ConsumerWidget {
+  const _WatermarkEditor();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final st = ref.watch(projectEditorProvider);
+    if (st == null) return const SizedBox.shrink();
+    final project = st.project;
+    final wm = project.watermark;
+    final total = project.totalDuration;
+    final notifier = ref.read(projectEditorProvider.notifier);
+    final textController = TextEditingController(text: wm?.text ?? '');
+
+    WatermarkSpec edit({
+      String? text,
+      double? fontScale,
+      double? opacity,
+      int? position,
+      double? start,
+      double? end,
+    }) {
+      final base = wm ??
+          WatermarkSpec(text: 'MotionShot', start: 0.0, end: total);
+      return base.copyWith(
+        text: text ?? base.text,
+        fontScale: fontScale,
+        opacity: opacity,
+        position: position,
+        start: start,
+        end: end,
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(AppTheme.s16),
+      children: <Widget>[
+        Text(
+          l10n.t('watermark_hint'),
+          style: context.theme.textTheme.bodySmall?.copyWith(
+              color: context.theme.colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: AppTheme.s12),
+        TextField(
+          controller: textController,
+          autofocus: wm == null,
+          decoration: InputDecoration(
+            labelText: l10n.t('watermark_text'),
+            hintText: l10n.t('watermark_text_hint'),
+            isDense: true,
+            border: const OutlineInputBorder(),
+          ),
+          onSubmitted: (String t) {
+            final trimmed = t.trim();
+            if (trimmed.isNotEmpty) {
+              notifier.setWatermark(edit(text: trimmed));
+            }
+          },
+        ),
+        const SizedBox(height: AppTheme.s16),
+        if (wm == null)
+          FilledButton.icon(
+            onPressed: () {
+              final trimmed = textController.text.trim();
+              notifier.setWatermark(
+                  edit(text: trimmed.isEmpty ? 'MotionShot' : trimmed));
+            },
+            icon: const Icon(Icons.add_rounded, size: 18),
+            label: Text(l10n.t('watermark_add')),
+          )
+        else ...<Widget>[
+          ValueSlider(
+            label: l10n.t('watermark_size'),
+            icon: Icons.format_size_rounded,
+            value: wm.fontScale,
+            min: 0.02,
+            max: 0.15,
+            divisions: 13,
+            format: (double v) => '${(v * 100).toStringAsFixed(1)}%',
+            onChanged: (double v) => notifier.setWatermark(edit(fontScale: v)),
+          ),
+          const SizedBox(height: AppTheme.s12),
+          ValueSlider(
+            label: l10n.t('watermark_opacity'),
+            icon: Icons.texture_rounded,
+            value: wm.opacity,
+            min: 0.2,
+            max: 1.0,
+            divisions: 40,
+            format: (double v) => '${(v * 100).round()}%',
+            onChanged: (double v) => notifier.setWatermark(edit(opacity: v)),
+          ),
+          const SizedBox(height: AppTheme.s12),
+          Text(l10n.t('watermark_position'),
+              style: context.theme.textTheme.bodySmall?.copyWith(
+                  color: context.theme.colorScheme.onSurfaceVariant)),
+          const SizedBox(height: 8),
+          Row(
+            children: <Widget>[
+              for (var pos = 0; pos < 9; pos++)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Material(
+                        color: wm.position == pos
+                            ? const Color(0xFF46E0C0).withValues(alpha: 0.3)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(8),
+                          onTap: () =>
+                              notifier.setWatermark(edit(position: pos)),
+                          customBorder: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                  Radius.circular(8))),
+                          child: Icon(
+                            Icons.circle_outlined,
+                            size: 10,
+                            color: wm.position == pos
+                                ? const Color(0xFF9FF3E2)
+                                : context.theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.s16),
+          ValueSlider(
+            label: l10n.t('watermark_start'),
+            icon: Icons.play_circle_outline_rounded,
+            value: wm.start,
+            min: 0.0,
+            max: math.max(0.3, total - 0.3),
+            divisions: math.max(1, ((total - 0.3) * 10).floor()),
+            format: (double v) => '${v.toStringAsFixed(1)}s',
+            onChanged: (double v) => notifier.setWatermark(
+                edit(start: math.min(v, wm.end - 0.3))),
+          ),
+          const SizedBox(height: AppTheme.s12),
+          ValueSlider(
+            label: l10n.t('watermark_end'),
+            icon: Icons.stop_circle_outlined,
+            value: wm.end,
+            min: 0.3,
+            max: math.max(0.3, total),
+            divisions: math.max(1, (total * 10).floor()),
+            format: (double v) => '${v.toStringAsFixed(1)}s',
+            onChanged: (double v) => notifier.setWatermark(
+                edit(end: math.max(v, wm.start + 0.3))),
+          ),
+          const SizedBox(height: AppTheme.s16),
+          OutlinedButton.icon(
+            onPressed: () => notifier.setWatermark(null),
+            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+            label: Text(l10n.t('watermark_remove')),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Uncommitted watermark-lane drag state (committed on release).
+class _WmDrag {
+  _WmDrag(this.baseStart, this.baseEnd, this.start, this.end);
+
+  final double baseStart;
+  final double baseEnd;
+  double start;
+  double end;
+}
+
+/// The music timeline: bars of the track's real decoded amplitude, mapped
+/// over the VIDEO length (the pattern tiles when the track loops and goes
+/// flat once a non-looping track ends), with the global playhead.
+class _WaveformPainter extends CustomPainter {
+  _WaveformPainter({
+    required this.peaks,
+    required this.sourceDuration,
+    required this.loop,
+    required this.trimStart,
+    required this.trimEnd,
+    required this.total,
+    required this.playhead,
+  });
+
+  final List<double> peaks;
+  final double sourceDuration;
+  final bool loop;
+  final double trimStart;
+  final double? trimEnd;
+  final double total;
+  final double playhead;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (total <= 0 || size.isEmpty) return;
+    final hasData = peaks.isNotEmpty && sourceDuration > 0;
+    final n = (size.width / 2.5).floor().clamp(24, 400);
+    final barW = size.width / n;
+    final barPaint =
+        Paint()..color = const Color(0xFF46E0C0).withValues(alpha: 0.9);
+    final dimPaint = Paint()..color = const Color(0xFF2A2A3A);
+    final span = (trimEnd ?? sourceDuration) - trimStart;
+
+    for (var i = 0; i < n; i++) {
+      final t = (i + 0.5) / n * total;
+      double amp = 0;
+      if (hasData && span > 0) {
+        // video time -> source time (trimmed span, tiled when looping).
+        final st = trimStart + (loop ? t % span : t);
+        if (st < (trimEnd ?? sourceDuration)) {
+          final idx = (st / sourceDuration * peaks.length)
+              .floor()
+              .clamp(0, peaks.length - 1);
+          amp = peaks[idx];
+        }
+      }
+      final h =
+          (amp * (size.height - 4)).clamp(2.0, size.height - 4).toDouble();
+      final x = i * barW;
+      canvas.drawRect(
+        Rect.fromLTWH(x + 0.5, (size.height - h) / 2,
+            math.max(1.0, barW - 1.5), h),
+        amp > 0 ? barPaint : dimPaint,
+      );
+    }
+
+    final px = playhead / total * size.width;
+    canvas.drawLine(
+      Offset(px, 0),
+      Offset(px, size.height),
+      Paint()
+        ..color = const Color(0xFFFF3B5C)
+        ..strokeWidth = 2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_WaveformPainter old) =>
+      old.peaks != peaks ||
+      old.sourceDuration != sourceDuration ||
+      old.loop != loop ||
+      old.trimStart != trimStart ||
+      old.trimEnd != trimEnd ||
+      old.total != total ||
+      (old.playhead - playhead).abs() > 0.0005;
 }

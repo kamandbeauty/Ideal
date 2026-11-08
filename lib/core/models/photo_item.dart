@@ -23,6 +23,8 @@ class PhotoItem {
     this.thumbnailPath,
     this.missing = false,
     this.rotationDegrees = 0,
+    this.zoomFactor = 1.0,
+    this.opacity = 1.0,
   });
 
   final String id;
@@ -48,6 +50,15 @@ class PhotoItem {
   /// User-applied extra rotation (0/90/180/270) on top of EXIF.
   final int rotationDegrees;
 
+  /// User zoom multiplier on top of the motion's camera scale
+  /// (1.0 = as generated; clamped 0.5..3.0 in the UI). The final scale is
+  /// never allowed below the fit's minimum, so zooming out stops at "exact
+  /// cover" instead of revealing empty space.
+  final double zoomFactor;
+
+  /// 0.2..1.0 layer opacity (1.0 = fully opaque, the default).
+  final double opacity;
+
   double get aspect => height == 0 ? 1.0 : width / height;
 
   bool get hasMotion => motion != null;
@@ -67,6 +78,8 @@ class PhotoItem {
     String? thumbnailPath,
     bool? missing,
     int? rotationDegrees,
+    double? zoomFactor,
+    double? opacity,
   }) =>
       PhotoItem(
         id: id ?? this.id,
@@ -81,6 +94,8 @@ class PhotoItem {
         thumbnailPath: thumbnailPath ?? this.thumbnailPath,
         missing: missing ?? this.missing,
         rotationDegrees: rotationDegrees ?? this.rotationDegrees,
+        zoomFactor: zoomFactor ?? this.zoomFactor,
+        opacity: opacity ?? this.opacity,
       );
 
   Map<String, dynamic> toJson() => <String, dynamic>{
@@ -95,6 +110,8 @@ class PhotoItem {
         'displayName': displayName,
         'thumbnailPath': thumbnailPath,
         'rotationDegrees': rotationDegrees,
+        'zoomFactor': zoomFactor,
+        'opacity': opacity,
       };
 
   factory PhotoItem.fromJson(Map<String, dynamic> json) {
@@ -117,6 +134,8 @@ class PhotoItem {
       displayName: json['displayName'] as String? ?? '',
       thumbnailPath: json['thumbnailPath'] as String?,
       rotationDegrees: (json['rotationDegrees'] as num?)?.toInt() ?? 0,
+      zoomFactor: (json['zoomFactor'] as num?)?.toDouble() ?? 1.0,
+      opacity: (json['opacity'] as num?)?.toDouble() ?? 1.0,
     );
   }
 }

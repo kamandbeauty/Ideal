@@ -4,6 +4,7 @@ import '../constants/app_constants.dart';
 import 'audio_settings.dart';
 import 'export_settings.dart';
 import 'photo_item.dart';
+import 'watermark.dart';
 
 /// A saved MotionShot project (product brief §14, §15).
 @immutable
@@ -19,6 +20,7 @@ class Project {
     this.seed = 1,
     this.schemaVersion = kProjectSchemaVersion,
     this.thumbnailPath,
+    this.watermark,
   });
 
   final String id;
@@ -35,6 +37,9 @@ class Project {
   final int seed;
   final int schemaVersion;
   final String? thumbnailPath;
+
+  /// Text overlay shown between the watermark's start/end times, if any.
+  final WatermarkSpec? watermark;
 
   static const int kProjectSchemaVersion = 1;
 
@@ -63,7 +68,9 @@ class Project {
     ExportSettings? exportSettings,
     int? seed,
     String? thumbnailPath,
+    WatermarkSpec? watermark,
     bool clearAudio = false,
+    bool clearWatermark = false,
   }) =>
       Project(
         id: id,
@@ -76,6 +83,7 @@ class Project {
         seed: seed ?? this.seed,
         schemaVersion: schemaVersion,
         thumbnailPath: thumbnailPath ?? this.thumbnailPath,
+        watermark: clearWatermark ? null : (watermark ?? this.watermark),
       );
 
   /// Re-assigns `order` to match list position. Call after any reorder.
@@ -98,6 +106,7 @@ class Project {
         'createdAt': createdAt.toUtc().toIso8601String(),
         'updatedAt': updatedAt.toUtc().toIso8601String(),
         'thumbnailPath': thumbnailPath,
+        'watermark': watermark?.toJson(),
       };
 
   factory Project.fromJson(Map<String, dynamic> json) {
@@ -125,6 +134,10 @@ class Project {
       schemaVersion: (json['schemaVersion'] as num?)?.toInt() ??
           kProjectSchemaVersion,
       thumbnailPath: json['thumbnailPath'] as String?,
+      watermark: json['watermark'] == null
+          ? null
+          : WatermarkSpec.fromJson(
+              Map<String, dynamic>.from(json['watermark'] as Map)),
     );
   }
 }

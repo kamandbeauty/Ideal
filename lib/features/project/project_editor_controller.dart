@@ -22,6 +22,7 @@ import '../../core/models/motion_type.dart';
 import '../../core/models/photo_item.dart';
 import '../../core/models/project.dart';
 import '../../core/models/transition.dart';
+import '../../core/models/watermark.dart';
 import '../../core/storage/project_repository.dart';
 import '../../core/utils/easing.dart';
 import '../motion/camera_math.dart';
@@ -589,6 +590,34 @@ class ProjectEditorController
     _commit(audio == null
         ? cur.project.copyWith(clearAudio: true)
         : cur.project.copyWith(audio: audio));
+  }
+
+  // ------------------------------------------------------------- photo looks
+  /// Per-photo zoom (0.5..3.0). Rendering clamps the resulting scale to the
+  /// fit's minimum so zoom-out stops at exact cover.
+  void setPhotoZoom(String photoId, double factor) {
+    final cur = state;
+    if (cur == null) return;
+    final zoom = factor.clamp(0.5, 3.0).toDouble();
+    _updatePhoto(photoId, (p) => p.copyWith(zoomFactor: zoom));
+  }
+
+  /// Per-photo opacity (0.2..1.0).
+  void setPhotoOpacity(String photoId, double opacity) {
+    final cur = state;
+    if (cur == null) return;
+    final o = opacity.clamp(0.2, 1.0).toDouble();
+    _updatePhoto(photoId, (p) => p.copyWith(opacity: o));
+  }
+
+  // ------------------------------------------------------------ watermark
+  /// Sets (or, when [spec] is null, removes) the project's text watermark.
+  void setWatermark(WatermarkSpec? spec) {
+    final cur = state;
+    if (cur == null) return;
+    _commit(spec == null
+        ? cur.project.copyWith(clearWatermark: true)
+        : cur.project.copyWith(watermark: spec.clampedTo(cur.project.totalDuration)));
   }
 
   // ------------------------------------------------------------------- output

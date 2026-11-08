@@ -342,6 +342,9 @@ PROTOCOL_KEYS = [
     "sessionId", "stage", "progress", "framesDone", "framesTotal", "elapsedMs",
     "etaMs", "result", "errorCode", "keyframes", "transition", "motionType",
     "motionPath",
+    # per-photo look + watermark (watermark sub-keys: text/fontScale/opacity/
+    # position/start/end — see WatermarkSpec on both sides)
+    "zoomFactor", "opacity", "watermark",
 ]
 
 

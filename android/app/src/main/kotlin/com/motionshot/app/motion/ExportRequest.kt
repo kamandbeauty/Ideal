@@ -33,7 +33,35 @@ data class PhotoRenderSpec(
      * fallback for requests produced by older app versions.
      */
     val motionPath: MotionPathSpec? = null,
+    /** User zoom on top of the camera scale (1.0 = as generated). */
+    val zoomFactor: Double = 1.0,
+    /** 0.2..1.0 layer opacity (1.0 = fully opaque). */
+    val opacity: Double = 1.0,
 )
+
+/**
+ * Text watermark shown between [start] and [end] (contract: lib
+ * `watermark.dart` — keep the two in sync).
+ *
+ * [fontScale] is the text height as a fraction of the OUTPUT height;
+ * [position] is a 3×3 grid, row-major (0 = top-left … 8 = bottom-right).
+ * The text is white over a soft dark chip, at [opacity].
+ */
+data class WatermarkSpec(
+    val text: String,
+    val fontScale: Double,
+    val opacity: Double,
+    val position: Int,
+    val start: Double,
+    val end: Double,
+) {
+    val visibleAt: (Double) -> Boolean get() = { t ->
+        text.isNotBlank() && t >= start && t <= end
+    }
+
+    val row: Int get() = (position / 3).coerceIn(0, 2)
+    val col: Int get() = (position % 3).coerceIn(0, 2)
+}
 
 data class AudioRenderSpec(
     val path: String,
@@ -60,6 +88,7 @@ data class ExportRequest(
     val frameCount: Int,
     val photos: List<PhotoRenderSpec>,
     val audio: AudioRenderSpec?,
+    val watermark: WatermarkSpec? = null,
 ) {
     val viewport: Viewport get() = Viewport(aspect)
 
@@ -125,6 +154,24 @@ data class ExportRequest(
                 )
             }
 
+            val watermarkJson = json.optJSONObject("watermark")
+            val watermark = if (watermarkJson == null ||
+                watermarkJson.optString("text").isNullOrBlank()
+            ) {
+                null
+            } else {
+                WatermarkSpec(
+                    text = watermarkJson.getString("text"),
+                    fontScale = watermarkJson.optDouble("fontScale", 0.055)
+                        .coerceIn(0.01, 0.25),
+                    opacity = watermarkJson.optDouble("opacity", 0.85)
+                        .coerceIn(0.0, 1.0),
+                    position = watermarkJson.optInt("position", 8).coerceIn(0, 8),
+                    start = watermarkJson.optDouble("start", 0.0).coerceAtLeast(0.0),
+                    end = watermarkJson.optDouble("end", 0.0),
+                )
+            }
+
             return ExportRequest(
                 projectId = json.optString("projectId", "unknown"),
                 projectSeed = json.optLong("projectSeed", 0L),
@@ -139,6 +186,7 @@ data class ExportRequest(
                 frameCount = json.optInt("frameCount", 0),
                 photos = photos,
                 audio = audio,
+                watermark = watermark,
             )
         }
 
@@ -211,6 +259,8 @@ data class ExportRequest(
                 expectedFitIw = if (obj.has("expectedFitIw")) obj.getDouble("expectedFitIw") else null,
                 expectedFitIh = if (obj.has("expectedFitIh")) obj.getDouble("expectedFitIh") else null,
                 motionPath = motionPath,
+                zoomFactor = obj.optDouble("zoomFactor", 1.0).coerceIn(0.5, 3.0),
+                opacity = obj.optDouble("opacity", 1.0).coerceIn(0.2, 1.0),
             )
         }
 

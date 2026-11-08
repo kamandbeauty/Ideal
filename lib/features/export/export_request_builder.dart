@@ -81,6 +81,9 @@ Map<String, dynamic> buildExportRequest({
             if (k.curve != null) 'curve': k.curve,
           },
       ],
+      // Per-photo look (user zoom and opacity; 1.0/1.0 = unchanged).
+      'zoomFactor': photo.zoomFactor,
+      'opacity': photo.opacity,
       // Derived values are included so the native side can assert that both
       // runtimes computed the same fit (guards against model drift).
       'expectedFitIw': fit.iw,
@@ -108,6 +111,7 @@ Map<String, dynamic> buildExportRequest({
     'totalDuration': project.totalDuration,
     'frameCount': (project.totalDuration * fps).round(),
     'photos': photos,
+    'watermark': project.watermark?.toJson(),
     'audio': audio != null && audio.hasAudio
         ? <String, dynamic>{
             'path': audio.uri,

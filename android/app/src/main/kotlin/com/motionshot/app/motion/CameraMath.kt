@@ -111,10 +111,15 @@ fun cameraMatrix(cam: CameraState, fit: ImageFit, vp: Viewport): FloatArray {
     val sinR = sin(cam.rotation)
     val s = cam.scale
     // uv -> viewport units, scaled and rotated, then to NDC [-1,1].
-    val m00 = s * cosR * (2.0 * fit.iw) / (vp.vw / 2.0) / 2.0
-    val m01 = -s * sinR * (2.0 * fit.ih) / (vp.vw / 2.0) / 2.0
-    val m10 = s * sinR * (2.0 * fit.iw) / (vp.vh / 2.0) / 2.0
-    val m11 = s * cosR * (2.0 * fit.ih) / (vp.vh / 2.0) / 2.0
+    // At scale = 1 a cover-fitted image (fit.iw = vw/2 in the covering
+    // dimension) spans NDC [-1, 1] exactly, with the bitmap's top row at
+    // the top of the frame — the same convention as the Dart preview
+    // matrix and the Python reference (spec §7.1). The y row is negative
+    // because NDC is y-up while image rows are y-down.
+    val m00 = s * cosR * (2.0 * fit.iw) / (vp.vw / 2.0)
+    val m01 = -s * sinR * (2.0 * fit.ih) / (vp.vw / 2.0)
+    val m10 = -s * sinR * (2.0 * fit.iw) / (vp.vh / 2.0)
+    val m11 = -s * cosR * (2.0 * fit.ih) / (vp.vh / 2.0)
     // Constant term
     val t0 = -s * (cosR * cam.x - sinR * cam.y) / (vp.vw / 2.0) - (m00 + m01) * 0.5
     val t1 = s * (sinR * cam.x + cosR * cam.y) / (vp.vh / 2.0) - (m10 + m11) * 0.5

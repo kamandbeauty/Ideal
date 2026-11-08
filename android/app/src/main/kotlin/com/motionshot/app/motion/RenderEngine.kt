@@ -1,6 +1,8 @@
 package com.motionshot.app.motion
 
+import android.graphics.Bitmap
 import android.opengl.GLES20
+import android.opengl.GLUtils
 import android.util.Log
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -52,6 +54,13 @@ class RenderEngine(
     private var currentPhoto = -1
     private var disposed = false
 
+    // Watermark overlay: one full-viewport texture drawn with the identity
+    // camera (the same draw path as the photos), visible only inside its
+    // [WatermarkSpec.start, WatermarkSpec.end] window.
+    private var watermarkTexture = 0
+    private var watermarkBitmap: Bitmap? = null
+    private var overlayMatrix: FloatArray? = null
+
     @Volatile
     private var cancelRequested = false
 
@@ -95,6 +104,41 @@ class RenderEngine(
             throw RenderException("could not compile the render shaders")
         }
         GLES20.glViewport(0, 0, outputWidth, outputHeight)
+
+        if (request.watermark != null) {
+            val bm = WatermarkTexture.render(request.watermark, outputWidth, outputHeight)
+            if (bm != null) {
+                val ids = IntArray(1)
+                GLES20.glGenTextures(1, ids, 0)
+                if (ids[0] != 0) {
+                    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, ids[0])
+                    GLES20.glTexParameteri(
+                        GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR,
+                    )
+                    GLES20.glTexParameteri(
+                        GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR,
+                    )
+                    GLES20.glTexParameteri(
+                        GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE,
+                    )
+                    GLES20.glTexParameteri(
+                        GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE,
+                    )
+                    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bm, 0)
+                    watermarkTexture = ids[0]
+                    watermarkBitmap = bm
+                } else {
+                    bm.recycle()
+                }
+            } else {
+                Log.w(TAG, "watermark bitmap allocation failed; exporting without it")
+            }
+            // Identity camera over the full viewport: ImageFit half-extents
+            // equal the viewport half-extents.
+            overlayMatrix = cameraMatrix(
+                CameraState(), ImageFit(vp.vw / 2.0, vp.vh / 2.0), vp,
+            )
+        }
 
         textures = TextureManager(
             maxTextures = if (eglCore.isEs3) 4 else 3,
@@ -163,7 +207,14 @@ class RenderEngine(
                 }
 
                 val localTime = if (layer.freezeMotion) photo.duration else layer.localTime
-                val cam = interp.sample(localTime)
+                var cam = interp.sample(localTime)
+
+                // User zoom on top of the camera scale, clamped so zoom-out
+                // stops at exact cover (the frame never shows empty space).
+                if (photo.zoomFactor != 1.0) {
+                    val sMin = minScaleAtRotation(fit, vp, cam.rotation)
+                    cam = cam.copy(scale = (cam.scale * photo.zoomFactor).coerceAtLeast(sMin))
+                }
 
                 // Slide transitions are translation-only; the camera matrix is
                 // composed with the zoom multiplier here.
@@ -174,18 +225,27 @@ class RenderEngine(
                     offsetX = layer.offsetX,
                     offsetY = layer.offsetY,
                 )
+                val layerAlpha = (layer.alpha * photo.opacity).toFloat()
                 if (layer.blurRadius > 0.05) {
                     gl.drawLayerBlurred(
                         matrix = matrix,
                         textureId = texId,
-                        alpha = layer.alpha.toFloat(),
+                        alpha = layerAlpha,
                         blurRadius = layer.blurRadius.toFloat(),
                         viewportWidth = outputWidth,
                         viewportHeight = outputHeight,
                     )
                 } else {
-                    gl.drawLayer(matrix, texId, layer.alpha.toFloat())
+                    gl.drawLayer(matrix, texId, layerAlpha)
                 }
+            }
+
+            // Watermark overlay on top of every layer, inside its window.
+            if (watermarkTexture > 0 &&
+                overlayMatrix != null &&
+                request.watermark?.visibleAt(t) == true
+            ) {
+                gl.drawLayer(overlayMatrix!!, watermarkTexture, 1f)
             }
 
             // Hand the finished frame to the encoder with an exact PTS.
@@ -292,6 +352,17 @@ class RenderEngine(
             Log.w(TAG, "renderer release: ${e.message}")
         }
         renderer = null
+        try {
+            if (watermarkTexture > 0) {
+                GLES20.glDeleteTextures(1, intArrayOf(watermarkTexture), 0)
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "watermark texture release: ${e.message}")
+        }
+        watermarkTexture = 0
+        watermarkBitmap?.recycle()
+        watermarkBitmap = null
+        overlayMatrix = null
         try {
             egl?.release()
         } catch (e: Exception) {
