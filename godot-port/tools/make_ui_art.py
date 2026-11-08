@@ -99,6 +99,16 @@ def plate(name, size, radius, fill, edge, gloss=True, rim=None):
 
 
 def main():
+    # Small plates. A nine-slice cannot draw smaller than the sum of its margins, so a 26 dp chip
+    # drawn from a 96 dp plate with 20 dp corners is forced up to 40 dp and spills out of its row.
+    # Anything under 40 dp tall uses these instead, with a 12 dp border.
+    plate("ui_panel_sm", (48, 48), 12, SURFACE, BORDER, rim=(255, 255, 255, 24))
+    plate("ui_panel_raised_sm", (48, 48), 12, RAISED, BORDER, rim=(255, 255, 255, 28))
+    plate("ui_button_sm", (48, 48), 12, RAISED, BORDER, rim=(255, 255, 255, 32))
+    plate("ui_button_gold_sm", (48, 48), 12, GOLD, GOLD_DARK, rim=(255, 255, 255, 66))
+    plate("ui_button_accent_sm", (48, 48), 12, ACCENT, ACCENT_DARK, rim=(255, 255, 255, 56))
+    plate("ui_button_danger_sm", (48, 48), 12, (240, 115, 90), (179, 58, 36), rim=(255, 255, 255, 56))
+
     # Panels and cards: border 24 so a nine-slice at any size keeps the corners round.
     plate("ui_panel", (96, 96), 22, SURFACE, BORDER, rim=(255, 255, 255, 26))
     plate("ui_panel_raised", (96, 96), 22, RAISED, BORDER, rim=(255, 255, 255, 30))

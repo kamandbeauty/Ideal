@@ -14,9 +14,9 @@ signal retry_requested(level_number: int)
 
 # Landscape puts the playfield on the right and everything that describes the level in a column on the
 # left, which is also the reading order of an RTL player: goals first, then the board they play on.
-const BOARD_LEFT := 382.0
-const BOARD_TOP := 58.0
-const BOARD_SIZE := 342.0
+const BOARD_LEFT := 374.0
+const BOARD_TOP := 52.0
+const BOARD_SIZE := 350.0
 const COLUMN_X := 16.0
 const COLUMN_W := 210.0
 const CHIP_HEIGHT := 30.0
@@ -58,12 +58,12 @@ func build() -> void:
 	set_backdrop("board_backdrop_ch01", 0.30, 0.5, 0.5, 0.75, 0.55)
 
 	# ---- header: home (top right), level over the column, moves and goals down the left ----------
-	UiKit.button(self, "home", "خانه", UiTokens.CANVAS_WIDTH - 16.0 - 76.0, 48.0, 76.0, 36.0,
+	UiKit.button(self, "home", "خانه", COLUMN_X, 48.0, 72.0, 36.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
 
 	_level_label = UiKit.label(self, "level", "", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, COLUMN_X, 48.0, COLUMN_W, 36.0)
+	UiKit.place(_level_label, COLUMN_X + 80.0, 48.0, COLUMN_W - 80.0, 36.0)
 
 	var moves_pill := UiKit.panel(self, "moves", COLUMN_X, 92.0, 104.0, 40.0, UiTokens.SURFACE_RAISED,
 		UiTokens.RADIUS_MD)

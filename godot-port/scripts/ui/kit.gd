@@ -96,18 +96,29 @@ static func ui_box(art_id: String, border: int, tint: Color = Color(1, 1, 1, 1))
 static func _near(a: Color, b: Color) -> bool:
 	return absf(a.r - b.r) < 0.02 and absf(a.g - b.g) < 0.02 and absf(a.b - b.b) < 0.02
 
-## Which baked plate answers a requested face colour. The pictures are the truth; the tokens are the
-## names they were baked from.
-static func plate_art(color: Color) -> String:
+## Which baked plate answers a requested face colour, and which nine-slice border goes with it. The
+## pictures are the truth; the tokens are the names they were baked from.
+##
+## Two sizes exist because a nine-slice can never be drawn smaller than the sum of its margins: a 26 dp
+## chip cut from the 96 dp plate would be forced up to 40 dp and spill out of its row. Anything under
+## 40 dp tall takes the `_sm` plate and a 12 dp border.
+static func plate_is_small(height: float) -> bool:
+	return height <= UiTokens.PLATE_SMALL_MAX
+
+static func plate_art(color: Color, height: float = 999.0) -> String:
+	var small := "_sm" if plate_is_small(height) else ""
 	if _near(color, UiTokens.GOLD):
-		return "ui_button_gold"
+		return "ui_button_gold" + small
 	if _near(color, UiTokens.ACCENT):
-		return "ui_button_accent"
+		return "ui_button_accent" + small
 	if _near(color, UiTokens.DANGER):
-		return "ui_button_danger"
+		return "ui_button_danger" + small
 	if _near(color, UiTokens.SURFACE_RAISED):
-		return "ui_panel_raised"
-	return "ui_panel"
+		return "ui_panel_raised" + small
+	return "ui_panel" + small
+
+static func plate_border(height: float) -> int:
+	return UiTokens.BORDER_PLATE_SMALL if plate_is_small(height) else UiTokens.BORDER_PLATE
 
 # ---- primitives ---------------------------------------------------------------------------------
 
@@ -164,7 +175,7 @@ static func panel(parent: Node, node_name: String, x: float, y: float, width: fl
 	var node := Panel.new()
 	node.name = node_name
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var art := ui_box(plate_art(color), UiTokens.BORDER_PANEL_ART)
+	var art := ui_box(plate_art(color, height), plate_border(height))
 	node.add_theme_stylebox_override("panel", art if art != null else box(color, radius))
 	parent.add_child(node)
 	place(node, x, y, width, height)
@@ -252,12 +263,14 @@ static func button(parent: Node, node_name: String, text: String, x: float, y: f
 	var hover: StyleBox = box(face.lightened(0.08), radius)
 	var pressed: StyleBox = box(face.darkened(0.12), radius)
 	var disabled: StyleBox = box(Color(face.r, face.g, face.b, face.a * 0.45), radius)
-	var plate := ui_box(plate_art(face), UiTokens.BORDER_BUTTON_ART)
+	var art_id := plate_art(face, height)
+	var border_art := plate_border(height)
+	var plate := ui_box(art_id, border_art)
 	if plate != null:
 		normal = plate
-		var hover_plate := ui_box(plate_art(face), UiTokens.BORDER_BUTTON_ART, Color(1.07, 1.07, 1.07, 1))
-		var press_plate := ui_box(plate_art(face), UiTokens.BORDER_BUTTON_ART, Color(0.86, 0.86, 0.86, 1))
-		var off_plate := ui_box(plate_art(face), UiTokens.BORDER_BUTTON_ART, Color(0.62, 0.62, 0.62, 0.92))
+		var hover_plate := ui_box(art_id, border_art, Color(1.07, 1.07, 1.07, 1))
+		var press_plate := ui_box(art_id, border_art, Color(0.86, 0.86, 0.86, 1))
+		var off_plate := ui_box(art_id, border_art, Color(0.62, 0.62, 0.62, 0.92))
 		hover = hover_plate if hover_plate != null else plate
 		pressed = press_plate if press_plate != null else plate
 		disabled = off_plate if off_plate != null else disabled

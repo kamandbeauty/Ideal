@@ -99,6 +99,11 @@ const BORDER_PILL := 24
 # ---- nine-slice borders of the UI plates in assets/ui/ ------------------------------------------
 # These are pictures, not rectangles: tools/make_ui_art.py bakes them, UiKit nine-slices them.
 
+const BORDER_PLATE := 20
+const BORDER_PLATE_SMALL := 12
+## Below this height a plate takes the `_sm` picture, because a nine-slice cannot shrink past its own
+## margins — the sum of a 20 dp border on two sides is 40.
+const PLATE_SMALL_MAX := 40.0
 const BORDER_PANEL_ART := 24
 const BORDER_BUTTON_ART := 20
 const BORDER_PILL_ART := 22
