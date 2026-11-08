@@ -31,20 +31,20 @@ func _build_ui() -> void:
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
 	var tint := ColorRect.new()
-	tint.color = Color(0.008, 0.025, 0.03, 0.52)
+	tint.color = Color(0.008, 0.025, 0.03, 0.32)
 	tint.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(tint)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 20)
-	margin.add_theme_constant_override("margin_right", 20)
-	margin.add_theme_constant_override("margin_top", 18)
-	margin.add_theme_constant_override("margin_bottom", 18)
+	margin.add_theme_constant_override("margin_left", 18)
+	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
 	add_child(margin)
 	var layout := VBoxContainer.new()
-	layout.add_theme_constant_override("separation", 12)
+	layout.add_theme_constant_override("separation", 10)
 	margin.add_child(layout)
 
 	var header := HBoxContainer.new()
@@ -64,78 +64,99 @@ func _build_ui() -> void:
 	header.add_child(title)
 
 	var info := PanelContainer.new()
-	info.add_theme_stylebox_override("panel", _panel_style(Color(0.02, 0.09, 0.095, 0.94), Color(0.69, 0.57, 0.35, 0.85), 15, 9))
+	info.add_theme_stylebox_override("panel", _panel_style(Color(0.02, 0.09, 0.095, 0.96), Color(0.82, 0.66, 0.36), 15, 9))
 	layout.add_child(info)
 	_wallet_label = Label.new()
 	_wallet_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_wallet_label.text = "مرحلهٔ باز: %s از %s   •   جان: %s" % [_fa(_progression.highest_unlocked_level), _fa(LEVEL_COUNT), _fa(_save.lives)]
+	_wallet_label.text = "مرحلهٔ باز: %s از %s    •    جان: %s" % [_fa(_progression.highest_unlocked_level), _fa(LEVEL_COUNT), _fa(_save.lives)]
 	info.add_child(_wallet_label)
+
+	var guide := Label.new()
+	guide.text = "یکی از مرحله‌های روشن را انتخاب کن و دکمهٔ «بازی کن» را بزن"
+	guide.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	guide.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	guide.add_theme_font_size_override("font_size", 13)
+	guide.add_theme_color_override("font_color", CREAM)
+	layout.add_child(guide)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	layout.add_child(scroll)
 	_content = VBoxContainer.new()
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_content.add_theme_constant_override("separation", 8)
+	_content.add_theme_constant_override("separation", 9)
 	scroll.add_child(_content)
 	_build_nodes()
 
 	var footer := Label.new()
-	footer.text = "مراحل قفل‌شده با پیشروی در بازی باز می‌شوند"
+	footer.text = "با کامل‌کردن هر مرحله، مسیر باغ را پیش ببر"
 	footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	footer.add_theme_font_size_override("font_size", 13)
-	footer.add_theme_color_override("font_color", Color(0.85, 0.87, 0.76))
+	footer.add_theme_font_size_override("font_size", 12)
+	footer.add_theme_color_override("font_color", Color(0.95, 0.89, 0.72))
 	layout.add_child(footer)
 
 func _build_nodes() -> void:
 	for number in range(1, LEVEL_COUNT + 1):
-		var row := HBoxContainer.new()
-		row.alignment = BoxContainer.ALIGNMENT_CENTER if number % 2 == 1 else BoxContainer.ALIGNMENT_END
-		row.add_theme_constant_override("separation", 8)
-		_content.add_child(row)
-		if number % 2 == 0:
-			var spacer := Control.new()
-			spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_child(spacer)
-		row.add_child(_make_level_node(number))
-		if number % 2 == 1:
-			var spacer := Control.new()
-			spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_child(spacer)
-		if number < LEVEL_COUNT:
-			var connector := Label.new()
-			connector.text = "✦     ◆     ✦"
-			connector.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			connector.add_theme_color_override("font_color", Color(0.89, 0.70, 0.36, 0.9))
-			connector.add_theme_font_size_override("font_size", 16)
-			_content.add_child(connector)
+		var unlocked := _progression.is_unlocked(number)
+		var record := _save.find_level(number)
+		var cleared := bool(record.get("cleared", false))
+		var current := number == _save.level_number
+		var card := PanelContainer.new()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var panel_color := Color(0.025, 0.12, 0.105, 0.97) if unlocked else Color(0.035, 0.055, 0.06, 0.94)
+		var border_color := GOLD if current else (Color(0.45, 0.75, 0.48) if cleared else Color(0.45, 0.48, 0.40, 0.75))
+		card.add_theme_stylebox_override("panel", _panel_style(panel_color, border_color, 16, 7))
+		_content.add_child(card)
 
-func _make_level_node(number: int) -> Control:
-	var unlocked := _progression.is_unlocked(number)
-	var record := _save.find_level(number)
-	var cleared := bool(record.get("cleared", false))
-	var current := number == _save.level_number
-	var node := Button.new()
-	node.custom_minimum_size = Vector2(196, 106)
-	node.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	node.disabled = not unlocked
-	var icon_path := "res://assets/art/node_locked.png"
-	if cleared:
-		icon_path = "res://assets/art/node_cleared.png"
-	elif current:
-		icon_path = "res://assets/art/node_current.png"
-	node.icon = AssetCatalog.texture(icon_path)
-	node.expand_icon = true
-	node.icon_max_width = 64
-	var state := "قفل" if not unlocked else ("تکمیل شد ✓" if cleared else ("مرحلهٔ بعدی" if current else "آمادهٔ بازی"))
-	var score := int(record.get("best_score", 0))
-	node.text = "مرحلهٔ %s\n%s%s" % [_fa(number), state, "\nرکورد: " + _fa(score) if score > 0 else ""]
-	node.add_theme_font_size_override("font_size", 14)
-	_style_button(node, Color(0.025, 0.12, 0.12, 0.96), Color(0.78, 0.62, 0.34, 0.86), 16)
-	node.disabled = not unlocked
-	if unlocked:
-		node.pressed.connect(_start_level.bind(number))
-	return node
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 10)
+		card.add_child(row)
+
+		var number_badge := PanelContainer.new()
+		number_badge.custom_minimum_size = Vector2(54, 54)
+		number_badge.add_theme_stylebox_override("panel", _panel_style(Color(0.16, 0.12, 0.055) if unlocked else Color(0.08, 0.09, 0.085), border_color, 13, 4))
+		row.add_child(number_badge)
+		var number_label := Label.new()
+		number_label.text = _fa(number)
+		number_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		number_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		number_label.add_theme_font_size_override("font_size", 23)
+		number_label.add_theme_color_override("font_color", GOLD if unlocked else Color(0.58, 0.60, 0.55))
+		number_badge.add_child(number_label)
+
+		var details := VBoxContainer.new()
+		details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		details.alignment = BoxContainer.ALIGNMENT_CENTER
+		details.add_theme_constant_override("separation", 2)
+		row.add_child(details)
+		var name := Label.new()
+		name.text = "مرحلهٔ %s" % _fa(number)
+		name.add_theme_font_size_override("font_size", 17)
+		name.add_theme_color_override("font_color", CREAM if unlocked else Color(0.68, 0.70, 0.65))
+		details.add_child(name)
+		var state := Label.new()
+		if cleared:
+			state.text = "تکمیل‌شده  ✓   •   رکورد: %s" % _fa(int(record.get("best_score", 0)))
+		elif not unlocked:
+			state.text = "🔒  پس از تکمیل مرحلهٔ قبلی باز می‌شود"
+		elif current:
+			state.text = "مرحلهٔ فعلی تو • آمادهٔ شروع"
+		else:
+			state.text = "باز است • می‌توانی دوباره بازی کنی"
+		state.add_theme_font_size_override("font_size", 11)
+		state.add_theme_color_override("font_color", Color(0.68, 0.9, 0.66) if cleared else Color(0.87, 0.82, 0.68))
+		details.add_child(state)
+
+		var play := Button.new()
+		play.text = "بازی کن" if unlocked else "قفل"
+		play.custom_minimum_size = Vector2(78, 46)
+		play.disabled = not unlocked
+		_style_button(play, Color(0.13, 0.34, 0.23) if unlocked else Color(0.12, 0.13, 0.12), GOLD if unlocked else Color(0.4, 0.42, 0.38), 11)
+		if unlocked:
+			play.pressed.connect(_start_level.bind(number))
+		row.add_child(play)
 
 func _start_level(number: int) -> void:
 	if not _progression.is_unlocked(number):
@@ -158,9 +179,11 @@ func _panel_style(bg: Color, border: Color, radius: int = 15, inset: int = 8) ->
 func _style_button(button: Button, bg: Color, accent: Color, radius: int = 13) -> void:
 	button.add_theme_color_override("font_color", CREAM)
 	button.add_theme_color_override("font_hover_color", Color.WHITE)
-	button.add_theme_stylebox_override("normal", _panel_style(bg, accent, radius, 7))
-	button.add_theme_stylebox_override("hover", _panel_style(bg.lightened(0.12), GOLD, radius, 7))
-	button.add_theme_stylebox_override("pressed", _panel_style(bg.darkened(0.12), accent.lightened(0.1), radius, 7))
+	button.add_theme_color_override("font_disabled_color", Color(0.55, 0.57, 0.52))
+	button.add_theme_stylebox_override("normal", _panel_style(bg, accent, radius, 6))
+	button.add_theme_stylebox_override("hover", _panel_style(bg.lightened(0.12), GOLD, radius, 6))
+	button.add_theme_stylebox_override("pressed", _panel_style(bg.darkened(0.12), accent.lightened(0.1), radius, 6))
+	button.add_theme_stylebox_override("disabled", _panel_style(bg.darkened(0.08), accent.darkened(0.2), radius, 6))
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
 func _fa(value: int) -> String:
