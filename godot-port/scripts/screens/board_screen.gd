@@ -116,7 +116,7 @@ func build() -> void:
 			BOOSTER_SIZE - 12.0, BOOSTER_SIZE - 20.0))
 		var count := UiKit.label(button, "count", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_CENTER, true)
-		UiKit.place(count, 2.0, BOOSTER_SIZE - 17.0, BOOSTER_SIZE - 4.0, 15.0)
+		UiKit.place(count, 2.0, BOOSTER_SIZE - 20.0, BOOSTER_SIZE - 4.0, 16.0)
 		_booster_counts.append(count)
 
 	_build_overlay()
