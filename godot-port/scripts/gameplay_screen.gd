@@ -237,6 +237,7 @@ func _refresh_board() -> void:
 					piece_view.offset_right = -5
 					piece_view.offset_bottom = -5
 					piece_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+					piece_view.set_meta("board_piece_view", true)
 					if _animate_next_refresh:
 						piece_view.scale = Vector2(0.72, 0.72)
 						piece_view.modulate = Color(1, 1, 1, 0.35)
@@ -330,6 +331,7 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 		_selected = Vector2i(-1, -1)
 		_refresh_board()
 		return
+	var before_visuals := _capture_board_visuals()
 	var from_pos := _selected
 	var from_texture := _cell_texture_at(from_pos)
 	var to_texture := _cell_texture_at(pos)
@@ -343,7 +345,7 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 			progression.record_level_result(_run, _wallet)
 			_store.save(_save)
 		_input_locked = true
-		_animate_swap_and_refresh(from_pos, pos, from_texture, to_texture)
+		_animate_swap_and_refresh(from_pos, pos, from_texture, to_texture, before_visuals)
 		return
 	_play_reject_fx(pos)
 	_refresh_board()
@@ -585,12 +587,30 @@ func _cell_texture_at(pos: Vector2i) -> Texture2D:
 		return AssetCatalog.piece_texture(cell.piece)
 	return null
 
-func _animate_swap_and_refresh(from_pos: Vector2i, to_pos: Vector2i, from_texture: Texture2D, to_texture: Texture2D) -> void:
+func _capture_board_visuals() -> Array[Dictionary]:
+	var visuals: Array[Dictionary] = []
+	if _run == null:
+		return visuals
+	for pos in _run.board.all_positions():
+		var cell = _run.board.at_pos(pos)
+		if cell == null or not cell.has_piece:
+			continue
+		var texture: Texture2D = AssetCatalog.power_up_texture(cell.power_up) if cell.power_up != GameTypes.PowerUpKind.NONE else AssetCatalog.piece_texture(cell.piece)
+		if texture == null:
+			continue
+		var key := "%d:%d" % [cell.piece, cell.power_up]
+		var button: Button = _cell_buttons.get(pos)
+		var center := _fx_layer.to_local(button.get_global_rect().get_center()) if button != null else Vector2.ZERO
+		visuals.append({"position": pos, "key": key, "texture": texture, "center": center})
+
+	return visuals
+
+func _animate_swap_and_refresh(from_pos: Vector2i, to_pos: Vector2i, from_texture: Texture2D, to_texture: Texture2D, before_visuals: Array[Dictionary]) -> void:
 	var from_button: Button = _cell_buttons.get(from_pos)
 	var to_button: Button = _cell_buttons.get(to_pos)
 	if from_button == null or to_button == null or from_texture == null or to_texture == null:
+		await _animate_board_transition(before_visuals)
 		_input_locked = false
-		_refresh_board()
 		return
 	var from_center: Vector2 = _fx_layer.to_local(from_button.get_global_rect().get_center())
 	var to_center: Vector2 = _fx_layer.to_local(to_button.get_global_rect().get_center())
@@ -608,8 +628,68 @@ func _animate_swap_and_refresh(from_pos: Vector2i, to_pos: Vector2i, from_textur
 	await motion.finished
 	sprite_a.queue_free()
 	sprite_b.queue_free()
+	await _animate_board_transition(before_visuals)
 	_input_locked = false
+
+func _animate_board_transition(before_visuals: Array[Dictionary]) -> void:
+	var after_visuals := _capture_board_visuals()
 	_refresh_board()
+	await get_tree().process_frame
+	var unused_sources: Array[int] = []
+	for index in range(before_visuals.size()):
+		unused_sources.append(index)
+	var sprites: Array[TextureRect] = []
+	var targets: Array[Vector2] = []
+	var sprite_size := Vector2(CELL_SIZE * 0.78, CELL_SIZE * 0.78)
+	for destination in after_visuals:
+		var target_pos: Vector2i = destination.position
+		var target_button: Button = _cell_buttons.get(target_pos)
+		if target_button == null:
+			continue
+		var target_center := _fx_layer.to_local(target_button.get_global_rect().get_center())
+		var best_source := -1
+		var best_distance := INF
+		for source_index in unused_sources:
+			var source: Dictionary = before_visuals[source_index]
+			if source.key != destination.key:
+				continue
+			var source_pos: Vector2i = source.position
+			var distance := source.center.distance_squared_to(target_center)
+			if source_pos.x == target_pos.x:
+				distance *= 0.72
+			if distance < best_distance:
+				best_distance = distance
+				best_source = source_index
+		var start_center := target_center
+		if best_source >= 0:
+			start_center = before_visuals[best_source].center
+			unused_sources.erase(best_source)
+		else:
+			start_center.y -= CELL_SIZE * float(_run.board.height)
+		var sprite := _make_swap_sprite(destination.texture, start_center, sprite_size)
+		sprite.scale = Vector2(0.82, 0.82)
+		sprite.modulate.a = 0.85
+		_fx_layer.add_child(sprite)
+		sprites.append(sprite)
+		targets.append(target_center)
+		for child in target_button.get_children():
+			if child is TextureRect and child.has_meta("board_piece_view"):
+				child.modulate.a = 0.0
+	if sprites.is_empty():
+		return
+	var fall := create_tween()
+	fall.set_parallel(true)
+	for index in range(sprites.size()):
+		fall.tween_property(sprites[index], "position", targets[index] - sprite_size / 2.0, 0.24 + float(index % 5) * 0.018).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		fall.tween_property(sprites[index], "scale", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		fall.tween_property(sprites[index], "modulate:a", 1.0, 0.18)
+	await fall.finished
+	for sprite in sprites:
+		sprite.queue_free()
+	for button in _cell_buttons.values():
+		for child in button.get_children():
+			if child is TextureRect and child.has_meta("board_piece_view"):
+				child.modulate.a = 1.0
 
 func _make_swap_sprite(texture: Texture2D, center: Vector2, sprite_size: Vector2) -> TextureRect:
 	var sprite := TextureRect.new()
