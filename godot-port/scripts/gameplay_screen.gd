@@ -1,6 +1,6 @@
 extends Control
 
-const CELL_SIZE := 58
+var CELL_SIZE := 58
 const CELL_GAP := 4
 
 var _level: LevelDefinition
@@ -68,22 +68,22 @@ func _build_ui() -> void:
 	add_child(backdrop)
 
 	var shade := ColorRect.new()
-	shade.color = Color(0.035, 0.047, 0.08, 0.58)
+	shade.color = Color(0.025, 0.04, 0.075, 0.48)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(shade)
 
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 24)
-	margin.add_theme_constant_override("margin_right", 24)
-	margin.add_theme_constant_override("margin_top", 32)
-	margin.add_theme_constant_override("margin_bottom", 28)
+	margin.add_theme_constant_override("margin_left", 18)
+	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_top", 18)
+	margin.add_theme_constant_override("margin_bottom", 16)
 	add_child(margin)
 
 	var layout := VBoxContainer.new()
 	layout.alignment = BoxContainer.ALIGNMENT_CENTER
-	layout.add_theme_constant_override("separation", 18)
+	layout.add_theme_constant_override("separation", 10)
 	margin.add_child(layout)
 
 	var header := HBoxContainer.new()
@@ -93,10 +93,11 @@ func _build_ui() -> void:
 	back_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
 	header.add_child(back_button)
 	var title := Label.new()
-	title.text = "باغ شازده · مرحلهٔ %d" % (_level.number if _level != null else 1)
+	title.text = "باغ شازده"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.add_theme_font_size_override("font_size", 34)
+	title.add_theme_font_size_override("font_size", 28)
+	title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.66))
 	header.add_child(title)
 
 	_moves_label = Label.new()
@@ -117,13 +118,27 @@ func _build_ui() -> void:
 	var board_center := CenterContainer.new()
 	board_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(board_center)
+	var board_panel := PanelContainer.new()
+	var board_style := StyleBoxFlat.new()
+	board_style.bg_color = Color(0.025, 0.045, 0.075, 0.94)
+	board_style.border_color = Color(0.78, 0.62, 0.32, 0.9)
+	board_style.set_border_width_all(3)
+	board_style.set_corner_radius_all(20)
+	board_style.content_margin_left = 9
+	board_style.content_margin_right = 9
+	board_style.content_margin_top = 9
+	board_style.content_margin_bottom = 9
+	board_panel.add_theme_stylebox_override("panel", board_style)
+	board_center.add_child(board_panel)
 
 	_grid = GridContainer.new()
 	_grid.columns = _level.width if _level != null else 9
 	_grid.layout_direction = Control.LAYOUT_DIRECTION_LTR
 	_grid.add_theme_constant_override("h_separation", CELL_GAP)
 	_grid.add_theme_constant_override("v_separation", CELL_GAP)
-	board_center.add_child(_grid)
+	board_panel.add_child(_grid)
+	var columns := _level.width if _level != null else 9
+	CELL_SIZE = clampi(int((get_viewport_rect().size.x - 70.0 - float(columns - 1) * CELL_GAP) / float(columns)), 42, 66)
 
 	var booster_row := HBoxContainer.new()
 	booster_row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -131,10 +146,13 @@ func _build_ui() -> void:
 	layout.add_child(booster_row)
 	for kind in range(BoosterBag.SLOTS):
 		var booster_button := Button.new()
-		booster_button.custom_minimum_size = Vector2(112, 84)
+		booster_button.custom_minimum_size = Vector2(0, 82)
+		booster_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		booster_button.icon = AssetCatalog.booster_texture(kind)
 		booster_button.expand_icon = true
 		booster_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		booster_button.icon_max_width = 42
+		booster_button.add_theme_font_size_override("font_size", 12)
 		booster_button.pressed.connect(_on_booster_pressed.bind(kind))
 		booster_row.add_child(booster_button)
 		_booster_buttons.append(booster_button)
@@ -167,7 +185,9 @@ func _refresh_board() -> void:
 			button.text = ""
 			button.pressed.connect(_on_cell_pressed.bind(pos))
 			var style := StyleBoxFlat.new()
-			style.bg_color = Color(0.13, 0.16, 0.23, 0.92)
+			style.bg_color = Color(0.09, 0.16, 0.21, 0.98)
+			style.border_color = Color(0.48, 0.66, 0.65, 0.4)
+			style.set_border_width_all(1)
 			style.corner_radius_top_left = 9
 			style.corner_radius_top_right = 9
 			style.corner_radius_bottom_left = 9
@@ -214,7 +234,7 @@ func _refresh_board() -> void:
 
 	for kind in range(_booster_buttons.size()):
 		var booster_button: Button = _booster_buttons[kind]
-		booster_button.text = "%s  ×%d" % [BoosterBag.booster_name(kind), _bag.count(kind)]
+		booster_button.text = "%s\n×%d" % [BoosterBag.booster_name(kind), _bag.count(kind)]
 		booster_button.disabled = _bag.count(kind) <= 0 or _run.status != GameTypes.LevelStatus.PLAYING
 		booster_button.modulate = Color(1.2, 1.2, 0.65, 1) if kind == _selected_booster else Color.WHITE
 
