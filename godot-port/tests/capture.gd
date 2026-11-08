@@ -63,6 +63,11 @@ func _ready() -> void:
 	board_screen.refresh()
 	board_screen._show_combo(3, 300)
 	await _frames(2)
+	# Freeze the entrance: the tween writes modulate every frame, so setting the values alone only holds
+	# them until the next tick and the shot catches the plate half faded in.
+	await _frames(1)
+	for running in get_tree().get_processed_tweens():
+		running.kill()
 	var combo_toast := board_screen.get_node_or_null("combo_toast") as Control
 	if combo_toast != null:
 		combo_toast.modulate = Color(1, 1, 1, 1)
