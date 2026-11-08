@@ -21,6 +21,8 @@ var _booster_buttons: Array[Button] = []
 var _cell_buttons: Dictionary = {}
 var _fx_layer: Control
 var _board_panel: PanelContainer
+var _animate_next_refresh := false
+var _end_overlay: Control
 
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_RTL
@@ -219,7 +221,15 @@ func _refresh_board() -> void:
 					piece_view.offset_right = -5
 					piece_view.offset_bottom = -5
 					piece_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+					if _animate_next_refresh:
+						piece_view.scale = Vector2(0.62, 0.62)
+						piece_view.modulate = Color(1, 1, 1, 0.45)
 					button.add_child(piece_view)
+					if _animate_next_refresh:
+						var appear := create_tween()
+						appear.set_parallel(true)
+						appear.tween_property(piece_view, "scale", Vector2.ONE, 0.22).set_delay(float((x + y) % 5) * 0.018).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+						appear.tween_property(piece_view, "modulate", Color.WHITE, 0.16).set_delay(float((x + y) % 5) * 0.018)
 				if cell.has_obstacle:
 					var obstacle_texture := AssetCatalog.obstacle_texture(cell.obstacle)
 					if obstacle_texture != null:
@@ -240,6 +250,8 @@ func _refresh_board() -> void:
 			_grid.add_child(button)
 			_cell_buttons[pos] = button
 
+	_animate_next_refresh = false
+	_ensure_end_overlay()
 	for kind in range(_booster_buttons.size()):
 		var booster_button: Button = _booster_buttons[kind]
 		booster_button.text = "%s\n×%d" % [BoosterBag.booster_name(kind), _bag.count(kind)]
@@ -277,6 +289,7 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 		var booster_result := _run.use_booster(_selected_booster, pos.x, pos.y)
 		if booster_result.accepted:
 			_play_result_fx(booster_result)
+			_animate_next_refresh = true
 		if not booster_result.accepted or not _booster_had_effect(booster_result):
 			_bag.grant(_selected_booster)
 			if booster_result.accepted:
@@ -297,6 +310,7 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 	_selected = Vector2i(-1, -1)
 	if result.accepted:
 		_play_result_fx(result)
+		_animate_next_refresh = true
 	else:
 		_play_reject_fx(pos)
 	if result.accepted:
@@ -353,7 +367,9 @@ func _play_result_fx(result: Dictionary) -> void:
 				created_powerups += 1
 				_spawn_cell_fx(Vector2i(event.position.x, event.position.y), "res://assets/art/fx_ring.png", Color(0.55, 0.95, 1.0), 0.78)
 			"power_up_triggered":
-				_spawn_cell_fx(Vector2i(event.position.x, event.position.y), "res://assets/art/fx_spark.png", Color(0.7, 0.95, 1.0), 0.72)
+				var origin := Vector2i(event.position.x, event.position.y)
+				_spawn_cell_fx(origin, "res://assets/art/fx_spark.png", Color(0.7, 0.95, 1.0), 0.82)
+				_play_powerup_sweep(origin, int(event.get("kind", 0)))
 			"cascade":
 				cascades += 1
 	if cascades > 0 or cleared >= 5 or created_powerups > 0:
@@ -411,3 +427,112 @@ func _shake_board(amount: float) -> void:
 func _play_reject_fx(pos: Vector2i) -> void:
 	_spawn_cell_fx(pos, "res://assets/art/fx_ring.png", Color(1.0, 0.35, 0.28), 0.55)
 	_shake_board(2.0)
+
+
+func _play_powerup_sweep(origin: Vector2i, kind: int) -> void:
+	if _fx_layer == null or _grid == null:
+		return
+	var origin_button: Button = _cell_buttons.get(origin)
+	if origin_button == null:
+		return
+	var center := _fx_layer.to_local(origin_button.get_global_rect().get_center())
+	var board_rect := _grid.get_global_rect()
+	var local_rect := Rect2(_fx_layer.to_local(board_rect.position), board_rect.size)
+	var line := Line2D.new()
+	line.width = 7.0
+	line.default_color = Color(0.55, 0.94, 1.0, 0.0)
+	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
+	line.end_cap_mode = Line2D.LINE_CAP_ROUND
+	line.add_point(center)
+	if kind == GameTypes.PowerUpKind.ROCKET_HORIZONTAL:
+		line.add_point(Vector2(local_rect.position.x, center.y))
+		line.add_point(Vector2(local_rect.end.x, center.y))
+	elif kind == GameTypes.PowerUpKind.ROCKET_VERTICAL:
+		line.add_point(Vector2(center.x, local_rect.end.y))
+		line.add_point(Vector2(center.x, local_rect.position.y))
+	elif kind in [GameTypes.PowerUpKind.SPINNER, GameTypes.PowerUpKind.DYNAMITE, GameTypes.PowerUpKind.ELECTRO_BALL, GameTypes.PowerUpKind.SUPER_ELECTRO_BALL]:
+		var radius := CELL_SIZE * (2.8 if kind == GameTypes.PowerUpKind.SUPER_ELECTRO_BALL else 1.9)
+		for index in range(9):
+			var angle := TAU * float(index) / 8.0
+			line.add_point(center + Vector2(cos(angle), sin(angle)) * radius)
+	else:
+		return
+	_fx_layer.add_child(line)
+	var sweep := create_tween()
+	sweep.tween_property(line, "default_color:a", 0.95, 0.07)
+	sweep.tween_property(line, "width", 1.0, 0.24)
+	sweep.parallel().tween_property(line, "default_color:a", 0.0, 0.27)
+	sweep.tween_callback(line.queue_free)
+
+func _ensure_end_overlay() -> void:
+	if _run == null or _run.status == GameTypes.LevelStatus.PLAYING:
+		if is_instance_valid(_end_overlay):
+			_end_overlay.queue_free()
+		_end_overlay = null
+		return
+	if is_instance_valid(_end_overlay):
+		return
+	var shade := ColorRect.new()
+	shade.color = Color(0.015, 0.025, 0.045, 0.78)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(shade)
+	_end_overlay = shade
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(270, 210)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.055, 0.09, 0.13, 0.98)
+	panel_style.border_color = Color(0.85, 0.69, 0.37, 1.0)
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(22)
+	panel_style.content_margin_left = 22
+	panel_style.content_margin_right = 22
+	panel_style.content_margin_top = 20
+	panel_style.content_margin_bottom = 20
+	panel.add_theme_stylebox_override("panel", panel_style)
+	center.add_child(panel)
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 14)
+	panel.add_child(column)
+	var won := _run.status == GameTypes.LevelStatus.WON
+	var heading := Label.new()
+	heading.text = "آفرین! باغ شکوفا شد" if won else "این بار نشد!"
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	heading.add_theme_font_size_override("font_size", 25)
+	heading.add_theme_color_override("font_color", Color(1.0, 0.84, 0.43) if won else Color(1.0, 0.58, 0.45))
+	column.add_child(heading)
+	var detail := Label.new()
+	detail.text = ("امتیاز مرحله: %d ستاره" % StarRating.from_run(_run)) if won else "حرکت‌ها تمام شد؛ دوباره امتحان کن"
+	detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	detail.add_theme_font_size_override("font_size", 16)
+	column.add_child(detail)
+	if won:
+		var stars := Label.new()
+		var rating := StarRating.from_run(_run)
+		stars.text = "★  ★  ★" if rating >= 3 else ("★  ★" if rating == 2 else "★")
+		stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		stars.add_theme_font_size_override("font_size", 30)
+		stars.add_theme_color_override("font_color", Color(1.0, 0.82, 0.32))
+		column.add_child(stars)
+	var action := Button.new()
+	action.text = "ادامه" if won else "تلاش دوباره"
+	action.custom_minimum_size = Vector2(0, 46)
+	if won:
+		action.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
+	else:
+		action.pressed.connect(func() -> void: get_tree().reload_current_scene())
+	column.add_child(action)
+	var home := Button.new()
+	home.text = "بازگشت به باغ"
+	home.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
+	column.add_child(home)
+	panel.scale = Vector2(0.82, 0.82)
+	panel.modulate = Color(1, 1, 1, 0)
+	var intro := create_tween()
+	intro.set_parallel(true)
+	intro.tween_property(panel, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	intro.tween_property(panel, "modulate", Color.WHITE, 0.2)
