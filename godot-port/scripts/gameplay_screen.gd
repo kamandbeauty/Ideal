@@ -62,6 +62,43 @@ func _apply_theme() -> void:
 	ui_theme.default_font_size = 20
 	theme = ui_theme
 
+func _panel_style(background: Color, border: Color, radius: int = 16, inset: int = 10) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(radius)
+	style.content_margin_left = inset
+	style.content_margin_right = inset
+	style.content_margin_top = inset
+	style.content_margin_bottom = inset
+	return style
+
+func _style_button(button: Button, background: Color, accent: Color, radius: int = 14) -> void:
+	button.add_theme_color_override("font_color", Color(1.0, 0.94, 0.78))
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_stylebox_override("normal", _panel_style(background, accent, radius, 8))
+	button.add_theme_stylebox_override("hover", _panel_style(background.lightened(0.12), Color(1.0, 0.84, 0.48), radius, 8))
+	button.add_theme_stylebox_override("pressed", _panel_style(background.darkened(0.12), accent.lightened(0.1), radius, 8))
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+
+func _make_hud_card(caption: String, value: Label) -> PanelContainer:
+	var card := PanelContainer.new()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.add_theme_stylebox_override("panel", _panel_style(Color(0.025, 0.10, 0.11, 0.95), Color(0.78, 0.64, 0.36, 0.9), 16, 8))
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 2)
+	card.add_child(column)
+	var heading := Label.new()
+	heading.text = caption
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	heading.add_theme_font_size_override("font_size", 13)
+	heading.add_theme_color_override("font_color", Color(0.79, 0.86, 0.75))
+	column.add_child(heading)
+	value.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_child(value)
+	return card
+
 func _load_game_state() -> void:
 	var save_directory := str(get_meta("save_directory", ""))
 	_store = SaveStore.new(null, save_directory)
@@ -118,12 +155,15 @@ func _build_ui() -> void:
 	var header := HBoxContainer.new()
 	layout.add_child(header)
 	var back_button := Button.new()
-	back_button.text = "بازگشت"
-	back_button.text = "خانه"
+	back_button.text = "⌂ خانه"
+	back_button.custom_minimum_size = Vector2(92, 48)
+	_style_button(back_button, Color(0.035, 0.14, 0.15, 0.96), Color(0.72, 0.61, 0.39, 0.9), 13)
 	back_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
 	header.add_child(back_button)
 	_pause_button = Button.new()
 	_pause_button.text = "Ⅱ مکث"
+	_pause_button.custom_minimum_size = Vector2(92, 48)
+	_style_button(_pause_button, Color(0.035, 0.14, 0.15, 0.96), Color(0.72, 0.61, 0.39, 0.9), 13)
 	_pause_button.pressed.connect(_show_pause_overlay)
 	header.add_child(_pause_button)
 	var title := Label.new()
@@ -131,38 +171,50 @@ func _build_ui() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.66))
+	title.add_theme_color_override("font_color", Color(1.0, 0.86, 0.52))
 	header.add_child(title)
+
+	var hud_row := HBoxContainer.new()
+	hud_row.add_theme_constant_override("separation", 10)
+	layout.add_child(hud_row)
 
 	_score_label = Label.new()
 	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_score_label.add_theme_font_size_override("font_size", 21)
-	layout.add_child(_score_label)
+	_score_label.add_theme_font_size_override("font_size", 22)
+	hud_row.add_child(_make_hud_card("امتیاز", _score_label))
 
 	_moves_label = Label.new()
 	_moves_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_moves_label.add_theme_font_size_override("font_size", 24)
-	layout.add_child(_moves_label)
+	_moves_label.add_theme_font_size_override("font_size", 22)
+	hud_row.add_child(_make_hud_card("حرکت باقی‌مانده", _moves_label))
 
+	var goal_panel := PanelContainer.new()
+	goal_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.025, 0.10, 0.11, 0.94), Color(0.73, 0.61, 0.36, 0.88), 16, 10))
+	layout.add_child(goal_panel)
 	_goal_label = Label.new()
 	_goal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_goal_label.add_theme_font_size_override("font_size", 20)
-	layout.add_child(_goal_label)
+	_goal_label.add_theme_font_size_override("font_size", 18)
+	_goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	goal_panel.add_child(_goal_label)
 
+	var status_panel := PanelContainer.new()
+	status_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.015, 0.07, 0.08, 0.82), Color(0.35, 0.58, 0.51, 0.55), 14, 8))
+	layout.add_child(status_panel)
 	_status_label = Label.new()
 	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.add_theme_font_size_override("font_size", 17)
-	layout.add_child(_status_label)
+	_status_label.add_theme_font_size_override("font_size", 16)
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	status_panel.add_child(_status_label)
 
 	var board_center := CenterContainer.new()
 	board_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(board_center)
 	var board_panel := PanelContainer.new()
 	var board_style := StyleBoxFlat.new()
-	board_style.bg_color = Color(0.025, 0.045, 0.075, 0.94)
-	board_style.border_color = Color(0.78, 0.62, 0.32, 0.9)
+	board_style.bg_color = Color(0.018, 0.055, 0.075, 0.97)
+	board_style.border_color = Color(0.91, 0.73, 0.39, 0.98)
 	board_style.set_border_width_all(3)
-	board_style.set_corner_radius_all(20)
+	board_style.set_corner_radius_all(24)
 	board_style.content_margin_left = 9
 	board_style.content_margin_right = 9
 	board_style.content_margin_top = 9
@@ -197,7 +249,8 @@ func _build_ui() -> void:
 		booster_button.expand_icon = true
 		booster_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		booster_button.icon_max_width = 42
-		booster_button.add_theme_font_size_override("font_size", 12)
+		booster_button.add_theme_font_size_override("font_size", 13)
+		_style_button(booster_button, Color(0.035, 0.15, 0.16, 0.96), Color(0.76, 0.62, 0.35, 0.88), 15)
 		booster_button.pressed.connect(_on_booster_pressed.bind(kind))
 		booster_row.add_child(booster_button)
 		_booster_buttons.append(booster_button)
@@ -231,14 +284,15 @@ func _refresh_board() -> void:
 			button.text = ""
 			button.pressed.connect(_on_cell_pressed.bind(pos))
 			var style := StyleBoxFlat.new()
-			style.bg_color = Color(0.09, 0.16, 0.21, 0.98)
-			style.border_color = Color(0.48, 0.66, 0.65, 0.4)
+			style.bg_color = Color(0.045, 0.13, 0.17, 0.98)
+			style.border_color = Color(0.58, 0.72, 0.66, 0.48)
 			style.set_border_width_all(1)
-			style.corner_radius_top_left = 9
-			style.corner_radius_top_right = 9
-			style.corner_radius_bottom_left = 9
-			style.corner_radius_bottom_right = 9
+			style.set_corner_radius_all(11)
 			button.add_theme_stylebox_override("normal", style)
+			var cell_hover := _panel_style(Color(0.12, 0.25, 0.25, 1.0), Color(0.97, 0.79, 0.43, 0.95), 11, 0)
+			button.add_theme_stylebox_override("hover", cell_hover)
+			button.add_theme_stylebox_override("pressed", _panel_style(Color(0.20, 0.30, 0.23, 1.0), Color(1.0, 0.88, 0.52, 1.0), 11, 0))
+			button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 			var cell = _run.board.at_pos(pos)
 			if cell != null:
 				var texture: Texture2D = null
