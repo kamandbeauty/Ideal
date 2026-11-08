@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="fa">
+<head>
+<meta charset="utf-8" />
+<title>درس پنجم — عوامل مؤثر در کشاورزی · کلاس ششم یکدبستان یزدان</title>
+<style>
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-400-normal.woff2') format('woff2'); font-weight: 400; }
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-500-normal.woff2') format('woff2'); font-weight: 500; }
+  @font-face { font-family: 'Vazirmatn'; src: url('fonts/vazirmatn-arabic-700-normal.woff2') format('woff2'); font-weight: 700; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #0a0805; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #0b0906; }
+
+  /* ---------- plates: two layers → soft dissolve ---------- */
+  #plateWrap { position: absolute; inset: 0; overflow: hidden; }
+  .plt {
+    position: absolute; left: 50%; top: 50%;
+    width: 1920px; height: 1080px; object-fit: cover;
+    transform-origin: 50% 50%;
+    will-change: transform, opacity; backface-visibility: hidden;
+  }
+  .fallback { position: absolute; inset: 0;
+    background: linear-gradient(180deg, #cfe3f2 0%, #e8dfc6 45%, #b9a173 75%, #6d5a3c 100%); }
+
+  /* ---------- light ---------- */
+  #leak { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(42% 34% at 2% 16%, rgba(255,240,205,.40) 0%, rgba(255,230,180,0) 74%),
+                radial-gradient(36% 30% at 100% 82%, rgba(255,214,160,.30) 0%, rgba(255,200,140,0) 74%); }
+  #warm { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(62% 44% at 50% 58%, rgba(255,196,120,.34) 0%, rgba(255,168,90,.14) 46%, rgba(255,150,70,0) 80%); }
+  #fog { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: linear-gradient(0deg, rgba(236,244,250,.26) 0%, rgba(236,244,250,.09) 14%, rgba(236,244,250,0) 38%); }
+  #boil { position: absolute; inset: 0; pointer-events: none; opacity: .34; mix-blend-mode: soft-light;
+    background: radial-gradient(72% 50% at 32% 28%, rgba(255,250,232,.18) 0%, rgba(255,250,232,0) 72%); }
+  .grain { position: absolute; inset: -80px; pointer-events: none; opacity: .062; mix-blend-mode: overlay;
+    background-image: url("assets/grain.png"); background-repeat: repeat; background-size: 256px 256px; }
+  #flash { position: absolute; inset: 0; background: #fff8ea; opacity: 0; pointer-events: none; }
+  #fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+
+  /* ---------- dust ---------- */
+  #dust { position: absolute; inset: 0; pointer-events: none; }
+  #dust i { position: absolute; width: 3px; height: 3px; border-radius: 50%;
+    background: rgba(255,246,220,.55); box-shadow: 0 0 7px rgba(255,240,200,.35); }
+
+  /* ---------- word-by-word subtitles ---------- */
+  #subscrim { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(66% 30% at 50% 88%, rgba(6,6,8,.50) 0%, rgba(6,6,8,.22) 58%, rgba(6,6,8,0) 92%); }
+  #sub { position: absolute; left: 170px; right: 170px; bottom: 150px;
+    direction: rtl; text-align: center; font-family: 'Vazirmatn', sans-serif; font-weight: 700;
+    font-size: 56px; line-height: 1.5; letter-spacing: -.2px; color: #fff;
+    -webkit-text-stroke: 2.6px rgba(6,8,14,.72); paint-order: stroke fill; }
+  #sub .w { display: inline-block; opacity: 0; will-change: transform, opacity, filter; }
+  #sub .w.live { -webkit-text-stroke: 2.6px rgba(46,28,4,.75); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="plateWrap">
+    <div class="fallback" id="fallback"></div>
+    <img class="plt" id="plateB" alt="" />
+    <img class="plt" id="plateA" alt="" />
+  </div>
+  <div id="leak"></div>
+  <div id="fog"></div>
+  <div id="warm"></div>
+  <div id="boil"></div>
+  <div id="dust"></div>
+  <div class="grain" id="grain"></div>
+  <div id="flash"></div>
+  <div id="subscrim"></div>
+  <div id="sub"></div>
+  <div id="fade"></div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const smooth = (p) => { const q = clamp(p, 0, 1); return q * q * q * (q * (6 * q - 15) + 10); };  // easeInOutQuint
+const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
+
+let DATA = null;
+let current = -1;
+let dust = [];
+const DISSOLVE = 0.50;
+let prevPlate = null;
+
+const STAGE_W = 1920;
+const STAGE_H = 1080;
+
+/* --------------------------------------------------------------- camera --- */
+// scene-length continuous paths: never freeze, never restart at a subtitle break
+const MOVES = {
+  in:    (a) => ({ k0: 1.08, k1: 1.26 + 0.18 * a }),
+  out:   (a) => ({ k0: 1.26 + 0.18 * a, k1: 1.08 }),
+  panR:  (a) => ({ k0: 1.22 + 0.10 * a, k1: 1.22 + 0.10 * a }),
+  panL:  (a) => ({ k0: 1.22 + 0.10 * a, k1: 1.22 + 0.10 * a }),
+  tiltU: (a) => ({ k0: 1.28 + 0.10 * a, k1: 1.28 + 0.10 * a }),
+  tiltD: (a) => ({ k0: 1.28 + 0.10 * a, k1: 1.28 + 0.10 * a }),
+  inL:   (a) => ({ k0: 1.10, k1: 1.30 + 0.16 * a }),
+  inR:   (a) => ({ k0: 1.10, k1: 1.30 + 0.16 * a }),
+  hold:  (a) => ({ k0: 1.14, k1: 1.18 + 0.06 * a }),
+  hook:  (a) => ({ k0: 1.60, k1: 1.20 + 0.08 * a }),
+};
+
+function cameraAt(sc, t, p, seed, dur = 8) {
+  const { k0, k1 } = (MOVES[sc.move] || MOVES.hold)(sc.amt ?? 0.8);
+  const a0 = sc.a0 || [0.5, 0.5];
+  const a1 = sc.a1 || a0;
+
+  const legs = clamp(dur / 5.2, 1, 3.4);
+  const ph = seed * 1.9;
+
+  let k = k0 + (k1 - k0) * p;
+  const zoomCycles = Math.max(0, legs - 1);
+  if (zoomCycles > 0) {
+    const zoomAmp = 0.085 * clamp((dur - 5) / 7, 0, 1) * (1 + 0.18 * (zoomCycles - 1));
+    k *= 1 + zoomAmp * Math.sin(2 * Math.PI * zoomCycles * p + ph * 0.7);
+  }
+  k = clamp(k, 1.04, 1.72);
+
+  const sway = Math.max(1, zoomCycles);
+  const panAmp = 0.026 + 0.013 * clamp(legs - 1, 0, 2);
+  const travel = 0.028 * clamp(legs - 1, 0, 2) * (p - 0.5);
+  const ax = 0.5 + (a0[0] - 0.5) + ((a1[0] - a0[0]) * 1.2) * p + travel
+    + panAmp * Math.sin(2 * Math.PI * sway * p + ph);
+  const ay = 0.5 + (a0[1] - 0.5) + ((a1[1] - a0[1]) * 1.2) * p
+    + panAmp * 0.75 * Math.cos(2 * Math.PI * sway * p + ph * 1.4);
+
+  const maxX = ((k - 1) * STAGE_W) / 2;
+  const maxY = ((k - 1) * STAGE_H) / 2;
+  let tx = (0.5 - ax) * STAGE_W * k;
+  let ty = (0.5 - ay) * STAGE_H * k;
+  tx = clamp(tx, -maxX, maxX);
+  ty = clamp(ty, -maxY, maxY);
+
+  const phw = seed * 2.7;
+  const hx = Math.sin(t * 0.085 * Math.PI * 2 + phw) * 2.4 + Math.sin(t * 0.205 * Math.PI * 2 + 1.7) * 1.0;
+  const hy = Math.sin(t * 0.072 * Math.PI * 2 + 0.6 + phw) * 2.0 + Math.sin(t * 0.178 * Math.PI * 2 + 2.3) * 0.8;
+  const rot = Math.sin(t * 0.055 * Math.PI * 2 + 2.1 + phw) * 0.10 + (p - 0.5) * 0.16;
+  const breathe = 1 + Math.sin(t * 0.13 * Math.PI * 2 + 0.9) * 0.0030;
+  return { tx: tx + hx, ty: ty + hy, k: k * breathe, rot };
+}
+
+/* ------------------------------------------------------------------ dust --- */
+function initDust() {
+  const box = $('dust');
+  box.innerHTML = '';
+  dust = [];
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement('i');
+    box.appendChild(el);
+    dust.push({ el, x: hash(i, 1), y: hash(i, 2), s: 0.35 + hash(i, 3) * 1.1, ph: hash(i, 4) * 6.28 });
+  }
+}
+
+function paintDust(t, warm) {
+  for (const d of dust) {
+    const x = (d.x * 2000 + Math.sin(t * 0.09 + d.ph) * 26 + t * 6 * d.s) % 2020;
+    const y = 1080 - ((d.y * 1120 + t * 14 * d.s + Math.sin(t * 0.08 + d.ph) * 30) % 1200);
+    d.el.style.transform = `translate(${x.toFixed(1)}px, ${(1080 - y).toFixed(1)}px)`;
+    d.el.style.opacity = String((0.07 + 0.20 * warm) * (0.5 + 0.5 * Math.sin(t * 0.6 + d.ph)));
+  }
+}
+
+/* ------------------------------------------------------------------ build -- */
+async function build() {
+  const plates = [...new Set(DATA.SCENES.map((s) => s.plate))];
+  await Promise.all(plates.map((p) => new Promise((res) => {
+    const im = new Image();
+    im.onload = res; im.onerror = res;
+    im.src = `assets/plates/hd/${p}.jpg`;
+  })));
+
+  initDust();
+
+  const scIndexOf = (i) => (DATA.SCENE_OF || [])[i] ?? i;
+  const sceneSpan = [], sceneT0 = [], sceneT1 = [];
+  DATA.SENTENCES.forEach((sen, i) => {
+    const si = scIndexOf(i);
+    sceneSpan[si] = (sceneSpan[si] || 0) + (sen.end - sen.start);
+    if (sceneT0[si] === undefined) sceneT0[si] = sen.start;
+    sceneT1[si] = sen.end;
+  });
+
+  /* ------------------------------------------- word-by-word subtitles ---- */
+  const WORDS = DATA.WORDS || [];
+  let subSent = -1;
+  let subEls = [];
+
+  function buildSub(idx) {
+    const box = $('sub');
+    box.innerHTML = '';
+    subEls = [];
+    const mine = WORDS.filter((w) => w[0] === idx);
+    const sen = DATA.SENTENCES[idx];
+    if (mine.length) {
+      mine.forEach((w, k) => {
+        const el = document.createElement('span');
+        el.className = 'w';
+        el.textContent = w[1];
+        box.appendChild(el);
+        if (k) box.appendChild(document.createTextNode(' '));
+        subEls.push({ el, a: w[2], b: w[3] });
+      });
+    } else {
+      const ws = sen.text.split(/\s+/).filter(Boolean);
+      const chars = ws.reduce((n, w) => n + w.length, 0);
+      let acc = 0;
+      ws.forEach((w, k) => {
+        const a = sen.start + ((sen.end - sen.start) * acc) / chars;
+        acc += w.length;
+        const b = sen.start + ((sen.end - sen.start) * acc) / chars;
+        const el = document.createElement('span');
+        el.className = 'w';
+        el.textContent = w;
+        box.appendChild(el);
+        if (k) box.appendChild(document.createTextNode(' '));
+        subEls.push({ el, a, b });
+      });
+    }
+  }
+
+  function paintSub(t, idx, sen) {
+    if (idx !== subSent) { buildSub(idx); subSent = idx; }
+    const hold = Math.min(sen.end - 0.02, (sen.hold ?? sen.end - 0.3));
+    const inP = smooth(clamp((t - sen.start) / 0.14, 0, 1));
+    const outP = smooth(clamp((t - (hold - 0.2)) / 0.2, 0, 1));
+    $('sub').style.opacity = String(inP * (1 - outP));
+    $('subscrim').style.opacity = String(0.9 * inP * (1 - outP));
+    for (const w of subEls) {
+      const app = smooth(clamp((t - w.a) / 0.17, 0, 1));
+      const live = t >= w.a - 0.01 && t < w.b;
+      w.el.style.opacity = String(app);
+      w.el.style.transform = `translateY(${((1 - app) * 10).toFixed(2)}px) scale(${live ? 1.05 : 1})`;
+      if (app > 0.995) w.el.style.filter = 'none';
+      else w.el.style.filter = `blur(${((1 - app) * 5).toFixed(2)}px)`;
+      w.el.style.color = live ? '#ffd79a' : '#ffffff';
+      w.el.style.textShadow = live
+        ? '0 6px 26px rgba(0,0,0,.96), 0 0 26px rgba(255,205,128,.62), 0 2px 8px rgba(0,0,0,.92)'
+        : '0 6px 26px rgba(0,0,0,.96), 0 2px 8px rgba(0,0,0,.92)';
+      w.el.classList.toggle('live', live);
+    }
+  }
+
+  function place(el, cam) {
+    el.style.transform =
+      `translate(-50%, -50%) translate(${cam.tx.toFixed(2)}px, ${cam.ty.toFixed(2)}px) ` +
+      `rotate(${cam.rot.toFixed(3)}deg) scale(${cam.k.toFixed(4)})`;
+  }
+
+  let currentScene = -1;
+
+  function seek(frame) {
+    const t = frame / DATA.FPS;
+    const si = DATA.SENTENCES.findIndex((s) => t >= s.start && t < s.end + 0.001);
+    const idx = si === -1 ? DATA.SENTENCES.length - 1 : si;
+    const scOf = (i) => DATA.SCENES[(DATA.SCENE_OF || [])[i] ?? i];
+    const sen = DATA.SENTENCES[idx];
+    const scIdx = scIndexOf(idx);
+    const sc = scOf(idx);
+
+    if (scIdx !== currentScene) {
+      if (currentScene >= 0) {
+        prevPlate = { src: $('plateA').src, scene: scOf(current), sen: DATA.SENTENCES[current], id: current };
+      }
+      $('plateA').src = `assets/plates/hd/${sc.plate}.jpg`;
+      currentScene = scIdx;
+      current = idx;
+    }
+    current = idx;
+
+    const t0 = sceneT0[scIdx] ?? sen.start;
+    const t1 = sceneT1[scIdx] ?? sen.end;
+    const p = clamp((t - t0) / Math.max(0.001, t1 - t0), 0, 1);
+    const dur = Math.max(0.5, sceneSpan[scIdx] || (t1 - t0));
+    const cam = cameraAt(sc, t, smooth(p), scIdx + 1, dur);
+    place($('plateA'), cam);
+
+    const dp = clamp((t - t0) / DISSOLVE, 0, 1);
+    if (prevPlate && dp < 1) {
+      if ($('plateB').src !== prevPlate.src) $('plateB').src = prevPlate.src;
+      const camPrev = cameraAt(prevPlate.scene, prevPlate.sen.end, 1, prevPlate.id + 1,
+        Math.max(0.5, sceneSpan[scIndexOf(prevPlate.id)] || 8));
+      $('plateB').style.display = '';
+      $('plateB').style.opacity = '1';
+      place($('plateB'), camPrev);
+      $('plateA').style.opacity = String(smooth(dp));
+      $('plateWrap').style.filter = `brightness(${(1 - 0.18 * Math.sin(Math.PI * dp)).toFixed(3)})`;
+    } else {
+      $('plateB').style.display = 'none';
+      $('plateA').style.opacity = '1';
+      $('plateWrap').style.filter = 'brightness(1)';
+    }
+
+    const warm = sc.warm ?? 0.15;
+    $('warm').style.opacity = String(warm * (0.74 + 0.26 * Math.sin(t * 0.55 * Math.PI + 1.2)));
+    $('fog').style.opacity = String(sc.fog ?? 0.2);
+    $('fog').style.transform = `translateY(${(Math.sin(t * 0.1) * 10).toFixed(2)}px)`;
+    $('leak').style.opacity = String((0.07 + 0.16 * (sc.fog ?? 0.2)) * (0.45 + 0.55 * Math.pow(1 - dp, 2)));
+
+    const tick = Math.floor(t * 12) % 3;
+    $('grain').style.backgroundPosition = `${tick * 60}px ${((tick * 97) % 180)}px`;
+
+    $('flash').style.opacity = String(Math.pow(1 - dp, 3) * 0.09);
+
+    paintDust(t, warm);
+    paintSub(t, idx, sen);
+
+    // soft fade-out at the very end
+    const FO = 0.9;
+    const fo = clamp((t - (DATA.DURATION - FO)) / FO, 0, 1);
+    $('fade').style.opacity = String(smooth(fo) * 0.92);
+  }
+
+  window.__MOTION__ = {
+    fps: DATA.FPS, frames: DATA.FRAMES, width: STAGE_W, height: STAGE_H, duration: DATA.DURATION,
+    ready: false,
+    seek(frame) { seek(clamp(frame, 0, DATA.FRAMES - 1)); },
+  };
+  seek(0);
+  window.__MOTION__.ready = true;
+}
+
+window.__ENGINE_START__ = (data) => { DATA = data; return build(); };
+</script>
+</body>
+</html>
