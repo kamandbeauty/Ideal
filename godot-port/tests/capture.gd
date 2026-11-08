@@ -38,6 +38,7 @@ func _ready() -> void:
 	app._show_shop()
 	await _frames(SETTLE_FRAMES)
 	_report(app, "shop")
+	_dump(app.get("shop"), "row_1", 12)
 	await _shot("03-shop")
 	app._show_districts()
 	await _frames(SETTLE_FRAMES)
