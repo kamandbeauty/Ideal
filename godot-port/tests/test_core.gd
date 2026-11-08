@@ -231,6 +231,14 @@ func _run() -> void:
 		var run_booster = move_accounting_run.use_booster(GameTypes.BoosterKind.MALLET, 4, 4)
 		failures += _check(run_booster.accepted and move_accounting_run.moves_left == moves_before_booster and move_accounting_run.boosters_used.size() == 1, "LevelRun booster does not consume a move")
 
+	var combo_score_run = Run.new(progression_level, 0, 77)
+	var combo_score_result := {"events": [
+		{"type": "cascade"}, {"type": "cascade"}, {"type": "power_up_triggered"}
+	]}
+	combo_score_run._award_score(combo_score_result)
+	failures += _check(combo_score_result.combo_count == 3 and combo_score_result.combo_bonus == 300, "three-chain combo awards a 300 point bonus")
+	failures += _check(combo_score_run.score == 980, "combo bonus is included in the run score")
+
 	var run_a = Run.new(progression_level, 0, 12345)
 	var run_b = Run.new(progression_level, 0, 12345)
 	failures += _check(run_a.state_hash_hex() == run_b.state_hash_hex(), "same seed produces same initial replay hash")
@@ -277,12 +285,14 @@ func _run() -> void:
 	level_record.plays = 4
 	level_record.cleared = true
 	level_record.best_moves_left = 9
+	level_record.best_score = 4321
 	level_record.last_replay_hash = "c0d2f1a263e84ebf"
 	var encoded_save := Codec.encode(fresh_save)
 	var decoded_save = Codec.decode(encoded_save, save_clock)
 	failures += _check(decoded_save.errors.is_empty(), "save JSON round-trip has no errors")
 	failures += _check(decoded_save.data.coins == 1234 and decoded_save.data.potions == 56 and decoded_save.data.level_number == 7, "save JSON round-trip preserves balances and level")
 	failures += _check(decoded_save.data.find_level(3).get("last_replay_hash", "") == "c0d2f1a263e84ebf", "save JSON round-trip preserves level records")
+	failures += _check(decoded_save.data.find_level(3).get("best_score", 0) == 4321, "save JSON round-trip preserves best level score")
 	var migrated = Codec.decode("{\"version\":1,\"coins\":40,\"potions\":90}", save_clock)
 	failures += _check(migrated.data.version == Save.CURRENT_VERSION and migrated.data.boosters.size() == Bag.SLOTS, "v1 save migrates to v2 with starter boosters")
 	var corrupt = Codec.decode("{ broken", save_clock)

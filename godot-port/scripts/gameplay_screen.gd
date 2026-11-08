@@ -30,6 +30,8 @@ var _pause_overlay: Control
 var _pause_button: Button
 
 func _play_sfx(sound_name: String, pitch: float = 1.0, volume_db: float = -3.0) -> void:
+	if _save != null and not _save.sfx_on:
+		return
 	var sound_path := "res://assets/audio/%s.wav" % sound_name
 	if not ResourceLoader.exists(sound_path):
 		return
@@ -41,6 +43,11 @@ func _play_sfx(sound_name: String, pitch: float = 1.0, volume_db: float = -3.0) 
 	add_child(player)
 	player.finished.connect(player.queue_free)
 	player.play()
+
+func _trigger_haptic(duration_ms: int, amplitude: float) -> void:
+	if _save == null or not _save.haptics_on or not OS.has_feature("android"):
+		return
+	Input.vibrate_handheld(duration_ms, clampf(amplitude, 0.0, 1.0))
 
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_RTL
@@ -352,6 +359,7 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 	var result := _run.try_swap(from_pos.x, from_pos.y, pos.x, pos.y)
 	_selected = Vector2i(-1, -1)
 	if result.accepted:
+		_play_sfx("swap", 1.0, -9.0)
 		_play_result_fx(result)
 		_animate_next_refresh = true
 		if _run.status != GameTypes.LevelStatus.PLAYING:
@@ -428,8 +436,15 @@ func _play_result_fx(result: Dictionary) -> void:
 		_play_sfx("powerup", 0.92 + minf(float(triggered_powerups), 4.0) * 0.06, -0.5)
 	if cascades > 0:
 		_play_sfx("cascade", 0.92 + minf(float(cascades), 4.0) * 0.12, -1.0)
+	var combo_count := int(result.get("combo_count", cascades + triggered_powerups))
+	var combo_bonus := int(result.get("combo_bonus", 0))
+	if combo_count >= 2:
+		_play_sfx("combo", 0.92 + minf(float(combo_count - 2), 5.0) * 0.08, -0.5)
+		_trigger_haptic(110, 0.85)
+	elif cleared > 0 or obstacle_hits > 0:
+		_trigger_haptic(45, 0.45)
 	if cleared > 0 or obstacle_hits > 0 or created_powerups > 0:
-		_show_clear_summary(cleared, obstacle_hits, created_powerups, cascades)
+		_show_clear_summary(cleared, obstacle_hits, created_powerups, cascades, combo_count, combo_bonus)
 	if cascades > 0 or cleared >= 5 or created_powerups > 0:
 		_spawn_board_pulse(Color(0.85, 0.72, 0.36) if cascades > 0 else Color(0.45, 0.9, 0.88))
 	if cleared >= 8 or cascades >= 2:
@@ -484,6 +499,7 @@ func _shake_board(amount: float) -> void:
 
 func _play_reject_fx(pos: Vector2i) -> void:
 	_play_sfx("reject", 1.0, -4.0)
+	_trigger_haptic(28, 0.28)
 	_spawn_cell_fx(pos, "res://assets/art/fx_ring.png", Color(1.0, 0.35, 0.28), 0.55)
 	_shake_board(2.0)
 
@@ -559,6 +575,7 @@ func _ensure_end_overlay() -> void:
 	panel.add_child(column)
 	var won := _run.status == GameTypes.LevelStatus.WON
 	_play_sfx("win" if won else "lose", 1.0, -1.0)
+	_trigger_haptic(150 if won else 80, 0.75)
 	var heading := Label.new()
 	heading.text = "آفرین! باغ شکوفا شد" if won else "این بار نشد!"
 	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -732,7 +749,7 @@ func _make_swap_sprite(texture: Texture2D, center: Vector2, sprite_size: Vector2
 	return sprite
 
 
-func _show_clear_summary(cleared: int, obstacle_hits: int, powerups: int, cascades: int) -> void:
+func _show_clear_summary(cleared: int, obstacle_hits: int, powerups: int, cascades: int, combo_count: int = 0, combo_bonus: int = 0) -> void:
 	if _fx_layer == null:
 		return
 	var parts: PackedStringArray = []
@@ -745,11 +762,13 @@ func _show_clear_summary(cleared: int, obstacle_hits: int, powerups: int, cascad
 	var headline := "  •  ".join(parts)
 	if cascades > 0:
 		headline += "   |   زنجیره ×%d" % cascades
+	if combo_count >= 2:
+		headline += "   |   کمبو ×%d  +%s امتیاز" % [combo_count, _format_persian_number(combo_bonus)]
 	var popup := Label.new()
 	popup.text = headline
 	popup.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	popup.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	popup.add_theme_font_size_override("font_size", 18 if cascades == 0 else 21)
+	popup.add_theme_font_size_override("font_size", 18 if combo_count < 2 and cascades == 0 else 21)
 	popup.add_theme_color_override("font_color", Color(1.0, 0.88, 0.52))
 	popup.add_theme_color_override("font_shadow_color", Color(0.02, 0.03, 0.06, 0.9))
 	popup.add_theme_constant_override("shadow_offset_x", 2)

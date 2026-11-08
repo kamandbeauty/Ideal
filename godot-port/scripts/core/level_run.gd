@@ -58,6 +58,8 @@ func use_booster(kind: int, x: int, y: int) -> Dictionary:
 
 func _award_score(result: Dictionary) -> void:
 	var earned := 0
+	var cascade_count := 0
+	var triggered_count := 0
 	for event in result.get("events", []):
 		match str(event.get("type", "")):
 			"piece_cleared":
@@ -68,9 +70,16 @@ func _award_score(result: Dictionary) -> void:
 				earned += 300
 			"power_up_triggered":
 				earned += 180
+				triggered_count += 1
 			"cascade":
 				earned += 250
+				cascade_count += 1
+	var combo_count := cascade_count + triggered_count
+	var combo_bonus := maxi(0, combo_count - 1) * 150
+	earned += combo_bonus
 	score += earned
+	result["combo_count"] = combo_count
+	result["combo_bonus"] = combo_bonus
 	result["score_delta"] = earned
 	result["score_total"] = score
 

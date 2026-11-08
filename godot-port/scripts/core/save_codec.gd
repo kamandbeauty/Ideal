@@ -85,6 +85,7 @@ static func _from_dictionary(source: Dictionary) -> SaveData:
 				"number": int(value.get("number", 0)),
 				"plays": int(value.get("plays", 0)),
 				"best_moves_left": int(value.get("bestMovesLeft", value.get("best_moves_left", 0))),
+				"best_score": int(value.get("bestScore", value.get("best_score", 0))),
 				"cleared": bool(value.get("cleared", false)),
 				"first_cleared_at_unix": int(value.get("firstClearedAtUnix", value.get("first_cleared_at_unix", 0))),
 				"last_replay_hash": str(value.get("lastReplayHash", value.get("last_replay_hash", "")))
@@ -98,6 +99,7 @@ static func _to_dictionary(data: SaveData) -> Dictionary:
 			"number": int(record.get("number", 0)),
 			"plays": int(record.get("plays", 0)),
 			"bestMovesLeft": int(record.get("best_moves_left", 0)),
+			"bestScore": int(record.get("best_score", 0)),
 			"cleared": bool(record.get("cleared", false)),
 			"firstClearedAtUnix": int(record.get("first_cleared_at_unix", 0)),
 			"lastReplayHash": str(record.get("last_replay_hash", ""))
