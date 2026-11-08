@@ -19,7 +19,9 @@ var _row_titles: Array[Label] = []
 var _row_buttons: Array[Button] = []
 var _district_buttons: Array[Button] = []
 var _chest_buttons: Array[Button] = []
+var _chest_icons: Array[TextureRect] = []
 var _district_titles: Array[Label] = []
+var _plates: Array[TextureRect] = []
 var _task_rows: Array[Dictionary] = []
 
 func build() -> void:
@@ -56,6 +58,18 @@ func _build_card(index: int) -> void:
 		CARD_HEIGHT, "panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 	card.custom_minimum_size = Vector2(UiTokens.CANVAS_WIDTH - 36.0, CARD_HEIGHT)
 	_cards.append(card)
+
+	# The district's own illustration, dimmed to a watermark the way the Unity screen draws it: the art
+	# is what tells the player which place they are rebuilding.
+	var plate := TextureRect.new()
+	plate.name = "plate"
+	plate.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	plate.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(plate)
+	card.move_child(plate, 0)
+	UiKit.place(plate, 0.0, 0.0, card.custom_minimum_size.x, CARD_HEIGHT)
+	_plates.append(plate)
 
 	var title := UiKit.label(card, "title", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_RIGHT, true)
@@ -94,6 +108,8 @@ func _build_card(index: int) -> void:
 		UiTokens.GOLD, UiTokens.ON_GOLD, Callable(self, "_on_chest_pressed").bind(index),
 		UiTokens.RADIUS_MD)
 	chest_button.add_theme_font_size_override("font_size", UiTokens.TYPE_SM)
+	chest_button.alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_chest_icons.append(UiKit.icon(chest_button, "chest_icon", "reward_chest", 6.0, 5.0, 24.0, 24.0))
 	_chest_buttons.append(chest_button)
 
 func refresh() -> void:
@@ -137,8 +153,19 @@ func refresh() -> void:
 		_district_buttons[index].modulate = Color(1, 1, 1, 1) if not _district_buttons[index].disabled \
 			else Color(0.6, 0.6, 0.65, 1)
 
+		var built_now := session.is_district_built(district)
+		var district_id := str(district.get("id", "")).replace("-", "_")
+		var plate_id := "district_" + district_id + ("_lit" if built_now else "")
+		var plate_art := UiKit.texture(plate_id)
+		if plate_art == null:
+			plate_art = UiKit.texture("district_" + district_id)
+		_plates[index].texture = plate_art
+		_plates[index].modulate = Color(1, 1, 1, 0.46 if built_now else 0.35)
+
 		var chest_open := session.is_chest_open(district)
-		_chest_buttons[index].text = "باز شد" if chest_open else "صندوق"
+		_chest_icons[index].texture = UiKit.texture("reward_chest_open" if chest_open
+			else "reward_chest")
+		_chest_buttons[index].text = "باز شد" if chest_open else "باز کن"
 		_chest_buttons[index].disabled = chest_open or not built
 		_chest_buttons[index].modulate = Color(1, 1, 1, 1) if not _chest_buttons[index].disabled \
 			else Color(0.55, 0.55, 0.6, 1)
