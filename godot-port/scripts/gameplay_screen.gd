@@ -14,6 +14,7 @@ var _selected := Vector2i(-1, -1)
 var _selected_booster := -1
 var _grid: GridContainer
 var _moves_label: Label
+var _score_label: Label
 var _goal_label: Label
 var _status_label: Label
 var _initial_status_message := ""
@@ -113,6 +114,11 @@ func _build_ui() -> void:
 	title.add_theme_color_override("font_color", Color(1.0, 0.9, 0.66))
 	header.add_child(title)
 
+	_score_label = Label.new()
+	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_score_label.add_theme_font_size_override("font_size", 21)
+	layout.add_child(_score_label)
+
 	_moves_label = Label.new()
 	_moves_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_moves_label.add_theme_font_size_override("font_size", 24)
@@ -182,6 +188,7 @@ func _refresh_board() -> void:
 			_status_label.text = _initial_status_message if not _initial_status_message.is_empty() else "مرحله آماده نشد"
 		return
 	_moves_label.text = "حرکت‌های باقی‌مانده: %d" % _run.moves_left
+	_score_label.text = "امتیاز: %s" % _format_persian_number(_run.score)
 	_goal_label.text = _build_goal_text()
 	if _run.status == GameTypes.LevelStatus.WON:
 		_status_label.text = "آفرین! مرحله را با %d ستاره تمام کردی" % StarRating.from_run(_run)
@@ -328,7 +335,7 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 	if result.accepted:
 		_play_result_fx(result)
 		_animate_next_refresh = true
-		if _run.status == GameTypes.LevelStatus.WON:
+		if _run.status != GameTypes.LevelStatus.PLAYING:
 			var progression := Progression.new(_save, GameClock.new())
 			progression.record_level_result(_run, _wallet)
 			_store.save(_save)
@@ -526,7 +533,9 @@ func _ensure_end_overlay() -> void:
 	heading.add_theme_color_override("font_color", Color(1.0, 0.84, 0.43) if won else Color(1.0, 0.58, 0.45))
 	column.add_child(heading)
 	var detail := Label.new()
-	detail.text = ("امتیاز مرحله: %d ستاره" % StarRating.from_run(_run)) if won else "حرکت‌ها تمام شد؛ دوباره امتحان کن"
+	var best_record := _save.find_level(_level.number) if _save != null and _level != null else {}
+	var best_score := int(best_record.get("best_score", 0))
+	detail.text = ("امتیاز: %s\nبهترین رکورد: %s" % [_format_persian_number(_run.score), _format_persian_number(maxi(best_score, _run.score))]) if won else ("امتیاز: %s\nحرکت‌ها تمام شد؛ دوباره امتحان کن" % _format_persian_number(_run.score))
 	detail.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	detail.add_theme_font_size_override("font_size", 16)
 	column.add_child(detail)
@@ -537,7 +546,10 @@ func _ensure_end_overlay() -> void:
 		stars.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		stars.add_theme_font_size_override("font_size", 30)
 		stars.add_theme_color_override("font_color", Color(1.0, 0.82, 0.32))
+		stars.scale = Vector2(0.55, 0.55)
 		column.add_child(stars)
+		var star_intro := create_tween()
+		star_intro.tween_property(stars, "scale", Vector2.ONE, 0.42).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	var action := Button.new()
 	action.text = "ادامه" if won else "تلاش دوباره"
 	action.custom_minimum_size = Vector2(0, 46)
@@ -708,3 +720,13 @@ func _close_pause_overlay() -> void:
 	_pause_overlay = null
 	_is_paused = false
 	_pause_button.disabled = false
+
+
+func _format_persian_number(value: int) -> String:
+	var digits := "۰۱۲۳۴۵۶۷۸۹"
+	var raw := str(maxi(0, value))
+	var formatted := ""
+	for index in range(raw.length()):
+		var digit := int(raw.substr(index, 1))
+		formatted += digits.substr(digit, 1)
+	return formatted
