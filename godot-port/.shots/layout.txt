@@ -12,7 +12,7 @@ DUMP row_1 [P: (372.0, 192.0), S: (350.0, 72.0)]
 DUMP   icon [P: (382.0, 207.0), S: (42.0, 42.0)]
 DUMP   name [P: (434.0, 200.0), S: (146.0, 27.0)] text=قوچ
 DUMP   owned [P: (434.0, 228.0), S: (146.0, 20.0)] text=در اختیار: ۱ از ۹
-DUMP   buy [P: (596.0, 210.0), S: (118.0, 64.0)] text=۶۰ سکه disabled=true
+DUMP   buy [P: (596.0, 210.0), S: (118.0, 48.0)] text=۶۰ سکه disabled=true
 STATE districts :: home=0 board=0 districts=1 shop=0 settings=0 :: root=(738.0, 415.0)
 LAYOUT districts :: 0 control(s) escape their parent
 DUMP district_0 [P: (12.0, 106.0), S: (232.0, 286.0)]
@@ -21,19 +21,19 @@ DUMP   plate_veil [P: (12.0, 106.0), S: (232.0, 286.0)]
 DUMP   title [P: (24.0, 110.0), S: (208.0, 27.0)] text=میدانِ فیروزه
 DUMP   task_0 [P: (24.0, 134.0), S: (208.0, 30.0)]
 DUMP     title [P: (88.0, 134.0), S: (144.0, 30.0)] text=حوضِ فیروزه
-DUMP     build [P: (24.0, 136.0), S: (58.0, 60.0)] text=۲۵ disabled=true
+DUMP     build [P: (24.0, 136.0), S: (58.0, 44.0)] text=۲۵ disabled=true
 DUMP   task_1 [P: (24.0, 167.0), S: (208.0, 30.0)]
 DUMP     title [P: (88.0, 167.0), S: (144.0, 30.0)] text=کاشی‌کاریِ دیوار
-DUMP     build [P: (24.0, 169.0), S: (58.0, 60.0)] text=۳۰ disabled=true
+DUMP     build [P: (24.0, 169.0), S: (58.0, 44.0)] text=۳۰ disabled=true
 DUMP   task_2 [P: (24.0, 200.0), S: (208.0, 30.0)]
 DUMP     title [P: (88.0, 200.0), S: (144.0, 30.0)] text=رواقِ ورودی
-DUMP     build [P: (24.0, 202.0), S: (58.0, 60.0)] text=۳۵ disabled=true
+DUMP     build [P: (24.0, 202.0), S: (58.0, 44.0)] text=۳۵ disabled=true
 DUMP   task_3 [P: (24.0, 233.0), S: (208.0, 30.0)]
 DUMP     title [P: (88.0, 233.0), S: (144.0, 30.0)] text=حجره‌های بازار
-DUMP     build [P: (24.0, 235.0), S: (58.0, 60.0)] text=۴۰ disabled=true
+DUMP     build [P: (24.0, 235.0), S: (58.0, 44.0)] text=۴۰ disabled=true
 DUMP   task_4 [P: (24.0, 266.0), S: (208.0, 30.0)]
-DUMP   build_all [P: (124.0, 354.0), S: (124.0, 69.0)] text=ساخت همه (۱۳۰) disabled=true
-DUMP   chest [P: (24.0, 354.0), S: (100.0, 40.0)] text= disabled=true
+DUMP   build_all [P: (124.0, 354.0), S: (108.0, 53.0)] text=ساخت همه (۱۳۰) disabled=true
+DUMP   chest [P: (24.0, 354.0), S: (100.0, 30.0)] text= disabled=true
 DUMP     chest_icon [P: (30.0, 358.0), S: (22.0, 22.0)]
 DUMP     chest_label [P: (54.0, 354.0), S: (64.0, 30.0)] text=باز کن
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(738.0, 415.0)
