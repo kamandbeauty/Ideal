@@ -31,22 +31,34 @@ URLS=(
   "https://hf-mirror.com/ggerganov/whisper.cpp/resolve/main/$MODEL"
 )
 
+# Every failure has to explain itself: the build log is not readable from
+# automation, so the reason is printed on one line and republished as an
+# annotation by the workflow.
 for URL in "${URLS[@]}"; do
+  echo "probing $URL"
+  CODE=$(curl -sS -o /dev/null -w '%{http_code}' -I -A "SubFlow-CI" \
+    --connect-timeout 20 --max-time 60 "$URL" 2>&1) || CODE="curl-error"
+  echo "probe result: $CODE"
+
   echo "fetching $URL"
-  if curl -fL --retry 3 --retry-delay 2 --connect-timeout 20 --max-time 900 \
-      -o "$TARGET.part" "$URL"; then
+  CURL_LOG="$(mktemp)"
+  if curl -fL -A "SubFlow-CI" --retry 3 --retry-delay 2 --connect-timeout 20 \
+      --max-time 900 -o "$TARGET.part" "$URL" 2>"$CURL_LOG"; then
     if is_valid "$TARGET.part"; then
       mv "$TARGET.part" "$TARGET"
       echo "bundled model ready: $TARGET ($(wc -c < "$TARGET") bytes)"
+      rm -f "$CURL_LOG"
       exit 0
     fi
-    echo "rejected $URL: not a valid ggml file" >&2
+    echo "rejected $URL: downloaded $(wc -c < "$TARGET.part" 2>/dev/null || echo 0) bytes, not a valid ggml file" >&2
+    head -c 120 "$TARGET.part" 2>/dev/null | tr -d '\0' | head -1 >&2 || true
     rm -f "$TARGET.part"
   else
-    echo "failed: $URL" >&2
+    echo "curl failed: $(tail -3 "$CURL_LOG" | tr '\n' ' ')" >&2
     rm -f "$TARGET.part"
   fi
+  rm -f "$CURL_LOG"
 done
 
-echo "could not fetch $MODEL from any source" >&2
+echo "could not fetch $MODEL from any source (probe=$CODE)" >&2
 exit 1

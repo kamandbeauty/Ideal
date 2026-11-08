@@ -162,7 +162,16 @@ jobs:
       # Gradle packages them as assets.
       - name: Fetch bundled Whisper model
         working-directory: subflow
-        run: bash tools/fetch-bundled-model.sh
+        run: |
+          if bash tools/fetch-bundled-model.sh > /tmp/model.log 2>&1; then
+            tail -n 3 /tmp/model.log
+            exit 0
+          fi
+          tail -n 30 /tmp/model.log
+          tail -n 10 /tmp/model.log | while IFS= read -r line; do
+            [ -n "$line" ] && echo "::error title=bundled model::$(echo "$line" | cut -c1-300)"
+          done
+          exit 1
 
       # The build log is also surfaced as a check-run annotation, because the
       # default log download is not always reachable from automation tooling.
