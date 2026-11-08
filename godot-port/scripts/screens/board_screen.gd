@@ -335,33 +335,34 @@ func _play_result_cues(result: Dictionary) -> void:
 ## The combo bubble: it is the only place a player learns that a chain paid a bonus, so it says the
 ## number out loud, floats up and gets out of the way.
 func _show_combo(combo_count: int, combo_bonus: int) -> void:
-	var popup := UiKit.label(self, "combo_popup", "", UiTokens.TYPE_LG, UiTokens.GOLD,
-		HORIZONTAL_ALIGNMENT_CENTER, true)
+	# A toast, not bare words: gold letters over a multi-coloured board cannot be read, and the fix has
+	# to be a shipped plate rather than a rectangle the engine rounds at runtime.
+	var toast_width := BOARD_SIZE - 30.0
+	var toast_height := 40.0
+	var start_y := BOARD_TOP + BOARD_SIZE * 0.5 - toast_height * 0.5
+	var toast := UiKit.panel(self, "combo_toast", BOARD_LEFT + 15.0, start_y, toast_width, toast_height,
+		UiTokens.SURFACE, UiTokens.RADIUS_MD)
+	toast.z_index = 50
+	toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Words and Persian digits only. A "+" or a "×" between a word and a number is a neutral character
 	# in the bidi algorithm, and the run it splits can come out reading backwards on screen; a sentence
 	# with a Persian connector cannot.
+	var popup := UiKit.label(toast, "combo_popup", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
 	popup.text = "کمبو " + PersianText.number(combo_count) + " و پاداش " \
 		+ PersianText.number(combo_bonus) + " امتیاز"
-	# Over the middle of the board, because that is where the chain the player is watching just happened,
-	# and above it in the draw order so the pieces cannot cut the words in half.
-	var start_y := BOARD_TOP + BOARD_SIZE * 0.5 - 17.0
-	UiKit.place(popup, BOARD_LEFT, start_y, BOARD_SIZE, 34.0)
-	popup.z_index = 50
-	# An outline, not a panel: the words have to stay readable over whichever piece is behind them
-	# without a code-drawn rectangle appearing on top of the art.
-	popup.add_theme_constant_override("outline_size", 6)
-	popup.add_theme_color_override("font_outline_color", UiTokens.BG)
-	popup.modulate = Color(1, 1, 1, 0)
-	popup.scale = Vector2(0.82, 0.82)
-	popup.pivot_offset = Vector2(BOARD_SIZE * 0.5, 17.0)
+	UiKit.place(popup, 0.0, 0.0, toast_width, toast_height)
+	toast.modulate = Color(1, 1, 1, 0)
+	toast.scale = Vector2(0.82, 0.82)
+	toast.pivot_offset = Vector2(toast_width * 0.5, toast_height * 0.5)
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(popup, "modulate:a", 1.0, 0.12)
-	tween.tween_property(popup, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	# Relative, not absolute: the bubble floats up 26 px from where it started, it does not fly to y=-26.
-	tween.tween_property(popup, "position:y", start_y - 26.0, 0.75).set_delay(0.12)
-	tween.tween_property(popup, "modulate:a", 0.0, 0.22).set_delay(0.68)
-	tween.chain().tween_callback(popup.queue_free)
+	tween.tween_property(toast, "modulate:a", 1.0, 0.12)
+	tween.tween_property(toast, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# Relative, not absolute: the toast floats up 26 px from where it started, it does not fly to y=-26.
+	tween.tween_property(toast, "position:y", start_y - 26.0, 0.75).set_delay(0.12)
+	tween.tween_property(toast, "modulate:a", 0.0, 0.22).set_delay(0.68)
+	tween.chain().tween_callback(toast.queue_free)
 
 func _on_booster_pressed(kind: int) -> void:
 	if run == null or run.status != GameTypes.LevelStatus.PLAYING:

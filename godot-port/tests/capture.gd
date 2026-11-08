@@ -63,14 +63,14 @@ func _ready() -> void:
 	board_screen.refresh()
 	board_screen._show_combo(3, 300)
 	await _frames(2)
-	var combo_popup := board_screen.get_node_or_null("combo_popup") as Label
-	if combo_popup != null:
-		combo_popup.modulate = Color(1, 1, 1, 1)
-		combo_popup.scale = Vector2.ONE
+	var combo_toast := board_screen.get_node_or_null("combo_toast") as Control
+	if combo_toast != null:
+		combo_toast.modulate = Color(1, 1, 1, 1)
+		combo_toast.scale = Vector2.ONE
 	await _frames(2)
 	await _shot("08-combo")
-	if combo_popup != null:
-		combo_popup.queue_free()
+	if combo_toast != null:
+		combo_toast.queue_free()
 
 	# A 20:9 phone is where the old layout letterboxed the art and cropped the content.
 	DisplayServer.window_set_size(Vector2i(2400, 1080))

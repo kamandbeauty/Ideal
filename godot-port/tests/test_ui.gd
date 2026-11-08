@@ -177,12 +177,19 @@ func _run() -> void:
 		# A "+" or a "×" between a Persian word and a number is bidi-neutral, and the run it splits can
 		# come out reading backwards. The bubble has to say it with words.
 		screen._show_combo(3, 300)
-		var combo_popup := screen.get_node_or_null("combo_popup") as Label
+		var combo_toast := screen.get_node_or_null("combo_toast") as Control
+		var combo_popup: Label = null
+		failures += _check(combo_toast != null and combo_toast.get_theme_stylebox("panel") is StyleBoxTexture,
+			"level %d shows the combo on a shipped plate, not a drawn rectangle" % number)
+		if combo_toast != null:
+			combo_popup = combo_toast.get_node_or_null("combo_popup") as Label
 		failures += _check(combo_popup != null
 			and combo_popup.text.ends_with(PersianText.number(300) + " امتیاز")
 			and combo_popup.text.contains(PersianText.number(3))
 			and not combo_popup.text.contains("+") and not combo_popup.text.contains("×"),
 			"level %d names the combo bonus in words, not bidi-neutral symbols" % number)
+		failures += _check(combo_popup == null or not combo_popup.text.is_empty(),
+			"level %d writes the combo bonus on the toast" % number)
 		screen.queue_free()
 		await process_frame
 	view.queue_free()
