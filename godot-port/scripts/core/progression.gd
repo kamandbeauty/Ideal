@@ -24,6 +24,8 @@ func record_level_result(run: LevelRun, wallet: Wallet) -> Dictionary:
 	var record := _data.get_or_create_level(run.level.number)
 	record.plays = int(record.get("plays", 0)) + 1
 	record.last_replay_hash = run.state_hash_hex()
+	if run.score > int(record.get("best_score", 0)):
+		record.best_score = run.score
 	if run.status != GameTypes.LevelStatus.WON:
 		_data.updated_at_unix = _clock.now_unix()
 		return {"first_clear": false, "reward": reward}
