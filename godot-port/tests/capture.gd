@@ -77,6 +77,16 @@ func _ready() -> void:
 	if combo_toast != null:
 		combo_toast.queue_free()
 
+	# The result card, with a score and a record on it: the one screen a player sees at the end of every
+	# level, and the only place the best score is ever printed.
+	board_screen.run.status = GameTypes.LevelStatus.WON
+	board_screen.run.score = 4820
+	board_screen._show_result(true, RewardBundle.none())
+	await _frames(3)
+	await _shot("09-result")
+	board_screen.run.status = GameTypes.LevelStatus.PLAYING
+	board_screen._overlay.visible = false
+
 	# A 20:9 phone is where the old layout letterboxed the art and cropped the content.
 	DisplayServer.window_set_size(Vector2i(2400, 1080))
 	get_window().size = Vector2i(2400, 1080)

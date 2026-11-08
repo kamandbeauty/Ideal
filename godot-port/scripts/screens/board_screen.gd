@@ -459,18 +459,20 @@ func _show_result(first_clear: bool, reward: RewardBundle) -> void:
 	_result_title.text = "مرحله کامل شد" if won else "حرکت‌ها تمام شد"
 	var body := ""
 	if won:
-		# Two lines at most: this label has a fixed box, and a third line would be clipped.
+		# Two lines at most: this label has a fixed box, and a third line would be clipped. The score
+		# goes on the first line with the stars, the record and the reward share the second.
 		body = "ستاره: " + PersianText.fraction(stars, StarRating.MAX_STARS) \
 			+ " • امتیاز: " + PersianText.number(run.score)
+		var second_line: Array[String] = []
 		# finish_attempt has already written the record, so holding the best is ">=" not ">".
 		if run.score > 0 and run.score >= int(session.save.find_level(level_number).get("best_score", 0)):
-			body += " • رکورد تازه"
-		body += "\n"
+			second_line.append("رکورد تازه")
 		if first_clear and reward != null and not reward.is_empty:
-			body += PersianText.number(reward.coins) + " سکه و " \
-				+ PersianText.number(reward.potions) + " معجون"
+			second_line.append(PersianText.number(reward.coins) + " سکه و " \
+				+ PersianText.number(reward.potions) + " معجون")
 		elif not first_clear:
-			body += "این مرحله را قبلاً کامل کرده بودی"
+			second_line.append("این مرحله را قبلاً کامل کرده بودی")
+		body += "\n" + " • ".join(second_line)
 	else:
 		body = "امتیاز: " + PersianText.number(run.score) + "\nیک جان کم شد. دوباره تلاش کن."
 	_result_body.text = body
