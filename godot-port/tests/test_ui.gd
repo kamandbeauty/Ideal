@@ -162,6 +162,18 @@ func _run() -> void:
 		var view_node := screen.get_node("board") as BoardView
 		failures += _check(view_node != null and view_node.get_child_count() == screen.run.board.width * screen.run.board.height,
 			"level %d draws its own board size" % number)
+		# The score is a label bound to the run, so the binding can be checked without playing a move:
+		# set the number, refresh, and read what a player would see.
+		var score_label := screen.get_node_or_null("score") as Label
+		failures += _check(score_label != null, "level %d puts a score on the board" % number)
+		if score_label != null:
+			screen.run.score = 1234
+			screen.refresh()
+			failures += _check(score_label.text.ends_with(PersianText.number(1234)),
+				"level %d shows the score in Persian numerals" % number)
+			failures += _check(score_label.get_rect().position.y >= 244.0
+				and score_label.get_rect().end.y <= 300.0,
+				"level %d keeps the score between the goal chips and the boosters" % number)
 		screen.queue_free()
 		await process_frame
 	view.queue_free()

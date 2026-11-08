@@ -9,6 +9,9 @@ var seed_low: int
 var random: DeterministicRandom
 var moves_left: int
 var moves_used := 0
+## Score is presentation, not a rule: nothing on the board, in the goals or in the save's progression
+## reads it back. It exists so a chain that keeps going feels different from one that stops.
+var score := 0
 var potions_earned := 0
 var coins_earned := 0
 var status: int = GameTypes.LevelStatus.PLAYING
@@ -39,6 +42,7 @@ func try_swap(from_x: int, from_y: int, to_x: int, to_y: int) -> Dictionary:
 		return result
 	moves_left -= 1
 	moves_used += 1
+	_award_score(result)
 	_evaluate()
 	return result
 
@@ -49,6 +53,7 @@ func use_booster(kind: int, x: int, y: int) -> Dictionary:
 	if not result.accepted:
 		return result
 	boosters_used.append(kind)
+	_award_score(result)
 	_evaluate()
 	return result
 
@@ -58,6 +63,36 @@ func revert_last_booster(kind: int) -> void:
 			continue
 		boosters_used.remove_at(index)
 		return
+
+## The score table, event by event. A cascade and a triggered power-up in the same move form a combo,
+## and every link past the first is worth a flat bonus — that is the whole rule, and it is a pure
+## function of the event list, which is why the test can feed it three events and check the number.
+func _award_score(result: Dictionary) -> void:
+	var earned := 0
+	var cascade_count := 0
+	var triggered_count := 0
+	for event in result.get("events", []):
+		match str(event.get("type", "")):
+			"piece_cleared":
+				earned += 50
+			"obstacle_hit":
+				earned += 100
+			"power_up_created":
+				earned += 300
+			"power_up_triggered":
+				earned += 180
+				triggered_count += 1
+			"cascade":
+				earned += 250
+				cascade_count += 1
+	var combo_count := cascade_count + triggered_count
+	var combo_bonus := maxi(0, combo_count - 1) * 150
+	earned += combo_bonus
+	score += earned
+	result["combo_count"] = combo_count
+	result["combo_bonus"] = combo_bonus
+	result["score_delta"] = earned
+	result["score_total"] = score
 
 func _evaluate() -> void:
 	if status != GameTypes.LevelStatus.PLAYING:

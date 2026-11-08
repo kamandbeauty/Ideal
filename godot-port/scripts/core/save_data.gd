@@ -36,6 +36,7 @@ func get_or_create_level(number: int) -> Dictionary:
 		"number": number,
 		"plays": 0,
 		"best_moves_left": 0,
+		"best_score": 0,
 		"cleared": false,
 		"first_cleared_at_unix": 0,
 		"last_replay_hash": ""

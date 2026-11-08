@@ -138,7 +138,7 @@ the file is a zip containing `AndroidManifest.xml` and `classes.dex`, and upload
 `princes-palace-debug-apk` artifact (~57 MB, armv7 + arm64). Evidence and the list of wrong hypotheses
 are in [`../godot-port/ANDROID_EXPORT.md`](../godot-port/ANDROID_EXPORT.md).
 
-Package id `com.shazdeh.palace`, version 1.0.0, min SDK 23, target SDK 34, portrait, `armeabi-v7a` +
+Package id `com.shazdeh.palace`, version 1.0.0, min SDK 24, target SDK 34, **landscape**, `armeabi-v7a` +
 `arm64-v8a`.
 
 Pending: installing that APK on hardware, frame-time and memory profiling, the draw-call and

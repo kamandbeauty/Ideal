@@ -22,7 +22,7 @@ const COLUMN_W := 210.0
 const CHIP_HEIGHT := 30.0
 const BOOSTER_SIZE := 48.0
 const BOOSTER_GAP := 8.0
-const BOOSTER_Y := 286.0
+const BOOSTER_Y := 300.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 
@@ -34,6 +34,7 @@ var _level_label: Label
 const HAND_SIZE := 44.0
 
 var _moves_label: Label
+var _score_label: Label
 var _hint: Label
 var _goal_chips: Array[Panel] = []
 var _goal_icons: Array[TextureRect] = []
@@ -98,9 +99,14 @@ func build() -> void:
 	_hint_hand = UiKit.icon(self, "tutorial_hand", "tutorial_hand", 0.0, 0.0, HAND_SIZE, HAND_SIZE)
 	_hint_hand.visible = false
 
+	# The score is a live number, so it goes where the player already looks: under the goals.
+	_score_label = UiKit.label(self, "score", "", UiTokens.TYPE_SM, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(_score_label, COLUMN_X, 248.0, COLUMN_W, 20.0)
+
 	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, COLUMN_X, 254.0, COLUMN_W, 22.0)
+	UiKit.place(_hint, COLUMN_X, 272.0, COLUMN_W, 22.0)
 
 	# ---- booster bar: three above two, inside the column ----------------------------------------
 	for kind in range(BoosterBag.SLOTS):
@@ -158,6 +164,8 @@ func refresh() -> void:
 	_level_label.text = "مرحله " + PersianText.number(level_number)
 	_moves_label.text = PersianText.number(run.moves_left)
 	UiKit.fit_font(_moves_label, 68.0)
+	if _score_label != null:
+		_score_label.text = "امتیاز: " + PersianText.number(run.score)
 
 func refresh_goals() -> void:
 	for index in range(_goal_chips.size()):
@@ -259,6 +267,7 @@ func _attempt_swap(from_pos: Vector2i, to_pos: Vector2i) -> void:
 	_swap_in_copy(before, from_pos, to_pos)
 	await _board.animate_swap(from_pos, to_pos)
 	await _board.play_result(before, result.get("events", []))
+	_play_result_cues(result)
 	refresh()
 	_check_finished()
 
@@ -286,8 +295,61 @@ func _apply_booster(pos: Vector2i) -> void:
 	_hint.text = ""
 	SoundDirector.play("power")
 	await _board.play_result(before, outcome["result"].get("events", []))
+	_play_result_cues(outcome["result"])
 	refresh()
 	_check_finished()
+
+## One place reads a move's event list for the senses: what was cleared, whether an obstacle took a
+## hit, whether a power-up was made or fired, how long the chain ran, and the combo bonus the core
+## already computed. Nothing here decides anything — the numbers come from LevelRun._award_score.
+func _play_result_cues(result: Dictionary) -> void:
+	var cleared := 0
+	var obstacles := 0
+	var created := 0
+	var triggered := 0
+	var cascades := 0
+	for event in result.get("events", []):
+		match str(event.get("type", "")):
+			"piece_cleared": cleared += 1
+			"obstacle_hit": obstacles += 1
+			"power_up_created": created += 1
+			"power_up_triggered": triggered += 1
+			"cascade": cascades += 1
+	if cleared > 0:
+		SoundDirector.play("clear", 0.94 + minf(float(cleared), 12.0) * 0.018)
+	if obstacles > 0:
+		SoundDirector.play("obstacle", 0.96 + minf(float(obstacles), 5.0) * 0.045)
+	if created > 0:
+		SoundDirector.play("power_create", 1.0 + minf(float(created), 3.0) * 0.08)
+	if triggered > 0:
+		SoundDirector.play("power", 0.92 + minf(float(triggered), 4.0) * 0.06)
+	var combo_count := int(result.get("combo_count", cascades + triggered))
+	var combo_bonus := int(result.get("combo_bonus", 0))
+	if combo_count >= 2:
+		SoundDirector.play("combo", 0.92 + minf(float(combo_count - 2), 5.0) * 0.08)
+		Haptics.thump()
+		_show_combo(combo_count, combo_bonus)
+	elif cleared > 0 or obstacles > 0:
+		Haptics.tick()
+
+## The combo bubble: it is the only place a player learns that a chain paid a bonus, so it says the
+## number out loud, floats up and gets out of the way.
+func _show_combo(combo_count: int, combo_bonus: int) -> void:
+	var popup := UiKit.label(self, "combo_popup", "", UiTokens.TYPE_LG, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	popup.text = "کمبو ×" + PersianText.number(combo_count) + "  +" \
+		+ PersianText.number(combo_bonus) + " امتیاز"
+	UiKit.place(popup, BOARD_LEFT, BOARD_TOP + 8.0, BOARD_SIZE, 34.0)
+	popup.modulate = Color(1, 1, 1, 0)
+	popup.scale = Vector2(0.82, 0.82)
+	popup.pivot_offset = Vector2(BOARD_SIZE * 0.5, 17.0)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "modulate:a", 1.0, 0.12)
+	tween.tween_property(popup, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "position:y", -26.0, 0.75).set_delay(0.12)
+	tween.tween_property(popup, "modulate:a", 0.0, 0.22).set_delay(0.68)
+	tween.chain().tween_callback(popup.queue_free)
 
 func _on_booster_pressed(kind: int) -> void:
 	if run == null or run.status != GameTypes.LevelStatus.PLAYING:
@@ -384,14 +446,20 @@ func _show_result(first_clear: bool, reward: RewardBundle) -> void:
 	_result_title.text = "مرحله کامل شد" if won else "حرکت‌ها تمام شد"
 	var body := ""
 	if won:
-		body = "ستاره: " + PersianText.fraction(stars, StarRating.MAX_STARS)
+		# Two lines at most: this label has a fixed box, and a third line would be clipped.
+		body = "ستاره: " + PersianText.fraction(stars, StarRating.MAX_STARS) \
+			+ " • امتیاز: " + PersianText.number(run.score)
+		# finish_attempt has already written the record, so holding the best is ">=" not ">".
+		if run.score > 0 and run.score >= int(session.save.find_level(level_number).get("best_score", 0)):
+			body += " • رکورد تازه"
+		body += "\n"
 		if first_clear and reward != null and not reward.is_empty:
-			body += "\n" + PersianText.number(reward.coins) + " سکه و " \
+			body += PersianText.number(reward.coins) + " سکه و " \
 				+ PersianText.number(reward.potions) + " معجون"
 		elif not first_clear:
-			body += "\nاین مرحله را قبلاً کامل کرده بودی"
+			body += "این مرحله را قبلاً کامل کرده بودی"
 	else:
-		body = "یک جان کم شد. دوباره تلاش کن."
+		body = "امتیاز: " + PersianText.number(run.score) + "\nیک جان کم شد. دوباره تلاش کن."
 	_result_body.text = body
 
 	if won and level_number < GameSession.LEVEL_COUNT:

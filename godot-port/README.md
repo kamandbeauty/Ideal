@@ -16,7 +16,7 @@ rounded at runtime is a bug now, not a style.
 
 | Path | What it is |
 |---|---|
-| `project.godot` | Design space 415 × 738 dp (the same numbers as `UiKit.cs`), portrait, `canvas_items` stretch, GLES3-class renderer so low-end Android devices are in scope. |
+| `project.godot` | Design space 738 × 415 dp, **landscape**, `canvas_items` stretch, GLES3-class renderer so low-end Android devices are in scope. |
 | `scenes/main.tscn` | One node, `AppRoot`. Everything else is built by code, so there is no prefab tree to break and CI can boot the game headlessly. |
 | `scripts/app_root.gd` | Loads the save, builds the five screens and the top bar, owns navigation. |
 | `scripts/session.gd` | `GameSession` port: save, wallet, lives, progression, boosters, districts; the rules that span more than one of them. |
@@ -38,10 +38,22 @@ drive them.
 Ported and drawn from the Unity art: the board, HUD, booster bar, result card, shop, districts and
 settings, with swipe/tap input, swap, clear, fall and reject animation.
 
+**Score and combo.** A move's event list is priced at the core (`LevelRun._award_score`): 50 a cleared
+piece, 100 an obstacle hit, 180 a triggered power-up, 250 a cascade, 300 a created power-up; a move's
+cascades plus its triggered power-ups form a combo, and every link past the first is worth a flat 150
+(`bonus = (combo − 1) × 150`). The number is presentation only — nothing on the board, in the goals or
+in progression reads it back — but it is deterministic, tested arithmetic (a three-chain is exactly
+980 in `tests/test_core.gd`), it is shown live under the goals, the result card prints it, and each
+level's best is persisted per level as `bestScore` in the save JSON. The board also gained the four
+cues that go with it: `clear`, `obstacle`, `combo` and `powerup_create`, each pitched by how much of
+the event it is reporting.
+
 Not done yet, and deliberately not claimed:
 - No parity fixture suite over long move sequences (event order, counters and hashes compared
   move-for-move against C#). `migration/01-audit.md` §10 R1 explains why this needs a Unity run.
-- No sound: the Unity project has no audio assets either, so nothing was dropped.
+- **Sound: ported, not migrated.** The Unity project ships no audio at all, so there was nothing to
+  copy — the fourteen cues and the 27 s palace loop are synthesised by `godot-port/tools/make_audio.py`
+  and committed as build output, so a reviewer can regenerate them byte for byte (`md5sum` matches).
 - **First device run happened, and it found bugs the tests could not.** The APK from the artifact
   installed and ran, and the screenshots showed the layout piled into one screen with the HUD numbers
   floating outside their pills. Three real defects were behind it — a Godot 3 API call (`raise()`) that

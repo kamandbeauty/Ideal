@@ -21,6 +21,11 @@ const CUE_PATHS := {
 	"reward": "res://assets/audio/reward.wav",
 	"win": "res://assets/audio/win.wav",
 	"lose": "res://assets/audio/lose.wav",
+	# The event cues: a clear, an obstacle taking a hit, a fresh power-up and a combo chain.
+	"clear": "res://assets/audio/clear.wav",
+	"obstacle": "res://assets/audio/obstacle.wav",
+	"combo": "res://assets/audio/combo.wav",
+	"power_create": "res://assets/audio/powerup_create.wav",
 }
 
 const POOL_SIZE := 6

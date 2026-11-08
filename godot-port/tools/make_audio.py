@@ -164,6 +164,18 @@ def main() -> int:
     write("reject.wav", pad(mix(pluck(SCALE["d4"] / 2.0, 0.16, 0.15, 0.25), click(0.03, 0.2))), 0.6)
     write("reward.wav", pad(mix(pluck(SCALE["a5"], 0.3, 0.3, 0.4), pluck(SCALE["d6"], 0.5, 0.3, 0.5) * 0.8)), 0.7)
 
+    # The event cues. A clear is a soft third so it can fire repeatedly inside one cascade without
+    # becoming a melody of its own; an obstacle hit is a wooden knock well below the chimes; a combo is
+    # the only rising figure in the set, so a chain is audible before the bonus is read; making a
+    # power-up shimmers upward, the mirror of using one.
+    clear = np.concatenate([pluck(SCALE["a5"], 0.14, 0.3, 0.3), pluck(SCALE["c6"], 0.2, 0.3, 0.35) * 0.7])
+    write("clear.wav", pad(clear, tail=0.02), 0.6)
+    write("obstacle.wav", pad(mix(pluck(SCALE["d4"] / 2.0, 0.2, 0.2, 0.22), click(0.02, 0.22)), tail=0.02), 0.65)
+    combo = np.concatenate([pluck(SCALE[name], 0.16, 0.4, 0.35) for name in ("a5", "c6", "f6")])
+    write("combo.wav", pad(combo, tail=0.04), 0.7)
+    make_power = mix(sweep(700.0, 1800.0, 0.34) * 0.8, pluck(SCALE["f6"], 0.36, 0.35, 0.4) * 0.5)
+    write("powerup_create.wav", pad(make_power, tail=0.03), 0.6)
+
     win = np.concatenate([pluck(SCALE[name], 0.9, 0.35, 0.7) for name in ("d5", "f5", "a5", "d6")])
     write("win.wav", pad(win, tail=0.05), 0.75)
     lose = np.concatenate([pluck(SCALE[name], 0.8, 0.25, 0.6) for name in ("d5", "a4", "f4")])

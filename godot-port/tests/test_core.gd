@@ -233,6 +233,23 @@ func _run() -> void:
 
 	var run_a = Run.new(progression_level, 0, 12345)
 	var run_b = Run.new(progression_level, 0, 12345)
+	# Scoring is a pure function of the event list, so the test can hand it three events and check the
+	# arithmetic: two cascades (250 each) + one triggered power-up (180) = 680, plus a 3-chain combo
+	# bonus of (3 - 1) * 150 = 300, for 980.
+	var combo_run = Run.new(progression_level, 0, 77)
+	var combo_result := {"events": [
+		{"type": "cascade"}, {"type": "cascade"}, {"type": "power_up_triggered"}
+	]}
+	combo_run._award_score(combo_result)
+	failures += _check(int(combo_result.combo_count) == 3 and int(combo_result.combo_bonus) == 300,
+		"three-chain combo awards a 300 point bonus")
+	failures += _check(combo_run.score == 980 and int(combo_result.score_delta) == 980,
+		"the combo bonus is part of the run score")
+	var quiet_result := {"events": [{"type": "piece_cleared"}, {"type": "obstacle_hit"}]}
+	combo_run._award_score(quiet_result)
+	failures += _check(int(quiet_result.combo_count) == 0 and int(quiet_result.combo_bonus) == 0,
+		"a move with no chain earns no combo bonus")
+
 	failures += _check(run_a.state_hash_hex() == run_b.state_hash_hex(), "same seed produces same initial replay hash")
 	failures += _check(Stars.from_moves(20, 4) == 1 and Stars.from_moves(20, 5) == 2 and Stars.from_moves(20, 10) == 3, "star thresholds use exact integer percentages")
 	run_a.status = GameTypes.LevelStatus.WON
@@ -277,12 +294,14 @@ func _run() -> void:
 	level_record.plays = 4
 	level_record.cleared = true
 	level_record.best_moves_left = 9
+	level_record.best_score = 4321
 	level_record.last_replay_hash = "c0d2f1a263e84ebf"
 	var encoded_save := Codec.encode(fresh_save)
 	var decoded_save = Codec.decode(encoded_save, save_clock)
 	failures += _check(decoded_save.errors.is_empty(), "save JSON round-trip has no errors")
 	failures += _check(decoded_save.data.coins == 1234 and decoded_save.data.potions == 56 and decoded_save.data.level_number == 7, "save JSON round-trip preserves balances and level")
 	failures += _check(decoded_save.data.find_level(3).get("last_replay_hash", "") == "c0d2f1a263e84ebf", "save JSON round-trip preserves level records")
+	failures += _check(int(decoded_save.data.find_level(3).get("best_score", 0)) == 4321, "save JSON round-trip preserves the best score")
 	var migrated = Codec.decode("{\"version\":1,\"coins\":40,\"potions\":90}", save_clock)
 	failures += _check(migrated.data.version == Save.CURRENT_VERSION and migrated.data.boosters.size() == Bag.SLOTS, "v1 save migrates to v2 with starter boosters")
 	var corrupt = Codec.decode("{ broken", save_clock)
