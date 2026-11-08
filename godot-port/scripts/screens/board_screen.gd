@@ -235,12 +235,19 @@ func _attempt_swap(from_pos: Vector2i, to_pos: Vector2i) -> void:
 	if not bool(result.get("accepted", false)):
 		_hint.text = _reject_text(str(result.get("reject_reason", "")))
 		SoundDirector.play("reject")
+		Haptics.thump()
 		await _board.animate_reject(from_pos, to_pos)
 		return
 	_hint.text = ""
 	SoundDirector.play("swap")
+	Haptics.tick()
 	var cascades := int(result.get("cascades", 0))
 	SoundDirector.play("match" if cascades <= 1 else "cascade", 1.0 + 0.06 * float(mini(cascades, 5)))
+	# A cascade is felt, not just heard: the buzz gets heavier as the chain grows.
+	if cascades <= 2:
+		Haptics.tick()
+	else:
+		Haptics.thump()
 	if int(result.get("power_ups_created", 0)) > 0:
 		SoundDirector.play("power")
 	_swap_in_copy(before, from_pos, to_pos)

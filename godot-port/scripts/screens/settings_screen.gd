@@ -141,6 +141,7 @@ func _on_toggled(pressed: bool, key: String) -> void:
 	session.save_now()
 	if SoundDirector.instance != null:
 		SoundDirector.instance.apply_settings(session.save)
+	Haptics.apply_settings(session.save)
 
 func _on_back() -> void:
 	back_requested.emit()

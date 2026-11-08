@@ -112,6 +112,7 @@ func _boot() -> void:
 	sound.name = "Sound"
 	add_child(sound)
 	sound.apply_settings(session.save)
+	Haptics.apply_settings(session.save)
 
 	# Added last so the strip draws above every screen.
 	top_bar = TopBar.new()

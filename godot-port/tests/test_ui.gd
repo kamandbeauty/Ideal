@@ -235,6 +235,21 @@ func _run() -> void:
 			DirAccess.remove_absolute(ProjectSettings.globalize_path(cleanup_file))
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(tutorial_directory))
 
+	print("UI STAGE 9: haptics obey the save and never crash off-device")
+	var haptic_save = Codec.new_save(Clock.new(1700000000))
+	haptic_save.haptics_on = true
+	Haptics.apply_settings(haptic_save)
+	failures += _check(Haptics.enabled, "haptics follow the switch being on")
+	Haptics.tick()
+	Haptics.thump()
+	await process_frame
+	failures += _check(true, "a vibration call off-device is a no-op, not an error")
+	haptic_save.haptics_on = false
+	Haptics.apply_settings(haptic_save)
+	failures += _check(not Haptics.enabled, "haptics follow the switch being off")
+	haptic_save.haptics_on = true
+	Haptics.apply_settings(haptic_save)
+
 	print("UI STAGE 8: the real AppRoot composes one screen at a time")
 	var app := (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	tree_root.add_child(app)

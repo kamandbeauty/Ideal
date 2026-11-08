@@ -12,6 +12,7 @@ signal swipe_requested(from: Vector2i, to: Vector2i)
 
 const SWIPE_CELLS := 0.45
 const CLEAR_SECONDS := 0.14
+const SQUASH_SECONDS := 0.18
 const FALL_SECONDS := 0.22
 const SWAP_SECONDS := 0.14
 const REJECT_SECONDS := 0.16
@@ -302,6 +303,24 @@ func play_result(before: BoardModel, events: Array) -> void:
 	await _settle(before, cleared)
 	_busy = false
 
+## A piece that lands is a piece with weight. One short, staggered squash per landed tile — the
+## cheapest thing that makes a fall read as a fall rather than a teleport.
+func _squash_all(landed: Array) -> void:
+	var any := false
+	for pos in landed:
+		var tile: Control = _tiles.get(pos)
+		if tile == null:
+			continue
+		any = true
+		tile.pivot_offset = Vector2(cell_size, cell_size) * 0.5
+		var tween := create_tween()
+		tween.tween_property(tile, "scale", Vector2(1.10, 0.88), SQUASH_SECONDS * 0.4) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(tile, "scale", Vector2(1.0, 1.0), SQUASH_SECONDS * 0.6) \
+			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if any:
+		await get_tree().create_timer(SQUASH_SECONDS).timeout
+
 func _settle(before: BoardModel, cleared: Dictionary) -> void:
 	var offsets := {}
 	var board := run.board
@@ -350,3 +369,4 @@ func _settle(before: BoardModel, cleared: Dictionary) -> void:
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tween.tween_property(tile, "modulate", Color(1, 1, 1, 1), FALL_SECONDS)
 	await tween.finished
+	await _squash_all(offsets.keys())
