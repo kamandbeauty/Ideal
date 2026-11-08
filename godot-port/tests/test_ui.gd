@@ -47,7 +47,11 @@ func _escaped_labels(node: Node, slack: float) -> Array:
 
 ## Visible controls that reach past the design space, ignoring the full-bleed layers that are meant to.
 func _outside_canvas(app: Node, slack: float) -> Array:
-	var canvas := Rect2(Vector2.ZERO, Vector2(UiTokens.CANVAS_WIDTH, UiTokens.CANVAS_HEIGHT)).grow(slack)
+	# The stage is centred inside whatever window we have, so "inside the design space" is the stage's
+	# own rect — not a rect at the origin.
+	var stage := app.get("_stage") as Control
+	var canvas := (stage.get_global_rect() if stage != null else Rect2(
+		Vector2.ZERO, Vector2(UiTokens.CANVAS_WIDTH, UiTokens.CANVAS_HEIGHT))).grow(slack)
 	var out := []
 	for view in ["home", "board", "districts", "shop", "settings"]:
 		var screen = app.get(view)
