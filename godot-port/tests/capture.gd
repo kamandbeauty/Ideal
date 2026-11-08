@@ -76,6 +76,33 @@ func _report(app: Node, tag: String) -> void:
 	for line in escapes.slice(0, 8):
 		print("[capture] LAYOUT %s :: %s" % [tag, line])
 
+## Print the real screen rect of every visible control under one node, with its text. Pixels say
+## "something is wrong"; these numbers say what and where.
+func _dump(node: Node, start_name: String, limit: int) -> void:
+	var start := node.get_node_or_null(start_name) if node != null else null
+	if start == null:
+		print("[capture] DUMP %s missing" % start_name)
+		return
+	var lines: Array[String] = []
+	_collect_rects(start, lines, 0)
+	for line in lines.slice(0, limit):
+		print("[capture] DUMP %s" % line)
+
+func _collect_rects(node: Node, out: Array[String], depth: int) -> void:
+	if out.size() > 80:
+		return
+	if node is Control and node.visible:
+		var control := node as Control
+		var extra := ""
+		if control is Button:
+			extra = " text=%s disabled=%s" % [(control as Button).text, str((control as Button).disabled)]
+		elif control is Label:
+			extra = " text=%s" % (control as Label).text
+		out.append("%s%s %s%s" % ["  ".repeat(depth), control.name, str(control.get_global_rect()), extra])
+		depth += 1
+	for child in node.get_children():
+		_collect_rects(child, out, depth)
+
 func _audit(node: Node, out: Array[String]) -> void:
 	for child in node.get_children():
 		if child is Control and child.visible and child.get_parent() is Control:
