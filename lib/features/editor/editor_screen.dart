@@ -455,7 +455,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     required PhotoItem photo,
     required double start,
     required bool selected,
-    required int isCurrent,
+    required bool isCurrent,
   }) {
     final path = photo.thumbnailPath;
     final exists = path != null && File(path).existsSync();
@@ -762,7 +762,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                           .toDouble());
                 },
                 child: CustomPaint(
-                  size: const Size.infinite,
+                  size: Size.infinite,
                   painter: _WaveformPainter(
                     peaks: peaks,
                     sourceDuration: srcDur,
