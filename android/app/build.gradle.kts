@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -8,7 +10,7 @@ plugins {
 // committed so the CI pipeline can sign. Missing file -> debug key fallback,
 // so local `flutter build apk --release` profiling keeps working.
 val keyPropertiesFile = rootProject.file("key.properties")
-val keyProperties = java.util.Properties().apply {
+val keyProperties = Properties().apply {
     if (keyPropertiesFile.exists()) {
         keyPropertiesFile.inputStream().use { load(it) }
     }
