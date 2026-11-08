@@ -12,6 +12,7 @@ import app.subflow.asr.WhisperAudio
 import app.subflow.asr.WhisperEngine
 import app.subflow.core.NativeCore
 import app.subflow.media.MediaPicker
+import app.subflow.media.Thumbnails
 import app.subflow.media.VideoProbe
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
