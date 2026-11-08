@@ -268,7 +268,7 @@ func _run() -> void:
 	await process_frame
 	var settings_screen = app.get("settings")
 	for entry in settings_screen.get("_switches"):
-		var toggle: CheckButton = entry["toggle"]
+		var toggle: Button = entry["toggle"]
 		var want := bool(app.session.save.get(str(entry["key"])))
 		failures += _check(toggle.button_pressed == want,
 			"the %s switch shows the saved value" % str(entry["key"]))

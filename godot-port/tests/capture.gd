@@ -27,7 +27,7 @@ func _ready() -> void:
 	_report(app, "settings")
 	var settings_screen = app.get("settings")
 	for entry in settings_screen.get("_switches"):
-		var toggle := entry["toggle"] as CheckButton
+		var toggle := entry["toggle"] as Button
 		_log("SWITCH %s pressed=%s saved=%s" % [str(entry["key"]), str(toggle.button_pressed),
 			str(bool(app.session.save.get(str(entry["key"]))))])
 	await _shot("02-settings")

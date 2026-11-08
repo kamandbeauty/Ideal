@@ -42,15 +42,30 @@ func build() -> void:
 			HORIZONTAL_ALIGNMENT_RIGHT)
 		UiKit.place(caption, 100.0, 0.0, UiTokens.CANVAS_WIDTH - 32.0 - 110.0, ROW_HEIGHT)
 
-		var toggle := CheckButton.new()
+		# A CheckButton's default theme draws a small tick, not a switch, and an empty row of it reads as
+		# "off" no matter what the save says. This is a real switch: track + knob, gold when on.
+		var toggle := Button.new()
 		toggle.name = "toggle"
 		toggle.text = ""
+		toggle.toggle_mode = true
 		toggle.focus_mode = Control.FOCUS_NONE
 		toggle.add_theme_stylebox_override("focus", UiKit.box(UiTokens.TRANSPARENT))
+		toggle.add_theme_stylebox_override("normal", UiKit.box(UiTokens.SURFACE_RAISED, 16))
+		toggle.add_theme_stylebox_override("hover", UiKit.box(UiTokens.SURFACE_RAISED.lightened(0.08), 16))
+		toggle.add_theme_stylebox_override("pressed", UiKit.box(UiTokens.GOLD, 16))
+		toggle.add_theme_stylebox_override("hover_pressed", UiKit.box(UiTokens.GOLD, 16))
 		row.add_child(toggle)
-		UiKit.place(toggle, 8.0, (ROW_HEIGHT - 40.0) * 0.5, 52.0, 40.0)
+		UiKit.place(toggle, 8.0, (ROW_HEIGHT - 30.0) * 0.5, 56.0, 30.0)
+
+		var knob := Panel.new()
+		knob.name = "knob"
+		knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		knob.add_theme_stylebox_override("panel", UiKit.box(UiTokens.TEXT_MUTED, 12))
+		toggle.add_child(knob)
+		UiKit.place(knob, 3.0, 3.0, 24.0, 24.0)
+
 		toggle.toggled.connect(Callable(self, "_on_toggled").bind(keys[index]))
-		_switches.append({"key": keys[index], "toggle": toggle})
+		_switches.append({"key": keys[index], "toggle": toggle, "knob": knob})
 
 	var sample_panel := UiKit.art_panel(self, "sample", 16.0, 404.0, UiTokens.CANVAS_WIDTH - 32.0, 96.0,
 		"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
@@ -85,11 +100,22 @@ func refresh() -> void:
 	if session == null:
 		return
 	for entry in _switches:
-		var toggle: CheckButton = entry["toggle"]
+		var toggle: Button = entry["toggle"]
 		toggle.set_pressed_no_signal(bool(session.save.get(str(entry["key"]))))
+		_paint_switch(entry)
 	var font_ok := UiKit.medium_font() != null
 	_font_line.text = ("فونت وزیر بارگذاری شد" if font_ok else "فونت وزیر پیدا نشد — فارسی درست دیده نمی‌شود") \
 		+ " • شکل‌دهی متن با TextServer"
+
+## The knob is a child of the switch, so it has to move when the switch flips and when the save says
+## what the switch should be. One place paints it: off is left and grey, on is right and gold.
+func _paint_switch(entry: Dictionary) -> void:
+	var toggle: Button = entry["toggle"]
+	var knob: Panel = entry["knob"]
+	var width: float = toggle.size.x
+	knob.position = Vector2(width - 27.0 if toggle.button_pressed else 3.0, 3.0)
+	knob.add_theme_stylebox_override("panel",
+		UiKit.box(UiTokens.ON_GOLD if toggle.button_pressed else UiTokens.TEXT_MUTED, 12))
 
 func _on_toggled(pressed: bool, key: String) -> void:
 	if session == null or session.save == null:
@@ -99,6 +125,9 @@ func _on_toggled(pressed: bool, key: String) -> void:
 		"sfx_on": session.save.sfx_on = pressed
 		"haptics_on": session.save.haptics_on = pressed
 		"push_on": session.save.push_on = pressed
+	for entry in _switches:
+		if str(entry["key"]) == key:
+			_paint_switch(entry)
 	session.save_now()
 	if SoundDirector.instance != null:
 		SoundDirector.instance.apply_settings(session.save)
