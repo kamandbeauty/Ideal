@@ -28,8 +28,12 @@ func _ready() -> void:
 	var settings_screen = app.get("settings")
 	for entry in settings_screen.get("_switches"):
 		var toggle := entry["toggle"] as Button
-		_log("SWITCH %s pressed=%s saved=%s" % [str(entry["key"]), str(toggle.button_pressed),
-			str(bool(app.session.save.get(str(entry["key"]))))])
+		var knob := entry["knob"] as Control
+		_log("SWITCH %s pressed=%s saved=%s knob=%s toggle_rect=%s rtl=%s" % [
+			str(entry["key"]), str(toggle.button_pressed),
+			str(bool(app.session.save.get(str(entry["key"])))),
+			str(knob.position) + " " + str(knob.size),
+			str(toggle.get_global_rect()), str(toggle.is_layout_rtl())])
 	await _shot("02-settings")
 	app._show_shop()
 	await _frames(SETTLE_FRAMES)
