@@ -22,7 +22,7 @@ PROJECT = Path(__file__).resolve().parent.parent
 VO = PROJECT.parent.parent / 'Generated Audio November 08, 2026 - 8_16PM.wav'
 MODEL = '/tmp/models/whisper-base'
 FPS = 30
-TAIL = 1.1
+TAIL = 4.0          # ۲٫۹ ثانیهٔ آخر فقط کارتِ پایانی
 LEAD = 0.08          # زیرنویس کمی قبل از اولین کلمه ظاهر می‌شود
 MIN_W = 0.10         # حداقلِ مدتِ روشن‌بودنِ هر کلمه
 

@@ -51,6 +51,24 @@
     -webkit-text-stroke: 2.6px rgba(6,8,14,.72); paint-order: stroke fill; }
   #sub .w { display: inline-block; opacity: 0; will-change: transform, opacity, filter; }
   #sub .w.live { -webkit-text-stroke: 2.6px rgba(46,28,4,.75); }
+
+  /* ---------- end card: نامِ درس و مدرسه ---------- */
+  #card { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    pointer-events: none; opacity: 0; }
+  #card::before { content: ''; position: absolute; inset: 0;
+    background: radial-gradient(78% 68% at 50% 54%, rgba(4,5,7,.90) 0%, rgba(4,5,7,.84) 52%, rgba(4,5,7,.66) 78%, rgba(4,5,7,.44) 100%); }
+  #cardInner { position: relative; text-align: center; direction: rtl; transform-origin: 50% 55%; margin-top: 150px; }
+  #cardKicker { font-family: 'Vazirmatn', sans-serif; font-weight: 500; font-size: 32px;
+    letter-spacing: 3px; color: #ffd79a; text-shadow: 0 4px 22px rgba(0,0,0,.98), 0 0 40px rgba(0,0,0,.7); }
+  #cardTitle { margin-top: 16px; font-family: 'Vazirmatn', sans-serif; font-weight: 700; font-size: 82px;
+    letter-spacing: -.5px; color: #fdf6e6;
+    text-shadow: 0 10px 44px rgba(0,0,0,.98), 0 0 70px rgba(0,0,0,.8); }
+  #cardRule { width: 220px; height: 2px; margin: 34px auto 30px;
+    background: linear-gradient(90deg, rgba(246,226,187,0), rgba(246,226,187,.9), rgba(246,226,187,0)); }
+  #cardSchool { font-family: 'Vazirmatn', sans-serif; font-weight: 500; font-size: 42px;
+    color: #f2e7cf; text-shadow: 0 6px 26px rgba(0,0,0,.92); }
+  #cardCredit { margin-top: 16px; font-family: 'Vazirmatn', sans-serif; font-weight: 400; font-size: 30px;
+    color: #c9d4e4; text-shadow: 0 4px 18px rgba(0,0,0,.9); }
 </style>
 </head>
 <body>
@@ -69,6 +87,15 @@
   <div id="flash"></div>
   <div id="subscrim"></div>
   <div id="sub"></div>
+  <div id="card">
+    <div id="cardInner">
+      <div id="cardKicker">درس پنجم</div>
+      <div id="cardTitle">عوامل مؤثر در کشاورزی</div>
+      <div id="cardRule"></div>
+      <div id="cardSchool">کلاس ششم — یک‌دبستان یزدان</div>
+      <div id="cardCredit">تهیه: ساینا سلمان غانمی و فاطمه اسکندری</div>
+    </div>
+  </div>
   <div id="fade"></div>
 </div>
 
@@ -76,6 +103,7 @@
 const $ = (id) => document.getElementById(id);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const smooth = (p) => { const q = clamp(p, 0, 1); return q * q * q * (q * (6 * q - 15) + 10); };  // easeInOutQuint
+const easeOutBack = (p) => { const c = 1.70158; return 1 + (c + 1) * Math.pow(p - 1, 3) + c * Math.pow(p - 1, 2); };
 const hash = (a, b) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); };
 
 let DATA = null;
@@ -305,6 +333,17 @@ async function build() {
 
     paintDust(t, warm);
     paintSub(t, idx, sen);
+
+    // end card (نامِ درس و مدرسه) — بعد از پایانِ گفتار
+    const cardStart = (DATA.ENDCARD && DATA.ENDCARD.start ? DATA.ENDCARD.start : DATA.DURATION - 4) + 0.2;
+    const cp = clamp((t - cardStart) / 0.9, 0, 1);
+    if (cp > 0) {
+      $('card').style.opacity = String(smooth(clamp(cp * 1.15, 0, 1)));
+      $('cardInner').style.transform =
+        `translateY(${((1 - smooth(cp)) * 24).toFixed(1)}px) scale(${(0.94 + 0.06 * easeOutBack(clamp(cp / 0.9, 0, 1))).toFixed(4)})`;
+    } else {
+      $('card').style.opacity = '0';
+    }
 
     // soft fade-out at the very end
     const FO = 0.9;
