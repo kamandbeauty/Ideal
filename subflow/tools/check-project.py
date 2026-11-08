@@ -289,10 +289,32 @@ else:
 check("android:supportsRtl=\"true\"" in app_manifest, "AndroidManifest must support RTL")
 check("android:minSdkVersion" not in app_manifest, "minSdk belongs in build.gradle.kts")
 
+# The Whisper weights ship inside the APK. They are 57 MB, so they are fetched at
+# build time and never committed - which only stays true if all three pieces exist:
+# the fetch script, the packaging rule that keeps the asset openable, and the
+# .gitignore entry that keeps the file out of the repository.
+fetch_script = ROOT / "tools/fetch-bundled-model.sh"
+check(fetch_script.is_file(), "tools/fetch-bundled-model.sh must exist")
+if fetch_script.is_file():
+    fetch_text = fetch_script.read_text(encoding="utf-8")
+    check("huggingface.co" in fetch_text, "the bundled model fetch needs the primary host")
+    check("hf-mirror.com" in fetch_text, "the bundled model fetch needs the mirror fallback")
+    check("ggml" in fetch_text, "the fetch must verify the ggml magic before packaging")
+workspace_root = ROOT.parent
+gitignore = (workspace_root / ".gitignore").read_text(encoding="utf-8")
+check("assets/models/*.bin" in gitignore, "the bundled model must never be committed")
+engine = (ROOT / "android/app/src/main/kotlin/app/subflow/asr/WhisperEngine.kt").read_text(encoding="utf-8")
+check("BUILTIN_ASSET" in engine, "WhisperEngine must know the bundled model asset")
+check("ensureBuiltIn" in engine, "the bundled model must be copied out of the APK on first use")
+check("openFd(BUILTIN_ASSET)" in engine, "the bundled asset must be opened uncompressed (openFd)")
+workflow = (workspace_root / ".github/workflows/subflow-android.yml").read_text(encoding="utf-8")
+check("tools/fetch-bundled-model.sh" in workflow, "CI must fetch the bundled model before building")
+
 gradle = (ROOT / "android/app/build.gradle.kts").read_text(encoding="utf-8")
 check("minSdk = 26" in gradle, "minSdk must be 26 (Android 8)")
 check("arm64-v8a" in gradle, "arm64-v8a must be built")
 check("src/main/cpp/CMakeLists.txt" in gradle, "CMake must be wired into the Android build")
+check('noCompress += "bin"' in gradle, "bundled .bin assets must stay uncompressed (openFd)")
 
 # --------------------------------------------------- forbidden constructions
 # A WebView would violate non-negotiable #1: the UI must be real Flutter. The

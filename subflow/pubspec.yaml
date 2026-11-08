@@ -1,7 +1,7 @@
 name: subflow
 description: SubFlow - Professional Offline AI Subtitle & Video Editor for Android.
 publish_to: "none"
-version: 0.7.0+10
+version: 0.8.0+11
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

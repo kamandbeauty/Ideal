@@ -42,7 +42,7 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   String? _downloadingId;
   AsrDownloadProgress? _download;
   bool _userCancelled = false;
-  AsrProviderMode _mode = AsrProviderMode.cloud;
+  AsrProviderMode _mode = AsrProviderMode.onDevice;
   AsrCloudConfig _cloud = AsrCloudConfig.empty;
 
   static const List<Map<String, String>> _languages = <Map<String, String>>[
@@ -111,7 +111,7 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
             ),
           ),
           const SizedBox(height: 18),
-          const _SectionTitle(title: 'دریافت مدل (یک‌بار، بعد آفلاین)'),
+          const _SectionTitle(title: 'مدل‌های بیشتر (اختیاری)'),
           const SizedBox(height: 4),
           const Text(
             'فایل مدل در خود برنامه نیست چون از ۳۲ مگابایت تا چند گیگابایت است؛ '
@@ -208,8 +208,9 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
             ),
           if (_mode == AsrProviderMode.onDevice) ...<Widget>[
             const Text(
-              'همهٔ پردازش روی همین دستگاه انجام می‌شود و هیچ صدایی جایی ارسال نمی‌شود. '
-              'برای فارسی، base یا small با کیفیت q5 بهترین تعادل حجم و دقت است.',
+              'مدل base با کیفیت q5 همراه خود برنامه نصب می‌شود؛ نه دانلودی لازم است و نه '
+              'حسابی. همهٔ پردازش روی همین دستگاه انجام می‌شود و هیچ صدایی جایی ارسال '
+              'نمی‌شود. برای دقت بیشتر می‌توانید مدل small را هم اضافه کنید.',
               style: TextStyle(fontSize: 11.5, color: AppColors.textMuted, height: 1.9),
             ),
             const SizedBox(height: 10),
@@ -337,7 +338,10 @@ class _AsrScreenState extends ConsumerState<AsrScreen> {
   Future<void> _start() async {
     final AsrProviderMode mode = _mode;
     final AsrCloudConfig cloud = _cloud;
-    final String? path = _selectedPath;
+    // The bundled model is already installed on a fresh install, so "nothing
+    // picked yet" must mean "use it", not "go find a model".
+    final String? path = _selectedPath ??
+        ref.read(asrModelsProvider).valueOrNull?.firstOrNull?.path;
     if (mode == AsrProviderMode.onDevice && path == null) {
       setState(() => _error = 'اول یک مدل Whisper اضافه کنید.');
       return;
@@ -613,7 +617,7 @@ class _ModelList extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const <Widget>[
             Text(
-              'هنوز مدلی اضافه نشده است',
+              'مدل همراه برنامه در دسترس نیست',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -650,30 +654,57 @@ class _ModelList extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        model.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                        ),
+                      Row(
+                        children: <Widget>[
+                          Flexible(
+                            child: Text(
+                              model.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (model.builtin) ...<Widget>[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.success.withOpacity(0.16),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                'همراه برنامه',
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.success,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        model.sizeLabel,
+                        model.builtin
+                            ? '${model.sizeLabel} • از قبل نصب است، نیازی به دانلود نیست'
+                            : model.sizeLabel,
                         style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  onPressed: onDelete == null ? null : () => onDelete!(model),
-                  icon: const Icon(Icons.delete_outline_rounded, size: 18),
-                  color: AppColors.textMuted,
-                  tooltip: 'حذف مدل',
-                ),
+                if (!model.builtin)
+                  IconButton(
+                    onPressed: onDelete == null ? null : () => onDelete!(model),
+                    icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                    color: AppColors.textMuted,
+                    tooltip: 'حذف مدل',
+                  ),
               ],
             ),
           ),

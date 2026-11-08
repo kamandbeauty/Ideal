@@ -137,11 +137,11 @@ class AsrSettingsStore {
 
   final SettingsDao _dao;
 
-  /// Online is the default: it needs no model download, which is the whole point
-  /// of the first run. On-device stays available and is remembered once chosen.
+  /// On-device is the default now that the model ships inside the APK: no
+  /// download, no account, no network. Online is opt-in and remembered.
   Future<AsrProviderMode> mode() async {
     final String? raw = await _dao.get(CloudAsrKeys.provider);
-    return raw == 'ondevice' ? AsrProviderMode.onDevice : AsrProviderMode.cloud;
+    return raw == 'cloud' ? AsrProviderMode.cloud : AsrProviderMode.onDevice;
   }
 
   Future<void> setMode(AsrProviderMode mode) => _dao.set(

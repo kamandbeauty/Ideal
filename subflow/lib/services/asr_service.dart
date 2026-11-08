@@ -13,12 +13,16 @@ class AsrModel {
     required this.label,
     required this.path,
     required this.sizeBytes,
+    this.builtin = false,
   });
 
   final String id;
   final String label;
   final String path;
   final int sizeBytes;
+
+  /// Shipped inside the APK: always present, cannot be deleted.
+  final bool builtin;
 
   String get sizeLabel {
     final double mb = sizeBytes / (1024 * 1024);
@@ -36,6 +40,7 @@ class AsrModel {
       label: '${raw['label'] ?? raw['id'] ?? path.split('/').last}',
       path: path,
       sizeBytes: size is num ? size.toInt() : 0,
+      builtin: raw['builtin'] == true,
     );
   }
 }

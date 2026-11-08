@@ -48,3 +48,8 @@ motion/*/assets/plates/hd/
 
 # rowling-potter: mix is rebuilt from the tracked VO (node audio/build.mjs)
 motion/rowling-potter/audio/mix.wav
+
+# Whisper weights bundled into the APK by tools/fetch-bundled-model.sh.
+# 57 MB per file: fetched at build time, never committed.
+subflow/android/app/src/main/assets/models/*.bin
+subflow/android/app/src/main/assets/models/*.part

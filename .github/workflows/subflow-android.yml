@@ -157,6 +157,13 @@ jobs:
           PROPS
           echo "release keystore configured"
 
+      # The Whisper weights that ship inside the APK. They are far too large for
+      # git, so the build fetches them (Hugging Face, mirror as fallback) and
+      # Gradle packages them as assets.
+      - name: Fetch bundled Whisper model
+        working-directory: subflow
+        run: bash tools/fetch-bundled-model.sh
+
       # The build log is also surfaced as a check-run annotation, because the
       # default log download is not always reachable from automation tooling.
       - name: Build release APK

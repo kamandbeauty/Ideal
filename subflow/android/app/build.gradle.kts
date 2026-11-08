@@ -36,8 +36,8 @@ android {
         // Android 8.0 / API 26 is the supported floor.
         minSdk = 26
         targetSdk = 34
-        versionCode = 10
-        versionName = "0.7.0"
+        versionCode = 11
+        versionName = "0.8.0"
 
         // ARM64 first; x86_64 is kept for the emulator only. 32-bit ARM is
         // deliberately excluded from Phase 1 because whisper.cpp models are
@@ -104,6 +104,13 @@ android {
         jniLibs {
             useLegacyPackaging = false
         }
+    }
+
+    // The bundled Whisper weights are read through AssetManager.openFd (it needs a
+    // real offset), and they are already incompressible, so publishing them
+    // uncompressed is both required and cheaper.
+    androidResources {
+        noCompress += "bin"
     }
 }
 

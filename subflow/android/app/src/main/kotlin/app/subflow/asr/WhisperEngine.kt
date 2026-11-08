@@ -1,6 +1,7 @@
 package app.subflow.asr
 
 import android.content.Context
+import android.content.res.AssetManager
 import android.net.Uri
 import android.provider.OpenableColumns
 import android.util.Log
@@ -28,6 +29,7 @@ class WhisperEngine(
     private val emit: (Map<String, Any?>) -> Unit,
 ) {
     private val lock = Any()
+    private val builtinLock = Any()
     private val cancelled = AtomicBoolean(false)
     private val ioLock = Any()
 
@@ -138,14 +140,19 @@ class WhisperEngine(
     }
 
     /** A ggml model must start with its magic and must actually load. */
-    private fun verifyDownloaded(file: File) {
+    /** A ggml file starts with the four bytes of its magic; anything else is not a model. */
+    private fun verifyMagic(file: File) {
         val magic = ByteArray(4)
         file.inputStream().use { stream ->
-            if (stream.read(magic) != 4) throw IOException("فایل دریافتی خالی است.")
+            if (stream.read(magic) != 4) throw IOException("فایل مدل خالی است.")
         }
         if (String(magic) != "ggml") {
-            throw IOException("فایل دریافتی مدل Whisper نیست.")
+            throw IOException("این فایل مدل Whisper نیست.")
         }
+    }
+
+    private fun verifyDownloaded(file: File) {
+        verifyMagic(file)
         if (!NativeCore.isReady || !NativeCore.nativeAsrAvailable()) return
         val result = NativeCore.nativeAsrLoadModel(file.absolutePath)
         if (!result.contains("\"ok\":true")) {
@@ -164,15 +171,92 @@ class WhisperEngine(
     )
 
     fun listModels(): List<Map<String, Any?>> {
-        val files = modelsDir().listFiles { file -> file.isFile && file.name.endsWith(".bin") }
-            ?: return emptyList()
-        return files.sortedBy { it.name }.map { file ->
-            mapOf(
-                "id" to file.name.removeSuffix(".bin"),
-                "label" to file.name.removeSuffix(".bin"),
-                "path" to file.absolutePath,
-                "sizeBytes" to file.length(),
+        val out = ArrayList<Map<String, Any?>>()
+        // The model that ships inside the APK comes first: on a fresh install it is
+        // the one that is already there, and nothing has to be downloaded.
+        val builtin = ensureBuiltIn()
+        if (builtin != null) {
+            out.add(
+                mapOf(
+                    "id" to BUILTIN_ID,
+                    "label" to BUILTIN_LABEL,
+                    "path" to builtin.absolutePath,
+                    "sizeBytes" to builtin.length(),
+                    "builtin" to true,
+                )
             )
+        }
+        val files = modelsDir().listFiles { file -> file.isFile && file.name.endsWith(".bin") }
+        files?.sortedBy { it.name }?.forEach { file ->
+            if (builtin != null && file.name == builtin.name) return@forEach
+            out.add(
+                mapOf(
+                    "id" to file.name.removeSuffix(".bin"),
+                    "label" to file.name.removeSuffix(".bin"),
+                    "path" to file.absolutePath,
+                    "sizeBytes" to file.length(),
+                    "builtin" to false,
+                )
+            )
+        }
+        return out
+    }
+
+    /**
+     * Copies the bundled model out of the APK on first use, because whisper.cpp
+     * needs a real file path and an asset stream is not one.
+     *
+     * Returns the file, or null when this build was made without the asset (the
+     * downloadable catalogue still covers that case).
+     */
+    private fun ensureBuiltIn(): File? {
+        val target = File(modelsDir(), BUILTIN_FILE)
+        if (target.isFile && target.length() >= MIN_MODEL_BYTES) return target
+        synchronized(builtinLock) {
+            if (target.isFile && target.length() >= MIN_MODEL_BYTES) return target
+            val declared = try {
+                context.assets.openFd(BUILTIN_ASSET).use { it.length }
+            } catch (error: IOException) {
+                return null
+            }
+            val temp = File(modelsDir(), "$BUILTIN_FILE.part")
+            temp.delete()
+            try {
+                context.assets.open(BUILTIN_ASSET, AssetManager.ACCESS_STREAMING).use { input ->
+                    FileOutputStream(temp).use { output ->
+                        val buffer = ByteArray(256 * 1024)
+                        var copied = 0L
+                        var lastEmit = 0L
+                        while (true) {
+                            val read = input.read(buffer)
+                            if (read <= 0) break
+                            output.write(buffer, 0, read)
+                            copied += read
+                            if (copied - lastEmit >= 4 * 1024 * 1024) {
+                                lastEmit = copied
+                                emit(
+                                    mapOf(
+                                        "event" to "extract",
+                                        "id" to BUILTIN_ID,
+                                        "received" to copied,
+                                        "total" to declared,
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+                if (temp.length() < MIN_MODEL_BYTES) throw IOException("مدل همراه برنامه ناقص است.")
+                verifyMagic(temp)
+                if (target.exists()) target.delete()
+                if (!temp.renameTo(target)) throw IOException("آماده‌سازی مدل همراه برنامه ناموفق بود.")
+                Log.i(TAG, "bundled model extracted: ${target.length()} bytes")
+                return target
+            } catch (error: Exception) {
+                Log.w(TAG, "bundled model unavailable", error)
+                temp.delete()
+                return null
+            }
         }
     }
 
@@ -180,6 +264,9 @@ class WhisperEngine(
         val file = File(path)
         val insideModels = file.canonicalPath.startsWith(modelsDir().canonicalPath + File.separator)
         if (!insideModels) return false
+        // The bundled model is part of the app: deleting it would only make the
+        // next call copy it back.
+        if (file.name == BUILTIN_FILE) return false
         return file.delete()
     }
 
@@ -331,7 +418,11 @@ class WhisperEngine(
             if (!NativeCore.nativeAsrAvailable()) {
                 return errorJson("این نسخه بدون موتور Whisper ساخته شده است.")
             }
-            val model = File(modelPath)
+            // No path means "use what is in the box": the bundled model, already
+            // extracted on first launch.
+            val resolved = if (modelPath.isBlank()) ensureBuiltIn()?.absolutePath else modelPath
+            if (resolved == null) return errorJson("مدلی برای تشخیص گفتار پیدا نشد.")
+            val model = File(resolved)
             if (!model.isFile) return errorJson("فایل مدل پیدا نشد. مدل را دوباره اضافه کنید.")
 
             val load = NativeCore.nativeAsrLoadModel(model.absolutePath)
@@ -434,6 +525,15 @@ class WhisperEngine(
     companion object {
         private const val TAG = "SubFlowWhisper"
         private const val MODELS_SUBDIR = "models/whisper"
+
+        // Shipped inside the APK by tools/fetch-bundled-model.sh + CI. base q5_1 is
+        // the smallest model that transcribes Persian well; the weights are not in
+        // the git repository, only in the built APK.
+        const val BUILTIN_ASSET = "models/ggml-base-q5_1.bin"
+        const val BUILTIN_FILE = "ggml-base-q5_1.bin"
+        const val BUILTIN_ID = "builtin-base-q5_1"
+        private const val BUILTIN_LABEL = "مدل همراه برنامه (base، فارسی)"
+        private const val MIN_MODEL_BYTES = 20L * 1024 * 1024
         private const val REPO = "ggerganov/whisper.cpp"
 
         // Three sizes, all quantised so a phone download stays reasonable. base
