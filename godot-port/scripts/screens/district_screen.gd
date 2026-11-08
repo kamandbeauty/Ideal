@@ -76,19 +76,19 @@ func _build_card(index: int) -> void:
 
 	var rows: Array[Dictionary] = []
 	for task_index in range(5):
-		var y := 28.0 + float(task_index) * 33.0
+		var y := 26.0 + float(task_index) * 38.0
 		var row := Control.new()
 		row.name = "task_%d" % task_index
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(row)
-		UiKit.place(row, 12.0, y, CARD_WIDTH - 24.0, 30.0)
+		UiKit.place(row, 12.0, y, CARD_WIDTH - 24.0, 36.0)
 
 		var label := UiKit.label(row, "title", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(label, 64.0, 0.0, CARD_WIDTH - 24.0 - 64.0, 30.0)
+		UiKit.place(label, 64.0, 0.0, CARD_WIDTH - 24.0 - 64.0, 36.0)
 		_row_titles.append(label)
 
-		var button := UiKit.button(row, "build", "", 0.0, 2.0, 58.0, 26.0, UiTokens.ACCENT,
+		var button := UiKit.button(row, "build", "", 0.0, 2.0, 58.0, 32.0, UiTokens.ACCENT,
 			UiTokens.ON_ACCENT, Callable(self, "_on_task_pressed").bind(index, task_index),
 			UiTokens.RADIUS_SM)
 		button.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)

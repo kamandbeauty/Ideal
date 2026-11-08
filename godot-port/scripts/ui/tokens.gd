@@ -100,7 +100,9 @@ const BORDER_PILL := 24
 # These are pictures, not rectangles: tools/make_ui_art.py bakes them, UiKit nine-slices them.
 
 const BORDER_PLATE := 20
-const BORDER_PLATE_SMALL := 12
+## Button's minimum height is twice the border plus the text, so a small plate has to be cut thin:
+## at 12 the smallest chip was 44 dp tall inside a 30 dp row and the rows collided.
+const BORDER_PLATE_SMALL := 6
 ## Below this height a plate takes the `_sm` picture, because a nine-slice cannot shrink past its own
 ## margins — the sum of a 20 dp border on two sides is 40.
 const PLATE_SMALL_MAX := 40.0
