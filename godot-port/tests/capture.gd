@@ -60,9 +60,30 @@ func _ready() -> void:
 	await _frames(6)
 	await _shot("07-home-phone-20x9")
 
+	_make_contact_sheet(["01-home", "02-settings", "03-shop", "04-districts", "05-board"])
 	_save_report()
 	print("[capture] wrote the whole set to %s" % SHOTS)
 	get_tree().quit()
+
+## One image with every screen side by side, so a reviewer can see the whole game without opening five
+## files. Built here rather than in the workflow so it needs nothing but Godot.
+func _make_contact_sheet(names: Array) -> void:
+	var pad := 16
+	var cell := Vector2i(415, 738)
+	var sheet := Image.create(pad + (cell.x + pad) * names.size(), cell.y + pad * 2, false,
+		Image.FORMAT_RGB8)
+	sheet.fill(Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b))
+	for index in range(names.size()):
+		var path := "%s/%s.png" % [SHOTS, names[index]]
+		if not FileAccess.file_exists(path):
+			continue
+		var shot := Image.load_from_file(ProjectSettings.globalize_path(path))
+		if shot == null:
+			continue
+		shot.convert(Image.FORMAT_RGB8)
+		sheet.blit_rect(shot, Rect2i(Vector2i.ZERO, cell), Vector2i(pad + index * (cell.x + pad), pad))
+	sheet.save_png("%s/00-contact-sheet.png" % SHOTS)
+	_log("CONTACT %dx%d" % [sheet.get_width(), sheet.get_height()])
 
 ## Everything printed above, plus the rect dumps, as a text file next to the pictures.
 func _save_report() -> void:

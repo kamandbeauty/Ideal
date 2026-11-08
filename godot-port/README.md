@@ -44,9 +44,13 @@ Not done yet, and deliberately not claimed:
   sized by anchors, which is why the palace, the board backdrop and the map never drew. All fixed, and
   the suite now has assertions for each: one view visible at a time, every screen filling the design
   space, no label escaping its panel.
+- **Download the APK without logging in:**
+  https://github.com/kamandbeauty/Ideal/releases/download/android-latest/princes-palace-debug.apk
+  — every green `android-debug` run refreshes that asset, so the link is stable.
 - **The screenshots are in the repository.** A `visual` CI job renders the real game under Xvfb on both
   a 415x738 window and a 1080x2400 phone shape and commits the PNGs to `godot-port/.shots/`, with
-  `layout.txt` next to them containing every visible control's rect, the switch states, and a list of
+  `00-contact-sheet.png` (all five screens in one image) and `layout.txt` next to them containing every
+  visible control's rect, the switch states, and a list of
   any control that escapes its parent. It reported 0 escapes for all five screens on the last run.
 - **Still no measured performance.** Frame time, memory and touch latency on hardware are unmeasured.
 
