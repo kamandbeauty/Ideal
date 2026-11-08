@@ -71,6 +71,25 @@ jobs:
           head -1 /tmp/blender-version.txt > ARTILLERY_FRONTLINE/documentation/blender-version.txt
           python3 ARTILLERY_FRONTLINE/tools/verify_art_pass.py > /tmp/verify-art.log 2>&1 || { tail -40 /tmp/verify-art.log | while IFS= read -r line; do echo "::error title=Art gate::${line}"; done; exit 1; }
           cat /tmp/verify-art.log
+      - name: Khronos glTF validation
+        run: |
+          npm install --silent --no-audit --no-fund --prefix /tmp/gltf-validator gltf-validator
+          cat > /tmp/gltf-validator/run.js <<'JS'
+          const validator = require('gltf-validator');
+          const fs = require('fs');
+          const file = process.argv[2];
+          validator.validateBytes(new Uint8Array(fs.readFileSync(file)), {uri: file, maxIssues: 20})
+            .then(r => {
+              console.log(file.split('/').pop(), 'errors=' + r.issues.numErrors, 'warnings=' + r.issues.numWarnings);
+              for (const m of r.issues.messages.filter(m => m.severity < 2)) console.log('  ', m.code, m.message, m.pointer);
+              process.exit(r.issues.numErrors || r.issues.numWarnings ? 1 : 0);
+            }).catch(e => { console.error(e); process.exit(2); });
+          JS
+          status=0
+          for glb in ARTILLERY_FRONTLINE/assets/models/*.glb; do
+            node /tmp/gltf-validator/run.js "$glb" || status=1
+          done
+          test "$status" -eq 0 || { echo '::error::glTF validation failed'; exit 1; }
       - name: Preserve generated assets on the active session branch
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |

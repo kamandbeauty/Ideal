@@ -227,7 +227,12 @@ def export_glb(root,path,skin=False):
         nonlocal binary
         while len(binary)%4:binary.append(0)
         payload=struct.pack('<'+fmt*(len(values)*components),*[c for v in values for c in v]) if components>1 else struct.pack('<'+fmt*len(values),*values)
-        view=len(doc['bufferViews']);doc['bufferViews'].append({'buffer':0,'byteOffset':len(binary),'byteLength':len(payload),'target':target})
+        view=len(doc['bufferViews'])
+        # `target` is optional and must be an integer when present; emitting null
+        # (as the inverse-bind accessor does) fails Khronos validation.
+        entry={'buffer':0,'byteOffset':len(binary),'byteLength':len(payload)}
+        if target is not None:entry['target']=target
+        doc['bufferViews'].append(entry)
         binary.extend(payload)
         typ={1:'SCALAR',2:'VEC2',3:'VEC3',4:'VEC4',16:'MAT4'}[components]
         component_type={'f':5126,'I':5125,'H':5123,'B':5121}[fmt]
@@ -310,6 +315,17 @@ def export_glb(root,path,skin=False):
         doc['meshes'].append({'name':o.data.name,'primitives':[{'attributes':attributes,'indices':ia,'material':material_indices[source.name]}]})
         node['mesh']=len(doc['meshes'])-1
         evaluated.to_mesh_clear()
+    # glTF ignores the node transform of a skinned mesh, so such nodes must be
+    # scene roots. Promote them out of the pivot hierarchy (the bind matrices
+    # already carry the placement) to keep strict validators quiet.
+    skinned=[i for i,n in enumerate(doc['nodes']) if 'skin' in n and 'mesh' in n]
+    if skinned:
+        roots=doc['scenes'][0]['nodes']
+        for node in doc['nodes']:
+            if 'children' in node:
+                node['children']=[c for c in node['children'] if c not in skinned]
+                if not node['children']:del node['children']
+        doc['scenes'][0]['nodes']=roots+[i for i in skinned if i not in roots]
     doc['buffers']=[{'byteLength':len(binary)}]
     # glTF forbids empty arrays; only the infantry carries embedded atlases.
     for key in ('images','textures','samplers'):
