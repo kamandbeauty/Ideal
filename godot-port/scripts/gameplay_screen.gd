@@ -24,6 +24,9 @@ var _board_panel: PanelContainer
 var _animate_next_refresh := false
 var _end_overlay: Control
 var _input_locked := false
+var _is_paused := false
+var _pause_overlay: Control
+var _pause_button: Button
 
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_RTL
@@ -95,8 +98,13 @@ func _build_ui() -> void:
 	layout.add_child(header)
 	var back_button := Button.new()
 	back_button.text = "بازگشت"
+	back_button.text = "خانه"
 	back_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
 	header.add_child(back_button)
+	_pause_button = Button.new()
+	_pause_button.text = "Ⅱ مکث"
+	_pause_button.pressed.connect(_show_pause_overlay)
+	header.add_child(_pause_button)
 	var title := Label.new()
 	title.text = "باغ شازده"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -285,7 +293,7 @@ func _piece_name_fa(kind: int) -> String:
 		_: return "مهره"
 
 func _on_cell_pressed(pos: Vector2i) -> void:
-	if _run == null or _run.status != GameTypes.LevelStatus.PLAYING or _input_locked:
+	if _run == null or _run.status != GameTypes.LevelStatus.PLAYING or _input_locked or _is_paused:
 		return
 	if _selected_booster >= 0:
 		if not _bag.try_consume(_selected_booster):
@@ -331,7 +339,7 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 	_refresh_board()
 
 func _on_booster_pressed(kind: int) -> void:
-	if _run == null or _run.status != GameTypes.LevelStatus.PLAYING:
+	if _run == null or _run.status != GameTypes.LevelStatus.PLAYING or _is_paused or _input_locked:
 		return
 	if _selected_booster == kind:
 		_selected_booster = -1
@@ -382,6 +390,8 @@ func _play_result_fx(result: Dictionary) -> void:
 				_play_powerup_sweep(origin, int(event.get("kind", 0)))
 			"cascade":
 				cascades += 1
+	if cleared > 0 or obstacle_hits > 0 or created_powerups > 0:
+		_show_clear_summary(cleared, obstacle_hits, created_powerups, cascades)
 	if cascades > 0 or cleared >= 5 or created_powerups > 0:
 		_spawn_board_pulse(Color(0.85, 0.72, 0.36) if cascades > 0 else Color(0.45, 0.9, 0.88))
 	if cleared >= 8 or cascades >= 2:
@@ -595,3 +605,106 @@ func _make_swap_sprite(texture: Texture2D, center: Vector2, sprite_size: Vector2
 	sprite.position = center - sprite_size / 2.0
 	sprite.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return sprite
+
+
+func _show_clear_summary(cleared: int, obstacle_hits: int, powerups: int, cascades: int) -> void:
+	if _fx_layer == null:
+		return
+	var parts: PackedStringArray = []
+	if cleared > 0:
+		parts.append("%d مهره" % cleared)
+	if obstacle_hits > 0:
+		parts.append("%d ضربه به مانع" % obstacle_hits)
+	if powerups > 0:
+		parts.append("%d قدرت تازه" % powerups)
+	var headline := "  •  ".join(parts)
+	if cascades > 0:
+		headline += "   |   زنجیره ×%d" % cascades
+	var popup := Label.new()
+	popup.text = headline
+	popup.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	popup.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	popup.add_theme_font_size_override("font_size", 18 if cascades == 0 else 21)
+	popup.add_theme_color_override("font_color", Color(1.0, 0.88, 0.52))
+	popup.add_theme_color_override("font_shadow_color", Color(0.02, 0.03, 0.06, 0.9))
+	popup.add_theme_constant_override("shadow_offset_x", 2)
+	popup.add_theme_constant_override("shadow_offset_y", 3)
+	popup.size = Vector2(minf(_fx_layer.size.x - 28.0, 440.0), 54)
+	popup.position = Vector2((_fx_layer.size.x - popup.size.x) / 2.0, 110)
+	popup.modulate = Color(1, 1, 1, 0)
+	popup.scale = Vector2(0.82, 0.82)
+	_fx_layer.add_child(popup)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(popup, "modulate:a", 1.0, 0.12)
+	tween.tween_property(popup, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(popup, "position:y", 76.0, 0.75).set_delay(0.12)
+	tween.tween_property(popup, "modulate:a", 0.0, 0.22).set_delay(0.65)
+	tween.chain().tween_callback(popup.queue_free)
+
+func _show_pause_overlay() -> void:
+	if _run == null or _run.status != GameTypes.LevelStatus.PLAYING or _is_paused:
+		return
+	_is_paused = true
+	_pause_button.disabled = true
+	var shade := ColorRect.new()
+	shade.color = Color(0.012, 0.022, 0.04, 0.82)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(shade)
+	_pause_overlay = shade
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(280, 250)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.055, 0.09, 0.13, 0.99)
+	style.border_color = Color(0.82, 0.68, 0.39, 1)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(22)
+	style.content_margin_left = 22
+	style.content_margin_right = 22
+	style.content_margin_top = 22
+	style.content_margin_bottom = 22
+	panel.add_theme_stylebox_override("panel", style)
+	center.add_child(panel)
+	var column := VBoxContainer.new()
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.add_theme_constant_override("separation", 14)
+	panel.add_child(column)
+	var title := Label.new()
+	title.text = "بازی متوقف شد"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 25)
+	title.add_theme_color_override("font_color", Color(1, 0.86, 0.55))
+	column.add_child(title)
+	var resume := Button.new()
+	resume.text = "ادامه بازی"
+	resume.custom_minimum_size.y = 46
+	resume.pressed.connect(_close_pause_overlay)
+	column.add_child(resume)
+	var restart := Button.new()
+	restart.text = "شروع دوباره مرحله"
+	restart.pressed.connect(func() -> void: get_tree().reload_current_scene())
+	column.add_child(restart)
+	var home := Button.new()
+	home.text = "بازگشت به باغ"
+	home.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
+	column.add_child(home)
+	panel.scale = Vector2(0.84, 0.84)
+	panel.modulate = Color(1, 1, 1, 0)
+	var intro := create_tween()
+	intro.set_parallel(true)
+	intro.tween_property(panel, "scale", Vector2.ONE, 0.24).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	intro.tween_property(panel, "modulate", Color.WHITE, 0.18)
+
+func _close_pause_overlay() -> void:
+	if not is_instance_valid(_pause_overlay):
+		_is_paused = false
+		_pause_button.disabled = false
+		return
+	_pause_overlay.queue_free()
+	_pause_overlay = null
+	_is_paused = false
+	_pause_button.disabled = false
