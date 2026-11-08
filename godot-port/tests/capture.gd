@@ -13,7 +13,7 @@ var _report_lines: Array[String] = []
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SHOTS))
-	DisplayServer.window_set_size(Vector2i(415, 738))
+	DisplayServer.window_set_size(Vector2i(738, 415))
 	await _frames(2)
 
 	var app: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
@@ -52,13 +52,13 @@ func _ready() -> void:
 	_report(app, "board")
 	await _shot("05-board")
 	# A 20:9 phone is where the old layout letterboxed the art and cropped the content.
-	DisplayServer.window_set_size(Vector2i(1080, 2400))
-	get_window().size = Vector2i(1080, 2400)
+	DisplayServer.window_set_size(Vector2i(2400, 1080))
+	get_window().size = Vector2i(2400, 1080)
 	await _frames(6)
-	await _shot("06-board-phone-20x9")
+	await _shot("06-board-phone-landscape")
 	app._show_home()
 	await _frames(6)
-	await _shot("07-home-phone-20x9")
+	await _shot("07-home-phone-landscape")
 
 	_make_contact_sheet(["01-home", "02-settings", "03-shop", "04-districts", "05-board"])
 	_save_report()
@@ -69,7 +69,7 @@ func _ready() -> void:
 ## files. Built here rather than in the workflow so it needs nothing but Godot.
 func _make_contact_sheet(names: Array) -> void:
 	var pad := 16
-	var cell := Vector2i(415, 738)
+	var cell := Vector2i(738, 415)
 	var sheet := Image.create(pad + (cell.x + pad) * names.size(), cell.y + pad * 2, false,
 		Image.FORMAT_RGB8)
 	sheet.fill(Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b))

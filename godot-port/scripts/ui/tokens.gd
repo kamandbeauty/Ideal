@@ -4,7 +4,7 @@ extends RefCounted
 ##
 ## Nothing in the port may invent a colour or a size: if a value is needed it goes here first, so a
 ## reviewer can diff this file against the C# one and see that they agree. The design space is
-## 415 x 738 dp with y growing downwards, exactly like the design document.
+## 738 x 415 dp with y growing downwards: the game is landscape, so the long side is the width.
 
 # ---- colour -------------------------------------------------------------------------------------
 
@@ -84,8 +84,8 @@ const MOTION_SCREEN := 0.280
 
 # ---- design space -------------------------------------------------------------------------------
 
-const CANVAS_WIDTH := 415.0
-const CANVAS_HEIGHT := 738.0
+const CANVAS_WIDTH := 738.0
+const CANVAS_HEIGHT := 415.0
 
 # ---- nine-slice borders shipped with the art ----------------------------------------------------
 # client/Assets/Game/ArtLibrary.cs uses these borders; a panel drawn with the wrong border looks
@@ -95,3 +95,10 @@ const BORDER_BUTTON := 18
 const BORDER_PANEL := 22
 const BORDER_CARD := 28
 const BORDER_PILL := 24
+
+# ---- nine-slice borders of the UI plates in assets/ui/ ------------------------------------------
+# These are pictures, not rectangles: tools/make_ui_art.py bakes them, UiKit nine-slices them.
+
+const BORDER_PANEL_ART := 24
+const BORDER_BUTTON_ART := 20
+const BORDER_PILL_ART := 22

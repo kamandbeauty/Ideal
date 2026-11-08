@@ -115,8 +115,12 @@ func _build_cell(pos: Vector2i, cell, tile_art: Texture2D) -> Control:
 	tile.size = Vector2(cell_size, cell_size)
 
 	if cell.blocked:
-		var blocked := ColorRect.new()
-		blocked.color = Color(0.02, 0.05, 0.10, 0.85)
+		var blocked := TextureRect.new()
+		blocked.name = "blocked"
+		blocked.texture = UiKit.ui_texture("ui_veil")
+		blocked.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		blocked.stretch_mode = TextureRect.STRETCH_SCALE
+		blocked.modulate = Color(0.02, 0.05, 0.10, 0.85)
 		blocked.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tile.add_child(blocked)
 		blocked.position = Vector2(TILE_INSET, TILE_INSET)

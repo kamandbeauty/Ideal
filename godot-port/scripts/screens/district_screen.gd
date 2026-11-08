@@ -9,9 +9,10 @@ extends UiScreen
 
 signal back_requested
 
-const CARD_HEIGHT := 250.0
+const CARD_HEIGHT := 286.0
+const CARD_WIDTH := 232.0
+const CARD_GAP := 8.0
 
-var _list: VBoxContainer
 var _header: Label
 var _potions: Label
 var _cards: Array[Panel] = []
@@ -28,36 +29,26 @@ var _task_rows: Array[Dictionary] = []
 func build() -> void:
 	set_backdrop("map_backdrop", 0.42, 0.5, 0.5, 0.90, 0.80)
 
-	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 54.0, 84.0, 40.0,
+	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 46.0, 84.0, 36.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)
 
 	_header = UiKit.label(self, "title", "محله‌های کاخ", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_header, 16.0, 54.0, UiTokens.CANVAS_WIDTH - 32.0, 40.0)
+	UiKit.place(_header, 16.0, 46.0, UiTokens.CANVAS_WIDTH - 32.0, 36.0)
 
 	_potions = UiKit.label(self, "potions", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_potions, 16.0, 96.0, UiTokens.CANVAS_WIDTH - 32.0, 20.0)
+	UiKit.place(_potions, 16.0, 82.0, UiTokens.CANVAS_WIDTH - 32.0, 18.0)
 
-	var scroll := ScrollContainer.new()
-	scroll.name = "scroll"
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	add_child(scroll)
-	UiKit.place(scroll, 12.0, 120.0, UiTokens.CANVAS_WIDTH - 24.0, 580.0)
-
-	_list = VBoxContainer.new()
-	_list.name = "list"
-	_list.add_theme_constant_override("separation", 10)
-	_list.custom_minimum_size = Vector2(UiTokens.CANVAS_WIDTH - 36.0, 0.0)
-	scroll.add_child(_list)
-
+	# Landscape has the width for the three plates side by side, which is the whole point of the screen:
+	# a player should see the palace grow as one picture, not as a list.
 	for index in range(3):
 		_build_card(index)
 
 func _build_card(index: int) -> void:
-	var card := UiKit.art_panel(_list, "district_%d" % index, 0.0, 0.0, UiTokens.CANVAS_WIDTH - 36.0,
+	var card_x := 12.0 + float(index) * (CARD_WIDTH + CARD_GAP)
+	var card := UiKit.art_panel(self, "district_%d" % index, card_x, 106.0, CARD_WIDTH,
 		CARD_HEIGHT, "panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
-	card.custom_minimum_size = Vector2(UiTokens.CANVAS_WIDTH - 36.0, CARD_HEIGHT)
 	_cards.append(card)
 
 	# The district's own illustration, dimmed to a watermark the way the Unity screen draws it: the art
@@ -69,39 +60,35 @@ func _build_card(index: int) -> void:
 	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(plate)
 	card.move_child(plate, 0)
-	UiKit.place(plate, 0.0, 0.0, card.custom_minimum_size.x, CARD_HEIGHT)
+	UiKit.place(plate, 0.0, 0.0, CARD_WIDTH, CARD_HEIGHT)
 	_plates.append(plate)
 
 	# The plate is art, the rows are the game: a wash over the illustration keeps every price readable
 	# without hiding the place being rebuilt.
-	var veil := ColorRect.new()
-	veil.name = "plate_veil"
-	veil.color = Color(UiTokens.SURFACE.r, UiTokens.SURFACE.g, UiTokens.SURFACE.b, 0.55)
-	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.add_child(veil)
+	var veil := UiKit.veil(card, "plate_veil",
+		Color(UiTokens.SURFACE.r, UiTokens.SURFACE.g, UiTokens.SURFACE.b, 0.62))
 	card.move_child(veil, 1)
-	UiKit.place(veil, 0.0, 0.0, card.custom_minimum_size.x, CARD_HEIGHT)
 
 	var title := UiKit.label(card, "title", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_RIGHT, true)
-	UiKit.place(title, 14.0, 6.0, card.custom_minimum_size.x - 28.0, 24.0)
+	UiKit.place(title, 12.0, 4.0, CARD_WIDTH - 24.0, 22.0)
 	_district_titles.append(title)
 
 	var rows: Array[Dictionary] = []
 	for task_index in range(5):
-		var y := 34.0 + float(task_index) * 38.0
+		var y := 28.0 + float(task_index) * 33.0
 		var row := Control.new()
 		row.name = "task_%d" % task_index
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(row)
-		UiKit.place(row, 14.0, y, card.custom_minimum_size.x - 28.0, 34.0)
+		UiKit.place(row, 12.0, y, CARD_WIDTH - 24.0, 30.0)
 
-		var label := UiKit.label(row, "title", "", UiTokens.TYPE_SM, UiTokens.TEXT,
+		var label := UiKit.label(row, "title", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(label, 76.0, 0.0, card.custom_minimum_size.x - 28.0 - 76.0, 34.0)
+		UiKit.place(label, 64.0, 0.0, CARD_WIDTH - 24.0 - 64.0, 30.0)
 		_row_titles.append(label)
 
-		var button := UiKit.button(row, "build", "", 0.0, 2.0, 70.0, 30.0, UiTokens.ACCENT,
+		var button := UiKit.button(row, "build", "", 0.0, 2.0, 58.0, 26.0, UiTokens.ACCENT,
 			UiTokens.ON_ACCENT, Callable(self, "_on_task_pressed").bind(index, task_index),
 			UiTokens.RADIUS_SM)
 		button.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
@@ -109,23 +96,21 @@ func _build_card(index: int) -> void:
 		rows.append({"label": label, "button": button})
 	_task_rows.append({"index": index, "rows": rows})
 
-	var district_button := UiKit.button(card, "build_all", "ساخت همه", 132.0, CARD_HEIGHT - 46.0, 110.0,
-		34.0, UiTokens.SURFACE_RAISED, UiTokens.TEXT, Callable(self, "_on_district_pressed").bind(index),
-		UiTokens.RADIUS_MD)
-	district_button.add_theme_font_size_override("font_size", UiTokens.TYPE_SM)
+	var district_button := UiKit.button(card, "build_all", "ساخت همه", 118.0, CARD_HEIGHT - 38.0,
+		102.0, 30.0, UiTokens.SURFACE_RAISED, UiTokens.TEXT,
+		Callable(self, "_on_district_pressed").bind(index), UiTokens.RADIUS_MD)
+	district_button.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
 	_district_buttons.append(district_button)
 
 	# Empty button text: the word is drawn by chest_label below, because a Button paints its own text
 	# centred and would land it on top of the icon.
-	var chest_button := UiKit.button(card, "chest", "", 14.0, CARD_HEIGHT - 46.0, 112.0, 34.0,
+	var chest_button := UiKit.button(card, "chest", "", 12.0, CARD_HEIGHT - 38.0, 100.0, 30.0,
 		UiTokens.GOLD, UiTokens.ON_GOLD, Callable(self, "_on_chest_pressed").bind(index),
 		UiTokens.RADIUS_MD)
-	# A Button cannot inset its own text, so the icon and the word are separate children — the same
-	# pattern the booster bar uses. Before this, the chest label drew on top of the chest.
-	_chest_icons.append(UiKit.icon(chest_button, "chest_icon", "reward_chest", 7.0, 5.0, 24.0, 24.0))
+	_chest_icons.append(UiKit.icon(chest_button, "chest_icon", "reward_chest", 6.0, 4.0, 22.0, 22.0))
 	var chest_label := UiKit.label(chest_button, "chest_label", "", UiTokens.TYPE_XS, UiTokens.ON_GOLD,
 		HORIZONTAL_ALIGNMENT_RIGHT)
-	UiKit.place(chest_label, 34.0, 0.0, 112.0 - 42.0, 34.0)
+	UiKit.place(chest_label, 30.0, 0.0, 100.0 - 36.0, 30.0)
 	_chest_labels.append(chest_label)
 	_chest_buttons.append(chest_button)
 

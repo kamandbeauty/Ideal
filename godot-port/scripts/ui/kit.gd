@@ -7,8 +7,10 @@ extends RefCounted
 ##   2. no colour or size is invented here — everything comes from UiTokens;
 ##   3. text goes through PersianText for numerals and is shaped by Godot's own TextServer.
 ##
-## Unity generated a rounded-corner sprite at runtime because UI Toolkit/UGUI cannot round a
-## rectangle. Godot has StyleBoxFlat, so the port draws the same corners with no texture at all.
+## Every rounded corner, bevel, gold rim, switch track and hairline on screen is a PNG in
+## `assets/ui/`, drawn once by `tools/make_ui_art.py` and nine-sliced here. StyleBoxFlat survives only
+## as the fallback for the case where a texture is missing, because a game whose buttons are rectangles
+## the engine painted at runtime is exactly what this port was told to stop doing.
 
 const W := UiTokens.CANVAS_WIDTH
 const H := UiTokens.CANVAS_HEIGHT
@@ -56,6 +58,56 @@ static func texture(art_id: String) -> Texture2D:
 
 static func forget_textures() -> void:
 	_textures.clear()
+
+# ---- ui plates (pictures, not rectangles) -------------------------------------------------------
+
+## The UI furniture lives apart from the game art: `assets/ui/` is drawn by `tools/make_ui_art.py`
+## from the same palette as `UiTokens`, so a reviewer can diff the two and see that nothing invented a
+## colour of its own.
+static func ui_texture(art_id: String) -> Texture2D:
+	var path := "res://assets/ui/%s.png" % art_id
+	if _textures.has(path):
+		return _textures[path] as Texture2D
+	var loaded: Texture2D = null
+	if ResourceLoader.exists(path):
+		loaded = load(path) as Texture2D
+	if loaded == null:
+		push_warning("[ui art] missing " + path)
+	_textures[path] = loaded
+	return loaded
+
+## A nine-slice from `assets/ui/`, tinted with `modulate_color` when a caller wants a shade of the
+## same plate. Returns null when the picture is missing so every caller can fall back to code.
+static func ui_box(art_id: String, border: int, tint: Color = Color(1, 1, 1, 1)) -> StyleBoxTexture:
+	var tex := ui_texture(art_id)
+	if tex == null:
+		return null
+	var style := StyleBoxTexture.new()
+	style.texture = tex
+	style.texture_margin_left = float(border)
+	style.texture_margin_right = float(border)
+	style.texture_margin_top = float(border)
+	style.texture_margin_bottom = float(border)
+	style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	style.modulate_color = tint
+	return style
+
+static func _near(a: Color, b: Color) -> bool:
+	return absf(a.r - b.r) < 0.02 and absf(a.g - b.g) < 0.02 and absf(a.b - b.b) < 0.02
+
+## Which baked plate answers a requested face colour. The pictures are the truth; the tokens are the
+## names they were baked from.
+static func plate_art(color: Color) -> String:
+	if _near(color, UiTokens.GOLD):
+		return "ui_button_gold"
+	if _near(color, UiTokens.ACCENT):
+		return "ui_button_accent"
+	if _near(color, UiTokens.DANGER):
+		return "ui_button_danger"
+	if _near(color, UiTokens.SURFACE_RAISED):
+		return "ui_panel_raised"
+	return "ui_panel"
 
 # ---- primitives ---------------------------------------------------------------------------------
 
@@ -112,7 +164,8 @@ static func panel(parent: Node, node_name: String, x: float, y: float, width: fl
 	var node := Panel.new()
 	node.name = node_name
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	node.add_theme_stylebox_override("panel", box(color, radius))
+	var art := ui_box(plate_art(color), UiTokens.BORDER_PANEL_ART)
+	node.add_theme_stylebox_override("panel", art if art != null else box(color, radius))
 	parent.add_child(node)
 	place(node, x, y, width, height)
 	return node
@@ -199,6 +252,15 @@ static func button(parent: Node, node_name: String, text: String, x: float, y: f
 	var hover: StyleBox = box(face.lightened(0.08), radius)
 	var pressed: StyleBox = box(face.darkened(0.12), radius)
 	var disabled: StyleBox = box(Color(face.r, face.g, face.b, face.a * 0.45), radius)
+	var plate := ui_box(plate_art(face), UiTokens.BORDER_BUTTON_ART)
+	if plate != null:
+		normal = plate
+		var hover_plate := ui_box(plate_art(face), UiTokens.BORDER_BUTTON_ART, Color(1.07, 1.07, 1.07, 1))
+		var press_plate := ui_box(plate_art(face), UiTokens.BORDER_BUTTON_ART, Color(0.86, 0.86, 0.86, 1))
+		var off_plate := ui_box(plate_art(face), UiTokens.BORDER_BUTTON_ART, Color(0.62, 0.62, 0.62, 0.92))
+		hover = hover_plate if hover_plate != null else plate
+		pressed = press_plate if press_plate != null else plate
+		disabled = off_plate if off_plate != null else disabled
 	if not art_id.is_empty():
 		var art := art_box(art_id, boundary_or(border, UiTokens.BORDER_BUTTON))
 		if art != null:
@@ -249,20 +311,41 @@ static func backdrop(parent: Node, art_id: String, tint: Color = Color(0, 0, 0, 
 		return node
 	return node
 
-static func color_rect(parent: Node, node_name: String, color: Color) -> ColorRect:
-	var node := ColorRect.new()
+## A wash over the screen — a picture of a white square, tinted. A ColorRect would be a rectangle the
+## engine painted, which is the one thing this kit no longer does.
+static func color_rect(parent: Node, node_name: String, color: Color) -> TextureRect:
+	var node := TextureRect.new()
 	node.name = node_name
-	node.color = color
+	node.texture = ui_texture("ui_veil")
+	node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	node.stretch_mode = TextureRect.STRETCH_SCALE
+	node.modulate = color
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(node)
 	place(node, 0.0, 0.0, W, H)
 	return node
 
+## A wash that fills a control of any size (a card, a cell), not the whole screen.
+static func veil(parent: Node, node_name: String, color: Color) -> TextureRect:
+	var node := TextureRect.new()
+	node.name = node_name
+	node.texture = ui_texture("ui_veil")
+	node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	node.stretch_mode = TextureRect.STRETCH_SCALE
+	node.modulate = color
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(node)
+	stretch(node, 0.0, 0.0)
+	return node
+
 ## A horizontal accent rule: the cheapest ornament that still looks deliberate.
-static func rule(parent: Node, x: float, y: float, width: float, color: Color, thickness: float = 2.0) -> ColorRect:
-	var node := ColorRect.new()
+static func rule(parent: Node, x: float, y: float, width: float, color: Color, thickness: float = 2.0) -> TextureRect:
+	var node := TextureRect.new()
 	node.name = "rule"
-	node.color = color
+	node.texture = ui_texture("ui_rule")
+	node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	node.stretch_mode = TextureRect.STRETCH_SCALE
+	node.modulate = color
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	parent.add_child(node)
 	place(node, x, y, width, thickness)

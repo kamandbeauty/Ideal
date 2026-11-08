@@ -19,45 +19,46 @@ var _font_line: Label
 func build() -> void:
 	set_backdrop("home_palace", 0.60, 0.55, 0.5, 0.95, 0.92)
 
-	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 54.0, 84.0, 40.0,
+	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 46.0, 84.0, 36.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)
 
 	var title := UiKit.label(self, "title", "تنظیمات", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(title, 16.0, 54.0, UiTokens.CANVAS_WIDTH - 32.0, 40.0)
+	UiKit.place(title, 16.0, 46.0, UiTokens.CANVAS_WIDTH - 32.0, 36.0)
 
 	var labels := ["موسیقی", "جلوه‌های صوتی", "لرزش", "یادآوری تمرین"]
 	var keys := ["music_on", "sfx_on", "haptics_on", "push_on"]
 	# One icon per row, drawn from the shipped set, so the screen says what each switch controls before
 	# a player reads it.
 	var icons := ["icon_music", "icon_sound", "icon_vibration", "icon_push"]
+	# Four rows do not fit one column in a landscape window, so they sit two by two. The right-hand
+	# column comes first because that is where a Persian reader starts.
+	const ROW_W := 350.0
 	for index in range(labels.size()):
-		var y := 120.0 + float(index) * (ROW_HEIGHT + 8.0)
-		var row := UiKit.art_panel(self, "row_%d" % index, 16.0, y, UiTokens.CANVAS_WIDTH - 32.0,
-			ROW_HEIGHT, "panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
+		var column := index % 2
+		var slot := index / 2
+		var x := 16.0 if column == 1 else UiTokens.CANVAS_WIDTH - 16.0 - ROW_W
+		var y := 92.0 + float(slot) * (ROW_HEIGHT + 8.0)
+		var row := UiKit.art_panel(self, "row_%d" % index, x, y, ROW_W, ROW_HEIGHT,
+			"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 
-		UiKit.icon(row, "glyph", icons[index], 62.0, (ROW_HEIGHT - 28.0) * 0.5, 28.0, 28.0)
+		UiKit.icon(row, "glyph", icons[index], 58.0, (ROW_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
 
 		var caption := UiKit.label(row, "caption", labels[index], UiTokens.TYPE_BASE, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(caption, 100.0, 0.0, UiTokens.CANVAS_WIDTH - 32.0 - 110.0, ROW_HEIGHT)
+		UiKit.place(caption, 92.0, 0.0, ROW_W - 92.0 - 12.0, ROW_HEIGHT)
 
-		# A CheckButton's default theme draws a small tick, not a switch, and an empty row of it reads as
-		# "off" no matter what the save says. This is a real switch: track + knob, gold when on.
+		# A CheckButton's default theme draws a small tick, not a switch. This is a real switch: a track
+		# picture from assets/ui/ and a knob that slides along it.
 		var toggle := Button.new()
 		toggle.name = "toggle"
 		toggle.text = ""
 		toggle.toggle_mode = true
 		toggle.focus_mode = Control.FOCUS_NONE
 		# The row is RTL, and an RTL container mirrors the x of every child it positions — including the
-		# knob inside the switch. The switch is a piece of hardware, not text: keep it LTR so "on" is
-		# always the right-hand end.
+		# knob inside the switch. The switch is a piece of hardware, not text: keep it LTR.
 		toggle.layout_direction = Control.LAYOUT_DIRECTION_LTR
 		toggle.add_theme_stylebox_override("focus", UiKit.box(UiTokens.TRANSPARENT))
-		toggle.add_theme_stylebox_override("normal", UiKit.box(UiTokens.SURFACE_RAISED, 16))
-		toggle.add_theme_stylebox_override("hover", UiKit.box(UiTokens.SURFACE_RAISED.lightened(0.08), 16))
-		toggle.add_theme_stylebox_override("pressed", UiKit.box(UiTokens.GOLD, 16))
-		toggle.add_theme_stylebox_override("hover_pressed", UiKit.box(UiTokens.GOLD, 16))
 		row.add_child(toggle)
 		UiKit.place(toggle, 8.0, (ROW_HEIGHT - 30.0) * 0.5, UiKit.SWITCH_WIDTH, 30.0)
 
@@ -71,15 +72,15 @@ func build() -> void:
 		toggle.toggled.connect(Callable(self, "_on_toggled").bind(keys[index]))
 		_switches.append({"key": keys[index], "toggle": toggle, "knob": knob})
 
-	var sample_panel := UiKit.art_panel(self, "sample", 16.0, 404.0, UiTokens.CANVAS_WIDTH - 32.0, 96.0,
+	var sample_panel := UiKit.art_panel(self, "sample", 16.0, 212.0, UiTokens.CANVAS_WIDTH - 32.0, 76.0,
 		"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 	_sample = UiKit.label(sample_panel, "sample_text", SAMPLE, UiTokens.TYPE_BASE, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_sample, 12.0, 8.0, UiTokens.CANVAS_WIDTH - 56.0, 40.0)
+	UiKit.place(_sample, 12.0, 6.0, UiTokens.CANVAS_WIDTH - 56.0, 30.0)
 
 	_font_line = UiKit.label(sample_panel, "font_line", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_font_line, 12.0, 52.0, UiTokens.CANVAS_WIDTH - 56.0, 36.0)
+	UiKit.place(_font_line, 12.0, 38.0, UiTokens.CANVAS_WIDTH - 56.0, 32.0)
 	_font_line.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 	var version := Label.new()
@@ -91,14 +92,14 @@ func build() -> void:
 	version.add_theme_color_override("font_color", UiTokens.TEXT_MUTED)
 	version.clip_text = true
 	add_child(version)
-	UiKit.place(version, 16.0, 516.0, UiTokens.CANVAS_WIDTH - 32.0, 20.0)
+	UiKit.place(version, 16.0, 292.0, UiTokens.CANVAS_WIDTH - 32.0, 18.0)
 
-	var about := UiKit.art_panel(self, "about", 16.0, 556.0, UiTokens.CANVAS_WIDTH - 32.0, 96.0,
+	var about := UiKit.art_panel(self, "about", 16.0, 314.0, UiTokens.CANVAS_WIDTH - 32.0, 78.0,
 		"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 	var about_text := UiKit.label(about, "about_text",
-		"کاخِ شازده — بازی مستقل با موتور گودو\nهمهٔ هنر از کد کشیده شده، بدون تصویر تولیدشده با هوش مصنوعی",
+		"کاخِ شازده — بازی مستقل با موتور گودو\nهمهٔ هنر بازی و همهٔ قاب‌ها، دکمه‌ها و قرص‌های رابط، تصویرِ آماده‌اند؛ روی صفحه هیچ شکلِ کشیده‌شده در کد نیست",
 		UiTokens.TYPE_SM, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(about_text, 12.0, 8.0, UiTokens.CANVAS_WIDTH - 56.0, 80.0)
+	UiKit.place(about_text, 12.0, 6.0, UiTokens.CANVAS_WIDTH - 56.0, 66.0)
 	about_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 func refresh() -> void:
@@ -124,8 +125,17 @@ func _paint_switch(entry: Dictionary) -> void:
 	knob.position = Vector2(x, 3.0)
 	# A knob is a knob: light against the track. ON_GOLD is nearly black (it is gold-surface text), and
 	# a black dot on a gold track reads as "off" no matter which end it sits on.
-	knob.add_theme_stylebox_override("panel",
-		UiKit.box(UiTokens.TEXT if toggle.button_pressed else UiTokens.TEXT_MUTED, 12))
+	var knob_art := UiKit.ui_box("ui_knob", 14,
+		Color(1, 1, 1, 1) if toggle.button_pressed else Color(0.82, 0.84, 0.88, 1))
+	knob.add_theme_stylebox_override("panel", knob_art if knob_art != null
+		else UiKit.box(UiTokens.TEXT if toggle.button_pressed else UiTokens.TEXT_MUTED, 12))
+	var track_off := UiKit.ui_box("ui_switch_off", 16)
+	var track_on := UiKit.ui_box("ui_switch_on", 16)
+	if track_off != null and track_on != null:
+		toggle.add_theme_stylebox_override("normal", track_on if toggle.button_pressed else track_off)
+		toggle.add_theme_stylebox_override("hover", track_on if toggle.button_pressed else track_off)
+		toggle.add_theme_stylebox_override("pressed", track_on)
+		toggle.add_theme_stylebox_override("hover_pressed", track_on)
 
 func _on_toggled(pressed: bool, key: String) -> void:
 	if session == null or session.save == null:

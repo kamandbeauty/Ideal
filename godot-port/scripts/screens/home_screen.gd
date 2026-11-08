@@ -22,61 +22,67 @@ var _stars: Array[TextureRect] = []
 var _chapter_label: Label
 
 func build() -> void:
-	set_backdrop("home_palace_lit", 0.30, 0.5, 0.5, 0.92, 0.85)
+	# The palace is the window's own picture (AppRoot paints it full-bleed at whatever shape the device
+	# is); the screen only dims it enough for the title to read.
+	set_backdrop("home_palace_lit", 0.38, 0.55, 0.5, 0.95, 0.92)
 
 	var title := UiKit.label(self, "title", TITLE, UiTokens.TYPE_DISPLAY, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(title, 0.0, 132.0, UiTokens.CANVAS_WIDTH, 48.0)
+	UiKit.place(title, 0.0, 48.0, UiTokens.CANVAS_WIDTH, 52.0)
 
 	var subtitle := UiKit.label(self, "subtitle", SUBTITLE, UiTokens.TYPE_BASE, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(subtitle, 0.0, 182.0, UiTokens.CANVAS_WIDTH, 26.0)
+	UiKit.place(subtitle, 0.0, 98.0, UiTokens.CANVAS_WIDTH, 22.0)
 
-	var card := UiKit.art_panel(self, "card", 28.0, 250.0, UiTokens.CANVAS_WIDTH - 56.0, 150.0,
+	# The card is the same width in either orientation, because it holds the same four lines; what
+	# changes in landscape is that there is room to centre it and to put the doors on one row.
+	const CARD_W := 330.0
+	var card_x := (UiTokens.CANVAS_WIDTH - CARD_W) * 0.5
+	var card := UiKit.art_panel(self, "card", card_x, 126.0, CARD_W, 126.0,
 		"panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 
 	_chapter_label = UiKit.label(card, "chapter", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_chapter_label, 0.0, 10.0, UiTokens.CANVAS_WIDTH - 56.0, 20.0)
+	UiKit.place(_chapter_label, 0.0, 6.0, CARD_W, 18.0)
 
 	_level_label = UiKit.label(card, "level", "", UiTokens.TYPE_XL, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, 0.0, 32.0, UiTokens.CANVAS_WIDTH - 56.0, 40.0)
+	UiKit.place(_level_label, 0.0, 22.0, CARD_W, 36.0)
 
 	var star_row := Control.new()
 	star_row.name = "stars"
 	star_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(star_row)
-	UiKit.place(star_row, 0.0, 78.0, UiTokens.CANVAS_WIDTH - 56.0, 32.0)
-	var star_size := 30.0
+	UiKit.place(star_row, 0.0, 60.0, CARD_W, 26.0)
+	var star_size := 24.0
 	var total := star_size * 3.0 + 8.0 * 2.0
 	for index in range(3):
-		var x := ((UiTokens.CANVAS_WIDTH - 56.0) - total) * 0.5 + float(index) * (star_size + 8.0)
-		_stars.append(UiKit.icon(star_row, "star_%d" % index, "icon_star", x, 0.0, star_size, star_size))
+		var star_x := (CARD_W - total) * 0.5 + float(index) * (star_size + 8.0)
+		_stars.append(UiKit.icon(star_row, "star_%d" % index, "icon_star", star_x, 0.0, star_size, star_size))
 
 	_progress_label = UiKit.label(card, "progress", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_progress_label, 0.0, 118.0, UiTokens.CANVAS_WIDTH - 56.0, 22.0)
-
-	_play_button = UiKit.button(self, "play", "بازی", 88.0, 430.0, 239.0, 62.0, UiTokens.GOLD,
-		UiTokens.ON_GOLD, _on_play, UiTokens.RADIUS_LG, true)
-	_play_button.add_theme_font_size_override("font_size", UiTokens.TYPE_LG)
-
-	var row_y := 512.0
-	var width := 118.0
-	var gap := 10.0
-	var start_x := (UiTokens.CANVAS_WIDTH - (width * 3.0 + gap * 2.0)) * 0.5
-	UiKit.button(self, "districts", "محله‌ها", start_x, row_y, width, 52.0, UiTokens.SURFACE_RAISED,
-		UiTokens.TEXT, _on_districts, UiTokens.RADIUS_MD)
-	UiKit.button(self, "shop", "فروشگاه", start_x + width + gap, row_y, width, 52.0,
-		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_shop, UiTokens.RADIUS_MD)
-	UiKit.button(self, "settings", "تنظیمات", start_x + (width + gap) * 2.0, row_y, width, 52.0,
-		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_settings, UiTokens.RADIUS_MD)
+	UiKit.place(_progress_label, 0.0, 90.0, CARD_W, 20.0)
 
 	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_SM, UiTokens.WARNING,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, 24.0, 590.0, UiTokens.CANVAS_WIDTH - 48.0, 40.0)
+	UiKit.place(_hint, card_x, 254.0, CARD_W, 22.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	_play_button = UiKit.button(self, "play", "بازی", (UiTokens.CANVAS_WIDTH - 240.0) * 0.5, 280.0,
+		240.0, 52.0, UiTokens.GOLD, UiTokens.ON_GOLD, _on_play, UiTokens.RADIUS_LG, true)
+	_play_button.add_theme_font_size_override("font_size", UiTokens.TYPE_LG)
+
+	var width := 116.0
+	var gap := 10.0
+	var row_y := 344.0
+	var start_x := (UiTokens.CANVAS_WIDTH - (width * 3.0 + gap * 2.0)) * 0.5
+	UiKit.button(self, "districts", "محله‌ها", start_x, row_y, width, 44.0, UiTokens.SURFACE_RAISED,
+		UiTokens.TEXT, _on_districts, UiTokens.RADIUS_MD)
+	UiKit.button(self, "shop", "فروشگاه", start_x + width + gap, row_y, width, 44.0,
+		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_shop, UiTokens.RADIUS_MD)
+	UiKit.button(self, "settings", "تنظیمات", start_x + (width + gap) * 2.0, row_y, width, 44.0,
+		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_settings, UiTokens.RADIUS_MD)
 
 func refresh() -> void:
 	if session == null:

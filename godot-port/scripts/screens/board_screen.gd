@@ -12,14 +12,19 @@ signal home_requested
 signal next_level_requested(level_number: int)
 signal retry_requested(level_number: int)
 
-const BOARD_TOP := 150.0
-const BOARD_SIDE := 16.0
-const BOARD_HEIGHT := 392.0
-const CHIP_HEIGHT := 32.0
-const BOOSTER_SIZE := 56.0
+# Landscape puts the playfield on the right and everything that describes the level in a column on the
+# left, which is also the reading order of an RTL player: goals first, then the board they play on.
+const BOARD_LEFT := 382.0
+const BOARD_TOP := 58.0
+const BOARD_SIZE := 342.0
+const COLUMN_X := 16.0
+const COLUMN_W := 210.0
+const CHIP_HEIGHT := 30.0
+const BOOSTER_SIZE := 48.0
 const BOOSTER_GAP := 8.0
-const BOOSTER_Y := 596.0
-const OVERLAY_CARD_WIDTH := 336.0
+const BOOSTER_Y := 286.0
+const OVERLAY_CARD_WIDTH := 440.0
+const OVERLAY_CARD_HEIGHT := 330.0
 
 var run: LevelRun
 var level_number := 0
@@ -52,45 +57,41 @@ var _hint_move: Array[Vector2i] = []
 func build() -> void:
 	set_backdrop("board_backdrop_ch01", 0.30, 0.5, 0.5, 0.75, 0.55)
 
-	# ---- header: back (right, RTL), level, moves (left) ------------------------------------------
-	UiKit.button(self, "home", "خانه", UiTokens.CANVAS_WIDTH - 16.0 - 76.0, 54.0, 76.0, 40.0,
+	# ---- header: home (top right), level over the column, moves and goals down the left ----------
+	UiKit.button(self, "home", "خانه", UiTokens.CANVAS_WIDTH - 16.0 - 76.0, 48.0, 76.0, 36.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
 
 	_level_label = UiKit.label(self, "level", "", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, 96.0, 54.0, UiTokens.CANVAS_WIDTH - 192.0, 40.0)
+	UiKit.place(_level_label, COLUMN_X, 48.0, COLUMN_W, 36.0)
 
-	var moves_pill := UiKit.panel(self, "moves", 16.0, 54.0, 76.0, 40.0, UiTokens.SURFACE_RAISED,
+	var moves_pill := UiKit.panel(self, "moves", COLUMN_X, 92.0, 104.0, 40.0, UiTokens.SURFACE_RAISED,
 		UiTokens.RADIUS_MD)
 	_moves_label = UiKit.label(moves_pill, "value", "", UiTokens.TYPE_BASE, UiTokens.ACCENT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_moves_label, 4.0, 0.0, 68.0, 24.0)
-	# A bare number in the corner says nothing: the word under it says what the number spends.
+	UiKit.place(_moves_label, 4.0, 0.0, 96.0, 24.0)
 	var moves_word := UiKit.label(moves_pill, "word", "حرکت", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(moves_word, 4.0, 20.0, 68.0, 18.0)
+	UiKit.place(moves_word, 4.0, 20.0, 96.0, 18.0)
 
-	# ---- goal chips ------------------------------------------------------------------------------
-	var chip_gap := 6.0
-	var chips := 3
-	var chip_width := (UiTokens.CANVAS_WIDTH - 32.0 - chip_gap * float(chips - 1)) / float(chips)
-	for index in range(chips):
-		var x := 16.0 + float(index) * (chip_width + chip_gap)
-		var chip := UiKit.panel(self, "goal_%d" % index, x, 102.0, chip_width, CHIP_HEIGHT,
+	# ---- goal chips, stacked in the column ------------------------------------------------------
+	for index in range(3):
+		var y := 142.0 + float(index) * (CHIP_HEIGHT + 6.0)
+		var chip := UiKit.panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
 			UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 		_goal_chips.append(chip)
-		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", chip_width - 26.0,
+		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 26.0,
 			(CHIP_HEIGHT - 20.0) * 0.5, 20.0, 20.0))
 		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_SM, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_CENTER)
-		UiKit.place(label, 4.0, 0.0, chip_width - 30.0, CHIP_HEIGHT)
+		UiKit.place(label, 6.0, 0.0, COLUMN_W - 34.0, CHIP_HEIGHT)
 		_goal_labels.append(label)
 
 	# ---- playfield -------------------------------------------------------------------------------
 	_board = BoardView.new()
 	_board.name = "board"
 	add_child(_board)
-	UiKit.place(_board, BOARD_SIDE, BOARD_TOP, UiTokens.CANVAS_WIDTH - BOARD_SIDE * 2.0, BOARD_HEIGHT)
+	UiKit.place(_board, BOARD_LEFT, BOARD_TOP, BOARD_SIZE, BOARD_SIZE)
 	_board.cell_tapped.connect(_on_cell_tapped)
 	_board.swipe_requested.connect(_on_swipe)
 
@@ -99,22 +100,23 @@ func build() -> void:
 
 	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, 20.0, 552.0, UiTokens.CANVAS_WIDTH - 40.0, 22.0)
+	UiKit.place(_hint, COLUMN_X, 254.0, COLUMN_W, 22.0)
 
-	# ---- booster bar -----------------------------------------------------------------------------
-	var total_width := BOOSTER_SIZE * 5.0 + BOOSTER_GAP * 4.0
-	var start_x := (UiTokens.CANVAS_WIDTH - total_width) * 0.5
+	# ---- booster bar: three above two, inside the column ----------------------------------------
 	for kind in range(BoosterBag.SLOTS):
-		var x := start_x + float(kind) * (BOOSTER_SIZE + BOOSTER_GAP)
+		var column := kind % 3
+		var row_index := kind / 3
+		var x := COLUMN_X + float(column) * (BOOSTER_SIZE + BOOSTER_GAP)
+		var y := BOOSTER_Y + float(row_index) * (BOOSTER_SIZE + BOOSTER_GAP)
 		var handler := _on_booster_pressed.bind(kind)
-		var button := UiKit.button(self, "booster_%d" % kind, "", x, BOOSTER_Y, BOOSTER_SIZE,
+		var button := UiKit.button(self, "booster_%d" % kind, "", x, y, BOOSTER_SIZE,
 			BOOSTER_SIZE, UiTokens.SURFACE_RAISED, UiTokens.TEXT, handler, UiTokens.RADIUS_MD)
 		_booster_buttons.append(button)
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 8.0, 6.0,
-			BOOSTER_SIZE - 16.0, BOOSTER_SIZE - 22.0))
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 6.0, 5.0,
+			BOOSTER_SIZE - 12.0, BOOSTER_SIZE - 20.0))
 		var count := UiKit.label(button, "count", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_CENTER, true)
-		UiKit.place(count, 2.0, BOOSTER_SIZE - 20.0, BOOSTER_SIZE - 4.0, 16.0)
+		UiKit.place(count, 2.0, BOOSTER_SIZE - 17.0, BOOSTER_SIZE - 4.0, 15.0)
 		_booster_counts.append(count)
 
 	_build_overlay()
@@ -137,7 +139,7 @@ func start_level(level_to_play: int) -> bool:
 	_hint.text = ""
 	_overlay.visible = false
 	_board.set_booster_mode(-1)
-	_board.setup(run, Vector2(UiTokens.CANVAS_WIDTH - BOARD_SIDE * 2.0, BOARD_HEIGHT))
+	_board.setup(run, Vector2(BOARD_SIZE, BOARD_SIZE))
 	refresh()
 	_maybe_teach()
 	return true
@@ -334,42 +336,39 @@ func _build_overlay() -> void:
 	add_child(_overlay)
 	UiKit.stretch(_overlay, 0.0, 0.0)
 
-	var dim := ColorRect.new()
-	dim.color = Color(0.01, 0.02, 0.05, 0.78)
+	var dim := UiKit.veil(_overlay, "dim", Color(0.01, 0.02, 0.05, 0.78))
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	_overlay.add_child(dim)
-	UiKit.stretch(dim, 0.0, 0.0)
 
 	_overlay_card = UiKit.art_panel(_overlay, "card", (UiTokens.CANVAS_WIDTH - OVERLAY_CARD_WIDTH) * 0.5,
-		196.0, OVERLAY_CARD_WIDTH, 380.0, "panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE,
-		UiTokens.RADIUS_PANEL)
+		(UiTokens.CANVAS_HEIGHT - OVERLAY_CARD_HEIGHT) * 0.5, OVERLAY_CARD_WIDTH, OVERLAY_CARD_HEIGHT,
+		"panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 	_overlay_card.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var banner := UiKit.icon(_overlay_card, "banner", "result_win",
-		(OVERLAY_CARD_WIDTH - 104.0) * 0.5, 12.0, 104.0, 104.0)
+		(OVERLAY_CARD_WIDTH - 210.0) * 0.5, 10.0, 210.0, 58.0)
 	banner.name = "banner"
 
 	_result_title = UiKit.label(_overlay_card, "title", "", UiTokens.TYPE_XL, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_result_title, 16.0, 116.0, OVERLAY_CARD_WIDTH - 32.0, 40.0)
+	UiKit.place(_result_title, 16.0, 72.0, OVERLAY_CARD_WIDTH - 32.0, 36.0)
 
-	var star_size := 44.0
+	var star_size := 34.0
 	var star_gap := 10.0
 	var star_total := star_size * 3.0 + star_gap * 2.0
 	for index in range(3):
 		var x := (OVERLAY_CARD_WIDTH - star_total) * 0.5 + float(index) * (star_size + star_gap)
-		var star := UiKit.icon(_overlay_card, "star_%d" % index, "icon_star", x, 160.0, star_size, star_size)
+		var star := UiKit.icon(_overlay_card, "star_%d" % index, "icon_star", x, 110.0, star_size, star_size)
 		_result_stars.append(star)
 
 	_result_body = UiKit.label(_overlay_card, "body", "", UiTokens.TYPE_SM, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_result_body, 20.0, 214.0, OVERLAY_CARD_WIDTH - 40.0, 52.0)
+	UiKit.place(_result_body, 20.0, 150.0, OVERLAY_CARD_WIDTH - 40.0, 48.0)
 	_result_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	_primary = UiKit.button(_overlay_card, "primary", "", 20.0, 274.0, OVERLAY_CARD_WIDTH - 40.0,
-		52.0, UiTokens.ACCENT, UiTokens.ON_ACCENT, _on_primary, UiTokens.RADIUS_MD, true)
-	_secondary = UiKit.button(_overlay_card, "secondary", "خانه", 20.0, 332.0, OVERLAY_CARD_WIDTH - 40.0,
-		36.0, UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
+	_primary = UiKit.button(_overlay_card, "primary", "", 20.0, 204.0, OVERLAY_CARD_WIDTH - 40.0,
+		46.0, UiTokens.ACCENT, UiTokens.ON_ACCENT, _on_primary, UiTokens.RADIUS_MD, true)
+	_secondary = UiKit.button(_overlay_card, "secondary", "خانه", 20.0, 260.0, OVERLAY_CARD_WIDTH - 40.0,
+		34.0, UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
 
 func _show_result(first_clear: bool, reward: RewardBundle) -> void:
 	var won := run.status == GameTypes.LevelStatus.WON

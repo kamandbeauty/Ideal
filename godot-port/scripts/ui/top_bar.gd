@@ -6,10 +6,10 @@ extends Control
 ## RTL placement: lives are what playing spends, so they sit at the right end where a Persian
 ## reader's eye starts; the two currencies sit at the other end.
 
-const HEIGHT := 44.0
-const PAD := 16.0
-const PILL_WIDTH := 118.0
-const PILL_HEIGHT := 44.0
+const HEIGHT := 40.0
+const PAD := 14.0
+const PILL_WIDTH := 110.0
+const PILL_HEIGHT := 40.0
 
 const COIN_WORD := "سکه"
 const POTION_WORD := "معجون"
@@ -29,25 +29,25 @@ func build(owner_session: GameSession) -> void:
 
 	var coins_pill := UiKit.panel(self, "coins", PAD, 0.0, PILL_WIDTH, PILL_HEIGHT,
 		UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
-	UiKit.icon(coins_pill, "icon_coin", "icon_coin", 8.0, (PILL_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
+	UiKit.icon(coins_pill, "icon_coin", "icon_coin", 7.0, (PILL_HEIGHT - 24.0) * 0.5, 24.0, 24.0)
 	_coins = UiKit.raw_label(coins_pill, "value", UiTokens.HUD_CURRENCY, UiTokens.GOLD)
-	UiKit.place(_coins, 34.0, 0.0, PILL_WIDTH - 40.0, PILL_HEIGHT)
+	UiKit.place(_coins, 32.0, 0.0, PILL_WIDTH - 38.0, PILL_HEIGHT)
 	_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 	var potions_pill := UiKit.panel(self, "potions", PAD + PILL_WIDTH + UiTokens.S2, 0.0,
 		PILL_WIDTH, PILL_HEIGHT, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
-	UiKit.icon(potions_pill, "icon_potion", "icon_potion", 8.0, (PILL_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
+	UiKit.icon(potions_pill, "icon_potion", "icon_potion", 7.0, (PILL_HEIGHT - 24.0) * 0.5, 24.0, 24.0)
 	_potions = UiKit.raw_label(potions_pill, "value", UiTokens.HUD_CURRENCY, UiTokens.ACCENT)
-	UiKit.place(_potions, 34.0, 0.0, PILL_WIDTH - 40.0, PILL_HEIGHT)
+	UiKit.place(_potions, 32.0, 0.0, PILL_WIDTH - 38.0, PILL_HEIGHT)
 
 	var lives_pill := UiKit.panel(self, "lives", UiTokens.CANVAS_WIDTH - PAD - PILL_WIDTH, 0.0,
 		PILL_WIDTH, PILL_HEIGHT, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
-	UiKit.icon(lives_pill, "icon_life", "icon_life", PILL_WIDTH - 34.0, (PILL_HEIGHT - 26.0) * 0.5,
-		26.0, 26.0)
+	UiKit.icon(lives_pill, "icon_life", "icon_life", PILL_WIDTH - 31.0, (PILL_HEIGHT - 24.0) * 0.5,
+		24.0, 24.0)
 	_lives = UiKit.raw_label(lives_pill, "value", UiTokens.HUD_CURRENCY, UiTokens.TEXT)
-	UiKit.place(_lives, 4.0, 1.0, PILL_WIDTH - 40.0, 22.0)
+	UiKit.place(_lives, 4.0, 0.0, PILL_WIDTH - 38.0, 22.0)
 	_timer = UiKit.raw_label(lives_pill, "timer", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED)
-	UiKit.place(_timer, 4.0, 22.0, PILL_WIDTH - 40.0, 16.0)
+	UiKit.place(_timer, 4.0, 21.0, PILL_WIDTH - 38.0, 16.0)
 
 	refresh()
 
@@ -68,7 +68,7 @@ func refresh() -> void:
 		UiKit.place(_lives, 4.0, 0.0, PILL_WIDTH - 40.0, PILL_HEIGHT)
 	else:
 		_timer.text = PersianText.time(_session.lives.next_refill_in_seconds)
-		UiKit.place(_lives, 4.0, 1.0, PILL_WIDTH - 40.0, 22.0)
+		UiKit.place(_lives, 4.0, 0.0, PILL_WIDTH - 38.0, 22.0)
 	for entry in [[_coins, PILL_WIDTH - 42.0], [_potions, PILL_WIDTH - 42.0], [_lives, PILL_WIDTH - 42.0],
 			[_timer, PILL_WIDTH - 42.0]]:
 		UiKit.fit_font(entry[0], float(entry[1]))

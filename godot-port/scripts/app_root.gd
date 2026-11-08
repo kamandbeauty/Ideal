@@ -21,10 +21,10 @@ var settings: SettingsScreen
 var sound: SoundDirector
 var _stage: Control
 var _bg: TextureRect
-var _wash: ColorRect
+var _wash: TextureRect
 var _scrim_top: TextureRect
 var _scrim_bottom: TextureRect
-var _fade: ColorRect
+var _fade: TextureRect
 var _tick := 0.0
 var _current: UiScreen
 
@@ -58,10 +58,8 @@ func _boot() -> void:
 	_scrim_top = _make_scrim("scrim_top", true)
 	_scrim_bottom = _make_scrim("scrim_bottom", false)
 
-	_wash = ColorRect.new()
-	_wash.name = "window_wash"
-	_wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_wash)
+	_wash = UiKit.color_rect(self, "window_wash", Color(0, 0, 0, 0))
+	_wash.texture = UiKit.ui_texture("ui_veil")
 	UiKit.stretch(_wash)
 	move_child(_wash, _scrim_top.get_index())
 
@@ -120,11 +118,7 @@ func _boot() -> void:
 	_stage.add_child(top_bar)
 	top_bar.build(session)
 
-	_fade = ColorRect.new()
-	_fade.name = "fade"
-	_fade.color = Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.0)
-	_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_fade)
+	_fade = UiKit.color_rect(self, "fade", Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.0))
 	UiKit.stretch(_fade, 0.0, 0.0)
 	_fade.move_to_front()
 
@@ -140,7 +134,7 @@ func _show_screen(target: UiScreen) -> void:
 		screen.set_visible_screen(screen == target)
 	_current = target
 	_bg.texture = UiKit.texture(target.backdrop_art)
-	_wash.color = target.wash_color
+	_wash.modulate = target.wash_color
 	_paint_window_art(target)
 	_center_stage()
 	target.refresh()
@@ -152,9 +146,9 @@ func _show_screen(target: UiScreen) -> void:
 func _fade_in() -> void:
 	if _fade == null:
 		return
-	_fade.color = Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.85)
+	_fade.modulate = Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 0.85)
 	var tween := create_tween()
-	tween.tween_property(_fade, "color:a", 0.0, UiTokens.MOTION_SCREEN)
+	tween.tween_property(_fade, "modulate:a", 0.0, UiTokens.MOTION_SCREEN)
 
 func _show_home() -> void:
 	board.clear()

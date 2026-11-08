@@ -16,26 +16,31 @@ var _feedback: Label
 func build() -> void:
 	set_backdrop("store_feature", 0.58, 0.62, 0.5, 0.95, 0.90)
 
-	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 54.0, 84.0, 40.0,
+	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 48.0, 84.0, 36.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)
 
 	var title := UiKit.label(self, "title", "فروشگاه", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(title, 16.0, 54.0, UiTokens.CANVAS_WIDTH - 32.0, 40.0)
+	UiKit.place(title, 16.0, 48.0, UiTokens.CANVAS_WIDTH - 32.0, 36.0)
 
 	_coins = UiKit.label(self, "coins", "", UiTokens.TYPE_SM, UiTokens.GOLD, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_coins, 16.0, 98.0, UiTokens.CANVAS_WIDTH - 32.0, 22.0)
+	UiKit.place(_coins, 16.0, 84.0, UiTokens.CANVAS_WIDTH - 32.0, 20.0)
 
+	# Five rows do not fit one column in a 415 tall window, so they go two abreast: three on the right
+	# (where a Persian reader starts) and two on the left.
+	const ROW_W := 350.0
+	var columns := [UiTokens.CANVAS_WIDTH - 16.0 - ROW_W, 16.0]
 	for kind in range(BoosterBag.SLOTS):
-		var y := 132.0 + float(kind) * (ROW_HEIGHT + 10.0)
-		var row := UiKit.art_panel(self, "row_%d" % kind, 16.0, y, UiTokens.CANVAS_WIDTH - 32.0,
-			ROW_HEIGHT, "panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
+		var column := 0 if kind < 3 else 1
+		var slot := kind if kind < 3 else kind - 3
+		var x := float(columns[column])
+		var y := 112.0 + float(slot) * (ROW_HEIGHT + 8.0)
+		var row := UiKit.art_panel(self, "row_%d" % kind, x, y, ROW_W, ROW_HEIGHT,
+			"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 
-		UiKit.icon(row, "icon", _booster_icon(kind), 10.0, (ROW_HEIGHT - 44.0) * 0.5, 44.0, 44.0)
+		UiKit.icon(row, "icon", _booster_icon(kind), 10.0, (ROW_HEIGHT - 42.0) * 0.5, 42.0, 42.0)
 
-		# The name and the stock line share the width the price button leaves, and both are measured
-		# against the panel, not against the panel minus a magic 200.
-		var text_width := (UiTokens.CANVAS_WIDTH - 32.0) - 62.0 - 138.0 - 12.0
+		var text_width := ROW_W - 62.0 - 130.0 - 12.0
 		var name_label := UiKit.label(row, "name", BoosterBag.booster_name(kind), UiTokens.TYPE_BASE,
 			UiTokens.TEXT, HORIZONTAL_ALIGNMENT_RIGHT, true)
 		UiKit.place(name_label, 62.0, 8.0, text_width, 26.0)
@@ -44,7 +49,7 @@ func build() -> void:
 			HORIZONTAL_ALIGNMENT_RIGHT)
 		UiKit.place(owned, 62.0, 36.0, text_width, 20.0)
 
-		var price := UiKit.button(row, "buy", "", UiTokens.CANVAS_WIDTH - 32.0 - 138.0, 18.0, 128.0, 36.0,
+		var price := UiKit.button(row, "buy", "", ROW_W - 126.0, 18.0, 118.0, 36.0,
 			UiTokens.GOLD, UiTokens.ON_GOLD, Callable(self, "_on_buy").bind(kind), UiTokens.RADIUS_MD)
 		price.add_theme_font_size_override("font_size", UiTokens.TYPE_SM)
 
@@ -52,7 +57,7 @@ func build() -> void:
 
 	_feedback = UiKit.label(self, "feedback", "", UiTokens.TYPE_SM, UiTokens.SUCCESS,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_feedback, 16.0, 620.0, UiTokens.CANVAS_WIDTH - 32.0, 40.0)
+	UiKit.place(_feedback, 16.0, 366.0, UiTokens.CANVAS_WIDTH - 32.0, 40.0)
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 static func _booster_icon(kind: int) -> String:

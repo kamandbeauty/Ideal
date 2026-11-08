@@ -1,5 +1,5 @@
 ; کاخِ شازده / Prince's Palace — independent Godot 4 project.
-; The design space is 415 x 738 dp, the same numbers client/Assets/Game/Ui/UiKit.cs uses, so a
+; The design space is 738 x 415 dp, the same numbers client/Assets/Game/Ui/UiKit.cs uses, so a
 ; layout value in the port and a value in the design document are the same number.
 
 config_version=5
@@ -15,13 +15,13 @@ config/icon="res://assets/branding/icon_128.png"
 
 [display]
 
-window/size/viewport_width=415
-window/size/viewport_height=738
-window/size/window_width_override=540
-window/size/window_height_override=960
+window/size/viewport_width=738
+window/size/viewport_height=415
+window/size/window_width_override=960
+window/size/window_height_override=540
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/handheld/orientation=1
+window/handheld/orientation=0
 
 [input_devices]
 
