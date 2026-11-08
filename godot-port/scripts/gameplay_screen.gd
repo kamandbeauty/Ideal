@@ -93,7 +93,7 @@ func _build_ui() -> void:
 	back_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/home_screen.tscn"))
 	header.add_child(back_button)
 	var title := Label.new()
-	title.text = "مرحلهٔ %d · قصرِ شاهزاده" % (_level.number if _level != null else 1)
+	title.text = "باغ شازده · مرحلهٔ %d" % (_level.number if _level != null else 1)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.add_theme_font_size_override("font_size", 34)
@@ -131,7 +131,10 @@ func _build_ui() -> void:
 	layout.add_child(booster_row)
 	for kind in range(BoosterBag.SLOTS):
 		var booster_button := Button.new()
-		booster_button.custom_minimum_size = Vector2(112, 76)
+		booster_button.custom_minimum_size = Vector2(112, 84)
+		booster_button.icon = AssetCatalog.booster_texture(kind)
+		booster_button.expand_icon = true
+		booster_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		booster_button.pressed.connect(_on_booster_pressed.bind(kind))
 		booster_row.add_child(booster_button)
 		_booster_buttons.append(booster_button)
