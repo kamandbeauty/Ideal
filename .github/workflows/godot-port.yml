@@ -82,11 +82,6 @@ jobs:
       - name: Import project
         run: godot --headless --editor --path godot-port --quit
 
-      - name: Install project Android build template
-        run: |
-          godot --headless --path godot-port --install-android-build-template
-          test -f godot-port/android/build/build.gradle
-
       - name: Export debug APK
         env:
           GODOT_ANDROID_KEYSTORE_DEBUG_PATH: ${{ runner.temp }}/debug.keystore
@@ -95,7 +90,8 @@ jobs:
         run: |
           mkdir -p godot-port/build
           cp "$HOME/.android/debug.keystore" "${{ runner.temp }}/debug.keystore"
-          godot --headless --path godot-port --export-debug "Android" godot-port/build/princespalace-debug.apk
+          godot --headless --path godot-port --install-android-build-template --export-debug "Android" godot-port/build/princespalace-debug.apk
+          test -f godot-port/android/build/build.gradle
           test -s godot-port/build/princespalace-debug.apk
 
       - name: Upload debug APK
