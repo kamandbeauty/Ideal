@@ -316,6 +316,9 @@ func _on_cell_pressed(pos: Vector2i) -> void:
 			if booster_result.accepted:
 				_run.revert_last_booster(_selected_booster)
 		_selected_booster = -1
+		if booster_result.accepted and _run.status != GameTypes.LevelStatus.PLAYING:
+			var progression := Progression.new(_save, GameClock.new())
+			progression.record_level_result(_run, _wallet)
 		_store.save(_save)
 		_refresh_board()
 		return
