@@ -256,9 +256,9 @@ func _run() -> void:
 	var escaped := _escaped_labels(app, 1.0)
 	failures += _check(escaped.is_empty(),
 		"every label sits inside the panel it was placed in: %s" % ", ".join(escaped))
-	var outside := _outside_canvas(app, 2.0)
-	failures += _check(outside.is_empty(),
-		"nothing draws outside the %dx%d design space: %s" % [int(UiTokens.CANVAS_WIDTH), int(UiTokens.CANVAS_HEIGHT), ", ".join(outside)])
+	var spilled := _outside_canvas(app, 2.0)
+	failures += _check(spilled.is_empty(),
+		"nothing draws outside the %dx%d design space: %s" % [int(UiTokens.CANVAS_WIDTH), int(UiTokens.CANVAS_HEIGHT), ", ".join(spilled)])
 	app.queue_free()
 	await process_frame
 
