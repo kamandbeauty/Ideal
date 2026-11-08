@@ -137,7 +137,8 @@ func _audit(node: Node, out: Array[String]) -> void:
 			var control := child as Control
 			var parent := control.get_parent() as Control
 			if (child is Label or child is Panel) and not parent.get_global_rect().grow(1.0).encloses(control.get_global_rect()):
-				out.append("%s in %s" % [control.name, parent.name])
+				out.append("%s %s in %s %s" % [control.name, str(control.get_global_rect()),
+					parent.name, str(parent.get_global_rect())])
 		_audit(child, out)
 
 func _log(line: String) -> void:

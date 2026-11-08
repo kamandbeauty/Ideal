@@ -71,6 +71,16 @@ func _build_card(index: int) -> void:
 	UiKit.place(plate, 0.0, 0.0, card.custom_minimum_size.x, CARD_HEIGHT)
 	_plates.append(plate)
 
+	# The plate is art, the rows are the game: a wash over the illustration keeps every price readable
+	# without hiding the place being rebuilt.
+	var veil := ColorRect.new()
+	veil.name = "plate_veil"
+	veil.color = Color(UiTokens.SURFACE.r, UiTokens.SURFACE.g, UiTokens.SURFACE.b, 0.55)
+	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	card.add_child(veil)
+	card.move_child(veil, 1)
+	UiKit.place(veil, 0.0, 0.0, card.custom_minimum_size.x, CARD_HEIGHT)
+
 	var title := UiKit.label(card, "title", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_RIGHT, true)
 	UiKit.place(title, 14.0, 6.0, card.custom_minimum_size.x - 28.0, 24.0)
@@ -98,13 +108,13 @@ func _build_card(index: int) -> void:
 		rows.append({"label": label, "button": button})
 	_task_rows.append({"index": index, "rows": rows})
 
-	var district_button := UiKit.button(card, "build_all", "ساخت همه", 106.0, CARD_HEIGHT - 46.0, 110.0,
+	var district_button := UiKit.button(card, "build_all", "ساخت همه", 132.0, CARD_HEIGHT - 46.0, 110.0,
 		34.0, UiTokens.SURFACE_RAISED, UiTokens.TEXT, Callable(self, "_on_district_pressed").bind(index),
 		UiTokens.RADIUS_MD)
 	district_button.add_theme_font_size_override("font_size", UiTokens.TYPE_SM)
 	_district_buttons.append(district_button)
 
-	var chest_button := UiKit.button(card, "chest", "صندوق", 14.0, CARD_HEIGHT - 46.0, 84.0, 34.0,
+	var chest_button := UiKit.button(card, "chest", "صندوق", 14.0, CARD_HEIGHT - 46.0, 112.0, 34.0,
 		UiTokens.GOLD, UiTokens.ON_GOLD, Callable(self, "_on_chest_pressed").bind(index),
 		UiTokens.RADIUS_MD)
 	chest_button.add_theme_font_size_override("font_size", UiTokens.TYPE_SM)
