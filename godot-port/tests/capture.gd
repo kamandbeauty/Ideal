@@ -36,7 +36,16 @@ func _ready() -> void:
 	await _frames(30)
 	_report(app, "board")
 	await _shot("05-board")
-	print("[capture] wrote %d shots to %s" % [5, SHOTS])
+	# A 20:9 phone is where the old layout letterboxed the art and cropped the content.
+	DisplayServer.window_set_size(Vector2i(1080, 2400))
+	get_window().size = Vector2i(1080, 2400)
+	await _frames(6)
+	await _shot("06-board-phone-20x9")
+	app._show_home()
+	await _frames(6)
+	await _shot("07-home-phone-20x9")
+
+	print("[capture] wrote the whole set to %s" % SHOTS)
 	get_tree().quit()
 
 ## One greppable line per shot: which views claim to be visible, and how big the root really is.
@@ -54,11 +63,13 @@ func _report(app: Node, tag: String) -> void:
 	var art = app.get("_bg")
 	var stage = app.get("_stage")
 	var tex = art.texture if art != null else null
-	print("[capture] ART %s :: window_art=%s :: art_rect=%s :: stage=%s :: viewport=%s" % [
+	var scrim = app.get("_scrim_top")
+	print("[capture] ART %s :: tex=%s :: drawn=%s :: stage=%s :: viewport=%s :: scrim_top=%.2f" % [
 		tag, "null" if tex == null else str(tex.get_size()),
 		str(art.get_global_rect()) if art != null else "-",
 		str(stage.position) + " " + str(stage.size) if stage != null else "-",
-		str(app.get_viewport_rect().size)])
+		str(app.get_viewport_rect().size),
+		scrim.modulate.a if scrim != null else 0.0])
 	var escapes: Array[String] = []
 	_audit(app, escapes)
 	print("[capture] LAYOUT %s :: %d control(s) escape their parent" % [tag, escapes.size()])

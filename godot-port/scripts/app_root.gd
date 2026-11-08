@@ -22,6 +22,8 @@ var sound: SoundDirector
 var _stage: Control
 var _bg: TextureRect
 var _wash: ColorRect
+var _scrim_top: TextureRect
+var _scrim_bottom: TextureRect
 var _fade: ColorRect
 var _tick := 0.0
 var _current: UiScreen
@@ -47,16 +49,21 @@ func _boot() -> void:
 	_bg = TextureRect.new()
 	_bg.name = "window_art"
 	_bg.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_bg.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	# The rect is computed by _paint_window_art(), which crops rather than letterboxes: the plate is
+	# landscape and the phone is not, so the art has to be larger than the window and pinned.
+	_bg.stretch_mode = TextureRect.STRETCH_SCALE
 	_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bg)
-	UiKit.stretch(_bg)
+
+	_scrim_top = _make_scrim("scrim_top", true)
+	_scrim_bottom = _make_scrim("scrim_bottom", false)
 
 	_wash = ColorRect.new()
 	_wash.name = "window_wash"
 	_wash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_wash)
 	UiKit.stretch(_wash)
+	move_child(_wash, _scrim_top.get_index())
 
 	_stage = Control.new()
 	_stage.name = "stage"
@@ -133,6 +140,7 @@ func _show_screen(target: UiScreen) -> void:
 	_current = target
 	_bg.texture = UiKit.texture(target.backdrop_art)
 	_wash.color = target.wash_color
+	_paint_window_art(target)
 	_center_stage()
 	target.refresh()
 	top_bar.refresh()
@@ -195,6 +203,54 @@ func _refresh_all() -> void:
 	if _current != null:
 		_current.refresh()
 
+## Size and pin the window art so it covers the window without being squashed, and set the two edge
+## scrims that keep HUD text readable over a bright plate.
+func _paint_window_art(target: UiScreen) -> void:
+	var viewport := get_viewport_rect().size
+	var tex := _bg.texture
+	if tex == null:
+		_bg.position = Vector2.ZERO
+		_bg.size = viewport
+	else:
+		var tex_size := tex.get_size()
+		var scale_factor := maxf(viewport.x / tex_size.x, viewport.y / tex_size.y)
+		var drawn := tex_size * scale_factor
+		_bg.size = drawn
+		_bg.position = Vector2(
+			(viewport.x - drawn.x) * target.backdrop_anchor.x,
+			(viewport.y - drawn.y) * target.backdrop_anchor.y)
+	for pair in [[_scrim_top, target.scrim.x, true], [_scrim_bottom, target.scrim.y, false]]:
+		var scrim_node: TextureRect = pair[0]
+		var alpha: float = pair[1]
+		scrim_node.visible = alpha > 0.001
+		if not scrim_node.visible:
+			continue
+		scrim_node.modulate.a = alpha
+		var height := viewport.y * (0.42 if bool(pair[2]) else 0.34)
+		scrim_node.size = Vector2(viewport.x, height)
+		scrim_node.position = Vector2(0.0, 0.0) if bool(pair[2]) else Vector2(0.0, viewport.y - height)
+
+## A one-pixel-wide vertical gradient that fades the background colour in from an edge.
+func _make_scrim(node_name: String, from_top: bool) -> TextureRect:
+	var gradient := Gradient.new()
+	var bg := Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 1.0)
+	gradient.set_color(0, bg if from_top else Color(bg.r, bg.g, bg.b, 0.0))
+	gradient.set_color(1, Color(bg.r, bg.g, bg.b, 0.0) if from_top else bg)
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.width = 4
+	texture.height = 128
+	texture.fill_from = Vector2(0.0, 0.0)
+	texture.fill_to = Vector2(0.0, 1.0)
+	var node := TextureRect.new()
+	node.name = node_name
+	node.texture = texture
+	node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	node.stretch_mode = TextureRect.STRETCH_SCALE
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(node)
+	return node
+
 ## Centre the design space in the real window. With the stretch aspect set to `expand`, the root
 ## control is the device's shape, so a tall phone gets extra picture above and below the game instead
 ## of the game being cropped to it.
@@ -209,6 +265,8 @@ func _center_stage() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED:
 		_center_stage()
+		if _current != null:
+			_paint_window_art(_current)
 
 ## Android's back gesture returns to the title screen instead of quitting the game.
 func _unhandled_input(event: InputEvent) -> void:

@@ -17,7 +17,7 @@ var _sample: Label
 var _font_line: Label
 
 func build() -> void:
-	set_backdrop("home_palace", 0.78)
+	set_backdrop("home_palace", 0.60, 0.55, 0.5, 0.95, 0.92)
 
 	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 54.0, 84.0, 40.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)

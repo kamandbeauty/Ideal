@@ -14,10 +14,20 @@ var built := false
 ## that fills whatever the device actually is, and the screens own only their content.
 var backdrop_art := ""
 var wash_color := Color(0, 0, 0, 0)
+## Where the picture is pinned when the window is a different shape from the plate. These plates are
+## landscape (1024x768) and phones are portrait, so "cover" always means "crop": the anchor decides
+## which part survives. 0.5/0.5 keeps the middle; 1.0/0.5 pins the plate's right half, which is where
+## the palace's gate and dome are drawn.
+var backdrop_anchor := Vector2(0.5, 0.5)
+## How strongly the art is dimmed at the top and bottom edges so HUD text stays legible over it.
+var scrim := Vector2(0.0, 0.0)
 
-func set_backdrop(art_id: String, wash_alpha: float) -> void:
+func set_backdrop(art_id: String, wash_alpha: float, anchor_x: float = 0.5, anchor_y: float = 0.5,
+		scrim_top: float = 0.0, scrim_bottom: float = 0.0) -> void:
 	backdrop_art = art_id
 	wash_color = Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, wash_alpha)
+	backdrop_anchor = Vector2(anchor_x, anchor_y)
+	scrim = Vector2(scrim_top, scrim_bottom)
 
 func init_screen(new_session: GameSession) -> void:
 	session = new_session
