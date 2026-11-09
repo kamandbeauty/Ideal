@@ -131,7 +131,7 @@ static func label(text: String, size: int = 20, color: Color = TEXT, heavy: bool
 	node.add_theme_color_override("font_color", color)
 	node.add_theme_font_override("font", bold if heavy else regular)
 	node.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	node.text_direction = TextServer.DIRECTION_AUTO
+	node.text_direction = Control.TEXT_DIRECTION_AUTO
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return node
 
@@ -141,7 +141,7 @@ static func button(text: String, action: Callable, accent: bool = false) -> Butt
 	node.text = text
 	node.custom_minimum_size.y = 54
 	node.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	node.text_direction = TextServer.DIRECTION_AUTO
+	node.text_direction = Control.TEXT_DIRECTION_AUTO
 	if accent:
 		node.add_theme_stylebox_override("normal", plate("plate_button_accent.png", 18))
 		node.add_theme_stylebox_override("hover", plate("plate_button_accent_hover.png", 18))
