@@ -105,7 +105,10 @@ const BORDER_PLATE := 20
 const BORDER_PLATE_SMALL := 6
 ## Below this height a plate takes the `_sm` picture, because a nine-slice cannot shrink past its own
 ## margins — the sum of a 20 dp border on two sides is 40.
-const PLATE_SMALL_MAX := 40.0
+# 56, not 40: the large plate is a 96 px panel whose 20 px nine-slice leaves a raised inner face, and
+# on a 46-52 px button that face reads as a second frame inside the first. Every control up to 56 dp
+# takes the 48 px plate and its 6 px slice instead.
+const PLATE_SMALL_MAX := 56.0
 const BORDER_PANEL_ART := 24
 const BORDER_BUTTON_ART := 20
 const BORDER_PILL_ART := 22
