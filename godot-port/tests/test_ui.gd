@@ -10,6 +10,7 @@ const Codec = preload("res://scripts/core/save_codec.gd")
 const Store = preload("res://scripts/core/save_store.gd")
 
 var failures := 0
+var _failed_labels: Array[String] = []
 var tree_root: Window
 
 func _initialize() -> void:
@@ -68,7 +69,10 @@ func _check(condition: bool, label: String) -> int:
 	if condition:
 		return 0
 	push_error("FAILED: " + label)
-	print("::error title=test_ui::" + label)
+	# Collected, not printed one annotation at a time: GitHub keeps only ten annotations per step, so a
+	# suite with eleven failures used to hide the eleventh — which is how a broken plate and a broken
+	# resume both fit under the cap and told us nothing.
+	_failed_labels.append(label)
 	return 1
 
 func _run() -> void:
@@ -219,7 +223,7 @@ func _run() -> void:
 			var drawn: Array[String] = []
 			for key in plate_checks:
 				var plate := plate_checks[key] as Panel
-				if plate == null or not (plate.get_theme_stylebox("panel") is StyleBoxTexture):
+				if plate == null or not (plate.get("theme_override_styles/panel") is StyleBoxTexture):
 					drawn.append(str(key))
 			failures += _check(drawn.is_empty(),
 				"level %d draws every card and the board frame with picture plates (%s)" % [number, ", ".join(drawn)])
@@ -263,7 +267,7 @@ func _run() -> void:
 		if pause_layer != null:
 			var pause_plate := pause_layer.get_node_or_null("card") as Panel
 			failures += _check(pause_plate != null
-				and pause_plate.get_theme_stylebox("panel") is StyleBoxTexture,
+				and pause_plate.get("theme_override_styles/panel") is StyleBoxTexture,
 				"level %d draws the pause card with a picture plate" % number)
 			screen._on_resume()
 			failures += _check(not pause_layer.visible, "level %d resumes from the pause card" % number)
@@ -409,6 +413,9 @@ func _run() -> void:
 	await process_frame
 
 	print("test_ui: %d failure(s)" % failures)
+	if not _failed_labels.is_empty():
+		var summary := "%0A".join(_failed_labels)
+		print("::error title=test_ui (%d failures)::%s" % [failures, summary.left(6000)])
 	quit(1 if failures > 0 else 0)
 
 ## Every PNG directly inside a directory of the project, sorted, so a count in a test means something.
