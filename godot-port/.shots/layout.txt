@@ -37,5 +37,7 @@ DUMP   chest [P: (24.0, 354.0), S: (100.0, 30.0)] text= disabled=true
 DUMP     chest_icon [P: (30.0, 358.0), S: (22.0, 22.0)]
 DUMP     chest_label [P: (54.0, 354.0), S: (64.0, 30.0)] text=باز کن
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(738.0, 415.0)
-LAYOUT board :: 0 control(s) escape their parent
+LAYOUT board :: 2 control(s) escape their parent
+LAYOUT board :: value [P: (26.0, 68.0), S: (176.0, 33.0)] in moves [P: (16.0, 52.0), S: (196.0, 40.0)]
+LAYOUT board :: score [P: (226.0, 68.0), S: (98.0, 33.0)] in score_card [P: (220.0, 52.0), S: (110.0, 40.0)]
 CONTACT 3786x447
