@@ -84,9 +84,9 @@ func build() -> void:
 	set_backdrop("board_backdrop_ch01", 0.18, 0.5, 0.5, 0.8, 0.7)
 
 	# ---- header: home and pause at the right, the level chip, then the game's name ------------------
-	UiKit.button(self, "home", "خانه", 650.0, 4.0, 72.0, 28.0, UiTokens.SURFACE_RAISED,
+	UiKit.button(self, "home", "خانه", 650.0, 2.0, 72.0, 32.0, UiTokens.SURFACE_RAISED,
 		UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
-	UiKit.button(self, "pause_button", "مکث", 570.0, 4.0, 72.0, 28.0, UiTokens.SURFACE_RAISED,
+	UiKit.button(self, "pause_button", "مکث", 570.0, 2.0, 72.0, 32.0, UiTokens.SURFACE_RAISED,
 		UiTokens.TEXT, _on_pause, UiTokens.RADIUS_MD)
 
 	var level_chip := UiKit.panel(self, "level_chip", 150.0, 4.0, 96.0, 28.0, UiTokens.GOLD,
@@ -140,14 +140,19 @@ func build() -> void:
 	# The board is where a player spends both, so they belong here and not only on the home screen.
 	# Every part of it is a picture: the plate, the coin and the heart are all shipped PNGs.
 	var wallet_card := _build_card("wallet_card", COLUMN_X, WALLET_Y, COLUMN_W, WALLET_HEIGHT)
-	UiKit.icon(wallet_card, "coin_icon", "icon_coin", COLUMN_W - 34.0, (WALLET_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
-	_coin_label = UiKit.label(wallet_card, "coin_value", "", UiTokens.TYPE_SM, UiTokens.GOLD,
-		HORIZONTAL_ALIGNMENT_RIGHT, true)
-	UiKit.place(_coin_label, COLUMN_W * 0.5, 0.0, COLUMN_W * 0.5 - 40.0, WALLET_HEIGHT)
-	UiKit.icon(wallet_card, "life_icon", "icon_life", 8.0, (WALLET_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
+	# Each figure is centred in its own little group rather than pushed against an edge: the labels are
+	# right-to-left, so Godot mirrors LEFT and RIGHT alignment, and edge-hugging text lands in the
+	# middle of the card — which is exactly where the two numbers collided on the first attempt.
+	var icon_box := (WALLET_HEIGHT - 26.0) * 0.5
+	UiKit.icon(wallet_card, "life_icon", "icon_life", 14.0, icon_box, 26.0, 26.0)
 	_life_label = UiKit.label(wallet_card, "life_value", "", UiTokens.TYPE_SM, UiTokens.TEXT,
-		HORIZONTAL_ALIGNMENT_LEFT, true)
-	UiKit.place(_life_label, 40.0, 0.0, COLUMN_W * 0.5 - 40.0, WALLET_HEIGHT)
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(_life_label, 46.0, 0.0, COLUMN_W * 0.5 - 60.0, WALLET_HEIGHT)
+	UiKit.icon(wallet_card, "coin_icon", "icon_coin", COLUMN_W - 40.0, icon_box, 26.0, 26.0)
+	_coin_label = UiKit.label(wallet_card, "coin_value", "", UiTokens.TYPE_SM, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(_coin_label, COLUMN_W - 40.0 - (COLUMN_W * 0.5 - 60.0), 0.0, COLUMN_W * 0.5 - 60.0,
+		WALLET_HEIGHT)
 
 	var boosters_heading := UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
 		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
