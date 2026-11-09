@@ -89,8 +89,11 @@ func build() -> void:
 	UiKit.button(self, "pause_button", "مکث", 570.0, 2.0, 72.0, 32.0, UiTokens.SURFACE_RAISED,
 		UiTokens.TEXT, _on_pause, UiTokens.RADIUS_MD)
 
-	var level_chip := UiKit.panel(self, "level_chip", 150.0, 4.0, 96.0, 28.0, UiTokens.GOLD,
-		UiTokens.RADIUS_MD)
+	# A chip is a picture like every other surface: the gold plate art is nine-sliced, the label sits on
+	# top. `UiKit.panel` still exists for a texture that failed to load, and the sweep in `test_ui`
+	# fails the build if one of those fallbacks ever becomes the thing the player sees.
+	var level_chip := UiKit.art_panel(self, "level_chip", 150.0, 4.0, 96.0, 28.0, "ui_button_gold_sm",
+		UiTokens.BORDER_PLATE_SMALL, UiTokens.GOLD, UiTokens.RADIUS_MD)
 	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_SM, UiTokens.ON_ACCENT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(_level_label, 4.0, 0.0, 88.0, 28.0)
@@ -119,8 +122,8 @@ func build() -> void:
 	# ---- goal chips, stacked under the counters ---------------------------------------------------
 	for index in range(3):
 		var y := GOALS_Y + float(index) * (CHIP_HEIGHT + CHIP_GAP)
-		var chip := UiKit.panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
-			UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
+		var chip := UiKit.art_panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
+			"ui_chip", UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 		_goal_chips.append(chip)
 		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 26.0, 3.0,
 			20.0, 20.0))
@@ -421,8 +424,8 @@ func _show_combo(combo_count: int, combo_bonus: int) -> void:
 	var toast_width := BOARD_SIZE - 30.0
 	var toast_height := 40.0
 	var start_y := BOARD_TOP + BOARD_SIZE * 0.5 - toast_height * 0.5
-	var toast := UiKit.panel(self, "combo_toast", BOARD_LEFT + 15.0, start_y, toast_width, toast_height,
-		UiTokens.SURFACE, UiTokens.RADIUS_MD)
+	var toast := UiKit.art_panel(self, "combo_toast", BOARD_LEFT + 15.0, start_y, toast_width, toast_height,
+		"ui_panel_raised", UiTokens.BORDER_PLATE, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 	toast.z_index = 50
 	toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Words and Persian digits only. A "+" or a "×" between a word and a number is a neutral character

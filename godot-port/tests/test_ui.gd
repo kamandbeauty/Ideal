@@ -466,6 +466,15 @@ func _run() -> void:
 	var spilled := _outside_canvas(app, 2.0)
 	failures += _check(spilled.is_empty(),
 		"nothing draws outside the %dx%d design space: %s" % [int(UiTokens.CANVAS_WIDTH), int(UiTokens.CANVAS_HEIGHT), ", ".join(spilled)])
+	# The strict rule, applied to the whole app rather than to a list of widgets the test knows about:
+	# not one panel, not one button state, not one rectangle in any of the five screens may be a shape
+	# the engine rounded at runtime. Everything the player sees is a shipped picture. Focus styles are
+	# exempt because every button here is focus_mode NONE, so a focus plate can never be painted.
+	var drawn_shapes: Array[String] = []
+	_drawn_shapes_in(app, drawn_shapes)
+	failures += _check(drawn_shapes.is_empty(),
+		"every panel and button in the app is a shipped plate (%d drawn: %s)"
+		% [drawn_shapes.size(), ", ".join(drawn_shapes)])
 	app.queue_free()
 	await process_frame
 
@@ -503,6 +512,25 @@ func _drag(view: BoardView, from: Vector2, to: Vector2, device: int) -> void:
 	release.device = device
 	view._gui_input(release)
 
+
+
+## Collects every surface in a tree that is not a shipped picture: a Panel or Button state whose style
+## is a StyleBoxFlat, or a ColorRect, which is a rectangle by definition.
+func _drawn_shapes_in(node: Node, out: Array[String]) -> void:
+	if node is ColorRect:
+		out.append(str(node.get_path()))
+	if node is Panel:
+		var style := (node as Panel).get("theme_override_styles/panel")
+		if style != null and not (style is StyleBoxTexture):
+			out.append(str(node.get_path()))
+	if node is Button:
+		var button := node as Button
+		for state in ["normal", "hover", "pressed", "disabled"]:
+			var state_style = button.get("theme_override_styles/" + state)
+			if state_style != null and not (state_style is StyleBoxTexture):
+				out.append(str(button.get_path()) + ":" + state)
+	for child in node.get_children():
+		_drawn_shapes_in(child, out)
 
 func _tap(view: BoardView, point: Vector2, device: int) -> void:
 	var press := InputEventMouseButton.new()

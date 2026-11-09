@@ -27,21 +27,23 @@ func build(owner_session: GameSession) -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	place_bar()
 
-	var coins_pill := UiKit.panel(self, "coins", PAD, 0.0, PILL_WIDTH, PILL_HEIGHT,
-		UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
+	var coins_pill := UiKit.art_panel(self, "coins", PAD, 0.0, PILL_WIDTH, PILL_HEIGHT, "ui_pill",
+		UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 	UiKit.icon(coins_pill, "icon_coin", "icon_coin", 7.0, (PILL_HEIGHT - 24.0) * 0.5, 24.0, 24.0)
 	_coins = UiKit.raw_label(coins_pill, "value", UiTokens.HUD_CURRENCY, UiTokens.GOLD)
 	UiKit.place(_coins, 32.0, 0.0, PILL_WIDTH - 38.0, PILL_HEIGHT)
 	_coins.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
-	var potions_pill := UiKit.panel(self, "potions", PAD + PILL_WIDTH + UiTokens.S2, 0.0,
-		PILL_WIDTH, PILL_HEIGHT, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
+	var potions_pill := UiKit.art_panel(self, "potions", PAD + PILL_WIDTH + UiTokens.S2, 0.0,
+		PILL_WIDTH, PILL_HEIGHT, "ui_pill", UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED,
+		UiTokens.RADIUS_MD)
 	UiKit.icon(potions_pill, "icon_potion", "icon_potion", 7.0, (PILL_HEIGHT - 24.0) * 0.5, 24.0, 24.0)
 	_potions = UiKit.raw_label(potions_pill, "value", UiTokens.HUD_CURRENCY, UiTokens.ACCENT)
 	UiKit.place(_potions, 32.0, 0.0, PILL_WIDTH - 38.0, PILL_HEIGHT)
 
-	var lives_pill := UiKit.panel(self, "lives", UiTokens.CANVAS_WIDTH - PAD - PILL_WIDTH, 0.0,
-		PILL_WIDTH, PILL_HEIGHT, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
+	var lives_pill := UiKit.art_panel(self, "lives", UiTokens.CANVAS_WIDTH - PAD - PILL_WIDTH, 0.0,
+		PILL_WIDTH, PILL_HEIGHT, "ui_pill", UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED,
+		UiTokens.RADIUS_MD)
 	UiKit.icon(lives_pill, "icon_life", "icon_life", PILL_WIDTH - 31.0, (PILL_HEIGHT - 24.0) * 0.5,
 		24.0, 24.0)
 	_lives = UiKit.raw_label(lives_pill, "value", UiTokens.HUD_CURRENCY, UiTokens.TEXT)
