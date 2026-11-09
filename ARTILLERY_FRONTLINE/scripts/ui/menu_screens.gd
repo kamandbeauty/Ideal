@@ -461,7 +461,7 @@ func show_screen(id: String) -> void:
 func show_briefing(id: String) -> void:
 	selected_mission = load("res://resources/missions/%s.tres" % id)
 	briefing_title.text = selected_mission.title
-	briefing_subtitle.text = Loc.digits(selected_mission.sector) + "  /  " + selected_mission.subtitle
+	briefing_subtitle.text = Loc.sector(selected_mission.sector) + "  /  " + selected_mission.subtitle
 	briefing_body.text = selected_mission.briefing
 	var objectives: String = Loc.t("briefing_objectives") + "\n"
 	for target_id in selected_mission.target_ids:

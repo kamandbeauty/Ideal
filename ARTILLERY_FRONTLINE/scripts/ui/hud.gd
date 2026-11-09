@@ -204,7 +204,7 @@ func bind(value: BattleController) -> void:
 	overlay.battle = value
 	battle.telemetry_changed.connect(update)
 	battle.notice.connect(show_notice)
-	mission_label.text = Loc.digits(battle.mission.sector) + " / " + battle.mission.title
+	mission_label.text = Loc.sector(battle.mission.sector) + " / " + battle.mission.title
 	currency_label.text = "%s %s  /  %s %s" % [Loc.t("credits"), Loc.number(Profile.data.coins), Loc.t("stars"), Loc.number(Profile.data.stars)]
 	update(battle.telemetry())
 

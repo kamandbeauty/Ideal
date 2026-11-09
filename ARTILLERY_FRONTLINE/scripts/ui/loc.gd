@@ -54,6 +54,7 @@ const STRINGS: Dictionary = {
 	"campaign_progress": "%s / %s عملیات\n%s / %s ستاره\n%s امتیاز ارتقا",
 	"campaign_sector": "گذرگاه ریج / بخش تاکتیکی ۰۷",
 	"north": "شمال",
+	"sector": "بخش",
 	"campaign_coords": "۳۴° ۱۸′ شمالی   ۴۱° ۰۷′ شرقی     •     کارزار آفلاین",
 	"campaign_locked": "%s  قفل‌شده",
 	"campaign_star_count": "%s / ۳ ستاره",
@@ -104,7 +105,7 @@ const STRINGS: Dictionary = {
 	"settings_drag_note": "پسای خطی اختیاری، مشترک میان پیش‌بینی و گلولهٔ واقعی",
 	"settings_perf": "نمایش کارایی",
 	"settings_perf_note": "نرخ فریم، تعداد فراخوانی رسم، وضوح و سطح کیفیت",
-	"settings_footer": "موبایل: رندر Vulkan · بستهٔ سازگاری OpenGL هم موجود است. تنظیمات به‌صورت محلی ذخیره می‌شود.",
+	"settings_footer": "موبایل: رندر ولکان · بستهٔ سازگاری اوپن‌جی‌ال هم موجود است. تنظیمات به‌صورت محلی ذخیره می‌شود.",
 	"quality_auto": "خودکار / تطبیقی",
 	"quality_low": "کم / کارایی",
 	"quality_medium": "متوسط / متعادل",
@@ -267,6 +268,12 @@ const WAVES: Dictionary = {
 const STATES: Dictionary = {"READY": "ready", "RELOADING": "reloading", "EMPTY": "empty"}
 const CAMERAS: Dictionary = {"GUN": "camera_gun", "OPTIC": "camera_optic", "SHELL": "camera_shell", "IMPACT": "hud_impact"}
 const SUPPORTS: Dictionary = {"repair": "coastal_support_repair", "airstrike": "coastal_support_airstrike", "helicopter": "coastal_support_helicopter", "airdrop": "coastal_support_crate"}
+
+
+static func sector(code: String) -> String:
+	if code.length() > 1:
+		return t("sector") + " " + number(int(code.substr(1)))
+	return code
 
 
 static func state(id: String) -> String:

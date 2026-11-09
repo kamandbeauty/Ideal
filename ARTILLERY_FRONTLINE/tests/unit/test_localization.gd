@@ -1,8 +1,11 @@
 extends RefCounted
 ## Guards the Persian-first UI contract: copy, numerals, fonts and resources.
 func run(t: TestContext) -> void:
+	var latin := RegEx.new()
+	latin.compile("[A-Za-z]")
 	for key in Loc.STRINGS:
 		t.check(Loc.is_persian(Loc.t(key)), "Persian display copy: " + key)
+		t.check(latin.search(Loc.t(key).replace("%s", "")) == null, "No Latin letters in display copy: " + key)
 	t.equal(Loc.digits("0123456789"), "۰۱۲۳۴۵۶۷۸۹", "Persian digits")
 	t.equal(Loc.number(140), "۱۴۰", "Persian integer display")
 	t.equal(Loc.clock(210), "۰۳:۳۰", "Persian mission clock")
