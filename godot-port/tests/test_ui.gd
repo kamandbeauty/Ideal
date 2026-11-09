@@ -520,13 +520,13 @@ func _drawn_shapes_in(node: Node, out: Array[String]) -> void:
 	if node is ColorRect:
 		out.append(str(node.get_path()))
 	if node is Panel:
-		var style := (node as Panel).get("theme_override_styles/panel")
+		var style: StyleBox = (node as Panel).get("theme_override_styles/panel") as StyleBox
 		if style != null and not (style is StyleBoxTexture):
 			out.append(str(node.get_path()))
 	if node is Button:
 		var button := node as Button
 		for state in ["normal", "hover", "pressed", "disabled"]:
-			var state_style = button.get("theme_override_styles/" + state)
+			var state_style: StyleBox = button.get("theme_override_styles/" + state) as StyleBox
 			if state_style != null and not (state_style is StyleBoxTexture):
 				out.append(str(button.get_path()) + ":" + state)
 	for child in node.get_children():
