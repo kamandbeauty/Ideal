@@ -3,7 +3,7 @@
 [resource]
 script = ExtResource("1")
 id = "transport"
-display_name = "NOMAD 6×6"
+display_name = "نفربر نومد ۶×۶"
 kind = "transport"
 health = 110.0
 armor = 0.05

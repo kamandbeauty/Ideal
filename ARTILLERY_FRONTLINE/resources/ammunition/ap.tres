@@ -3,9 +3,9 @@
 [resource]
 script = ExtResource("1")
 id = "ap"
-display_name = "M91 ARMOR PIERCING"
-short_name = "AP"
-description = "Fast kinetic penetrator · precision armor kills"
+display_name = "ام۹۱ ضدزره"
+short_name = "ضدزره"
+description = "نفوذگر جنبشی پرسرعت · انهدام دقیق زره"
 damage = 225.0
 velocity_multiplier = 1.2
 blast_radius = 5.0

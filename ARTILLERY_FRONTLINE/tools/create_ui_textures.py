@@ -8,7 +8,7 @@ key art in this folder is generated separately and is not touched here.
 import os
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "assets", "textures", "ui")
@@ -85,6 +85,53 @@ def divider(name, width=512, height=12):
     save(name, np.concatenate([body, alpha[:, :, None]], axis=2))
 
 
+def control_icons(size=64):
+    """Antialiased brass form-control glyphs (checkbox, slider knob, chevron)."""
+    scale = 4
+    s = size * scale
+
+    def canvas():
+        return Image.new("RGBA", (s, s), (0, 0, 0, 0))
+
+    def finish(im, name):
+        im = im.resize((size, size), Image.LANCZOS)
+        im.save(os.path.join(OUT, name))
+        print("UI", name, size, "x", size)
+
+    for on in (False, True):
+        im = canvas()
+        d = ImageDraw.Draw(im)
+        pad = 7 * scale
+        rect = [pad, pad, s - pad, s - pad]
+        if on:
+            d.rounded_rectangle(rect, radius=12 * scale, fill=(214, 172, 99, 255), outline=(255, 230, 176, 255), width=2 * scale)
+            d.line([(18 * scale, 33 * scale), (28 * scale, 43 * scale), (47 * scale, 21 * scale)], fill=(24, 30, 24, 255), width=6 * scale, joint="curve")
+        else:
+            d.rounded_rectangle(rect, radius=12 * scale, fill=(26, 34, 28, 235), outline=(112, 124, 96, 255), width=2 * scale)
+        finish(im, "check_on.png" if on else "check_off.png")
+
+    yy, xx = np.mgrid[0:s, 0:s]
+    cx = cy = (s - 1) / 2.0
+    r = np.sqrt((xx - cx) ** 2 + (yy - cy) ** 2) / (s * 0.5)
+    alpha = np.clip((0.88 - r) * s * 0.5, 0, 1)
+    lit = np.clip(1.0 - (yy / s) * 0.9, 0.25, 1.0)
+    body = BRASS[None, None, :] * (0.55 + 0.5 * lit[:, :, None])
+    ring = (r > 0.62) & (r < 0.78)
+    body[ring] = np.array([70.0, 58.0, 36.0])
+    knob = np.concatenate([body, (alpha * 255)[:, :, None]], axis=2)
+    finish(Image.fromarray(np.clip(knob, 0, 255).astype(np.uint8), "RGBA"), "slider_grabber.png")
+
+    im = canvas()
+    d = ImageDraw.Draw(im)
+    d.line([(16 * scale, 24 * scale), (32 * scale, 42 * scale), (48 * scale, 24 * scale)], fill=(214, 172, 99, 255), width=6 * scale, joint="curve")
+    finish(im, "chevron_down.png")
+
+    im = canvas()
+    d = ImageDraw.Draw(im)
+    d.line([(38 * scale, 16 * scale), (24 * scale, 32 * scale), (38 * scale, 48 * scale)], fill=(214, 172, 99, 255), width=5 * scale, joint="curve")
+    finish(im, "chevron_left.png")
+
+
 def main():
     plate("plate_panel.png", OLIVE * 0.62, INK * 0.95, [96, 108, 84], 11, alpha=236)
     plate("plate_card.png", OLIVE * 0.80, INK * 1.15, [112, 124, 96], 23, alpha=228)
@@ -98,6 +145,7 @@ def main():
     scrim("scrim_bottom.png", horizontal=False, strength=0.88)
     vignette("vignette.png")
     divider("divider.png")
+    control_icons()
 
 
 if __name__ == "__main__":

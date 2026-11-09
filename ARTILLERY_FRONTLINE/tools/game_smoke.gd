@@ -25,12 +25,37 @@ func run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(output))
 	Profile.data.settings.quality = "high"
 	Graphics.apply_preference()
-	await get_tree().create_timer(1.8).timeout
+	# Photograph the Persian command interface before entering combat.
+	await get_tree().create_timer(0.35).timeout
+	await capture("menu-splash")
+	game.menus.show_screen("main")
+	await get_tree().create_timer(0.35).timeout
+	await capture("menu-home")
+	check("home screen active", game.menus.current == "main")
+	game.navigate("campaign")
+	await get_tree().create_timer(0.25).timeout
+	await capture("menu-campaign")
+	game.menus.show_briefing("sr01")
+	await get_tree().create_timer(0.25).timeout
+	await capture("menu-briefing")
+	game.navigate("arsenal")
+	await get_tree().create_timer(0.25).timeout
+	await capture("menu-arsenal")
+	game.navigate("settings")
+	await get_tree().create_timer(0.25).timeout
+	await capture("menu-settings")
+	game.menus.show_screen("upgrades")
+	await get_tree().create_timer(0.25).timeout
+	await capture("menu-upgrades")
 	game.start_mission("sr01")
 	await get_tree().create_timer(1.0).timeout
 	var battle: BattleController = game.battle
 	check("battlefield initialized", battle.battlefield.targets.size() == 6)
 	check("HUD visible", game.hud.visible)
+	game.pause_game()
+	await get_tree().create_timer(0.25).timeout
+	await capture("menu-pause")
+	game.resume_game()
 	await get_tree().create_timer(0.5).timeout
 	check("trajectory predicts ground impact", battle.targeting.prediction_valid and battle.targeting.predicted_time > 1.0)
 	var yaw_before: float = battle.artillery.yaw_degrees

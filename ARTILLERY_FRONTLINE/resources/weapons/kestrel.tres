@@ -3,8 +3,8 @@
 [resource]
 script = ExtResource("1")
 id = "kestrel"
-display_name = "KESTREL M-42"
-caliber = "155 mm"
+display_name = "کسترل ام-۴۲"
+caliber = "۱۵۵ میلی‌متر"
 damage = 100.0
 muzzle_velocity = 82.0
 effective_range = 650.0

@@ -3,9 +3,9 @@
 [resource]
 script = ExtResource("1")
 id = "sr03"
-title = "BROKEN GATE"
-subtitle = "Sable Ridge / Western checkpoint"
-briefing = "Breached cover shields a forward command post. Destroy the command tank and its escort transport. Blast damage can clear sandbags and fuel caches in your line of fire."
+title = "دروازهٔ شکسته"
+subtitle = "گذرگاه ریج / ایستگاه بازرسی غربی"
+briefing = "پوشش شکافته از یک پست فرماندهی جلو محافظت می‌کند. تانک فرماندهی و نفربر اسکورت آن را منهدم کن. آسیب انفجار می‌تواند کیسه‌های شن و ذخایر سوخت را در خط آتش پاک کند."
 sector = "A3"
 difficulty = 3
 target_ids = Array[String](["t01", "t03", "t04"])

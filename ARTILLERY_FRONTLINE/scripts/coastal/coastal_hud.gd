@@ -124,6 +124,7 @@ func _ready() -> void:
 	root = Control.new()
 	root.name = "CoastalInterface"
 	root.theme = UITheme.theme()
+	root.layout_direction = Control.LAYOUT_DIRECTION_RTL
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
@@ -138,16 +139,7 @@ func _ready() -> void:
 
 func _glass(child: Control, padding: int = 12) -> PanelContainer:
 	var panel := PanelContainer.new()
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(0.03, 0.05, 0.06, 0.5)
-	box.border_color = Color(0.65, 0.72, 0.62, 0.35)
-	box.set_border_width_all(1)
-	box.set_corner_radius_all(8)
-	box.content_margin_left = padding
-	box.content_margin_right = padding
-	box.content_margin_top = padding
-	box.content_margin_bottom = padding
-	panel.add_theme_stylebox_override("panel", box)
+	panel.add_theme_stylebox_override("panel", UITheme.plate("plate_panel.png", padding, Color(1, 1, 1, 0.82)))
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(child)
 	return panel
@@ -166,7 +158,9 @@ func _build_top() -> void:
 	left.offset_top = 14
 	var settings := Button.new()
 	settings.custom_minimum_size = Vector2(64, 64)
-	settings.add_theme_stylebox_override("normal", UITheme.style(Color(0.04, 0.06, 0.07, 0.55), Color(0.7, 0.75, 0.65, 0.5), 32))
+	settings.add_theme_stylebox_override("normal", UITheme.plate("plate_button.png", 0))
+	settings.add_theme_stylebox_override("hover", UITheme.plate("plate_button_hover.png", 0))
+	settings.add_theme_stylebox_override("pressed", UITheme.plate("plate_button_pressed.png", 0))
 	var gear := _icon("gear", 40)
 	gear.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	gear.offset_left = -20
@@ -177,7 +171,7 @@ func _build_top() -> void:
 	settings.pressed.connect(func(): settings_pressed.emit())
 	left.add_child(settings)
 	auto_check = CheckButton.new()
-	auto_check.text = "AUTO FIRE"
+	auto_check.text = Loc.t("coastal_autofire")
 	auto_check.add_theme_font_size_override("font_size", 20)
 	auto_check.custom_minimum_size = Vector2(150, 56)
 	auto_check.toggled.connect(func(on): auto_toggled.emit(on))
@@ -193,7 +187,7 @@ func _build_top() -> void:
 	wave_pips = UITheme.row(10)
 	wave_pips.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.add_child(wave_pips)
-	threat_label = UITheme.label("THREAT AHEAD", 18, UITheme.ACCENT, true)
+	threat_label = UITheme.label(Loc.t("coastal_threat_ahead"), 18, UITheme.ACCENT, true)
 	threat_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.85))
 	threat_label.add_theme_constant_override("shadow_offset_x", 1)
 	threat_label.add_theme_constant_override("shadow_offset_y", 2)
@@ -202,13 +196,13 @@ func _build_top() -> void:
 	root.add_child(center)
 	var info := UITheme.column(2)
 	info.alignment = BoxContainer.ALIGNMENT_END
-	mission_label = UITheme.label("TIDE WALL / FIRST LANDING", 20, UITheme.TEXT, true)
+	mission_label = UITheme.label(Loc.t("coastal_title") % Loc.t("coastal_default_label"), 20, UITheme.TEXT, true)
 	mission_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	enemies_label = UITheme.label("ENEMIES 0", 22, UITheme.ACCENT, true)
+	enemies_label = UITheme.label(Loc.t("coastal_enemies") % Loc.number(0), 22, UITheme.ACCENT, true)
 	enemies_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	var row := UITheme.row(16)
-	round_label = UITheme.label("ROUND 1/3", 18, UITheme.MUTED)
-	timer_label = UITheme.label("00:00", 18, UITheme.MUTED)
+	round_label = UITheme.label(Loc.t("coastal_round") % [Loc.number(1), Loc.number(3)], 18, UITheme.MUTED)
+	timer_label = UITheme.label(Loc.digits("00:00"), 18, UITheme.MUTED)
 	row.add_child(round_label)
 	row.add_child(timer_label)
 	row.alignment = BoxContainer.ALIGNMENT_END
@@ -257,20 +251,20 @@ func _build_right() -> void:
 	column.offset_top = -170
 	column.offset_bottom = 170
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	aim_button = _circular("crosshair", "ZOOM", 92.0, func(): aim_pressed.emit())
+	aim_button = _circular("crosshair", Loc.t("coastal_zoom"), 92.0, func(): aim_pressed.emit())
 	column.add_child(aim_button)
-	fire_button = _circular("bullets", "FIRE", 136.0, func(): pass)
+	fire_button = _circular("bullets", Loc.t("coastal_fire"), 136.0, func(): pass)
 	fire_button.button_down.connect(func(): fire_down.emit(); fire_button.scale = Vector2.ONE * 0.95)
 	fire_button.button_up.connect(func(): fire_up.emit(); fire_button.scale = Vector2.ONE)
 	fire_button.pivot_offset = Vector2(68, 68)
 	column.add_child(fire_button)
-	weapon_button = _circular("rocket", "WEAPON", 92.0, func(): weapon_pressed.emit())
+	weapon_button = _circular("rocket", Loc.t("coastal_weapon"), 92.0, func(): weapon_pressed.emit())
 	column.add_child(weapon_button)
 	root.add_child(column)
 
 func _build_bottom() -> void:
 	var health_box := UITheme.column(4)
-	health_label = UITheme.label("EMPLACEMENT 3000/3000", 18, UITheme.TEXT, true)
+	health_label = UITheme.label(Loc.t("coastal_health") % [Loc.number(3000), Loc.number(3000)], 18, UITheme.TEXT, true)
 	health_bar = ProgressBar.new()
 	health_bar.custom_minimum_size = Vector2(280, 20)
 	health_bar.max_value = 100.0
@@ -306,7 +300,7 @@ func _build_bottom() -> void:
 		var icon := _icon(icon_kind, 28)
 		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		box.add_child(icon)
-		var label := UITheme.label(id.to_upper(), 15, UITheme.TEXT, true)
+		var label := UITheme.label(Loc.support(id), 15, UITheme.TEXT, true)
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		box.add_child(label)
 		button.add_child(box)
@@ -316,16 +310,16 @@ func _build_bottom() -> void:
 		supports.add_child(button)
 	root.add_child(supports)
 	var ammo_box := UITheme.column(2)
-	weapon_label = UITheme.label("TWIN .50 HMG", 17, UITheme.MUTED, true)
-	ammo_label = UITheme.label("140 / 140", 30, UITheme.TEXT, true)
-	reserve_label = UITheme.label("RESERVE 999", 15, UITheme.MUTED)
+	weapon_label = UITheme.label("", 17, UITheme.MUTED, true)
+	ammo_label = UITheme.label(Loc.digits("140 / 140"), 30, UITheme.TEXT, true)
+	reserve_label = UITheme.label(Loc.t("coastal_reserve") % Loc.number(999), 15, UITheme.MUTED)
 	ammo_box.add_child(weapon_label)
 	ammo_box.add_child(ammo_label)
 	ammo_box.add_child(reserve_label)
 	var buttons := UITheme.row(8)
-	reload_button = UITheme.button("RELOAD", func(): reload_pressed.emit())
+	reload_button = UITheme.button(Loc.t("coastal_reload"), func(): reload_pressed.emit())
 	reload_button.custom_minimum_size = Vector2(112, 52)
-	rocket_button = UITheme.button("ROCKET", func(): rocket_pressed.emit())
+	rocket_button = UITheme.button(Loc.t("coastal_rocket"), func(): rocket_pressed.emit())
 	rocket_button.custom_minimum_size = Vector2(112, 52)
 	buttons.add_child(reload_button)
 	buttons.add_child(rocket_button)
@@ -358,26 +352,24 @@ func _build_pause() -> void:
 	pause_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	pause_panel.visible = false
-	var shade := ColorRect.new()
-	shade.color = Color(0.02, 0.03, 0.04, 0.72)
-	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	pause_panel.add_child(shade)
+	pause_panel.add_child(UITheme.art("hero_beach.jpg", 0.34))
+	pause_panel.add_child(UITheme.overlay("vignette.png", 0.95))
 	var box := UITheme.column(14)
 	box.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	box.offset_left = -240
 	box.offset_right = 240
 	box.offset_top = -220
 	box.offset_bottom = 220
-	box.add_child(UITheme.label("PAUSED / SETTINGS", 34, UITheme.TEXT, true))
+	box.add_child(UITheme.label(Loc.t("coastal_pause_title"), 34, UITheme.TEXT, true))
 	quality_select = OptionButton.new()
-	for item in ["AUTO / ADAPTIVE", "LOW", "MEDIUM", "HIGH", "ULTRA"]:
-		quality_select.add_item(item)
+	for key in ["quality_auto", "quality_low", "quality_medium", "quality_high", "quality_ultra"]:
+		quality_select.add_item(Loc.t(key))
 	quality_select.select(["auto", "low", "medium", "high", "ultra"].find(Profile.data.settings.quality))
 	quality_select.item_selected.connect(func(index): Profile.set_setting("quality", ["auto", "low", "medium", "high", "ultra"][index]))
 	box.add_child(quality_select)
-	box.add_child(UITheme.button("RESUME", func(): resume_pressed.emit(), true))
-	box.add_child(UITheme.button("RESTART", func(): restart_pressed.emit()))
-	box.add_child(UITheme.button("EXIT TO COMMAND", func(): exit_pressed.emit()))
+	box.add_child(UITheme.button(Loc.t("coastal_resume"), func(): resume_pressed.emit(), true))
+	box.add_child(UITheme.button(Loc.t("coastal_restart"), func(): restart_pressed.emit()))
+	box.add_child(UITheme.button(Loc.t("coastal_exit"), func(): exit_pressed.emit()))
 	pause_panel.add_child(_glass(box, 24))
 	root.add_child(pause_panel)
 
@@ -386,39 +378,37 @@ func _build_results() -> void:
 	result_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	result_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	result_panel.visible = false
-	var shade := ColorRect.new()
-	shade.color = Color(0.02, 0.03, 0.04, 0.78)
-	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	result_panel.add_child(shade)
+	result_panel.add_child(UITheme.art("hero_beach.jpg", 0.42))
+	result_panel.add_child(UITheme.overlay("vignette.png", 0.95))
 	var box := UITheme.column(14)
 	box.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	box.offset_left = -300
 	box.offset_right = 300
 	box.offset_top = -180
 	box.offset_bottom = 180
-	result_title = UITheme.label("BEACHHEAD HELD", 42, UITheme.ACCENT, true)
+	result_title = UITheme.label(Loc.t("coastal_held"), 42, UITheme.ACCENT, true)
 	result_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	result_body = UITheme.label("", 22, UITheme.TEXT)
 	result_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(result_title)
 	box.add_child(result_body)
-	box.add_child(UITheme.button("REPLAY MILESTONE", func(): restart_pressed.emit(), true))
-	box.add_child(UITheme.button("EXIT TO COMMAND", func(): exit_pressed.emit()))
+	box.add_child(UITheme.button(Loc.t("coastal_replay"), func(): restart_pressed.emit(), true))
+	box.add_child(UITheme.button(Loc.t("coastal_exit"), func(): exit_pressed.emit()))
 	result_panel.add_child(_glass(box, 26))
 	root.add_child(result_panel)
 
 func update_state(data: Dictionary) -> void:
-	mission_label.text = "TIDE WALL / " + String(data.get("label", "COASTAL DEFENSE"))
-	enemies_label.text = "ENEMIES %d" % int(data.get("remaining", 0))
-	round_label.text = "ROUND %d/%d" % [int(data.get("round", 1)), int(data.get("rounds", 3))]
+	mission_label.text = Loc.t("coastal_title") % Loc.wave(String(data.get("label", "COASTAL DEFENSE")))
+	enemies_label.text = Loc.t("coastal_enemies") % Loc.number(int(data.get("remaining", 0)))
+	round_label.text = Loc.t("coastal_round") % [Loc.number(int(data.get("round", 1))), Loc.number(int(data.get("rounds", 3)))]
 	var seconds: int = int(data.get("time", 0.0))
-	timer_label.text = "%02d:%02d" % [int(seconds / 60.0), seconds % 60]
+	timer_label.text = Loc.clock(seconds)
 	var health: float = float(data.get("health", 3000.0))
 	var health_max: float = float(data.get("health_max", 3000.0))
 	health_bar.value = 100.0 * health / maxf(1.0, health_max)
-	health_label.text = "EMPLACEMENT %d/%d" % [int(health), int(health_max)]
-	ammo_label.text = "%d / %d" % [int(data.get("ammo", 0)), int(data.get("magazine", 0))]
-	reserve_label.text = "RESERVE %d" % int(data.get("reserve", 0))
+	health_label.text = Loc.t("coastal_health") % [Loc.number(int(health)), Loc.number(int(health_max))]
+	ammo_label.text = "%s / %s" % [Loc.number(int(data.get("ammo", 0))), Loc.number(int(data.get("magazine", 0)))]
+	reserve_label.text = Loc.t("coastal_reserve") % Loc.number(int(data.get("reserve", 0)))
 	weapon_label.text = String(data.get("weapon", ""))
 	reload_button.disabled = bool(data.get("reloading", false)) or int(data.get("ammo", 0)) >= int(data.get("magazine", 0))
 	rocket_button.disabled = String(data.get("weapon_id", "")) == "rocket"
@@ -433,21 +423,21 @@ func update_state(data: Dictionary) -> void:
 		var count: int = int(charges.get(id, 0))
 		support_buttons[id].disabled = locked or cooling or count <= 0
 		if locked:
-			support_labels[id].text = "LOCKED"
+			support_labels[id].text = Loc.t("locked")
 		elif cooling:
-			support_labels[id].text = "%ds" % int(ceilf(float(cooldowns[id])))
+			support_labels[id].text = Loc.t("coastal_seconds") % Loc.number(int(ceilf(float(cooldowns[id]))))
 		else:
-			support_labels[id].text = "%s %d" % [id.to_upper(), count]
+			support_labels[id].text = "%s %s" % [Loc.support(id), Loc.number(count)]
 	var intermission: float = float(data.get("intermission", 0.0))
 	if intermission > 0.0:
-		threat_label.text = "NEXT WAVE IN %ds" % int(ceilf(intermission))
+		threat_label.text = Loc.t("coastal_next_wave") % Loc.number(int(ceilf(intermission)))
 	else:
 		var bearing: float = float(data.get("threat_bearing", 0.0))
 		var distance: float = float(data.get("threat_distance", 0.0))
 		if absf(bearing) > 55.0:
-			threat_label.text = "THREAT << LEFT" if bearing > 0.0 else "THREAT RIGHT >>"
+			threat_label.text = Loc.t("coastal_threat_left") if bearing > 0.0 else Loc.t("coastal_threat_right")
 		else:
-			threat_label.text = "THREAT AHEAD %dm" % int(distance)
+			threat_label.text = Loc.t("coastal_threat_distance") % Loc.number(int(distance))
 
 func _update_pips(round_number: int, rounds: int) -> void:
 	if wave_pips.get_child_count() == rounds:
@@ -470,8 +460,8 @@ func set_paused(visible: bool) -> void:
 
 func show_result(success: bool, stats: Dictionary) -> void:
 	result_panel.visible = true
-	result_title.text = "BEACHHEAD HELD" if success else "EMPLACEMENT LOST"
-	result_body.text = "Rounds survived: %d\nEnemies neutralized: %d\nTime: %.1fs" % [int(stats.get("round", 1)), int(stats.get("kills", 0)), float(stats.get("time", 0.0))]
+	result_title.text = Loc.t("coastal_held") if success else Loc.t("coastal_lost")
+	result_body.text = Loc.t("coastal_result_body") % [Loc.number(int(stats.get("round", 1))), Loc.number(int(stats.get("kills", 0))), Loc.decimal(float(stats.get("time", 0.0)))]
 
 func confirm_hit(killed: bool) -> void:
 	if crosshair:

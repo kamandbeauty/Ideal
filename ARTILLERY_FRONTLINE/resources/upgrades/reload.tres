@@ -3,8 +3,8 @@
 [resource]
 script = ExtResource("1")
 id = "reload"
-display_name = "AUTO-RAMMER"
-description = "−10% reload time per level"
+display_name = "رامر خودکار"
+description = "−۱۰٪ زمان پرکردن در هر سطح"
 maximum_level = 4
 base_cost = 180
 cost_step = 120

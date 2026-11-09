@@ -72,7 +72,7 @@ func activate() -> void:
 	missions.begin(mission)
 	for target in battlefield.targets:
 		target.set_physics_process(true)
-	notice.emit("DRAG TO AIM  •  F / FIRE CONTROL FOR A COMPUTED SOLUTION")
+	notice.emit(Loc.t("notice_intro"))
 
 func _first_required_target() -> String:
 	for id in mission.target_ids:
@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 
 func telemetry() -> Dictionary:
 	var target_health: float = 0.0
-	var target_name: String = "NO TARGET"
+	var target_name: String = Loc.t("no_target")
 	var distance: float = 0.0
 	if is_instance_valid(selected_target):
 		target_health = selected_target.health.current / selected_target.health.maximum
@@ -161,7 +161,7 @@ func cycle_target() -> void:
 	if not candidates.is_empty():
 		var index: int = candidates.find(selected_target)
 		selected_target = candidates[(index + 1) % candidates.size()]
-		notice.emit("TARGET ACQUIRED  /  " + selected_target.data.display_name)
+		notice.emit(Loc.t("notice_acquired") % selected_target.data.display_name)
 
 func compute_solution() -> bool:
 	if not active:
@@ -176,11 +176,11 @@ func compute_solution() -> bool:
 		var aim_point: Vector3 = selected_target.predict_position(flight_estimate)
 		result = targeting.solve(artillery.muzzle_position(), aim_point, loadout.velocity(), effective_drag())
 		if not result.valid or not artillery.set_solution(result.yaw, result.elevation):
-			notice.emit("TARGET OUTSIDE GUN LIMITS — ADJUST TRAVERSE")
+			notice.emit(Loc.t("notice_limits"))
 			return false
 		flight_estimate = float(result.flight_time)
 	targeting.invalidate()
-	notice.emit("FIRE CONTROL SET  /  %.1f° ELEVATION  /  %.1fs FLIGHT" % [result.elevation, result.flight_time])
+	notice.emit(Loc.t("notice_solution") % [Loc.decimal(result.elevation), Loc.decimal(result.flight_time)])
 	return true
 
 func select_ammunition(id: String) -> void:
@@ -188,19 +188,19 @@ func select_ammunition(id: String) -> void:
 		_update_prediction_ammo()
 		Sound.play_ui()
 	else:
-		notice.emit("AMMUNITION NOT COMPATIBLE")
+		notice.emit(Loc.t("notice_incompatible"))
 
 func fire() -> bool:
 	if not active or not missions.active:
 		return false
 	if projectiles.active_count() >= ProjectilePool.CAPACITY:
-		notice.emit("FIRE LIMIT REACHED — WAIT FOR IMPACT")
+		notice.emit(Loc.t("notice_fire_limit"))
 		return false
 	if not artillery.can_fire():
-		notice.emit("BREECH NOT READY")
+		notice.emit(Loc.t("notice_breech"))
 		return false
 	if int(loadout.counts.get(loadout.selected, 0)) <= 0:
-		notice.emit("SELECT AN AMMUNITION TYPE WITH REMAINING ROUNDS")
+		notice.emit(Loc.t("notice_select_ammo"))
 		return false
 	var ammo: AmmunitionData = loadout.consume()
 	if ammo == null:
@@ -215,7 +215,7 @@ func reload() -> bool:
 	if not active or artillery.loaded or artillery.reload_remaining > 0.0:
 		return false
 	if int(loadout.counts.get(loadout.selected, 0)) <= 0:
-		notice.emit("NO ROUNDS OF THIS TYPE REMAIN")
+		notice.emit(Loc.t("notice_no_rounds"))
 		return false
 	auto_reload_delay = -1.0
 	var started: bool = artillery.begin_reload(loadout.reload_seconds())
@@ -237,18 +237,18 @@ func _on_impact(point: Vector3, normal: Vector3, collider: Object, ammo: Ammunit
 func _on_damage(target_id: String, amount: float, direct: bool, shot_id: int) -> void:
 	missions.register_damage(target_id, shot_id, amount)
 	if amount > 0.0 and direct:
-		notice.emit("DIRECT HIT  /  %d DAMAGE" % roundi(amount))
+		notice.emit(Loc.t("notice_direct") % Loc.number(roundi(amount)))
 
 func _on_target_destroyed(target: EnemyTarget) -> void:
 	missions.register_destroyed(target.target_id)
-	notice.emit("TARGET NEUTRALIZED  /  " + target.data.display_name)
+	notice.emit(Loc.t("notice_neutralized") % target.data.display_name)
 	if selected_target == target:
 		cycle_target()
 
 func _on_object_broken(id: String, _point: Vector3) -> void:
 	missions.register_destroyed(id)
 	if id == mission.optional_crate_id:
-		notice.emit("OPTIONAL OBJECTIVE COMPLETE  /  SUPPLY DEPOT DESTROYED")
+		notice.emit(Loc.t("notice_optional"))
 
 func _on_mission_finished(result: Dictionary) -> void:
 	active = false

@@ -18,9 +18,11 @@ textures are **not original work** and are **not** covered by the project's
 "original assets only" claim. Everything else in `assets/models/` remains
 procedurally authored by `tools/create_models.py`.
 
-Redistribution rights for the uploaded mesh have not been established. Treat it
-as owner-supplied reference material; replace it before any public release that
-requires a clean asset chain.
+**Permission record.** The project owner has stated that they hold permission to
+use this uploaded model in the game. The mesh is therefore retained as
+owner-licensed material rather than flagged for replacement. This documents the
+owner's grant; it is not an independent licence audit. Keep the underlying
+permission evidence with the release records when distributing publicly.
 
 ## What the source does and does not contain
 

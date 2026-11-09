@@ -14,6 +14,7 @@ var smoke_mode: bool = false
 var pending_smoke_result: Dictionary = {}
 
 func _ready() -> void:
+	TranslationServer.set_locale("fa")
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	world = Node3D.new()
 	world.name = "World"
@@ -24,6 +25,7 @@ func _ready() -> void:
 	surface = Control.new()
 	surface.name = "Interface"
 	surface.theme = UITheme.theme()
+	surface.layout_direction = Control.LAYOUT_DIRECTION_RTL
 	surface.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	surface.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	surface.process_mode = Node.PROCESS_MODE_ALWAYS
@@ -59,7 +61,7 @@ func _connect_ui() -> void:
 	menus.abort_requested.connect(return_to_command)
 	menus.next_requested.connect(_next_mission)
 	menus.upgrade_requested.connect(func(id): menus.toast(Profile.purchase(load("res://resources/upgrades/%s.tres" % id))))
-	menus.weapon_selected.connect(func(id): Profile.data.selected_weapon = id; Profile.persist(); menus.toast("KESTREL M-42 EQUIPPED"))
+	menus.weapon_selected.connect(func(id): Profile.data.selected_weapon = id; Profile.persist(); menus.toast(Loc.t("arsenal_equipped")))
 	hud.fire_requested.connect(func(): battle.fire())
 	hud.reload_requested.connect(func(): battle.reload())
 	hud.zoom_requested.connect(func(): battle.cameras.toggle_zoom())
@@ -99,7 +101,7 @@ func start_coastal_milestone() -> void:
 	Sound.play_ui()
 func start_mission(id: String) -> void:
 	if not id in Profile.data.unlocked:
-		menus.toast("COMPLETE THE PREVIOUS OPERATION TO UNLOCK")
+		menus.toast(Loc.t("toast_locked"))
 		return
 	last_mission_id = id
 	get_tree().paused = false
@@ -161,7 +163,7 @@ func _present_results(result: Dictionary) -> void:
 	hud.visible = false
 	menus.show_results(result)
 	if not Profile.storage_available:
-		menus.toast("STORAGE UNAVAILABLE — progress could not be saved")
+		menus.toast(Loc.t("toast_storage"))
 
 func _next_mission() -> void:
 	var order: Array[String] = ["sr01", "sr02", "sr03", "sr04", "sr05"]

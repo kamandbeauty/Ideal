@@ -26,6 +26,7 @@ const STRINGS: Dictionary = {
 	"loading": "در حال بارگذاری",
 	# ---- splash / home ------------------------------------------------
 	"game_title": "توپخانهٔ خط مقدم",
+	"home_title": "توپخانهٔ\nخط مقدم",
 	"game_subtitle": "فرماندهی دفاع ساحلی",
 	"splash_boot": "راه‌اندازی سامانهٔ کنترل آتش",
 	"splash_offline": "عملیات آفلاین",
@@ -39,7 +40,7 @@ const STRINGS: Dictionary = {
 	"home_campaign": "کارزار توپخانه",
 	"home_campaign_hint": "گذرگاه ریج · پنج عملیات",
 	"home_map": "نقشهٔ کارزار",
-	"home_map_hint": "وضعیت sectors و ستاره‌ها",
+	"home_map_hint": "وضعیت بخش‌ها و ستاره‌ها",
 	"home_arsenal": "جنگ‌افزار و ارتقا",
 	"home_arsenal_hint": "توپخانه، مهمات و بهبودها",
 	"home_settings": "تنظیمات",
@@ -52,6 +53,7 @@ const STRINGS: Dictionary = {
 	"campaign_stars_note": "در هر عملیات تا سه ستاره بگیر. نخستین پیروزی امتیاز ارتقا می‌دهد؛ تکرار مرحله رکوردت را بهتر می‌کند.",
 	"campaign_progress": "%s / %s عملیات\n%s / %s ستاره\n%s امتیاز ارتقا",
 	"campaign_sector": "گذرگاه ریج / بخش تاکتیکی ۰۷",
+	"north": "شمال",
 	"campaign_coords": "۳۴° ۱۸′ شمالی   ۴۱° ۰۷′ شرقی     •     کارزار آفلاین",
 	"campaign_locked": "%s  قفل‌شده",
 	"campaign_star_count": "%s / ۳ ستاره",
@@ -144,9 +146,12 @@ const STRINGS: Dictionary = {
 	"hud_zoom": "بزرگ‌نمایی",
 	"hud_local_save": "آفلاین / ذخیرهٔ محلی",
 	"hud_impact": "برخورد",
+	"hud_perf": "%s فریم  /  %s\n%s رسم  /  %s٪ وضوح  /  %s گره",
 	"hud_shell_he": "منفجر",
 	"hud_shell_ap": "ضدزره",
 	"camera_gun": "توپ",
+	"camera_optic": "دوربین نشانه‌روی",
+	"camera_shell": "گلوله",
 	"camera_observer": "دیده‌بان",
 	"camera_overhead": "بالاسر",
 	# ---- coastal HUD --------------------------------------------------
@@ -185,6 +190,27 @@ const STRINGS: Dictionary = {
 	# ---- toasts -------------------------------------------------------
 	"toast_locked": "برای باز شدن، عملیات پیشین را کامل کن",
 	"toast_storage": "حافظه در دسترس نیست — پیشرفت ذخیره نشد",
+	"save_recovered": "نسخهٔ پشتیبان بازیابی شد. آخرین پیشرفت سالم شما محفوظ است.",
+	"upgrade_installed": "بهبود نصب شد",
+	"upgrade_insufficient": "اعتبار یا امتیاز ارتقا کافی نیست",
+	# ---- battle notices / result reasons ------------------------------
+	"notice_intro": "برای نشانه‌گیری بکش  •  کنترل آتش یک حل محاسبه‌شده می‌دهد",
+	"notice_acquired": "هدف کشف شد  /  %s",
+	"notice_limits": "هدف بیرون از محدودیت توپ است — چرخش را تنظیم کن",
+	"notice_solution": "کنترل آتش تنظیم شد  /  ارتفاع %s درجه  /  پرواز %s ثانیه",
+	"notice_incompatible": "مهمات با این سلاح سازگار نیست",
+	"notice_fire_limit": "سقف شلیک هم‌زمان — منتظر برخورد بمان",
+	"notice_breech": "گلنگدن آماده نیست",
+	"notice_select_ammo": "نوع مهماتی را انتخاب کن که گلولهٔ باقی‌مانده دارد",
+	"notice_no_rounds": "از این نوع گلوله‌ای باقی نمانده",
+	"notice_direct": "اصابت مستقیم  /  %s آسیب",
+	"notice_neutralized": "هدف منهدم شد  /  %s",
+	"notice_optional": "هدف اختیاری کامل شد  /  انبار تدارکات منهدم شد",
+	"reason_success": "همهٔ اهداف اصلی منهدم شدند",
+	"reason_time": "زمان مأموریت پایان یافت",
+	"reason_ammo": "مهمات تمام شد و اهداف کامل نشدند",
+	"reason_abandoned": "مأموریت رها شد",
+	"no_target": "هدفی انتخاب نشده",
 }
 
 ## Weapon and target identifiers stay ASCII in data; only display is localised.
@@ -214,6 +240,53 @@ const KINDS: Dictionary = {
 	"bridge": "پل",
 	"convoy": "کاروان",
 }
+
+
+const TARGETS: Dictionary = {
+	"t01": "برج دیده‌بانی جنوبی",
+	"t02": "تانک واردن",
+	"t03": "نفربر نومد",
+	"t04": "تانک اسکورت",
+	"t05": "سنگر شرقی",
+	"t06": "کامیون تدارکات",
+	"crate01": "انبار تدارکات",
+	"crate02": "انبار تدارکات",
+	"crate03": "انبار تدارکات",
+	"crate04": "انبار تدارکات",
+	"crate05": "مخزن سوخت",
+}
+
+const WAVES: Dictionary = {
+	"FIRST LANDING": "نخستین پیاده‌سازی",
+	"ARMORED PUSH": "پیشروی زرهی",
+	"FINAL ASSAULT": "یورش نهایی",
+	"COASTAL DEFENSE": "دفاع ساحلی",
+}
+
+
+const STATES: Dictionary = {"READY": "ready", "RELOADING": "reloading", "EMPTY": "empty"}
+const CAMERAS: Dictionary = {"GUN": "camera_gun", "OPTIC": "camera_optic", "SHELL": "camera_shell", "IMPACT": "hud_impact"}
+const SUPPORTS: Dictionary = {"repair": "coastal_support_repair", "airstrike": "coastal_support_airstrike", "helicopter": "coastal_support_helicopter", "airdrop": "coastal_support_crate"}
+
+
+static func state(id: String) -> String:
+	return t(String(STATES.get(id, "ready")))
+
+
+static func camera(id: String) -> String:
+	return t(String(CAMERAS.get(id, "camera_gun")))
+
+
+static func support(id: String) -> String:
+	return t(String(SUPPORTS.get(id, "coastal_support_barrage")))
+
+
+static func target_name(id: String) -> String:
+	return String(TARGETS.get(id, kind(id)))
+
+
+static func wave(label: String) -> String:
+	return String(WAVES.get(label, label))
 
 
 static func t(key: String) -> String:

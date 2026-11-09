@@ -15,7 +15,7 @@ aim, fire, stagger and constrained physical ragdoll drive the new mesh.
 | Materials | 13 primitives | 3 infantry atlases + 3 rifle surfaces |
 | Atlases in GLB | none | 3 embedded PNGs |
 
-Full source chain, format notes and licensing caveat:
+Full source chain, format notes and permission record:
 [`uploaded-infantry-provenance.md`](uploaded-infantry-provenance.md).
 
 ## pipeline
@@ -101,9 +101,9 @@ key, not a store release key.
 
 - **No finger bones.** The uploaded hands are modelled open and there is nothing
   to curl, so the fingers do not wrap around the grip.
-- The uploaded mesh is **third-party, owner-supplied** reference material;
-  redistribution rights are not established. Replace it before any public
-  release that needs a clean asset chain.
+- The uploaded mesh is **third-party, owner-supplied**. The project owner has
+  stated they hold permission to use it in this game, so it is retained; the
+  provenance note records that grant. This is not an independent licence audit.
 - Still **no Android device or emulator execution**. All runtime evidence is
   desktop Godot 4.7.2 under Xvfb/llvmpipe; mobile performance is not claimed.
 
@@ -125,6 +125,6 @@ key, not a store release key.
 هشداری قبول می‌شوند. در CI آزمون‌ها ۲۸۳/۰ و smoke ساحلی بدون خطا سبز شد و بسته‌های
 ARM64 دوباره ساخته و راستی‌آزمایی شدند.
 
-دو محدودیت مهم: انگشت‌ها استخوان ندارند و دور قبضه مشت نمی‌شوند؛ و مدل ارسالی
-متعلق به شخص ثالث است، پس برای انتشار عمومی باید جایگزین شود. اجرای واقعی روی
-دستگاه اندروید همچنان انجام نشده است.
+اجازهٔ استفاده از مدل ارسالی را خودتان اعلام کرده‌اید، بنابراین مدل نگه داشته
+شد و این اجازه در یادداشت منبع ثبت شد؛ انگشت‌ها همچنان استخوان ندارند و دور
+قبضه مشت نمی‌شوند. اجرای واقعی روی دستگاه اندروید انجام نشده است.

@@ -2,7 +2,7 @@ name: Author original Blender assets
 on:
   push:
     branches: [arena/40ad7d87-ideal]
-    paths: ['ARTILLERY_FRONTLINE/tools/import_max_soldier.py', 'ARTILLERY_FRONTLINE/assets/models/source/uploaded_soldier.json', 'D0307048A1.max', '*.dds', 'ARTILLERY_FRONTLINE/tools/create_models.py', 'ARTILLERY_FRONTLINE/tools/create_textures.py', 'ARTILLERY_FRONTLINE/tools/render_weapon_studio.py', 'ARTILLERY_FRONTLINE/tools/render_soldier_studio.py', 'ARTILLERY_FRONTLINE/tools/verify_art_pass.py', '.github/workflows/artillery-assets.yml']
+    paths: ['ARTILLERY_FRONTLINE/tools/import_max_soldier.py', 'ARTILLERY_FRONTLINE/assets/models/source/uploaded_soldier.json', 'D0307048A1.max', '*.dds', 'ARTILLERY_FRONTLINE/tools/create_models.py', 'ARTILLERY_FRONTLINE/tools/create_textures.py', 'ARTILLERY_FRONTLINE/tools/create_ui_textures.py', 'ARTILLERY_FRONTLINE/tools/render_weapon_studio.py', 'ARTILLERY_FRONTLINE/tools/render_soldier_studio.py', 'ARTILLERY_FRONTLINE/tools/verify_art_pass.py', '.github/workflows/artillery-assets.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -39,6 +39,13 @@ jobs:
           test -s ARTILLERY_FRONTLINE/assets/textures/pbr/muzzle_flash.png
           test -s ARTILLERY_FRONTLINE/assets/textures/pbr/skin_albedo.jpg
           test -s ARTILLERY_FRONTLINE/assets/textures/pbr/leather_albedo.jpg
+      - name: Author Persian UI plates and control icons
+        run: |
+          python3 ARTILLERY_FRONTLINE/tools/create_ui_textures.py
+          test -s ARTILLERY_FRONTLINE/assets/textures/ui/plate_panel.png
+          test -s ARTILLERY_FRONTLINE/assets/textures/ui/plate_button_accent.png
+          test -s ARTILLERY_FRONTLINE/assets/textures/ui/check_on.png
+          test -s ARTILLERY_FRONTLINE/assets/textures/ui/slider_grabber.png
       - name: Blender Cycles studio render of the revised weapon
         run: |
           blender --background --python ARTILLERY_FRONTLINE/tools/render_weapon_studio.py > /tmp/studio.log 2>&1 || { tail -100 /tmp/studio.log; exit 1; }
@@ -94,7 +101,7 @@ jobs:
         if: github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
           touch ARTILLERY_FRONTLINE/assets/models/source/.gdignore
-          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: uploaded infantry mesh with embedded atlases, authored rig and original rifle' ARTILLERY_FRONTLINE/assets/models/soldier.glb ARTILLERY_FRONTLINE/assets/models/warden.glb ARTILLERY_FRONTLINE/assets/models/nomad.glb ARTILLERY_FRONTLINE/assets/models/helicopter.glb ARTILLERY_FRONTLINE/assets/models/fighter.glb ARTILLERY_FRONTLINE/assets/models/landing_craft.glb ARTILLERY_FRONTLINE/assets/models/patrol_boat.glb ARTILLERY_FRONTLINE/assets/models/kestrel.glb ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/assets/models/mounted_cannon.glb ARTILLERY_FRONTLINE/assets/models/mounted_rocket.glb ARTILLERY_FRONTLINE/assets/models/mounted_autocannon.glb ARTILLERY_FRONTLINE/assets/models/bazooka.glb ARTILLERY_FRONTLINE/assets/models/source ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/assets/textures/uploaded ARTILLERY_FRONTLINE/documentation/blender-version.txt ARTILLERY_FRONTLINE/documentation/qa/art-pass-02 ARTILLERY_FRONTLINE/documentation/art-pass-02.json ARTILLERY_FRONTLINE/documentation/art-pass-03.json
+          bash ARTILLERY_FRONTLINE/tools/publish_ci.sh 'assets: uploaded infantry mesh with embedded atlases, authored rig and original rifle' ARTILLERY_FRONTLINE/assets/models/soldier.glb ARTILLERY_FRONTLINE/assets/models/warden.glb ARTILLERY_FRONTLINE/assets/models/nomad.glb ARTILLERY_FRONTLINE/assets/models/helicopter.glb ARTILLERY_FRONTLINE/assets/models/fighter.glb ARTILLERY_FRONTLINE/assets/models/landing_craft.glb ARTILLERY_FRONTLINE/assets/models/patrol_boat.glb ARTILLERY_FRONTLINE/assets/models/kestrel.glb ARTILLERY_FRONTLINE/assets/models/mounted_twin_hmg.glb ARTILLERY_FRONTLINE/assets/models/mounted_cannon.glb ARTILLERY_FRONTLINE/assets/models/mounted_rocket.glb ARTILLERY_FRONTLINE/assets/models/mounted_autocannon.glb ARTILLERY_FRONTLINE/assets/models/bazooka.glb ARTILLERY_FRONTLINE/assets/models/source ARTILLERY_FRONTLINE/assets/textures/pbr ARTILLERY_FRONTLINE/assets/textures/ui ARTILLERY_FRONTLINE/assets/textures/uploaded ARTILLERY_FRONTLINE/documentation/blender-version.txt ARTILLERY_FRONTLINE/documentation/qa/art-pass-02 ARTILLERY_FRONTLINE/documentation/art-pass-02.json ARTILLERY_FRONTLINE/documentation/art-pass-03.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -25,8 +25,8 @@ static func buy_upgrade(data: Dictionary, upgrade: UpgradeData) -> Dictionary:
 	var level: int = int(next.upgrades.get(upgrade.id, 0))
 	var price: int = upgrade.cost(level)
 	if level >= upgrade.maximum_level or next.coins < price or next.upgrade_points < upgrade.points_per_level:
-		return {"success": false, "data": data, "reason": "Insufficient credits or upgrade points"}
+		return {"success": false, "data": data, "reason": "upgrade_insufficient"}
 	next.coins -= price
 	next.upgrade_points -= upgrade.points_per_level
 	next.upgrades[upgrade.id] = level + 1
-	return {"success": true, "data": next, "reason": "Upgrade installed"}
+	return {"success": true, "data": next, "reason": "upgrade_installed"}

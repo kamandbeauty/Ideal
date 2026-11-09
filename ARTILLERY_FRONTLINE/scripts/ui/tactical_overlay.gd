@@ -5,6 +5,7 @@ var battle: BattleController
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layout_direction = Control.LAYOUT_DIRECTION_RTL
 
 func _process(_delta: float) -> void:
 	queue_redraw()
@@ -33,12 +34,12 @@ func _draw() -> void:
 					var corner := screen + Vector2(sx, sy) * radius
 					draw_line(corner, corner - Vector2(sx * 10, 0), color, 2.0)
 					draw_line(corner, corner - Vector2(0, sy * 10), color, 2.0)
-			draw_string(font, screen + Vector2(-radius, -radius - 12), target.target_id.to_upper() + " / " + target.data.kind.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, 15, color)
+			draw_string(font, screen + Vector2(-120, -radius - 12), Loc.kind(target.data.kind), HORIZONTAL_ALIGNMENT_CENTER, 240, 15, color, TextServer.JUSTIFICATION_NONE, TextServer.DIRECTION_RTL)
 			var bar := Rect2(screen.x - radius, screen.y + radius + 9, radius * 2, 4)
 			draw_rect(bar, Color(0.1, 0.13, 0.10, 0.8))
 			bar.size.x *= target.health.current / target.health.maximum
 			draw_rect(bar, color)
-			draw_string(font, screen + Vector2(-radius, radius + 32), "%d m" % roundi(battle.artillery.global_position.distance_to(target.global_position)), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, color)
+			draw_string(font, screen + Vector2(-80, radius + 32), "%s متر" % Loc.number(roundi(battle.artillery.global_position.distance_to(target.global_position))), HORIZONTAL_ALIGNMENT_CENTER, 160, 16, color, TextServer.JUSTIFICATION_NONE, TextServer.DIRECTION_RTL)
 		else:
 			draw_polyline(PackedVector2Array([screen + Vector2(0, -8), screen + Vector2(8, 0), screen + Vector2(0, 8), screen + Vector2(-8, 0), screen + Vector2(0, -8)]), color, 1.5)
 	if battle.targeting.prediction_valid:
@@ -51,4 +52,4 @@ func _draw() -> void:
 				for direction in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
 					draw_line(center + direction * 12, center + direction * 32, color, 1.5)
 				draw_circle(center, 2, color)
-				draw_string(font, center + Vector2(34, 5), "IMPACT", HORIZONTAL_ALIGNMENT_LEFT, -1, 14, color)
+				draw_string(font, center + Vector2(-60, 48), Loc.t("hud_impact"), HORIZONTAL_ALIGNMENT_CENTER, 120, 14, color, TextServer.JUSTIFICATION_NONE, TextServer.DIRECTION_RTL)

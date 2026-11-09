@@ -3,8 +3,8 @@
 [resource]
 script = ExtResource("1")
 id = "capacity"
-display_name = "FIELD MAGAZINE"
-description = "+2 rounds of each ammunition type per level"
+display_name = "خشاب صحرایی"
+description = "+۲ گلوله از هر نوع مهمات در هر سطح"
 maximum_level = 4
 base_cost = 120
 cost_step = 90

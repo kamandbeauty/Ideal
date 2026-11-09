@@ -3,9 +3,9 @@
 [resource]
 script = ExtResource("1")
 id = "sr04"
-title = "DUST HAMMER"
-subtitle = "Sable Ridge / Base suppression"
-briefing = "Suppress the entire Sable Ridge garrison: two emplacements, a Warden tank, and a moving transport. Conserve ammunition and exploit clustered targets with HE."
+title = "چکش غبار"
+subtitle = "گذرگاه ریج / سرکوب پایگاه"
+briefing = "کل پادگان گذرگاه ریج را سرکوب کن: دو سنگر، یک تانک واردن و یک نفربر متحرک. مهمات را حفظ کن و از انفجارشونده روی اهداف خوشه‌ای استفاده کن."
 sector = "A4"
 difficulty = 4
 target_ids = Array[String](["t01", "t02", "t05", "t06"])

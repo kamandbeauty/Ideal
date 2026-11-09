@@ -3,9 +3,9 @@
 [resource]
 script = ExtResource("1")
 id = "sr02"
-title = "IRON CARAVAN"
-subtitle = "Sable Ridge / Route jackal"
-briefing = "A Warden patrol is moving through the wadi. Intercept both armored vehicles. Switch to AP for reliable penetration; lead moving targets or use the fire-control lead estimate."
+title = "کاروان آهنین"
+subtitle = "گذرگاه ریج / مسیر شغال"
+briefing = "گشت واردن از میان وادی می‌گذرد. هر دو خودروی زرهی را رهگیری کن. برای نفوذ مطمئن به مهمات ضدزره تعویض کن؛ اهداف متحرک را پیش‌گیری کن یا از برآورد پیش‌گیری کنترل آتش بهره ببر."
 sector = "A2"
 difficulty = 2
 target_ids = Array[String](["t02", "t04"])

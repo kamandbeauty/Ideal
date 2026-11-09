@@ -49,13 +49,13 @@ func tick(delta: float) -> void:
 		return
 	elapsed += delta
 	if destroyed_ids.size() >= mission.target_ids.size():
-		finish(true, "All primary targets neutralized")
+		finish(true, "reason_success")
 	elif elapsed >= mission.time_limit:
-		finish(false, "Mission time expired")
+		finish(false, "reason_time")
 
 func check_ammunition(empty: bool, projectiles_active: bool, reloading: bool) -> void:
 	if active and empty and not projectiles_active and not reloading:
-		finish(false, "Ammunition exhausted with objectives incomplete")
+		finish(false, "reason_ammo")
 
 func finish(success: bool, reason: String = "") -> void:
 	if not active:
@@ -69,4 +69,4 @@ func finish(success: bool, reason: String = "") -> void:
 	finished.emit(result)
 
 func abort() -> void:
-	finish(false, "Mission abandoned")
+	finish(false, "reason_abandoned")

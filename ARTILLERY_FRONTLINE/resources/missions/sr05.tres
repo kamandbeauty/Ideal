@@ -3,9 +3,9 @@
 [resource]
 script = ExtResource("1")
 id = "sr05"
-title = "LAST RIDGE"
-subtitle = "Sable Ridge / Operation clear horizon"
-briefing = "Final assault. All six hostile assets must be neutralized before the convoy escapes the sector. Destroy the marked fuel depot for an optional commendation. Three-star performance demands precision and speed."
+title = "آخرین خط‌الرأس"
+subtitle = "گذرگاه ریج / عملیات افق پاک"
+briefing = "یورش نهایی. هر شش دارایی دشمن باید پیش از فرار کاروان از بخش منهدم شوند. مخزن سوخت نشان‌دار را برای نشان اختیاری نابود کن. عملکرد سه‌ستاره به دقت و سرعت نیاز دارد."
 sector = "A5"
 difficulty = 5
 target_ids = Array[String](["t01", "t02", "t03", "t04", "t05", "t06"])

@@ -3,8 +3,8 @@
 [resource]
 script = ExtResource("1")
 id = "range"
-display_name = "PROPELLANT CHARGE"
-description = "+5% muzzle velocity and range per level"
+display_name = "خرج پیشران"
+description = "+۵٪ سرعت دهانه و برد در هر سطح"
 maximum_level = 4
 base_cost = 160
 cost_step = 110

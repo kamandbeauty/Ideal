@@ -3,9 +3,9 @@
 [resource]
 script = ExtResource("1")
 id = "he"
-display_name = "M72 HIGH EXPLOSIVE"
-short_name = "HE"
-description = "17 m blast radius · soft targets & cover"
+display_name = "ام۷۲ منفجرشونده"
+short_name = "منفجر"
+description = "شعاع انفجار ۱۷ متر · اهداف نرم و پوشش"
 damage = 135.0
 velocity_multiplier = 1.0
 blast_radius = 17.0

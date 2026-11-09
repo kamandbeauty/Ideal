@@ -3,8 +3,8 @@
 [resource]
 script = ExtResource("1")
 id = "accuracy"
-display_name = "FIRE-CALIBRATION"
-description = "−18% dispersion per level"
+display_name = "کالیبراسیون آتش"
+description = "−۱۸٪ پراکندگی در هر سطح"
 maximum_level = 4
 base_cost = 140
 cost_step = 100

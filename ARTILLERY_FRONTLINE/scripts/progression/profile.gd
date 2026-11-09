@@ -9,7 +9,7 @@ func _ready() -> void:
 	var loaded: Dictionary = SaveManager.read_with_recovery(SAVE_PATH)
 	data = loaded.data
 	if loaded.recovered:
-		Events.save_recovered.emit("Backup restored. Your last good progress is safe.")
+		Events.save_recovered.emit(Loc.t("save_recovered"))
 	storage_available = SaveManager.write_atomic(SAVE_PATH, data)
 
 func persist() -> bool:
@@ -33,7 +33,7 @@ func purchase(upgrade: UpgradeData) -> String:
 	if outcome.success:
 		data = outcome.data
 		persist()
-	return outcome.reason
+	return Loc.t(outcome.reason)
 
 func next_mission() -> String:
 	for id in ["sr05", "sr04", "sr03", "sr02", "sr01"]:

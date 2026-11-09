@@ -61,6 +61,7 @@ jobs:
           xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --smoke-test > /tmp/smoke.log 2>&1 || { tail -100 /tmp/smoke.log; exit 1; }
           cat /tmp/smoke.log
           test -s "$PROJECT/documentation/qa/battlefield.png"
+          test -s "$PROJECT/documentation/qa/menu-home.png"
       - name: Software-rendered coastal milestone smoke test
         run: |
           rc=0

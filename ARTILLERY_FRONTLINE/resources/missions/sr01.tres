@@ -3,9 +3,9 @@
 [resource]
 script = ExtResource("1")
 id = "sr01"
-title = "FIRST LIGHT"
-subtitle = "Sable Ridge / Forward observation"
-briefing = "A hostile observation post controls the southern approach. Calibrate your gun on the stationary emplacement, then silence the supply truck. Use FIRE CONTROL for a computed solution, or drag to lay the gun manually."
+title = "نخستین روشنایی"
+subtitle = "گذرگاه ریج / دیده‌بانی جلو"
+briefing = "یک پست دیده‌بانی دشمن بر ورودی جنوبی تسلط دارد. ابتدا توپ را روی سنگر ثابت کالیبره کن، سپس کامیون تدارکات را خاموش کن. از کنترل آتش برای حل محاسبه‌شده استفاده کن یا با کشیدن، توپ را دستی تنظیم کن."
 sector = "A1"
 difficulty = 1
 target_ids = Array[String](["t01", "t03"])

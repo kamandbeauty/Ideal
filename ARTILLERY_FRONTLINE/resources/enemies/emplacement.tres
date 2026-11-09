@@ -3,7 +3,7 @@
 [resource]
 script = ExtResource("1")
 id = "emplacement"
-display_name = "WATCHTOWER / AT POST"
+display_name = "برج دیده‌بانی / پست ضدزره"
 kind = "emplacement"
 health = 140.0
 armor = 0.08

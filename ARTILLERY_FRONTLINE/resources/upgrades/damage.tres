@@ -3,8 +3,8 @@
 [resource]
 script = ExtResource("1")
 id = "damage"
-display_name = "BARREL LINING"
-description = "+8% impact damage per level"
+display_name = "آستر لوله"
+description = "+۸٪ آسیب برخورد در هر سطح"
 maximum_level = 4
 base_cost = 160
 cost_step = 120
