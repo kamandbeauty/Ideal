@@ -125,6 +125,14 @@
       "passed": true
     },
     {
+      "name": "coastal pause panel appears",
+      "passed": true
+    },
+    {
+      "name": "capture coastal-pause",
+      "passed": true
+    },
+    {
       "name": "mission results panel appears",
       "passed": true
     },
@@ -134,14 +142,14 @@
     }
   ],
   "failures": 0,
-  "kills": 0,
+  "kills": 1,
   "passed": true,
   "performance": {
     "draw_calls": 291,
-    "fps": 11.0,
-    "frame_ms": 91.07,
-    "objects": 1802,
-    "primitives": 145728,
+    "fps": 10.9,
+    "frame_ms": 91.92,
+    "objects": 1827,
+    "primitives": 144704,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"

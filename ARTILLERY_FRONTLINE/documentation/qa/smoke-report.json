@@ -78,7 +78,7 @@
     },
     {
       "name": "fire control t03",
-      "passed": false
+      "passed": true
     },
     {
       "name": "fire t03",
@@ -86,22 +86,6 @@
     },
     {
       "name": "capture impact_t03",
-      "passed": true
-    },
-    {
-      "name": "fire control t03",
-      "passed": true
-    },
-    {
-      "name": "fire t03",
-      "passed": true
-    },
-    {
-      "name": "fire control t03",
-      "passed": true
-    },
-    {
-      "name": "fire t03",
       "passed": true
     },
     {
@@ -133,30 +117,30 @@
       "passed": true
     }
   ],
-  "failures": 1,
+  "failures": 0,
   "mission": {
-    "accuracy": 40.0,
-    "coins": 420,
-    "hits": 2,
+    "accuracy": 100.0,
+    "coins": 526,
+    "hits": 3,
     "mission_id": "sr01",
     "objectives": 2,
     "optional": false,
-    "points": 1,
+    "points": 2,
     "reason": "reason_success",
     "required": 2,
-    "shots": 5,
-    "star_gain": 1,
-    "stars": 1,
+    "shots": 3,
+    "star_gain": 3,
+    "stars": 3,
     "success": true,
-    "time": 34.437177
+    "time": 20.278876
   },
-  "passed": false,
+  "passed": true,
   "performance": {
-    "draw_calls": 452,
-    "fps": 9.4,
-    "frame_ms": 106.33,
+    "draw_calls": 447,
+    "fps": 10.5,
+    "frame_ms": 94.94,
     "objects": 1501,
-    "primitives": 188541,
+    "primitives": 187393,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
