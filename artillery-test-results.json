@@ -1,10 +1,7 @@
 {
-  "checks": 567,
+  "checks": 761,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_ui: No English display copy on settings",
-    "test_ui: No English display copy on briefing"
-  ],
-  "passed": false,
+  "failures": [],
+  "passed": true,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }

@@ -1,11 +1,47 @@
 {
   "checks": [
     {
+      "name": "capture menu-splash",
+      "passed": true
+    },
+    {
+      "name": "capture menu-home",
+      "passed": true
+    },
+    {
+      "name": "home screen active",
+      "passed": true
+    },
+    {
+      "name": "capture menu-campaign",
+      "passed": true
+    },
+    {
+      "name": "capture menu-briefing",
+      "passed": true
+    },
+    {
+      "name": "capture menu-arsenal",
+      "passed": true
+    },
+    {
+      "name": "capture menu-settings",
+      "passed": true
+    },
+    {
+      "name": "capture menu-upgrades",
+      "passed": true
+    },
+    {
       "name": "battlefield initialized",
       "passed": true
     },
     {
       "name": "HUD visible",
+      "passed": true
+    },
+    {
+      "name": "capture menu-pause",
       "passed": true
     },
     {
@@ -53,14 +89,6 @@
       "passed": true
     },
     {
-      "name": "fire control t03",
-      "passed": true
-    },
-    {
-      "name": "fire t03",
-      "passed": true
-    },
-    {
       "name": "target destroyed t03",
       "passed": true
     },
@@ -83,28 +111,28 @@
   ],
   "failures": 0,
   "mission": {
-    "accuracy": 66.6666666666667,
-    "coins": 477,
+    "accuracy": 100.0,
+    "coins": 534,
     "hits": 2,
     "mission_id": "sr01",
     "objectives": 2,
     "optional": false,
-    "points": 1,
-    "reason": "All primary targets neutralized",
+    "points": 2,
+    "reason": "reason_success",
     "required": 2,
-    "shots": 3,
-    "star_gain": 2,
-    "stars": 2,
+    "shots": 2,
+    "star_gain": 3,
+    "stars": 3,
     "success": true,
-    "time": 18.1976276296297
+    "time": 13.531205
   },
   "passed": true,
   "performance": {
-    "draw_calls": 473,
-    "fps": 10.6,
-    "frame_ms": 94.05,
-    "objects": 1426,
-    "primitives": 216044,
+    "draw_calls": 449,
+    "fps": 15.1,
+    "frame_ms": 66.11,
+    "objects": 1501,
+    "primitives": 187796,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
