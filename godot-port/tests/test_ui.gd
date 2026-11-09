@@ -94,6 +94,43 @@ func _run() -> void:
 	failures += _check(UiKit.art_box("panel_frame", UiTokens.BORDER_CARD) != null, "nine-slice art builds a stylebox")
 	failures += _check(UiKit.art_box("no_such_art",
 		UiTokens.BORDER_CARD) == null, "missing nine-slice art falls back to the rounded panel")
+
+	# The pictures themselves, not one sample of them. A build that ships a null texture still boots, still
+	# passes every layout assertion and looks like a flat prototype on the phone — so the count is
+	# asserted here and every file has to decode to a real texture with a real size.
+	print("UI STAGE 2b: every shipped picture loads")
+	var art_files := _list_pngs("res://assets/art")
+	var ui_files := _list_pngs("res://assets/ui")
+	failures += _check(art_files.size() == 85,
+		"all 85 game plates are present (%d found)" % art_files.size())
+	failures += _check(ui_files.size() == 24,
+		"all 24 picture-chrome plates are present (%d found)" % ui_files.size())
+	var undecodable: Array[String] = []
+	for path in art_files + ui_files:
+		var texture := load(path) as Texture2D
+		if texture == null or texture.get_width() <= 0 or texture.get_height() <= 0:
+			undecodable.append(path)
+	failures += _check(undecodable.is_empty(),
+		"every picture decodes to a texture (%d broken: %s)" % [undecodable.size(), ", ".join(undecodable)])
+	# And every id the game can ask for has a file behind it, so no piece, obstacle, power-up or booster
+	# can silently fall back to a drawn shape.
+	var unresolved: Array[String] = []
+	for kind in [GameTypes.PieceKind.FIROUZEH, GameTypes.PieceKind.LAJVARD, GameTypes.PieceKind.AQIQ,
+			GameTypes.PieceKind.ZOMORROD, GameTypes.PieceKind.MORVARID]:
+		if AssetCatalog.piece_texture(kind) == null:
+			unresolved.append("piece %d" % kind)
+	for kind in [GameTypes.ObstacleKind.CRATE, GameTypes.ObstacleKind.FROST, GameTypes.ObstacleKind.IVY,
+			GameTypes.ObstacleKind.VIAL, GameTypes.ObstacleKind.SAMOVAR, GameTypes.ObstacleKind.FLOWER_POT,
+			GameTypes.ObstacleKind.CHAIN, GameTypes.ObstacleKind.SEAL]:
+		if AssetCatalog.obstacle_texture(kind) == null:
+			unresolved.append("obstacle %d" % kind)
+	for kind in [GameTypes.PowerUpKind.ROCKET_VERTICAL, GameTypes.PowerUpKind.ROCKET_HORIZONTAL,
+			GameTypes.PowerUpKind.SPINNER, GameTypes.PowerUpKind.DYNAMITE,
+			GameTypes.PowerUpKind.ELECTRO_BALL, GameTypes.PowerUpKind.SUPER_ELECTRO_BALL]:
+		if AssetCatalog.power_up_texture(kind) == null:
+			unresolved.append("power-up %d" % kind)
+	failures += _check(unresolved.is_empty(),
+		"every piece, obstacle and power-up has a picture (%s)" % ", ".join(unresolved))
 	var host := Control.new()
 	tree_root.add_child(host)
 	var panel := UiKit.panel(host, "panel", 10.0, 20.0, 100.0, 50.0, UiTokens.SURFACE, UiTokens.RADIUS_MD)
@@ -347,3 +384,15 @@ func _run() -> void:
 
 	print("test_ui: %d failure(s)" % failures)
 	quit(1 if failures > 0 else 0)
+
+## Every PNG directly inside a directory of the project, sorted, so a count in a test means something.
+func _list_pngs(directory_path: String) -> Array[String]:
+	var out: Array[String] = []
+	var directory := DirAccess.open(directory_path)
+	if directory == null:
+		return out
+	for file_name in directory.get_files():
+		if file_name.ends_with(".png"):
+			out.append(directory_path.path_join(file_name))
+	out.sort()
+	return out
