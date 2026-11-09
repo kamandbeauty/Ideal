@@ -1,44 +1,56 @@
-# ARTILLERY FRONTLINE
+# ARTILLERY FRONTLINE — توپخانهٔ خط مقدم
 
-Original, offline, landscape 3D artillery combat for Android, built with Godot 4.7.2 and typed GDScript.
+برش عمودیِ آفلاین، افقی و سه‌بعدی برای اندروید، ساخته‌شده با Godot 4.7.2 و GDScript نوع‌دار. رابط کاربریِ این نسخه فارسی/راست‌به‌چپ و تصویرمحور است.
 
-## Playable vertical slice
+## دانلود و اجرای آزمایشی
 
-- One authored desert battlefield: **Sable Ridge**.
-- Original Blender-authored **Kestrel M-42** 155 mm howitzer with independent traverse/elevation, recoil, breech animation and reload.
-- **M72 HE** and **M91 AP** ammunition; swept ballistic collision and matching trajectory prediction.
-- Stationary emplacements, patrolling Warden tanks and Nomad transports.
-- Five sequential missions, optional objectives, performance rewards, stars, credits and permanent upgrades.
-- Layered pooled explosions, smoke, dust, debris, shockwaves, impact light, craters and staged destruction.
-- Touch-first HUD, optical zoom, shell-tracking camera, pause, briefing, campaign, arsenal, results and settings.
-- Versioned local saves with atomic replacement and backup recovery.
-- Low/medium/high/auto graphics, sustained frame-time adaptation, 30/60 FPS targets.
+- [APK اصلی ARM64](https://github.com/kamandbeauty/Ideal/raw/da4f3c7a73c144b8a0bece39f6f125933c0ec6a8/delivery/Artillery-Frontline-arm64.apk) — نصب روی دستگاه ARM64 با اندروید ۷٫۰/API 24 به بالا.
+- [AAB ARM64](https://github.com/kamandbeauty/Ideal/raw/da4f3c7a73c144b8a0bece39f6f125933c0ec6a8/delivery/Artillery-Frontline-arm64.aab) — باندل Gradle برای انتشار/Bundletool، نه نصب مستقیم.
+- APK سازگاری OpenGL و APK آزمایشی x86_64 فقط به‌صورت artifact در [CI موفق 42576649775](https://github.com/kamandbeauty/Ideal/actions/runs/42576649775) موجودند.
 
-## Open and run
+بسته‌ها با کلید موقت توسعه امضا شده‌اند. این خروجی، انتشار فروشگاهی نیست. اگر نسخهٔ قبلی با کلید موقت دیگری نصب شده، ممکن است لازم باشد آن را حذف کنید؛ حذف نصب می‌تواند ذخیرهٔ محلی را پاک کند.
 
-1. Install Godot **4.7.2 stable** (standard, non-Mono).
-2. Import `project.godot`.
-3. Press F6 on `scenes/core/main.tscn`, or F5.
+## محتوای بازی
 
-Desktop controls: drag left mouse to aim; **W/S** elevation, **A/D** traverse; **Space** fire; **R** reload; **F** fire-control solution; **Tab** next target; **1/2** ammunition; **Z** zoom; **C** camera; **Esc** pause. Android uses the on-screen controls and one-finger aiming surface.
+- صفحهٔ خانهٔ تصویری با کلیدآرت ساحل، نشان فرماندهی و کارت‌های اعزام/کارزار/نقشه/جنگ‌افزار/تنظیمات.
+- دفاع ساحلیِ موج‌شکن با پیاده‌نظامِ مدل‌شده از فایل ارسالی مالک، ماشین‌های جنگی، سلاح‌های سنگین، مهمات، تعمیر و پشتیبانی.
+- کارزار توپخانهٔ گذرگاه ریج: پنج عملیات، اهداف اصلی/اختیاری، ستاره، اعتبار، امتیاز ارتقا و بهبودهای دائمی.
+- هویتزر کسترل ام-۴۲ با چرخش/ارتفاع‌گیری، عقب‌نشینی، گلنگدن، پرکردن، مهمات منفجرشونده/ضدزره و پیش‌بینی برخورد.
+- HUD لمسی، توقف، شرح مأموریت، نتایج، تنظیمات گرافیک/صدا/کنترل و ذخیرهٔ محلیِ نسخه‌دار با بازیابی پشتیبان.
 
-## Validate
+## منوی فارسی و گرافیکی
+
+- متن‌های نمایشی از `scripts/ui/loc.gd` می‌آیند؛ شناسه‌های داخلی ASCII می‌مانند.
+- ریشه‌های منو/HUD/نقشه `LAYOUT_DIRECTION_RTL` دارند؛ فونت پیش‌فرض وزیرمتن است.
+- نسبت‌های نمایشی با «از» نوشته می‌شوند، مثل `۲ از ۳ ستاره`، تا ترتیب اعداد در RTL مبهم نشود.
+- پلاک‌ها، دکمه‌ها، چک‌باکس، اسلایدر و جداکننده‌ها بافت‌دارند؛ تصویرهای کلیدی و نشان در `assets/textures/ui/` قرار دارند.
+- کارت‌های توقف/نتیجهٔ ساحلی با `CenterContainer` وسط‌چین شده‌اند و آزمون یکپارچه، مرکزچین بودن و بریده‌نشدن گوشه را بررسی می‌کند.
+
+## اجرا در Godot
+
+1. Godot **4.7.2 stable** استاندارد، غیر Mono، را نصب کنید.
+2. `project.godot` را import کنید.
+3. `scenes/core/main.tscn` را با F6 یا پروژه را با F5 اجرا کنید.
+
+کنترل دسکتاپ: کشیدن ماوس برای نشانه‌گیری؛ W/S ارتفاع، A/D چرخش؛ Space شلیک؛ R پرکردن؛ F کنترل آتش؛ Tab هدف بعدی؛ 1/2 مهمات؛ Z بزرگ‌نمایی؛ C دوربین؛ Esc توقف. اندروید از کنترل‌های روی صفحه و سطح نشانه‌گیری لمسی استفاده می‌کند.
+
+## اعتبارسنجی
 
 ```sh
 godot --headless --path ARTILLERY_FRONTLINE --editor --import
 godot --headless --path ARTILLERY_FRONTLINE --script res://tests/run_tests.gd
 ```
 
-The dependency-free runner writes `artillery-test-results.json` at the repository root and exits nonzero on failure. It includes real scene/physics integration for all five missions, not only arithmetic tests.
+آخرین CI موفق: **۷۶۷ بررسی headless / ۰ شکست**، **۲۹ بررسی gameplay smoke / ۰ شکست**، **۳۵ بررسی coastal smoke / ۰ شکست**. این‌ها بررسی دسکتاپ/CI هستند، نه اجرای اندروید.
 
-## Android deliverables
+## ساخت اندروید
 
-Verified CI test packages are retained in [`../delivery/`](../delivery/): primary ARM64 APK, ARM64 AAB and an OpenGL Compatibility APK. They are development-signed unless repository release secrets are configured. Package hashes and inspection reports are beside the binaries.
+گردش‌کار `ARTILLERY FRONTLINE` ابتدا import/آزمون/smoke را اجرا می‌کند، سپس APK/AAB و APK سازگاری را خروجی می‌گیرد. برای AAB، توزیع Gradle 8.11.1 پیش‌دانلود، SHA-256 آن بررسی و به‌صورت `file://` به wrapper داده می‌شود تا دانلود زندهٔ Gradle داخل export باعث شکست نشود.
 
-See `documentation/BUILD_ANDROID.md`. The repository workflow validates the project before exporting ARM64 APK/AAB and an explicit OpenGL Compatibility APK. Without repository signing secrets, packages use an **ephemeral development key** and are not store-release artifacts. No credentials are stored in the project.
+راهنما: [`documentation/BUILD_ANDROID.md`](documentation/BUILD_ANDROID.md)
+گزارش بررسی: [`documentation/QA_REPORT.md`](documentation/QA_REPORT.md)
+مجوز/منبع دارایی‌ها: [`ASSET_LICENSES.md`](ASSET_LICENSES.md) و [`documentation/uploaded-infantry-provenance.md`](documentation/uploaded-infantry-provenance.md)
 
-## Scope and honesty
+## محدودیت صادقانه
 
-This is a production-oriented vertical slice, not a claim of completed commercial release certification. Smoke visuals and frame time from a software-rendered CI desktop are not Android device performance. See [`documentation/QA_REPORT.md`](documentation/QA_REPORT.md) and [`../MILESTONE_REPORT.md`](../MILESTONE_REPORT.md) for executed checks and remaining limitations.
-
-Original asset provenance: `ASSET_LICENSES.md`. Architecture: `documentation/TECHNICAL.md`.
+این یک برش عمودیِ قابل بازی است، نه گواهی انتشار تجاری. هیچ دستگاه/شبیه‌ساز اندروید اجرا نشده؛ کارایی، تاچ، safe area، صدا، resume و ذخیره پس از force-stop باید روی دستگاه واقعی بررسی شوند. مدل ارسالی طبق اجازهٔ اعلام‌شدهٔ مالک نگه داشته شده، اما انگشت‌ها استخوان ندارند و دور قبضه مشت نمی‌شوند.

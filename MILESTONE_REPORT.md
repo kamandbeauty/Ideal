@@ -1,109 +1,78 @@
-# ARTILLERY FRONTLINE — milestone report
+# گزارش مایل‌استون — نسخهٔ فارسی/گرافیکی ARTILLERY FRONTLINE
 
-Date: 2026-11-06
-Branch: `arena/40ad7d87-ideal`
-Repository: `kamandbeauty/Ideal`
-Verified build source commit: **`e4407def4dda0dbfa802f97ba22976557b71f982`**
-Final CI run: **42204972594** — validate and Android jobs successful
-Package publication commit: **`f6f3568`**
-Engine: Godot **4.7.2 stable**, standard GDScript build
-Original model authoring: Blender **5.0.1** via free GitHub Actions toolchain
+شاخه: `arena/40ad7d87-ideal`
+مخزن: `kamandbeauty/Ideal`
+منبع ساخت بسته‌ها: `b1e69384aeafc26bf381f3922d1813bbe87dad57`
+انتشار بسته‌ها توسط CI: `da4f3c7a73c144b8a0bece39f6f125933c0ec6a8`
+اجرای موفق CI: [42576649775](https://github.com/kamandbeauty/Ideal/actions/runs/42576649775)
+موتور: Godot **4.7.2 stable**
 
-## Outcome
+## نتیجه
 
-A playable, original, offline single-player 3D Android artillery vertical slice / MVP candidate is implemented and exported. The repository contains source, original assets, data resources, tests, documentation, licenses, CI workflows and verified development-signed Android packages.
+یک برش عمودیِ قابل بازی، آفلاین و سه‌بعدی برای اندروید ساخته و خروجی گرفته شد. رابط کاربریِ این نسخه فارسی/راست‌به‌چپ و تصویرمحور است: صفحهٔ خانه، کارزار، نقشه، شرح مأموریت، جنگ‌افزار، ارتقا، تنظیمات، توقف، نتایج و HUD ساحلی با کلیدآرت، نشان، پلاک‌های بافت‌دار و فونت وزیرمتن بازطراحی شدند.
 
-This milestone is **not** a commercial release certification. No Android device/emulator was available; all gameplay validation is desktop/headless/CI, and all performance numbers are software-rendered CI observations.
+این خروجی **گواهی انتشار تجاری نیست**. هیچ دستگاه یا شبیه‌ساز اندروید اجرا نشده و همهٔ شواهد runtime مربوط به Godot دسکتاپ/CI است.
 
-## Implemented features
+## قابلیت‌های اصلی
 
-| Area | Implemented behavior | Principal files |
-|---|---|---|
-| Application flow | Splash, main menu, campaign map, briefing, HUD, pause, results, arsenal/gun selection, upgrades, settings | `scripts/core/game.gd`, `scripts/ui/menu_screens.gd`, `scripts/ui/hud.gd`, `scenes/core/main.tscn` |
-| Artillery | Kestrel M-42 155 mm howitzer; independent yaw/elevation; recoil spring; breech/reload timing; muzzle flash; fire signals | `scripts/artillery/artillery_controller.gd`, `resources/weapons/kestrel.tres`, `assets/models/kestrel.glb` |
-| Ammunition | M72 HE blast/falloff and M91 AP armor penetration; supply counts; compatible selection | `resources/ammunition/he.tres`, `ap.tres`, `scripts/artillery/weapon_loadout.gd` |
-| Ballistics | Shared analytic vacuum + exact linear-drag model; live swept collision; collision-aware trajectory preview; optional advanced drag | `scripts/ballistics/ballistics.gd`, `scripts/projectiles/`, `scripts/targeting/targeting_system.gd` |
-| Fire control | Nominal gun solution plus waypoint-aware moving-target lead and iterative flight-time solve; manual aiming remains available | `scripts/core/battle_controller.gd`, `scripts/enemy_ai/enemy_target.gd` |
-| Combat/destruction | One direct/radial damage pass; armor; health stages; pooled layered explosions, smoke, dust, debris, shockwave, light and craters | `scripts/combat/`, `scripts/destruction/`, `scripts/effects/` |
-| Enemy AI | Stationary emplacements, patrolling Warden tanks and Nomad transports; alert response; wreck smoke/staged visuals | `scripts/enemy_ai/enemy_target.gd`, `resources/enemies/` |
-| Missions | Five sequential operations, primary/optional objectives, time/ammo failure, accuracy/par-time scoring | `scripts/missions/mission_manager.gd`, `resources/missions/sr01–sr05.tres` |
-| Progression/economy | Credits, best-star records, first-clear upgrade points, replay-safe rewards, five permanent upgrade tracks | `scripts/progression/`, `scripts/economy/`, `resources/upgrades/` |
-| Save | Versioned JSON schema validation, atomic temp/rename write, backup recovery, clamped settings | `scripts/save/save_manager.gd`, `scripts/progression/profile.gd` |
-| Graphics/performance | LOW/MEDIUM/HIGH/AUTO, sustained frame-time hysteresis, 30/60 targets, Mobile renderer + explicit Compatibility APK | `scripts/graphics/graphics_manager.gd`, `scripts/performance/frame_monitor.gd`, `export_presets.cfg` |
-| Input/cameras | Landscape touch aiming surface isolated from buttons; keyboard/mouse desktop controls; gun/optic/shell/impact cameras, zoom and shake | `scripts/ui/aim_input.gd`, `scripts/artillery/camera_rig.gd` |
-| Audio | Original synthesized PCM; fixed spatial/UI pools; volume buses; shutdown cleanup | `scripts/audio/audio_manager.gd`, `assets/audio/`, `tools/create_audio.py` |
-| Battlefield | Sable Ridge: chunked LOD terrain, trimesh collision, conforming roads, base kit, hangars, towers, fence, radar, helipad, scatter, sandbags | `scripts/environments/desert_battlefield.gd`, `scripts/environments/terrain_sampler.gd`, `scenes/battlefield/` |
-| Assets/licenses | Five original Blender-authored GLB/BLEND model sets, procedural geometry/shaders/icon/audio, Rajdhani OFL font, Godot MIT notice | `tools/create_models.py`, `assets/`, `ASSET_LICENSES.md`, `documentation/licenses/` |
+| بخش | رفتار پیاده‌سازی‌شده |
+|---|---|
+| جریان برنامه | splash، خانهٔ تصویری، نقشهٔ کارزار، شرح مأموریت، HUD، توقف، نتایج، جنگ‌افزار، ارتقا، تنظیمات |
+| رابط فارسی | متن‌های نمایشی در `scripts/ui/loc.gd`؛ اعداد فارسی؛ نسبت‌ها با «از»؛ ریشه‌های RTL؛ فونت وزیرمتن |
+| گرافیک رابط | کلیدآرت ساحل/ریج/توپ، نشان فرماندهی، پلاک‌های نه‌تکه، چک‌باکس/اسلایدر/جداکنندهٔ بافت‌دار |
+| دفاع ساحلی | موج‌های پیاده‌نظام، ماشین‌های جنگی، سلاح ثابت، مهمات، تعمیر، پشتیبانی و کارت‌های توقف/نتیجهٔ وسط‌چین |
+| توپخانه | کسترل ام-۴۲، چرخش/ارتفاع، عقب‌نشینی، گلنگدن، پرکردن، مهمات منفجرشونده/ضدزره، پیش‌بینی برخورد |
+| کارزار | پنج عملیات، اهداف اصلی/اختیاری، ستاره، اعتبار، امتیاز ارتقا، بهبودهای دائمی |
+| ذخیره | JSON نسخه‌دار، نوشتن اتمیک، بازیابی پشتیبان، تنظیمات clamp‌شده |
+| گرافیک/کارایی | سطح‌های کم/متوسط/بالا/خودکار، تطبیق نرخ فریم، هدف ۳۰/۶۰، Mobile + APK سازگاری OpenGL |
 
-Inventory at milestone: 39 gameplay GDScript files, 16 custom `.tres` data resources, 10 executable test suites plus shared test context, 5 original GLB models, 6 original WAV clips.
+## آزمون‌ها و شواهد
 
-## Executed tests and results
+- `artillery-test-results.json`: **۷۶۷ بررسی، ۰ شکست**.
+- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۲۹ بررسی، ۰ شکست**.
+- `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۳۵ بررسی، ۰ شکست**.
+- `delivery/package-validation.json` و `delivery/SHA256SUMS.txt`: راستی‌آزمایی بسته‌ها.
+- تصویرهای منو/HUD/ساحل در `ARTILLERY_FRONTLINE/documentation/qa/` بازبینی شدند.
 
-Authoritative machine reports:
+پوشش شامل بالستیک، برخورد، آسیب/زره، پرکردن، مأموریت‌ها، ذخیره/بازیابی، پیشرفت، گرافیک، منابع، بومی‌سازی، یکپارچگی صحنه، کارزار کامل، UI فارسی و مرکزچین بودن کارت‌های ساحلی است.
 
-- `artillery-test-results.json`: **197 checks, 0 failures**.
-- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **17 checks, 0 failures**.
-- `delivery/package-validation.json`: package inspection pass.
-- `delivery/SHA256SUMS.txt`: locally rechecked, all OK.
+## بسته‌های اندروید
 
-Coverage includes ballistics, swept collision, damage/armor, reload timing, mission completion/failure, save/load/recovery, progression/replay safety, graphics selection/hysteresis, resource integrity, combat integration, real first-mission scene completion, and real scene completion of missions `sr02`–`sr05`.
-
-The CI smoke path exercised touch drag, UI fire button, fire-control solution, projectile flight, target destruction, results, and persistent upgrade purchase. Mission `sr01` finished with 2 shots / 2 hits / 100% accuracy / 3 stars / 535 credits / 2 points.
-
-Visual evidence is retained in `ARTILLERY_FRONTLINE/documentation/qa/`: battlefield, two impact captures, mission results and upgrades.
-
-## Android build status
-
-Final CI run **42204972594** succeeded through import, tests, Xvfb smoke, APK/AAB export, explicit AAB signing, signature verification and package inspection.
-
-| Deliverable | Bytes | SHA-256 | Status |
+| فایل | بایت | SHA-256 | وضعیت |
 |---|---:|---|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 32135359 | `a3a104f4e79d8f34ba7c1c0e57a24f2190e82b252d606929012e359928c27cf5` | ARM64, v2/v3 signature verified, landscape, no INTERNET |
-| `delivery/Artillery-Frontline-compatibility.apk` | 32135359 | `baa4545f7b7b6bcf8d797af33805338c0d9e314599a98f63144646c6c4cc4d3d` | ARM64 OpenGL fallback, v2/v3 signature verified, separate package ID |
-| `delivery/Artillery-Frontline-arm64.aab` | 31974632 | `a69dcb485da104cb3cbd0dc90fd44693c865cc1a8ad5329a5183b9aa1f7cd36e` | Gradle ARM64 bundle, explicit JAR signature verified, META-INF signature block present |
+| `delivery/Artillery-Frontline-arm64.apk` | 55,379,236 | `ab76047438fd6421de92e0bd995cd85a4a7dd62ca25bff1400d81101bf6e99c1` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
+| `delivery/Artillery-Frontline-arm64.aab` | 54,776,657 | `e05c7d1f49e7a1ee5e9ac1c62d6d147087f2001d3ec5e9be1a93df6d7e6e2a28` | Gradle ARM64، امضای JAR تأییدشده |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,379,236 | `c93cd6117ba6ded1c58bdbd92d69023f43df14df78eed4453cc5d4974fa93b52` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
 
-APK inspection: min SDK 24, target SDK 36, landscape activity orientation, package IDs `com.frontline.artillery` and `com.frontline.artillery.compatibility`, no INTERNET permission. AAB preset uses minimum SDK override 26.
+APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام نمایشی برنامه در manifest فارسی است. امضا: **کلید موقت توسعه**، نه کلید انتشار فروشگاه.
 
-Signing: **ephemeral development key**, not a store release. The workflow supports persistent release signing through GitHub Secrets `ARTILLERY_KEYSTORE_BASE64`, `ARTILLERY_KEYSTORE_PASSWORD`, `ARTILLERY_KEY_ALIAS`; no keystore or password is committed. The development certificate is self-signed and short-lived, which produces expected jarsigner warnings but a verified signature.
+برای AAB، گردش‌کار اکنون Gradle 8.11.1 را پیش‌دانلود و SHA-256 آن را بررسی می‌کند و به‌جای دانلود زندهٔ wrapper، `distributionUrl=file://` می‌دهد. این اصلاح شکست دانلود Gradle در export را برطرف کرد.
 
-## Performance observation
+## کارایی مشاهده‌شده در CI
 
-Final CI snapshot: Compatibility renderer under Xvfb/llvmpipe, manual medium tier, 0.82 3D scale, **12.6 FPS**, **79.48 ms** smoothed frame interval, **372 draw calls**, **1189 objects**, **126158 primitives**. Earlier software-rendered runs varied roughly 12–20 FPS.
+رندر Compatibility روی Xvfb/llvmpipe: gameplay حدود **10.5 FPS** و coastal حدود **10.9 FPS**. این اعداد رستر نرم‌افزاری دسکتاپ هستند و کارایی GPU موبایل، حرارت یا 30/60 FPS پایدار را ثابت نمی‌کنند.
 
-These are CPU-rasterized desktop CI measurements. They do not establish Android GPU performance, thermal behavior, or sustained 30/60 FPS. The game includes quality tiers and sustained adaptation, but device profiling remains required.
+## محدودیت‌ها
 
-## Issues and limitations
+1. بدون نصب روی دستگاه واقعی/شبیه‌ساز، تست لمس، safe area، suspend/resume، audio-focus، force-stop save، شروع Vulkan/OpenGL یا پروفایل حرارتی.
+2. بدون امضای انتشار فروشگاهی تا زمانی که Secretهای مخزن تنظیم و CI دوباره اجرا شود.
+3. مدل پیاده‌نظام ارسالی طبق اجازهٔ اعلام‌شدهٔ مالک نگه داشته شده؛ این حسابرسی مستقل مجوز نیست. انگشت‌ها استخوان ندارند.
+4. این برش یک میدان توپخانه و یک سلاح قابل پیکربندی دارد، به‌علاوهٔ دفاع ساحلی؛ ادعای بازی تجاری کامل وجود ندارد.
+5. هشدارهای غیروfatal CI شامل نبود درایور صوتی runner و leak بافت/منبع در teardown llvmpipe است؛ باید در QA دستگاه واقعی دوباره بررسی شوند.
 
-Resolved during the milestone: Godot 4.7 API mismatches; moving-target lead; terrain/road facing and collision; road z-fighting; HUD layout; Android ETC2/ASTC configuration; Gradle template version metadata; release-signing env typo; unsigned Gradle AAB; brittle orientation parsing; headless dummy-audio playback cleanup.
+## کامیت‌های کلیدی این گذر
 
-Remaining:
+- `5da63de`: بنیان رابط فارسی/گرافیکی، وزیرمتن، کلیدآرت و پلاک‌ها.
+- `0e809e5`: اصلاح enum جهت متن در Godot 4.7.
+- `7f45b9c`: حذف متن لاتین نمایشی و بومی‌سازی بخش‌ها.
+- `45ccc65`: اصلاح پنل جنگ‌افزار و retryهای دانلود.
+- `3fe2d53`: مرکزچین کردن کارت‌های ساحلی، عرض شرح مأموریت، نسبت‌های «از»، prefetch تأییدشدهٔ Gradle.
+- `b1e6938`: تحمل کندی llvmpipe در کنترل آتش و حفظ لاگ smoke.
+- `da4f3c7`: انتشار بسته‌های تأییدشدهٔ ARM64.
 
-1. No physical Android/emulator installation, touch comfort, safe-area, suspend/resume, audio-focus, force-stop save, Vulkan/OpenGL startup or thermal validation.
-2. Development signing only until release Secrets are configured and CI is rerun.
-3. One battlefield and one weapon; gun selection UI is present but the slice ships one configurable gun.
-4. Enemy AI is patrol/alert/destruction, not full return-fire combined-arms combat.
-5. Realistic visual ambition is bounded by original low/poly procedural assets, realtime sun/fog, billboard particles and no baked GI.
-6. Earlier CI emitted non-fatal themed-icon `aapt2` warnings; Android launcher appearance remains untested.
-7. Software CI frame rate is below mobile targets and must not be interpreted as device performance.
+## گام‌های بعدی پیشنهادی
 
-## Key commit chain
-
-- `b46c5bf` / `fafe14f` / `6913113`: free toolchain bootstrap and verified Godot transport.
-- `7721a77`: foundation systems, data resources and early tests.
-- `fd80df1`: full validation/Android workflows and tooling.
-- `0ee86cd`: original Blender models fetched from successful asset CI.
-- `c40ad09`: complete playable game source, UI, missions, docs and licenses.
-- `6d467ae` / `c43fea6`: terrain/prediction/model-orientation corrections.
-- `8dffd09`: Android ETC2/ASTC and signing-env fixes.
-- `bbf486b` / `9dd4942`: Gradle template identifier and broader CI triggers.
-- `aeef77b`: full-campaign integration, road conformance, audio cleanup.
-- `e4407de`: final signed-package verification source.
-- `f6f3568`: final verified Android package publication.
-
-## Next tasks
-
-1. Run a device QA matrix on at least one Mali and one Adreno ARM64 phone/tablet: install both APK variants, test touch/safe areas, suspend/resume, audio focus, force-stop saves, permissions and launcher icons.
-2. Profile sustained frame time and thermals on real hardware; tune draw calls, scatter density, shadow distance and particle budgets from measured GPU/CPU bottlenecks.
-3. Configure a persistent release/upload keystore in GitHub Secrets, rerun CI, and validate store-release signing and Play upload requirements.
-4. Add baked lighting/detail textures and higher-fidelity material work where device budgets allow.
-5. Expand content only after device stability: additional weapons/battlefields, enemy return fire, richer destruction and accessibility/localization options.
+1. QA دستگاه واقعی روی حداقل یک گوشی Mali و یک Adreno: نصب هر دو APK، لمس/safe area، صدا، resume، ذخیره پس از force-stop و آیکون لانچر.
+2. پروفایل کارایی/حرارت روی سخت‌افزار واقعی و تنظیم چگالی scatter، سایه، draw call و بودجهٔ ذرات.
+3. تنظیم keystore انتشار/آپلود در GitHub Secrets و اجرای دوبارهٔ CI برای خروجی فروشگاهی.
+4. گسترش محتوا فقط پس از پایداری دستگاه: سلاح/میدان بیشتر، آتش متقابل دشمن، تخریب غنی‌تر و گزینه‌های دسترس‌پذیری.

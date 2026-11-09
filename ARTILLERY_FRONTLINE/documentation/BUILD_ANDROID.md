@@ -1,48 +1,95 @@
-# Android build and signing
+# ساخت و امضای اندروید
 
-## Toolchain
+## زنجیرهٔ ابزار
 
-- Godot 4.7.2 stable standard editor and matching export templates.
+- Godot 4.7.2 stable استاندارد و قالب‌های خروجی هم‌نسخه.
 - JDK 17.
-- Android SDK platform 36, build-tools 36.1.0, platform-tools.
-- Godot Android Gradle source template for AAB; APK presets can export without Gradle.
-- ARM64-v8a only in this milestone. The two APK presets use minimum SDK 24; the AAB preset explicitly overrides minimum SDK to 26. All presets target SDK 36. Vulkan is recommended on Android 10/API 29+; Godot's OpenGL fallback and the separate Compatibility APK cover older/GLES-only devices.
+- Android SDK platform 36، build-tools 36.1.0 و platform-tools.
+- قالب Gradle منبع Godot برای AAB؛ APKهای اصلی/سازگاری بدون Gradle هم خروجی می‌شوند.
+- Gradle 8.11.1 برای AAB، با SHA-256 پین‌شده:
+  `f397b287023acdba1e9f6fc5ea72d22dd63669d59ed4a289a29b1a76eee151c6`
+- در این مایل‌استون فقط ARM64-v8a برای بسته‌های اصلی/سازگاری/AAB خروجی گرفته می‌شود. یک APK آزمایشی x86_64 نیز فقط به‌صورت artifact CI ساخته می‌شود.
+- APKهای اصلی/سازگاری: min SDK 24، target SDK 36. AAB: override حداقل SDK 26، target SDK 36.
+- Vulkan برای اندروید ۱۰/API 29 به بالا توصیه می‌شود؛ APK سازگاری OpenGL برای دستگاه‌های بدون شروع موفق Vulkan است.
 
-The sandbox originally had no Godot, Blender, Java, Android SDK, templates or device. Engine/SDK downloads were network-restricted. GitHub Actions provides the free build toolchain; the editor archive is checksum-pinned. Blender models are authored by the separate asset workflow.
+## ساخت خودکار
 
-## Automated build
+گردش‌کار **ARTILLERY FRONTLINE** روی شاخهٔ نشست اجرا می‌شود:
 
-Run **ARTILLERY FRONTLINE** workflow on the session branch. It performs import, unit/integration tests, a software-rendered gameplay smoke test, then APK/AAB export. It explicitly JAR-signs the AAB when the Gradle exporter leaves it unsigned, then verifies its JAR signature. It verifies both APK signatures and certificate reports, the AAB jarsignature and META-INF signature block, ARM64 native libraries, project payload, ZIP CRC, package IDs, min/target SDK, decoded landscape orientation and absence of INTERNET permission. The Gradle source template is installed with Godot's `android/.build_version` identifier and a `build/.gdignore` marker.
+1. import و کامپایل منابع.
+2. آزمون‌های واحد/یکپارچهٔ headless.
+3. smoke بازی با رندر نرم‌افزاری.
+4. smoke دفاع ساحلی با رندر نرم‌افزاری.
+5. خروجی APK اصلی، AAB و APK سازگاری.
+6. امضا/تأیید امضا و بازرسی بسته‌ها.
+7. انتشار APK/AAB در `delivery/` و آپلود artifactهای سازگاری/آزمایشی.
 
-Presets:
+آخرین اجرای موفق این گذر: [42576649775](https://github.com/kamandbeauty/Ideal/actions/runs/42576649775).
+منبع ساخت: `b1e69384aeafc26bf381f3922d1813bbe87dad57`.
+انتشار بسته‌ها: `da4f3c7a73c144b8a0bece39f6f125933c0ec6a8`.
 
-1. `Android APK` — Mobile renderer, ARM64.
-2. `Android AAB` — Gradle bundle, ARM64.
-3. `Android Compatibility` — OpenGL ES fallback renderer, ARM64; separate package suffix `.compatibility`.
+### اصلاح دانلود Gradle
 
-## Signing
+export فایل AAB قبلاً به دانلود زندهٔ `gradle-8.11.1-bin.zip` توسط wrapper وابسته بود و در CI شکست خورد. اکنون گردش‌کار:
 
-For development validation only, CI creates a random temporary RSA keystore in runner temp storage, exports debug-signed APKs, and applies/verifies a JAR signature on the AAB with the same ephemeral key. These are installable test builds, **not** upload-to-Play release identities. Reinstalling a build from a different ephemeral key may require uninstalling the previous test build.
+- توزیع را در `~/.cache/artillery-gradle` کش می‌کند.
+- در صورت نبود/خرابی کش، ZIP را با retry دانلود می‌کند.
+- SHA-256 را با مقدار پین‌شده بررسی می‌کند.
+- فایل تأییدشده را به `gradle-wrapper.properties` قالب نصب‌شده با `distributionUrl=file://` معرفی می‌کند.
 
-For a persistent release identity, configure GitHub Secrets:
+این کار دانلود داخل export را حذف می‌کند، ولی وابستگی به دانلود اولیهٔ GitHub release را با retry/cache مدیریت می‌کند.
+
+## امضا
+
+برای اعتبارسنجی توسعه، CI یک keystore موقت RSA در حافظهٔ موقت runner می‌سازد، APKها را debug-signed خروجی می‌گیرد و در صورت نیاز امضای JAR فایل AAB را با همان کلید اعمال/تأیید می‌کند. این‌ها بستهٔ آزمایشی قابل نصب‌اند، **نه هویت انتشار Play**.
+
+برای هویت انتشار پایدار، GitHub Secrets را تنظیم کنید:
 
 - `ARTILLERY_KEYSTORE_BASE64`
 - `ARTILLERY_KEYSTORE_PASSWORD`
 - `ARTILLERY_KEY_ALIAS`
 
-The workflow decodes the keystore only into runner temp storage and passes credentials through Godot's documented environment variables. It then uses `--export-release`. Never commit keystores, passwords, `key.properties`, or local SDK paths. Preserve the real release keystore outside this repository; losing it prevents updates under the same signing identity.
+گردش‌کار keystore را فقط در حافظهٔ موقت runner باز می‌کند و از متغیرهای محیطی مستند Godot استفاده می‌کند؛ سپس `--export-release` را اجرا می‌کند. هیچ keystore، رمز، `key.properties` یا مسیر SDK محلی نباید commit شود. کلید انتشار واقعی را بیرون از مخزن نگه دارید؛ از دست دادن آن، به‌روزرسانی با همان هویت امضا را ناممکن می‌کند.
 
-## Local export
+هشدار نصب: اگر نسخهٔ آزمایشی قبلی با کلید موقت دیگری نصب شده، به‌روزرسانی مستقیم ممکن است شکست بخورد و حذف نصب قبلی لازم شود. حذف نصب می‌تواند ذخیرهٔ محلی را پاک کند.
 
-Install matching templates, configure Java/Android SDK paths in Godot Editor Settings, install the Android build template for AAB, set signing through editor/environment, then:
+## خروجی محلی
+
+پس از نصب قالب‌های هم‌نسخه، تنظیم مسیر Java/Android SDK در Editor Settings، نصب قالب ساخت اندروید برای AAB و تنظیم امضا:
 
 ```sh
 godot --headless --path ARTILLERY_FRONTLINE --export-release "Android APK" res://../delivery/Artillery-Frontline-arm64.apk
 godot --headless --path ARTILLERY_FRONTLINE --export-release "Android AAB" res://../delivery/Artillery-Frontline-arm64.aab
 ```
 
-For a connected test device, `adb install -r delivery/Artillery-Frontline-arm64.apk` installs the primary test APK; use the `.compatibility` APK if Vulkan startup is unsupported. These commands were not executed in the sandbox.
+برای دستگاه آزمایشی متصل:
 
-Android upload/development certificates are normally self-signed; a self-signed warning is expected, but an unsigned jar is rejected. Always run `jarsigner -verify delivery/Artillery-Frontline-arm64.aab` after a local AAB export; an unsigned bundle is rejected by CI even if the exporter exits successfully.
+```sh
+adb install -r delivery/Artillery-Frontline-arm64.apk
+```
 
-A successful export is not an installation test. Device QA must cover touch comfort, safe areas, suspend/resume, thermal throttling, Vulkan and OpenGL startup, audio focus, save persistence after force-stop, and sustained frame time. No Android device/emulator was available in the initial sandbox.
+اگر شروع Vulkan پشتیبانی نشد، از APK سازگاری استفاده کنید. این دستورات در sandbox اجرا نشدند.
+
+گواهی‌های توسعه/آپلود اندروید معمولاً self-signed هستند؛ هشدار self-signed انتظار می‌رود، اما jar بدون امضا رد می‌شود. پس از خروجی محلی AAB همیشه اجرا کنید:
+
+```sh
+jarsigner -verify delivery/Artillery-Frontline-arm64.aab
+```
+
+## راستی‌آزمایی بسته
+
+CI این موارد را بررسی می‌کند:
+
+- امضای APK با `apksigner` و گزارش گواهی.
+- امضای JAR فایل AAB با `jarsigner` و وجود بلوک امضای `META-INF`.
+- کتابخانهٔ native موتور برای ARM64 و نبود معماری ناخواسته.
+- وجود دادهٔ پروژه و CRC فایل ZIP.
+- شناسهٔ بسته، min/target SDK، جهت landscape decoded و نبود مجوز INTERNET.
+
+بستهٔ سازگاری به‌دلیل بودجهٔ snapshot در Git ردیابی نمی‌شود و فقط artifact CI است. برای راستی‌آزمایی محلیِ کامل، artifactهای همان اجرا را دانلود کنید و پوشه‌ای بسازید که هر سه بسته و گزارش‌های متنی را داشته باشد، سپس:
+
+```sh
+python3 ARTILLERY_FRONTLINE/tools/verify_packages.py delivery
+```
+
+موفقیت export، آزمون نصب نیست. QA دستگاه واقعی باید لمس، safe area، suspend/resume، throttling حرارتی، شروع Vulkan/OpenGL، audio focus، ذخیره پس از force-stop و کارایی پایدار را پوشش دهد.
