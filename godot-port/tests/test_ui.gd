@@ -42,7 +42,11 @@ func _escaped_labels(node: Node, slack: float) -> Array:
 			var parent := label.get_parent() as Control
 			if parent is Panel or parent is Button:
 				if not parent.get_global_rect().grow(slack).encloses(label.get_global_rect()):
-					out.append("%s in %s" % [label.name, parent.name])
+					# Geometry in the message: "a label escaped" is not a bug report, and the numbers say
+					# immediately whether it is the rect, the font or the plate that is wrong.
+					out.append("%s in %s [label %s parent %s min %s]" % [label.name, parent.name,
+						str(label.get_global_rect().size), str(parent.get_global_rect().size),
+						str(label.get_minimum_size())])
 		out.append_array(_escaped_labels(child, slack))
 	return out
 

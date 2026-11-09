@@ -21,11 +21,11 @@ const BOARD_SIZE := 350.0
 const BOARD_FRAME_BORDER := 24.0
 const COLUMN_X := 16.0
 const COLUMN_W := 300.0
-const CARD_HEIGHT := 40.0
+const CARD_HEIGHT := 46.0
 const CHIP_HEIGHT := 26.0
 const BOOSTER_SIZE := 52.0
 const BOOSTER_GAP := 10.0
-const BOOSTER_Y := 258.0
+const BOOSTER_Y := 262.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -88,22 +88,22 @@ func build() -> void:
 	var moves_card := _build_card("moves", COLUMN_X, 52.0, 196.0, CARD_HEIGHT)
 	var moves_caption := UiKit.label(moves_card, "caption", "حرکت‌های باقی‌مانده", UiTokens.TYPE_XS,
 		UiTokens.TEXT_MUTED)
-	UiKit.place(moves_caption, 10.0, 1.0, 176.0, 15.0)
+	UiKit.place(moves_caption, 10.0, 2.0, 176.0, 18.0)
 	_moves_label = UiKit.label(moves_card, "value", "", UiTokens.TYPE_BASE, UiTokens.ACCENT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_moves_label, 10.0, 15.0, 176.0, 24.0)
+	UiKit.place(_moves_label, 10.0, 20.0, 176.0, 24.0)
 
 	var score_card := _build_card("score_card", 220.0, 52.0, 110.0, CARD_HEIGHT)
 	var score_caption := UiKit.label(score_card, "caption", "امتیاز", UiTokens.TYPE_XS,
 		UiTokens.TEXT_MUTED)
-	UiKit.place(score_caption, 6.0, 1.0, 98.0, 15.0)
+	UiKit.place(score_caption, 6.0, 2.0, 98.0, 18.0)
 	_score_label = UiKit.label(score_card, "score", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, 6.0, 15.0, 98.0, 24.0)
+	UiKit.place(_score_label, 6.0, 20.0, 98.0, 24.0)
 
 	# ---- goal chips, stacked under the counters ---------------------------------------------------
 	for index in range(3):
-		var y := 100.0 + float(index) * (CHIP_HEIGHT + 4.0)
+		var y := 102.0 + float(index) * (CHIP_HEIGHT + 4.0)
 		var chip := UiKit.panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
 			UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 		_goal_chips.append(chip)
@@ -123,7 +123,7 @@ func build() -> void:
 
 	var boosters_heading := UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
 		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(boosters_heading, COLUMN_X, 238.0, COLUMN_W, 16.0)
+	UiKit.place(boosters_heading, COLUMN_X, 242.0, COLUMN_W, 16.0)
 
 	# ---- booster bar: all five in one row, sized for a thumb --------------------------------------
 	for kind in range(BoosterBag.SLOTS):
@@ -159,7 +159,10 @@ func build() -> void:
 ## A card: a shipped plate with a caption and a number on it. Never a StyleBoxFlat — the panel art is
 ## what keeps the HUD looking like the palace instead of a form.
 func _build_card(node_name: String, x: float, y: float, width: float, height: float) -> Panel:
-	return UiKit.panel(self, node_name, x, y, width, height, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
+	# The small plate's 6 px nine-slice, not the large plate's 20 px one: a 20 px margin on a 46 px card
+	# leaves a 6 px band for two lines of text, and Vazir's line height is not that small.
+	return UiKit.art_panel(self, node_name, x, y, width, height, "ui_panel_raised_sm",
+		UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 
 # ---- lifecycle ----------------------------------------------------------------------------------
 
