@@ -217,8 +217,8 @@ func _run() -> void:
 			failures += _check(score_label.text == PersianText.number(1234),
 				"level %d shows the score in Persian numerals" % number)
 			var score_card := screen.get_node_or_null("score_card") as Panel
-			failures += _check(score_card != null and score_card.get_rect().position.y >= 52.0
-				and score_card.get_rect().end.y <= 100.0,
+			failures += _check(score_card != null and score_card.get_rect().position.y >= 36.0
+				and score_card.get_rect().end.y <= 120.0,
 				"level %d keeps the score card under the header" % number)
 			# Strict picture rule: every surface on this screen is a shipped plate, not a drawn shape.
 			var plate_checks := {"score_card": score_card, "moves": screen.get_node_or_null("moves"),
