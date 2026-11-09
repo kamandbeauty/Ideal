@@ -153,9 +153,11 @@ static func button(text: String, action: Callable, accent: bool = false) -> Butt
 
 
 static func place(node: Control, anchor: Vector4, margin: Vector4) -> void:
-	## Explicit anchor placement, components are (left, top, right, bottom).
-	## Preset helpers mirror left/right under an RTL parent, which would put the
-	## fire controls on the wrong thumb side, so the HUD pins raw anchors here.
+	## Pin a HUD cluster in physical screen coordinates (left, top, right, bottom).
+	## Godot mirrors the final Control rect under RTL, even with raw anchors, so
+	## only the positioned cluster opts out of layout mirroring. The HUD root
+	## stays RTL and Persian labels/buttons keep their AUTO text direction.
+	node.layout_direction = Control.LAYOUT_DIRECTION_LTR
 	node.anchor_left = anchor.x
 	node.anchor_top = anchor.y
 	node.anchor_right = anchor.z

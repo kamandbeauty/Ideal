@@ -149,7 +149,7 @@ func _build_bottom_controls() -> void:
 	fire_button.add_theme_stylebox_override("disabled", UITheme.plate("plate_disabled.png", 20))
 	for key in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		fire_button.add_theme_color_override(key, UITheme.INK)
-	# Raw anchors: an RTL preset would mirror the fire button to the left thumb.
+	# Physical right-thumb placement; Persian button text is still AUTO/RTL.
 	UITheme.place(fire_button, Vector4(1, 1, 1, 1), Vector4(-198, -198, -36, -36))
 	fire_button.custom_minimum_size = Vector2(150, 150)
 	add_child(fire_button)

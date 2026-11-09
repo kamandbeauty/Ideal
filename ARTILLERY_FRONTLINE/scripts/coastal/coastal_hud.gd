@@ -246,8 +246,8 @@ func _circular(kind: String, label_text: String, diameter: float, action: Callab
 	return button
 
 func _build_right() -> void:
-	# Fire cluster is pinned to the physical right edge: an RTL preset would
-	# mirror it to the left thumb, so raw anchors are used instead.
+	# Fire cluster is pinned to the physical right edge. UITheme.place opts
+	# this cluster out of RTL geometry mirroring without changing the HUD root.
 	var column := UITheme.column(12)
 	UITheme.place(column, Vector4(1, 0.5, 1, 0.5), Vector4(-160, -180, -24, 180))
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
