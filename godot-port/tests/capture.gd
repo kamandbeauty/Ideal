@@ -87,6 +87,12 @@ func _ready() -> void:
 	board_screen.run.status = GameTypes.LevelStatus.PLAYING
 	board_screen._overlay.visible = false
 
+	board_screen._on_pause()
+	await _frames(3)
+	await _shot("10-pause")
+	board_screen._on_resume()
+	await _frames(2)
+
 	# A 20:9 phone is where the old layout letterboxed the art and cropped the content.
 	DisplayServer.window_set_size(Vector2i(2400, 1080))
 	get_window().size = Vector2i(2400, 1080)

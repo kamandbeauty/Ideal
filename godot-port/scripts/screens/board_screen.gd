@@ -14,17 +14,23 @@ signal retry_requested(level_number: int)
 
 # Landscape puts the playfield on the right and everything that describes the level in a column on the
 # left, which is also the reading order of an RTL player: goals first, then the board they play on.
-const BOARD_LEFT := 374.0
-const BOARD_TOP := 52.0
+const BOARD_LEFT := 350.0
+const BOARD_TOP := 40.0
 const BOARD_SIZE := 350.0
+# The frame art is a 256 px plate with a 24 px border, so the board sits exactly inside it.
+const BOARD_FRAME_BORDER := 24.0
 const COLUMN_X := 16.0
-const COLUMN_W := 210.0
-const CHIP_HEIGHT := 30.0
-const BOOSTER_SIZE := 48.0
-const BOOSTER_GAP := 8.0
-const BOOSTER_Y := 300.0
+const COLUMN_W := 300.0
+const CARD_HEIGHT := 40.0
+const CHIP_HEIGHT := 26.0
+const BOOSTER_SIZE := 52.0
+const BOOSTER_GAP := 10.0
+const BOOSTER_Y := 258.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
+const PAUSE_CARD_WIDTH := 380.0
+const PAUSE_CARD_HEIGHT := 250.0
+const DEFAULT_STATUS := "دو خانهٔ کنار هم را جابه‌جا کن تا سه مهره جور شوند"
 
 var run: LevelRun
 var level_number := 0
@@ -42,6 +48,8 @@ var _goal_labels: Array[Label] = []
 var _booster_buttons: Array[Button] = []
 var _booster_counts: Array[Label] = []
 var _booster_badges: Array[TextureRect] = []
+var _pause: Control
+var _paused := false
 var _overlay: Control
 var _overlay_card: Panel
 var _result_title: Label
@@ -56,39 +64,85 @@ var _hint_hand: TextureRect
 var _hint_move: Array[Vector2i] = []
 
 func build() -> void:
-	set_backdrop("board_backdrop_ch01", 0.30, 0.5, 0.5, 0.75, 0.55)
+	# The palace backdrop is a picture, so it is never covered by a flat colour; only the veil art sits
+	# over it, and only at the edges, to keep the header and the column readable.
+	set_backdrop("board_backdrop_ch01", 0.18, 0.5, 0.5, 0.8, 0.7)
 
-	# ---- header: home (top right), level over the column, moves and goals down the left ----------
-	UiKit.button(self, "home", "خانه", COLUMN_X, 48.0, 72.0, 36.0,
-		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
+	# ---- header: home and pause at the right, the level chip, then the game's name ------------------
+	UiKit.button(self, "home", "خانه", 650.0, 8.0, 72.0, 34.0, UiTokens.SURFACE_RAISED,
+		UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
+	UiKit.button(self, "pause", "مکث", 570.0, 8.0, 72.0, 34.0, UiTokens.SURFACE_RAISED,
+		UiTokens.TEXT, _on_pause, UiTokens.RADIUS_MD)
 
-	_level_label = UiKit.label(self, "level", "", UiTokens.TYPE_LG, UiTokens.TEXT,
-		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, COLUMN_X + 80.0, 48.0, COLUMN_W - 80.0, 36.0)
-
-	var moves_pill := UiKit.panel(self, "moves", COLUMN_X, 92.0, 104.0, 40.0, UiTokens.SURFACE_RAISED,
+	var level_chip := UiKit.panel(self, "level_chip", 150.0, 8.0, 96.0, 34.0, UiTokens.GOLD,
 		UiTokens.RADIUS_MD)
-	_moves_label = UiKit.label(moves_pill, "value", "", UiTokens.TYPE_BASE, UiTokens.ACCENT,
+	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_SM, UiTokens.ON_ACCENT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_moves_label, 4.0, 0.0, 96.0, 24.0)
-	var moves_word := UiKit.label(moves_pill, "word", "حرکت", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
-		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(moves_word, 4.0, 20.0, 96.0, 18.0)
+	UiKit.place(_level_label, 4.0, 0.0, 88.0, 34.0)
 
-	# ---- goal chips, stacked in the column ------------------------------------------------------
+	var title := UiKit.label(self, "title", "باغ شازده", UiTokens.TYPE_LG, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(title, 252.0, 8.0, 308.0, 34.0)
+
+	# ---- the two counters, side by side, each a picture plate with a caption over its number -------
+	var moves_card := _build_card("moves", COLUMN_X, 52.0, 196.0, CARD_HEIGHT)
+	var moves_caption := UiKit.label(moves_card, "caption", "حرکت‌های باقی‌مانده", UiTokens.TYPE_XS,
+		UiTokens.TEXT_MUTED)
+	UiKit.place(moves_caption, 10.0, 2.0, 176.0, 15.0)
+	_moves_label = UiKit.label(moves_card, "value", "", UiTokens.TYPE_LG, UiTokens.ACCENT,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(_moves_label, 10.0, 16.0, 176.0, 22.0)
+
+	var score_card := _build_card("score_card", 220.0, 52.0, 110.0, CARD_HEIGHT)
+	var score_caption := UiKit.label(score_card, "caption", "امتیاز", UiTokens.TYPE_XS,
+		UiTokens.TEXT_MUTED)
+	UiKit.place(score_caption, 6.0, 2.0, 98.0, 15.0)
+	_score_label = UiKit.label(score_card, "score", "", UiTokens.TYPE_LG, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(_score_label, 6.0, 16.0, 98.0, 22.0)
+
+	# ---- goal chips, stacked under the counters ---------------------------------------------------
 	for index in range(3):
-		var y := 142.0 + float(index) * (CHIP_HEIGHT + 6.0)
+		var y := 100.0 + float(index) * (CHIP_HEIGHT + 4.0)
 		var chip := UiKit.panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
 			UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 		_goal_chips.append(chip)
-		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 26.0,
-			(CHIP_HEIGHT - 20.0) * 0.5, 20.0, 20.0))
-		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_SM, UiTokens.TEXT,
+		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 26.0, 3.0,
+			20.0, 20.0))
+		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_CENTER)
 		UiKit.place(label, 6.0, 0.0, COLUMN_W - 34.0, CHIP_HEIGHT)
 		_goal_labels.append(label)
 
-	# ---- playfield -------------------------------------------------------------------------------
+	# ---- the line that tells the player what to do, or what just went wrong ------------------------
+	var status_card := _build_card("status_card", COLUMN_X, 192.0, COLUMN_W, CARD_HEIGHT)
+	_hint = UiKit.label(status_card, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
+		HORIZONTAL_ALIGNMENT_CENTER)
+	UiKit.place(_hint, 8.0, 2.0, COLUMN_W - 16.0, CARD_HEIGHT - 4.0)
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	var boosters_heading := UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
+		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
+	UiKit.place(boosters_heading, COLUMN_X, 238.0, COLUMN_W, 16.0)
+
+	# ---- booster bar: all five in one row, sized for a thumb --------------------------------------
+	for kind in range(BoosterBag.SLOTS):
+		var x := COLUMN_X + float(kind) * (BOOSTER_SIZE + BOOSTER_GAP)
+		var handler := _on_booster_pressed.bind(kind)
+		var button := UiKit.button(self, "booster_%d" % kind, "", x, BOOSTER_Y, BOOSTER_SIZE,
+			BOOSTER_SIZE, UiTokens.SURFACE_RAISED, UiTokens.TEXT, handler, UiTokens.RADIUS_MD)
+		_booster_buttons.append(button)
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 6.0, 5.0,
+			BOOSTER_SIZE - 12.0, BOOSTER_SIZE - 22.0))
+		var count := UiKit.label(button, "count", "", UiTokens.TYPE_XS, UiTokens.TEXT,
+			HORIZONTAL_ALIGNMENT_CENTER, true)
+		UiKit.place(count, 2.0, BOOSTER_SIZE - 20.0, BOOSTER_SIZE - 4.0, 16.0)
+		_booster_counts.append(count)
+
+	# ---- playfield: the frame picture first, so the board draws on top of it -----------------------
+	UiKit.art_panel(self, "board_frame", BOARD_LEFT - BOARD_FRAME_BORDER, BOARD_TOP - BOARD_FRAME_BORDER,
+		BOARD_SIZE + BOARD_FRAME_BORDER * 2.0, BOARD_SIZE + BOARD_FRAME_BORDER * 2.0,
+		"board_frame", int(BOARD_FRAME_BORDER), UiTokens.BG)
 	_board = BoardView.new()
 	_board.name = "board"
 	add_child(_board)
@@ -99,33 +153,13 @@ func build() -> void:
 	_hint_hand = UiKit.icon(self, "tutorial_hand", "tutorial_hand", 0.0, 0.0, HAND_SIZE, HAND_SIZE)
 	_hint_hand.visible = false
 
-	# The score is a live number, so it goes where the player already looks: under the goals.
-	_score_label = UiKit.label(self, "score", "", UiTokens.TYPE_SM, UiTokens.GOLD,
-		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, COLUMN_X, 248.0, COLUMN_W, 20.0)
-
-	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
-		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, COLUMN_X, 272.0, COLUMN_W, 22.0)
-
-	# ---- booster bar: three above two, inside the column ----------------------------------------
-	for kind in range(BoosterBag.SLOTS):
-		var column := kind % 3
-		var row_index := kind / 3
-		var x := COLUMN_X + float(column) * (BOOSTER_SIZE + BOOSTER_GAP)
-		var y := BOOSTER_Y + float(row_index) * (BOOSTER_SIZE + BOOSTER_GAP)
-		var handler := _on_booster_pressed.bind(kind)
-		var button := UiKit.button(self, "booster_%d" % kind, "", x, y, BOOSTER_SIZE,
-			BOOSTER_SIZE, UiTokens.SURFACE_RAISED, UiTokens.TEXT, handler, UiTokens.RADIUS_MD)
-		_booster_buttons.append(button)
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 6.0, 5.0,
-			BOOSTER_SIZE - 12.0, BOOSTER_SIZE - 20.0))
-		var count := UiKit.label(button, "count", "", UiTokens.TYPE_XS, UiTokens.TEXT,
-			HORIZONTAL_ALIGNMENT_CENTER, true)
-		UiKit.place(count, 2.0, BOOSTER_SIZE - 20.0, BOOSTER_SIZE - 4.0, 16.0)
-		_booster_counts.append(count)
-
 	_build_overlay()
+	_build_pause()
+
+## A card: a shipped plate with a caption and a number on it. Never a StyleBoxFlat — the panel art is
+## what keeps the HUD looking like the palace instead of a form.
+func _build_card(node_name: String, x: float, y: float, width: float, height: float) -> Panel:
+	return UiKit.panel(self, node_name, x, y, width, height, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 
 # ---- lifecycle ----------------------------------------------------------------------------------
 
@@ -144,6 +178,9 @@ func start_level(level_to_play: int) -> bool:
 	_booster_kind = -1
 	_hint.text = ""
 	_overlay.visible = false
+	if _pause != null:
+		_pause.visible = false
+	_paused = false
 	_board.set_booster_mode(-1)
 	_board.setup(run, Vector2(BOARD_SIZE, BOARD_SIZE))
 	refresh()
@@ -163,9 +200,12 @@ func refresh() -> void:
 		return
 	_level_label.text = "مرحله " + PersianText.number(level_number)
 	_moves_label.text = PersianText.number(run.moves_left)
-	UiKit.fit_font(_moves_label, 68.0)
+	UiKit.fit_font(_moves_label, 176.0)
 	if _score_label != null:
-		_score_label.text = "امتیاز: " + PersianText.number(run.score)
+		# The caption above it already says «امتیاز», so the number stands alone.
+		_score_label.text = PersianText.number(run.score)
+	if _hint.text.strip_edges().is_empty():
+		_hint.text = DEFAULT_STATUS
 
 func refresh_goals() -> void:
 	for index in range(_goal_chips.size()):
@@ -183,8 +223,7 @@ func refresh_goals() -> void:
 		_goal_icons[index].visible = _goal_icons[index].texture != null
 		var progress := run.goals.progress(index)
 		var target := run.goals.target(index)
-		_goal_labels[index].text = PersianText.number(mini(progress, target)) + "/" \
-			+ PersianText.number(target)
+		_goal_labels[index].text = PersianText.fraction(mini(progress, target), target)
 		var complete := progress >= target
 		_goal_labels[index].add_theme_color_override("font_color",
 			UiTokens.SUCCESS if complete else UiTokens.TEXT)
@@ -209,7 +248,7 @@ static func _booster_icon(kind: int) -> String:
 # ---- input --------------------------------------------------------------------------------------
 
 func _on_cell_tapped(pos: Vector2i) -> void:
-	if run == null or run.status != GameTypes.LevelStatus.PLAYING or _board.is_busy():
+	if _paused or run == null or run.status != GameTypes.LevelStatus.PLAYING or _board.is_busy():
 		return
 	_hide_hand()
 	SoundDirector.play("tap")
@@ -234,7 +273,7 @@ func _on_cell_tapped(pos: Vector2i) -> void:
 		_board.set_selection(pos)
 
 func _on_swipe(from: Vector2i, to: Vector2i) -> void:
-	if run == null or run.status != GameTypes.LevelStatus.PLAYING or _board.is_busy():
+	if _paused or run == null or run.status != GameTypes.LevelStatus.PLAYING or _board.is_busy():
 		return
 	_hide_hand()
 	if _booster_kind >= 0:
@@ -365,7 +404,7 @@ func _show_combo(combo_count: int, combo_bonus: int) -> void:
 	tween.chain().tween_callback(toast.queue_free)
 
 func _on_booster_pressed(kind: int) -> void:
-	if run == null or run.status != GameTypes.LevelStatus.PLAYING:
+	if _paused or run == null or run.status != GameTypes.LevelStatus.PLAYING:
 		return
 	if session.boosters.count(kind) <= 0:
 		_hint.text = "بوستری از این نوع ندارید"
@@ -554,10 +593,64 @@ func _on_primary() -> void:
 	else:
 		retry_requested.emit(level_number)
 
+## The pause card. A complete game has to be interruptible: the moves are limited, so the player needs
+## a way to put the phone down without losing the board. It is a picture plate on the veil art, like
+## every other surface.
+func _build_pause() -> void:
+	_pause = Control.new()
+	_pause.name = "pause"
+	_pause.mouse_filter = Control.MOUSE_FILTER_STOP
+	_pause.visible = false
+	add_child(_pause)
+	UiKit.stretch(_pause, 0.0, 0.0)
+
+	var dim := UiKit.veil(_pause, "dim", Color(0.01, 0.02, 0.05, 0.82))
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var card := UiKit.art_panel(_pause, "card", (UiTokens.CANVAS_WIDTH - PAUSE_CARD_WIDTH) * 0.5,
+		(UiTokens.CANVAS_HEIGHT - PAUSE_CARD_HEIGHT) * 0.5, PAUSE_CARD_WIDTH, PAUSE_CARD_HEIGHT,
+		"panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
+	card.mouse_filter = Control.MOUSE_FILTER_STOP
+
+	var title := UiKit.label(card, "title", "بازی متوقف شد", UiTokens.TYPE_LG, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(title, 16.0, 18.0, PAUSE_CARD_WIDTH - 32.0, 34.0)
+
+	UiKit.button(card, "resume", "ادامه", 20.0, 66.0, PAUSE_CARD_WIDTH - 40.0, 46.0,
+		UiTokens.ACCENT, UiTokens.ON_ACCENT, _on_resume, UiTokens.RADIUS_MD, true)
+	UiKit.button(card, "restart", "شروع دوباره", 20.0, 122.0, PAUSE_CARD_WIDTH - 40.0, 46.0,
+		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_restart, UiTokens.RADIUS_MD)
+	UiKit.button(card, "leave", "بازگشت به خانه", 20.0, 178.0, PAUSE_CARD_WIDTH - 40.0, 46.0,
+		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
+
+func _on_pause() -> void:
+	if run == null or run.status != GameTypes.LevelStatus.PLAYING:
+		return
+	_paused = true
+	_pause.visible = true
+	SoundDirector.play("tap")
+
+func _on_resume() -> void:
+	_paused = false
+	if _pause != null:
+		_pause.visible = false
+
+func _on_restart() -> void:
+	_paused = false
+	if _pause != null:
+		_pause.visible = false
+	retry_requested.emit(level_number)
+
 func _on_home() -> void:
 	_overlay.visible = false
+	_paused = false
+	if _pause != null:
+		_pause.visible = false
 	home_requested.emit()
 
 func clear() -> void:
 	run = null
 	_overlay.visible = false
+	if _pause != null:
+		_pause.visible = false
+	_paused = false

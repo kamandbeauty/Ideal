@@ -201,16 +201,28 @@ func _run() -> void:
 			"level %d draws its own board size" % number)
 		# The score is a label bound to the run, so the binding can be checked without playing a move:
 		# set the number, refresh, and read what a player would see.
-		var score_label := screen.get_node_or_null("score") as Label
+		var score_label := screen.find_child("score", true, false) as Label
 		failures += _check(score_label != null, "level %d puts a score on the board" % number)
 		if score_label != null:
 			screen.run.score = 1234
 			screen.refresh()
-			failures += _check(score_label.text.ends_with(PersianText.number(1234)),
+			failures += _check(score_label.text == PersianText.number(1234),
 				"level %d shows the score in Persian numerals" % number)
-			failures += _check(score_label.get_rect().position.y >= 244.0
-				and score_label.get_rect().end.y <= 300.0,
-				"level %d keeps the score between the goal chips and the boosters" % number)
+			var score_card := screen.get_node_or_null("score_card") as Panel
+			failures += _check(score_card != null and score_card.get_rect().position.y >= 52.0
+				and score_card.get_rect().end.y <= 100.0,
+				"level %d keeps the score card under the header" % number)
+			# Strict picture rule: every surface on this screen is a shipped plate, not a drawn shape.
+			var plate_checks := {"score_card": score_card, "moves": screen.get_node_or_null("moves"),
+				"status_card": screen.get_node_or_null("status_card"),
+				"board_frame": screen.get_node_or_null("board_frame")}
+			var drawn: Array[String] = []
+			for key in plate_checks:
+				var plate := plate_checks[key] as Panel
+				if plate == null or not (plate.get_theme_stylebox("panel") is StyleBoxTexture):
+					drawn.append(str(key))
+			failures += _check(drawn.is_empty(),
+				"level %d draws every card and the board frame with picture plates (%s)" % [number, ", ".join(drawn)])
 		# A "+" or a "×" between a Persian word and a number is bidi-neutral, and the run it splits can
 		# come out reading backwards. The bubble has to say it with words.
 		screen._show_combo(3, 300)
@@ -241,6 +253,20 @@ func _run() -> void:
 		failures += _check(result_title != null and banner != null and banner.visible
 			and banner.get_rect().encloses(result_title.get_rect()),
 			"level %d writes the result title on the banner" % number)
+
+		# Pause: the board is frozen, the card is a picture plate, and resuming works.
+		screen.run.status = GameTypes.LevelStatus.PLAYING
+		screen._on_pause()
+		var pause_layer := screen.get_node_or_null("pause") as Control
+		failures += _check(pause_layer != null and pause_layer.visible,
+			"level %d pauses on demand" % number)
+		if pause_layer != null:
+			var pause_plate := pause_layer.get_node_or_null("card") as Panel
+			failures += _check(pause_plate != null
+				and pause_plate.get_theme_stylebox("panel") is StyleBoxTexture,
+				"level %d draws the pause card with a picture plate" % number)
+			screen._on_resume()
+			failures += _check(not pause_layer.visible, "level %d resumes from the pause card" % number)
 		failures += _check(combo_popup == null or not combo_popup.text.is_empty(),
 			"level %d writes the combo bonus on the toast" % number)
 		screen.queue_free()
