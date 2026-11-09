@@ -71,7 +71,7 @@ func build() -> void:
 	# ---- header: home and pause at the right, the level chip, then the game's name ------------------
 	UiKit.button(self, "home", "خانه", 650.0, 8.0, 72.0, 34.0, UiTokens.SURFACE_RAISED,
 		UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
-	UiKit.button(self, "pause", "مکث", 570.0, 8.0, 72.0, 34.0, UiTokens.SURFACE_RAISED,
+	UiKit.button(self, "pause_button", "مکث", 570.0, 8.0, 72.0, 34.0, UiTokens.SURFACE_RAISED,
 		UiTokens.TEXT, _on_pause, UiTokens.RADIUS_MD)
 
 	var level_chip := UiKit.panel(self, "level_chip", 150.0, 8.0, 96.0, 34.0, UiTokens.GOLD,
@@ -88,18 +88,18 @@ func build() -> void:
 	var moves_card := _build_card("moves", COLUMN_X, 52.0, 196.0, CARD_HEIGHT)
 	var moves_caption := UiKit.label(moves_card, "caption", "حرکت‌های باقی‌مانده", UiTokens.TYPE_XS,
 		UiTokens.TEXT_MUTED)
-	UiKit.place(moves_caption, 10.0, 2.0, 176.0, 15.0)
-	_moves_label = UiKit.label(moves_card, "value", "", UiTokens.TYPE_LG, UiTokens.ACCENT,
+	UiKit.place(moves_caption, 10.0, 1.0, 176.0, 15.0)
+	_moves_label = UiKit.label(moves_card, "value", "", UiTokens.TYPE_BASE, UiTokens.ACCENT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_moves_label, 10.0, 16.0, 176.0, 22.0)
+	UiKit.place(_moves_label, 10.0, 15.0, 176.0, 24.0)
 
 	var score_card := _build_card("score_card", 220.0, 52.0, 110.0, CARD_HEIGHT)
 	var score_caption := UiKit.label(score_card, "caption", "امتیاز", UiTokens.TYPE_XS,
 		UiTokens.TEXT_MUTED)
-	UiKit.place(score_caption, 6.0, 2.0, 98.0, 15.0)
-	_score_label = UiKit.label(score_card, "score", "", UiTokens.TYPE_LG, UiTokens.GOLD,
+	UiKit.place(score_caption, 6.0, 1.0, 98.0, 15.0)
+	_score_label = UiKit.label(score_card, "score", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, 6.0, 16.0, 98.0, 22.0)
+	UiKit.place(_score_label, 6.0, 15.0, 98.0, 24.0)
 
 	# ---- goal chips, stacked under the counters ---------------------------------------------------
 	for index in range(3):
