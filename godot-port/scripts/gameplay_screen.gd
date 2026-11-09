@@ -180,41 +180,15 @@ func _build_ui() -> void:
 	title.add_theme_color_override("font_color", Color(1.0, 0.86, 0.52))
 	header.add_child(title)
 
-	var hud_row := HBoxContainer.new()
-	hud_row.add_theme_constant_override("separation", 10)
-	layout.add_child(hud_row)
-
-	_score_label = Label.new()
-	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_score_label.add_theme_font_size_override("font_size", 22)
-	hud_row.add_child(_make_hud_card("امتیاز", _score_label))
-
-	_moves_label = Label.new()
-	_moves_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_moves_label.add_theme_font_size_override("font_size", 22)
-	hud_row.add_child(_make_hud_card("حرکت باقی‌مانده", _moves_label))
-
-	var goal_panel := PanelContainer.new()
-	goal_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.025, 0.10, 0.11, 0.94), Color(0.73, 0.61, 0.36, 0.88), 16, 10))
-	layout.add_child(goal_panel)
-	_goal_label = Label.new()
-	_goal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_goal_label.add_theme_font_size_override("font_size", 18)
-	_goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	goal_panel.add_child(_goal_label)
-
-	var status_panel := PanelContainer.new()
-	status_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.015, 0.07, 0.08, 0.82), Color(0.35, 0.58, 0.51, 0.55), 14, 8))
-	layout.add_child(status_panel)
-	_status_label = Label.new()
-	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_status_label.add_theme_font_size_override("font_size", 16)
-	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	status_panel.add_child(_status_label)
+	var play_area := HBoxContainer.new()
+	play_area.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	play_area.add_theme_constant_override("separation", 14)
+	layout.add_child(play_area)
 
 	var board_center := CenterContainer.new()
+	board_center.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	board_center.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	layout.add_child(board_center)
+	play_area.add_child(board_center)
 	var board_panel := PanelContainer.new()
 	var board_style := StyleBoxFlat.new()
 	board_style.bg_color = Color(0.018, 0.055, 0.075, 0.97)
@@ -236,30 +210,74 @@ func _build_ui() -> void:
 	_grid.add_theme_constant_override("v_separation", CELL_GAP)
 	board_panel.add_child(_grid)
 	var columns := _level.width if _level != null else 9
-	CELL_SIZE = clampi(int((get_viewport_rect().size.x - 70.0 - float(columns - 1) * CELL_GAP) / float(columns)), 42, 66)
+	var available_board_height := get_viewport_rect().size.y - 112.0
+	CELL_SIZE = clampi(int((available_board_height - float((_level.height if _level != null else 9) - 1) * CELL_GAP - 34.0) / float(_level.height if _level != null else 9)), 42, 66)
+
+	var side_panel := VBoxContainer.new()
+	side_panel.custom_minimum_size.x = 252
+	side_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	side_panel.add_theme_constant_override("separation", 8)
+	play_area.add_child(side_panel)
+
+	var hud_row := HBoxContainer.new()
+	hud_row.add_theme_constant_override("separation", 8)
+	side_panel.add_child(hud_row)
+	_score_label = Label.new()
+	_score_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_score_label.add_theme_font_size_override("font_size", 19)
+	hud_row.add_child(_make_hud_card("امتیاز", _score_label))
+	_moves_label = Label.new()
+	_moves_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_moves_label.add_theme_font_size_override("font_size", 19)
+	hud_row.add_child(_make_hud_card("حرکت", _moves_label))
+
+	var goal_panel := PanelContainer.new()
+	goal_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.025, 0.10, 0.11, 0.94), Color(0.73, 0.61, 0.36, 0.88), 16, 9))
+	side_panel.add_child(goal_panel)
+	_goal_label = Label.new()
+	_goal_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_goal_label.add_theme_font_size_override("font_size", 16)
+	_goal_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	goal_panel.add_child(_goal_label)
+
+	var status_panel := PanelContainer.new()
+	status_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.015, 0.07, 0.08, 0.82), Color(0.35, 0.58, 0.51, 0.55), 14, 8))
+	side_panel.add_child(status_panel)
+	_status_label = Label.new()
+	_status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_status_label.add_theme_font_size_override("font_size", 13)
+	_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	status_panel.add_child(_status_label)
+
+	var booster_title := Label.new()
+	booster_title.text = "ابزارهای کمکی"
+	booster_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	booster_title.add_theme_color_override("font_color", Color(1.0, 0.86, 0.52))
+	booster_title.add_theme_font_size_override("font_size", 15)
+	side_panel.add_child(booster_title)
+	var booster_grid := GridContainer.new()
+	booster_grid.columns = 2
+	booster_grid.add_theme_constant_override("h_separation", 7)
+	booster_grid.add_theme_constant_override("v_separation", 7)
+	side_panel.add_child(booster_grid)
+	for kind in range(BoosterBag.SLOTS):
+		var booster_button := Button.new()
+		booster_button.custom_minimum_size = Vector2(0, 66)
+		booster_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		booster_button.icon = AssetCatalog.booster_texture(kind)
+		booster_button.expand_icon = true
+		booster_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		booster_button.icon_max_width = 34
+		booster_button.add_theme_font_size_override("font_size", 12)
+		_style_button(booster_button, Color(0.035, 0.15, 0.16, 0.96), Color(0.76, 0.62, 0.35, 0.88), 13)
+		booster_button.pressed.connect(_on_booster_pressed.bind(kind))
+		booster_grid.add_child(booster_button)
+		_booster_buttons.append(booster_button)
 
 	_fx_layer = Control.new()
 	_fx_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_fx_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_fx_layer)
-
-	var booster_row := HBoxContainer.new()
-	booster_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	booster_row.add_theme_constant_override("separation", 8)
-	layout.add_child(booster_row)
-	for kind in range(BoosterBag.SLOTS):
-		var booster_button := Button.new()
-		booster_button.custom_minimum_size = Vector2(0, 82)
-		booster_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		booster_button.icon = AssetCatalog.booster_texture(kind)
-		booster_button.expand_icon = true
-		booster_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		booster_button.icon_max_width = 42
-		booster_button.add_theme_font_size_override("font_size", 13)
-		_style_button(booster_button, Color(0.035, 0.15, 0.16, 0.96), Color(0.76, 0.62, 0.35, 0.88), 15)
-		booster_button.pressed.connect(_on_booster_pressed.bind(kind))
-		booster_row.add_child(booster_button)
-		_booster_buttons.append(booster_button)
 
 func _refresh_board() -> void:
 	if _run == null:
