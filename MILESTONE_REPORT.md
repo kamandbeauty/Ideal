@@ -2,9 +2,9 @@
 
 شاخه: `arena/40ad7d87-ideal`
 مخزن: `kamandbeauty/Ideal`
-منبع ساخت بسته‌ها: `b1e69384aeafc26bf381f3922d1813bbe87dad57`
-انتشار بسته‌ها توسط CI: `da4f3c7a73c144b8a0bece39f6f125933c0ec6a8`
-اجرای موفق CI: [42576649775](https://github.com/kamandbeauty/Ideal/actions/runs/42576649775)
+منبع ساخت بسته‌ها: `0ed3f189f16570476eae0b5e79a9504f166c3431`
+انتشار بسته‌ها توسط CI: `6df94a4db9d514a96599ec9e8e0934a78f14533a`
+اجرای موفق CI: [42593105670](https://github.com/kamandbeauty/Ideal/actions/runs/42593105670)
 موتور: Godot **4.7.2 stable**
 
 ## نتیجه
@@ -21,6 +21,8 @@
 | رابط فارسی | متن‌های نمایشی در `scripts/ui/loc.gd`؛ اعداد فارسی؛ نسبت‌ها با «از»؛ ریشه‌های RTL؛ فونت وزیرمتن |
 | گرافیک رابط | کلیدآرت ساحل/ریج/توپ، نشان فرماندهی، پلاک‌های نه‌تکه، چک‌باکس/اسلایدر/جداکنندهٔ بافت‌دار |
 | دفاع ساحلی | موج‌های پیاده‌نظام، ماشین‌های جنگی، سلاح ثابت، مهمات، تعمیر، پشتیبانی و کارت‌های توقف/نتیجهٔ وسط‌چین |
+| تعادل جدید | سرباز ۴۰ جان؛ تانک پیشروی تا نیمهٔ راه و توقف؛ جایگاه کاربر ۶۰۰۰ جان با ضریب آسیب ۰٫۵۵، تعمیر ۱۵۰۰ و بستهٔ هوایی ۱۰۰۰ |
+| چیدمان جدید | منوی تمام‌صفحه با پس‌زمینهٔ مات و جهان پنهان؛ شلیک/پرکردن و ستون سلاح در سمت راست فیزیکی |
 | توپخانه | کسترل ام-۴۲، چرخش/ارتفاع، عقب‌نشینی، گلنگدن، پرکردن، مهمات منفجرشونده/ضدزره، پیش‌بینی برخورد |
 | کارزار | پنج عملیات، اهداف اصلی/اختیاری، ستاره، اعتبار، امتیاز ارتقا، بهبودهای دائمی |
 | ذخیره | JSON نسخه‌دار، نوشتن اتمیک، بازیابی پشتیبان، تنظیمات clamp‌شده |
@@ -28,9 +30,9 @@
 
 ## آزمون‌ها و شواهد
 
-- `artillery-test-results.json`: **۷۶۷ بررسی، ۰ شکست**.
-- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۲۹ بررسی، ۰ شکست**.
-- `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۳۵ بررسی، ۰ شکست**.
+- `artillery-test-results.json`: **۸۱۴ بررسی، ۰ شکست**.
+- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۳۶ بررسی، ۰ شکست**.
+- `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۴۰ بررسی، ۰ شکست**.
 - `delivery/package-validation.json` و `delivery/SHA256SUMS.txt`: راستی‌آزمایی بسته‌ها.
 - تصویرهای منو/HUD/ساحل در `ARTILLERY_FRONTLINE/documentation/qa/` بازبینی شدند.
 
@@ -40,9 +42,9 @@
 
 | فایل | بایت | SHA-256 | وضعیت |
 |---|---:|---|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 55,379,236 | `ab76047438fd6421de92e0bd995cd85a4a7dd62ca25bff1400d81101bf6e99c1` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
-| `delivery/Artillery-Frontline-arm64.aab` | 54,776,657 | `e05c7d1f49e7a1ee5e9ac1c62d6d147087f2001d3ec5e9be1a93df6d7e6e2a28` | Gradle ARM64، امضای JAR تأییدشده |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,379,236 | `c93cd6117ba6ded1c58bdbd92d69023f43df14df78eed4453cc5d4974fa93b52` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
+| `delivery/Artillery-Frontline-arm64.apk` | 55,383,332 | `7eb0cd11aab01c667cfb557db0cc76731324b947521c0ced50dcddfda0705194` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
+| `delivery/Artillery-Frontline-arm64.aab` | 54,779,084 | `b66f5d3d531ffb7b0f425ffc081a4f24e373e4e3d193ca89d8ae7447ec28d80d` | Gradle ARM64، امضای JAR تأییدشده |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,383,332 | `9a9c680ce89dd2204f001dcfa3b4fe0725510b093a7768a71096c8f4eb042e21` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
 
 APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام نمایشی برنامه در manifest فارسی است. امضا: **کلید موقت توسعه**، نه کلید انتشار فروشگاه.
 
@@ -50,7 +52,7 @@ APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام ن�
 
 ## کارایی مشاهده‌شده در CI
 
-رندر Compatibility روی Xvfb/llvmpipe: gameplay حدود **10.5 FPS** و coastal حدود **10.9 FPS**. این اعداد رستر نرم‌افزاری دسکتاپ هستند و کارایی GPU موبایل، حرارت یا 30/60 FPS پایدار را ثابت نمی‌کنند.
+رندر Compatibility روی Xvfb/llvmpipe: gameplay حدود **14.9 FPS** و coastal حدود **10.3 FPS**. این اعداد رستر نرم‌افزاری دسکتاپ هستند و کارایی GPU موبایل، حرارت یا 30/60 FPS پایدار را ثابت نمی‌کنند.
 
 ## محدودیت‌ها
 
@@ -58,7 +60,7 @@ APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام ن�
 2. بدون امضای انتشار فروشگاهی تا زمانی که Secretهای مخزن تنظیم و CI دوباره اجرا شود.
 3. مدل پیاده‌نظام ارسالی طبق اجازهٔ اعلام‌شدهٔ مالک نگه داشته شده؛ این حسابرسی مستقل مجوز نیست. انگشت‌ها استخوان ندارند.
 4. این برش یک میدان توپخانه و یک سلاح قابل پیکربندی دارد، به‌علاوهٔ دفاع ساحلی؛ ادعای بازی تجاری کامل وجود ندارد.
-5. هشدارهای غیروfatal CI شامل نبود درایور صوتی runner و leak بافت/منبع در teardown llvmpipe است؛ باید در QA دستگاه واقعی دوباره بررسی شوند.
+5. هشدارهای غیرکشندهٔ CI شامل نبود درایور صوتی runner و leak بافت/منبع در teardown llvmpipe است؛ باید در QA دستگاه واقعی دوباره بررسی شوند.
 
 ## کامیت‌های کلیدی این گذر
 
@@ -68,7 +70,10 @@ APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام ن�
 - `45ccc65`: اصلاح پنل جنگ‌افزار و retryهای دانلود.
 - `3fe2d53`: مرکزچین کردن کارت‌های ساحلی، عرض شرح مأموریت، نسبت‌های «از»، prefetch تأییدشدهٔ Gradle.
 - `b1e6938`: تحمل کندی llvmpipe در کنترل آتش و حفظ لاگ smoke.
-- `da4f3c7`: انتشار بسته‌های تأییدشدهٔ ARM64.
+- `da4f3c7`: انتشار قبلی بسته‌های تأییدشدهٔ ARM64.
+- `af64a83`: منوی تمام‌صفحه، شلیک راست، تعادل ساحلی و آزمون‌های رگرسیون.
+- `0ed3f18`: اصلاح آینه‌شدن هندسهٔ Control در Godot 4.7 برای خوشه‌های شلیک.
+- `6df94a4`: انتشار بسته‌های جدید تأییدشدهٔ ARM64.
 
 ## گام‌های بعدی پیشنهادی
 

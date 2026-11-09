@@ -1,16 +1,16 @@
 # گزارش بررسی — نسخهٔ فارسی/گرافیکی ARTILLERY FRONTLINE
 
 شاخه: `arena/40ad7d87-ideal`
-منبع ساخت بسته‌ها: `b1e69384aeafc26bf381f3922d1813bbe87dad57`
-کامیت انتشار بسته‌ها توسط CI: `da4f3c7a73c144b8a0bece39f6f125933c0ec6a8`
-اجرای موفق CI: [42576649775](https://github.com/kamandbeauty/Ideal/actions/runs/42576649775)
+منبع ساخت بسته‌ها: `0ed3f189f16570476eae0b5e79a9504f166c3431`
+کامیت انتشار بسته‌ها توسط CI: `6df94a4db9d514a96599ec9e8e0934a78f14533a`
+اجرای موفق CI: [42593105670](https://github.com/kamandbeauty/Ideal/actions/runs/42593105670)
 موتور: Godot **4.7.2 stable**
 
 ## خلاصهٔ نتیجه
 
-- آزمون‌های headless: **۷۶۷ بررسی، ۰ شکست** در `artillery-test-results.json`.
-- smoke بازی با رندر نرم‌افزاری: **۲۹ بررسی، ۰ شکست** در `documentation/qa/smoke-report.json`.
-- smoke دفاع ساحلی با رندر نرم‌افزاری: **۳۵ بررسی، ۰ شکست** در `documentation/qa/coastal-smoke-report.json`.
+- آزمون‌های headless: **۸۱۴ بررسی، ۰ شکست** در `artillery-test-results.json`.
+- smoke بازی با رندر نرم‌افزاری: **۳۶ بررسی، ۰ شکست** در `documentation/qa/smoke-report.json`.
+- smoke دفاع ساحلی با رندر نرم‌افزاری: **۴۰ بررسی، ۰ شکست** در `documentation/qa/coastal-smoke-report.json`.
 - APK اصلی ARM64، AAB ARM64 و APK سازگاری در CI خروجی گرفته و راستی‌آزمایی شدند.
 - امضای APK v2/v3 و امضای JAR فایل AAB تأیید شد؛ ARM64، CRC، افقی بودن و نبود مجوز INTERNET بررسی شد.
 - تصویرهای منوی خانه، کارزار، شرح مأموریت، جنگ‌افزار، ارتقا، تنظیمات، توقف، نتایج و کارت‌های ساحلی بازبینی شدند.
@@ -22,9 +22,9 @@
 |---|---|---|
 | نصب Godot با SHA-256 پین‌شده | CI | موفق |
 | import پروژه و کامپایل منابع | CI headless | موفق |
-| آزمون‌های واحد/یکپارچه | CI headless | **۷۶۷ / ۰** |
-| smoke gameplay | CI، Xvfb/llvmpipe، Compatibility | **۲۹ / ۰** |
-| smoke ساحلی | CI، Xvfb/llvmpipe، Compatibility | **۳۵ / ۰** |
+| آزمون‌های واحد/یکپارچه | CI headless | **۸۱۴ / ۰** |
+| smoke gameplay | CI، Xvfb/llvmpipe، Compatibility | **۳۶ / ۰** |
+| smoke ساحلی | CI، Xvfb/llvmpipe، Compatibility | **۴۰ / ۰** |
 | خروجی APK/AAB/Compatibility | CI | موفق |
 | Prefetch و بررسی SHA-256 Gradle 8.11.1 | CI | موفق |
 | امضای APK با `apksigner` | CI | v2/v3 تأیید شد |
@@ -56,13 +56,20 @@
 - نسبت‌های نمایشی با «از» نوشته می‌شوند تا ترتیب اعداد در RTL مبهم نشود.
 - آزمون یکپارچه، عرض شرح مأموریت و مرکزچین بودن/بریده‌نشدن کارت‌های ساحلی را بررسی می‌کند.
 
+اصلاحات این گذر:
+
+- منو/HUD تمام‌صفحه با پس‌زمینهٔ مات؛ پنهان‌شدن جهان سه‌بعدی پشت منو و پوشش کامل کارت‌های توقف/نتیجهٔ ساحلی بیرون از safe area بررسی شد.
+- سمت راست فیزیکی بودن دکمهٔ شلیک در هر دو HUD، هم در آزمون یکپارچه و هم در smoke تصویری تأیید شد. علت آینه‌شدن، اعمال RTL روی مستطیل نهایی Control بود؛ خوشه‌های مکان‌یابی‌شده جهت چیدمان فیزیکی LTR می‌گیرند، ولی ریشهٔ HUD و متن فارسی RTL می‌مانند.
+- جان سرباز ۴۰، اصابت سر مؤثر، پیشروی تانک تا خط نیمه و توقف بدون overshoot، تغییرنکردن نفربر، جان ۶۰۰۰ کاربر، ضریب آسیب ۰٫۵۵ و تعمیر/بستهٔ هوایی با آزمون پوشش داده شدند.
+- تصویرهای `menu-home.png`، `battlefield.png`، `coastal-beach.png` و `coastal-pause.png` پس از ساخت دوباره بازبینی شدند.
+
 ## بسته‌های اندروید
 
 | فایل | بایت | SHA-256 |
 |---|---:|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 55,379,236 | `ab76047438fd6421de92e0bd995cd85a4a7dd62ca25bff1400d81101bf6e99c1` |
-| `delivery/Artillery-Frontline-arm64.aab` | 54,776,657 | `e05c7d1f49e7a1ee5e9ac1c62d6d147087f2001d3ec5e9be1a93df6d7e6e2a28` |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,379,236 | `c93cd6117ba6ded1c58bdbd92d69023f43df14df78eed4453cc5d4974fa93b52` |
+| `delivery/Artillery-Frontline-arm64.apk` | 55,383,332 | `7eb0cd11aab01c667cfb557db0cc76731324b947521c0ced50dcddfda0705194` |
+| `delivery/Artillery-Frontline-arm64.aab` | 54,779,084 | `b66f5d3d531ffb7b0f425ffc081a4f24e373e4e3d193ca89d8ae7447ec28d80d` |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,383,332 | `9a9c680ce89dd2204f001dcfa3b4fe0725510b093a7768a71096c8f4eb042e21` |
 
 واقعیت‌های بسته:
 
@@ -84,5 +91,5 @@
 - بدون `adb install`، تست لمس دستگاه واقعی، شبیه‌ساز، پروفایل GPU اندروید، تست حرارتی، suspend/resume، audio-focus یا force-stop save.
 - بدون امضای انتشار فروشگاهی، مگر اینکه Secretهای مخزن تنظیم و CI دوباره اجرا شود.
 - مدل پیاده‌نظام ارسالی طبق اجازهٔ اعلام‌شدهٔ مالک نگه داشته شده؛ این حسابرسی مستقل مجوز نیست. انگشت‌ها استخوان ندارند و دور قبضه مشت نمی‌شوند.
-- اعداد کارایی CI مربوط به رستر نرم‌افزاری دسکتاپ است، نه GPU موبایل. در این اجرا gameplay حدود **10.5 FPS** و coastal حدود **10.9 FPS** روی llvmpipe گزارش شد؛ ادعای 30/60 FPS پایدار موبایل وجود ندارد.
+- اعداد کارایی CI مربوط به رستر نرم‌افزاری دسکتاپ است، نه GPU موبایل. در این اجرا gameplay حدود **14.9 FPS** و coastal حدود **10.3 FPS** روی llvmpipe گزارش شد؛ ادعای 30/60 FPS پایدار موبایل وجود ندارد.
 - لاگ‌های CI هشدارهای غیرکشندهٔ teardown/صدا دارند: نبود درایور صوتی در runner و fallback به dummy، و leak بافت/منبع در خروج llvmpipe. این‌ها شکست آزمون‌ها نبودند، اما باید در QA دستگاه واقعی دوباره بررسی شوند.

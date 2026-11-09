@@ -24,9 +24,9 @@
 6. امضا/تأیید امضا و بازرسی بسته‌ها.
 7. انتشار APK/AAB در `delivery/` و آپلود artifactهای سازگاری/آزمایشی.
 
-آخرین اجرای موفق این گذر: [42576649775](https://github.com/kamandbeauty/Ideal/actions/runs/42576649775).
-منبع ساخت: `b1e69384aeafc26bf381f3922d1813bbe87dad57`.
-انتشار بسته‌ها: `da4f3c7a73c144b8a0bece39f6f125933c0ec6a8`.
+آخرین اجرای موفق این گذر: [42593105670](https://github.com/kamandbeauty/Ideal/actions/runs/42593105670).
+منبع ساخت: `0ed3f189f16570476eae0b5e79a9504f166c3431`.
+انتشار بسته‌ها: `6df94a4db9d514a96599ec9e8e0934a78f14533a`.
 
 ### اصلاح دانلود Gradle
 
