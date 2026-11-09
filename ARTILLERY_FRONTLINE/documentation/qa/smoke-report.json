@@ -13,6 +13,18 @@
       "passed": true
     },
     {
+      "name": "menu layer covers the full viewport",
+      "passed": true
+    },
+    {
+      "name": "home page covers the full viewport",
+      "passed": true
+    },
+    {
+      "name": "old battlefield is hidden behind menus",
+      "passed": true
+    },
+    {
       "name": "capture menu-campaign",
       "passed": true
     },
@@ -41,7 +53,23 @@
       "passed": true
     },
     {
+      "name": "battlefield returns when menus close",
+      "passed": true
+    },
+    {
+      "name": "artillery fire button is on the physical right",
+      "passed": true
+    },
+    {
       "name": "capture menu-pause",
+      "passed": true
+    },
+    {
+      "name": "pause hides the old battlefield and HUD",
+      "passed": true
+    },
+    {
+      "name": "pause page covers the full viewport",
       "passed": true
     },
     {
@@ -119,28 +147,28 @@
   ],
   "failures": 0,
   "mission": {
-    "accuracy": 100.0,
-    "coins": 526,
-    "hits": 3,
+    "accuracy": 66.6666666666667,
+    "coins": 477,
+    "hits": 2,
     "mission_id": "sr01",
     "objectives": 2,
     "optional": false,
-    "points": 2,
+    "points": 1,
     "reason": "reason_success",
     "required": 2,
     "shots": 3,
-    "star_gain": 3,
-    "stars": 3,
+    "star_gain": 2,
+    "stars": 2,
     "success": true,
-    "time": 20.278876
+    "time": 18.5622378730159
   },
   "passed": true,
   "performance": {
-    "draw_calls": 447,
-    "fps": 10.5,
-    "frame_ms": 94.94,
-    "objects": 1501,
-    "primitives": 187393,
+    "draw_calls": 29,
+    "fps": 14.9,
+    "frame_ms": 67.23,
+    "objects": 1512,
+    "primitives": 730,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"

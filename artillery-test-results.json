@@ -1,12 +1,7 @@
 {
   "checks": 814,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_ui: Artillery fire button stays on the physical right under RTL",
-    "test_ui: Artillery reload stays beside the right-hand fire button",
-    "test_ui: Coastal fire button stays on the physical right under RTL",
-    "test_ui: Coastal weapon switch stays in the right-hand column"
-  ],
-  "passed": false,
+  "failures": [],
+  "passed": true,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }
