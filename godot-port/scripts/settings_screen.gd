@@ -43,7 +43,8 @@ func _build_ui() -> void:
 	margin.add_child(center)
 	var layout := VBoxContainer.new()
 	layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	layout.add_theme_constant_override("separation", 14)
+	layout.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	layout.add_theme_constant_override("separation", 12)
 	center.add_child(layout)
 
 	var header := HBoxContainer.new()
@@ -77,13 +78,19 @@ func _build_ui() -> void:
 	intro_text.add_theme_color_override("font_color", CREAM)
 	intro.add_child(intro_text)
 
+	var sections_row := HBoxContainer.new()
+	sections_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sections_row.add_theme_constant_override("separation", 14)
+	layout.add_child(sections_row)
 	var sound_section := _section("صدا و بازخورد")
-	layout.add_child(sound_section)
+	sound_section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sections_row.add_child(sound_section)
 	_add_setting(sound_section, "صداهای بازی", "افکت‌های جابه‌جایی، کمبو و قدرت‌ها", "res://assets/art/icon_sound.png", _save.sfx_on, "sfx", true)
 	_add_setting(sound_section, "لرزش گوشی", "بازخورد لمسی هنگام کمبو و اتفاق‌های مهم", "res://assets/art/icon_vibration.png", _save.haptics_on, "haptics", true)
 
 	var coming_section := _section("امکانات آینده")
-	layout.add_child(coming_section)
+	coming_section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sections_row.add_child(coming_section)
 	_add_setting(coming_section, "موسیقی پس‌زمینه", "موسیقی اختصاصی باغ در به‌روزرسانی بعدی", "res://assets/art/icon_music.png", false, "music", false)
 	_add_setting(coming_section, "اعلان‌ها", "یادآوری بازگشت به باغ؛ در حال توسعه", "res://assets/art/icon_push.png", false, "push", false)
 

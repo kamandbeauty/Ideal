@@ -9,7 +9,7 @@ var _store: SaveStore
 var _wallet: Wallet
 var _bag: BoosterBag
 var _status: Label
-var _rows: VBoxContainer
+var _rows: GridContainer
 var _coin_label: Label
 
 func _ready() -> void:
@@ -78,9 +78,28 @@ func _build_ui() -> void:
 	crown.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	header.add_child(crown)
 
+	var main_row := HBoxContainer.new()
+	main_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_row.add_theme_constant_override("separation", 14)
+	layout.add_child(main_row)
+	var side := VBoxContainer.new()
+	side.custom_minimum_size.x = 330
+	side.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	side.add_theme_constant_override("separation", 10)
+	main_row.add_child(side)
+	var products_panel := PanelContainer.new()
+	products_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	products_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	products_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.015, 0.055, 0.06, 0.72), Color(0.62, 0.54, 0.36, 0.62), 18, 10))
+	main_row.add_child(products_panel)
+	var products_column := VBoxContainer.new()
+	products_column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	products_column.add_theme_constant_override("separation", 8)
+	products_panel.add_child(products_column)
+
 	var hero := PanelContainer.new()
 	hero.add_theme_stylebox_override("panel", _panel_style(Color(0.025, 0.10, 0.10, 0.96), Color(0.84, 0.67, 0.36, 0.94), 20, 12))
-	layout.add_child(hero)
+	side.add_child(hero)
 	var hero_row := HBoxContainer.new()
 	hero_row.add_theme_constant_override("separation", 10)
 	hero.add_child(hero_row)
@@ -108,7 +127,7 @@ func _build_ui() -> void:
 
 	var wallet := PanelContainer.new()
 	wallet.add_theme_stylebox_override("panel", _panel_style(Color(0.02, 0.085, 0.09, 0.93), Color(0.56, 0.62, 0.43, 0.68), 15, 9))
-	layout.add_child(wallet)
+	side.add_child(wallet)
 	var wallet_row := HBoxContainer.new()
 	wallet_row.add_theme_constant_override("separation", 8)
 	wallet.add_child(wallet_row)
@@ -131,14 +150,17 @@ func _build_ui() -> void:
 	section.text = "ابزارهای قابل خرید"
 	section.add_theme_color_override("font_color", GOLD)
 	section.add_theme_font_size_override("font_size", 17)
-	layout.add_child(section)
+	products_column.add_child(section)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	layout.add_child(scroll)
-	_rows = VBoxContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	products_column.add_child(scroll)
+	_rows = GridContainer.new()
+	_rows.columns = 2
 	_rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_rows.add_theme_constant_override("separation", 10)
+	_rows.add_theme_constant_override("h_separation", 10)
+	_rows.add_theme_constant_override("v_separation", 10)
 	scroll.add_child(_rows)
 
 	_status = Label.new()
@@ -146,7 +168,7 @@ func _build_ui() -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.add_theme_font_size_override("font_size", 13)
 	_status.add_theme_color_override("font_color", Color(0.9, 0.86, 0.68))
-	layout.add_child(_status)
+	side.add_child(_status)
 	_rebuild()
 
 func _rebuild() -> void:
@@ -159,6 +181,7 @@ func _rebuild() -> void:
 func _add_booster_card(kind: int) -> void:
 	var card := PanelContainer.new()
 	card.add_theme_stylebox_override("panel", _panel_style(Color(0.012, 0.06, 0.065, 0.97), Color(0.68, 0.58, 0.37, 0.83), 17, 9))
+	card.custom_minimum_size = Vector2(0, 126)
 	_rows.add_child(card)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 9)

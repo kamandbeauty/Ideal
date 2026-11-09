@@ -5,7 +5,7 @@ var _store: SaveStore
 var _wallet: Wallet
 var _progression: Progression
 var _districts: Array[Dictionary] = []
-var _content: VBoxContainer
+var _content: GridContainer
 var _status: Label
 
 const GOLD := Color(1.0, 0.82, 0.43)
@@ -83,9 +83,11 @@ func _build_ui() -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	layout.add_child(scroll)
-	_content = VBoxContainer.new()
+	_content = GridContainer.new()
+	_content.columns = 2
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_content.add_theme_constant_override("separation", 18)
+	_content.add_theme_constant_override("h_separation", 14)
+	_content.add_theme_constant_override("v_separation", 14)
 	scroll.add_child(_content)
 	_rebuild()
 
@@ -105,6 +107,8 @@ func _add_district(district: Dictionary) -> void:
 	var district_id := str(district.get("id", ""))
 	var asset_id := district_id.replace("-", "_")
 	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(0, 500)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.add_theme_stylebox_override("panel", _panel_style(Color(0.012, 0.055, 0.06, 0.97), Color(0.82, 0.66, 0.36, 0.92), 21, 11))
 	_content.add_child(card)
 	var body := VBoxContainer.new()
@@ -117,7 +121,7 @@ func _add_district(district: Dictionary) -> void:
 	var art := TextureRect.new()
 	var art_path := "res://assets/art/district_%s%s.png" % [asset_id, "_lit" if done == tasks.size() else ""]
 	art.texture = AssetCatalog.texture(art_path)
-	art.custom_minimum_size = Vector2(0, 138)
+	art.custom_minimum_size = Vector2(0, 104)
 	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	art_frame.add_child(art)
