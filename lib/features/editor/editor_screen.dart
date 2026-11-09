@@ -359,7 +359,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             padding: const EdgeInsets.only(left: 54),
             child: audio?.hasAudio ?? false
                 ? _musicLane(context, l10n, st, playback)
-                : _emptyMusicLane(context, l10n),
+                : _emptyMusicLane(context, l10n, st, playback),
           ),
           const SizedBox(height: 6),
           Row(
@@ -793,37 +793,63 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   }
 
   /// The music track before any song is chosen: a tappable placeholder so the
-  /// timeline always shows a music track alongside the image track. Tapping it
-  /// opens the same sheet as the Music tool.
-  Widget _emptyMusicLane(BuildContext context, L10n l10n) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () => showAudioSheet(context, ref),
-      child: Container(
-        height: 34,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: context.theme.colorScheme.outlineVariant
-                .withValues(alpha: 0.7),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: <Widget>[
-            const SizedBox(width: 10),
-            Icon(Icons.music_note_rounded,
-                size: 15,
-                color: context.theme.colorScheme.onSurfaceVariant),
-            const SizedBox(width: 6),
-            Text(
-              l10n.t('music_add'),
-              style: context.theme.textTheme.bodySmall?.copyWith(
-                  color: context.theme.colorScheme.onSurfaceVariant),
+  /// timeline always shows a music track alongside the image track. It carries
+  /// the same playhead as the photo strip, so both tracks read as one
+  /// time-aligned timeline. Tapping it opens the same sheet as the Music tool.
+  Widget _emptyMusicLane(
+      BuildContext context, L10n l10n, ProjectEditorState st, FrameState playback) {
+    final total = st.project.totalDuration;
+    return LayoutBuilder(
+      builder: (BuildContext c, BoxConstraints box) {
+        final w = box.maxWidth;
+        final px = (total > 0 ? playback.time / total : 0.0) * w;
+        return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => showAudioSheet(context, ref),
+            child: Container(
+              height: 34,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: context.theme.colorScheme.outlineVariant
+                      .withValues(alpha: 0.7),
+                  width: 1,
+                ),
+              ),
+              child: Stack(
+                clipBehavior: Clip.hardEdge,
+                children: <Widget>[
+                  Positioned(
+                    left: px.clamp(0.0, w).toDouble(),
+                    top: 0,
+                    bottom: 0,
+                    child: Container(width: 2, color: const Color(0xFFFF3B5C)),
+                  ),
+                  Center(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Icon(Icons.music_note_rounded,
+                            size: 15,
+                            color: context.theme.colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.t('music_add'),
+                          style: context.theme.textTheme.bodySmall?.copyWith(
+                              color:
+                                  context.theme.colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
