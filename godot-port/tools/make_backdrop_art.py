@@ -253,8 +253,8 @@ def build(name):
         # The arches stop at a sill line instead of running into the bottom of the frame. Below the sill
         # is plain wall, which is where the HUD sits: an arch edge behind a row of buttons reads as a
         # glitch, not as architecture.
-        sill_y = horizon_y + H * 0.135
-        spring_y = horizon_y + H * 0.030
+        sill_y = horizon_y + H * 0.020
+        spring_y = sill_y
         arch_height = H * 0.315
         thickness = W * 0.011
         for index in range(scene["arches"]):
