@@ -138,6 +138,7 @@ func _show_screen(target: UiScreen) -> void:
 	_paint_window_art(target)
 	_center_stage()
 	target.refresh()
+	top_bar.visible = target.shows_top_bar
 	top_bar.refresh()
 	_fade_in()
 

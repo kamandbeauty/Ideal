@@ -14,18 +14,18 @@ signal retry_requested(level_number: int)
 
 # Landscape puts the playfield on the right and everything that describes the level in a column on the
 # left, which is also the reading order of an RTL player: goals first, then the board they play on.
-const BOARD_LEFT := 350.0
-const BOARD_TOP := 40.0
-const BOARD_SIZE := 350.0
+const BOARD_LEFT := 366.0
+const BOARD_TOP := 60.0
+const BOARD_SIZE := 330.0
 # The frame art is a 256 px plate with a 24 px border, so the board sits exactly inside it.
 const BOARD_FRAME_BORDER := 24.0
 const COLUMN_X := 16.0
-const COLUMN_W := 300.0
+const COLUMN_W := 318.0
 const CARD_HEIGHT := 46.0
 const CHIP_HEIGHT := 26.0
 const BOOSTER_SIZE := 52.0
 const BOOSTER_GAP := 10.0
-const BOOSTER_Y := 262.0
+const BOOSTER_Y := 250.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -64,46 +64,47 @@ var _hint_hand: TextureRect
 var _hint_move: Array[Vector2i] = []
 
 func build() -> void:
+	shows_top_bar = false
 	# The palace backdrop is a picture, so it is never covered by a flat colour; only the veil art sits
 	# over it, and only at the edges, to keep the header and the column readable.
 	set_backdrop("board_backdrop_ch01", 0.18, 0.5, 0.5, 0.8, 0.7)
 
 	# ---- header: home and pause at the right, the level chip, then the game's name ------------------
-	UiKit.button(self, "home", "خانه", 650.0, 8.0, 72.0, 34.0, UiTokens.SURFACE_RAISED,
+	UiKit.button(self, "home", "خانه", 650.0, 4.0, 72.0, 28.0, UiTokens.SURFACE_RAISED,
 		UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
-	UiKit.button(self, "pause_button", "مکث", 570.0, 8.0, 72.0, 34.0, UiTokens.SURFACE_RAISED,
+	UiKit.button(self, "pause_button", "مکث", 570.0, 4.0, 72.0, 28.0, UiTokens.SURFACE_RAISED,
 		UiTokens.TEXT, _on_pause, UiTokens.RADIUS_MD)
 
-	var level_chip := UiKit.panel(self, "level_chip", 150.0, 8.0, 96.0, 34.0, UiTokens.GOLD,
+	var level_chip := UiKit.panel(self, "level_chip", 150.0, 4.0, 96.0, 28.0, UiTokens.GOLD,
 		UiTokens.RADIUS_MD)
 	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_SM, UiTokens.ON_ACCENT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, 4.0, 0.0, 88.0, 34.0)
+	UiKit.place(_level_label, 4.0, 0.0, 88.0, 28.0)
 
 	var title := UiKit.label(self, "title", "باغ شازده", UiTokens.TYPE_LG, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(title, 252.0, 8.0, 308.0, 34.0)
+	UiKit.place(title, 252.0, 4.0, 308.0, 28.0)
 
 	# ---- the two counters, side by side, each a picture plate with a caption over its number -------
-	var moves_card := _build_card("moves", COLUMN_X, 52.0, 196.0, CARD_HEIGHT)
+	var moves_card := _build_card("moves", COLUMN_X, 40.0, 204.0, CARD_HEIGHT)
 	var moves_caption := UiKit.label(moves_card, "caption", "حرکت‌های باقی‌مانده", UiTokens.TYPE_XS,
 		UiTokens.TEXT_MUTED)
-	UiKit.place(moves_caption, 10.0, 2.0, 176.0, 18.0)
+	UiKit.place(moves_caption, 10.0, 2.0, 184.0, 18.0)
 	_moves_label = UiKit.label(moves_card, "value", "", UiTokens.TYPE_BASE, UiTokens.ACCENT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_moves_label, 10.0, 20.0, 176.0, 24.0)
+	UiKit.place(_moves_label, 10.0, 20.0, 184.0, 24.0)
 
-	var score_card := _build_card("score_card", 220.0, 52.0, 110.0, CARD_HEIGHT)
+	var score_card := _build_card("score_card", 228.0, 40.0, 106.0, CARD_HEIGHT)
 	var score_caption := UiKit.label(score_card, "caption", "امتیاز", UiTokens.TYPE_XS,
 		UiTokens.TEXT_MUTED)
-	UiKit.place(score_caption, 6.0, 2.0, 98.0, 18.0)
+	UiKit.place(score_caption, 6.0, 2.0, 94.0, 18.0)
 	_score_label = UiKit.label(score_card, "score", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, 6.0, 20.0, 98.0, 24.0)
+	UiKit.place(_score_label, 6.0, 20.0, 94.0, 24.0)
 
 	# ---- goal chips, stacked under the counters ---------------------------------------------------
 	for index in range(3):
-		var y := 102.0 + float(index) * (CHIP_HEIGHT + 4.0)
+		var y := 90.0 + float(index) * (CHIP_HEIGHT + 4.0)
 		var chip := UiKit.panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
 			UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 		_goal_chips.append(chip)
@@ -115,7 +116,7 @@ func build() -> void:
 		_goal_labels.append(label)
 
 	# ---- the line that tells the player what to do, or what just went wrong ------------------------
-	var status_card := _build_card("status_card", COLUMN_X, 192.0, COLUMN_W, CARD_HEIGHT)
+	var status_card := _build_card("status_card", COLUMN_X, 182.0, COLUMN_W, CARD_HEIGHT)
 	_hint = UiKit.label(status_card, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_hint, 8.0, 2.0, COLUMN_W - 16.0, CARD_HEIGHT - 4.0)
@@ -123,7 +124,7 @@ func build() -> void:
 
 	var boosters_heading := UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
 		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(boosters_heading, COLUMN_X, 242.0, COLUMN_W, 16.0)
+	UiKit.place(boosters_heading, COLUMN_X, 232.0, COLUMN_W, 16.0)
 
 	# ---- booster bar: all five in one row, sized for a thumb --------------------------------------
 	for kind in range(BoosterBag.SLOTS):

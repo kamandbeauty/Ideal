@@ -19,6 +19,10 @@ var wash_color := Color(0, 0, 0, 0)
 ## which part survives. 0.5/0.5 keeps the middle; 1.0/0.5 pins the plate's right half, which is where
 ## the palace's gate and dome are drawn.
 var backdrop_anchor := Vector2(0.5, 0.5)
+## Whether AppRoot's coin/potion bar belongs over this screen. The board says no: in play the header
+## belongs to the level, and two rows of chips fighting for the same 40 dp is how a HUD starts to
+## overlap itself.
+var shows_top_bar := true
 ## How strongly the art is dimmed at the top and bottom edges so HUD text stays legible over it.
 var scrim := Vector2(0.0, 0.0)
 
