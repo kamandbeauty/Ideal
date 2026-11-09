@@ -342,17 +342,25 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               ),
             ],
           ),
+          // The add button (44) + gap (10) = 54px. Indent the lower tracks so
+          // they line up under the photo strip for a true multi-track look.
           if (watermark != null) ...<Widget>[
             const SizedBox(height: 6),
-            _watermarkLane(st, playback),
+            Padding(
+              padding: const EdgeInsets.only(left: 54),
+              child: _watermarkLane(st, playback),
+            ),
           ],
           // Always-present music track so the timeline shows both the image
           // track and the music track: the real waveform when a song is
           // chosen, a tappable "add music" placeholder otherwise.
           const SizedBox(height: 6),
-          audio?.hasAudio ?? false
-              ? _musicLane(context, l10n, st, playback)
-              : _emptyMusicLane(context, l10n),
+          Padding(
+            padding: const EdgeInsets.only(left: 54),
+            child: audio?.hasAudio ?? false
+                ? _musicLane(context, l10n, st, playback)
+                : _emptyMusicLane(context, l10n),
+          ),
           const SizedBox(height: 6),
           Row(
             children: <Widget>[
