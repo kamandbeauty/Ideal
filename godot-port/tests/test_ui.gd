@@ -111,8 +111,8 @@ func _run() -> void:
 	var ui_files := _list_pngs("res://assets/ui")
 	failures += _check(art_files.size() == 85,
 		"all 85 game plates are present (%d found)" % art_files.size())
-	failures += _check(ui_files.size() == 24,
-		"all 24 picture-chrome plates are present (%d found)" % ui_files.size())
+	failures += _check(ui_files.size() == 25,
+		"all 25 picture-chrome plates are present (%d found)" % ui_files.size())
 	var undecodable: Array[String] = []
 	for path in art_files + ui_files:
 		var texture := load(path) as Texture2D
@@ -195,6 +195,24 @@ func _run() -> void:
 	failures += _check(view.cell_at(outside) == Vector2i(-1, -1), "a touch outside the grid maps to nothing")
 	var last := view.position_for(Vector2i(8, 8)) + Vector2(4.0, 4.0)
 	failures += _check(view.cell_at(last) == Vector2i(8, 8), "the far corner maps to the last cell")
+
+	# A phone delivers a touch and Godot emulates a mouse from it, so the view must answer the real
+	# event and drop the copy. A tap that fires twice selects and immediately deselects, which is what
+	# "the tiles do not respond" looked like on the device.
+	var taps: Array = []
+	var swaps: Array = []
+	view.cell_tapped.connect(func(pos: Vector2i) -> void: taps.append(pos))
+	view.swipe_requested.connect(func(from: Vector2i, to: Vector2i) -> void: swaps.append([from, to]))
+	var first := Vector2i(0, 0)
+	var neighbour := Vector2i(1, 0)
+	_tap(view, view.cell_center(first), 0)
+	failures += _check(taps.size() == 1 and taps[0] == first,
+		"one tap is exactly one cell, not one per input event (%d)" % taps.size())
+	_tap(view, view.cell_center(first), InputEvent.DEVICE_ID_EMULATION)
+	failures += _check(taps.size() == 1, "the emulated copy of a tap is ignored (%d)" % taps.size())
+	_tap(view, view.cell_center(neighbour), 0)
+	failures += _check(swaps.size() == 1 and swaps[0] == [first, neighbour],
+		"two adjacent taps ask for one swap (%d)" % swaps.size())
 
 	print("UI STAGE 5: every level boots and plays through the screen")
 	for number in range(1, GameSession.LEVEL_COUNT + 1):
@@ -433,3 +451,18 @@ func _list_pngs(directory_path: String) -> Array[String]:
 			out.append(directory_path.path_join(file_name))
 	out.sort()
 	return out
+
+## Presses and releases the view the way the engine would, at a point in view-local coordinates.
+func _tap(view: BoardView, point: Vector2, device: int) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = point
+	press.device = device
+	view._gui_input(press)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	release.position = point
+	release.device = device
+	view._gui_input(release)

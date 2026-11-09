@@ -17,7 +17,9 @@ const FALL_SECONDS := 0.22
 const SWAP_SECONDS := 0.14
 const REJECT_SECONDS := 0.16
 const TILE_INSET := 1.0
-const PIECE_INSET := 2.0
+# A gem that floats inside its tile with a wide dark margin is the single biggest reason the board
+# read as a prototype: the art is 128 px with a gold rim, so at 36 dp the rim IS the border.
+const PIECE_INSET := 0.5
 
 var run: LevelRun
 var cell_size := 44.0
@@ -91,7 +93,11 @@ func rebuild() -> void:
 	_tiles.clear()
 	if run == null:
 		return
-	var tile_art := UiKit.texture("board_tile")
+	# The cell is a carved picture too: the Unity plate is a flat dark square, and a flat dark square
+	# behind every gem is what made the board look like a prototype rather than a jewelled tray.
+	var tile_art := UiKit.ui_texture("ui_tile_frame")
+	if tile_art == null:
+		tile_art = UiKit.texture("board_tile")
 	for y in range(run.board.height):
 		for x in range(run.board.width):
 			var pos := Vector2i(x, y)
@@ -195,6 +201,12 @@ func _build_cell(pos: Vector2i, cell, tile_art: Texture2D) -> Control:
 
 func _gui_input(event: InputEvent) -> void:
 	if _busy:
+		return
+	# Godot emulates a mouse from every touch (and, in this project, a touch from every mouse). Handling
+	# both would run press/release twice per tap: the first pair selects a piece and the second pair
+	# selects it again, which on a phone reads as "the tiles do not respond, or respond elsewhere".
+	# The emulation device is -1, so the real event wins and its copy is dropped.
+	if event.device == InputEvent.DEVICE_ID_EMULATION:
 		return
 	if event is InputEventMouseButton:
 		var mouse := event as InputEventMouseButton
