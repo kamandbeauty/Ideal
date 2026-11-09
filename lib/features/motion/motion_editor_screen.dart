@@ -1067,9 +1067,10 @@ class _MotionCanvasPainter extends CustomPainter {
           final uv = imageToUv(sampled.x, sampled.y, fit);
           trace.add(MatrixUtils.transformPoint(safeM, Offset(uv.u, uv.v)));
         }
-        final line = Path()..moveTo(trace.first);
+        final line = Path()
+          ..moveTo(trace.first.dx, trace.first.dy);
         for (final p in trace.skip(1)) {
-          line.lineTo(p);
+          line.lineTo(p.dx, p.dy);
         }
         canvas.drawPath(
           line,
