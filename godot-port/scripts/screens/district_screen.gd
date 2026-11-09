@@ -27,7 +27,7 @@ var _plates: Array[TextureRect] = []
 var _task_rows: Array[Dictionary] = []
 
 func build() -> void:
-	set_backdrop("map_backdrop", 0.42, 0.5, 0.5, 0.90, 0.80)
+	set_backdrop("map_terrace", 0.26, 0.5, 0.5, 0.85, 0.78)
 
 	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 46.0, 84.0, 36.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)

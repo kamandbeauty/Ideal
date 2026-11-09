@@ -64,6 +64,20 @@ static func forget_textures() -> void:
 ## The UI furniture lives apart from the game art: `assets/ui/` is drawn by `tools/make_ui_art.py`
 ## from the same palette as `UiTokens`, so a reviewer can diff the two and see that nothing invented a
 ## colour of its own.
+## Backdrops are their own folder and their own size: a screen is 738 x 415 dp of landscape, while the
+## Unity plates are square, so scaling one to cover the window cropped it to a random square of itself.
+## `assets/backdrops/` holds the painted 1476 x 830 versions; the Unity art stays as the fallback.
+const BACKDROP_DIR := "res://assets/backdrops/"
+
+static func backdrop_texture(art_id: String) -> Texture2D:
+	if art_id.is_empty():
+		return null
+	var path := BACKDROP_DIR + art_id + ".png"
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	return texture(art_id)
+
+
 static func ui_texture(art_id: String) -> Texture2D:
 	var path := "res://assets/ui/%s.png" % art_id
 	if _textures.has(path):

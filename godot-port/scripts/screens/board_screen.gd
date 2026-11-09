@@ -81,7 +81,7 @@ func build() -> void:
 	shows_top_bar = false
 	# The palace backdrop is a picture, so it is never covered by a flat colour; only the veil art sits
 	# over it, and only at the edges, to keep the header and the column readable.
-	set_backdrop("board_backdrop_ch01", 0.18, 0.5, 0.5, 0.8, 0.7)
+	set_backdrop("hall_night", 0.12, 0.5, 0.5, 0.55, 0.55)
 
 	# ---- header: home and pause at the right, the level chip, then the game's name ------------------
 	UiKit.button(self, "home", "خانه", 650.0, 2.0, 72.0, 32.0, UiTokens.SURFACE_RAISED,

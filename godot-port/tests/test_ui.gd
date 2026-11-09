@@ -111,8 +111,21 @@ func _run() -> void:
 	var ui_files := _list_pngs("res://assets/ui")
 	failures += _check(art_files.size() == 85,
 		"all 85 game plates are present (%d found)" % art_files.size())
-	failures += _check(ui_files.size() == 25,
-		"all 25 picture-chrome plates are present (%d found)" % ui_files.size())
+	failures += _check(ui_files.size() == 27,
+		"all 27 picture-chrome plates are present (%d found)" % ui_files.size())
+	# The backdrops are their own pictures at their own size. A square Unity plate scaled to cover a
+	# landscape window is a crop, not a backdrop, and the first device screenshot showed exactly that.
+	var backdrop_files := _list_pngs("res://assets/backdrops")
+	failures += _check(backdrop_files.size() == 5,
+		"all 5 painted backdrops are present (%d found)" % backdrop_files.size())
+	var narrow: Array[String] = []
+	for path in backdrop_files:
+		var backdrop := load(path) as Texture2D
+		if backdrop == null or backdrop.get_width() < 1440 or backdrop.get_height() < 800:
+			narrow.append(path)
+	failures += _check(narrow.is_empty(),
+		"every backdrop is painted at landscape size, not upscaled from a square (%s)" % ", ".join(narrow))
+
 	# The stones are re-cut pictures in their own folder, on top of the Unity ones that still ship, so
 	# counting `assets/art` alone would not notice if they went missing.
 	var gem_files := _list_pngs("res://assets/gems")
@@ -466,6 +479,16 @@ func _run() -> void:
 	var spilled := _outside_canvas(app, 2.0)
 	failures += _check(spilled.is_empty(),
 		"nothing draws outside the %dx%d design space: %s" % [int(UiTokens.CANVAS_WIDTH), int(UiTokens.CANVAS_HEIGHT), ", ".join(spilled)])
+	# A picture that the engine painted at run time is still a drawn shape. The last one was the edge
+	# scrim, a GradientTexture2D built in `_make_scrim`; both scrims and the window art must be files.
+	var runtime_pictures: Array[String] = []
+	for key in ["_scrim_top", "_scrim_bottom", "_bg"]:
+		var painted := app.get(key) as TextureRect
+		if painted == null or painted.texture == null or painted.texture is GradientTexture2D:
+			runtime_pictures.append(key)
+	failures += _check(runtime_pictures.is_empty(),
+		"the scrims and the window art are shipped pictures, not gradients made at run time (%s)"
+		% ", ".join(runtime_pictures))
 	# The strict rule, applied to the whole app rather than to a list of widgets the test knows about:
 	# not one panel, not one button state, not one rectangle in any of the five screens may be a shape
 	# the engine rounded at runtime. Everything the player sees is a shipped picture. Focus styles are

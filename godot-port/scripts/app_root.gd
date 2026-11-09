@@ -133,7 +133,7 @@ func _show_screen(target: UiScreen) -> void:
 	for screen in [home, board, districts, shop, settings]:
 		screen.set_visible_screen(screen == target)
 	_current = target
-	_bg.texture = UiKit.texture(target.backdrop_art)
+	_bg.texture = UiKit.backdrop_texture(target.backdrop_art)
 	_wash.modulate = target.wash_color
 	_paint_window_art(target)
 	_center_stage()
@@ -226,21 +226,13 @@ func _paint_window_art(target: UiScreen) -> void:
 		scrim_node.size = Vector2(viewport.x, height)
 		scrim_node.position = Vector2(0.0, 0.0) if bool(pair[2]) else Vector2(0.0, viewport.y - height)
 
-## A one-pixel-wide vertical gradient that fades the background colour in from an edge.
+## The edge scrim: a shipped picture of the background colour fading out, tinted by `modulate.a`.
+## It used to be a `GradientTexture2D` built here, which is a picture the engine painted at run time —
+## the one thing the picture rule forbids, and the sweep test now fails on a gradient that sneaks back.
 func _make_scrim(node_name: String, from_top: bool) -> TextureRect:
-	var gradient := Gradient.new()
-	var bg := Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b, 1.0)
-	gradient.set_color(0, bg if from_top else Color(bg.r, bg.g, bg.b, 0.0))
-	gradient.set_color(1, Color(bg.r, bg.g, bg.b, 0.0) if from_top else bg)
-	var texture := GradientTexture2D.new()
-	texture.gradient = gradient
-	texture.width = 4
-	texture.height = 128
-	texture.fill_from = Vector2(0.0, 0.0)
-	texture.fill_to = Vector2(0.0, 1.0)
 	var node := TextureRect.new()
 	node.name = node_name
-	node.texture = texture
+	node.texture = UiKit.ui_texture("ui_scrim_top" if from_top else "ui_scrim_bottom")
 	node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	node.stretch_mode = TextureRect.STRETCH_SCALE
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE

@@ -323,6 +323,22 @@ def main():
     grabber = gradient((8, 32), 4, [(0.0, GOLD_LIGHT), (1.0, GOLD_DARK)])
     save(grabber, "ui_scrollgrabber")
 
+    # The edge scrims. These used to be a GradientTexture2D built in `app_root._make_scrim`, which is a
+    # picture the engine painted at runtime — the one thing the picture rule does not allow. They are
+    # baked here at the background colour, and the screen tints them with `modulate.a`.
+    bg = BG
+    top = Image.new("RGBA", (8, 256))
+    bottom = Image.new("RGBA", (8, 256))
+    for y in range(256):
+        t = y / 255.0
+        top_alpha = int(255 * (1.0 - t) ** 1.7)
+        bottom_alpha = int(255 * t ** 1.7)
+        for x in range(8):
+            top.putpixel((x, y), bg + (top_alpha,))
+            bottom.putpixel((x, y), bg + (bottom_alpha,))
+    save(top, "ui_scrim_top")
+    save(bottom, "ui_scrim_bottom")
+
     # A soft shadow plate a panel can sit on, so depth is a picture and not a StyleBoxFlat shadow.
     shadow = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     d = ImageDraw.Draw(shadow)

@@ -24,7 +24,7 @@ var _chapter_label: Label
 func build() -> void:
 	# The palace is the window's own picture (AppRoot paints it full-bleed at whatever shape the device
 	# is); the screen only dims it enough for the title to read.
-	set_backdrop("home_palace_lit", 0.38, 0.55, 0.5, 0.95, 0.92)
+	set_backdrop("garden_dusk", 0.20, 0.5, 0.5, 0.80, 0.70)
 
 	var title := UiKit.label(self, "title", TITLE, UiTokens.TYPE_DISPLAY, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
