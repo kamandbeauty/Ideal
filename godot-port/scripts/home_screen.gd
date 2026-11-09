@@ -59,12 +59,10 @@ func _build_ui() -> void:
 	add_child(margin)
 
 	var layout := VBoxContainer.new()
-	layout.alignment = BoxContainer.ALIGNMENT_CENTER
-	layout.add_theme_constant_override("separation", 18)
+	layout.add_theme_constant_override("separation", 12)
 	margin.add_child(layout)
 
 	var top_row := HBoxContainer.new()
-	top_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	top_row.add_theme_constant_override("separation", 10)
 	layout.add_child(top_row)
 	_stats_label = Label.new()
@@ -77,84 +75,88 @@ func _build_ui() -> void:
 	stats_panel.add_child(_stats_label)
 	top_row.add_child(stats_panel)
 	var settings_button := Button.new()
-	settings_button.text = "⚙"
-	settings_button.custom_minimum_size = Vector2(54, 54)
+	settings_button.text = "⚙ تنظیمات"
+	settings_button.custom_minimum_size = Vector2(130, 48)
 	_style_button(settings_button, Color(0.06, 0.19, 0.18, 0.95), GOLD)
 	settings_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/settings_screen.tscn"))
 	top_row.add_child(settings_button)
 	_refresh_stats()
 
+	var main_row := HBoxContainer.new()
+	main_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	main_row.add_theme_constant_override("separation", 16)
+	layout.add_child(main_row)
+
 	var hero := PanelContainer.new()
-	hero.add_theme_stylebox_override("panel", _panel_style(Color(0.018, 0.085, 0.085, 0.91), Color(0.91, 0.72, 0.36, 0.95), 28, 22))
-	layout.add_child(hero)
+	hero.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hero.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hero.add_theme_stylebox_override("panel", _panel_style(Color(0.018, 0.085, 0.085, 0.91), Color(0.91, 0.72, 0.36, 0.95), 28, 18))
+	main_row.add_child(hero)
 	var hero_body := VBoxContainer.new()
 	hero_body.alignment = BoxContainer.ALIGNMENT_CENTER
-	hero_body.add_theme_constant_override("separation", 9)
+	hero_body.add_theme_constant_override("separation", 7)
 	hero.add_child(hero_body)
 
 	var eyebrow := Label.new()
 	eyebrow.text = "ماجرای بازسازی باغ ایرانی"
 	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	eyebrow.add_theme_font_size_override("font_size", 15)
+	eyebrow.add_theme_font_size_override("font_size", 14)
 	eyebrow.add_theme_color_override("font_color", Color(0.79, 0.9, 0.78))
 	hero_body.add_child(eyebrow)
-
 	var emblem := TextureRect.new()
 	emblem.texture = AssetCatalog.texture("res://assets/art/icon_crown.png")
-	emblem.custom_minimum_size = Vector2(104, 104)
+	emblem.custom_minimum_size = Vector2(68, 68)
 	emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	emblem.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	hero_body.add_child(emblem)
-
 	var title := Label.new()
 	title.text = "باغ شازده"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_font_size_override("font_size", 40)
 	title.add_theme_color_override("font_color", GOLD)
 	hero_body.add_child(title)
-
 	var subtitle := Label.new()
 	subtitle.text = "جواهرها را جور کن؛ شکوه باغ را دوباره زنده کن"
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	subtitle.add_theme_font_size_override("font_size", 17)
+	subtitle.add_theme_font_size_override("font_size", 15)
 	hero_body.add_child(subtitle)
-
 	_progress_label = Label.new()
 	_progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_progress_label.add_theme_font_size_override("font_size", 16)
+	_progress_label.add_theme_font_size_override("font_size", 14)
 	_progress_label.add_theme_color_override("font_color", Color(0.88, 0.82, 0.63))
 	hero_body.add_child(_progress_label)
 	_refresh_progress()
-
 	var start_button := Button.new()
-	start_button.text = "✦   ورود به باغ و شروع بازی   ✦"
-	start_button.custom_minimum_size = Vector2(0, 66)
-	start_button.add_theme_font_size_override("font_size", 22)
+	start_button.text = "✦   ورود به نقشهٔ مراحل   ✦"
+	start_button.custom_minimum_size = Vector2(0, 58)
+	start_button.add_theme_font_size_override("font_size", 21)
 	_style_button(start_button, Color(0.69, 0.43, 0.13, 1.0), Color(1.0, 0.88, 0.56), 18)
 	start_button.pressed.connect(func() -> void: get_tree().change_scene_to_file("res://scenes/level_map_screen.tscn"))
 	hero_body.add_child(start_button)
 
+	var menu_panel := PanelContainer.new()
+	menu_panel.custom_minimum_size.x = 260
+	menu_panel.add_theme_stylebox_override("panel", _panel_style(Color(0.02, 0.075, 0.08, 0.92), Color(0.65, 0.57, 0.38, 0.85), 22, 14))
+	main_row.add_child(menu_panel)
+	var menu_column := VBoxContainer.new()
+	menu_column.alignment = BoxContainer.ALIGNMENT_CENTER
+	menu_column.add_theme_constant_override("separation", 12)
+	menu_panel.add_child(menu_column)
 	var section_title := Label.new()
 	section_title.text = "بخش‌های باغ"
 	section_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	section_title.add_theme_font_size_override("font_size", 19)
 	section_title.add_theme_color_override("font_color", GOLD)
-	layout.add_child(section_title)
-
-	var menu_grid := GridContainer.new()
-	menu_grid.columns = 2
-	menu_grid.add_theme_constant_override("h_separation", 12)
-	menu_grid.add_theme_constant_override("v_separation", 12)
-	layout.add_child(menu_grid)
-	_add_menu_button(menu_grid, "ساخت قلمرو", "باغ را گسترش بده", "res://assets/art/prop_ch01_pavilion.png", "res://scenes/district_screen.tscn")
-	_add_menu_button(menu_grid, "فروشگاه", "گنج و ابزارها", "res://assets/art/reward_chest.png", "res://scenes/shop_screen.tscn")
+	menu_column.add_child(section_title)
+	_add_menu_button(menu_column, "ساخت قلمرو", "باغ را گسترش بده", "res://assets/art/prop_ch01_pavilion.png", "res://scenes/district_screen.tscn")
+	_add_menu_button(menu_column, "فروشگاه", "گنج و ابزارها", "res://assets/art/reward_chest.png", "res://scenes/shop_screen.tscn")
 
 	var footer := Label.new()
 	footer.text = "به باغ شازده خوش آمدی"
 	footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	footer.add_theme_font_size_override("font_size", 14)
+	footer.add_theme_font_size_override("font_size", 13)
 	footer.add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 0.86))
 	layout.add_child(footer)
 
@@ -179,9 +181,9 @@ func _style_button(button: Button, background: Color, accent: Color, radius: int
 	button.add_theme_stylebox_override("pressed", _panel_style(background.darkened(0.12), accent.lightened(0.1), radius, 10))
 	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 
-func _add_menu_button(parent: GridContainer, label: String, caption: String, icon_path: String, scene_path: String) -> void:
+func _add_menu_button(parent: VBoxContainer, label: String, caption: String, icon_path: String, scene_path: String) -> void:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(0, 94)
+	button.custom_minimum_size = Vector2(0, 104)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.text = label + "\n" + caption
 	button.icon = AssetCatalog.texture(icon_path)
