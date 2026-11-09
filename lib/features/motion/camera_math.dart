@@ -142,12 +142,17 @@ CameraState clampCamera(CameraState state, ImageFit fit, Viewport vp) {
 }
 
 /// Normalized image coordinate (origin at image center) -> texture UV.
+///
+/// `y` is *down-positive*, matching `screenToImage` and the renderer: the top
+/// of the image maps to `v = 0`, the bottom to `v = 1`. (An earlier y-up sign
+/// mirrored the safe frame and the camera-path trail vertically for any
+/// off-centre or rotated camera.)
 ({double u, double v}) imageToUv(double x, double y, ImageFit fit) =>
-    (u: 0.5 + x / (2 * fit.iw), v: 0.5 - y / (2 * fit.ih));
+    (u: 0.5 + x / (2 * fit.iw), v: 0.5 + y / (2 * fit.ih));
 
-/// Texture UV -> normalized image coordinate.
+/// Texture UV -> normalized image coordinate (inverse of [imageToUv]).
 ({double x, double y}) uvToImage(double u, double v, ImageFit fit) =>
-    (x: (u - 0.5) * 2 * fit.iw, y: (0.5 - v) * 2 * fit.ih);
+    (x: (u - 0.5) * 2 * fit.iw, y: (v - 0.5) * 2 * fit.ih);
 
 /// The four corners of the visible area, in normalized image space.
 ///

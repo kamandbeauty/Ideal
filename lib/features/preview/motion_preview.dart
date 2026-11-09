@@ -392,19 +392,28 @@ class _TimelinePainter extends CustomPainter {
     final motion = photo.motion;
     if (motion == null) return;
     final fit = ImageFit.make(photo.width, photo.height, vp);
+    // One fixed reference camera (the active time) for the whole curve, so the
+    // path is drawn in a single consistent view: the active position lands at
+    // the canvas centre, earlier/later positions fan out around it. This is
+    // the same matrix the active layer is painted with, so the path lines up
+    // exactly with the rendered photo. (Mapping each point through its *own*
+    // camera matrix collapses every point to the centre — the camera centre is
+    // always the viewport centre under its own transform.)
+    final tNow = (activeLocalTime ?? 0).clamp(0.0, photo.duration);
+    final camNow = motion.sample(tNow, fit, vp);
+    final mNow = previewMatrix(
+        cam: camNow, fit: fit, vp: vp, outputSize: size);
+    Offset toCanvas(double cx, double cy) {
+      final uv = imageToUv(cx, cy, fit);
+      return MatrixUtils.transformPoint(mNow, Offset(uv.u, uv.v));
+    }
+
     final path = Path();
     const steps = 64;
     for (var i = 0; i <= steps; i++) {
       final t = photo.duration * i / steps;
       final cam = motion.sample(t, fit, vp);
-      // Camera centre in output pixels: the image point (cam.x, cam.y) maps
-      // through the inverse of the camera transform, i.e. the viewport centre
-      // plus the offset of that image point from the camera centre.
-      final uv = imageToUv(cam.x, cam.y, fit);
-      final m = previewMatrix(
-          cam: cam, fit: fit, vp: vp, outputSize: size);
-      final off = MatrixUtils.transformPoint(
-          m, Offset(uv.u, uv.v));
+      final off = toCanvas(cam.x, cam.y);
       if (i == 0) {
         path.moveTo(off.dx, off.dy);
       } else {
@@ -421,10 +430,7 @@ class _TimelinePainter extends CustomPainter {
     // Keyframe markers
     for (final k in motion.keyframes) {
       final cam = motion.sample(k.time, fit, vp);
-      final uv = imageToUv(cam.x, cam.y, fit);
-      final m = previewMatrix(
-          cam: cam, fit: fit, vp: vp, outputSize: size);
-      final p = MatrixUtils.transformPoint(m, Offset(uv.u, uv.v));
+      final p = toCanvas(cam.x, cam.y);
       final isActive = activeLocalTime != null &&
           (activeLocalTime! - k.time).abs() < 0.05;
       canvas.drawCircle(

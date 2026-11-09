@@ -24,6 +24,9 @@ class PreviewScreen extends ConsumerStatefulWidget {
 }
 
 class _PreviewScreenState extends ConsumerState<PreviewScreen> {
+  /// Overlays the active photo's camera path on the preview.
+  bool _showMotionPath = true;
+
   @override
   void initState() {
     super.initState();
@@ -70,6 +73,16 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
         title: Text(l10n.t('preview_title')),
         actions: <Widget>[
           IconButton(
+            tooltip: l10n.t('motion_show_path'),
+            onPressed: () => setState(() => _showMotionPath = !_showMotionPath),
+            icon: Icon(
+              _showMotionPath ? Icons.route_rounded : Icons.route_outlined,
+              color: _showMotionPath
+                  ? AppColors.blue
+                  : context.theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          IconButton(
             tooltip: l10n.t('preview_edit_current'),
             onPressed: currentIndex < st.project.photos.length
                 ? () {
@@ -91,7 +104,15 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
                   padding: const EdgeInsets.all(AppTheme.s16),
                   // Music plays here too, in sync with the playhead.
                   child: PreviewAudioSync(
-                      child: MotionPreview(project: st.project, frame: frame)),
+                    child: MotionPreview(
+                      project: st.project,
+                      frame: frame,
+                      showMotionPath: _showMotionPath,
+                      activePhotoIndex: currentIndex,
+                      activeLocalTime:
+                          frame.layers.isEmpty ? 0 : frame.layers.last.localTime,
+                    ),
+                  ),
                 ),
               ),
             ),

@@ -87,12 +87,14 @@ jobs:
           gh api repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/comments \
             -F body=@commit-comment.md
 
+      # Filenames use the device class (not the raw ABI) so it is obvious which
+      # file to install: "new phones" / "old phones" / "emulator".
       - name: Collect APKs
         run: |
           mkdir -p dist
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/motionshot-arm64-v8a.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/motionshot-armeabi-v7a.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/motionshot-x86_64.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dist/motionshot-new-phones.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk dist/motionshot-old-phones.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk dist/motionshot-emulator.apk
           ls -lh dist/
 
       - name: Upload artifact
@@ -122,13 +124,16 @@ jobs:
           body: |
             MotionShot — release APK (build ${{ github.sha }})
 
-            Pick your file:
-            - `motionshot-arm64-v8a.apk` — every phone from ~2017 onward (choose this)
-            - `motionshot-armeabi-v7a.apk` — older 32-bit devices
-            - `motionshot-x86_64.apk` — emulators
+            **Pick the file for your phone:**
+            - `motionshot-new-phones.apk` — Newer phones (64-bit / arm64). Every phone from ~2017 onward. **Choose this.**
+            - `motionshot-old-phones.apk` — Older 32-bit phones (armv7).
+            - `motionshot-emulator.apk` — Emulators / development (x86_64).
 
+            Requires Android 7.0 (API 24) or newer.
             Install: copy the APK to the phone and open it
             (allow "install unknown apps").
+
+            برای گوشی جدید: `motionshot-new-phones.apk` را انتخاب کنید.
           files: dist/*.apk
           fail_on_unmatched_files: true
           overwrite: true

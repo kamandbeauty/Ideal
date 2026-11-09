@@ -92,6 +92,9 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
   int _selectedKf = 0;
   double _playhead = 0;
   bool _playing = false;
+  /// Overlays the camera's travel path on the canvas so a move can be checked
+  /// at a glance (toggle in the canvas header).
+  bool _showMotionPath = true;
   late final AnimationController _clock =
       AnimationController(vsync: this, duration: const Duration(seconds: 5));
 
@@ -291,6 +294,17 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
             _frameChip(l10n.t('motion_end_frame'),
                 (motion?.keyframes.length ?? 2) - 1),
             const Spacer(),
+            IconButton(
+              tooltip: l10n.t('motion_show_path'),
+              onPressed: () =>
+                  setState(() => _showMotionPath = !_showMotionPath),
+              icon: Icon(
+                _showMotionPath ? Icons.route_rounded : Icons.route_outlined,
+                color: _showMotionPath
+                    ? AppColors.blue
+                    : context.theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
             if (photo.isLocked)
               Pill(
                 label: l10n.t('editor_locked'),
@@ -358,6 +372,7 @@ class _MotionEditorScreenState extends ConsumerState<MotionEditorScreen>
                     viewport: vp,
                     playhead: _playing ? _playhead : (_currentKf?.time ?? 0),
                     showOtherFrame: true,
+                    showMotionPath: _showMotionPath,
                   ),
                 ),
         ),
@@ -892,6 +907,7 @@ class _MotionCanvas extends ConsumerWidget {
     required this.viewport,
     required this.playhead,
     required this.showOtherFrame,
+    required this.showMotionPath,
   });
 
   final PhotoItem photo;
@@ -899,6 +915,7 @@ class _MotionCanvas extends ConsumerWidget {
   final Viewport viewport;
   final double playhead;
   final bool showOtherFrame;
+  final bool showMotionPath;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -927,6 +944,7 @@ class _MotionCanvas extends ConsumerWidget {
                 viewport: viewport,
                 playhead: playhead,
                 showOtherFrame: showOtherFrame,
+                showMotionPath: showMotionPath,
                 image: cache.imageFor(photo.id),
               ),
               child: const SizedBox.expand(),
@@ -945,6 +963,7 @@ class _MotionCanvasPainter extends CustomPainter {
     required this.viewport,
     required this.playhead,
     required this.showOtherFrame,
+    required this.showMotionPath,
     required this.image,
   });
 
@@ -953,6 +972,7 @@ class _MotionCanvasPainter extends CustomPainter {
   final Viewport viewport;
   final double playhead;
   final bool showOtherFrame;
+  final bool showMotionPath;
   final ui.Image? image;
 
   @override
@@ -1032,6 +1052,59 @@ class _MotionCanvasPainter extends CustomPainter {
     for (final p in pts) {
       canvas.drawCircle(p, 3, Paint()..color = Colors.white);
     }
+
+    // Camera travel path: the curve the camera centre follows across the
+    // photo, drawn in the *current* view so the playhead position sits at the
+    // canvas centre and earlier/later positions fan out around it. This is the
+    // exact trajectory the renderer produces (`motion.sample`).
+    if (showMotionPath) {
+      final dur = photo.duration;
+      if (dur > 0) {
+        const n = 48;
+        final trace = <Offset>[];
+        for (var i = 0; i <= n; i++) {
+          final sampled = motion.sample(dur * i / n, fit, vp);
+          final uv = imageToUv(sampled.x, sampled.y, fit);
+          trace.add(MatrixUtils.transformPoint(safeM, Offset(uv.u, uv.v)));
+        }
+        final line = Path()..moveTo(trace.first);
+        for (final p in trace.skip(1)) {
+          line.lineTo(p);
+        }
+        canvas.drawPath(
+          line,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 2.4
+            ..strokeCap = StrokeCap.round
+            ..strokeJoin = StrokeJoin.round
+            ..color = AppColors.blue.withValues(alpha: 0.95),
+        );
+        // Keyframe markers (editable stops on the curve).
+        for (final kf in motion.keyframes) {
+          final uv = imageToUv(kf.x, kf.y, fit);
+          final p = MatrixUtils.transformPoint(safeM, Offset(uv.u, uv.v));
+          canvas.drawRect(
+            Rect.fromCenter(center: p, width: 7, height: 7),
+            Paint()..color = AppColors.amber,
+          );
+        }
+        // Start (green) / end (red) dots.
+        canvas.drawCircle(trace.first, 5, Paint()..color = AppColors.mint);
+        canvas.drawCircle(trace.last, 5, Paint()..color = AppColors.danger);
+        // Current position: the playhead camera centre is the canvas centre.
+        final centre = Offset(size.width / 2, size.height / 2);
+        canvas.drawCircle(
+          centre,
+          9,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5
+            ..color = Colors.white.withValues(alpha: 0.8),
+        );
+        canvas.drawCircle(centre, 4, Paint()..color = Colors.white);
+      }
+    }
   }
 
   @override
@@ -1039,5 +1112,6 @@ class _MotionCanvasPainter extends CustomPainter {
       old.playhead != playhead ||
       old.photo.id != photo.id ||
       old.image != image ||
-      !identical(old.motion, motion);
+      !identical(old.motion, motion) ||
+      old.showMotionPath != showMotionPath;
 }
