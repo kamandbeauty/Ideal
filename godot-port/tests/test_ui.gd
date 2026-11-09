@@ -111,8 +111,8 @@ func _run() -> void:
 	var ui_files := _list_pngs("res://assets/ui")
 	failures += _check(art_files.size() == 85,
 		"all 85 game plates are present (%d found)" % art_files.size())
-	failures += _check(ui_files.size() == 27,
-		"all 27 picture-chrome plates are present (%d found)" % ui_files.size())
+	failures += _check(ui_files.size() == 28,
+		"all 28 picture-chrome plates are present (%d found)" % ui_files.size())
 	# The backdrops are their own pictures at their own size. A square Unity plate scaled to cover a
 	# landscape window is a crop, not a backdrop, and the first device screenshot showed exactly that.
 	var backdrop_files := _list_pngs("res://assets/backdrops")
@@ -251,6 +251,36 @@ func _run() -> void:
 	_drag(view, view.cell_center(first), view.cell_center(neighbour), InputEvent.DEVICE_ID_EMULATION)
 	failures += _check(swaps.size() == 1, "the emulated copy of a drag asks for nothing (%d)" % swaps.size())
 
+	# Precision. A thumb rolls a few dp when it taps, and the old rule — "you lifted over the next
+	# cell, so it is a swipe" — swapped two gems for that. A gesture under the threshold is a tap on
+	# the cell that was pressed, whatever cell the finger ended over.
+	taps.clear()
+	swaps.clear()
+	# The press starts 4 dp from the boundary, so a 10 dp roll of the thumb ends up over the neighbour
+	# while still being a tap: this is the exact gesture that used to swap two gems.
+	var edge := view.cell_center(first) + Vector2(view.cell_size * 0.5 - 4.0, 0.0)
+	_drag(view, edge, edge + Vector2(10.0, 0.0), 0)
+	failures += _check(taps == [first] and swaps.is_empty(),
+		"a tap whose thumb rolls into the next cell is still a tap (%d taps, %d swipes)"
+		% [taps.size(), swaps.size()])
+
+	# A diagonal drag is a drag along the axis the player leaned towards, not a refusal.
+	taps.clear()
+	swaps.clear()
+	var diagonal := view.cell_center(first) + Vector2(view.cell_size * 0.9, view.cell_size * 0.6)
+	_drag(view, view.cell_center(first), diagonal, 0)
+	failures += _check(swaps.size() == 1 and swaps[0] == [first, neighbour],
+		"a diagonal drag swipes along its dominant axis (%s)" % str(swaps))
+
+	# And a drag that would leave the board does nothing at all.
+	taps.clear()
+	swaps.clear()
+	_drag(view, view.cell_center(first), view.cell_center(first) + Vector2(-view.cell_size, 0.0), 0)
+	_drag(view, view.cell_center(first), view.cell_center(first) + Vector2(0.0, -view.cell_size), 0)
+	failures += _check(taps.is_empty() and swaps.is_empty(),
+		"a swipe off the edge of the board asks for nothing (%d taps, %d swipes)"
+		% [taps.size(), swaps.size()])
+
 	print("UI STAGE 5: every level boots and plays through the screen")
 	for number in range(1, GameSession.LEVEL_COUNT + 1):
 		session.save.level_number = number
@@ -279,6 +309,7 @@ func _run() -> void:
 			var plate_checks := {"score_card": score_card, "moves": screen.get_node_or_null("moves"),
 				"status_card": screen.get_node_or_null("status_card"),
 				"wallet_card": screen.get_node_or_null("wallet_card"),
+				"board_tray": screen.get_node_or_null("board_tray"),
 				"board_frame": screen.get_node_or_null("board_frame")}
 			var drawn: Array[String] = []
 			for key in plate_checks:

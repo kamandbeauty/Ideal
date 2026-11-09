@@ -281,6 +281,21 @@ def main():
     # A row in a list: same plate, a touch flatter, because rows are stacked shoulder to shoulder.
     plate("ui_row", (96, 72), 18, SURFACE, (58, 92, 136), rim_colour=None, gloss=0.25, marks=BORDER)
 
+    # The tray the board sits on: velvet with a lattice worked into it and a gold stitch. The board used
+    # to float on whatever the backdrop happened to be, which read as "the gems are on the wallpaper".
+    tray = gradient((96, 96), 18, [(0.0, (44, 60, 96)), (0.45, (24, 34, 60)), (1.0, (15, 22, 42))])
+    lattice = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
+    lattice_draw = ImageDraw.Draw(lattice)
+    for step in range(-96, 192, 12):
+        lattice_draw.line((step, 0, step + 96, 96), fill=(120, 156, 200, 34), width=1)
+        lattice_draw.line((step, 96, step + 96, 0), fill=(120, 156, 200, 26), width=1)
+    tray.alpha_composite(lattice)
+    tray = bevel(tray, 18, top_alpha=70, bottom_alpha=150)
+    tray = grain(tray, strength=4)
+    tray = rim(tray, 18, (46, 64, 104), width=2)
+    tray = hairline(tray, 18, GOLD, inset=6, alpha=90)
+    save(tray, "ui_board_tray")
+
     # The board's tile: a carved square the gem sits in, with a gold rim and a dark well.
     tile = gradient((72, 72), 14, [(0.0, _scale(SURFACE, 1.45)), (0.5, SURFACE), (1.0, _scale(BG, 1.2))])
     tile = bevel(tile, 14, top_alpha=120, bottom_alpha=150)

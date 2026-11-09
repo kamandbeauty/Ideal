@@ -104,18 +104,23 @@ def arch_points(x0, x1, spring_y, height, steps=26):
     return left + right
 
 
-def onion_dome(centre_x, base_y, width, height, steps=40):
-    """A dome that swells and then tapers to a point — the profile a plain half ellipse does not have."""
+def onion_dome(centre_x, base_y, width, height, steps=44):
+    """The profile of a Persian dome: full width at the base, a bulge that leans out, then a point.
+
+    A plain half ellipse reads as a hat. The bulge is the whole silhouette, so it is worth the maths.
+    """
     left = []
     for index in range(steps + 1):
         t = index / steps
         y = base_y - height * t
-        half = width * 0.5 * math.sin(math.pi * min(1.0, 0.12 + t * 0.95)) ** 0.62 * (1.0 - t * 0.15)
-        if t > 0.86:
-            half *= (1.0 - t) / 0.14
-        left.append((centre_x - half, y))
+        if t < 0.30:
+            k = 1.0 - 0.05 * (t / 0.30) ** 2
+        else:
+            u = (t - 0.30) / 0.70
+            k = math.cos(u * math.pi * 0.5) ** 0.80
+        left.append((centre_x - width * 0.5 * k, y))
     right = [(2 * centre_x - x, y) for x, y in reversed(left)]
-    return left + [(centre_x, base_y - height * 1.02)] + right
+    return left + [(centre_x, base_y - height * 1.05)] + right
 
 
 def cypress(centre_x, base_y, height, width, colour):
@@ -134,19 +139,85 @@ def cypress(centre_x, base_y, height, width, colour):
     return points
 
 
+
+def draw_pavilion(image, centre_x, width, base_y, height, warm=(244, 190, 122)):
+    """A small palace pavilion: three lit arches under a shaded dome, with a gold finial.
+
+    The skyline alone reads as a town far away. A pavilion in the middle distance is what makes the
+    backdrop a *place*. It is shaded rather than filled flat: a black cut-out with bright holes in it
+    is the difference between a drawing and a template.
+    """
+    body_height = height * 0.58
+    body_top = base_y - body_height
+    half = width * 0.5
+    body = [(centre_x - half, base_y), (centre_x - half * 0.95, body_top),
+            (centre_x + half * 0.95, body_top), (centre_x + half, base_y)]
+    drum_height = height * 0.055
+    dome_top = body_top - drum_height
+    dome = onion_dome(centre_x, dome_top + 2, width * 0.90, height * 0.46)
+
+    silhouette = Image.new("L", image.size, 0)
+    silhouette_draw = ImageDraw.Draw(silhouette)
+    silhouette_draw.polygon(body, fill=255)
+    silhouette_draw.polygon(dome, fill=255)
+
+    drum = [(centre_x - width * 0.36, body_top + 2), (centre_x + width * 0.36, body_top + 2),
+            (centre_x + width * 0.34, body_top - drum_height), (centre_x - width * 0.34, body_top - drum_height)]
+    silhouette_draw.polygon(drum, fill=255)
+    face = vertical_gradient(image.size, [(0.0, (52, 66, 84)), (0.45, (24, 34, 48)),
+                                          (1.0, (10, 16, 26))]).convert("RGBA")
+    face.putalpha(silhouette)
+    image.alpha_composite(face)
+    draw = ImageDraw.Draw(image, "RGBA")
+
+    # Rim light down the lit side of the body and around the lit half of the dome.
+    draw.line([(centre_x - half, base_y), (centre_x - half * 0.95, body_top)],
+              fill=(150, 178, 190, 90), width=3)
+    left_arc = [(x, y) for x, y in dome if x <= centre_x]
+    draw.line(left_arc, fill=(160, 186, 196, 110), width=3)
+
+    arch_width = width * 0.20
+    for index in (-1, 0, 1):
+        x0 = centre_x + index * width * 0.27 - arch_width * 0.5
+        x1 = x0 + arch_width
+        spring = base_y - body_height * 0.10
+        arch = arch_points(x0, x1, spring, body_height * 0.52)
+        opening = arch + [(x1, base_y), (x0, base_y)]
+        top = spring - body_height * 0.52
+        gradient = vertical_gradient((max(2, int(x1 - x0)), max(2, int(base_y - top))),
+                                     [(0.0, (22, 28, 34)), (0.35, mix(warm, (50, 36, 30), 0.55)),
+                                      (1.0, warm)]).convert("RGBA")
+        canvas = Image.new("RGBA", image.size, (0, 0, 0, 0))
+        canvas.paste(gradient, (int(x0), int(top)), gradient)
+        image.alpha_composite(Image.composite(canvas, Image.new("RGBA", image.size, (0, 0, 0, 0)),
+                                              mask_of(opening, image.size)))
+        draw.line(arch, fill=(255, 216, 162, 120), width=2)
+
+    draw.line([(centre_x - width * 0.45, body_top + 2), (centre_x + width * 0.45, body_top + 2)],
+              fill=(120, 146, 156, 130), width=3)
+    draw.line([(centre_x - width * 0.34, dome_top), (centre_x + width * 0.34, dome_top)],
+              fill=(96, 124, 138, 110), width=3)
+    draw.line((centre_x, dome_top - height * 0.46, centre_x, dome_top - height * 0.56),
+              fill=(214, 170, 86, 230), width=3)
+    draw.ellipse((centre_x - 4, dome_top - height * 0.60, centre_x + 4, dome_top - height * 0.55),
+                 fill=(236, 196, 112, 240))
+
+
 SCENES = {
     # The title screen: warm, open, the moon high over the garden.
     "garden_dusk": dict(
         sky=[(0.00, (9, 20, 38)), (0.42, (18, 44, 74)), (0.62, (58, 96, 120)), (0.70, (196, 138, 78))],
         horizon=0.70, moon=(0.70, 0.20, 46), arches=0, wall=0.0, trees=True, pool=True,
         lanterns=[(0.30, 0.66, 26), (0.62, 0.67, 20)], grain=5, vignette=0.62, seed=11,
+        pavilions=[(0.50, 0.34, 0.30), (0.135, 0.26, 0.24), (0.865, 0.24, 0.22)],
+        fireflies=16, tilework=False,
     ),
     # The board: the same place at night, dimmer and quieter, because five colours of gem have to be
     # the brightest thing on the screen.
     "hall_night": dict(
         sky=[(0.00, (6, 14, 28)), (0.45, (11, 28, 50)), (0.66, (20, 46, 72)), (0.74, (46, 68, 84))],
         horizon=0.74, moon=(0.22, 0.14, 30), arches=5, wall=0.46, trees=False, pool=False,
-        lanterns=[], grain=6, vignette=0.78,
+        lanterns=[], grain=6, vignette=0.78, pavilions=[], fireflies=0, tilework=True,
         seed=23,
     ),
     # The districts map: a terrace in daylight, hedges instead of lanterns.
@@ -154,19 +225,21 @@ SCENES = {
         sky=[(0.00, (22, 48, 62)), (0.35, (44, 84, 96)), (0.55, (108, 132, 118)), (0.68, (186, 168, 120))],
         horizon=0.68, moon=None, arches=3, wall=0.40, trees=True, pool=False,
         lanterns=[], grain=5, vignette=0.55, seed=37,
+        pavilions=[(0.20, 0.26, 0.22), (0.80, 0.24, 0.20)], fireflies=0, tilework=False,
     ),
     # The bazaar: warm, close, lamps everywhere.
     "bazaar": dict(
         sky=[(0.00, (28, 16, 24)), (0.40, (62, 30, 34)), (0.62, (120, 62, 48)), (0.72, (188, 118, 66))],
         horizon=0.72, moon=None, arches=6, wall=0.52, trees=False, pool=False,
         lanterns=[(0.14, 0.62, 22), (0.34, 0.63, 26), (0.54, 0.63, 22), (0.74, 0.63, 26), (0.90, 0.62, 20)],
-        grain=6, vignette=0.66, seed=51,
+        grain=6, vignette=0.66, seed=51, pavilions=[], fireflies=0, tilework=False,
     ),
     # Settings: a quiet courtyard, nothing moving.
     "courtyard": dict(
         sky=[(0.00, (10, 24, 44)), (0.46, (20, 48, 80)), (0.66, (52, 92, 118)), (0.74, (128, 122, 110))],
         horizon=0.74, moon=(0.50, 0.16, 34), arches=4, wall=0.44, trees=True, pool=False,
         lanterns=[(0.26, 0.60, 22), (0.74, 0.60, 22)], grain=5, vignette=0.60, seed=67,
+        pavilions=[(0.50, 0.34, 0.28)], fireflies=8, tilework=True,
     ),
 }
 
@@ -225,6 +298,11 @@ def build(name):
                            fill=skyline)
         sky_draw.polygon(onion_dome(cx, top + H * 0.004, width * 1.7, H * 0.042), fill=skyline)
     image.alpha_composite(skyline_layer)
+
+    # ---- the pavilions in the middle distance ----------------------------------------------------
+    for pv in scene.get("pavilions", []):
+        px, pw, ph = pv
+        draw_pavilion(image, W * px, W * pw, horizon_y + H * 0.02, H * ph)
 
     # ---- the arcade wall -------------------------------------------------------------------------
     if scene["arches"]:
@@ -290,6 +368,16 @@ def build(name):
             inset = arch_points(x0 + thickness, x1 - thickness, spring_y, arch_height - thickness * 1.4)
             draw.line(inset + [inset[0]], fill=(198, 152, 72, 130), width=2)
 
+        if scene.get("tilework"):
+            # Glazed tilework on the dado: a diamond in a diamond, the pattern every courtyard wall has.
+            for row in range(3):
+                y = sill_y + H * 0.030 + row * H * 0.026
+                for col in range(int(W / (W * 0.030)) + 1):
+                    x = col * W * 0.030 + (W * 0.015 if row % 2 else 0.0)
+                    half_d = W * 0.0075
+                    draw.polygon([(x, y - half_d), (x + half_d, y), (x, y + half_d), (x - half_d, y)],
+                                 fill=(58, 116, 132, 70))
+
         # The sill line and its shadow: the wall now reads as a frieze above a dado.
         draw = ImageDraw.Draw(image, "RGBA")
         draw.rectangle((0, sill_y - 3, W, sill_y + 5), fill=(58, 92, 112, 235))
@@ -334,6 +422,15 @@ def build(name):
         draw.ellipse((centre[0] - radius * 0.28, centre[1] - radius * 0.34,
                       centre[0] + radius * 0.28, centre[1] + radius * 0.34),
                      fill=(255, 228, 172, 235))
+
+    # ---- fireflies: a few warm points that make the garden feel alive -----------------------------
+    for _ in range(scene.get("fireflies", 0)):
+        fx = random.uniform(W * 0.04, W * 0.96)
+        fy = random.uniform(H * 0.52, H * 0.92)
+        image.alpha_composite(radial_layer(size, (fx, fy), random.uniform(16, 34),
+                                           (252, 226, 160), 0.55, 2.2))
+        dot = ImageDraw.Draw(image, "RGBA")
+        dot.ellipse((fx - 2, fy - 2, fx + 2, fy + 2), fill=(255, 244, 210, 230))
 
     # ---- cypresses -------------------------------------------------------------------------------
     if scene["trees"]:

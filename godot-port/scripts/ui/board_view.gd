@@ -10,7 +10,13 @@ extends Control
 signal cell_tapped(pos: Vector2i)
 signal swipe_requested(from: Vector2i, to: Vector2i)
 
-const SWIPE_CELLS := 0.45
+# How far a finger has to travel before the gesture is a swipe. Below this the gesture is a tap on the
+# cell that was pressed, whatever cell the finger happened to be over when it lifted: a thumb that
+# rolls 10 dp sideways is still a tap, and treating it as a swipe is what "the swipe is not precise"
+# looked like on the phone — the gem moved when the player did not mean to move it.
+const SWIPE_CELLS := 0.42
+## A drag shorter than this many cells is never a swipe, however far across a boundary it ended up.
+const SWIPE_MIN_DP := 8.0
 const CLEAR_SECONDS := 0.14
 const SQUASH_SECONDS := 0.18
 const FALL_SECONDS := 0.22
@@ -230,26 +236,30 @@ func _press(local_position: Vector2) -> void:
 	_press_position = local_position
 
 func _release(local_position: Vector2) -> void:
-	var released := cell_at(local_position)
 	var pressed := _press_cell
 	_press_cell = Vector2i(-1, -1)
-	if released.x < 0 or pressed.x < 0:
+	if pressed.x < 0:
 		return
 
-	var travel := (local_position - _press_position).length()
-	if released == pressed and travel < cell_size * SWIPE_CELLS:
-		cell_tapped.emit(released)
-		return
-	if released == pressed:
-		cell_tapped.emit(released)
+	# The gesture is decided by the vector the finger travelled, not by which cell it happened to be
+	# over at the end. Ending in the neighbouring cell used to be enough on its own, so a tap whose
+	# thumb rolled 4 dp past the boundary swapped two gems.
+	var drag := local_position - _press_position
+	var travel := drag.length()
+	var threshold := maxf(cell_size * SWIPE_CELLS, SWIPE_MIN_DP)
+	if travel < threshold:
+		cell_tapped.emit(pressed)
 		return
 
-	var dx := absi(released.x - pressed.x)
-	var dy := absi(released.y - pressed.y)
-	if dx + dy == 1:
-		swipe_requested.emit(pressed, released)
-	else:
-		cell_tapped.emit(released)
+	# One axis only: the dominant one. A diagonal drag is a drag along the axis the player leaned
+	# towards, not a refusal — refusing was the other half of "not precise".
+	var step := Vector2i(0, 1 if drag.y > 0.0 else -1)
+	if absf(drag.x) >= absf(drag.y):
+		step = Vector2i(1 if drag.x > 0.0 else -1, 0)
+	var target := pressed + step
+	if run == null or not run.board.in_bounds(target.x, target.y):
+		return
+	swipe_requested.emit(pressed, target)
 
 # ---- animation ----------------------------------------------------------------------------------
 

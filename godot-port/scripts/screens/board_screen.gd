@@ -176,10 +176,14 @@ func build() -> void:
 		UiKit.place(count, 2.0, BOOSTER_SIZE - 20.0, BOOSTER_SIZE - 4.0, 16.0)
 		_booster_counts.append(count)
 
-	# ---- playfield: the frame picture first, so the board draws on top of it -----------------------
+	# ---- playfield: frame picture, then the tray, then the board ----------------------------------
 	UiKit.art_panel(self, "board_frame", BOARD_LEFT - BOARD_FRAME_BORDER, BOARD_TOP - BOARD_FRAME_BORDER,
 		BOARD_SIZE + BOARD_FRAME_BORDER * 2.0, BOARD_SIZE + BOARD_FRAME_BORDER * 2.0,
 		"board_frame", int(BOARD_FRAME_BORDER), UiTokens.BG)
+	# The tray is a picture too: velvet with a lattice worked into it, so the board sits in a case
+	# instead of floating on whatever the screen's backdrop happens to be.
+	UiKit.art_panel(self, "board_tray", BOARD_LEFT, BOARD_TOP, BOARD_SIZE, BOARD_SIZE,
+		"ui_board_tray", 18, UiTokens.BG)
 	_board = BoardView.new()
 	_board.name = "board"
 	add_child(_board)

@@ -191,6 +191,11 @@ def silhouette(kind):
 # ---- the gem ------------------------------------------------------------------------------------
 
 
+def aggregate(points):
+    """The silhouette, unchanged — named so the shadow pass reads as "the shape, not its outline"."""
+    return points
+
+
 def build(name):
     spec = GEMS[name]
     body, accent = spec["body"], spec["accent"]
@@ -201,6 +206,13 @@ def build(name):
 
     canvas = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
 
+    # 0. A shadow under the stone. Without it a gem is a sticker on the tile; with it the stone has
+    #    weight, which at 36 dp is most of what "looks real" means.
+    shadow = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).polygon([(x * SS + SIZE * SS * 0.012, y * SS + SIZE * SS * 0.030) for x, y in aggregate(outer)],
+                                   fill=(0, 0, 0, 120))
+    canvas.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(SS * 2.4)))
+
     # 1. The bezel: solid gold, lit from the upper left, so the stone keeps a crisp metal frame against
     #    a dark tile instead of fading into it.
     outer_mask = _mask(outer)
@@ -209,7 +221,7 @@ def build(name):
     # 2. The stone, inset far enough that the ring reads as metal and not as an outline.
     cut = scale_points(outer, 0.855)
     cut_mask = _mask(cut)
-    canvas.alpha_composite(_gradient_fill(cut_mask, _scale(body, 1.22), _scale(body, 0.66)))
+    canvas.alpha_composite(_gradient_fill(cut_mask, _scale(body, 1.34), _scale(body, 0.58)))
 
     # A dark seam where stone meets bezel: without it the gold looks pasted on.
     seam = _down(_ring_mask(cut_mask, _mask(scale_points(outer, 0.825)))).point(lambda v: int(v * 0.55))
@@ -266,6 +278,13 @@ def build(name):
     ImageDraw.Draw(glint).arc((0, 0, SIZE * SS - 1, SIZE * SS - 1), start=186, end=318,
                               fill=_scale(accent, 1.05) + (190,), width=int(SS * 1.6))
     canvas.alpha_composite(_clip(glint, _ring_mask(outer_mask, _mask(scale_points(outer, 0.90)))))
+
+    # 7. One dark hairline around the whole silhouette. A gold ring on a warm backdrop bleeds into it;
+    #    a ring with an edge does not.
+    edge = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
+    ImageDraw.Draw(edge).polygon([(x * SS, y * SS) for x, y in outer],
+                                 outline=(6, 10, 18, 150), width=SS)
+    canvas.alpha_composite(edge)
 
     return canvas.resize((SIZE, SIZE), Image.LANCZOS)
 
