@@ -21,11 +21,23 @@ const BOARD_SIZE := 330.0
 const BOARD_FRAME_BORDER := 24.0
 const COLUMN_X := 16.0
 const COLUMN_W := 318.0
-const CARD_HEIGHT := 46.0
+# The column is 415 dp tall and has to be full: a stack of cards that stops two thirds of the way down
+# leaves a dead band under the boosters and makes the whole HUD look unfinished, which is exactly what
+# the device screenshot showed. So the cards are taller, the gaps between groups are even, and the row
+# of boosters sits on the bottom of the column with thumb-sized buttons.
+const CARD_HEIGHT := 56.0
+const CARD_ROW_Y := 38.0
 const CHIP_HEIGHT := 26.0
-const BOOSTER_SIZE := 52.0
-const BOOSTER_GAP := 10.0
-const BOOSTER_Y := 250.0
+const CHIP_GAP := 2.0
+const GOALS_Y := 100.0
+const STATUS_Y := 190.0
+const STATUS_HEIGHT := 58.0
+const WALLET_Y := 256.0
+const WALLET_HEIGHT := 44.0
+const BOOSTER_HEAD_Y := 306.0
+const BOOSTER_SIZE := 58.0
+const BOOSTER_GAP := 7.0
+const BOOSTER_Y := 324.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -42,6 +54,8 @@ const HAND_SIZE := 44.0
 var _moves_label: Label
 var _score_label: Label
 var _hint: Label
+var _coin_label: Label
+var _life_label: Label
 var _goal_chips: Array[Panel] = []
 var _goal_icons: Array[TextureRect] = []
 var _goal_labels: Array[Label] = []
@@ -86,7 +100,7 @@ func build() -> void:
 	UiKit.place(title, 252.0, 4.0, 308.0, 28.0)
 
 	# ---- the two counters, side by side, each a picture plate with a caption over its number -------
-	var moves_card := _build_card("moves", COLUMN_X, 40.0, 204.0, CARD_HEIGHT)
+	var moves_card := _build_card("moves", COLUMN_X, CARD_ROW_Y, 204.0, CARD_HEIGHT)
 	var moves_caption := UiKit.label(moves_card, "caption", "حرکت‌های باقی‌مانده", UiTokens.TYPE_XS,
 		UiTokens.TEXT_MUTED)
 	UiKit.place(moves_caption, 10.0, 2.0, 184.0, 18.0)
@@ -94,7 +108,7 @@ func build() -> void:
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(_moves_label, 10.0, 20.0, 184.0, 24.0)
 
-	var score_card := _build_card("score_card", 228.0, 40.0, 106.0, CARD_HEIGHT)
+	var score_card := _build_card("score_card", 228.0, CARD_ROW_Y, 106.0, CARD_HEIGHT)
 	var score_caption := UiKit.label(score_card, "caption", "امتیاز", UiTokens.TYPE_XS,
 		UiTokens.TEXT_MUTED)
 	UiKit.place(score_caption, 6.0, 2.0, 94.0, 18.0)
@@ -104,7 +118,7 @@ func build() -> void:
 
 	# ---- goal chips, stacked under the counters ---------------------------------------------------
 	for index in range(3):
-		var y := 90.0 + float(index) * (CHIP_HEIGHT + 4.0)
+		var y := GOALS_Y + float(index) * (CHIP_HEIGHT + CHIP_GAP)
 		var chip := UiKit.panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
 			UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 		_goal_chips.append(chip)
@@ -116,15 +130,28 @@ func build() -> void:
 		_goal_labels.append(label)
 
 	# ---- the line that tells the player what to do, or what just went wrong ------------------------
-	var status_card := _build_card("status_card", COLUMN_X, 182.0, COLUMN_W, CARD_HEIGHT)
+	var status_card := _build_card("status_card", COLUMN_X, STATUS_Y, COLUMN_W, STATUS_HEIGHT)
 	_hint = UiKit.label(status_card, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, 8.0, 2.0, COLUMN_W - 16.0, CARD_HEIGHT - 4.0)
+	UiKit.place(_hint, 8.0, 2.0, COLUMN_W - 16.0, STATUS_HEIGHT - 4.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+
+	# ---- the player's purse, on one plate: coins at one end, lives at the other --------------------
+	# The board is where a player spends both, so they belong here and not only on the home screen.
+	# Every part of it is a picture: the plate, the coin and the heart are all shipped PNGs.
+	var wallet_card := _build_card("wallet_card", COLUMN_X, WALLET_Y, COLUMN_W, WALLET_HEIGHT)
+	UiKit.icon(wallet_card, "coin_icon", "icon_coin", COLUMN_W - 34.0, (WALLET_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
+	_coin_label = UiKit.label(wallet_card, "coin_value", "", UiTokens.TYPE_SM, UiTokens.GOLD,
+		HORIZONTAL_ALIGNMENT_RIGHT, true)
+	UiKit.place(_coin_label, COLUMN_W * 0.5, 0.0, COLUMN_W * 0.5 - 40.0, WALLET_HEIGHT)
+	UiKit.icon(wallet_card, "life_icon", "icon_life", 8.0, (WALLET_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
+	_life_label = UiKit.label(wallet_card, "life_value", "", UiTokens.TYPE_SM, UiTokens.TEXT,
+		HORIZONTAL_ALIGNMENT_LEFT, true)
+	UiKit.place(_life_label, 40.0, 0.0, COLUMN_W * 0.5 - 40.0, WALLET_HEIGHT)
 
 	var boosters_heading := UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
 		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(boosters_heading, COLUMN_X, 232.0, COLUMN_W, 16.0)
+	UiKit.place(boosters_heading, COLUMN_X, BOOSTER_HEAD_Y, COLUMN_W, 16.0)
 
 	# ---- booster bar: all five in one row, sized for a thumb --------------------------------------
 	for kind in range(BoosterBag.SLOTS):
@@ -210,6 +237,12 @@ func refresh() -> void:
 		_score_label.text = PersianText.number(run.score)
 	if _hint.text.strip_edges().is_empty():
 		_hint.text = DEFAULT_STATUS
+	# The purse and the lives are read on every refresh, so spending a booster visibly costs nothing
+	# and losing a life visibly costs one.
+	if _coin_label != null:
+		_coin_label.text = PersianText.number(session.wallet.coins)
+	if _life_label != null:
+		_life_label.text = PersianText.number(session.lives.current)
 
 func refresh_goals() -> void:
 	for index in range(_goal_chips.size()):

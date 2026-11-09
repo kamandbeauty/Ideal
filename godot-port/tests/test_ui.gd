@@ -265,6 +265,7 @@ func _run() -> void:
 			# Strict picture rule: every surface on this screen is a shipped plate, not a drawn shape.
 			var plate_checks := {"score_card": score_card, "moves": screen.get_node_or_null("moves"),
 				"status_card": screen.get_node_or_null("status_card"),
+				"wallet_card": screen.get_node_or_null("wallet_card"),
 				"board_frame": screen.get_node_or_null("board_frame")}
 			var drawn: Array[String] = []
 			for key in plate_checks:
@@ -273,6 +274,16 @@ func _run() -> void:
 					drawn.append(str(key))
 			failures += _check(drawn.is_empty(),
 				"level %d draws every card and the board frame with picture plates (%s)" % [number, ", ".join(drawn)])
+			# The column has to fill its height: a stack that stops at two thirds leaves a dead band
+			# under the boosters, which is what the phone screenshot showed.
+			var low: Control = screen.get_node_or_null("booster_0") as Control
+			failures += _check(low != null and low.get_rect().end.y >= 360.0,
+				"level %d puts the boosters at the bottom of the column, not halfway down" % number)
+			failures += _check(low != null and low.get_rect().size.y >= 48.0 and low.get_rect().size.x >= 48.0,
+				"level %d gives every booster a thumb-sized target" % number)
+			var coin_label := screen.get("_coin_label") as Label
+			failures += _check(coin_label != null and coin_label.text == PersianText.number(session.wallet.coins),
+				"level %d shows the coin balance on the board" % number)
 		# A "+" or a "×" between a Persian word and a number is bidi-neutral, and the run it splits can
 		# come out reading backwards. The bubble has to say it with words.
 		screen._show_combo(3, 300)
