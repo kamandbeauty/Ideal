@@ -346,10 +346,13 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
             const SizedBox(height: 6),
             _watermarkLane(st, playback),
           ],
-          if (audio?.hasAudio ?? false) ...<Widget>[
-            const SizedBox(height: 6),
-            _musicLane(context, l10n, st, playback),
-          ],
+          // Always-present music track so the timeline shows both the image
+          // track and the music track: the real waveform when a song is
+          // chosen, a tappable "add music" placeholder otherwise.
+          const SizedBox(height: 6),
+          audio?.hasAudio ?? false
+              ? _musicLane(context, l10n, st, playback)
+              : _emptyMusicLane(context, l10n),
           const SizedBox(height: 6),
           Row(
             children: <Widget>[
@@ -778,6 +781,41 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           },
         ),
       ],
+    );
+  }
+
+  /// The music track before any song is chosen: a tappable placeholder so the
+  /// timeline always shows a music track alongside the image track. Tapping it
+  /// opens the same sheet as the Music tool.
+  Widget _emptyMusicLane(BuildContext context, L10n l10n) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () => showAudioSheet(context, ref),
+      child: Container(
+        height: 34,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: context.theme.colorScheme.outlineVariant
+                .withValues(alpha: 0.7),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: <Widget>[
+            const SizedBox(width: 10),
+            Icon(Icons.add_music_rounded,
+                size: 15,
+                color: context.theme.colorScheme.onSurfaceVariant),
+            const SizedBox(width: 6),
+            Text(
+              l10n.t('music_add'),
+              style: context.theme.textTheme.bodySmall?.copyWith(
+                  color: context.theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

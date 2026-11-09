@@ -107,6 +107,7 @@ class L10n {
       'tool_transition': 'Transition',
       'tool_transition_title': 'Transition',
       'tool_music': 'Music',
+      'music_add': 'Add music',
       'tool_duration': 'Duration',
       'tool_duration_title': 'Duration',
       // photo look
@@ -469,6 +470,7 @@ class L10n {
       'tool_transition': 'گذار',
       'tool_transition_title': 'گذار',
       'tool_music': 'موسیقی',
+      'music_add': 'افزودن موسیقی',
       'tool_duration': 'مدت',
       'tool_duration_title': 'مدت',
       // ظاهر عکس
