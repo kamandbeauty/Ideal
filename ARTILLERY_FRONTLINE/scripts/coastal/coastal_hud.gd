@@ -355,11 +355,7 @@ func _build_pause() -> void:
 	pause_panel.add_child(UITheme.art("hero_beach.jpg", 0.34))
 	pause_panel.add_child(UITheme.overlay("vignette.png", 0.95))
 	var box := UITheme.column(14)
-	box.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	box.offset_left = -240
-	box.offset_right = 240
-	box.offset_top = -220
-	box.offset_bottom = 220
+	box.custom_minimum_size = Vector2(480, 0)
 	box.add_child(UITheme.label(Loc.t("coastal_pause_title"), 34, UITheme.TEXT, true))
 	quality_select = OptionButton.new()
 	for key in ["quality_auto", "quality_low", "quality_medium", "quality_high", "quality_ultra"]:
@@ -370,7 +366,11 @@ func _build_pause() -> void:
 	box.add_child(UITheme.button(Loc.t("coastal_resume"), func(): resume_pressed.emit(), true))
 	box.add_child(UITheme.button(Loc.t("coastal_restart"), func(): restart_pressed.emit()))
 	box.add_child(UITheme.button(Loc.t("coastal_exit"), func(): exit_pressed.emit()))
-	pause_panel.add_child(_glass(box, 24))
+	var pause_center := CenterContainer.new()
+	pause_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pause_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pause_center.add_child(_glass(box, 24))
+	pause_panel.add_child(pause_center)
 	root.add_child(pause_panel)
 
 func _build_results() -> void:
@@ -381,11 +381,7 @@ func _build_results() -> void:
 	result_panel.add_child(UITheme.art("hero_beach.jpg", 0.42))
 	result_panel.add_child(UITheme.overlay("vignette.png", 0.95))
 	var box := UITheme.column(14)
-	box.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	box.offset_left = -300
-	box.offset_right = 300
-	box.offset_top = -180
-	box.offset_bottom = 180
+	box.custom_minimum_size = Vector2(600, 0)
 	result_title = UITheme.label(Loc.t("coastal_held"), 42, UITheme.ACCENT, true)
 	result_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	result_body = UITheme.label("", 22, UITheme.TEXT)
@@ -394,7 +390,11 @@ func _build_results() -> void:
 	box.add_child(result_body)
 	box.add_child(UITheme.button(Loc.t("coastal_replay"), func(): restart_pressed.emit(), true))
 	box.add_child(UITheme.button(Loc.t("coastal_exit"), func(): exit_pressed.emit()))
-	result_panel.add_child(_glass(box, 26))
+	var result_center := CenterContainer.new()
+	result_center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	result_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result_center.add_child(_glass(box, 26))
+	result_panel.add_child(result_center)
 	root.add_child(result_panel)
 
 func update_state(data: Dictionary) -> void:
@@ -407,7 +407,7 @@ func update_state(data: Dictionary) -> void:
 	var health_max: float = float(data.get("health_max", 3000.0))
 	health_bar.value = 100.0 * health / maxf(1.0, health_max)
 	health_label.text = Loc.t("coastal_health") % [Loc.number(int(health)), Loc.number(int(health_max))]
-	ammo_label.text = "%s / %s" % [Loc.number(int(data.get("ammo", 0))), Loc.number(int(data.get("magazine", 0)))]
+	ammo_label.text = Loc.t("coastal_ammo") % [Loc.number(int(data.get("ammo", 0))), Loc.number(int(data.get("magazine", 0)))]
 	reserve_label.text = Loc.t("coastal_reserve") % Loc.number(int(data.get("reserve", 0)))
 	weapon_label.text = String(data.get("weapon", ""))
 	reload_button.disabled = bool(data.get("reloading", false)) or int(data.get("ammo", 0)) >= int(data.get("magazine", 0))

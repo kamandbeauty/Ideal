@@ -18,7 +18,9 @@ func run(t: TestContext) -> void:
 	t.check(menu.campaign_map.layout_direction == Control.LAYOUT_DIRECTION_RTL, "Campaign map is RTL")
 	menu.show_briefing("sr01")
 	await t.tree.process_frame
+	await t.tree.process_frame
 	_audit(t, menu, latin, "briefing")
+	t.check(menu.briefing_body.size.x > 900.0, "Briefing copy uses a full-width panel")
 	menu.show_results({"success": true, "stars": 3, "accuracy": 100.0, "shots": 2, "objectives": 2, "required": 2, "time": 90.0, "optional": true, "coins": 250, "points": 1, "mission_id": "sr01"})
 	await t.tree.process_frame
 	_audit(t, menu, latin, "results-success")
@@ -40,6 +42,20 @@ func run(t: TestContext) -> void:
 	t.check(coastal.root.layout_direction == Control.LAYOUT_DIRECTION_RTL, "Coastal HUD is RTL")
 	t.check(Loc.is_persian(coastal.auto_check.text), "Coastal auto-fire toggle Persian")
 	t.check(Loc.is_persian(coastal.reload_button.text), "Coastal reload button Persian")
+	coastal.show_result(true, {"round": 3, "kills": 12, "time": 95.0})
+	await t.tree.process_frame
+	await t.tree.process_frame
+	t.check(coastal.result_panel.visible, "Coastal result panel visible")
+	var root_center: Vector2 = coastal.root.get_global_rect().get_center()
+	var title_center: Vector2 = coastal.result_title.get_global_rect().get_center()
+	t.check(absf(title_center.x - root_center.x) < 60.0, "Coastal result card horizontally centered")
+	t.check(title_center.y < root_center.y and title_center.y > root_center.y - 240.0, "Coastal result card not clipped to a corner")
+	coastal.set_paused(true)
+	await t.tree.process_frame
+	await t.tree.process_frame
+	t.check(coastal.pause_panel.visible, "Coastal pause panel visible")
+	var quality_center: Vector2 = coastal.quality_select.get_global_rect().get_center()
+	t.check(absf(quality_center.x - root_center.x) < 80.0, "Coastal pause card horizontally centered")
 	coastal.free()
 	await t.tree.process_frame
 

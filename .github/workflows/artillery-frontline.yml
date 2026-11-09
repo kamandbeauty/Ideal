@@ -15,6 +15,8 @@ env:
   GODOT_VERSION: 4.7.2-stable
   GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
   PROJECT: ARTILLERY_FRONTLINE
+  GRADLE_VERSION: 8.11.1
+  GRADLE_SHA256: f397b287023acdba1e9f6fc5ea72d22dd63669d59ed4a289a29b1a76eee151c6
 jobs:
   validate:
     runs-on: ubuntu-24.04
@@ -73,6 +75,8 @@ jobs:
           python3 -c "import json,sys; r=json.load(open('$PROJECT/documentation/qa/coastal-smoke-report.json')); sys.exit(0 if r['passed'] and not r['failures'] else 1)" || { echo "::error::Coastal smoke report failed"; exit 1; }
           echo "Coastal smoke report passed; godot teardown exit code $rc (llvmpipe texture-leak teardown tolerated)"
           test -s "$PROJECT/documentation/qa/coastal-beach.png"
+          test -s "$PROJECT/documentation/qa/coastal-pause.png"
+          test -s "$PROJECT/documentation/qa/coastal-results.png"
       - name: Preserve validation evidence
         if: always() && github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
@@ -161,6 +165,30 @@ jobs:
           chmod +x "$PROJECT/android/build/gradlew"
           test -s "$PROJECT/android/.build_version"
           grep -q '4.7.2.stable' "$PROJECT/android/.build_version"
+      - name: Cache verified Gradle distribution
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/artillery-gradle
+          key: gradle-${{ env.GRADLE_VERSION }}-bin-${{ env.GRADLE_SHA256 }}
+      - name: Prefetch verified Gradle distribution for AAB
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.cache/artillery-gradle"
+          ZIP="$HOME/.cache/artillery-gradle/gradle-${GRADLE_VERSION}-bin.zip"
+          if [ -s "$ZIP" ] && ! echo "${GRADLE_SHA256}  $ZIP" | sha256sum -c -; then
+            rm -f "$ZIP"
+          fi
+          if [ ! -s "$ZIP" ]; then
+            curl -fL --retry 8 --retry-all-errors --retry-delay 10 --connect-timeout 30 "https://github.com/gradle/gradle-distributions/releases/download/v${GRADLE_VERSION}/gradle-${GRADLE_VERSION}-bin.zip" -o "$ZIP.part"
+            echo "${GRADLE_SHA256}  $ZIP.part" | sha256sum -c -
+            mv "$ZIP.part" "$ZIP"
+          fi
+          echo "${GRADLE_SHA256}  $ZIP" | sha256sum -c -
+          WRAPPER=$(find "$PROJECT/android/build" -name gradle-wrapper.properties -print -quit)
+          test -n "$WRAPPER"
+          grep -q "gradle-${GRADLE_VERSION}-bin.zip" "$WRAPPER"
+          sed -i "s|^distributionUrl=.*|distributionUrl=file://${ZIP}|" "$WRAPPER"
+          cat "$WRAPPER"
       - name: Import resources
         run: godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1
       - name: Export ARM64 APK and AAB

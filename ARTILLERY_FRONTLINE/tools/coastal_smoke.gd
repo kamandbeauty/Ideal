@@ -125,6 +125,12 @@ func run() -> void:
 	coastal._damage_player(600.0)
 	coastal.use_support("repair")
 	check("repair works independently of airstrike cooldown", coastal.player_health >= minf(CoastalController.MAX_HEALTH, health_before - 600.0 + 900.0) - 1.0 and float(coastal.support_timers.repair) > 0.0)
+	coastal.hud.set_paused(true)
+	await get_tree().create_timer(0.25).timeout
+	check("coastal pause panel appears", coastal.hud.pause_panel.visible)
+	await capture("coastal-pause")
+	coastal.hud.set_paused(false)
+	await get_tree().create_timer(0.2).timeout
 	coastal._finish(true)
 	await get_tree().create_timer(0.3).timeout
 	check("mission results panel appears", coastal.hud.result_panel.visible)

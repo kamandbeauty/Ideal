@@ -230,7 +230,9 @@ func _build_briefing() -> void:
 	actions.add_child(UITheme.button(Loc.t("briefing_deploy"), func(): deploy_requested.emit(selected_mission.id), true))
 	actions.add_child(UITheme.button(Loc.t("briefing_arsenal"), func(): navigation_requested.emit("arsenal")))
 	content.add_child(actions)
-	scroll.add_child(UITheme.panel(content, 28))
+	var briefing_panel: PanelContainer = UITheme.panel(content, 28)
+	briefing_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(briefing_panel)
 	box.add_child(scroll)
 
 
