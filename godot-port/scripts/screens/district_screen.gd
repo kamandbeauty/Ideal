@@ -76,7 +76,9 @@ func _build_card(index: int) -> void:
 
 	var rows: Array[Dictionary] = []
 	for task_index in range(5):
-		var y := 26.0 + float(task_index) * 38.0
+		# 44 dp, not 38: five rows still clear the district button at the bottom, and four rows stop
+		# 70 dp above it instead of leaving a dead band in the middle of the card.
+		var y := 26.0 + float(task_index) * 44.0
 		var row := Control.new()
 		row.name = "task_%d" % task_index
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
