@@ -226,9 +226,17 @@ func _run() -> void:
 		"one tap is exactly one cell, not one per input event (%d)" % taps.size())
 	_tap(view, view.cell_center(first), InputEvent.DEVICE_ID_EMULATION)
 	failures += _check(taps.size() == 1, "the emulated copy of a tap is ignored (%d)" % taps.size())
+	# Two taps on adjacent cells are two taps, not one gesture: the pairing (tap, then tap the neighbour)
+	# is the screen's selection state, and a drag is the view's swipe. Both paths have to stay
+	# distinguishable or the screen would swap on the first tap of a pair.
 	_tap(view, view.cell_center(neighbour), 0)
+	failures += _check(taps.size() == 2 and taps[1] == neighbour and swaps.is_empty(),
+		"two separate taps stay two taps (%d taps, %d swipes)" % [taps.size(), swaps.size()])
+	_drag(view, view.cell_center(first), view.cell_center(neighbour), 0)
 	failures += _check(swaps.size() == 1 and swaps[0] == [first, neighbour],
-		"two adjacent taps ask for one swap (%d)" % swaps.size())
+		"a drag onto the neighbour asks for exactly one swap (%d)" % swaps.size())
+	_drag(view, view.cell_center(first), view.cell_center(neighbour), InputEvent.DEVICE_ID_EMULATION)
+	failures += _check(swaps.size() == 1, "the emulated copy of a drag asks for nothing (%d)" % swaps.size())
 
 	print("UI STAGE 5: every level boots and plays through the screen")
 	for number in range(1, GameSession.LEVEL_COUNT + 1):
@@ -469,6 +477,22 @@ func _list_pngs(directory_path: String) -> Array[String]:
 	return out
 
 ## Presses and releases the view the way the engine would, at a point in view-local coordinates.
+## A press on `from` released on `to`: one gesture, which is what a swipe is.
+func _drag(view: BoardView, from: Vector2, to: Vector2, device: int) -> void:
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = from
+	press.device = device
+	view._gui_input(press)
+	var release := InputEventMouseButton.new()
+	release.button_index = MOUSE_BUTTON_LEFT
+	release.pressed = false
+	release.position = to
+	release.device = device
+	view._gui_input(release)
+
+
 func _tap(view: BoardView, point: Vector2, device: int) -> void:
 	var press := InputEventMouseButton.new()
 	press.button_index = MOUSE_BUTTON_LEFT
