@@ -203,6 +203,38 @@ def draw_pavilion(image, centre_x, width, base_y, height, warm=(244, 190, 122)):
                  fill=(236, 196, 112, 240))
 
 
+
+def draw_lantern_string(image, draw, samples, sag, colour=(255, 226, 170), radius=10):
+    """A string of lamps slung across the courtyard: the line sags, the lamps hang under it.
+
+    It is the detail that turns a sky into a *ceiling* — an outdoor room the player is standing in.
+    """
+    points = [(x, y + sag * (1.0 - ((2.0 * i / max(1, samples - 1)) - 1.0) ** 2))
+              for i, (x, y) in enumerate([(W * (0.06 + 0.88 * i / (samples - 1)), H * 0.06)
+                                          for i in range(samples)])]
+    draw.line(points, fill=(26, 30, 40, 200), width=2)
+    for index in range(2, samples - 1, 2):
+        x, y = points[index]
+        draw.line((x, y, x, y + radius * 1.6), fill=(26, 30, 40, 200), width=2)
+        image.alpha_composite(radial_layer(image.size, (x, y + radius * 3.0), radius * 8.0,
+                                           (250, 200, 128), 0.62, 2.4))
+        ImageDraw.Draw(image, "RGBA").ellipse(
+            (x - radius * 0.7, y + radius * 2.2, x + radius * 0.7, y + radius * 4.2),
+            fill=colour + (240,))
+
+
+def draw_path(image, draw, base_half, top_half, colour=(38, 44, 46)):
+    """The garden path, running from the player's feet to the pavilion."""
+    top_y = H * 0.86
+    draw.polygon([(W * 0.5 - top_half, top_y), (W * 0.5 + top_half, top_y),
+                  (W * 0.5 + base_half, H), (W * 0.5 - base_half, H)], fill=colour)
+    for index in range(1, 9):
+        t = index / 9.0
+        y = top_y + (H - top_y) * (t ** 1.5)
+        half = top_half + (base_half - top_half) * (t ** 1.5)
+        draw.line((W * 0.5 - half, y, W * 0.5 + half, y), fill=(84, 96, 98, 90), width=2)
+
+
 SCENES = {
     # The title screen: warm, open, the moon high over the garden.
     "garden_dusk": dict(
@@ -211,6 +243,7 @@ SCENES = {
         lanterns=[(0.30, 0.66, 26), (0.62, 0.67, 20)], grain=5, vignette=0.62, seed=11,
         pavilions=[(0.50, 0.34, 0.30), (0.135, 0.26, 0.24), (0.865, 0.24, 0.22)],
         fireflies=16, tilework=False,
+        lantern_strings=[(13, 0.055 * H)], path=None, clouds=5,
     ),
     # The board: the same place at night, dimmer and quieter, because five colours of gem have to be
     # the brightest thing on the screen.
@@ -218,6 +251,7 @@ SCENES = {
         sky=[(0.00, (6, 14, 28)), (0.45, (11, 28, 50)), (0.66, (20, 46, 72)), (0.74, (46, 68, 84))],
         horizon=0.74, moon=(0.22, 0.14, 30), arches=5, wall=0.46, trees=False, pool=False,
         lanterns=[], grain=6, vignette=0.78, pavilions=[], fireflies=0, tilework=True,
+        lantern_strings=[], path=None, clouds=0, floor_pools=True,
         seed=23,
     ),
     # The districts map: a terrace in daylight, hedges instead of lanterns.
@@ -226,6 +260,7 @@ SCENES = {
         horizon=0.68, moon=None, arches=3, wall=0.40, trees=True, pool=False,
         lanterns=[], grain=5, vignette=0.55, seed=37,
         pavilions=[(0.20, 0.26, 0.22), (0.80, 0.24, 0.20)], fireflies=0, tilework=False,
+        lantern_strings=[], path=None, clouds=3,
     ),
     # The bazaar: warm, close, lamps everywhere.
     "bazaar": dict(
@@ -233,6 +268,7 @@ SCENES = {
         horizon=0.72, moon=None, arches=6, wall=0.52, trees=False, pool=False,
         lanterns=[(0.14, 0.62, 22), (0.34, 0.63, 26), (0.54, 0.63, 22), (0.74, 0.63, 26), (0.90, 0.62, 20)],
         grain=6, vignette=0.66, seed=51, pavilions=[], fireflies=0, tilework=False,
+        lantern_strings=[(9, 0.045 * H)], path=None, clouds=0,
     ),
     # Settings: a quiet courtyard, nothing moving.
     "courtyard": dict(
@@ -240,6 +276,7 @@ SCENES = {
         horizon=0.74, moon=(0.50, 0.16, 34), arches=4, wall=0.44, trees=True, pool=False,
         lanterns=[(0.26, 0.60, 22), (0.74, 0.60, 22)], grain=5, vignette=0.60, seed=67,
         pavilions=[(0.50, 0.34, 0.28)], fireflies=8, tilework=True,
+        lantern_strings=[], path=None, clouds=2,
     ),
 }
 
@@ -275,6 +312,21 @@ def build(name):
                      fill=(246, 240, 222, 255))
         disc.ellipse((centre[0] - mr * 0.62, centre[1] - mr * 0.60, centre[0] + mr * 0.30,
                       centre[1] + mr * 0.38), fill=(236, 229, 208, 255))
+
+    # ---- thin cloud bands above the horizon -------------------------------------------------------
+    for index in range(scene.get("clouds", 0)):
+        cy = horizon_y * (0.42 + 0.12 * index)
+        length = W * random.uniform(0.22, 0.46)
+        cx = random.uniform(W * 0.1, W * 0.9)
+        cloud = Image.new("RGBA", size, (0, 0, 0, 0))
+        cloud_draw = ImageDraw.Draw(cloud, "RGBA")
+        for puff in range(7):
+            offset = (puff - 3) * length / 8.0
+            puff_w = length * random.uniform(0.20, 0.34)
+            puff_h = H * random.uniform(0.008, 0.020)
+            cloud_draw.ellipse((cx + offset - puff_w, cy - puff_h, cx + offset + puff_w, cy + puff_h),
+                               fill=mix(scene["sky"][-1][1], (255, 236, 210), 0.55) + (40,))
+        image.alpha_composite(cloud.filter(ImageFilter.GaussianBlur(W * 0.012)))
 
     # ---- haze along the horizon: what makes distant things sit behind near ones -------------------
     image.alpha_composite(radial_layer(size, (W * 0.5, horizon_y + H * 0.02), W * 0.72,
@@ -395,6 +447,10 @@ def build(name):
         y = floor_top + (H - floor_top) * (t ** 1.7)
         draw.line((0, y, W, y), fill=(150, 170, 172, int(20 * (1.0 - t) + 5)), width=2)
 
+    if scene.get("path") is not None:
+        top_half, base_half = scene["path"]
+        draw_path(image, ImageDraw.Draw(image, "RGBA"), W * base_half, W * top_half)
+
     if scene["pool"]:
         px, py, prx, pry = W * 0.5, H * 0.905, W * 0.285, H * 0.072
         pool = Image.new("RGBA", size, (0, 0, 0, 0))
@@ -438,6 +494,16 @@ def build(name):
             draw.polygon(cypress(W * tx, H * 0.995, H * height, width, None), fill=(7, 20, 24, 255))
             draw.polygon(cypress(W * tx, H * 0.995, H * height * 0.97, width * 0.52, None),
                          fill=(15, 36, 32, 255))
+
+    # ---- a string of lamps across the courtyard ---------------------------------------------------
+    for count, sag in scene.get("lantern_strings", []):
+        draw_lantern_string(image, ImageDraw.Draw(image, "RGBA"), count, sag)
+
+    # ---- warm pools of light on the floor under each arch -----------------------------------------
+    if scene.get("floor_pools"):
+        for index in range(scene["arches"]):
+            x = W * (index + 0.5) / scene["arches"]
+            image.alpha_composite(radial_layer(size, (x, H * 0.93), W * 0.055, (240, 190, 120), 0.30, 2.0))
 
     # ---- finish: vignette, then grain ------------------------------------------------------------
     vignette = Image.new("L", size, 0)
