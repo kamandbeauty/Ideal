@@ -46,7 +46,7 @@ GEMS = {
     "aqiq": dict(shape="kite", body=(196, 72, 62), accent=(255, 176, 160), points=6, rot=0.0),
     "zomorrod": dict(shape="ngon", body=(44, 152, 98), accent=(158, 240, 190), points=8,
                      rot=math.pi / 8),
-    "morvarid": dict(shape="round", body=(232, 220, 198), accent=(255, 252, 242), points=32, rot=0.0),
+    "morvarid": dict(shape="round", body=(224, 210, 186), accent=(255, 252, 242), points=32, rot=0.0),
 }
 
 
@@ -105,6 +105,53 @@ def _radial(colour, centre, radius, inner_factor=1.55, outer_factor=0.72):
     return layer.filter(ImageFilter.GaussianBlur(SS * 0.8))
 
 
+
+def _vignette(centre, radius, max_alpha):
+    """A dark rim falling off towards `centre`: the limb of a round stone.
+
+    A flat disc with a gradient across it still reads as a coin. What makes a sphere is the edge going
+    dark all the way round, and it has to be a picture like everything else here.
+    """
+    layer = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    steps = 64
+    for index in range(steps, 0, -1):
+        t = index / steps
+        r = radius * t
+        alpha = int(max_alpha * (1.0 - t) ** 2.2)
+        draw.ellipse((centre[0] - r, centre[1] - r, centre[0] + r, centre[1] + r),
+                     fill=(0, 0, 0, alpha))
+    return layer.filter(ImageFilter.GaussianBlur(SS * 0.9))
+
+
+def _sphere(colour, centre, radius, light=(-0.52, -0.58, 0.63), ambient=0.30, diffuse=0.80,
+            specular=0.85, shininess=95.0):
+    """A sphere lit by one light, shaded per pixel.
+
+    The pearl is the only round stone, and a disc with a gradient on it never convinces: what says
+    "sphere" is the diffuse term falling off to zero at the limb plus a tight specular where the normal
+    points at the light. numpy does the arithmetic; the result is still a picture that ships.
+    """
+    import numpy as np
+
+    size = SIZE * SS
+    yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
+    dx = (xx - centre[0] * SS) / (radius * SS)
+    dy = (yy - centre[1] * SS) / (radius * SS)
+    r2 = dx * dx + dy * dy
+    inside = r2 <= 1.0
+    z = np.sqrt(np.clip(1.0 - r2, 0.0, 1.0))
+    length = math.sqrt(sum(component * component for component in light))
+    lx, ly, lz = (component / length for component in light)
+    facing = np.clip(dx * lx + dy * ly + z * lz, 0.0, 1.0)
+    shade = ambient + diffuse * facing
+    spec = specular * np.power(facing, shininess)
+    body = np.array(colour, dtype=np.float32)
+    rgb = body[None, None, :] * shade[:, :, None] + 255.0 * spec[:, :, None]
+    rgb = np.clip(rgb, 0.0, 255.0).astype(np.uint8)
+    alpha = (inside * 255).astype(np.uint8)
+    return Image.fromarray(np.dstack([rgb, alpha]), "RGBA")
+
 def rotate(points, angle, centre=(CX, CY)):
     cos_a, sin_a = math.cos(angle), math.sin(angle)
     out = []
@@ -147,17 +194,17 @@ def silhouette(kind):
 def build(name):
     spec = GEMS[name]
     body, accent = spec["body"], spec["accent"]
+    is_round = spec["shape"] == "round"
     outer = silhouette(spec["shape"])
     if spec["rot"]:
         outer = rotate(outer, spec["rot"])
 
     canvas = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
 
-    # 1. The bezel: solid gold, lit from the upper left, and the silhouette's own dark edge so the
-    #    stone keeps a crisp outline against a dark tile.
+    # 1. The bezel: solid gold, lit from the upper left, so the stone keeps a crisp metal frame against
+    #    a dark tile instead of fading into it.
     outer_mask = _mask(outer)
-    bezel = _gradient_fill(outer_mask, _scale(GOLD_LIGHT, 1.0), GOLD_DARK)
-    canvas.alpha_composite(bezel)
+    canvas.alpha_composite(_gradient_fill(outer_mask, GOLD_LIGHT, GOLD_DARK))
 
     # 2. The stone, inset far enough that the ring reads as metal and not as an outline.
     cut = scale_points(outer, 0.855)
@@ -168,33 +215,35 @@ def build(name):
     seam = _down(_ring_mask(cut_mask, _mask(scale_points(outer, 0.825)))).point(lambda v: int(v * 0.55))
     canvas.paste(Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 255)), (0, 0), seam)
 
-    # 3. Crown facets: quads from the girdle to the table, each shaded by how far its face turns
-    #    away from the light. The light sits above and to the left.
-    light = (-0.62, -0.78)
-    table = scale_points(cut, 0.60)
-    count = len(cut)
-    for index in range(count if spec["shape"] != "round" else 0):
-        quad = [cut[index], cut[(index + 1) % count], table[(index + 1) % count], table[index]]
-        mid = ((quad[0][0] + quad[1][0]) * 0.5, (quad[0][1] + quad[1][1]) * 0.5)
-        nx, ny = mid[0] - CX, mid[1] - CY
-        length = max(1e-6, math.hypot(nx, ny))
-        facing = (nx / length) * light[0] + (ny / length) * light[1]
-        factor = 0.92 + 0.30 * facing
-        facet = Image.new("RGBA", (SIZE * SS, SIZE * SS), _scale(body, factor) + (255,))
-        canvas.alpha_composite(_clip(facet, _mask(quad)))
+    if is_round:
+        # A pearl is a cabochon, not a cut stone: one sphere, lit once, with its own tight highlight.
+        ball = _sphere(_scale(body, 1.02), (CX - SIZE * 0.04, CY - SIZE * 0.05), SIZE * 0.52)
+        canvas.alpha_composite(_clip(ball, cut_mask))
+    else:
+        # 3. Crown facets: quads from the girdle to the table, each shaded by how far its face turns
+        #    away from a light above and to the left.
+        light = (-0.62, -0.78)
+        table = scale_points(cut, 0.60)
+        count = len(cut)
+        for index in range(count):
+            quad = [cut[index], cut[(index + 1) % count], table[(index + 1) % count], table[index]]
+            mid = ((quad[0][0] + quad[1][0]) * 0.5, (quad[0][1] + quad[1][1]) * 0.5)
+            nx, ny = mid[0] - CX, mid[1] - CY
+            length = max(1e-6, math.hypot(nx, ny))
+            facing = (nx / length) * light[0] + (ny / length) * light[1]
+            facet = Image.new("RGBA", (SIZE * SS, SIZE * SS), _scale(body, 0.92 + 0.30 * facing) + (255,))
+            canvas.alpha_composite(_clip(facet, _mask(quad)))
 
-    if spec["shape"] != "round":
-        # Facet seams: a hairline along each girdle-to-table edge, brightest on the lit side.
+        # Facet seams: a hairline along each girdle-to-table edge.
         seam_layer = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
         seam_draw = ImageDraw.Draw(seam_layer)
         for index in range(count):
-            a = cut[index]
-            b = table[index]
+            a, b = cut[index], table[index]
             seam_draw.line([(a[0] * SS, a[1] * SS), (b[0] * SS, b[1] * SS)],
                            fill=(255, 255, 255, 46), width=max(1, SS // 2))
         canvas.alpha_composite(_clip(seam_layer, cut_mask))
 
-        # 4. The table: a radial falloff, plus its own bright edge where it meets the crown.
+        # 4. The table: a radial falloff and its own bright edge where it meets the crown.
         table_image = _radial(body, (CX - SIZE * 0.06, CY - SIZE * 0.08), SIZE * 0.42,
                               inner_factor=1.62, outer_factor=0.94)
         canvas.alpha_composite(_clip(table_image, _mask(table)))
@@ -203,38 +252,19 @@ def build(name):
                                            outline=(255, 255, 255, 70), width=SS)
         canvas.alpha_composite(_clip(table_edge, _mask(table)))
 
-    if spec["shape"] == "round":
-        # A pearl is a cabochon, not a cut stone: a smooth dome, one broad specular, no facets.
-        dome = _radial(body, (CX - SIZE * 0.10, CY - SIZE * 0.12), SIZE * 0.52,
-                       inner_factor=1.26, outer_factor=0.58)
-        canvas.alpha_composite(_clip(dome, cut_mask))
+        # 5. One soft specular over the upper left. A four-point sparkle was tried first and read as a
+        #    pin with a stick at 36 dp; a soft highlight reads as light on a stone.
+        spec_img = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
+        ImageDraw.Draw(spec_img).ellipse(
+            (CX - SIZE * 0.30, CY - SIZE * 0.34, CX + SIZE * 0.02, CY - SIZE * 0.06),
+            fill=WHITE + (110,))
+        spec_img = spec_img.filter(ImageFilter.GaussianBlur(SIZE * 0.05 * SS))
+        canvas.alpha_composite(_clip(spec_img, cut_mask))
 
-    # 5. Specular: a soft highlight over the upper-left of the table and a four-point sparkle.
-    spec_img = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
-    spec_draw = ImageDraw.Draw(spec_img)
-    spec_draw.ellipse((CX - SIZE * 0.30, CY - SIZE * 0.34, CX + SIZE * 0.02, CY - SIZE * 0.06),
-                      fill=WHITE + (110,))
-    spec_img = spec_img.filter(ImageFilter.GaussianBlur(SIZE * 0.05 * SS))
-    canvas.alpha_composite(_clip(spec_img, cut_mask))
-
-    sparkle = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
-    sparkle_draw = ImageDraw.Draw(sparkle)
-    sx, sy = CX - SIZE * 0.20, CY - SIZE * 0.22
-    long_r, short_r = SIZE * 0.075 * SS, SIZE * 0.020 * SS
-    sparkle_draw.polygon([(sx * SS, sy * SS - long_r), (sx * SS + short_r, sy * SS),
-                          (sx * SS, sy * SS + long_r), (sx * SS - short_r, sy * SS)],
-                         fill=WHITE + (235,))
-    sparkle_draw.polygon([(sx * SS - long_r, sy * SS), (sx * SS, sy * SS + short_r),
-                          (sx * SS + long_r, sy * SS), (sx * SS, sy * SS - short_r)],
-                         fill=WHITE + (215,))
-    sparkle = sparkle.filter(ImageFilter.GaussianBlur(SS * 0.35))
-    canvas.alpha_composite(sparkle)
-
-    # 6. A gold glint along the lit half of the bezel, so the ring has a direction.
+    # 6. A glint along the lit half of the bezel, so the ring has a direction.
     glint = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
-    glint_draw = ImageDraw.Draw(glint)
-    glint_draw.arc((0, 0, SIZE * SS - 1, SIZE * SS - 1), start=186, end=318,
-                   fill=_scale(accent, 1.05) + (190,), width=int(SS * 1.6))
+    ImageDraw.Draw(glint).arc((0, 0, SIZE * SS - 1, SIZE * SS - 1), start=186, end=318,
+                              fill=_scale(accent, 1.05) + (190,), width=int(SS * 1.6))
     canvas.alpha_composite(_clip(glint, _ring_mask(outer_mask, _mask(scale_points(outer, 0.90)))))
 
     return canvas.resize((SIZE, SIZE), Image.LANCZOS)
