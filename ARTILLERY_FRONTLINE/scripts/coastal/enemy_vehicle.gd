@@ -23,6 +23,13 @@ var dead: bool = false
 var shoot_cooldown: float = 3.0
 var clock: float = 0.0
 var stop_distance: float = 46.0
+## Tanks close half the distance from their spawn to the emplacement, then hold
+## that line and fire instead of parking at the beach or driving into the gun.
+const ADVANCE_FRACTION: float = 0.5
+const MIN_HOLD_DISTANCE: float = 16.0
+var advance_origin: Vector3 = Vector3.ZERO
+var advance_span: float = 0.0
+var holding: bool = false
 var recoil_offset: float = 0.0
 var recoil_velocity: float = 0.0
 var muzzle_flash: MeshInstance3D
@@ -62,14 +69,19 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 		shape.size = Vector3(3.4, 2.6, 6.2) if kind == "tank" else Vector3(3.0, 2.6, 6.8)
 		collision.shape = shape
 		_build_model()
+	advance_origin = spawn
+	var flat_spawn := Vector3(spawn.x, 0.0, spawn.z)
+	var flat_target := Vector3(target.x, 0.0, target.z)
+	advance_span = flat_spawn.distance_to(flat_target)
 	if kind == "tank":
 		health = 650.0
 		speed = 3.0
-		stop_distance = 46.0
+		stop_distance = maxf(MIN_HOLD_DISTANCE, advance_span * ADVANCE_FRACTION)
 	else:
 		health = 380.0
 		speed = 5.0
 		stop_distance = 28.0
+	holding = false
 	max_health = health
 	shoot_cooldown = randf_range(2.5, 4.5)
 	suspension_phase = randf() * TAU
@@ -195,10 +207,13 @@ func _physics_process(delta: float) -> void:
 	offset.y = 0.0
 	var distance: float = offset.length()
 	var moving: bool = distance > stop_distance
+	holding = not moving
 	var current_speed: float = speed if moving else 0.0
 	if moving:
 		var direction: Vector3 = offset.normalized()
-		global_position += direction * speed * delta
+		# Clamp the last step so even a slow physics frame cannot overshoot the
+		# half-way hold line and oscillate around it.
+		global_position += direction * minf(speed * delta, distance - stop_distance)
 		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 2.0)
 	global_position.y = CoastalTerrain.height_at(global_position.x, global_position.z)
 	_roll_wheels(delta, current_speed)

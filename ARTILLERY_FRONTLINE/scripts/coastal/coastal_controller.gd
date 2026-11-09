@@ -4,7 +4,12 @@ extends Node3D
 signal exit_requested
 signal mission_finished(success: bool)
 
-const MAX_HEALTH: float = 3000.0
+## The emplacement is hardened: a bigger health pool plus passive armour, so a
+## few stray rounds no longer end the run.
+const MAX_HEALTH: float = 6000.0
+const DAMAGE_SCALE: float = 0.55
+const REPAIR_AMOUNT: float = 1500.0
+const AIRDROP_REPAIR: float = 1000.0
 var battlefield: CoastalBattlefield
 var effects: EffectPool
 var bullets: CoastalBulletPool
@@ -199,7 +204,7 @@ func use_support(id: String) -> void:
 	support_charges[id] = int(support_charges[id]) - 1
 	match id:
 		"repair":
-			player_health = minf(MAX_HEALTH, player_health + 900.0)
+			player_health = minf(MAX_HEALTH, player_health + REPAIR_AMOUNT)
 			support_timers[id] = 18.0
 			Sound.play_ui("reload")
 		"airstrike":
@@ -214,7 +219,7 @@ func use_support(id: String) -> void:
 		"airdrop":
 			support_timers[id] = 30.0
 			weapon.resupply()
-			player_health = minf(MAX_HEALTH, player_health + 600.0)
+			player_health = minf(MAX_HEALTH, player_health + AIRDROP_REPAIR)
 
 func _strike_target() -> Vector3:
 	if pitch_target > 12.0:
@@ -442,7 +447,7 @@ func _explode_damage(point: Vector3, radius: float, hurt_player: bool = true) ->
 func _damage_player(amount: float) -> void:
 	if not active:
 		return
-	player_health = maxf(0.0, player_health - amount)
+	player_health = maxf(0.0, player_health - amount * DAMAGE_SCALE)
 	hud.flash_damage()
 	if player_health <= 0.0:
 		_finish(false)

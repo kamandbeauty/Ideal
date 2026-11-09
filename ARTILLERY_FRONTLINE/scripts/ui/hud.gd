@@ -50,11 +50,7 @@ func _ready() -> void:
 	notice_label.offset_bottom = 145
 	add_child(notice_label)
 	performance_label = UITheme.label("", 14, UITheme.GREEN)
-	performance_label.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	performance_label.offset_left = 24
-	performance_label.offset_right = 420
-	performance_label.offset_top = 112
-	performance_label.offset_bottom = 178
+	UITheme.place(performance_label, Vector4(1, 0, 1, 0), Vector4(-420, 112, -24, 178))
 	add_child(performance_label)
 
 
@@ -107,11 +103,7 @@ func _build_target_card() -> void:
 	box.add_child(UITheme.button(Loc.t("hud_next_target"), func(): target_requested.emit()))
 	box.add_child(UITheme.button(Loc.t("hud_fire_control"), func(): solution_requested.emit(), true))
 	var panel: PanelContainer = UITheme.panel(box, 16)
-	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	panel.offset_left = -330
-	panel.offset_right = -24
-	panel.offset_top = 112
-	panel.offset_bottom = 330
+	UITheme.place(panel, Vector4(0, 0, 0, 0), Vector4(24, 112, 330, 330))
 	add_child(panel)
 
 
@@ -133,11 +125,7 @@ func _build_bottom_controls() -> void:
 	telemetry.add_child(range_label)
 	telemetry.add_child(UITheme.label(Loc.t("hud_gun"), 13, UITheme.MUTED))
 	var panel: PanelContainer = UITheme.panel(telemetry, 16)
-	panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	panel.offset_left = 24
-	panel.offset_top = -174
-	panel.offset_right = 360
-	panel.offset_bottom = -26
+	UITheme.place(panel, Vector4(0, 1, 0, 1), Vector4(24, -174, 360, -26))
 	add_child(panel)
 	var ammo_box := UITheme.row(8)
 	for id in ["he", "ap"]:
@@ -147,11 +135,7 @@ func _build_bottom_controls() -> void:
 		ammo_buttons[id] = button
 		ammo_box.add_child(button)
 	var ammo_holder := VBoxContainer.new()
-	ammo_holder.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	ammo_holder.offset_left = -150
-	ammo_holder.offset_right = 150
-	ammo_holder.offset_top = -112
-	ammo_holder.offset_bottom = -24
+	UITheme.place(ammo_holder, Vector4(0.5, 1, 0.5, 1), Vector4(-150, -112, 150, -24))
 	var hint := UITheme.label(Loc.t("hud_drag_hint"), 13, UITheme.TEXT)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	ammo_holder.add_child(hint)
@@ -165,33 +149,18 @@ func _build_bottom_controls() -> void:
 	fire_button.add_theme_stylebox_override("disabled", UITheme.plate("plate_disabled.png", 20))
 	for key in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		fire_button.add_theme_color_override(key, UITheme.INK)
-	fire_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	fire_button.offset_left = -186
-	fire_button.offset_top = -186
-	fire_button.offset_right = -36
-	fire_button.offset_bottom = -36
+	# Raw anchors: an RTL preset would mirror the fire button to the left thumb.
+	UITheme.place(fire_button, Vector4(1, 1, 1, 1), Vector4(-198, -198, -36, -36))
 	fire_button.custom_minimum_size = Vector2(150, 150)
 	add_child(fire_button)
 	reload_button = UITheme.button(Loc.t("hud_reload"), func(): reload_requested.emit())
-	reload_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	reload_button.offset_left = -350
-	reload_button.offset_top = -92
-	reload_button.offset_right = -200
-	reload_button.offset_bottom = -36
+	UITheme.place(reload_button, Vector4(1, 1, 1, 1), Vector4(-374, -100, -212, -36))
 	add_child(reload_button)
 	camera_button = UITheme.button(Loc.t("hud_camera") % Loc.camera("GUN"), func(): camera_requested.emit())
-	camera_button.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	camera_button.offset_left = -186
-	camera_button.offset_top = -254
-	camera_button.offset_right = -36
-	camera_button.offset_bottom = -202
+	UITheme.place(camera_button, Vector4(1, 1, 1, 1), Vector4(-198, -272, -36, -212))
 	add_child(camera_button)
 	var zoom := UITheme.button(Loc.t("hud_zoom"), func(): zoom_requested.emit())
-	zoom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	zoom.offset_left = -350
-	zoom.offset_top = -254
-	zoom.offset_right = -200
-	zoom.offset_bottom = -202
+	UITheme.place(zoom, Vector4(1, 1, 1, 1), Vector4(-374, -272, -212, -212))
 	add_child(zoom)
 
 

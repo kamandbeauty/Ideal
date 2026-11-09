@@ -92,6 +92,7 @@ class Crosshair extends Control:
 				draw_line(c + dir.normalized() * 6.0, c + dir.normalized() * radius, hit_color, 3.0, true)
 
 var root: Control
+var page_root: Control
 var mission_label: Label
 var enemies_label: Label
 var round_label: Label
@@ -118,6 +119,7 @@ var result_body: Label
 var quality_select: OptionButton
 var crosshair: Crosshair
 var damage_overlay: ColorRect
+const DEFAULT_HEALTH: float = 6000.0
 
 func _ready() -> void:
 	layer = 20
@@ -128,6 +130,15 @@ func _ready() -> void:
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
+	# Modal pages are siblings of the inset HUD root so they cover the whole
+	# display, including the cutout area, with no gameplay frame behind them.
+	page_root = Control.new()
+	page_root.name = "CoastalPages"
+	page_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	page_root.layout_direction = Control.LAYOUT_DIRECTION_RTL
+	page_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page_root.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(page_root)
 	_build_top()
 	_build_right()
 	_build_bottom()
@@ -153,9 +164,7 @@ func _icon(kind: String, size_px: float, tint: Color = Color(0.92, 0.94, 0.86)) 
 
 func _build_top() -> void:
 	var left := UITheme.row(10)
-	left.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	left.offset_left = 18
-	left.offset_top = 14
+	UITheme.place(left, Vector4(0, 0, 0, 0), Vector4(18, 14, 268, 78))
 	var settings := Button.new()
 	settings.custom_minimum_size = Vector2(64, 64)
 	settings.add_theme_stylebox_override("normal", UITheme.plate("plate_button.png", 0))
@@ -178,10 +187,7 @@ func _build_top() -> void:
 	left.add_child(_glass(auto_check, 8))
 	root.add_child(left)
 	var center := UITheme.column(4)
-	center.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	center.offset_left = -180
-	center.offset_right = 180
-	center.offset_top = 14
+	UITheme.place(center, Vector4(0.5, 0, 0.5, 0), Vector4(-180, 14, 180, 96))
 	center.alignment = BoxContainer.ALIGNMENT_CENTER
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wave_pips = UITheme.row(10)
@@ -210,11 +216,7 @@ func _build_top() -> void:
 	info.add_child(enemies_label)
 	info.add_child(row)
 	var panel := _glass(info, 12)
-	panel.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	panel.offset_left = -340
-	panel.offset_right = -18
-	panel.offset_top = 14
-	panel.offset_bottom = 122
+	UITheme.place(panel, Vector4(1, 0, 1, 0), Vector4(-340, 14, -18, 122))
 	root.add_child(panel)
 
 func _circular(kind: String, label_text: String, diameter: float, action: Callable) -> Button:
@@ -244,12 +246,10 @@ func _circular(kind: String, label_text: String, diameter: float, action: Callab
 	return button
 
 func _build_right() -> void:
+	# Fire cluster is pinned to the physical right edge: an RTL preset would
+	# mirror it to the left thumb, so raw anchors are used instead.
 	var column := UITheme.column(12)
-	column.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
-	column.offset_left = -160
-	column.offset_right = -24
-	column.offset_top = -170
-	column.offset_bottom = 170
+	UITheme.place(column, Vector4(1, 0.5, 1, 0.5), Vector4(-160, -180, -24, 180))
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	aim_button = _circular("crosshair", Loc.t("coastal_zoom"), 92.0, func(): aim_pressed.emit())
 	column.add_child(aim_button)
@@ -264,7 +264,7 @@ func _build_right() -> void:
 
 func _build_bottom() -> void:
 	var health_box := UITheme.column(4)
-	health_label = UITheme.label(Loc.t("coastal_health") % [Loc.number(3000), Loc.number(3000)], 18, UITheme.TEXT, true)
+	health_label = UITheme.label(Loc.t("coastal_health") % [Loc.number(int(DEFAULT_HEALTH)), Loc.number(int(DEFAULT_HEALTH))], 18, UITheme.TEXT, true)
 	health_bar = ProgressBar.new()
 	health_bar.custom_minimum_size = Vector2(280, 20)
 	health_bar.max_value = 100.0
@@ -275,18 +275,10 @@ func _build_bottom() -> void:
 	health_box.add_child(health_label)
 	health_box.add_child(health_bar)
 	var health_panel := _glass(health_box, 10)
-	health_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	health_panel.offset_left = 18
-	health_panel.offset_top = -96
-	health_panel.offset_right = 330
-	health_panel.offset_bottom = -18
+	UITheme.place(health_panel, Vector4(1, 1, 1, 1), Vector4(-330, -96, -18, -18))
 	root.add_child(health_panel)
 	var supports := UITheme.row(8)
-	supports.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	supports.offset_left = -280
-	supports.offset_right = 280
-	supports.offset_top = -150
-	supports.offset_bottom = -72
+	UITheme.place(supports, Vector4(0.5, 1, 0.5, 1), Vector4(-280, -150, 280, -72))
 	supports.alignment = BoxContainer.ALIGNMENT_CENTER
 	for id in ["repair", "airstrike", "helicopter", "airdrop"]:
 		var button := Button.new()
@@ -325,11 +317,7 @@ func _build_bottom() -> void:
 	buttons.add_child(rocket_button)
 	ammo_box.add_child(buttons)
 	var ammo_panel := _glass(ammo_box, 10)
-	ammo_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	ammo_panel.offset_left = -292
-	ammo_panel.offset_right = -18
-	ammo_panel.offset_top = -182
-	ammo_panel.offset_bottom = -18
+	UITheme.place(ammo_panel, Vector4(0, 1, 0, 1), Vector4(18, -182, 310, -18))
 	root.add_child(ammo_panel)
 	damage_overlay = ColorRect.new()
 	damage_overlay.color = Color(0.8, 0.1, 0.05, 0.0)
@@ -352,6 +340,7 @@ func _build_pause() -> void:
 	pause_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	pause_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	pause_panel.visible = false
+	pause_panel.add_child(UITheme.backdrop())
 	pause_panel.add_child(UITheme.art("hero_beach.jpg", 0.34))
 	pause_panel.add_child(UITheme.overlay("vignette.png", 0.95))
 	var box := UITheme.column(14)
@@ -371,13 +360,14 @@ func _build_pause() -> void:
 	pause_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pause_center.add_child(_glass(box, 24))
 	pause_panel.add_child(pause_center)
-	root.add_child(pause_panel)
+	page_root.add_child(pause_panel)
 
 func _build_results() -> void:
 	result_panel = Control.new()
 	result_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	result_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	result_panel.visible = false
+	result_panel.add_child(UITheme.backdrop())
 	result_panel.add_child(UITheme.art("hero_beach.jpg", 0.42))
 	result_panel.add_child(UITheme.overlay("vignette.png", 0.95))
 	var box := UITheme.column(14)
@@ -395,7 +385,7 @@ func _build_results() -> void:
 	result_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	result_center.add_child(_glass(box, 26))
 	result_panel.add_child(result_center)
-	root.add_child(result_panel)
+	page_root.add_child(result_panel)
 
 func update_state(data: Dictionary) -> void:
 	mission_label.text = Loc.t("coastal_title") % Loc.wave(String(data.get("label", "COASTAL DEFENSE")))
@@ -403,8 +393,8 @@ func update_state(data: Dictionary) -> void:
 	round_label.text = Loc.t("coastal_round") % [Loc.number(int(data.get("round", 1))), Loc.number(int(data.get("rounds", 3)))]
 	var seconds: int = int(data.get("time", 0.0))
 	timer_label.text = Loc.clock(seconds)
-	var health: float = float(data.get("health", 3000.0))
-	var health_max: float = float(data.get("health_max", 3000.0))
+	var health: float = float(data.get("health", DEFAULT_HEALTH))
+	var health_max: float = float(data.get("health_max", DEFAULT_HEALTH))
 	health_bar.value = 100.0 * health / maxf(1.0, health_max)
 	health_label.text = Loc.t("coastal_health") % [Loc.number(int(health)), Loc.number(int(health_max))]
 	ammo_label.text = Loc.t("coastal_ammo") % [Loc.number(int(data.get("ammo", 0))), Loc.number(int(data.get("magazine", 0)))]

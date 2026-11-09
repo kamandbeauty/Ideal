@@ -12,6 +12,7 @@ signal next_requested
 signal upgrade_requested(id: String)
 signal weapon_selected(id: String)
 var screens: Dictionary = {}
+var content_margins: Array[MarginContainer] = []
 var current: String = "splash"
 var settings_return: String = "main"
 var selected_mission: MissionData
@@ -49,6 +50,8 @@ func _ready() -> void:
 	_build_settings()
 	_build_pause()
 	_build_results()
+	resized.connect(_update_content_insets)
+	_update_content_insets.call_deferred()
 	toast_label = UITheme.label("", 20, UITheme.ACCENT, true)
 	toast_label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
 	toast_label.offset_left = -450
@@ -61,20 +64,43 @@ func _ready() -> void:
 	show_screen("splash")
 
 
+func safe_insets() -> Vector4:
+	## Left/top/right/bottom display-cutout insets in interface pixels.
+	if not OS.has_feature("android"):
+		return Vector4.ZERO
+	var window_size := Vector2(DisplayServer.window_get_size())
+	var safe: Rect2i = DisplayServer.get_display_safe_area()
+	if window_size.x <= 0.0 or safe.size.x <= 0:
+		return Vector4.ZERO
+	var viewport_size: Vector2 = get_viewport().get_visible_rect().size
+	var scale: Vector2 = viewport_size / window_size
+	return Vector4(maxf(0.0, safe.position.x * scale.x), maxf(0.0, safe.position.y * scale.y), maxf(0.0, (window_size.x - safe.end.x) * scale.x), maxf(0.0, (window_size.y - safe.end.y) * scale.y))
+
+
+func _update_content_insets() -> void:
+	var insets: Vector4 = safe_insets()
+	for margin in content_margins:
+		margin.add_theme_constant_override("margin_left", int(ceilf(maxf(32.0, insets.x))))
+		margin.add_theme_constant_override("margin_top", int(ceilf(maxf(32.0, insets.y))))
+		margin.add_theme_constant_override("margin_right", int(ceilf(maxf(32.0, insets.z))))
+		margin.add_theme_constant_override("margin_bottom", int(ceilf(maxf(32.0, insets.w))))
+
+
 func _base(id: String, art_file: String = "hero_beach.jpg", dim: float = 0.62) -> VBoxContainer:
 	var root := Control.new()
 	root.name = id.capitalize()
 	root.layout_direction = Control.LAYOUT_DIRECTION_RTL
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.add_child(UITheme.backdrop())
 	root.add_child(UITheme.art(art_file, dim))
 	root.add_child(UITheme.overlay("scrim_right.png", 0.88))
 	root.add_child(UITheme.overlay("scrim_bottom.png", 0.72))
 	root.add_child(UITheme.overlay("vignette.png", 0.9))
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["left", "right", "top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 32)
+	# The page itself is full-bleed; only the content respects the display cutout.
+	content_margins.append(margin)
 	var box := UITheme.column(16)
 	margin.add_child(box)
 	root.add_child(margin)

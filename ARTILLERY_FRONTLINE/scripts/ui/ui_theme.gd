@@ -152,6 +152,29 @@ static func button(text: String, action: Callable, accent: bool = false) -> Butt
 	return node
 
 
+static func place(node: Control, anchor: Vector4, margin: Vector4) -> void:
+	## Explicit anchor placement, components are (left, top, right, bottom).
+	## Preset helpers mirror left/right under an RTL parent, which would put the
+	## fire controls on the wrong thumb side, so the HUD pins raw anchors here.
+	node.anchor_left = anchor.x
+	node.anchor_top = anchor.y
+	node.anchor_right = anchor.z
+	node.anchor_bottom = anchor.w
+	node.offset_left = margin.x
+	node.offset_top = margin.y
+	node.offset_right = margin.z
+	node.offset_bottom = margin.w
+
+
+static func backdrop() -> ColorRect:
+	## Opaque floor for full-screen menus so no gameplay frame shows through.
+	var node := ColorRect.new()
+	node.color = Color(0.02, 0.03, 0.025, 1.0)
+	node.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return node
+
+
 static func column(separation: int = 12) -> VBoxContainer:
 	var node := VBoxContainer.new()
 	node.add_theme_constant_override("separation", separation)

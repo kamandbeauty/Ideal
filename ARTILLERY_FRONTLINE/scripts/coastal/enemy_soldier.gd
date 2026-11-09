@@ -8,8 +8,12 @@ signal shoot_requested(soldier: EnemySoldier, target: Vector3)
 
 enum State { ADVANCE, COVER, STAGGER, DEAD }
 var state: State = State.ADVANCE
-var health: float = 100.0
-var max_health: float = 100.0
+## Infantry is soft-skinned: two heavy-MG rounds drop a rifleman, one head hit.
+const BASE_HEALTH: float = 40.0
+const HEADSHOT_MULTIPLIER: float = 2.2
+const HEAD_HEIGHT: float = 1.45
+var health: float = BASE_HEALTH
+var max_health: float = BASE_HEALTH
 var speed: float = 4.4
 var objective: Vector3 = Vector3.ZERO
 var cover_point: Vector3 = Vector3.ZERO
@@ -195,7 +199,10 @@ func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_directi
 		last_hit_point = hit_point
 	if hit_direction.length_squared() > 0.0001:
 		last_hit_direction = hit_direction.normalized()
-	health = maxf(0.0, health - amount)
+	var scale: float = 1.0
+	if hit_point != Vector3.INF and hit_point.y - global_position.y >= HEAD_HEIGHT:
+		scale = HEADSHOT_MULTIPLIER
+	health = maxf(0.0, health - amount * scale)
 	damaged.emit(self, health / max_health)
 	if health <= 0.0:
 		_die()

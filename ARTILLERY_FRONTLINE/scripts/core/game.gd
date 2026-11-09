@@ -3,6 +3,8 @@ extends Node3D
 var world: Node3D
 var interface: CanvasLayer
 var surface: Control
+var menu_layer: CanvasLayer
+var menu_root: Control
 var aim_input: AimInput
 var menus: MenuScreens
 var hud: GameplayHUD
@@ -34,8 +36,21 @@ func _ready() -> void:
 	surface.add_child(aim_input)
 	hud = GameplayHUD.new()
 	surface.add_child(hud)
+	# Menus live on their own full-bleed layer: no safe-area inset, so the art
+	# covers the entire display and no gameplay frame peeks out at the edges.
+	menu_layer = CanvasLayer.new()
+	menu_layer.layer = 30
+	add_child(menu_layer)
+	menu_root = Control.new()
+	menu_root.name = "FullscreenMenus"
+	menu_root.theme = UITheme.theme()
+	menu_root.layout_direction = Control.LAYOUT_DIRECTION_RTL
+	menu_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	menu_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	menu_root.process_mode = Node.PROCESS_MODE_ALWAYS
+	menu_layer.add_child(menu_root)
 	menus = MenuScreens.new()
-	surface.add_child(menus)
+	menu_root.add_child(menus)
 	hud.visible = false
 	_connect_ui()
 	_replace_battle(load("res://resources/missions/sr01.tres"), false)
@@ -99,6 +114,7 @@ func start_coastal_milestone() -> void:
 	menus.visible = false
 	hud.visible = false
 	Sound.play_ui()
+	_sync_world_visibility()
 func start_mission(id: String) -> void:
 	if not id in Profile.data.unlocked:
 		menus.toast(Loc.t("toast_locked"))
@@ -109,6 +125,7 @@ func start_mission(id: String) -> void:
 	menus.visible = false
 	hud.visible = true
 	Sound.play_ui()
+	_sync_world_visibility()
 
 func return_to_command() -> void:
 	get_tree().paused = false
@@ -121,6 +138,7 @@ func return_to_command() -> void:
 	_replace_battle(load("res://resources/missions/sr01.tres"), false)
 	hud.visible = false
 	menus.show_screen("main")
+	_sync_world_visibility()
 
 func navigate(screen: String) -> void:
 	if screen == "main":
@@ -134,11 +152,13 @@ func pause_game() -> void:
 	get_tree().paused = true
 	hud.visible = false
 	menus.show_screen("pause")
+	_sync_world_visibility()
 
 func resume_game() -> void:
 	get_tree().paused = false
 	menus.visible = false
 	hud.visible = true
+	_sync_world_visibility()
 
 func _on_mission_finished(result: Dictionary) -> void:
 	var first_clear: bool = not last_mission_id in Profile.data.completed
@@ -162,6 +182,7 @@ func _present_results(result: Dictionary) -> void:
 	battle.process_mode = Node.PROCESS_MODE_DISABLED
 	hud.visible = false
 	menus.show_results(result)
+	_sync_world_visibility()
 	if not Profile.storage_available:
 		menus.toast(Loc.t("toast_storage"))
 
@@ -171,7 +192,14 @@ func _next_mission() -> void:
 	if index >= 0 and index + 1 < order.size():
 		start_mission(order[index + 1])
 
+func _sync_world_visibility() -> void:
+	## The command interface is a full-screen page, not an overlay: the world
+	## behind it is hidden so no stale battlefield renders underneath.
+	world.visible = not menus.visible
+
+
 func _process(delta: float) -> void:
+	_sync_world_visibility()
 	if splash_remaining > 0.0:
 		splash_remaining -= delta
 		if splash_remaining <= 0.0 and not smoke_mode:

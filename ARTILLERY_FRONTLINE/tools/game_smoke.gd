@@ -32,6 +32,10 @@ func run() -> void:
 	await get_tree().create_timer(0.35).timeout
 	await capture("menu-home")
 	check("home screen active", game.menus.current == "main")
+	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
+	check("menu layer covers the full viewport", game.menu_root.get_global_rect().is_equal_approx(viewport_rect))
+	check("home page covers the full viewport", game.menus.screens["main"].get_global_rect().is_equal_approx(viewport_rect))
+	check("old battlefield is hidden behind menus", not game.world.visible)
 	game.navigate("campaign")
 	await get_tree().create_timer(0.25).timeout
 	await capture("menu-campaign")
@@ -52,9 +56,13 @@ func run() -> void:
 	var battle: BattleController = game.battle
 	check("battlefield initialized", battle.battlefield.targets.size() == 6)
 	check("HUD visible", game.hud.visible)
+	check("battlefield returns when menus close", game.world.visible and not game.menus.visible)
+	check("artillery fire button is on the physical right", game.hud.fire_button.get_global_rect().get_center().x > viewport_rect.size.x * 0.5)
 	game.pause_game()
 	await get_tree().create_timer(0.25).timeout
 	await capture("menu-pause")
+	check("pause hides the old battlefield and HUD", not game.world.visible and not game.hud.visible)
+	check("pause page covers the full viewport", game.menus.screens["pause"].get_global_rect().is_equal_approx(viewport_rect))
 	game.resume_game()
 	await get_tree().create_timer(0.5).timeout
 	check("trajectory predicts ground impact", battle.targeting.prediction_valid and battle.targeting.predicted_time > 1.0)

@@ -26,9 +26,19 @@ func run(t: TestContext) -> void:
 	var soldier := EnemySoldier.new()
 	t.tree.root.add_child(soldier)
 	soldier.configure(Vector3(0, 0, -20), Vector3(0, 0, 40), Vector3(4, 0, 20))
-	soldier.receive_damage(200.0)
-	t.check(soldier.is_dead(), "Soldier health state reaches death")
+	t.equal(soldier.max_health, EnemySoldier.BASE_HEALTH, "Infantry uses the reduced health pool")
+	t.check(soldier.max_health <= 2.0 * float(CoastalWeapon.WEAPONS.twin_hmg.damage), "Two heavy-MG body hits can drop infantry")
+	soldier.receive_damage(float(CoastalWeapon.WEAPONS.twin_hmg.damage))
+	t.check(not soldier.is_dead() and soldier.health > 0.0, "One heavy-MG body hit wounds infantry")
+	soldier.receive_damage(float(CoastalWeapon.WEAPONS.twin_hmg.damage))
+	t.check(soldier.is_dead(), "Second heavy-MG body hit kills infantry")
 	soldier.queue_free()
+	var head_target := EnemySoldier.new()
+	t.tree.root.add_child(head_target)
+	head_target.configure(Vector3(0, 0, -20), Vector3(0, 0, 40), Vector3(4, 0, 20))
+	head_target.receive_damage(float(CoastalWeapon.WEAPONS.twin_hmg.damage), head_target.global_position + Vector3.UP * 1.6)
+	t.check(head_target.is_dead(), "A heavy-MG head hit drops infantry immediately")
+	head_target.queue_free()
 	var scene: CoastalController = load("res://scenes/coastal/coastal_milestone.tscn").instantiate()
 	t.tree.root.add_child(scene)
 	await t.tree.process_frame
@@ -73,6 +83,29 @@ func run(t: TestContext) -> void:
 		left = left or bearing > 60.0
 		right = right or bearing < -60.0
 	t.check(left and right, "Later waves attack from multiple flanking directions")
+	var advancing_tank: EnemyVehicle = scene.vehicles[0]
+	advancing_tank.set_physics_process(false)
+	var tank_spawn := Vector3(-28.0, CoastalTerrain.height_at(-28.0, 12.0), 12.0)
+	advancing_tank.configure(tank_spawn, scene.emplacement, "tank")
+	advancing_tank.shoot_cooldown = 10000.0
+	var flat_spawn := Vector3(tank_spawn.x, 0.0, tank_spawn.z)
+	var flat_target := Vector3(scene.emplacement.x, 0.0, scene.emplacement.z)
+	t.near(advancing_tank.stop_distance, flat_spawn.distance_to(flat_target) * 0.5, 0.001, "Tank hold line is half the spawn-to-emplacement distance")
+	for index in range(1200):
+		advancing_tank._physics_process(1.0 / 60.0)
+	var hold_offset: Vector3 = scene.emplacement - advancing_tank.global_position
+	hold_offset.y = 0.0
+	t.check(advancing_tank.holding, "Tank advances out of its spawn and enters the hold state")
+	t.near(hold_offset.length(), advancing_tank.stop_distance, 0.02, "Tank stops at the half-way line without overshooting")
+	var held_position: Vector3 = advancing_tank.global_position
+	for index in range(120):
+		advancing_tank._physics_process(1.0 / 60.0)
+	t.check(held_position.is_equal_approx(advancing_tank.global_position), "Tank remains parked at the half-way line")
+	var transport := EnemyVehicle.new()
+	t.tree.root.add_child(transport)
+	transport.configure(tank_spawn, scene.emplacement, "transport")
+	t.equal(transport.stop_distance, 28.0, "Transport stand-off distance is unchanged")
+	transport.queue_free()
 	scene.weapon.cooldown = 0.0
 	var ammo: int = scene.weapon.ammo
 	t.check(scene.fire_once(), "Mounted weapon fires")
@@ -87,8 +120,12 @@ func run(t: TestContext) -> void:
 	scene.use_support("airstrike")
 	t.check(scene.airstrike_queue.size() == 5, "Airstrike queues a bomb run in round one")
 	t.equal(int(scene.support_charges.airstrike), 1, "Support consumes a charge")
+	t.equal(CoastalController.MAX_HEALTH, CoastalHUD.DEFAULT_HEALTH, "HUD and controller agree on maximum health")
+	var player_before: float = scene.player_health
 	scene._damage_player(500.0)
+	t.near(scene.player_health, player_before - 500.0 * CoastalController.DAMAGE_SCALE, 0.001, "Emplacement armour scales incoming damage")
 	scene.use_support("repair")
+	t.near(scene.player_health, minf(CoastalController.MAX_HEALTH, player_before - 500.0 * CoastalController.DAMAGE_SCALE + CoastalController.REPAIR_AMOUNT), 0.001, "Repair restores the configured amount")
 	t.check(scene.player_health > 2500.0, "Repair remains usable while airstrike is cooling down")
 	var tank: EnemyVehicle = scene.vehicles[0]
 	tank.receive_damage(10000.0)
@@ -104,5 +141,12 @@ func run(t: TestContext) -> void:
 	scene.restart()
 	t.check(scene.active and scene.waves.remaining == 11, "Restart rebuilds a fresh first wave")
 	t.equal(int(scene.support_charges.airstrike), 2, "Restart restores support charges")
+	scene.waves.round_index = WaveManager.ROUNDS.size() - 1
+	scene._damage_player(2000.0)
+	var before_airdrop: float = scene.player_health
+	scene.weapon.ammo = 0
+	scene.use_support("airdrop")
+	t.near(scene.player_health, minf(CoastalController.MAX_HEALTH, before_airdrop + CoastalController.AIRDROP_REPAIR), 0.001, "Airdrop repairs the hardened emplacement")
+	t.check(scene.weapon.ammo > 0, "Airdrop also resupplies the weapon")
 	scene.queue_free()
 	await t.tree.process_frame

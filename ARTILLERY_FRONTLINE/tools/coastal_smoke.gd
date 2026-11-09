@@ -121,19 +121,26 @@ func run() -> void:
 	check("airstrike explosions active", coastal.effects.active_count() > 0)
 	await capture("coastal-explosion")
 	check("emplacement survives the smoke engagement", coastal.active and coastal.player_health > 0.0)
+	var viewport_rect: Rect2 = get_viewport().get_visible_rect()
+	check("coastal fire button is on the physical right", coastal.hud.fire_button.get_global_rect().get_center().x > viewport_rect.size.x * 0.5)
 	var health_before: float = coastal.player_health
 	coastal._damage_player(600.0)
+	check("emplacement armour reduces incoming damage", absf(coastal.player_health - (health_before - 600.0 * CoastalController.DAMAGE_SCALE)) < 0.01)
 	coastal.use_support("repair")
-	check("repair works independently of airstrike cooldown", coastal.player_health >= minf(CoastalController.MAX_HEALTH, health_before - 600.0 + 900.0) - 1.0 and float(coastal.support_timers.repair) > 0.0)
+	var repaired: float = minf(CoastalController.MAX_HEALTH, health_before - 600.0 * CoastalController.DAMAGE_SCALE + CoastalController.REPAIR_AMOUNT)
+	check("repair works independently of airstrike cooldown", absf(coastal.player_health - repaired) < 0.01 and float(coastal.support_timers.repair) > 0.0)
 	coastal.hud.set_paused(true)
 	await get_tree().create_timer(0.25).timeout
 	check("coastal pause panel appears", coastal.hud.pause_panel.visible)
+	check("coastal pause covers the full viewport", coastal.hud.pause_panel.get_global_rect().is_equal_approx(viewport_rect))
+	check("coastal pause has an opaque backdrop", coastal.hud.pause_panel.get_child(0) is ColorRect and is_equal_approx((coastal.hud.pause_panel.get_child(0) as ColorRect).color.a, 1.0))
 	await capture("coastal-pause")
 	coastal.hud.set_paused(false)
 	await get_tree().create_timer(0.2).timeout
 	coastal._finish(true)
 	await get_tree().create_timer(0.3).timeout
 	check("mission results panel appears", coastal.hud.result_panel.visible)
+	check("coastal results cover the full viewport", coastal.hud.result_panel.get_global_rect().is_equal_approx(viewport_rect))
 	await capture("coastal-results")
 	var report: Dictionary = {"scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 03 skinned infantry/detailed war machines/weapons; not Android hardware", "checks": checks, "failures": failures, "passed": failures == 0, "performance": Graphics.snapshot(), "soldiers": coastal.soldiers.size(), "kills": coastal.kills, "weapon_screen_bounds": {"x": bounds.position.x, "y": bounds.position.y, "w": bounds.size.x, "h": bounds.size.y}}
 	var file: FileAccess = FileAccess.open(output + "/coastal-smoke-report.json", FileAccess.WRITE)
