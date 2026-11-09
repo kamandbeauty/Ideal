@@ -252,7 +252,9 @@ func _build_arsenal() -> void:
 	identity.add_child(UITheme.label(Loc.t("arsenal_name"), 52, UITheme.TEXT, true))
 	identity.add_child(UITheme.wrapped(Loc.t("arsenal_body"), 20))
 	identity.add_child(UITheme.button(Loc.t("arsenal_equip"), func(): weapon_selected.emit("kestrel"), true))
-	content.add_child(UITheme.panel(identity, 24))
+	var identity_panel: PanelContainer = UITheme.panel(identity, 24)
+	identity_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.add_child(identity_panel)
 	var stats := UITheme.column(16)
 	stats.custom_minimum_size.x = 430
 	stats.add_child(UITheme.label(Loc.t("arsenal_performance"), 18, UITheme.MUTED))

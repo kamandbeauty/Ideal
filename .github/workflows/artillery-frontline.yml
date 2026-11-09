@@ -32,7 +32,7 @@ jobs:
           set -euo pipefail
           mkdir -p ~/.local/godot-bin
           if [ ! -x ~/.local/godot-bin/godot ]; then
-            curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+            curl -fL --retry 5 --retry-all-errors --retry-delay 5 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
             echo "${GODOT_SHA256}  $RUNNER_TEMP/godot.zip" | sha256sum -c -
             unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
             cp "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" ~/.local/godot-bin/godot
@@ -107,7 +107,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p ~/.local/godot-bin ~/.local/share/godot/export_templates/4.7.2.stable
-          curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          curl -fL --retry 5 --retry-all-errors --retry-delay 5 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
           echo "${GODOT_SHA256}  $RUNNER_TEMP/godot.zip" | sha256sum -c -
           unzip -qo "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
           cp "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" ~/.local/godot-bin/godot
@@ -115,7 +115,7 @@ jobs:
           echo "$HOME/.local/godot-bin" >> "$GITHUB_PATH"
           T=~/.local/share/godot/export_templates/4.7.2.stable
           if [ ! -s "$T/android_release.apk" ]; then
-            curl -fL --retry 3 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" -o "$RUNNER_TEMP/templates.tpz"
+            curl -fL --retry 5 --retry-all-errors --retry-delay 5 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" -o "$RUNNER_TEMP/templates.tpz"
             unzip -j "$RUNNER_TEMP/templates.tpz" 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/android_source.zip' 'templates/version.txt' -d "$T"
           fi
       - name: Configure SDK paths without credentials
