@@ -1,14 +1,31 @@
 class_name AssetCatalog
 extends RefCounted
 
-static func piece_path(kind: int) -> String:
+## The five stones are drawn twice: the Unity project's sprites ship untouched in `assets/art` (the
+## port contract keeps all 85 of them byte-identical), and `assets/gems` holds the re-cut versions
+## that the board actually draws. The re-cut art is a picture like any other — it is generated once by
+## `tools/make_gem_art.py` and never drawn at runtime — and it is what makes a gem read as a stone at
+## 36 dp instead of as a coloured polygon. The fallback keeps the port working from the Unity art
+## alone if the gems folder is ever removed.
+const GEM_DIR := "res://assets/gems/"
+
+static func piece_name(kind: int) -> String:
 	match kind:
-		GameTypes.PieceKind.FIROUZEH: return "res://assets/art/piece_firouzeh.png"
-		GameTypes.PieceKind.LAJVARD: return "res://assets/art/piece_lajvard.png"
-		GameTypes.PieceKind.AQIQ: return "res://assets/art/piece_aqiq.png"
-		GameTypes.PieceKind.ZOMORROD: return "res://assets/art/piece_zomorrod.png"
-		GameTypes.PieceKind.MORVARID: return "res://assets/art/piece_morvarid.png"
+		GameTypes.PieceKind.FIROUZEH: return "firouzeh"
+		GameTypes.PieceKind.LAJVARD: return "lajvard"
+		GameTypes.PieceKind.AQIQ: return "aqiq"
+		GameTypes.PieceKind.ZOMORROD: return "zomorrod"
+		GameTypes.PieceKind.MORVARID: return "morvarid"
 		_: return ""
+
+static func piece_path(kind: int) -> String:
+	var name := piece_name(kind)
+	if name.is_empty():
+		return ""
+	var gem := GEM_DIR + "piece_%s.png" % name
+	if ResourceLoader.exists(gem):
+		return gem
+	return "res://assets/art/piece_%s.png" % name
 
 static func power_up_path(kind: int) -> String:
 	match kind:

@@ -12,6 +12,11 @@ PNGs in `assets/ui/`, baked by `tools/make_ui_art.py` and nine-sliced by `UiKit`
 `ColorRect` survive only as fallbacks for a missing texture — a screen that draws a rectangle the engine
 rounded at runtime is a bug now, not a style.
 
+The five stones are the one place where a second, better picture exists: `assets/gems/` holds the gems
+re-cut by `tools/make_gem_art.py` — bezel, crown facets, table, specular, sparkle — and the board draws
+those, because the Unity sprites are flat polygons that read as "no graphics at all" at 36 dp. The
+Unity originals still ship, untouched, and `AssetCatalog` falls back to them if the folder is missing.
+
 ## What is where
 
 | Path | What it is |
@@ -24,6 +29,7 @@ rounded at runtime is a bug now, not a style.
 | `scripts/ui/` | `UiTokens` (tokens from `Tokens.gen.cs`), `PersianText`, `UiKit`, `UiScreen`, `TopBar`, `BoardView`. |
 | `scripts/screens/` | Home, board, districts, shop, settings. |
 | `assets/art`, `assets/fonts` | The 85 PNGs and both Vazir weights, copied from the Unity project. |
+| `assets/ui`, `assets/gems` | The picture chrome and the re-cut stones, both generated — `tools/make_ui_art.py` and `tools/make_gem_art.py`. |
 | `content/` | The ten chapter-one levels and the chapter metadata, unchanged JSON. |
 | `tests/` | Headless suites: `test_core.gd` (rules, determinism, save, content), `test_ui.gd` (Persian numerals, kit, session, board, every level), `validate_scripts.gd` (every `.gd` compiles). |
 

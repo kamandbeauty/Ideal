@@ -113,6 +113,22 @@ func _run() -> void:
 		"all 85 game plates are present (%d found)" % art_files.size())
 	failures += _check(ui_files.size() == 25,
 		"all 25 picture-chrome plates are present (%d found)" % ui_files.size())
+	# The stones are re-cut pictures in their own folder, on top of the Unity ones that still ship, so
+	# counting `assets/art` alone would not notice if they went missing.
+	var gem_files := _list_pngs("res://assets/gems")
+	failures += _check(gem_files.size() == 5,
+		"all 5 re-cut gems are present (%d found)" % gem_files.size())
+	var weak_gems: Array[String] = []
+	for path in gem_files:
+		var gem := load(path) as Texture2D
+		if gem == null or gem.get_width() < 128:
+			weak_gems.append(path)
+	failures += _check(weak_gems.is_empty(),
+		"every gem is at least 128 px so a phone never upscales it (%s)" % ", ".join(weak_gems))
+	for kind in [GameTypes.PieceKind.FIROUZEH, GameTypes.PieceKind.LAJVARD, GameTypes.PieceKind.AQIQ,
+			GameTypes.PieceKind.ZOMORROD, GameTypes.PieceKind.MORVARID]:
+		failures += _check(AssetCatalog.piece_path(kind).begins_with(AssetCatalog.GEM_DIR),
+			"the board draws the re-cut gem for piece %d" % kind)
 	var undecodable: Array[String] = []
 	for path in art_files + ui_files:
 		var texture := load(path) as Texture2D
