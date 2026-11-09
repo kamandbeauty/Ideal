@@ -250,19 +250,23 @@ def build(name):
                               fill=(206, 160, 78, 120))
         image.alpha_composite(wall)
 
-        spring_y = horizon_y + H * 0.085
+        # The arches stop at a sill line instead of running into the bottom of the frame. Below the sill
+        # is plain wall, which is where the HUD sits: an arch edge behind a row of buttons reads as a
+        # glitch, not as architecture.
+        sill_y = horizon_y + H * 0.135
+        spring_y = horizon_y + H * 0.030
         arch_height = H * 0.315
         thickness = W * 0.011
         for index in range(scene["arches"]):
             x0 = step * index + step * 0.11
             x1 = step * (index + 1) - step * 0.11
             arch = arch_points(x0, x1, spring_y, arch_height)
-            opening = arch + [(x1, H), (x0, H)]
+            opening = arch + [(x1, sill_y), (x0, sill_y)]
             # The inside of the arch: darker at the top, warm at the floor where the lamp burns. It has
             # to start above the springing line, or the arch head stays sky-coloured and reads as an
             # outline drawn on the sky instead of an opening cut in a wall.
             arch_top = spring_y - arch_height
-            inner = vertical_gradient((int(x1 - x0) + 2, int(H - arch_top) + 2),
+            inner = vertical_gradient((int(x1 - x0) + 2, int(sill_y - arch_top) + 2),
                                       [(0.0, (8, 14, 22)), (0.30, (26, 36, 42)),
                                        (0.66, (96, 82, 62)), (0.90, (168, 126, 78)),
                                        (1.0, (62, 54, 46))]).convert("RGBA")
@@ -271,17 +275,25 @@ def build(name):
             image.alpha_composite(Image.composite(canvas, Image.new("RGBA", size, (0, 0, 0, 0)),
                                                   mask_of(opening, size)))
             # Lamp on the floor of the opening, and its halo.
-            lamp = ((x0 + x1) * 0.5, spring_y + (H - spring_y) * 0.62)
-            image.alpha_composite(radial_layer(size, lamp, (x1 - x0) * 1.25, (250, 198, 120), 0.5, 2.6))
+            # The lamp hangs in the upper half of the opening: at the sill it sat on the ledge and read
+            # as a speck of dirt on the wall rather than as light inside an arch.
+            lamp = ((x0 + x1) * 0.5, sill_y - (sill_y - arch_top) * 0.42)
+            image.alpha_composite(radial_layer(size, lamp, (x1 - x0) * 1.05, (250, 198, 120), 0.55, 2.6))
             draw = ImageDraw.Draw(image, "RGBA")
-            draw.ellipse((lamp[0] - 7, lamp[1] - 9, lamp[0] + 7, lamp[1] + 9),
+            draw.ellipse((lamp[0] - 6, lamp[1] - 8, lamp[0] + 6, lamp[1] + 8),
                          fill=(255, 231, 176, 240))
+            draw.line((lamp[0], arch_top + 6, lamp[0], lamp[1] - 9), fill=(52, 62, 70, 220), width=3)
             # Rim light on the arch edge, then a gold hairline inside it.
             draw.line(arch + [arch[0]], fill=(104, 140, 156, 170), width=3)
-            draw.line([(x0, spring_y), (x0, H)], fill=(104, 140, 156, 110), width=3)
-            draw.line([(x1, spring_y), (x1, H)], fill=(104, 140, 156, 110), width=3)
+            draw.line([(x0, spring_y), (x0, sill_y)], fill=(104, 140, 156, 110), width=3)
+            draw.line([(x1, spring_y), (x1, sill_y)], fill=(104, 140, 156, 110), width=3)
             inset = arch_points(x0 + thickness, x1 - thickness, spring_y, arch_height - thickness * 1.4)
             draw.line(inset + [inset[0]], fill=(198, 152, 72, 130), width=2)
+
+        # The sill line and its shadow: the wall now reads as a frieze above a dado.
+        draw = ImageDraw.Draw(image, "RGBA")
+        draw.rectangle((0, sill_y - 3, W, sill_y + 5), fill=(58, 92, 112, 235))
+        draw.rectangle((0, sill_y + 5, W, sill_y + 9), fill=(6, 12, 20, 120))
 
     # ---- terrace ---------------------------------------------------------------------------------
     floor_top = horizon_y + H * 0.10
