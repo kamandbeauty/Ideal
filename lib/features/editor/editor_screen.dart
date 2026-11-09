@@ -804,7 +804,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         child: Row(
           children: <Widget>[
             const SizedBox(width: 10),
-            Icon(Icons.add_music_rounded,
+            Icon(Icons.music_note_rounded,
                 size: 15,
                 color: context.theme.colorScheme.onSurfaceVariant),
             const SizedBox(width: 6),
