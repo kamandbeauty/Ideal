@@ -150,12 +150,11 @@ func build() -> void:
 	UiKit.icon(wallet_card, "life_icon", "icon_life", 14.0, icon_box, 26.0, 26.0)
 	_life_label = UiKit.label(wallet_card, "life_value", "", UiTokens.TYPE_SM, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_life_label, 46.0, 0.0, COLUMN_W * 0.5 - 60.0, WALLET_HEIGHT)
+	UiKit.place(_life_label, 44.0, 0.0, 68.0, WALLET_HEIGHT)
 	UiKit.icon(wallet_card, "coin_icon", "icon_coin", COLUMN_W - 40.0, icon_box, 26.0, 26.0)
 	_coin_label = UiKit.label(wallet_card, "coin_value", "", UiTokens.TYPE_SM, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_coin_label, COLUMN_W - 40.0 - (COLUMN_W * 0.5 - 60.0), 0.0, COLUMN_W * 0.5 - 60.0,
-		WALLET_HEIGHT)
+	UiKit.place(_coin_label, COLUMN_W - 40.0 - 68.0, 0.0, 68.0, WALLET_HEIGHT)
 
 	var boosters_heading := UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
 		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)

@@ -12,6 +12,9 @@ PNGs in `assets/ui/`, baked by `tools/make_ui_art.py` and nine-sliced by `UiKit`
 `ColorRect` survive only as fallbacks for a missing texture — a screen that draws a rectangle the engine
 rounded at runtime is a bug now, not a style.
 
+That rule is a test, not a promise: `test_ui` walks the live app — all five screens, every panel and
+every button state — and fails on any `StyleBoxFlat` or `ColorRect` it finds.
+
 The five stones are the one place where a second, better picture exists: `assets/gems/` holds the gems
 re-cut by `tools/make_gem_art.py` — bezel, crown facets, table, specular, sparkle — and the board draws
 those, because the Unity sprites are flat polygons that read as "no graphics at all" at 36 dp. The
