@@ -60,8 +60,9 @@ jobs:
       - name: Software-rendered gameplay smoke test
         run: |
           sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri
-          xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --smoke-test > /tmp/smoke.log 2>&1 || { tail -100 /tmp/smoke.log; exit 1; }
+          xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --smoke-test > /tmp/smoke.log 2>&1 || { tail -100 /tmp/smoke.log; cp /tmp/smoke.log "$PROJECT/documentation/qa/smoke.log"; exit 1; }
           cat /tmp/smoke.log
+          cp /tmp/smoke.log "$PROJECT/documentation/qa/smoke.log"
           test -s "$PROJECT/documentation/qa/battlefield.png"
           test -s "$PROJECT/documentation/qa/menu-home.png"
       - name: Software-rendered coastal milestone smoke test
