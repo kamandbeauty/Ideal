@@ -222,7 +222,10 @@ class SubtitleEditorModel {
           x.text != y.text ||
           x.startUs != y.startUs ||
           x.endUs != y.endUs ||
-          x.styleId != y.styleId) {
+          x.styleId != y.styleId ||
+          // A per-caption style change is a real edit; without this the commit
+          // is classified as a no-op and the style never reaches the document.
+          x.presetJson != y.presetJson) {
         return false;
       }
     }
