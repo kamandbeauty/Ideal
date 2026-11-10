@@ -1,7 +1,12 @@
 {
-  "checks": 850,
+  "checks": 856,
   "engine": "4.7.2-stable (official)",
-  "failures": [],
-  "passed": true,
+  "failures": [
+    "test_coastal: Military jeep has four road wheels (got 1, expected 4)",
+    "test_coastal: APC has eight wheels (got 1, expected 8)",
+    "test_coastal: Boss tank has twin cannon barrels (got 1, expected 2)",
+    "test_coastal: Boss tank has twelve track wheels (got 1, expected 12)"
+  ],
+  "passed": false,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }
