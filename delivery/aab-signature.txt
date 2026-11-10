@@ -1,6 +1,6 @@
 
-s      71074 Mon Nov 09 09:29:00 UTC 2026 META-INF/MANIFEST.MF
-       71236 Mon Nov 09 09:29:00 UTC 2026 META-INF/ARTILLER.SF (and 1 more)
+s      71074 Tue Nov 10 07:20:52 UTC 2026 META-INF/MANIFEST.MF
+       71236 Tue Nov 10 07:20:52 UTC 2026 META-INF/ARTILLER.SF (and 1 more)
 sm       628 Thu Jan 01 00:00:00 UTC 1970 BundleConfig.pb (and 495 more)
 
   s = signature was verified 
@@ -17,6 +17,6 @@ Warning:
 This jar contains entries whose certificate chain is invalid. Reason: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
 This jar contains entries whose signer certificate is self-signed.
 This jar contains entries whose signer certificate will expire within six months. 
-This jar contains signatures that do not include a timestamp. Without a timestamp, users may not be able to validate this jar after any of the signer certificates expire (as early as 2026-12-09).
+This jar contains signatures that do not include a timestamp. Without a timestamp, users may not be able to validate this jar after any of the signer certificates expire (as early as 2026-12-10).
 
 Re-run with the -verbose and -certs options for more details.
