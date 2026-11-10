@@ -200,9 +200,9 @@ internal class VideoExporter(
                     if (finished) return
                     val state = runCatching { built.getProgress(progress) }.getOrElse { return }
                     if (state == Transformer.PROGRESS_STATE_AVAILABLE &&
-                        progress.progressPercent > lastPercent
+                        progress.progress > lastPercent
                     ) {
-                        lastPercent = progress.progressPercent
+                        lastPercent = progress.progress
                         emit(
                             mapOf(
                                 "event" to "export",
