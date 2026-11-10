@@ -1,9 +1,7 @@
 {
-  "checks": 841,
+  "checks": 839,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_coastal: Target lock brackets shrink with range"
-  ],
-  "passed": false,
+  "failures": [],
+  "passed": true,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }

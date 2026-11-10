@@ -173,11 +173,11 @@
   "kills": 1,
   "passed": true,
   "performance": {
-    "draw_calls": 311,
-    "fps": 10.5,
-    "frame_ms": 95.28,
-    "objects": 1892,
-    "primitives": 152850,
+    "draw_calls": 313,
+    "fps": 10.7,
+    "frame_ms": 93.27,
+    "objects": 1893,
+    "primitives": 153058,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
