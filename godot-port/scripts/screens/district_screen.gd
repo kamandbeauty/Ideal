@@ -12,10 +12,10 @@ signal back_requested
 const CARD_HEIGHT := 286.0
 # The card is a painted plaque: its moulding is 18 dp deep, so nothing may be drawn outside this inset.
 const EDGE := 18.0
-const TITLE_Y := 22.0
-const ROW_Y := 46.0
-const ROW_PITCH := 38.0
-const ACTION_Y := 240.0
+const TITLE_Y := 32.0
+const ROW_Y := 54.0
+const ROW_PITCH := 34.0
+const ACTION_Y := 224.0
 const CARD_WIDTH := 232.0
 const CARD_GAP := 8.0
 
@@ -85,21 +85,21 @@ func _build_card(index: int) -> void:
 
 	var rows: Array[Dictionary] = []
 	for task_index in range(5):
-		# 38 dp pitch, 32 dp rows: five of them end at 230 and the two action buttons start at 240, all
-		# inside the plaque's inner 18..268.
+		# The plaque's top and bottom bands are ~30 dp deep, its sides ~18: five 30 dp rows at a 34 dp
+		# pitch run 54..220 and the two action buttons sit at 224, clear of the band that starts at 256.
 		var y := ROW_Y + float(task_index) * ROW_PITCH
 		var row := Control.new()
 		row.name = "task_%d" % task_index
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(row)
-		UiKit.place(row, EDGE, y, CARD_WIDTH - EDGE * 2.0, 32.0)
+		UiKit.place(row, EDGE, y, CARD_WIDTH - EDGE * 2.0, 30.0)
 
 		var label := UiKit.label(row, "title", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(label, 56.0, 0.0, CARD_WIDTH - EDGE * 2.0 - 56.0, 32.0)
+		UiKit.place(label, 56.0, 0.0, CARD_WIDTH - EDGE * 2.0 - 56.0, 30.0)
 		_row_titles.append(label)
 
-		var button := UiKit.button(row, "build", "", 0.0, 0.0, 50.0, 32.0, UiTokens.ACCENT,
+		var button := UiKit.button(row, "build", "", 0.0, 0.0, 50.0, 30.0, UiTokens.ACCENT,
 			UiTokens.ON_ACCENT, Callable(self, "_on_task_pressed").bind(index, task_index),
 			UiTokens.RADIUS_SM)
 		button.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
