@@ -323,6 +323,7 @@ func run(t: TestContext) -> void:
 	t.check(CoastalController.is_head_hit(0.0, 1.6) and not CoastalController.is_head_hit(0.0, 0.8), "Head hits register only above the head line")
 	var numbers_before: int = scene.hud.damage_layer.get_child_count()
 	scene.hud.show_damage_number(Vector2(400, 300), 120.0, true)
+	t.equal(scene.hud.damage_layer.get_child_count(), numbers_before + 1, "A hit adds one damage readout over the target")
 	scene.hud.show_damage_number(Vector2(400, 300), 90.0, false, true)
 	var critical_label: Label = scene.hud.damage_layer.get_child(scene.hud.damage_layer.get_child_count() - 1) as Label
 	t.check(critical_label != null and critical_label.text.contains(Loc.t("coastal_critical")), "Critical readout is labelled as a critical hit")
@@ -331,7 +332,6 @@ func run(t: TestContext) -> void:
 	t.check(scene.hud.crosshair.critical and scene.hud.crosshair.hit_timer > 0.0, "Crosshair marks a critical hit")
 	scene.hud.confirm_hit(false, false)
 	t.check(not scene.hud.crosshair.critical, "A normal hit clears the critical marker")
-	t.equal(scene.hud.damage_layer.get_child_count(), numbers_before + 1, "A hit adds one damage readout over the target")
 	t.check(scene.auto_fire, "Automatic fire is on by default")
 	t.check(CoastalController.within_cone(Vector3.FORWARD, Vector3(0, 0, -10), 3.0), "A target dead ahead is inside the auto-fire cone")
 	t.check(not CoastalController.within_cone(Vector3.FORWARD, Vector3(10, 0, -10), 3.0), "A target 45 degrees off-axis stays outside the auto-fire cone")
