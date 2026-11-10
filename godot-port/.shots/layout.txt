@@ -39,6 +39,17 @@ DUMP     chest_label [P: (58.0, 330.0), S: (64.0, 28.0)] text=باز کن
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(738.0, 415.0)
 LAYOUT board :: 0 control(s) escape their parent
 STRIP start :: screen=BoardScreen:<Control#53351548502>
-STRIP move :: [(2, 0), (2, 1)]
-STRIP board :: <null>
+STRIP move :: [(1, 0), (1, 1)]
+STRIP board :: board:<Control#59139688177>
+STRIP frame 0 :: (180, 140)
+STRIP frame 1 :: (180, 140)
+STRIP frame 2 :: (180, 140)
+STRIP frame 3 :: (180, 140)
+STRIP frame 4 :: (180, 140)
+STRIP frame 5 :: (180, 140)
+STRIP frame 6 :: (180, 140)
+STRIP frame 7 :: (180, 140)
+STRIP frame 8 :: (180, 140)
+STRIP frame 9 :: (180, 140)
+STRIP 11-swap-strip 3732x304 frames=10
 CONTACT 3786x447
