@@ -6,6 +6,12 @@ var interface: Array[AudioStreamPlayer] = []
 var wind: AudioStreamPlayer
 var playback_enabled: bool = true
 var master_bus: int = -1
+## Field-radio channel: one transmission at a time, quiet, bandpassed in the clip itself.
+const VOICE_IDS: Array[String] = ["contact", "get_down", "man_down", "take_cover", "reloading", "move_out", "incoming", "keep_moving", "medic", "spotted"]
+const VOICE_VOLUME_DB: float = -17.0
+const VOICE_GAP_MS: int = 1400
+var radio: AudioStreamPlayer
+var last_voice_ms: int = -100000
 var sfx_bus: int = -1
 var ambient_bus: int = -1
 
@@ -18,6 +24,12 @@ func _ready() -> void:
 		var path: String = "res://assets/audio/%s.wav" % id
 		if ResourceLoader.exists(path):
 			clips[id] = load(path)
+	for id in VOICE_IDS:
+		var voice_path: String = "res://assets/voices/%s.wav" % id
+		if ResourceLoader.exists(voice_path):
+			clips["voice_" + id] = load(voice_path)
+	radio = AudioStreamPlayer.new()
+	add_child(radio)
 	master_bus = _bus("Frontline SFX")
 	sfx_bus = master_bus
 	ambient_bus = _bus("Frontline Ambience")
@@ -80,6 +92,21 @@ func play_at(id: String, position: Vector3, volume_db: float = 0.0, pitch: float
 	selected.pitch_scale = pitch
 	selected.play()
 
+## Plays one radio line on the shared channel. Returns false when the channel is busy
+## or the clip is missing, so callers never queue up speech.
+func play_voice(id: String, volume_db: float = VOICE_VOLUME_DB) -> bool:
+	var key: String = "voice_" + id
+	if not playback_enabled or radio == null or not clips.has(key):
+		return false
+	var now: int = Time.get_ticks_msec()
+	if radio.playing or now - last_voice_ms < VOICE_GAP_MS:
+		return false
+	last_voice_ms = now
+	radio.stream = clips[key]
+	radio.volume_db = volume_db
+	radio.play()
+	return true
+
 func play_ui(id: String = "click") -> void:
 	if not playback_enabled or not clips.has(id):
 		return
@@ -97,6 +124,9 @@ func stop_all() -> void:
 	for player in interface:
 		player.stop()
 		player.stream = null
+	if radio:
+		radio.stop()
+		radio.stream = null
 	if wind:
 		wind.stop()
 		wind.stream = null

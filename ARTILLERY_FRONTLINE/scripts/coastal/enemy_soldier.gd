@@ -5,6 +5,8 @@ extends CharacterBody3D
 signal died(soldier: EnemySoldier)
 signal damaged(soldier: EnemySoldier, ratio: float)
 signal shoot_requested(soldier: EnemySoldier, target: Vector3)
+## Fired whenever fire or a blast makes this soldier take cover or stagger.
+signal suppressed(soldier: EnemySoldier)
 
 enum State { ADVANCE, COVER, STAGGER, DEAD }
 var state: State = State.ADVANCE
@@ -221,6 +223,7 @@ func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_directi
 		_die()
 	else:
 		stagger_time = maxf(stagger_time, 0.18)
+		suppressed.emit(self)
 		if state != State.COVER and health < max_health * 0.45:
 			state = State.COVER
 
@@ -234,6 +237,7 @@ func react_to_explosion(point: Vector3, radius: float) -> void:
 		state = State.STAGGER
 		last_hit_point = point
 		last_hit_direction = offset.normalized() if distance > 0.01 else Vector3.UP
+		suppressed.emit(self)
 		if distance < radius * 0.75:
 			receive_damage(65.0 * (1.0 - distance / (radius * 1.8)), point, last_hit_direction)
 

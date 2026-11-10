@@ -21,6 +21,7 @@ var camera: Camera3D
 var aim_yaw: Node3D
 var aim_pitch: Node3D
 var craft: LandingCraft
+var contact_called: bool = false
 var soldiers: Array[EnemySoldier] = []
 var vehicles: Array[EnemyVehicle] = []
 var aircraft: Array[EnemyAircraft] = []
@@ -282,6 +283,7 @@ func _spawn_zones(round_number: int) -> Array[Vector3]:
 
 func _on_round_started(round_number: int, setup: Dictionary) -> void:
 	current_wave = round_number
+	contact_called = false
 	var zones: Array[Vector3] = _spawn_zones(round_number)
 	var new_crafts: Array[LandingCraft] = []
 	for index in range(int(setup.craft)):
@@ -342,6 +344,8 @@ func _unload(landing: LandingCraft) -> void:
 	if not is_instance_valid(landing):
 		return
 	var kinds: Array[String] = landing.unload()
+	if kinds.has("soldier"):
+		Sound.play_voice("move_out")
 	var time: float = 0.6
 	for kind in kinds:
 		_queue_entry(kind, landing, Vector3.ZERO, time)
@@ -388,6 +392,8 @@ func _spawn_soldier(point: Vector3) -> void:
 	soldier.configure(spawn, emplacement + Vector3(randf_range(-6, 6), 0, randf_range(-4, 4)), battlefield.random_cover())
 	soldier.speed = 2.4 + current_wave * 0.3
 	soldier.died.connect(func(_s): _register_kill())
+	soldier.died.connect(_on_soldier_down)
+	soldier.suppressed.connect(_on_soldier_suppressed)
 	soldier.shoot_requested.connect(_on_enemy_shoot)
 	soldiers.append(soldier)
 
@@ -406,6 +412,14 @@ func _spawn_aircraft(kind: String, phase: float) -> void:
 	plane.died.connect(_on_aircraft_destroyed)
 	plane.shoot_requested.connect(_on_enemy_heavy_shoot)
 	aircraft.append(plane)
+
+## Radio lines for infantry: a man going down is called out, sometimes with a medic request.
+func _on_soldier_down(soldier: EnemySoldier) -> void:
+	Sound.play_voice("man_down" if randf() < 0.6 else "medic")
+
+## Near fire and blasts make the squad dive for cover; the radio channel rate-limits this.
+func _on_soldier_suppressed(_soldier: EnemySoldier) -> void:
+	Sound.play_voice("get_down" if randf() < 0.5 else "take_cover")
 
 func _register_kill() -> void:
 	kills += 1
@@ -432,6 +446,10 @@ func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	soldier.play_fire()
 	var muzzle: Node3D = soldier.find_child("Muzzle", true, false) as Node3D
 	var origin: Vector3 = muzzle.global_position if muzzle else soldier.global_position + Vector3.UP * 1.45
+	Sound.play_at("hmg", origin, -16.0, randf_range(0.94, 1.06))
+	if not contact_called:
+		contact_called = true
+		Sound.play_voice("contact")
 	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
 	var spread: float = deg_to_rad(1.1)
 	direction = direction.rotated(Vector3.UP, randf_range(-spread, spread))
@@ -444,6 +462,8 @@ func _on_enemy_heavy_shoot(origin: Vector3, target: Vector3, damage: float, blas
 	if not active:
 		return
 	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
+	Sound.play_at("cannon", origin, -12.0, 0.8)
+	Sound.play_voice("incoming")
 	bullets.launch(origin, direction * 160.0, damage * randf_range(0.85, 1.15), blast, 13)
 	effects.explode(origin, direction, 1.2, origin.y, true)
 
