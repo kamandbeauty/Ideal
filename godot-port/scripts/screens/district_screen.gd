@@ -14,10 +14,10 @@ const CARD_HEIGHT := 286.0
 const EDGE := 18.0
 # The painted plaque has an arch ornament across its top third, so the title starts below it and the five
 # rows and the two action buttons are packed tighter to make the room back.
-const TITLE_Y := 44.0
-const ROW_Y := 68.0
-const ROW_PITCH := 30.0
-const ACTION_Y := 216.0
+const TITLE_Y := 64.0
+const ROW_Y := 88.0
+const ROW_PITCH := 27.0
+const ACTION_Y := 228.0
 const CARD_WIDTH := 232.0
 const CARD_GAP := 8.0
 
@@ -77,14 +77,14 @@ func _build_card(index: int) -> void:
 		row.name = "task_%d" % task_index
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(row)
-		UiKit.place(row, EDGE, y, CARD_WIDTH - EDGE * 2.0, 26.0)
+		UiKit.place(row, EDGE, y, CARD_WIDTH - EDGE * 2.0, 25.0)
 
 		var label := UiKit.label(row, "title", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(label, 48.0, 0.0, CARD_WIDTH - EDGE * 2.0 - 48.0, 26.0)
+		UiKit.place(label, 46.0, 0.0, CARD_WIDTH - EDGE * 2.0 - 46.0, 25.0)
 		_row_titles.append(label)
 
-		var button := UiKit.button(row, "build", "", 0.0, 0.0, 44.0, 26.0, UiTokens.ACCENT,
+		var button := UiKit.button(row, "build", "", 0.0, 0.0, 42.0, 25.0, UiTokens.ACCENT,
 			UiTokens.ON_ACCENT, Callable(self, "_on_task_pressed").bind(index, task_index),
 			UiTokens.RADIUS_SM)
 		button.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
@@ -92,21 +92,21 @@ func _build_card(index: int) -> void:
 		rows.append({"label": label, "button": button})
 	_task_rows.append({"index": index, "rows": rows})
 
-	var district_button := UiKit.button(card, "build_all", "ساخت همه", 112.0, ACTION_Y,
-		104.0, 28.0, UiTokens.SURFACE_RAISED, UiTokens.TEXT,
+	var district_button := UiKit.button(card, "build_all", "ساخت همه", 116.0, ACTION_Y,
+		96.0, 26.0, UiTokens.SURFACE_RAISED, UiTokens.TEXT,
 		Callable(self, "_on_district_pressed").bind(index), UiTokens.RADIUS_MD)
 	district_button.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
 	_district_buttons.append(district_button)
 
 	# Empty button text: the word is drawn by chest_label below, because a Button paints its own text
 	# centred and would land it on top of the icon.
-	var chest_button := UiKit.button(card, "chest", "", EDGE, ACTION_Y, 96.0, 28.0,
+	var chest_button := UiKit.button(card, "chest", "", EDGE, ACTION_Y, 94.0, 26.0,
 		UiTokens.GOLD, UiTokens.ON_GOLD, Callable(self, "_on_chest_pressed").bind(index),
 		UiTokens.RADIUS_MD)
-	_chest_icons.append(UiKit.icon(chest_button, "chest_icon", "reward_chest", 5.0, 3.0, 22.0, 22.0))
+	_chest_icons.append(UiKit.icon(chest_button, "chest_icon", "reward_chest", 5.0, 2.0, 22.0, 22.0))
 	var chest_label := UiKit.label(chest_button, "chest_label", "", UiTokens.TYPE_XS, UiTokens.ON_GOLD,
 		HORIZONTAL_ALIGNMENT_RIGHT)
-	UiKit.place(chest_label, 28.0, 0.0, 96.0 - 32.0, 28.0)
+	UiKit.place(chest_label, 28.0, 0.0, 94.0 - 32.0, 26.0)
 	_chest_labels.append(chest_label)
 	_chest_buttons.append(chest_button)
 
