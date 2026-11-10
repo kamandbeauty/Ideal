@@ -4,6 +4,9 @@ var game: Node
 var checks: Array[Dictionary] = []
 var failures: int = 0
 var output: String = "res://documentation/qa"
+# Shots fired at each mission target, and every damage event, so a short run can be explained.
+var engagements: Dictionary = {}
+var damage_events: Array[Dictionary] = []
 
 func _ready() -> void:
 	call_deferred("run")
@@ -57,6 +60,8 @@ func run() -> void:
 	game.start_mission("sr01")
 	await get_tree().create_timer(1.0).timeout
 	var battle: BattleController = game.battle
+	battle.combat.damage_dealt.connect(func(target_id: String, amount: float, direct: bool, shot_id: int) -> void:
+		damage_events.append({"target": target_id, "amount": snappedf(amount, 0.1), "direct": direct, "shot": shot_id, "time": snappedf(battle.missions.elapsed, 0.1)}))
 	check("battlefield initialized", battle.battlefield.targets.size() == 6)
 	check("HUD visible", game.hud.visible)
 	check("battlefield returns when menus close", game.world.visible and not game.menus.visible)
@@ -109,6 +114,7 @@ func run() -> void:
 			var shots_before: int = battle.missions.shots
 			game.hud.fire_button.pressed.emit()
 			check("fire " + id, battle.missions.shots == shots_before + 1)
+			engagements[id] = int(engagements.get(id, 0)) + 1
 			var elapsed: float = 0.0
 			while battle.projectiles.active_count() > 0 and elapsed < 20.0:
 				await get_tree().create_timer(0.1).timeout
@@ -120,6 +126,8 @@ func run() -> void:
 				await get_tree().create_timer(0.1).timeout
 			attempts += 1
 		check("target destroyed " + id, target.health.is_destroyed)
+	for id in battle.mission.target_ids:
+		check("engaged " + id, int(engagements.get(id, 0)) >= 1)
 	game.present_smoke_results()
 	await get_tree().create_timer(1.0).timeout
 	check("mission results displayed", game.menus.current == "results" and battle.missions.result.get("success", false))
@@ -130,7 +138,7 @@ func run() -> void:
 	game.menus.show_screen("upgrades")
 	await get_tree().create_timer(0.3).timeout
 	await capture("upgrades")
-	var report: Dictionary = {"scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware", "checks": checks, "failures": failures, "passed": failures == 0, "performance": Graphics.snapshot(), "mission": battle.missions.result}
+	var report: Dictionary = {"scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; not Android hardware", "checks": checks, "failures": failures, "passed": failures == 0, "performance": Graphics.snapshot(), "mission": battle.missions.result, "engagements": engagements, "damage_events": damage_events}
 	var file: FileAccess = FileAccess.open(output + "/smoke-report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "  "))
 	file.close()
