@@ -24,7 +24,7 @@ from __future__ import annotations
 import os
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE = os.path.join(HERE, "assets", "ui", "source")
@@ -107,6 +107,10 @@ def build_tray() -> Image.Image:
     pixels = np.asarray(tray).astype(np.float32) * np.array([0.92, 0.89, 0.82], dtype=np.float32)
     tray = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGB")
     tray = tray.filter(ImageFilter.UnsharpMask(radius=1.8, percent=45, threshold=3))
+    # The reference art the player judges this by is juicy, and the carpet is the largest picture on the
+    # screen: a little colour and a little light, or it reads as a dark rug under bright fruit.
+    tray = ImageEnhance.Color(tray).enhance(1.26)
+    tray = ImageEnhance.Brightness(tray).enhance(1.05)
     return _grain(tray, 2.0, 11)
 
 

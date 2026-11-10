@@ -11,8 +11,19 @@ const SPARK := "res://assets/art/fx_spark.png"
 const COINS := "res://assets/art/fx_coins.png"
 const RING := "res://assets/art/fx_ring.png"
 
+# The splash set is drawn by tools/make_fx_art.py: three splat variants and a droplet, white with an
+# alpha channel, tinted per fruit here. Three files cover five colours because the colour is the tint.
+const SPLATS := [
+	"res://assets/fx/splash_1.png",
+	"res://assets/fx/splash_2.png",
+	"res://assets/fx/splash_3.png",
+]
+const DROP := "res://assets/fx/splash_drop.png"
+
 const SPARK_LIFETIME := 0.42
 const COIN_LIFETIME := 0.7
+const SPLASH_SECONDS := 0.36
+const DROP_LIFETIME := 0.34
 
 ## A short burst of sparks at a board cell.
 static func spark(parent: Node, center: Vector2, tint: Color, amount: int = 10, scale: float = 1.0) -> void:
@@ -37,6 +48,54 @@ static func spark(parent: Node, center: Vector2, tint: Color, amount: int = 10, 
 	particles.emitting = true
 	parent.add_child(particles)
 	particles.finished.connect(particles.queue_free)
+
+## A fruit bursting into juice: the splat that lands on the tile, and the droplets thrown off it.
+##
+## The splat is a picture that pops to full size and fades — never a circle the engine drew — because a
+## cleared piece in this game squashes, and the thing that sells the squash is the splat underneath it.
+static func splash(parent: Node, center: Vector2, tint: Color, diameter: float = 44.0) -> void:
+	var splat := TextureRect.new()
+	splat.name = "splash"
+	splat.texture = load(SPLATS[randi() % SPLATS.size()])
+	splat.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	splat.stretch_mode = TextureRect.STRETCH_SCALE
+	splat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	splat.modulate = tint
+	splat.size = Vector2(diameter, diameter)
+	splat.position = center - Vector2(diameter, diameter) * 0.5
+	splat.pivot_offset = Vector2(diameter, diameter) * 0.5
+	splat.rotation = randf_range(-0.45, 0.45)
+	splat.scale = Vector2(0.45, 0.45)
+	parent.add_child(splat)
+	var tween := splat.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(splat, "scale", Vector2(1.2, 1.2), SPLASH_SECONDS) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(splat, "modulate", Color(tint.r, tint.g, tint.b, 0.0), SPLASH_SECONDS) \
+		.set_delay(SPLASH_SECONDS * 0.35)
+	tween.chain().tween_callback(splat.queue_free)
+
+	var drops := CPUParticles2D.new()
+	drops.name = "drops"
+	drops.texture = load(DROP)
+	drops.position = center
+	drops.amount = 7
+	drops.lifetime = DROP_LIFETIME
+	drops.one_shot = true
+	drops.explosiveness = 0.95
+	drops.direction = Vector2(0.0, -1.0)
+	drops.spread = 180.0
+	drops.initial_velocity_min = 50.0
+	drops.initial_velocity_max = 150.0
+	drops.gravity = Vector2(0.0, 420.0)
+	drops.damping_min = 40.0
+	drops.damping_max = 90.0
+	drops.scale_amount_min = 0.6
+	drops.scale_amount_max = 1.3
+	drops.color = tint
+	drops.emitting = true
+	parent.add_child(drops)
+	drops.finished.connect(drops.queue_free)
 
 ## Coins flying up and fading: the reward moment of a first clear.
 static func coin_burst(parent: Node, center: Vector2, amount: int = 14) -> void:
@@ -79,7 +138,7 @@ static func ring(parent: Node, center: Vector2, diameter: float, tint: Color = C
 	tween.tween_property(sprite, "modulate", Color(tint.r, tint.g, tint.b, 0.0), 0.28)
 	tween.chain().tween_callback(sprite.queue_free)
 
-## The colour a piece bursts in when it clears — the same palette the tile art uses.
+## The colour a piece bursts in when it clears: the juice of the fruit, sampled off its painting.
 static func piece_tint(kind: int) -> Color:
 	match kind:
 		GameTypes.PieceKind.FIROUZEH: return UiTokens.PIECE_FIROUZEH
