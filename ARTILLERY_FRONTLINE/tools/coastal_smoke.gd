@@ -28,6 +28,8 @@ func run() -> void:
 	game.start_coastal_milestone()
 	await get_tree().create_timer(1.6).timeout
 	var coastal: CoastalController = game.coastal
+	# Pose checks below measure the idle weapon; default auto-fire would recoil it mid-check.
+	coastal.set_auto_fire(false)
 	check("coastal scene initialized", coastal != null and coastal.battlefield != null)
 	check("landing craft carries the first wave", coastal.crafts.size() >= 1 and coastal.crafts[0].cargo.size() >= 8)
 	var craft_start: float = coastal.crafts[0].progress
