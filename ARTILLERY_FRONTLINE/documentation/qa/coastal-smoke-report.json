@@ -167,17 +167,21 @@
     {
       "name": "capture coastal-results",
       "passed": true
+    },
+    {
+      "name": "capture vehicle-models",
+      "passed": true
     }
   ],
   "failures": 0,
   "kills": 1,
   "passed": true,
   "performance": {
-    "draw_calls": 318,
-    "fps": 10.8,
-    "frame_ms": 92.61,
-    "objects": 1894,
-    "primitives": 157514,
+    "draw_calls": 331,
+    "fps": 13.2,
+    "frame_ms": 75.99,
+    "objects": 1997,
+    "primitives": 158006,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
