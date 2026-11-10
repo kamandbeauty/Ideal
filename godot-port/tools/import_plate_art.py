@@ -27,9 +27,12 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE = os.path.join(HERE, "assets", "ui", "source")
 OUT = os.path.join(HERE, "assets", "ui")
 
-# Draw sizes in the port: the tray is 330 dp and the case 398 dp, so the plates ship at twice that.
-TRAY_SIZE = 660
-FRAME_SIZE = 796
+# Draw sizes in the port: the tray is 306 dp and the case 366 dp, so the plates ship at twice that.
+TRAY_SIZE = 612
+FRAME_SIZE = 732
+# The painted case has a band of empty background around its moulding. Left in, it eats most of the
+# 30 dp ring the board has for it and covers the header — so it is trimmed off before the resize.
+FRAME_TRIM = 0.035
 
 # How much of the painted tray is velvet: the rest is the moulding, which becomes the case instead.
 TRAY_KEEP = 0.60
@@ -64,6 +67,10 @@ def build_tray() -> Image.Image:
 
 def build_frame() -> Image.Image:
     source = _load("frame")
+    width, height = source.size
+    trim_x = int(width * FRAME_TRIM)
+    trim_y = int(height * FRAME_TRIM)
+    source = source.crop((trim_x, trim_y, width - trim_x, height - trim_y))
     frame = source.resize((FRAME_SIZE, FRAME_SIZE), Image.LANCZOS)
     frame = frame.filter(ImageFilter.UnsharpMask(radius=2.2, percent=62, threshold=2))
     # Brighten slightly: this is the gold in the room, and the hall behind it is dark.
