@@ -277,9 +277,9 @@ def faceted(spec, points, bevel=0.16):
     # Facet lines from the centre to each point of the star. A cut stone is a table with edges running
     # out to the girdle; without them the star is a shape with a bevel, not a stone.
     facet_draw = ImageDraw.Draw(canvas, "RGBA")
-    if len(points) <= 16:
-        # A cut stone is a table with edges running out to the girdle; a polygon with a table reads as a
-        # gem, a polygon with only a bevel reads as a shape. Every vertex gets a line from the table.
+    if len(points) <= 8:
+        # A cut stone is a table with edges running out to the girdle. Only true polygons get them: on a
+        # twelve-sided cushion the fan of lines reads as a splash, not as facets.
         table = scale_points(points, 0.54)
         facet_draw.line(table + [table[0]], fill=(255, 255, 255, 46), width=max(1, SS // 2))
         for x, y in points:
