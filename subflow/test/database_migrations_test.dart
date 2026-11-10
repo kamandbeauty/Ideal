@@ -88,7 +88,9 @@ void main() {
       if (entity is! File || !entity.path.endsWith('.sql')) continue;
       final List<String> statements =
           AppDatabase.splitStatements(File(entity.path).readAsStringSync());
-      expect(statements.length, greaterThan(3), reason: entity.path);
+      // A migration may legitimately be a single statement (an additive
+      // ALTER TABLE); what matters is that it is real, comment-free SQL.
+      expect(statements.length, greaterThanOrEqualTo(1), reason: entity.path);
       // The 0.2.1 crash in one assertion: nothing comment-only may reach sqflite.
       for (final String statement in statements) {
         expect(statement.trimLeft().startsWith('--'), isFalse,

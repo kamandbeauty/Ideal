@@ -465,6 +465,9 @@ class SubtitleDocument {
         createdAtMs: fixed.createdAtMs,
         updatedAtMs: fixed.updatedAtMs,
         words: fixed.words,
+        // Normalisation rebuilds the row, so every persisted field has to be
+        // carried over explicitly - forgetting one silently erased it.
+        presetJson: fixed.presetJson,
       ));
       lastEnd = end;
     }
