@@ -289,9 +289,10 @@ static func button(parent: Node, node_name: String, text: String, x: float, y: f
 		normal = plate
 		var hover_plate := ui_box(plate_id, border_art, Color(1.07, 1.07, 1.07, 1))
 		var press_plate := ui_box(plate_id, border_art, Color(0.86, 0.86, 0.86, 1))
-		# A disabled button is a muted button, not a black one: multiplying a gold plate by 0.62 turned
-		# the shop's price buttons into dark brown bars with dark text on them.
-		var off_plate := ui_box(plate_id, border_art, Color(0.82, 0.80, 0.76, 0.94))
+		# A disabled button is a ghost, not a black one: multiplying a gold plate down turned the shop's
+		# price buttons into dark brown bars with dark text on them. Ghosting keeps the colour and the
+		# contrast, and the card behind it shows through to say the button is out of play.
+		var off_plate := ui_box(plate_id, border_art, Color(1.0, 1.0, 1.0, 0.58))
 		hover = hover_plate if hover_plate != null else plate
 		pressed = press_plate if press_plate != null else plate
 		disabled = off_plate if off_plate != null else disabled
@@ -325,7 +326,7 @@ static func art_button(parent: Node, node_name: String, x: float, y: float, widt
 		return node
 	var hover := ui_box(art_id, border, Color(1.06, 1.06, 1.06, 1))
 	var pressed := ui_box(art_id, border, Color(0.88, 0.88, 0.88, 1))
-	var off := ui_box(art_id, border, Color(0.80, 0.78, 0.74, 0.88))
+	var off := ui_box(art_id, border, Color(1.0, 1.0, 1.0, 0.52))
 	node.add_theme_stylebox_override("normal", plate)
 	node.add_theme_stylebox_override("hover", hover if hover != null else plate)
 	node.add_theme_stylebox_override("pressed", pressed if pressed != null else plate)

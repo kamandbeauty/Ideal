@@ -83,7 +83,7 @@ func refresh() -> void:
 		buy_button.text = PersianText.number(price) + " سکه"
 		buy_button.disabled = not session.wallet.can_afford_coins(price) or count >= BoosterBag.MAX_OWNED
 		# Dim, but still legible: a price the player cannot reach yet is information, not a dead control.
-		buy_button.modulate = Color(1, 1, 1, 1) if not buy_button.disabled else Color(0.92, 0.90, 0.86, 1)
+		buy_button.modulate = Color(1, 1, 1, 1) if not buy_button.disabled else Color(1, 1, 1, 0.88)
 
 func _on_buy(kind: int) -> void:
 	if session.buy_booster(kind):

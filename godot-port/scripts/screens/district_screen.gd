@@ -173,7 +173,7 @@ func refresh() -> void:
 		if plate_art == null:
 			plate_art = UiKit.texture("district_" + district_id)
 		_plates[index].texture = plate_art
-		_plates[index].modulate = Color(1, 1, 1, 0.46 if built_now else 0.35)
+		_plates[index].modulate = Color(1, 1, 1, 0.62 if built_now else 0.50)
 
 		var chest_open := session.is_chest_open(district)
 		_chest_icons[index].texture = UiKit.texture("reward_chest_open" if chest_open
@@ -181,7 +181,7 @@ func refresh() -> void:
 		_chest_labels[index].text = "باز شد" if chest_open else "باز کن"
 		_chest_buttons[index].disabled = chest_open or not built
 		_chest_buttons[index].modulate = Color(1, 1, 1, 1) if not _chest_buttons[index].disabled \
-			else Color(0.88, 0.84, 0.78, 1)
+			else Color(1, 1, 1, 0.66)
 
 func _on_task_pressed(district_index: int, task_index: int) -> void:
 	if district_index >= session.districts.size():
