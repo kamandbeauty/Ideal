@@ -152,14 +152,17 @@ func _build_muzzle_flash() -> void:
 func is_dead() -> bool:
 	return dead
 
-func receive_damage(amount: float) -> void:
+## Returns the health actually removed after armour, for damage readouts.
+func receive_damage(amount: float) -> float:
 	if dead:
-		return
+		return 0.0
 	var armor: float = 0.22 if amount <= 25.0 else (0.65 if amount < 100.0 else 0.9)
+	var before: float = health
 	health = maxf(0.0, health - amount * armor)
 	damaged.emit(self, health / max_health)
 	if health <= 0.0:
 		_die()
+	return before - health
 
 func react_to_explosion(point: Vector3, radius: float) -> void:
 	if dead:

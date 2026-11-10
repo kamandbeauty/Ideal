@@ -157,6 +157,7 @@ const STRINGS: Dictionary = {
 	"camera_overhead": "بالاسر",
 	# ---- coastal HUD --------------------------------------------------
 	"coastal_autofire": "شلیک خودکار",
+	"coastal_headshot": "سر!",
 	"coastal_threat_ahead": "تهدید روبه‌رو",
 	"coastal_threat_left": "تهدید از چپ <<",
 	"coastal_threat_right": ">> تهدید از راست",

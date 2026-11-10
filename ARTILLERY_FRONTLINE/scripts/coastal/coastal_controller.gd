@@ -537,13 +537,15 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 			Sound.play_at("impact", point, -10.0)
 		return
 	if collider and collider.has_method("receive_damage") and damage > 0.0:
+		var dealt: Variant = null
 		if collider is EnemySoldier:
-			collider.call("receive_damage", damage, point, -normal)
+			dealt = collider.call("receive_damage", damage, point, -normal)
 		else:
-			collider.call("receive_damage", damage)
+			dealt = collider.call("receive_damage", damage)
 		if collider.has_method("is_dead"):
 			killed = bool(collider.call("is_dead"))
 		hud.confirm_hit(killed)
+		_show_hit_number(point, float(dealt) if dealt is float else 0.0, collider)
 	if blast > 0.0:
 		_explode(point, normal, blast)
 		if not killed:
@@ -551,6 +553,24 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 		return
 	effects.explode(point, normal, 0.55, point.y, true)
 	Sound.play_at("impact", point, -18.0)
+
+## Head hits on infantry deal extra damage; the readout shows the scaled figure.
+static func is_head_hit(base_y: float, hit_y: float) -> bool:
+	return hit_y - base_y >= EnemySoldier.HEAD_HEIGHT
+
+## Shows the health actually removed from an infantry, vehicle or aircraft hit.
+## Landing craft and barrels are skipped: they do not report the removed amount.
+func _show_hit_number(point: Vector3, dealt: float, collider: Object) -> void:
+	if dealt <= 0.0 or not (collider is EnemySoldier or collider is EnemyVehicle or collider is EnemyAircraft):
+		return
+	if camera == null or camera.is_position_behind(point):
+		return
+	var screen: Vector2 = camera.unproject_position(point)
+	if not get_viewport().get_visible_rect().has_point(screen):
+		return
+	var unit := collider as Node3D
+	var headshot: bool = collider is EnemySoldier and is_head_hit(unit.global_position.y, point.y)
+	hud.show_damage_number(screen, dealt, headshot)
 
 ## Ground blasts are anchored to the terrain or sea surface, so a shell that
 ## strikes a craft's hull or a tank's turret does not leave a cloud hanging in the air.

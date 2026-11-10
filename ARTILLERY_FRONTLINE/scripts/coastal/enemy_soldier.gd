@@ -206,9 +206,10 @@ func _fallback_limb(name: String, pivot: Vector3, size: Vector3, color: Color) -
 	MeshFactory.box(limb, "Mesh", Vector3(0, -size.y * 0.5, 0), size, color, true, "fabric")
 	return limb
 
-func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_direction: Vector3 = Vector3.ZERO) -> void:
+## Returns the health actually removed (after the headshot multiplier), for damage readouts.
+func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_direction: Vector3 = Vector3.ZERO) -> float:
 	if state == State.DEAD or amount <= 0.0:
-		return
+		return 0.0
 	last_hit_damage = amount
 	if hit_point != Vector3.INF:
 		last_hit_point = hit_point
@@ -217,6 +218,7 @@ func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_directi
 	var scale: float = 1.0
 	if hit_point != Vector3.INF and hit_point.y - global_position.y >= HEAD_HEIGHT:
 		scale = HEADSHOT_MULTIPLIER
+	var before: float = health
 	health = maxf(0.0, health - amount * scale)
 	damaged.emit(self, health / max_health)
 	if health <= 0.0:
@@ -226,6 +228,7 @@ func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_directi
 		suppressed.emit(self)
 		if state != State.COVER and health < max_health * 0.45:
 			state = State.COVER
+	return before - health
 
 func react_to_explosion(point: Vector3, radius: float) -> void:
 	if state == State.DEAD:

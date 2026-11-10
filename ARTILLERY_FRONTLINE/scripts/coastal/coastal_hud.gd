@@ -121,6 +121,8 @@ var quality_select: OptionButton
 var target_lock: TargetLock
 var crosshair: Crosshair
 var damage_overlay: ColorRect
+var damage_layer: Control
+const MAX_DAMAGE_NUMBERS: int = 24
 const DEFAULT_HEALTH: float = 6000.0
 
 func _ready() -> void:
@@ -342,6 +344,27 @@ func _build_crosshair() -> void:
 	crosshair.offset_right = 40
 	crosshair.offset_bottom = 40
 	root.add_child(crosshair)
+	damage_layer = Control.new()
+	damage_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	damage_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(damage_layer)
+
+## Floating damage readout at a hit's screen position. Capped so a fast MG burst cannot flood the layer.
+func show_damage_number(screen_pos: Vector2, amount: float, headshot: bool) -> void:
+	if damage_layer == null or damage_layer.get_child_count() >= MAX_DAMAGE_NUMBERS:
+		return
+	var text: String = Loc.number(int(roundf(amount)))
+	if headshot:
+		text += "  " + Loc.t("coastal_headshot")
+	var label: Label = UITheme.label(text, 30 if headshot else 22, Color(1.0, 0.42, 0.25) if headshot else Color(1.0, 0.95, 0.75), true)
+	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	label.add_theme_constant_override("outline_size", 6)
+	label.position = screen_pos - Vector2(28, 18)
+	damage_layer.add_child(label)
+	var tween: Tween = label.create_tween().set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - 56.0, 0.7)
+	tween.tween_property(label, "modulate:a", 0.0, 0.7).set_delay(0.25)
+	tween.chain().tween_callback(label.queue_free)
 
 func _build_pause() -> void:
 	pause_panel = Control.new()

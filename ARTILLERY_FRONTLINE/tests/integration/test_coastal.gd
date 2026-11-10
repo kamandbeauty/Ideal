@@ -132,6 +132,10 @@ func run(t: TestContext) -> void:
 	for cover in scene.weapon.cover_nodes:
 		t.check(absf(cover.rotation.x) < 0.001, "Feed cover returns closed after the firing cycle")
 	t.equal(scene.weapon.ammo, ammo - 1, "Firing consumes ammunition")
+	t.check(CoastalController.is_head_hit(0.0, 1.6) and not CoastalController.is_head_hit(0.0, 0.8), "Head hits register only above the head line")
+	var numbers_before: int = scene.hud.damage_layer.get_child_count()
+	scene.hud.show_damage_number(Vector2(400, 300), 120.0, true)
+	t.equal(scene.hud.damage_layer.get_child_count(), numbers_before + 1, "A hit adds one damage readout over the target")
 	t.check(scene.auto_fire, "Automatic fire is on by default")
 	t.check(CoastalController.within_cone(Vector3.FORWARD, Vector3(0, 0, -10), 3.0), "A target dead ahead is inside the auto-fire cone")
 	t.check(not CoastalController.within_cone(Vector3.FORWARD, Vector3(10, 0, -10), 3.0), "A target 45 degrees off-axis stays outside the auto-fire cone")

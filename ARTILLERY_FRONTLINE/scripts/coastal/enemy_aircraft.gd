@@ -114,13 +114,16 @@ func _build_model() -> void:
 func is_dead() -> bool:
 	return dead
 
-func receive_damage(amount: float) -> void:
+## Returns the health actually removed, for damage readouts.
+func receive_damage(amount: float) -> float:
 	if dead:
-		return
+		return 0.0
+	var before: float = health
 	health = maxf(0.0, health - amount)
 	damaged.emit(self, health / max_health)
 	if health <= 0.0:
 		_die()
+	return before - health
 
 func react_to_explosion(point: Vector3, radius: float) -> void:
 	if dead:
