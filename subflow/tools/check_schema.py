@@ -166,7 +166,8 @@ REQUIRED_COLUMNS = {
                      "bitrate_bps", "hdr", "audio_sample_rate", "audio_channels", "is_missing"},
     "subtitle_tracks": {"id", "project_id", "kind", "language", "is_default",
                         "original_track_id"},
-    "subtitle_segments": {"id", "track_id", "ordinal", "start_us", "end_us", "text",
+    "subtitle_segments": {
+        "preset_json","id", "track_id", "ordinal", "start_us", "end_us", "text",
                           "style_id", "source", "review_state"},
     "subtitle_words": {"id", "segment_id", "ordinal", "start_us", "end_us", "text"},
     "subtitle_styles": {"id", "project_id", "name", "font_family", "font_size", "font_weight",
@@ -196,7 +197,9 @@ def apply_migrations(conn: sqlite3.Connection, manifest: dict, upto: int) -> int
         path = ROOT / migration["file"]
         sql = path.read_text(encoding="utf-8")
         statements = split_statements(sql)
-        check(len(statements) >= 5, f"{path.name}: expected several statements, got {len(statements)}")
+        # A migration may legitimately be a single ALTER TABLE (per-caption
+        # styles); what matters is that it has at least one real statement.
+        check(len(statements) >= 1, f"{path.name}: no SQL statements found")
         for index, statement in enumerate(statements):
             try:
                 conn.execute(statement)
@@ -236,18 +239,19 @@ def seed_project(conn: sqlite3.Connection) -> None:
 
 def main() -> int:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
-    check(manifest["schemaVersion"] == 2, "manifest schemaVersion should be 2")
-    check([m["version"] for m in manifest["migrations"]] == [1, 2],
-          "migrations must be ordered 1,2")
+    schema_version = manifest["schemaVersion"]
+    check(schema_version >= 2, "manifest schemaVersion should be at least 2")
+    check([m["version"] for m in manifest["migrations"]] == list(range(1, schema_version + 1)),
+          f"migrations must be ordered 1..{schema_version}")
 
     # ---------------------------------------------------------------- fresh db
     conn = sqlite3.connect(":memory:")
     conn.execute("PRAGMA foreign_keys = ON")
     applied = apply_migrations(conn, manifest, manifest["schemaVersion"])
-    check(applied == 2, f"expected 2 migrations applied, got {applied}")
+    check(applied == schema_version, f"expected {schema_version} migrations applied, got {applied}")
 
     version = conn.execute("PRAGMA user_version").fetchone()[0]
-    check(version == 2, f"user_version should be 2, got {version}")
+    check(version == schema_version, f"user_version should be {schema_version}, got {version}")
 
     tables = table_names(conn)
     missing_tables = EXPECTED_TABLES - tables
