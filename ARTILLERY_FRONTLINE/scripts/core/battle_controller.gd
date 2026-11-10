@@ -18,6 +18,7 @@ var loadout: WeaponLoadout
 var selected_target: EnemyTarget
 var prediction_ammo: AmmunitionData
 var telemetry_clock: float = 0.0
+var return_fire: ReturnFire
 var auto_reload_delay: float = -1.0
 
 func _ready() -> void:
@@ -56,6 +57,13 @@ func _ready() -> void:
 	add_child(missions)
 	missions.finished.connect(_on_mission_finished)
 	missions.objective_changed.connect(func(done, total): Events.objective_changed.emit(done, total))
+	return_fire = ReturnFire.new()
+	return_fire.effects = effects
+	return_fire.battery_position = artillery.global_position
+	add_child(return_fire)
+	return_fire.set_shooters(battlefield.targets)
+	return_fire.battery_hit.connect(_on_battery_hit)
+	return_fire.battery_destroyed.connect(_on_battery_destroyed)
 	for target in battlefield.targets:
 		target.destroyed.connect(_on_target_destroyed)
 	for object in battlefield.destructibles:
@@ -69,6 +77,7 @@ func _ready() -> void:
 
 func activate() -> void:
 	active = true
+	return_fire.enabled = true
 	missions.begin(mission)
 	for target in battlefield.targets:
 		target.set_physics_process(true)
@@ -136,7 +145,8 @@ func telemetry() -> Dictionary:
 		"required": mission.target_ids.size(), "time": missions.elapsed, "accuracy": missions.accuracy(),
 		"target_name": target_name, "target_health": target_health, "target_distance": distance,
 		"predicted_range": artillery.global_position.distance_to(targeting.predicted_impact) if targeting.prediction_valid else 0.0,
-		"flight_time": targeting.predicted_time, "camera": cameras.mode_name(), "shots": missions.shots}
+		"flight_time": targeting.predicted_time, "camera": cameras.mode_name(), "shots": missions.shots,
+		"battery": return_fire.health_ratio()}
 
 func aim_drag(pixels: Vector2) -> void:
 	if active:
@@ -250,8 +260,17 @@ func _on_object_broken(id: String, _point: Vector3) -> void:
 	if id == mission.optional_crate_id:
 		notice.emit(Loc.t("notice_optional"))
 
+func _on_battery_hit(ratio: float, _point: Vector3) -> void:
+	notice.emit(Loc.t("notice_battery_hit") % Loc.number(roundi(ratio * 100.0)))
+
+func _on_battery_destroyed() -> void:
+	notice.emit(Loc.t("notice_battery_lost"))
+	if missions.active:
+		missions.finish(false, "reason_battery")
+
 func _on_mission_finished(result: Dictionary) -> void:
 	active = false
+	return_fire.enabled = false
 	Events.mission_finished.emit(result)
 
 func _unhandled_input(event: InputEvent) -> void:

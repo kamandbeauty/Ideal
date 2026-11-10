@@ -346,6 +346,8 @@ func _unload(landing: LandingCraft) -> void:
 	var kinds: Array[String] = landing.unload()
 	if kinds.has("soldier"):
 		Sound.play_voice("move_out")
+	if not kinds.is_empty():
+		Sound.play_at("ramp_clank", landing.disembark_point(), -6.0)
 	var time: float = 0.6
 	for kind in kinds:
 		_queue_entry(kind, landing, Vector3.ZERO, time)
@@ -372,6 +374,7 @@ func _spawn_entry(entry: Dictionary) -> void:
 		if not is_instance_valid(landing):
 			return
 		point = (landing as LandingCraft).disembark_point()
+		Sound.play_at("splash", point, -10.0)
 	if String(entry.kind) == "soldier":
 		_spawn_soldier(point)
 	else:

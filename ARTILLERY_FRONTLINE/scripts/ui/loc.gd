@@ -212,6 +212,9 @@ const STRINGS: Dictionary = {
 	"reason_time": "زمان مأموریت پایان یافت",
 	"reason_ammo": "مهمات تمام شد و اهداف کامل نشدند",
 	"reason_abandoned": "مأموریت رها شد",
+	"reason_battery": "آتشبار منهدم شد؛ مأموریت شکست خورد",
+	"notice_battery_hit": "آتشبار آسیب دید؛ %s٪ جان باقی مانده",
+	"notice_battery_lost": "آتشبار منهدم شد",
 	"no_target": "هدفی انتخاب نشده",
 }
 

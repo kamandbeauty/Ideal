@@ -18,6 +18,7 @@ var bob_clock: float = 0.0
 var health: float = 600.0
 var max_health: float = 600.0
 var dead: bool = false
+var engine: AudioStreamPlayer3D
 var collision: CollisionShape3D
 var propellers: Array[Node3D] = []
 var radar: Node3D
@@ -29,6 +30,7 @@ func ground_now() -> void:
 		return
 	progress = 1.0
 	has_arrived = true
+	_stop_engine()
 	global_position = Vector3(destination.x, maxf(0.08, CoastalTerrain.height_at(destination.x, destination.z) + 0.15), destination.z)
 
 func load_cargo(kinds: Array[String]) -> void:
@@ -56,6 +58,24 @@ func configure(from: Vector3, to: Vector3) -> void:
 	global_position = from
 	progress = 0.0
 	has_arrived = false
+	_start_engine()
+
+## Diesel throb while under way; silent once grounded or sunk.
+func _start_engine() -> void:
+	if engine != null or not Sound.clips.has("boat_engine"):
+		return
+	engine = AudioStreamPlayer3D.new()
+	engine.stream = Sound.looped("boat_engine")
+	engine.max_distance = 900.0
+	engine.unit_size = 40.0
+	engine.volume_db = -12.0
+	add_child(engine)
+	if Sound.playback_enabled:
+		engine.play()
+
+func _stop_engine() -> void:
+	if engine:
+		engine.stop()
 
 func _ready() -> void:
 	collision_layer = 2
@@ -99,6 +119,7 @@ func receive_damage(amount: float) -> void:
 	health = maxf(0.0, health - amount * (0.35 if amount <= 25.0 else 0.85))
 	if health <= 0.0:
 		dead = true
+		_stop_engine()
 		collision_layer = 0
 		collision.set_deferred("disabled", true)
 		if model_root:
@@ -137,6 +158,7 @@ func tick(delta: float) -> void:
 			rotation.y = atan2(direction.x, direction.z)
 		if progress >= 1.0:
 			has_arrived = true
+			_stop_engine()
 			arrived.emit(self)
 	if ramp and has_arrived:
 		ramp.rotation.x = lerpf(ramp.rotation.x, -1.25, delta * 1.5)

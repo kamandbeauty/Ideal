@@ -11,6 +11,7 @@ const VOICE_IDS: Array[String] = ["contact", "get_down", "man_down", "take_cover
 const VOICE_VOLUME_DB: float = -17.0
 const VOICE_GAP_MS: int = 1400
 var radio: AudioStreamPlayer
+var music: AudioStreamPlayer
 var last_voice_ms: int = -100000
 var sfx_bus: int = -1
 var ambient_bus: int = -1
@@ -20,7 +21,7 @@ func _ready() -> void:
 	# in fast logic tests while keeping bus/resource configuration under test.
 	playback_enabled = DisplayServer.get_name() != "headless"
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	for id in ["cannon", "explosion", "reload", "click", "impact", "wind", "hmg", "rocket"]:
+	for id in ["cannon", "explosion", "reload", "click", "impact", "wind", "hmg", "rocket", "boat_engine", "ramp_clank", "splash", "music_theme"]:
 		var path: String = "res://assets/audio/%s.wav" % id
 		if ResourceLoader.exists(path):
 			clips[id] = load(path)
@@ -56,8 +57,26 @@ func _ready() -> void:
 		add_child(wind)
 		if playback_enabled:
 			wind.play()
+	if clips.has("music_theme"):
+		music = AudioStreamPlayer.new()
+		music.stream = looped("music_theme")
+		music.bus = "Frontline Ambience"
+		music.volume_db = -16.0
+		add_child(music)
+		if playback_enabled:
+			music.play()
 	Profile.changed.connect(apply_settings)
 	apply_settings()
+
+## Returns a seamless looping copy of a clip (for engines and background music).
+func looped(id: String) -> AudioStreamWAV:
+	if not clips.has(id):
+		return null
+	var stream: AudioStreamWAV = clips[id].duplicate()
+	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	stream.loop_begin = 0
+	stream.loop_end = stream.data.size() / 2
+	return stream
 
 func _bus(name: String) -> int:
 	var existing: int = AudioServer.get_bus_index(name)
@@ -127,6 +146,9 @@ func stop_all() -> void:
 	if radio:
 		radio.stop()
 		radio.stream = null
+	if music:
+		music.stop()
+		music.stream = null
 	if wind:
 		wind.stop()
 		wind.stream = null
