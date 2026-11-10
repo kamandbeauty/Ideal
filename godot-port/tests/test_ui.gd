@@ -413,7 +413,8 @@ func _run() -> void:
 			var previous_end := -1.0
 			var tidy := true
 			for index in range(BoosterBag.SLOTS):
-				var orb := screen.get_node_or_null("booster_%d" % index) as Control
+				# The tools live on their rail, not on the screen: look them up by name rather than by path.
+				var orb := screen.find_child("booster_%d" % index, true, false) as Control
 				if orb == null:
 					tidy = false
 					break
