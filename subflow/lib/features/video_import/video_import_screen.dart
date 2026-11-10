@@ -11,6 +11,7 @@ import '../../services/project_repository.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_button.dart';
 import '../../shared/widgets/sf_card.dart';
+import '../../shared/widgets/sf_progress.dart';
 import '../../shared/widgets/sf_scaffold.dart';
 import '../../shared/widgets/stat_chip.dart';
 
@@ -28,28 +29,31 @@ class _VideoImportScreenState extends ConsumerState<VideoImportScreen> {
   String? _error;
   VideoProbeResult? _probe;
 
+  /// Set while a step is genuinely slow, so the screen can show the branded
+  /// task overlay instead of a button spinner that says nothing.
+  String? _busyLabel;
+
   Future<void> _pick() async {
     setState(() {
       _busy = true;
       _error = null;
+      _busyLabel = 'در حال خواندن مشخصات ویدئو…';
     });
     try {
       final MediaService media = ref.read(mediaServiceProvider);
       final VideoProbeResult? probe = await media.pickAndProbe();
-      if (probe == null) {
-        if (mounted) setState(() => _busy = false);
-        return;
-      }
       if (!mounted) return;
       setState(() {
         _probe = probe;
         _busy = false;
+        _busyLabel = null;
       });
     } on AppFailure catch (failure) {
       if (!mounted) return;
       setState(() {
         _error = failure.message;
         _busy = false;
+        _busyLabel = null;
       });
     }
   }
@@ -57,10 +61,14 @@ class _VideoImportScreenState extends ConsumerState<VideoImportScreen> {
   Future<void> _createProject() async {
     final VideoProbeResult? probe = _probe;
     if (probe == null) return;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _busyLabel = 'در حال ساخت پروژه…';
+    });
     try {
       final ProjectRepository repo = ref.read(projectRepositoryProvider);
       final Project project = await repo.createFromProbe(probe);
+      if (mounted) setState(() => _busyLabel = 'در حال آماده‌سازی پیش‌نمایش…');
       await ref.read(projectsControllerProvider.notifier).refresh();
       if (!mounted) return;
       context.pushReplacement('/project/${project.id}');
@@ -69,6 +77,7 @@ class _VideoImportScreenState extends ConsumerState<VideoImportScreen> {
       setState(() {
         _error = failure.message;
         _busy = false;
+        _busyLabel = null;
       });
     }
   }
@@ -76,85 +85,97 @@ class _VideoImportScreenState extends ConsumerState<VideoImportScreen> {
   @override
   Widget build(BuildContext context) {
     final VideoProbeResult? probe = _probe;
+    final String? busyLabel = _busyLabel;
     return SfScaffold(
       appBar: AppBar(title: const Text('ورود ویدئو')),
-      child: ListView(
-        padding: const EdgeInsets.only(top: 8, bottom: 24),
+      child: Stack(
         children: <Widget>[
-          SfCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('۱. فایل را انتخاب کن',
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 6),
-                const Text(
-                  'از گالری اندروید (Photo Picker) یا مرور فایل‌ها. دسترسی به فایل فقط '
-                  'برای خواندن است و ویدئو از گوشی خارج نمی‌شود.',
-                  style: TextStyle(
-                      color: AppColors.textSecondary, fontSize: 13, height: 1.8),
-                ),
-                const SizedBox(height: 16),
-                SfPrimaryButton(
-                  label: probe == null ? 'انتخاب ویدئو' : 'انتخاب ویدئوی دیگر',
-                  icon: Icons.video_library_outlined,
-                  loading: _busy && probe == null,
-                  onPressed: _busy ? null : _pick,
-                ),
-              ],
-            ),
-          ),
-          if (_error != null) ...<Widget>[
-            const SizedBox(height: 12),
-            SfCard(
-              child: Row(
-                children: <Widget>[
-                  const Icon(Icons.error_outline, color: AppColors.danger, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(_error!,
-                        style: const TextStyle(color: AppColors.danger, fontSize: 13)),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          if (probe != null) ...<Widget>[
-            const SizedBox(height: 14),
-            SfCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text('۲. مشخصات فایل', style: Theme.of(context).textTheme.titleMedium),
-                  const SizedBox(height: 12),
-                  _Row(label: 'نام فایل', value: probe.displayName),
-                  _Row(label: 'حجم', value: _sizeLabel(probe.sizeBytes)),
-                  _Row(label: 'مدت', value: _durationLabel(probe.durationUs)),
-                  _Row(label: 'رزولوشن', value: '${probe.width}×${probe.height}'),
-                  _Row(label: 'نرخ فریم', value: '${(probe.fpsMilli / 1000).toStringAsFixed(3)} fps'),
-                  _Row(label: 'بیت‌ریت', value: '${(probe.bitrateBps / 1000000).toStringAsFixed(2)} Mbps'),
-                  _Row(label: 'کدک ویدئو', value: probe.videoCodec ?? 'نامشخص'),
-                  _Row(label: 'صدا', value: probe.audioCodec == null
-                      ? 'بدون صدا'
-                      : '${probe.audioCodec} · ${probe.audioChannels}ch · ${probe.audioSampleRate} Hz'),
-                  if (probe.hdr) ...<Widget>[
-                    const SizedBox(height: 10),
-                    const StatChip(
-                      label: 'HDR — خروجی با تغییر تصویر، HDR را حفظ نمی‌کند',
-                      tint: AppColors.warning,
+          ListView(
+            padding: const EdgeInsets.only(top: 8, bottom: 24),
+            children: <Widget>[
+              SfCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('۱. فایل را انتخاب کن',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'از گالری اندروید (Photo Picker) یا مرور فایل‌ها. دسترسی به فایل فقط '
+                      'برای خواندن است و ویدئو از گوشی خارج نمی‌شود.',
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 13, height: 1.8),
+                    ),
+                    const SizedBox(height: 16),
+                    SfPrimaryButton(
+                      label: probe == null ? 'انتخاب ویدئو' : 'انتخاب ویدئوی دیگر',
+                      icon: Icons.video_library_outlined,
+                      loading: _busy && probe == null,
+                      onPressed: _busy ? null : _pick,
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  SfPrimaryButton(
-                    label: 'ساخت پروژه و ادامه',
-                    icon: Icons.arrow_forward_rounded,
-                    loading: _busy,
-                    onPressed: _busy ? null : _createProject,
-                  ),
-                ],
+                ),
               ),
+              if (_error != null) ...<Widget>[
+                const SizedBox(height: 12),
+                SfCard(
+                  child: Row(
+                    children: <Widget>[
+                      const Icon(Icons.error_outline, color: AppColors.danger, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(_error!,
+                            style: const TextStyle(color: AppColors.danger, fontSize: 13)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              if (probe != null) ...<Widget>[
+                const SizedBox(height: 14),
+                SfCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text('۲. مشخصات فایل', style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 12),
+                      _Row(label: 'نام فایل', value: probe.displayName),
+                      _Row(label: 'حجم', value: _sizeLabel(probe.sizeBytes)),
+                      _Row(label: 'مدت', value: _durationLabel(probe.durationUs)),
+                      _Row(label: 'رزولوشن', value: '${probe.width}×${probe.height}'),
+                      _Row(label: 'نرخ فریم', value: '${(probe.fpsMilli / 1000).toStringAsFixed(3)} fps'),
+                      _Row(label: 'بیت‌ریت', value: '${(probe.bitrateBps / 1000000).toStringAsFixed(2)} Mbps'),
+                      _Row(label: 'کدک ویدئو', value: probe.videoCodec ?? 'نامشخص'),
+                      _Row(label: 'صدا', value: probe.audioCodec == null
+                          ? 'بدون صدا'
+                          : '${probe.audioCodec} · ${probe.audioChannels}ch · ${probe.audioSampleRate} Hz'),
+                      if (probe.hdr) ...<Widget>[
+                        const SizedBox(height: 10),
+                        const StatChip(
+                          label: 'HDR — خروجی با تغییر تصویر، HDR را حفظ نمی‌کند',
+                          tint: AppColors.warning,
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      SfPrimaryButton(
+                        label: 'ساخت پروژه و ادامه',
+                        icon: Icons.arrow_forward_rounded,
+                        loading: _busy,
+                        onPressed: _busy ? null : _createProject,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (busyLabel != null)
+            SfTaskOverlay(
+              label: busyLabel,
+              value: null,
+              caption: 'ویدئو از گوشی خارج نمی‌شود.',
+              icon: Icons.video_library_outlined,
             ),
-          ],
         ],
       ),
     );

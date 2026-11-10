@@ -490,6 +490,37 @@ check("setSegmentPreset" in studio_src and "applySegmentPresetToAll" in studio_s
       "the editor must be able to pin a style to one caption and copy it to all")
 check("_presetFor(" in studio_src, "the stage must render a caption's own style")
 
+# ------------------------------------------------------- long-task progress
+# Import, export and transcription are the three places a user stares at the
+# screen, so they must share one progress surface instead of three spinners.
+progress_src = (ROOT / "lib/shared/widgets/sf_progress.dart").read_text(encoding="utf-8")
+for widget in ("class SfProgressBar", "class SfProgressRing", "class SfProgressDialog",
+               "class SfTaskOverlay", "class SfProgressController"):
+    check(widget in progress_src, f"progress widget missing: {widget}")
+check("sfFormatRemaining" in progress_src, "progress surface must format remaining time")
+check("disableAnimations" in progress_src, "progress animations must respect reduced motion")
+check("milliseconds: 90" in progress_src, "progress callbacks must be coalesced")
+check((ROOT / "test/sf_progress_test.dart").exists(), "the progress surface needs tests")
+
+export_sheet_src = (ROOT / "lib/features/subtitles/video_export_sheet.dart").read_text(
+    encoding="utf-8")
+check("SfProgressDialog" in export_sheet_src and "SfProgressController" in export_sheet_src,
+      "the render dialog must use the shared progress surface")
+import_screen_src = (ROOT / "lib/features/video_import/video_import_screen.dart").read_text(
+    encoding="utf-8")
+check("SfTaskOverlay" in import_screen_src,
+      "importing a clip must show the task overlay, not a button spinner")
+asr_src = (ROOT / "lib/features/asr/asr_screen.dart").read_text(encoding="utf-8")
+check(asr_src.count("SfProgressBar(") >= 3,
+      "transcription, model download and the cloud check each need the shared bar")
+
+stray = []
+for path in (ROOT / "lib").rglob("*.dart"):
+    text = path.read_text(encoding="utf-8")
+    if "LinearProgressIndicator" in text:
+        stray.append(str(path.relative_to(ROOT)))
+check(not stray, f"bare LinearProgressIndicator left in: {stray}")
+
 render_service_src = (ROOT / "lib/services/video_export_service.dart").read_text(encoding="utf-8")
 check("decodePreset" in render_service_src, "the renderer must decode per-caption styles")
 check("'style': decodePreset" in render_service_src,

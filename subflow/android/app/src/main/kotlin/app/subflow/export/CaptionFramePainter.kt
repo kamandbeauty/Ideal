@@ -331,7 +331,7 @@ internal class CaptionFramePainter(
         if (look.strokeWidth > 0f) {
             val strokePaint = TextPaint(fillPaint).apply {
                 color = look.strokeColor
-                style = Paint.Style.STROKE
+                setStyle(Paint.Style.STROKE)
                 strokeWidth = look.strokeWidth * style.pxScale
                 strokeJoin = Paint.Join.ROUND
                 strokeCap = Paint.Cap.ROUND

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../services/video_export_service.dart';
 import '../../shared/theme/app_colors.dart';
+import '../../shared/widgets/sf_progress.dart';
 
 /// The three sheets of a video export: choose a quality, watch the render,
 /// then look at what was produced.
@@ -160,88 +161,83 @@ class _RenderDialog extends StatefulWidget {
 }
 
 class _RenderDialogState extends State<_RenderDialog> {
-  double _progress = 0;
+  final SfProgressController _progress = SfProgressController();
   String? _error;
   bool _cancelling = false;
 
   @override
   void initState() {
     super.initState();
+    _progress.begin('در حال آماده‌سازی موتور رندر…');
     _run();
+  }
+
+  @override
+  void dispose() {
+    _progress.dispose();
+    super.dispose();
+  }
+
+  /// Short, true statements about the stage instead of a fake stage list.
+  static String _detailFor(int percent) {
+    if (percent < 5) return 'در حال آماده‌سازی موتور رندر…';
+    if (percent < 92) return 'زیرنویس‌ها روی تصویر ساخته می‌شوند';
+    if (percent < 100) return 'در حال نوشتن فایل ویدئو…';
+    return 'پایان';
   }
 
   Future<void> _run() async {
     try {
       final VideoRenderResult result = await widget.task((int percent) {
-        if (!mounted) return;
-        setState(() => _progress = percent / 100);
+        _progress.update(percent / 100, detail: _detailFor(percent));
       });
       if (!mounted) return;
+      _progress.update(1, detail: 'ویدئو آماده شد');
       Navigator.of(context).pop(result);
     } on VideoRenderCancelled {
       if (!mounted) return;
       Navigator.of(context).pop();
     } on Object catch (error) {
       if (!mounted) return;
-      setState(() => _error = error is VideoRenderException ? error.message : '$error');
+      _progress.fail();
+      setState(() {
+        _error = error is VideoRenderException ? error.message : '$error';
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool finished = _error != null;
-    final int percent = (_progress * 100).round().clamp(0, 100).toInt();
+    final String? error = _error;
+    if (error == null) {
+      return SfProgressDialog(
+        title: 'در حال ساخت ویدئو…',
+        caption: 'هر زیرنویس با استایل خودش رندر می‌شود',
+        controller: _progress,
+        icon: Icons.movie_creation_outlined,
+        footnote: 'تا پایان کار برنامه را نبندید.',
+        onCancel: _cancelling
+            ? null
+            : () async {
+                setState(() => _cancelling = true);
+                await widget.onCancel();
+              },
+      );
+    }
     return AlertDialog(
       backgroundColor: AppColors.surface,
-      title: Text(finished ? 'ساخت ویدئو متوقف شد' : 'در حال ساخت ویدئو…'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          if (finished)
-            Text(_error!, style: const TextStyle(fontSize: 13, height: 1.9))
-          else ...<Widget>[
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: _progress == 0 ? null : _progress,
-                minHeight: 8,
-                backgroundColor: AppColors.surfaceHigh,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primarySoft),
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text('$percent٪ — زیرنویس‌ها روی تصویر ساخته می‌شوند',
-                style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            const SizedBox(height: 6),
-            const Text('تا پایان کار برنامه را نبندید.',
-                style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
-          ],
-        ],
-      ),
+      title: const Text('ساخت ویدئو متوقف شد'),
+      content: Text(error, style: const TextStyle(fontSize: 13, height: 1.9)),
       actions: <Widget>[
-        if (finished)
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('باشه'),
-          )
-        else
-          TextButton(
-            onPressed: _cancelling
-                ? null
-                : () async {
-                    setState(() => _cancelling = true);
-                    await widget.onCancel();
-                  },
-            child: Text(_cancelling ? 'در حال لغو…' : 'لغو'),
-          ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('باشه'),
+        ),
       ],
     );
   }
 }
 
-/// What the user gets at the end: the real numbers, the real path, and a share
-/// button that hands the file to whichever app they choose.
 Future<void> showRenderResultSheet(
   BuildContext context, {
   required VideoRenderResult result,

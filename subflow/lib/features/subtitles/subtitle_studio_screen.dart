@@ -16,6 +16,7 @@ import '../../services/subtitle_export_service.dart';
 import '../../services/video_export_service.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_button.dart';
+import '../../shared/widgets/sf_progress.dart';
 import '../../shared/widgets/sf_card.dart';
 import 'studio_waveform.dart';
 import 'studio_widgets.dart';
@@ -95,7 +96,7 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
       backgroundColor: AppColors.base,
       body: SafeArea(
         child: snapshot.when(
-          loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          loading: () => const Center(child: SfProgressRing(value: null, size: 38, stroke: 3)),
           error: (Object error, StackTrace stack) => Center(
             child: Padding(
               padding: const EdgeInsets.all(24),

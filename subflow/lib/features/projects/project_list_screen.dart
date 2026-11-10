@@ -6,6 +6,7 @@ import '../../app/providers.dart';
 import '../../models/project.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/empty_state.dart';
+import '../../shared/widgets/sf_progress.dart';
 import '../../shared/widgets/sf_scaffold.dart';
 import '../home/home_screen.dart' show ProjectRow;
 
@@ -29,7 +30,7 @@ class ProjectListScreen extends ConsumerWidget {
         ],
       ),
       child: projects.when(
-        loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        loading: () => const Center(child: SfProgressRing(value: null, size: 38, stroke: 3)),
         error: (Object error, StackTrace stack) => Center(
           child: Text(
             '$error',

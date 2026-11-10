@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/providers.dart';
 import '../../core/ids.dart';
+import '../../core/util/rtl_text.dart';
 import '../../database/dao/subtitle_dao.dart';
 import '../../features/subtitles/subtitle_document.dart';
 import '../../models/asr_provider.dart';
@@ -16,6 +17,7 @@ import '../../services/project_repository.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_button.dart';
 import '../../shared/widgets/sf_card.dart';
+import '../../shared/widgets/sf_progress.dart';
 import '../../shared/widgets/sf_scaffold.dart';
 
 /// Offline speech recognition with whisper.cpp.
@@ -979,8 +981,8 @@ class _CloudSetupCardState extends ConsumerState<_CloudSetupCard> {
           ),
           if (_busy)
             const Padding(
-              padding: EdgeInsets.only(top: 10),
-              child: LinearProgressIndicator(minHeight: 3),
+              padding: EdgeInsets.only(top: 12),
+              child: SfProgressBar(value: null, height: 5),
             ),
           if (_status != null)
             Padding(
@@ -1184,7 +1186,7 @@ class _RunCard extends StatelessWidget {
             Row(
               children: <Widget>[
                 Text(
-                  'در حال تشخیص… $progress٪',
+                  'در حال تشخیص… ${RtlText.toPersianDigits('$progress')}٪',
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
@@ -1199,15 +1201,7 @@ class _RunCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: progress <= 0 ? null : progress / 100,
-                minHeight: 7,
-                backgroundColor: AppColors.surfaceHigher,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-            ),
+            SfProgressBar(value: progress <= 0 ? null : progress / 100, height: 9),
             const SizedBox(height: 10),
             Text(
               cloud
@@ -1304,18 +1298,20 @@ class _CatalogTile extends StatelessWidget {
           ),
           if (busy) ...<Widget>[
             const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: LinearProgressIndicator(
-                value: progress == null || progress!.fraction == 0 ? null : progress!.fraction,
-                minHeight: 6,
-                backgroundColor: AppColors.surfaceHigher,
-                valueColor: const AlwaysStoppedAnimation<Color>(AppColors.secondary),
+            SfProgressBar(
+              value: progress == null || progress!.fraction == 0 ? null : progress!.fraction,
+              height: 8,
+              gradient: const LinearGradient(
+                colors: <Color>[AppColors.secondarySoft, AppColors.primarySoft],
+                begin: Alignment.centerRight,
+                end: Alignment.centerLeft,
               ),
             ),
             const SizedBox(height: 6),
             Text(
-              progress == null ? 'در حال دریافت…' : '${progress!.label} • ${(progress!.fraction * 100).round()}٪',
+              progress == null
+                  ? 'در حال دریافت…'
+                  : '${progress!.label} • ${RtlText.toPersianDigits('${(progress!.fraction * 100).round()}')}٪',
               style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
             ),
           ],

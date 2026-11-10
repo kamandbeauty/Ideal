@@ -6,6 +6,7 @@ import '../../models/asr_provider.dart';
 import '../../services/asr_service.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_card.dart';
+import '../../shared/widgets/sf_progress.dart';
 
 /// Chooses between the on-device engine and an online Whisper service.
 ///
@@ -227,7 +228,7 @@ class _AsrCloudCardState extends ConsumerState<AsrCloudCard> {
           if (_busy)
             const Padding(
               padding: EdgeInsets.only(top: 12),
-              child: LinearProgressIndicator(minHeight: 3),
+              child: SfProgressBar(value: null, height: 5),
             ),
           if (_status != null)
             Padding(

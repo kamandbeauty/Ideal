@@ -11,6 +11,7 @@ import '../../models/video_asset.dart';
 import '../../services/project_repository.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_card.dart';
+import '../../shared/widgets/sf_progress.dart';
 import '../../shared/widgets/sf_scaffold.dart';
 import '../../shared/widgets/stat_chip.dart';
 import '../effects/caption_fonts.dart';
@@ -55,7 +56,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         title: Text(detail.valueOrNull?.project.name ?? 'پروژه'),
       ),
       child: detail.when(
-        loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        loading: () => const Center(child: SfProgressRing(value: null, size: 38, stroke: 3)),
         error: (Object error, StackTrace stack) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),

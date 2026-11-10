@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import 'sf_progress.dart';
 
 /// Primary action with the brand gradient. Falls back to a flat fill when
 /// disabled so the state is unmistakable.
@@ -39,11 +40,7 @@ class SfPrimaryButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   if (loading)
-                    const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
+                    const SfProgressRing(value: null, size: 17, stroke: 2)
                   else if (icon != null)
                     Icon(icon, size: 20, color: Colors.white),
                   if (loading || icon != null) const SizedBox(width: 10),
