@@ -70,6 +70,7 @@ data class AudioRenderSpec(
     val fadeOut: Double,
     val trimStart: Double,
     val trimEnd: Double?,
+    val startOffset: Double,
     val loop: Boolean,
     val bitrate: Int,
 )
@@ -144,6 +145,7 @@ data class ExportRequest(
                     fadeIn = audioJson.optDouble("fadeIn", 0.5),
                     fadeOut = audioJson.optDouble("fadeOut", 1.0),
                     trimStart = audioJson.optDouble("trimStart", 0.0),
+                    startOffset = audioJson.optDouble("startOffset", 0.0),
                     trimEnd = if (audioJson.has("trimEnd") && !audioJson.isNull("trimEnd")) {
                         audioJson.getDouble("trimEnd")
                     } else {

@@ -61,8 +61,14 @@ class AudioProcessor(
             (source.frames / 4).toInt().coerceAtLeast(1),
         )
 
+        // The track may start later than the video (startOffset); the leading
+        // frames stay silent and the source is written from there.
+        val startOffsetFrames =
+            (spec.startOffset.coerceAtLeast(0.0) * sampleRate).toLong()
+                .coerceIn(0L, totalFrames)
+
         // Fill with either a single pass or overlapping repeats.
-        var writePos = 0L
+        var writePos = startOffsetFrames
         var reps = 0
         while (writePos < totalFrames) {
             reps++
@@ -98,10 +104,14 @@ class AudioProcessor(
             for (i in out.indices) out[i] *= vol
         }
 
-        // Fades (linear gain ramp, matching the reference implementation)
+        // Fades (linear gain ramp, matching the reference implementation).
+        // The fade-in starts where the track begins (after startOffset), not at
+        // frame 0 (which is silent when the track is offset).
         if (fadeInFrames > 1) {
-            for (i in 0 until fadeInFrames) {
-                val g = i.toFloat() / fadeInFrames
+            val fiStart = startOffsetFrames.toInt().coerceIn(0, out.size / channels)
+            val fiEnd = (fiStart + fadeInFrames).coerceAtMost(out.size / channels)
+            for (i in fiStart until fiEnd) {
+                val g = (i - fiStart).toFloat() / fadeInFrames
                 for (c in 0 until channels) out[i * channels + c] *= g
             }
         }

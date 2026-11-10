@@ -50,6 +50,9 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   /// `setAudio` commit happens on release.
   _MusicTrimDrag? _musicTrim;
 
+  /// Local (uncommitted) drag of the music track's start position.
+  double? _musicStart;
+
   @override
   void initState() {
     super.initState();
@@ -725,6 +728,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final value = wf.valueOrNull;
     final peaks = value?.$2 ?? const <double>[];
     final srcDur = value?.$1 ?? 0.0;
+    final total = st.project.totalDuration;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -747,10 +751,16 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               const SizedBox(
                   width: 12, height: 12,
                   child: CircularProgressIndicator(strokeWidth: 1.5))
-            else if (peaks.isEmpty)
+            else if (peaks.isEmpty) ...<Widget>[
               Text(l10n.t('waveform_unavailable'),
                   style: context.theme.textTheme.labelSmall?.copyWith(
                       color: context.theme.colorScheme.onSurfaceVariant)),
+              const SizedBox(width: 6),
+              Text(l10n.t('music_drag_start'),
+                  style: context.theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 9,
+                      color: context.theme.colorScheme.onSurfaceVariant)),
+            ],
             if (peaks.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 6),
@@ -764,11 +774,107 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ],
         ),
         const SizedBox(height: 4),
+        if (audio.hasAudio) ...<Widget>[
+          _musicStartBar(audio, total, playback),
+          const SizedBox(height: 4),
+        ],
         if (peaks.isEmpty || srcDur <= 0)
           const SizedBox(height: 30)
         else
           _musicTrimStrip(audio, peaks, srcDur, playback),
       ],
+    );
+  }
+
+  /// A thin position bar for the track's start ([AudioSettings.startOffset]):
+  /// drag the handle to move when the music begins. The filled region is where
+  /// the music plays (start → end of video); the red line is the video
+  /// playhead. One `setAudio` commit per finished drag.
+  Widget _musicStartBar(AudioSettings audio, double total, FrameState playback) {
+    if (total <= 0) return const SizedBox.shrink();
+    return LayoutBuilder(
+      builder: (_, box) {
+        final W = box.maxWidth;
+        if (W <= 0) return const SizedBox.shrink();
+        double px(double t) => (t / total * W).clamp(0.0, W).toDouble();
+        final offset = _musicStart ?? audio.startOffset;
+
+        void commit() {
+          final o = _musicStart;
+          setState(() => _musicStart = null);
+          if (o != null && (o - audio.startOffset).abs() > 0.001) {
+            ref
+                .read(projectEditorProvider.notifier)
+                .setAudio(audio.copyWith(startOffset: o.clamp(0.0, total).toDouble()));
+          }
+        }
+
+        return SizedBox(
+          height: 20,
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B1B26),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+              // Music region [offset, total].
+              Positioned(
+                left: px(offset),
+                right: 0,
+                top: 3,
+                bottom: 3,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF46E0C0).withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                ),
+              ),
+              // Video playhead (reference).
+              Positioned(
+                left: (playback.time / total * W).clamp(0.0, W).toDouble(),
+                top: 0,
+                bottom: 0,
+                width: 2,
+                child: Container(color: const Color(0xFFFF3B5C)),
+              ),
+              // Drag handle (knob at the offset).
+              Positioned(
+                left: (px(offset) - 11).clamp(0.0, W).toDouble(),
+                width: 22,
+                top: 0,
+                bottom: 0,
+                child: GestureDetector(
+                  onHorizontalDragStart: (d) =>
+                      setState(() => _musicStart = audio.startOffset),
+                  onHorizontalDragUpdate: (d) {
+                    _musicStart = ((_musicStart ?? 0) + d.delta.dx / W * total)
+                        .clamp(0.0, total)
+                        .toDouble();
+                    setState(() {});
+                  },
+                  onHorizontalDragEnd: (_) => commit(),
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: 5,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF46E0C0),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

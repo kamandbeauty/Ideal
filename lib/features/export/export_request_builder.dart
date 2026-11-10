@@ -120,6 +120,7 @@ Map<String, dynamic> buildExportRequest({
             'fadeOut': audio.fadeOut,
             'trimStart': audio.trimStart,
             'trimEnd': audio.trimEnd,
+            'startOffset': audio.startOffset,
             'loop': audio.loop,
             'bitrate': audioBitrate,
           }

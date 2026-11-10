@@ -11,6 +11,7 @@ class AudioSettings {
     this.fadeOut = 1.0,
     this.trimStart = 0.0,
     this.trimEnd,
+    this.startOffset = 0.0,
     this.loop = true,
     this.sourceDuration,
   });
@@ -25,6 +26,11 @@ class AudioSettings {
   final double fadeOut;
   final double trimStart;
   final double? trimEnd;
+
+  /// Video time (seconds) at which the track starts; the leading part of the
+  /// video is silent. 0 = the track starts with the video.
+  final double startOffset;
+
   final bool loop;
 
   /// Duration of the decoded source, when known (for the trim UI).
@@ -40,6 +46,7 @@ class AudioSettings {
     double? fadeOut,
     double? trimStart,
     double? trimEnd,
+    double? startOffset,
     bool? loop,
     double? sourceDuration,
     bool clearUri = false,
@@ -52,6 +59,7 @@ class AudioSettings {
         fadeOut: fadeOut ?? this.fadeOut,
         trimStart: trimStart ?? this.trimStart,
         trimEnd: trimEnd ?? this.trimEnd,
+        startOffset: (startOffset ?? this.startOffset).clamp(0.0, 1e9),
         loop: loop ?? this.loop,
         sourceDuration: sourceDuration ?? this.sourceDuration,
       );
@@ -64,6 +72,7 @@ class AudioSettings {
         'fadeOut': fadeOut,
         'trimStart': trimStart,
         'trimEnd': trimEnd,
+        'startOffset': startOffset,
         'loop': loop,
       };
 
@@ -75,6 +84,7 @@ class AudioSettings {
         fadeOut: (json['fadeOut'] as num?)?.toDouble() ?? 1.0,
         trimStart: (json['trimStart'] as num?)?.toDouble() ?? 0.0,
         trimEnd: (json['trimEnd'] as num?)?.toDouble(),
+        startOffset: (json['startOffset'] as num?)?.toDouble() ?? 0.0,
         loop: json['loop'] as bool? ?? true,
       );
 

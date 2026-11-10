@@ -176,12 +176,17 @@ class _PreviewAudioSyncState extends ConsumerState<PreviewAudioSync> {
     final audio = project?.audio;
     final uri = (audio != null && audio.hasAudio) ? audio.uri : null;
     final trackKey = uri == null ? null : '$uri|${audio!.volume}|${audio!.loop}';
+    // The track starts at startOffset; before that the preview is silent and
+    // the source position is measured from the offset.
+    final offset = audio?.startOffset ?? 0.0;
+    final audioPos = (frame.time - offset).clamp(0.0, 1e9).toDouble();
+    final shouldPlay = frame.playing && frame.time >= offset;
     final delta = _lastSeenTime == null ? 0.0 : (frame.time - _lastSeenTime!).abs();
     _lastSeenTime = frame.time;
     final scrubbed = delta > 0.5;
 
     if (trackKey == _trackKey &&
-        frame.playing == _audioPlaying &&
+        shouldPlay == _audioPlaying &&
         !scrubbed) {
       return;
     }
@@ -197,35 +202,35 @@ class _PreviewAudioSyncState extends ConsumerState<PreviewAudioSync> {
       return;
     }
 
-    // Load (or reload when volume/loop changed), then play if the video is.
+    // Load (or reload when volume/loop changed), then play if the track is due.
     if (trackKey != _trackKey) {
       _trackKey = trackKey;
       _lastCommandTime = frame.time;
-      _audioPlaying = frame.playing;
-      if (frame.playing) {
+      _audioPlaying = shouldPlay;
+      if (shouldPlay) {
         Future.microtask(() =>
             player.load(
                     path: uri!,
                     volume: audio!.volume,
                     loop: audio!.loop,
-                    seconds: frame.time,
-                  ).then((_) => player.playAt(frame.time)));
+                    seconds: audioPos,
+                  ).then((_) => player.playAt(audioPos)));
       } else {
         Future.microtask(() =>
             player.load(
                 path: uri!,
                 volume: audio!.volume,
                 loop: audio!.loop,
-                seconds: frame.time));
+                seconds: audioPos));
       }
       return;
     }
 
-    if (frame.playing != _audioPlaying) {
-      _audioPlaying = frame.playing;
+    if (shouldPlay != _audioPlaying) {
+      _audioPlaying = shouldPlay;
       _lastCommandTime = frame.time;
-      if (frame.playing) {
-        Future.microtask(() => player.playAt(frame.time));
+      if (shouldPlay) {
+        Future.microtask(() => player.playAt(audioPos));
       } else {
         Future.microtask(player.pause);
       }
@@ -234,7 +239,7 @@ class _PreviewAudioSyncState extends ConsumerState<PreviewAudioSync> {
 
     if (scrubbed) {
       _lastCommandTime = frame.time;
-      Future.microtask(() => player.seekTo(frame.time));
+      Future.microtask(() => player.seekTo(audioPos));
     }
   }
 
