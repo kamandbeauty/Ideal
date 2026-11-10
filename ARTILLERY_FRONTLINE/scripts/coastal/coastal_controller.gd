@@ -367,14 +367,14 @@ func _load_landing_cargo(setup: Dictionary, new_crafts: Array[LandingCraft], zon
 		vehicles.append("apc")
 	for index in range(int(setup.get("bosses", 0))):
 		vehicles.append("boss")
-	var soldier_count: int = int(setup.soldiers)
+	var infantry: Array[String] = infantry_kinds(setup)
 	if new_crafts.is_empty():
 		var time: float = 0.2
-		for index in range(soldier_count):
+		for index in range(infantry.size()):
 			var zone: Vector3 = zones[index % zones.size()]
 			var beach: Vector3 = zone + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0) - index * 1.2)
 			beach.y = CoastalTerrain.height_at(beach.x, beach.z)
-			_queue_entry("soldier", null, beach, time)
+			_queue_entry(infantry[index], null, beach, time)
 			time += 0.4
 		for index in range(vehicles.size()):
 			var spawn := Vector3(-28.0 + index * 56.0, 0.0, 12.0 - index * 6.0)
@@ -387,27 +387,49 @@ func _load_landing_cargo(setup: Dictionary, new_crafts: Array[LandingCraft], zon
 		loads.append([])
 	for index in range(vehicles.size()):
 		loads[index % new_crafts.size()].append(vehicles[index])
-	for index in range(soldier_count):
-		loads[index % new_crafts.size()].append("soldier")
+	for index in range(infantry.size()):
+		loads[index % new_crafts.size()].append(infantry[index])
 	for index in range(new_crafts.size()):
 		var kinds: Array[String] = []
 		for kind in loads[index]:
 			kinds.append(String(kind))
 		new_crafts[index].load_cargo(kinds)
 
+## Infantry kinds for one wave, in landing order. Heavy and RPG soldiers are part of the soldier
+## count, so the wave's total number of targets does not change.
+static func infantry_kinds(setup: Dictionary) -> Array[String]:
+	var result: Array[String] = []
+	var soldier_count: int = int(setup.soldiers)
+	var heavy: int = mini(int(setup.get("heavy", 0)), soldier_count)
+	var rpg: int = mini(int(setup.get("rpg", 0)), soldier_count - heavy)
+	for index in range(heavy):
+		result.append("heavy")
+	for index in range(rpg):
+		result.append("rpg")
+	for index in range(soldier_count - heavy - rpg):
+		result.append("soldier")
+	return result
+
+static func is_infantry(kind: String) -> bool:
+	return kind == "soldier" or kind == "heavy" or kind == "rpg"
+
 ## Empties a craft's hold onto the disembark queue, one unit at a time.
 func _unload(landing: LandingCraft) -> void:
 	if not is_instance_valid(landing):
 		return
 	var kinds: Array[String] = landing.unload()
-	if kinds.has("soldier"):
+	var carries_infantry: bool = false
+	for kind in kinds:
+		if is_infantry(kind):
+			carries_infantry = true
+	if carries_infantry:
 		Sound.play_voice("move_out")
 	if not kinds.is_empty():
 		Sound.play_at("ramp_clank", landing.disembark_point(), -6.0)
 	var time: float = 0.6
 	for kind in kinds:
 		_queue_entry(kind, landing, Vector3.ZERO, time)
-		time += 1.7 if kind != "soldier" else 0.45
+		time += 0.45 if is_infantry(kind) else 1.7
 
 func _queue_entry(kind: String, landing: LandingCraft, point: Vector3, time: float) -> void:
 	disembark_queue.append({"kind": kind, "craft": landing, "from_craft": landing != null, "point": point, "time": time})
@@ -433,8 +455,8 @@ func _spawn_entry(entry: Dictionary) -> void:
 		point = hull.disembark_point() + hull.global_transform.basis.x * randf_range(-DISEMBARK_SPREAD, DISEMBARK_SPREAD)
 		point.y = 0.0
 		Sound.play_at("splash", point, -10.0)
-	if String(entry.kind) == "soldier":
-		_spawn_soldier(point)
+	if is_infantry(String(entry.kind)):
+		_spawn_soldier(point, String(entry.kind))
 	else:
 		_spawn_vehicle(point, String(entry.kind))
 
@@ -446,12 +468,13 @@ func disembark_all_now() -> void:
 		_unload(landing)
 	_tick_disembark(1000.0)
 
-func _spawn_soldier(point: Vector3) -> void:
+func _spawn_soldier(point: Vector3, role: String = "soldier") -> void:
 	var soldier := EnemySoldier.new()
 	add_child(soldier)
+	soldier.set_role(InfantryRole.from_name(role))
 	var spawn: Vector3 = point + Vector3(randf_range(-1.1, 1.1), 0.0, randf_range(-0.9, 0.9))
 	soldier.configure(spawn, emplacement + Vector3(randf_range(-6, 6), 0, randf_range(-4, 4)), battlefield.random_cover())
-	soldier.speed = 2.4 + current_wave * 0.3
+	soldier.speed = (2.4 + current_wave * 0.3) * InfantryRole.speed_factor(soldier.role_kind)
 	soldier.died.connect(func(_s): _register_kill())
 	soldier.died.connect(_on_soldier_down)
 	soldier.suppressed.connect(_on_soldier_suppressed)
@@ -523,17 +546,33 @@ func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	soldier.play_fire()
 	var muzzle: Node3D = soldier.find_child("Muzzle", true, false) as Node3D
 	var origin: Vector3 = muzzle.global_position if muzzle else soldier.global_position + Vector3.UP * 1.45
-	Sound.play_at("hmg", origin, -16.0, randf_range(0.94, 1.06))
 	if not contact_called:
 		contact_called = true
 		Sound.play_voice("contact")
+	var kind: int = soldier.role_kind
 	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
-	var spread: float = deg_to_rad(1.1)
+	if kind == InfantryRole.Kind.RPG:
+		_fire_rocket(soldier, origin, direction)
+		return
+	# Heavy infantry fire from a bipod: a deeper report and a tighter group than riflemen.
+	if kind == InfantryRole.Kind.HEAVY:
+		Sound.play_at("hmg", origin, -12.0, 0.8)
+	else:
+		Sound.play_at("hmg", origin, -16.0, randf_range(0.94, 1.06))
+	var spread: float = InfantryRole.spread(kind)
 	direction = direction.rotated(Vector3.UP, randf_range(-spread, spread))
 	direction = direction.rotated(Vector3.RIGHT, randf_range(-spread, spread)).normalized()
+	var damage_bounds: Vector2 = InfantryRole.damage_range(kind)
 	# Real projectile damage: terrain/cover/player mask, never friendly infantry.
-	bullets.launch(origin, direction * 300.0, randf_range(12.0, 22.0), 0.0, 13, [soldier.get_rid()])
+	bullets.launch(origin, direction * 300.0, randf_range(damage_bounds.x, damage_bounds.y), 0.0, 13, [soldier.get_rid()])
 	effects.explode(origin, direction, 0.4, origin.y, true)
+
+## RPG rocket: a slow anti-armour projectile with a small blast, fired only on a clear line.
+func _fire_rocket(soldier: EnemySoldier, origin: Vector3, direction: Vector3) -> void:
+	Sound.play_at("rocket", origin, -6.0)
+	var damage_bounds: Vector2 = InfantryRole.damage_range(soldier.role_kind)
+	bullets.launch(origin, direction * 120.0, randf_range(damage_bounds.x, damage_bounds.y), InfantryRole.blast_radius(soldier.role_kind), 13, [soldier.get_rid()])
+	effects.explode(origin, direction, 1.6, origin.y, true)
 
 func _on_enemy_heavy_shoot(origin: Vector3, target: Vector3, damage: float, blast: float) -> void:
 	if not active:

@@ -6,10 +6,11 @@ signal remaining_changed(remaining: int)
 signal intermission_changed(seconds: float)
 signal mission_finished(success: bool)
 
+## "heavy" and "rpg" are counted inside "soldiers": they replace riflemen, so target totals are unchanged.
 const ROUNDS: Array[Dictionary] = [
-	{"soldiers": 8, "tanks": 1, "transports": 0, "helicopters": 1, "fighters": 0, "craft": 1, "label": "FIRST LANDING", "support": ["repair", "airstrike"]},
-	{"soldiers": 12, "tanks": 1, "transports": 0, "jeeps": 1, "helicopters": 2, "fighters": 2, "craft": 2, "label": "ARMORED PUSH", "support": ["repair", "airstrike", "helicopter"]},
-	{"soldiers": 20, "tanks": 1, "transports": 0, "apcs": 1, "bosses": 1, "helicopters": 2, "fighters": 2, "craft": 2, "label": "FINAL ASSAULT", "support": ["repair", "airstrike", "helicopter", "airdrop"]}
+	{"soldiers": 8, "rpg": 1, "tanks": 1, "transports": 0, "helicopters": 1, "fighters": 0, "craft": 1, "label": "FIRST LANDING", "support": ["repair", "airstrike"]},
+	{"soldiers": 12, "heavy": 2, "rpg": 2, "tanks": 1, "transports": 0, "jeeps": 1, "helicopters": 2, "fighters": 2, "craft": 2, "label": "ARMORED PUSH", "support": ["repair", "airstrike", "helicopter"]},
+	{"soldiers": 20, "heavy": 4, "rpg": 3, "tanks": 1, "transports": 0, "apcs": 1, "bosses": 1, "helicopters": 2, "fighters": 2, "craft": 2, "label": "FINAL ASSAULT", "support": ["repair", "airstrike", "helicopter", "airdrop"]}
 ]
 const INTERMISSION: float = 6.0
 var round_index: int = -1

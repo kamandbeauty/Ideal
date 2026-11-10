@@ -16,6 +16,23 @@ const BASE_HEALTH: float = 20.0
 const WADE_FLOOR: float = -0.45
 const HEADSHOT_MULTIPLIER: float = 2.2
 const HEAD_HEIGHT: float = 1.45
+## Seconds between rounds of one burst.
+const BURST_GAP: float = 0.14
+## Seconds without a clear line before a firing-line unit looks for another firing position.
+const REPOSITION_AFTER: float = 1.2
+## Height of the eyes/muzzle used for line-of-fire checks.
+const EYE_HEIGHT: float = 1.5
+## Infantry role (rifle, heavy, RPG). Set with set_role before the unit enters a wave.
+var role_kind: int = InfantryRole.Kind.RIFLE
+## Test hook for line of fire: -1 uses the physics and terrain check, 0 forces blocked, 1 forces clear.
+var sight_override: int = -1
+var holding_position: bool = false
+var reposition_point: Vector3 = Vector3.INF
+var setup_timer: float = 0.0
+var burst_left: int = 0
+var burst_gap: float = 0.0
+var reload_timer: float = 0.0
+var blocked_time: float = 0.0
 var health: float = BASE_HEALTH
 var max_health: float = BASE_HEALTH
 var speed: float = 4.4
@@ -206,8 +223,16 @@ func _fallback_limb(name: String, pivot: Vector3, size: Vector3, color: Color) -
 	MeshFactory.box(limb, "Mesh", Vector3(0, -size.y * 0.5, 0), size, color, true, "fabric")
 	return limb
 
-## Formal armour rating. Infantry wear no plate, so 0: the unit takes the full hit.
+## Formal armour rating. Riflemen wear no plate, so 0: the unit takes the full hit. Heavy infantry: 0.5.
 var armor: float = 0.0
+
+## Applies the role's health, armour and hit-reaction values. Call before the unit is used.
+func set_role(kind: int) -> void:
+	role_kind = kind
+	max_health = InfantryRole.max_health(kind)
+	health = max_health
+	armor = InfantryRole.armor(kind)
+	shoot_cooldown = randf_range(1.0, 2.6)
 
 ## Fraction of an incoming hit this unit removes (0 for infantry); see DamageModel.
 func damage_resistance_for(amount: float) -> float:
@@ -232,7 +257,7 @@ func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_directi
 	if health <= 0.0:
 		_die()
 	else:
-		stagger_time = maxf(stagger_time, 0.18)
+		stagger_time = maxf(stagger_time, InfantryRole.stagger_time(role_kind))
 		suppressed.emit(self)
 		if state != State.COVER and health < max_health * 0.45:
 			state = State.COVER
@@ -315,20 +340,21 @@ func _physics_process(delta: float) -> void:
 		current_speed = move_toward(current_speed, 0.0, 9.0 * delta)
 		_animate(delta, current_speed)
 		return
-	var target: Vector3 = objective if state == State.ADVANCE else cover_point
+	_tick_reposition()
+	var target: Vector3 = _movement_target()
 	var offset: Vector3 = target - global_position
 	offset.y = 0.0
 	var distance: float = offset.length()
-	var stop_at: float = 1.2 if state == State.COVER else 2.5
+	_update_hold(distance)
+	var stop_at: float = _stop_distance()
 	var wounded: float = 0.55 if health < max_health * 0.4 else 1.0
 	var pausing: bool = _update_bounding(delta, distance)
-	var wants_move: bool = distance > stop_at and not pausing
+	var wants_move: bool = distance > stop_at and not pausing and not holding_position
 	var target_speed: float = speed * wounded * _wade_factor() if wants_move else 0.0
-	# Heavy kit: quick to stop, slower to get going again.
 	current_speed = move_toward(current_speed, target_speed, (5.0 if target_speed > current_speed else 8.0) * delta)
 	var heading: Vector3 = offset.normalized() if distance > 0.01 else Vector3.FORWARD
 	if wants_move:
-		if state == State.ADVANCE:
+		if state == State.ADVANCE and reposition_point == Vector3.INF:
 			heading = _weave(heading, distance)
 		heading = _avoid_neighbours(heading)
 		if current_speed > 0.02:
@@ -346,9 +372,125 @@ func _physics_process(delta: float) -> void:
 	aim_blend = lerpf(aim_blend, 1.0 if to_target.length() < 150.0 else 0.0, delta * 3.0)
 	# Infantry climb out of the surf before they open fire.
 	var ashore: bool = CoastalTerrain.height_at(global_position.x, global_position.z) > -0.25
-	if shoot_cooldown <= 0.0 and to_target.length() < 150.0 and ashore:
-		shoot_cooldown = randf_range(1.6, 3.2)
+	_tick_combat(delta, to_target, ashore)
+
+## Where the unit is trying to get to: a firing position, the objective, or its cover point.
+func _movement_target() -> Vector3:
+	if reposition_point != Vector3.INF:
+		return reposition_point
+	return objective if state == State.ADVANCE else cover_point
+
+## Stop distance for the current movement goal.
+func _stop_distance() -> float:
+	if reposition_point != Vector3.INF:
+		return 0.8
+	if state == State.COVER:
+		return 1.2
+	if state == State.ADVANCE and InfantryRole.holds(role_kind):
+		return InfantryRole.hold_distance(role_kind)
+	return 2.5
+
+## Firing-line roles stop at their hold distance and stay put until they are ordered elsewhere.
+func _update_hold(distance: float) -> void:
+	if state == State.ADVANCE and reposition_point == Vector3.INF and InfantryRole.holds(role_kind):
+		holding_position = distance <= InfantryRole.hold_distance(role_kind)
+	else:
+		holding_position = false
+
+func _tick_reposition() -> void:
+	if reposition_point == Vector3.INF:
+		return
+	var to_spot: Vector3 = reposition_point - global_position
+	to_spot.y = 0.0
+	if to_spot.length() < 1.0:
+		reposition_point = Vector3.INF
+		blocked_time = 0.0
+
+## Combat timing: wait for cooldown, reload, a clear line and the role's set-up time, then fire.
+func _tick_combat(delta: float, to_target: Vector3, ashore: bool) -> void:
+	if reload_timer > 0.0:
+		reload_timer = maxf(0.0, reload_timer - delta)
+		if reload_timer <= 0.0 and state == State.COVER and role_kind == InfantryRole.Kind.RPG and health >= max_health * 0.45:
+			state = State.ADVANCE
+	if burst_left > 0:
+		burst_gap -= delta
+		if burst_gap <= 0.0:
+			burst_left -= 1
+			burst_gap = BURST_GAP
+			shoot_requested.emit(self, player_position)
+		return
+	# Firing-line roles only shoot from their position: they do not open fire while still walking in.
+	var on_line: bool = holding_position or not InfantryRole.holds(role_kind)
+	if shoot_cooldown > 0.0 or reload_timer > 0.0 or not ashore or not on_line or to_target.length() >= InfantryRole.fire_range(role_kind):
+		setup_timer = 0.0
+		return
+	if not _line_of_fire_from(global_position):
+		# No clear line: hold fire. Firing-line roles look for a position with a clear line.
+		setup_timer = 0.0
+		blocked_time += delta
+		if blocked_time > REPOSITION_AFTER and reposition_point == Vector3.INF and role_kind != InfantryRole.Kind.RIFLE:
+			_seek_firing_position()
+		return
+	blocked_time = 0.0
+	var setup: float = InfantryRole.setup_time(role_kind)
+	if setup_timer < setup:
+		setup_timer += delta
+		return
+	setup_timer = 0.0
+	_fire_volley()
+
+func _fire_volley() -> void:
+	if role_kind == InfantryRole.Kind.RPG:
+		# One rocket, then fall back to cover to reload.
+		reload_timer = InfantryRole.reload_time(role_kind)
+		_retreat_to_cover()
 		shoot_requested.emit(self, player_position)
+		return
+	if role_kind == InfantryRole.Kind.HEAVY:
+		shoot_cooldown = InfantryRole.fire_interval(role_kind)
+		burst_left = InfantryRole.burst_size(role_kind) - 1
+		burst_gap = BURST_GAP
+		shoot_requested.emit(self, player_position)
+		return
+	shoot_cooldown = randf_range(1.6, 3.2)
+	shoot_requested.emit(self, player_position)
+
+## Shoot-and-scoot: a few metres back from the emplacement, out of the line of fire.
+func _retreat_to_cover() -> void:
+	var away: Vector3 = global_position - player_position
+	away.y = 0.0
+	if away.length_squared() < 0.01:
+		away = Vector3.BACK
+	cover_point = global_position + away.normalized() * 7.0
+	state = State.COVER
+	holding_position = false
+
+## Line of fire from a ground point to the emplacement. The test hook overrides it when set.
+func _line_of_fire_from(point: Vector3) -> bool:
+	if sight_override >= 0:
+		return sight_override == 1
+	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	return FireControl.line_clear(space, point + Vector3.UP * EYE_HEIGHT, player_position + Vector3.UP * 1.2)
+
+## Picks the first nearby point with a clear line: forward first, then flanks, then further out.
+func _seek_firing_position() -> void:
+	var forward: Vector3 = player_position - global_position
+	forward.y = 0.0
+	if forward.length_squared() < 0.01:
+		return
+	forward = forward.normalized()
+	var side: Vector3 = Vector3(-forward.z, 0.0, forward.x)
+	var candidates: Array[Vector3] = [forward * 6.0, side * 6.0, -side * 6.0, forward * 12.0, side * 12.0, -side * 12.0]
+	for offset in candidates:
+		var spot: Vector3 = global_position + offset
+		spot.y = CoastalTerrain.height_at(spot.x, spot.z)
+		if CoastalTerrain.height_at(spot.x, spot.z) <= -0.25:
+			continue
+		if _line_of_fire_from(spot):
+			reposition_point = spot
+			holding_position = false
+			return
+	blocked_time = 0.0
 
 ## Bounded advance: run, then stop and crouch to look around, as squads do.
 func _update_bounding(delta: float, distance: float) -> bool:
