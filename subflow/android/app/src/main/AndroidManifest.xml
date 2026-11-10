@@ -50,6 +50,18 @@
             </intent-filter>
         </activity>
 
+        <!-- The renderer writes MP4s into app-private storage; the share sheet
+             reaches them through this provider, one file at a time. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

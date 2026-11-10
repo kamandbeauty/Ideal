@@ -30,6 +30,10 @@ class Channels {
   /// Progress of a long Whisper run (0..100). Separate from the method channel
   /// so one slow transcription cannot delay ordinary calls.
   static const String asrEvents = 'app.subflow/asr';
+
+  /// Progress of a video render (0..100 plus started/done/error/cancelled).
+  /// Same reason as [asrEvents]: one slow job must not delay ordinary calls.
+  static const String exportEvents = 'app.subflow/export';
 }
 
 /// Keys of the `app_settings` table (no SharedPreferences: one storage story).
@@ -57,6 +61,9 @@ class NativeMethods {
   static const String writeSrt = 'subtitle.writeSrt';
   static const String writeAss = 'subtitle.writeAss';
   static const String planExport = 'export.plan';
+  static const String exportVideo = 'export.video';
+  static const String exportCancel = 'export.cancel';
+  static const String shareFile = 'export.share';
   static const String asrCapabilities = 'asr.capabilities';
   static const String asrListModels = 'asr.listModels';
   static const String asrImportModel = 'asr.importModel';

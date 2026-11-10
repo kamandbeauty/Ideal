@@ -217,6 +217,65 @@ class NativeBridge {
       throw AppFailure.fromPlatform(error);
     }
   }
+
+  /// Bakes the captions into a new MP4 and returns once the file exists.
+  ///
+  /// Progress is *not* returned here: it arrives on [Channels.exportEvents],
+  /// because a render can take minutes and the method reply must stay small.
+  /// The raw map is returned so the renderer's own words (path, size, frame
+  /// dimensions, error message) reach the UI unchanged.
+  Future<Map<String, Object?>> renderVideo({
+    required String uri,
+    required String outputName,
+    required int maxShortEdge,
+    required Map<String, Object?> style,
+    required List<Map<String, Object?>> cues,
+    int? trimStartUs,
+    int? trimEndUs,
+  }) async {
+    try {
+      final Map<Object?, Object?>? map =
+          await _channel.invokeMapMethod<Object?, Object?>(NativeMethods.exportVideo, <String, Object?>{
+        'uri': uri,
+        'outputName': outputName,
+        'maxShortEdge': maxShortEdge,
+        'style': style,
+        'cues': cues,
+        'trimStartUs': trimStartUs,
+        'trimEndUs': trimEndUs,
+      });
+      if (map == null) return const <String, Object?>{};
+      return map.map((Object? key, Object? value) => MapEntry<String, Object?>(key.toString(), value));
+    } on PlatformException catch (error) {
+      throw AppFailure.fromPlatform(error);
+    }
+  }
+
+  /// Stops the running render. Safe to call when nothing is running.
+  Future<void> cancelRender() async {
+    try {
+      await _channel.invokeMethod<bool>(NativeMethods.exportCancel);
+    } on PlatformException {
+      // Nothing to cancel is not an error the UI should ever show.
+    } on MissingPluginException {
+      // Same.
+    }
+  }
+
+  /// Opens the system share sheet for a finished file. Returns false when the
+  /// platform declined (no handler installed, file already deleted, ...).
+  Future<bool> shareFile(String path) async {
+    try {
+      return await _channel.invokeMethod<bool>(NativeMethods.shareFile, <String, Object?>{
+            'path': path,
+          }) ??
+          false;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
 }
 
 /// Converts segment lists into the parallel arrays the JNI layer expects.

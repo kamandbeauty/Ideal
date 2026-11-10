@@ -13,6 +13,9 @@ object BridgeContract {
 
     const val ASR_EVENTS_CHANNEL = "app.subflow/asr"
 
+    /** Progress of a video export (0..100 plus lifecycle states). */
+    const val EXPORT_EVENTS_CHANNEL = "app.subflow/export"
+
     const val PLAYER_VIEW_TYPE = "app.subflow/player_view"
     const val PLAYER_CHANNEL_PREFIX = "app.subflow/player"
 
@@ -26,6 +29,9 @@ object BridgeContract {
     const val METHOD_WRITE_SRT = "subtitle.writeSrt"
     const val METHOD_WRITE_ASS = "subtitle.writeAss"
     const val METHOD_PLAN_EXPORT = "export.plan"
+    const val METHOD_EXPORT_VIDEO = "export.video"
+    const val METHOD_EXPORT_CANCEL = "export.cancel"
+    const val METHOD_SHARE_FILE = "export.share"
     const val METHOD_ASR_CAPABILITIES = "asr.capabilities"
     const val METHOD_ASR_LIST_MODELS = "asr.listModels"
     const val METHOD_ASR_IMPORT_MODEL = "asr.importModel"

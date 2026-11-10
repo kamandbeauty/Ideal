@@ -2,6 +2,7 @@ package app.subflow.bridge
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.media.MediaCodecInfo
 import android.media.MediaCodecList
 import android.net.Uri
@@ -10,12 +11,17 @@ import android.util.Log
 import app.subflow.asr.CloudAsr
 import app.subflow.asr.WhisperAudio
 import app.subflow.asr.WhisperEngine
+import androidx.core.content.FileProvider
 import app.subflow.core.NativeCore
+import app.subflow.export.ExportRequest
+import app.subflow.export.VideoExporter
 import app.subflow.media.MediaPicker
 import app.subflow.media.Thumbnails
 import app.subflow.media.VideoProbe
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
+import java.util.Locale
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -30,14 +36,24 @@ class SubFlowBridge(
     private val activity: Activity,
     private val picker: MediaPicker,
     asrEvents: (Map<String, Any?>) -> Unit = {},
+    exportEvents: (Map<String, Any?>) -> Unit = {},
 ) : MethodChannel.MethodCallHandler {
 
     private val emitAsr = asrEvents
+    private val exporter = VideoExporter(activity.applicationContext, exportEvents)
     private val whisper = WhisperEngine(activity, asrEvents)
     private val cloudCancelled = AtomicBoolean(false)
 
     private val io = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "subflow-bridge-io").apply { isDaemon = true }
+    }
+
+    /**
+     * A render blocks for as long as the encoder runs. It gets its own thread so
+     * probing and thumbnails keep answering while it works.
+     */
+    private val render = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "subflow-render").apply { isDaemon = true }
     }
 
     /** Cloud uploads block on the network for minutes; never on the shared io thread. */
@@ -56,6 +72,9 @@ class SubFlowBridge(
             BridgeContract.METHOD_WRITE_SRT -> handleWriteSrt(call, result)
             BridgeContract.METHOD_WRITE_ASS -> handleWriteAss(call, result)
             BridgeContract.METHOD_PLAN_EXPORT -> handlePlanExport(call, result)
+            BridgeContract.METHOD_EXPORT_VIDEO -> handleExportVideo(call, result)
+            BridgeContract.METHOD_EXPORT_CANCEL -> handleExportCancel(result)
+            BridgeContract.METHOD_SHARE_FILE -> handleShareFile(call, result)
             BridgeContract.METHOD_ASR_CAPABILITIES -> handleAsrCapabilities(result)
             BridgeContract.METHOD_ASR_LIST_MODELS -> handleAsrListModels(result)
             BridgeContract.METHOD_ASR_IMPORT_MODEL -> handleAsrImportModel(result)
@@ -508,6 +527,81 @@ class SubFlowBridge(
         }
         val name = info.name.lowercase()
         return !(name.startsWith("omx.google.") || name.startsWith("c2.android."))
+    }
+
+    // ----------------------------------------------------------------- export
+
+    /**
+     * Burns the captions into a new MP4. The reply arrives when the file exists,
+     * progress arrives on the export event channel; nothing is written to stdout
+     * because the app never sees it.
+     */
+    private fun handleExportVideo(call: MethodCall, result: MethodChannel.Result) {
+        val args = call.arguments as? Map<*, *>
+        val request = args?.let { ExportRequest.fromMap(it) }
+        if (request == null) {
+            result.error("bad_args", "uri and cues are required", null)
+            return
+        }
+        render.execute {
+            val outcome = try {
+                exporter.run(request)
+            } catch (error: Exception) {
+                Log.e(TAG, "render failed", error)
+                mapOf("ok" to false, "message" to (error.message ?: "render failed"))
+            }
+            activity.runOnUiThread { result.success(outcome) }
+        }
+    }
+
+    private fun handleExportCancel(result: MethodChannel.Result) {
+        exporter.cancel()
+        result.success(true)
+    }
+
+    /**
+     * Hands a finished file to the system share sheet. The export directory is
+     * app-private, so a FileProvider URI is the only way another app can read it
+     * - and read-only for that one file, not the whole folder.
+     */
+    private fun handleShareFile(call: MethodCall, result: MethodChannel.Result) {
+        val path: String? = call.argument<String>("path")
+        if (path.isNullOrEmpty()) {
+            result.error("bad_args", "path is required", null)
+            return
+        }
+        val file = File(path)
+        if (!file.exists()) {
+            result.error("missing_file", "file not found", null)
+            return
+        }
+        activity.runOnUiThread {
+            try {
+                val uri = FileProvider.getUriForFile(
+                    activity,
+                    "${activity.packageName}.fileprovider",
+                    file,
+                )
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = mimeFor(file.name)
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                activity.startActivity(Intent.createChooser(intent, "اشتراک‌گذاری"))
+                result.success(true)
+            } catch (error: Exception) {
+                Log.e(TAG, "share failed", error)
+                result.error("share_failed", error.message, null)
+            }
+        }
+    }
+
+    private fun mimeFor(name: String): String = when (name.substringAfterLast('.', "").lowercase(Locale.ROOT)) {
+        "mp4" -> "video/mp4"
+        "srt" -> "application/x-subrip"
+        "ass", "ssa" -> "text/x-ssa"
+        "txt" -> "text/plain"
+        else -> "application/octet-stream"
     }
 
     private fun queryDisplayName(uri: Uri): String {

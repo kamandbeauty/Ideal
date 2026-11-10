@@ -35,9 +35,13 @@ class MainActivity : FlutterActivity() {
         val mediaPicker = MediaPicker(this)
         picker = mediaPicker
         var asrSink: EventChannel.EventSink? = null
-        val bridge = SubFlowBridge(this, mediaPicker) { event ->
-            runOnUiThread { asrSink?.success(event) }
-        }
+        var exportSink: EventChannel.EventSink? = null
+        val bridge = SubFlowBridge(
+            this,
+            mediaPicker,
+            { event -> runOnUiThread { asrSink?.success(event) } },
+            { event -> runOnUiThread { exportSink?.success(event) } },
+        )
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, BridgeContract.CHANNEL)
             .setMethodCallHandler(bridge)
@@ -53,6 +57,21 @@ class MainActivity : FlutterActivity() {
 
                     override fun onCancel(arguments: Any?) {
                         asrSink = null
+                    }
+                }
+            )
+
+        // A render can run for a minute or two, so its progress travels on its
+        // own channel for the same reason the Whisper one does.
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, BridgeContract.EXPORT_EVENTS_CHANNEL)
+            .setStreamHandler(
+                object : EventChannel.StreamHandler {
+                    override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
+                        exportSink = events
+                    }
+
+                    override fun onCancel(arguments: Any?) {
+                        exportSink = null
                     }
                 }
             )

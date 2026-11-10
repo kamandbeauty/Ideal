@@ -12,6 +12,7 @@ import '../../models/subtitle_style.dart';
 import '../../models/video_asset.dart';
 import '../../services/project_repository.dart';
 import '../../services/subtitle_export_service.dart';
+import '../../services/video_export_service.dart';
 import '../../shared/theme/app_colors.dart';
 import '../../shared/widgets/sf_button.dart';
 import '../../shared/widgets/sf_card.dart';
@@ -25,6 +26,7 @@ import '../effects/presets_library.dart';
 import '../effects/caption_renderer.dart';
 import 'subtitle_document.dart';
 import 'subtitle_editor_model.dart';
+import 'video_export_sheet.dart';
 
 /// The Subtitle Studio: edit captions against the real playback position, with
 /// real word-level karaoke driven by `subtitle_words`.
@@ -715,13 +717,19 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text('خروجی زیرنویس', style: Theme.of(context).textTheme.titleLarge),
+            Text('خروجی', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 6),
             const Text(
-              'فایل ویدئوی اصلی دست‌نخورده می‌ماند؛ فقط فایل متن ساخته می‌شود (حالت اول خروجی).',
+              'یا ویدئوی تازه با زیرنویس سوخته بساز، یا فقط فایل زیرنویس را بگیر. '
+              'ویدئوی اصلی در هر دو حالت دست‌نخورده می‌ماند.',
               style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.8),
             ),
             const SizedBox(height: 16),
+            _FormatTile(
+              title: 'MP4',
+              subtitle: 'ویدئوی تازه با همان استایل، رنگ و انیمیشن روی تصویر',
+              onTap: () => Navigator.of(context).pop('mp4'),
+            ),
             _FormatTile(
               title: 'SRT',
               subtitle: 'همه‌جا باز می‌شود، بدون استایل',
@@ -742,6 +750,10 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
       ),
     );
     if (format == null || !mounted) return;
+    if (format == 'mp4') {
+      await _renderVideo(snapshot, asset);
+      return;
+    }
 
     setState(() => _exporting = true);
     try {
@@ -784,6 +796,66 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
+  }
+
+  /// Phase 5 deliverable: one MP4 with the captions burned in.
+  ///
+  /// The style is not re-derived here - the very `CaptionPreset` the stage
+  /// renders with is handed to the native painter, so what the user sees while
+  /// editing is what ends up in the file.
+  Future<void> _renderVideo(SubtitleEditorSnapshot snapshot, VideoAsset? asset) async {
+    if (asset == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('برای ساخت ویدئو اول یک ویدئو انتخاب کن.'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
+    await _notifier.flush();
+    final SubtitleDocument document =
+        ref.read(subtitleEditorProvider(widget.projectId)).valueOrNull?.document ?? snapshot.document;
+    if (document.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('زیرنویسی برای سوختن روی ویدئو وجود ندارد.'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
+    final RenderQuality? quality = await showRenderQualitySheet(
+      context,
+      cueCount: document.segments.length,
+      durationSeconds: (asset.durationUs / 1000000).round(),
+      styleName: _preset.name,
+      current: RenderQuality.p720,
+    );
+    if (quality == null || !mounted) return;
+
+    final VideoExportService service = ref.read(videoExportServiceProvider);
+    final int idLength = widget.projectId.length < 8 ? widget.projectId.length : 8;
+    final String stamp = DateTime.now().millisecondsSinceEpoch.toString();
+    final String outputName = 'subflow-${widget.projectId.substring(0, idLength)}-$stamp.mp4';
+    final VideoRenderResult? result = await showRenderProgressDialog(
+      context,
+      task: (void Function(int percent) onProgress) => service.render(
+        uri: asset.uri,
+        document: document,
+        preset: _preset,
+        quality: quality,
+        outputName: outputName,
+        onProgress: onProgress,
+      ),
+      onCancel: service.cancel,
+    );
+    if (result == null || !mounted) return;
+    await showRenderResultSheet(
+      context,
+      result: result,
+      onShare: (String path) => ref.read(nativeBridgeProvider).shareFile(path),
+    );
   }
 
   Future<void> _showExportResult(ExportedSubtitle result) async {

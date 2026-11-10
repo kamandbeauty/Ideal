@@ -22,6 +22,7 @@ import '../services/asr_service.dart';
 import '../services/media_service.dart';
 import '../services/project_repository.dart';
 import '../services/subtitle_export_service.dart';
+import '../services/video_export_service.dart';
 
 // ---------------------------------------------------------------- infrastructure
 final Provider<NativeBridge> nativeBridgeProvider =
@@ -251,6 +252,14 @@ final FutureProvider<SubtitleDao> subtitleDaoProvider = FutureProvider<SubtitleD
 final Provider<SubtitleExportService> subtitleExportServiceProvider =
     Provider<SubtitleExportService>((Ref ref) {
   return SubtitleExportService(bridge: ref.watch(nativeBridgeProvider));
+});
+
+/// Burns captions into an MP4 (Phase 5). One instance per app: the render is a
+/// single native job, so a second concurrent render would fight over the
+/// encoder anyway.
+final Provider<VideoExportService> videoExportServiceProvider =
+    Provider<VideoExportService>((Ref ref) {
+  return VideoExportService(bridge: ref.watch(nativeBridgeProvider));
 });
 
 /// The subtitle studio for one project.

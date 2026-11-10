@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Only the two places SubFlow writes user-visible files are shared:
+  rendered MP4s (external files/Movies/exports) and subtitle exports
+  (internal documents). Nothing else in the app sandbox is exposed.
+-->
+<paths>
+    <external-files-path name="exports_movies" path="Movies/exports/" />
+    <files-path name="exports_internal" path="exports/" />
+    <cache-path name="exports_cache" path="exports/" />
+</paths>

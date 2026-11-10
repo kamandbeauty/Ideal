@@ -453,6 +453,68 @@ for member in ("bool undo()", "bool redo()", "historyLimit"):
 check("SubtitleExportService" in (ROOT / "lib/services/subtitle_export_service.dart").read_text(encoding="utf-8"),
       "missing the subtitle export service")
 
+
+# ------------------------------------------------------ video render (phase 5)
+#
+# The renderer is the only place where the app re-implements the caption look,
+# so these assertions guard the two things that would silently break "preview ==
+# export": a bridge method that exists on one side only, and an animation the
+# native painter never learned about.
+render_service = ROOT / "lib/services/video_export_service.dart"
+check(render_service.exists(), "missing the video export service")
+render_src = render_service.read_text(encoding="utf-8")
+check("preset.toMap()" in render_src,
+      "video export must send the same CaptionPreset map the preview renders with")
+check("class VideoExportService" in render_src, "missing VideoExportService")
+kf = ROOT / "android/app/src/main/kotlin/app/subflow/export/CaptionFramePainter.kt"
+check(kf.exists(), "missing the native caption frame painter")
+painter_src = kf.read_text(encoding="utf-8")
+effects_src = (ROOT / "lib/features/effects/caption_effect.dart").read_text(encoding="utf-8")
+
+
+def enum_values(source: str, name: str) -> list:
+    body = re.search(r"enum " + name + r"\s*\{(.*?)\n\}", source, re.S)
+    if body is None:
+        return []
+    return [value.strip() for value in re.findall(r"^\s{2}(\w+),", body.group(1), re.MULTILINE)]
+
+
+for animation in enum_values(effects_src, "CaptionAnimation"):
+    check(f'"{animation.lower()}"' in painter_src,
+          f"caption animation '{animation}' is never handled by the native painter")
+for effect in enum_values(effects_src, "CaptionWordEffect"):
+    check(f'"{effect.lower()}"' in painter_src,
+          f"word effect '{effect}' is never handled by the native painter")
+
+exporter_src = (ROOT / "android/app/src/main/kotlin/app/subflow/export/VideoExporter.kt").read_text(encoding="utf-8")
+check("Transformer.Builder" in exporter_src, "the renderer must use Media3 Transformer")
+check("OverlayEffect" in exporter_src, "the renderer must draw the caption as an overlay effect")
+check("Presentation.createForHeight" in exporter_src, "the renderer must cap the output resolution")
+check("setClipStartPositionMs" in exporter_src and "setClipEndPositionMs" in exporter_src,
+      "the renderer must support a trimmed range")
+check("progress" in exporter_src and "getProgress" in exporter_src,
+      "the renderer must report real encoder progress")
+
+manifest_src = (ROOT / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+check("androidx.core.content.FileProvider" in manifest_src,
+      "the share sheet needs a FileProvider declared in the manifest")
+check("${applicationId}.fileprovider" in manifest_src,
+      "the FileProvider authority must match the one the bridge builds")
+check((ROOT / "android/app/src/main/res/xml/file_paths.xml").exists(),
+      "missing res/xml/file_paths.xml for the FileProvider")
+paths_src = (ROOT / "android/app/src/main/res/xml/file_paths.xml").read_text(encoding="utf-8")
+check("Movies/exports/" in paths_src, "the FileProvider must expose the render output directory")
+bridge_src = (ROOT / "android/app/src/main/kotlin/app/subflow/bridge/SubFlowBridge.kt").read_text(encoding="utf-8")
+bridge_contract_src = (ROOT / "android/app/src/main/kotlin/app/subflow/bridge/BridgeContract.kt").read_text(encoding="utf-8")
+check("handleExportVideo" in bridge_src and "handleShareFile" in bridge_src,
+      "the bridge is missing the render or share handler")
+check("METHOD_EXPORT_CANCEL" in bridge_src, "the bridge cannot cancel a running render")
+constants_src = (ROOT / "lib/core/constants.dart").read_text(encoding="utf-8")
+check("app.subflow/export" in constants_src, "Dart must know the export event channel")
+for method in ("export.video", "export.cancel", "export.share"):
+    check(f"'{method}'" in constants_src and f'"{method}"' in bridge_contract_src,
+          f"bridge method {method} is not declared on both sides")
+
 # --------------------------------------------------------- JSON sanity pass
 for json_path in ROOT.glob("assets/**/*.json"):
     try:
