@@ -49,6 +49,8 @@ var suspension_phase: float = 0.0
 var turret_rest_y: float = 0.0
 ## True for procedural models: their turret and gun face -Z and elevate with +X rotation.
 var procedural_aim: bool = false
+## True when the model comes from VehicleModels rather than a GLB file.
+var built_procedurally: bool = false
 var stage: int = 0
 
 func _ready() -> void:
@@ -79,6 +81,7 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 		recoil_node = null
 		muzzle = null
 		procedural_aim = false
+		built_procedurally = false
 		var shape := BoxShape3D.new()
 		shape.size = hull_size()
 		collision.shape = shape
@@ -106,10 +109,12 @@ func _build_model() -> void:
 		# Procedural models already face -Z, which is this node's forward direction.
 		model_root = procedural
 		add_child(model_root)
+		built_procedurally = true
 		muzzle = model_root.find_child("Muzzle", true, false) as Node3D
-		for child in model_root.find_children("Wheel*", "Node3D", true, false):
+		# "*Wheel*" also catches the boss track wheels, which are named TrackWheel_N.
+		for child in model_root.find_children("*Wheel*", "Node3D", true, false):
 			wheels.append(child as Node3D)
-		# APC and boss hulls carry a turret pivot with a gun pivot inside it.
+		# Jeep, APC and boss carry a turret pivot with a gun pivot inside it.
 		turret = model_root.find_child("TurretPivot", true, false) as Node3D
 		if turret:
 			turret_rest_y = turret.position.y
@@ -277,10 +282,12 @@ func _physics_process(delta: float) -> void:
 func _roll_wheels(delta: float, current_speed: float) -> void:
 	if current_speed <= 0.0:
 		return
-	var radius: float = wheel_radius()
-	var angular: float = current_speed / radius
+	# Procedural wheels have their axle along local Y, so they spin about Y. Rotating
+	# about X would swing the axle and make the wheel tumble. GLB wheels keep their axis.
+	var axis: Vector3 = Vector3.UP if built_procedurally else Vector3.RIGHT
 	for wheel in wheels:
-		wheel.rotate_object_local(Vector3.RIGHT, angular * delta)
+		var radius: float = float(wheel.get_meta("roll_radius", wheel_radius()))
+		wheel.rotate_object_local(axis, current_speed / radius * delta)
 
 func _suspension(delta: float, current_speed: float) -> void:
 	suspension_phase += delta * (2.0 + current_speed * 1.5)

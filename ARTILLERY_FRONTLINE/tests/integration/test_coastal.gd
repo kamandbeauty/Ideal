@@ -26,7 +26,7 @@ func run(t: TestContext) -> void:
 	t.equal(boss_stages, [1, 2], "Boss tank reports damage stages at 60% and 30% health")
 	boss_unit.queue_free()
 	# Turrets must turn their guns onto the target, not away from it, and a high target must raise the barrel.
-	for turret_kind in ["apc", "boss"]:
+	for turret_kind in ["jeep", "apc", "boss"]:
 		var gunner := EnemyVehicle.new()
 		t.tree.root.add_child(gunner)
 		gunner.configure(Vector3(0, 0, 60), Vector3(30, 0, 20), turret_kind)
@@ -44,6 +44,17 @@ func run(t: TestContext) -> void:
 		var gun_forward: Vector3 = -gunner.barrel_pivot.global_transform.basis.z
 		t.check(gunner.barrel_pivot.rotation.x > 0.2 and gun_forward.y > 0.1, "%s gun elevates toward a high target" % turret_kind)
 		gunner.queue_free()
+	# Procedural wheels roll about their axle: the axle direction stays fixed while the wheel turns.
+	var rolling := EnemyVehicle.new()
+	t.tree.root.add_child(rolling)
+	rolling.configure(Vector3(0, 0, 60), Vector3(0, 0, 0), "jeep")
+	var tyre: Node3D = rolling.wheels[0]
+	var axle_before: Vector3 = tyre.global_transform.basis.y
+	var spin_before: Vector3 = tyre.global_transform.basis.x
+	rolling._roll_wheels(0.5, 4.0)
+	t.check(axle_before.dot(tyre.global_transform.basis.y) > 0.999, "Jeep wheels spin about their axle without tumbling")
+	t.check(spin_before.dot(tyre.global_transform.basis.x) < 0.99, "Jeep wheels visibly turn while rolling")
+	rolling.queue_free()
 	t.check(CoastalWeapon.ORDER.size() == 5, "Five mounted weapon types include machine guns, cannon, rocket, bazooka and autocannon")
 	t.check(bool(CoastalWeapon.WEAPONS.twin_hmg.automatic), "Twin heavy machine gun supports automatic fire")
 	t.check(float(CoastalWeapon.WEAPONS.rocket.blast) > 0.0, "Rocket ammunition has blast radius")

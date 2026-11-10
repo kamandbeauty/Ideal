@@ -43,9 +43,12 @@ static func build_jeep() -> Node3D:
 	for x in [-0.4, 0.4]:
 		MeshFactory.box(root, "Seat", Vector3(x, 1.0, 0.5), Vector3(0.6, 0.5, 0.6), DARK)
 	var ring := MeshFactory.cylinder(root, "MountRing", Vector3(0, 2.25, 1.1), 0.45, 0.05, STEEL, 16)
-	MeshFactory.box(root, "GunCradle", Vector3(0, 2.42, 1.1), Vector3(0.22, 0.22, 0.4), STEEL)
-	_barrel(root, "Barrel", Vector3(0, 2.46, 0.55), 0.035, 0.9, STEEL)
-	_marker(root, "Muzzle", Vector3(0, 2.46, 0.1))
+	# The machine gun turns on the mount ring (turret pivot) and elevates on its cradle (gun pivot).
+	var mount: Node3D = _pivot(root, "TurretPivot", Vector3(0, 2.25, 1.1))
+	var gun: Node3D = _pivot(mount, "GunPivot", Vector3(0, 0.17, 0))
+	MeshFactory.box(gun, "GunCradle", Vector3.ZERO, Vector3(0.22, 0.22, 0.4), STEEL)
+	_barrel(gun, "Barrel", Vector3(0, 0.04, -0.55), 0.035, 0.9, STEEL)
+	_marker(gun, "Muzzle", Vector3(0, 0.04, -1.0))
 	MeshFactory.box(root, "Jerrycan", Vector3(0.95, 1.1, 1.5), Vector3(0.35, 0.6, 0.25), SAND)
 	for z in [-1.2, 1.2]:
 		for x in [-0.95, 0.95]:
@@ -114,8 +117,12 @@ static func _wheel(parent: Node3D, name: String, pos: Vector3, radius: float, wi
 	var tag: String = "_%d" % parent.get_child_count()
 	var tyre := MeshFactory.cylinder(parent, name + tag, pos, radius, width, TIRE, 14)
 	tyre.rotation.z = PI * 0.5
+	tyre.set_meta("roll_radius", radius)
 	var hub := MeshFactory.cylinder(parent, name + "Hub" + tag, pos, radius * 0.5, width + 0.02, OLIVE, 10)
 	hub.rotation.z = PI * 0.5
+	hub.set_meta("roll_radius", radius)
+	# A spoke across the hub face turns with the wheel, so rolling is visible on a plain cylinder.
+	MeshFactory.box(hub, "Spoke", Vector3.ZERO, Vector3(radius * 1.5, width + 0.06, 0.07), STEEL)
 
 ## Cylinder whose axis runs along Z (the barrel direction); centred on `center`.
 static func _barrel(parent: Node3D, name: String, center: Vector3, radius: float, length: float, color: Color) -> void:
