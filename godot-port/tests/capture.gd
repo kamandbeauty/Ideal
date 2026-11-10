@@ -117,13 +117,21 @@ func _ready() -> void:
 ## is long enough to sample ten times, and every offset below is a time in the game's own clock, so the
 ## strip is the same strip whatever the renderer's frame rate on the day is.
 func _swap_strip(board_screen) -> void:
+	# Every step of this is written to the report, because the report is committed with the pictures: a
+	# strip that does not appear has to say why on the next run rather than be guessed at.
+	_log("STRIP start :: screen=%s" % str(board_screen))
+	if board_screen == null:
+		_log("STRIP skipped :: no board screen")
+		return
 	var move: Array = board_screen._find_hint_move()
+	_log("STRIP move :: %s" % str(move))
 	if move.size() != 2:
 		_log("STRIP skipped :: no legal move on the board")
 		return
 	board_screen._hide_hand()
 	await _frames(2)
 	var board = board_screen.get("board")
+	_log("STRIP board :: %s" % str(board))
 	var a: Vector2 = board.position + board.cell_center(move[0])
 	var b: Vector2 = board.position + board.cell_center(move[1])
 	var window := Rect2i(Vector2i(int(minf(a.x, b.x) - 62.0), int(minf(a.y, b.y) - 62.0)),
@@ -133,9 +141,12 @@ func _swap_strip(board_screen) -> void:
 	board_screen._attempt_swap(move[0], move[1])
 	var offsets := [0.02, 0.02, 0.02, 0.03, 0.04, 0.05, 0.07, 0.09, 0.12, 0.16]
 	var frames: Array = []
-	for offset in offsets:
-		await get_tree().create_timer(float(offset)).timeout
-		frames.append(await _grab_rect(window))
+	for index in range(offsets.size()):
+		await get_tree().create_timer(float(offsets[index])).timeout
+		var grabbed: Image = await _grab_rect(window)
+		_log("STRIP frame %d :: %s" % [index, "null" if grabbed == null else str(grabbed.get_size())])
+		if grabbed != null:
+			frames.append(grabbed)
 	Engine.time_scale = 1.0
 	await _frames(4)
 	_save_strip(frames, "11-swap-strip")
@@ -158,6 +169,7 @@ func _save_strip(frames: Array, strip_name: String) -> void:
 	strip.save_png("%s/%s.png" % [SHOTS, strip_name])
 	_log("STRIP %s %dx%d frames=%d" % [strip_name, strip.get_width(), strip.get_height(),
 		frames.size()])
+	print("[capture] %s written" % strip_name)
 
 ## A crop of what the camera sees right now. Everything is drawn before the crop is taken, or the strip
 ## shows the frame before the one it claims to.
