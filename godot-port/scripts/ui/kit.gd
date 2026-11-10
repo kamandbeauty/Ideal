@@ -311,6 +311,25 @@ static func button(parent: Node, node_name: String, text: String, x: float, y: f
 		node.pressed.connect(on_press)
 	return node
 
+## A button whose face is a painted plate from `assets/ui/`, drawn whole. The orb is round, so it is
+## never nine-sliced: the same picture is the normal, hover and pressed face at three brightnesses, and
+## the disabled face is the same picture dulled rather than a different one.
+static func art_button(parent: Node, node_name: String, x: float, y: float, width: float, height: float,
+		art_id: String, border: int, on_press: Callable,
+		fallback: Color = UiTokens.SURFACE_RAISED) -> Button:
+	var node := button(parent, node_name, "", x, y, width, height, fallback, UiTokens.TEXT, on_press, 0)
+	var plate := ui_box(art_id, border)
+	if plate == null:
+		return node
+	var hover := ui_box(art_id, border, Color(1.06, 1.06, 1.06, 1))
+	var pressed := ui_box(art_id, border, Color(0.88, 0.88, 0.88, 1))
+	var off := ui_box(art_id, border, Color(0.72, 0.72, 0.74, 0.80))
+	node.add_theme_stylebox_override("normal", plate)
+	node.add_theme_stylebox_override("hover", hover if hover != null else plate)
+	node.add_theme_stylebox_override("pressed", pressed if pressed != null else plate)
+	node.add_theme_stylebox_override("disabled", off if off != null else plate)
+	return node
+
 static func boundary_or(value: int, fallback: int) -> int:
 	return value if value > 0 else fallback
 

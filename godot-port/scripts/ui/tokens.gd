@@ -15,6 +15,10 @@ const BORDER := Color(0.1725, 0.3059, 0.4706, 1.0)          # #2C4E78
 const BORDER_INPUT := Color(0.3529, 0.5137, 0.6941, 1.0)    # #5A83B1
 const TEXT := Color(0.9686, 0.9490, 0.9020, 1.0)            # #F7F2E6
 const TEXT_MUTED := Color(0.7490, 0.7961, 0.8588, 1.0)      # #BFCBDB
+# The board's two side rails are painted cream parchment, not a dark plate, so the ink on them is dark
+# and warm rather than the light text the rest of the game uses: light text on cream is invisible.
+const INK := Color(0.2784, 0.1922, 0.1059, 1.0)             # #47311B
+const INK_SOFT := Color(0.4784, 0.3725, 0.2392, 1.0)        # #7A5F3D
 const ACCENT := Color(0.1373, 0.7098, 0.6902, 1.0)          # #23B5B0
 const ACCENT_STRONG := Color(0.0706, 0.5216, 0.4980, 1.0)   # #12857F
 const ON_ACCENT := Color(0.0157, 0.1294, 0.1216, 1.0)       # #04211F

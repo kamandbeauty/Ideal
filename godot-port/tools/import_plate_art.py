@@ -4,9 +4,12 @@
 Everything else on the board screen is a picture already; the tray and the two cards were the last
 surfaces drawn by code. They are painted once by an image model and graded here:
 
-  ui_board_tray    the velvet the stones lie on. Only the centre of the painted tray is kept — its
-                   painted moulding is not shipped: the case that used to ring the board read as a
-                   picture frame, so the tray is the board now.
+  ui_board_tray    the Persian carpet the stones lie on, painted whole and shipped whole: the board is
+                   the playfield, and the carpet's own border is the only frame it gets.
+  ui_rail          the capsule panel down each side of the board — goals and the purse on the left,
+                   the tools on the right. Both rails are the same painted panel.
+  ui_orb           the round tool button: a turquoise sphere in a gold ring, keyed out of its plate.
+  ui_tile_frame    the cell a stone rests in: a soft cream square with an amber rim.
   ui_card_frame    the wide plaque on the home screen.
   ui_card_tall     the portrait plaque on the districts screen.
 
@@ -21,14 +24,21 @@ from __future__ import annotations
 import os
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE = os.path.join(HERE, "assets", "ui", "source")
 OUT = os.path.join(HERE, "assets", "ui")
 
-# The tray is drawn at 330 dp, so the plate ships at twice that.
-TRAY_SIZE = 660
+# The tray is drawn at 408 dp, so the plate ships at twice that.
+TRAY_SIZE = 816
+# The two rails are drawn at 134x403 dp; the orb and the cell at 64 and 42 dp. Everything ships at two
+# times the size it is drawn, so a 3x screen still has pixels to spend.
+RAIL_SIZE = (268, 806)
+ORB_SIZE = 128
+TILE_SIZE = 128
+# How near-black a plate's field has to be before the key fills it.
+KEY_TOLERANCE = 26
 
 # The two card plaques are authored at exactly the size the screens draw them (330x126 and 232x286) and
 # stretched whole, because a card is a fixed size: nine-slicing a painted moulding at 40 dp corners
@@ -40,8 +50,10 @@ CARDS = {
     "ui_card_tall.png": ("card_tall", (464, 572)),
 }
 
-# How much of the painted tray is velvet: the painted moulding is not shipped.
-TRAY_KEEP = 0.60
+# How much of the painted carpet is kept: the centre only. The painting's border is a wide geometric
+# band — beautiful, and 60 dp of playfield if shipped whole. Keeping the middle 68% thins it to about
+# 18 dp at the size the board is drawn, which frames the grid instead of competing with it.
+TRAY_KEEP = 0.68
 
 
 def _load(name: str) -> Image.Image:
@@ -56,19 +68,57 @@ def _grain(picture: Image.Image, amount: float, seed: int) -> Image.Image:
     return Image.fromarray(np.clip(pixels * 255.0, 0, 255).astype(np.uint8), "RGB")
 
 
+def _field_keyed(source: Image.Image) -> Image.Image:
+    """Cut a plate off its black field.
+
+    Binarise first: flood fill only spreads through pixels *exactly* equal to the value it started
+    with, so a bright highlight inside the painted object can never be mistaken for background.
+    """
+    grey = source.convert("L")
+    binary = grey.point(lambda value: 0 if value <= KEY_TOLERANCE else 255)
+    for seed in ((0, 0), (source.width - 1, 0), (0, source.height - 1),
+                 (source.width - 1, source.height - 1)):
+        ImageDraw.floodfill(binary, seed, 128, thresh=0)
+    keep = np.where(np.asarray(binary) == 128, 0, 255).astype(np.uint8)
+    alpha = Image.fromarray(keep, "L").filter(ImageFilter.GaussianBlur(0.7))
+    cut = source.convert("RGBA")
+    cut.putalpha(alpha)
+    box = cut.getbbox()
+    return cut.crop(box) if box is not None else cut
+
+
 def build_tray() -> Image.Image:
+    """The carpet. Shipped whole: the board is the playfield and the weave is its only frame."""
     source = _load("tray")
     width, height = source.size
     half_x = int(width * TRAY_KEEP * 0.5)
     half_y = int(height * TRAY_KEEP * 0.5)
-    centre = source.crop((width // 2 - half_x, height // 2 - half_y,
+    source = source.crop((width // 2 - half_x, height // 2 - half_y,
                           width // 2 + half_x, height // 2 + half_y))
-    tray = centre.resize((TRAY_SIZE, TRAY_SIZE), Image.LANCZOS)
-    # A touch darker and cooler: the velvet is the floor of the board, not a light source.
-    pixels = np.asarray(tray).astype(np.float32) * np.array([0.88, 0.90, 0.96], dtype=np.float32)
+    tray = source.resize((TRAY_SIZE, TRAY_SIZE), Image.LANCZOS)
+    # A touch warmer and a touch darker than the painted plate: the stones sit on it, so it must not
+    # compete with them.
+    # A step darker and warmer than the cells that sit on it: the carpet is the floor of the board and
+    # the cells are its furniture, so the cells have to read as raised.
+    pixels = np.asarray(tray).astype(np.float32) * np.array([0.92, 0.89, 0.82], dtype=np.float32)
     tray = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGB")
-    tray = tray.filter(ImageFilter.UnsharpMask(radius=2.0, percent=45, threshold=3))
-    return _grain(tray, 3.0, 11)
+    tray = tray.filter(ImageFilter.UnsharpMask(radius=1.8, percent=45, threshold=3))
+    return _grain(tray, 2.0, 11)
+
+
+def build_rail() -> Image.Image:
+    """The capsule panel both rails use, cut off its field and set to the size the rails are drawn."""
+    cut = _field_keyed(_load("rail"))
+    plate = cut.resize(RAIL_SIZE, Image.LANCZOS)
+    plate = plate.filter(ImageFilter.UnsharpMask(radius=1.4, percent=45, threshold=2))
+    return plate
+
+
+def build_round_plate(name: str, size: int) -> Image.Image:
+    """A plate that is keyed out and drawn at its own size: the orb and the cell."""
+    cut = _field_keyed(_load(name))
+    plate = cut.resize((size, size), Image.LANCZOS)
+    return plate.filter(ImageFilter.UnsharpMask(radius=1.2, percent=50, threshold=2))
 
 
 def build_card(source_name: str, size: tuple) -> Image.Image:
@@ -86,7 +136,10 @@ def build_card(source_name: str, size: tuple) -> Image.Image:
 
 
 def main() -> None:
-    plates = [("ui_board_tray.png", build_tray())]
+    plates = [("ui_board_tray.png", build_tray()),
+              ("ui_rail.png", build_rail()),
+              ("ui_orb.png", build_round_plate("orb", ORB_SIZE)),
+              ("ui_tile_frame.png", build_round_plate("tile", TILE_SIZE))]
     for name, (source_name, size) in CARDS.items():
         plates.append((name, build_card(source_name, size)))
     for name, picture in plates:

@@ -317,22 +317,26 @@ def main():
 
     # The board's tile: a carved well the gem sits in. The corner dashes are gone — on a 36 dp cell
     # they read as stitching round every stone — and the well is deeper so five colours of gem are the
-    # brightest thing on the board.
-    tile = gradient((72, 72), 14, [(0.0, (30, 50, 84)), (0.55, (18, 33, 60)), (1.0, (10, 18, 36))])
-    tile = bevel(tile, 14, top_alpha=150, bottom_alpha=120)
-    tile = grain(tile, strength=6)
-    tile = rim(tile, 14, (52, 86, 128), width=2)
-    # No gold hairline on the tile: at a 34 dp cell a one-pixel gold line aliases into a dotted stitch
-    # round every stone. The octagon below carries the carving instead.
-    # An octagon cut inside the square: the facet a real inlay tile has, faint enough to stay quiet.
-    octagon = ImageDraw.Draw(tile, "RGBA")
-    inset = 9.0
-    points = []
-    for index in range(8):
-        angle = math.pi / 8 + index * math.pi / 4
-        points.append((36 + math.cos(angle) * (36 - inset), 36 + math.sin(angle) * (36 - inset)))
-    octagon.line(points + [points[0]], fill=(236, 210, 150, 46), width=2, joint="curve")
-    save(tile, "ui_tile_frame")
+    # `ui_tile_frame` is painted now, not drawn here: the cell a stone rests on is part of the
+    # carpet set, and tools/import_plate_art.py writes it from the painted plate. The drawn tile is
+    # kept below, commented, as the record of what the cell used to be — running this file must not
+    # overwrite the painted one.
+    # # brightest thing on the board.
+    # tile = gradient((72, 72), 14, [(0.0, (30, 50, 84)), (0.55, (18, 33, 60)), (1.0, (10, 18, 36))])
+    # tile = bevel(tile, 14, top_alpha=150, bottom_alpha=120)
+    # tile = grain(tile, strength=6)
+    # tile = rim(tile, 14, (52, 86, 128), width=2)
+    # # No gold hairline on the tile: at a 34 dp cell a one-pixel gold line aliases into a dotted stitch
+    # # round every stone. The octagon below carries the carving instead.
+    # # An octagon cut inside the square: the facet a real inlay tile has, faint enough to stay quiet.
+    # octagon = ImageDraw.Draw(tile, "RGBA")
+    # inset = 9.0
+    # points = []
+    # for index in range(8):
+    #     angle = math.pi / 8 + index * math.pi / 4
+    #     points.append((36 + math.cos(angle) * (36 - inset), 36 + math.sin(angle) * (36 - inset)))
+    # octagon.line(points + [points[0]], fill=(236, 210, 150, 46), width=2, joint="curve")
+    # save(tile, "ui_tile_frame")
 
     # The switch: a track the knob slides in, and a knob that is a knob.
     track_off = gradient((64, 32), 16, [(0.0, (26, 44, 72)), (1.0, (12, 22, 40))])

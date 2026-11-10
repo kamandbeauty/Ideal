@@ -12,35 +12,30 @@ signal home_requested
 signal next_level_requested(level_number: int)
 signal retry_requested(level_number: int)
 
-# Landscape puts the playfield on the right and everything that describes the level in a column on the
-# left, which is also the reading order of an RTL player: goals first, then the board they play on.
-const BOARD_LEFT := 366.0
-const BOARD_TOP := 60.0
-const BOARD_SIZE := 330.0
-# No case around the board: the tray is the board. The painted moulding that used to ring it read as a
-# picture frame and ate 30 dp of playfield on every side.
-const COLUMN_X := 16.0
-const COLUMN_W := 318.0
-# The column is 415 dp tall and has to be full: a stack of cards that stops two thirds of the way down
-# leaves a dead band under the boosters and makes the whole HUD look unfinished, which is exactly what
-# the device screenshot showed. So the cards are taller, the gaps between groups are even, and the row
-# of boosters sits on the bottom of the column with thumb-sized buttons.
-const CARD_HEIGHT := 56.0
-const CARD_ROW_Y := 38.0
-const CHIP_HEIGHT := 26.0
-const CHIP_GAP := 2.0
-const GOALS_Y := 100.0
-const STATUS_HEIGHT := 58.0
-const WALLET_HEIGHT := 44.0
-const BOOSTER_HEAD_HEIGHT := 16.0
-const BOOSTER_SIZE := 58.0
-const BOOSTER_GAP := 7.0
-# The column below the two counters is a stack with four gaps, not a table of fixed rows: a level
-# with one goal left a 64 dp hole between the goal chip and the sentence under it, which is what the
-# device screenshot showed. The gaps share whatever height the blocks leave, and are never under
-# COLUMN_GAP_MIN, so the column fills its height at one goal or at three.
-const COLUMN_BOTTOM := 390.0
-const COLUMN_GAP_MIN := 8.0
+# The reference the player judges this screen by is a landscape board in the middle with a capsule
+# panel down each side: goals and the purse on the left, the tools on the right. The board is the
+# screen, so it is centred, and the panels are narrow because the board must not pay for them.
+const RAIL_LEFT_X := 10.0
+const RAIL_RIGHT_X := 594.0
+const RAIL_Y := 6.0
+const RAIL_W := 134.0
+const RAIL_H := 403.0
+const RAIL_PAD := 8.0
+# The playfield is the painted carpet, and the cells sit inside it: the carpet's own border is the only
+# frame the board gets, so the plate is 15 dp larger than the 9 x 42 dp grid on every side.
+const PLATE_LEFT := 165.0
+const PLATE_TOP := 3.0
+const PLATE_SIZE := 408.0
+const BOARD_LEFT := 180.0
+const BOARD_TOP := 18.0
+const BOARD_SIZE := 378.0
+# Left rail: the title, the level, the moves, the goals, the score, the line that says what to do, and
+# the purse. Right rail: five tools and the two ways out of the level.
+const GOAL_ROW_PITCH := 36.0
+const GOAL_ROWS_Y := 100.0
+const BOOSTER_SIZE := 56.0
+const BOOSTER_PITCH := 62.0
+const BOOSTER_ROWS_Y := 22.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -57,12 +52,10 @@ const HAND_SIZE := 44.0
 var _moves_label: Label
 var _score_label: Label
 var _hint: Label
-var _status_card: Panel
-var _wallet_card: Panel
 var _boosters_heading: Label
 var _coin_label: Label
 var _life_label: Label
-var _goal_chips: Array[Panel] = []
+var _goal_chips: Array[Control] = []
 var _goal_icons: Array[TextureRect] = []
 var _goal_labels: Array[Label] = []
 var _booster_buttons: Array[Button] = []
@@ -85,113 +78,114 @@ var _hint_move: Array[Vector2i] = []
 
 func build() -> void:
 	shows_top_bar = false
-	# The palace backdrop is a picture, so it is never covered by a flat colour; only the veil art sits
-	# over it, and only at the edges, to keep the header and the column readable.
-	# The hall is dimmed harder than the other screens: the board is a tray of five bright stones
-	# and nothing behind them should compete with that.
+	# The hall is dimmed harder than the other screens: the board is a lit carpet in a dark room, and
+	# nothing behind it should compete with the stones.
 	set_backdrop("hall_night", 0.30, 0.5, 0.5, 0.62, 0.70)
 
-	# ---- header: home and pause at the right, the level chip, then the game's name ------------------
-	UiKit.button(self, "home", "خانه", 650.0, 2.0, 72.0, 32.0, UiTokens.SURFACE_RAISED,
-		UiTokens.TEXT, _on_home, UiTokens.RADIUS_MD)
-	UiKit.button(self, "pause_button", "مکث", 570.0, 2.0, 72.0, 32.0, UiTokens.SURFACE_RAISED,
-		UiTokens.TEXT, _on_pause, UiTokens.RADIUS_MD)
+	# ---- the two rails: painted cream capsules, one per side --------------------------------------
+	# Both are the same painting drawn at its own size, never nine-sliced: a painted moulding stretched
+	# in pieces loses its ornament, and these rails never change size.
+	var goals_rail := UiKit.art_panel(self, "rail_goals", RAIL_LEFT_X, RAIL_Y, RAIL_W, RAIL_H,
+		"ui_rail", 0, UiTokens.SURFACE)
+	goals_rail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tools_rail := UiKit.art_panel(self, "rail_tools", RAIL_RIGHT_X, RAIL_Y, RAIL_W, RAIL_H,
+		"ui_rail", 0, UiTokens.SURFACE)
+	tools_rail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var rail_x := RAIL_PAD
+	var rail_w := RAIL_W - RAIL_PAD * 2.0
 
-	# A chip is a picture like every other surface: the gold plate art is nine-sliced, the label sits on
-	# top. `UiKit.panel` still exists for a texture that failed to load, and the sweep in `test_ui`
-	# fails the build if one of those fallbacks ever becomes the thing the player sees.
-	var level_chip := UiKit.art_panel(self, "level_chip", 150.0, 4.0, 96.0, 28.0, "ui_button_gold_sm",
-		UiTokens.BORDER_PLATE_SMALL, UiTokens.GOLD, UiTokens.RADIUS_MD)
-	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_SM, UiTokens.ON_ACCENT,
+	# ---- left rail, top to bottom -----------------------------------------------------------------
+	var title := UiKit.label(goals_rail, "title", "باغ شازده", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, 4.0, 0.0, 88.0, 28.0)
+	UiKit.place(title, rail_x, 6.0, rail_w, 18.0)
 
-	var title := UiKit.label(self, "title", "باغ شازده", UiTokens.TYPE_LG, UiTokens.GOLD,
+	var level_chip := UiKit.art_panel(goals_rail, "level_chip", rail_x, 26.0, rail_w, 24.0,
+		"ui_button_gold_sm", UiTokens.BORDER_PLATE_SMALL, UiTokens.GOLD, UiTokens.RADIUS_MD)
+	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_SM, UiTokens.ON_GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(title, 252.0, 4.0, 308.0, 28.0)
+	UiKit.place(_level_label, 2.0, 0.0, rail_w - 4.0, 24.0)
 
-	# ---- the two counters, side by side, each a picture plate with a caption over its number -------
-	var moves_card := _build_card("moves", COLUMN_X, CARD_ROW_Y, 204.0, CARD_HEIGHT)
-	var moves_caption := UiKit.label(moves_card, "caption", "حرکت‌های باقی‌مانده", UiTokens.TYPE_XS,
-		UiTokens.TEXT_MUTED)
-	UiKit.place(moves_caption, 10.0, 2.0, 184.0, 18.0)
-	_moves_label = UiKit.label(moves_card, "value", "", UiTokens.TYPE_BASE, UiTokens.ACCENT,
+	# The moves counter is the one figure a player checks every second, so it is the biggest thing on
+	# the rail, with the icon the port already ships beside it.
+	UiKit.icon(goals_rail, "moves_icon", "icon_moves", rail_x + 2.0, 58.0, 26.0, 26.0)
+	_moves_label = UiKit.label(goals_rail, "moves", "", UiTokens.TYPE_XL, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_moves_label, 10.0, 20.0, 184.0, 24.0)
+	UiKit.place(_moves_label, rail_x + 30.0, 52.0, rail_w - 30.0, 38.0)
 
-	var score_card := _build_card("score_card", 228.0, CARD_ROW_Y, 106.0, CARD_HEIGHT)
-	var score_caption := UiKit.label(score_card, "caption", "امتیاز", UiTokens.TYPE_XS,
-		UiTokens.TEXT_MUTED)
-	UiKit.place(score_caption, 6.0, 2.0, 94.0, 18.0)
-	_score_label = UiKit.label(score_card, "score", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
-		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, 6.0, 20.0, 94.0, 24.0)
-
-	# ---- goal chips, stacked under the counters ---------------------------------------------------
+	# ---- the goals, one compact row each ----------------------------------------------------------
 	for index in range(3):
-		var y := GOALS_Y + float(index) * (CHIP_HEIGHT + CHIP_GAP)
-		var chip := UiKit.art_panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
-			"ui_chip", UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
+		var y := GOAL_ROWS_Y + float(index) * GOAL_ROW_PITCH
+		# A goal is a picture and a count straight on the panel, with no plate behind it: the reference
+		# puts its goals on the card, and a second plate on cream is either invisible or a sticker.
+		var chip := Control.new()
+		chip.name = "goal_%d" % index
+		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		goals_rail.add_child(chip)
+		UiKit.place(chip, rail_x, y, rail_w, GOAL_ROW_PITCH - 2.0)
 		_goal_chips.append(chip)
-		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 34.0, 3.0,
-			20.0, 20.0))
-		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_XS, UiTokens.TEXT,
-			HORIZONTAL_ALIGNMENT_CENTER)
-		UiKit.place(label, 6.0, 0.0, COLUMN_W - 44.0, CHIP_HEIGHT)
+		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", 4.0,
+			(GOAL_ROW_PITCH - 2.0 - 26.0) * 0.5, 26.0, 26.0))
+		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_XS, UiTokens.INK,
+			HORIZONTAL_ALIGNMENT_CENTER, true)
+		UiKit.place(label, 32.0, 0.0, rail_w - 36.0, GOAL_ROW_PITCH - 2.0)
 		_goal_labels.append(label)
 
-	# ---- the line that tells the player what to do, or what just went wrong ------------------------
-	var status_card := _build_card("status_card", COLUMN_X, GOALS_Y, COLUMN_W, STATUS_HEIGHT)
-	_status_card = status_card
-	_hint = UiKit.label(status_card, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
+	# ---- the score, the line that says what to do, and the purse ---------------------------------
+	var score_caption := UiKit.label(goals_rail, "score_caption", "امتیاز", UiTokens.TYPE_XS,
+		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER)
+	UiKit.place(score_caption, rail_x, 214.0, rail_w, 14.0)
+	_score_label = UiKit.label(goals_rail, "score", "", UiTokens.TYPE_LG, UiTokens.INK,
+		HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(_score_label, rail_x, 228.0, rail_w, 26.0)
+
+	# The sentence sits on the rail like a note on the panel: no plate behind it, because a plate on
+	# cream reads as a sticker, and the line is short enough to fit the rail in three lines.
+	_hint = UiKit.label(goals_rail, "hint", "", UiTokens.TYPE_XS, UiTokens.INK_SOFT,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, 8.0, 2.0, COLUMN_W - 16.0, STATUS_HEIGHT - 4.0)
+	UiKit.place(_hint, rail_x, 260.0, rail_w, 60.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	# ---- the player's purse, on one plate: coins at one end, lives at the other --------------------
-	# The board is where a player spends both, so they belong here and not only on the home screen.
-	# Every part of it is a picture: the plate, the coin and the heart are all shipped PNGs.
-	var wallet_card := _build_card("wallet_card", COLUMN_X, GOALS_Y, COLUMN_W, WALLET_HEIGHT)
-	_wallet_card = wallet_card
-	# Each figure is centred in its own little group rather than pushed against an edge: the labels are
-	# right-to-left, so Godot mirrors LEFT and RIGHT alignment, and edge-hugging text lands in the
-	# middle of the card — which is exactly where the two numbers collided on the first attempt.
-	var icon_box := (WALLET_HEIGHT - 26.0) * 0.5
-	# Each figure sits in the same group as the picture it counts: the coin number beside the coin, the
-	# life number beside the heart. They used to be centred in fixed thirds of the card, which on the
-	# device read as two icons and two dots — a Persian zero is a dot, and a dot 60 dp from its coin is
-	# not a number anymore.
-	UiKit.icon(wallet_card, "life_icon", "icon_life", 14.0, icon_box, 26.0, 26.0)
-	_life_label = UiKit.label(wallet_card, "life_value", "", UiTokens.TYPE_BASE, UiTokens.TEXT,
+	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 326.0, 24.0, 24.0)
+	_coin_label = UiKit.label(goals_rail, "coin_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_life_label, 44.0, 0.0, 56.0, WALLET_HEIGHT)
-	UiKit.icon(wallet_card, "coin_icon", "icon_coin", COLUMN_W - 40.0, icon_box, 26.0, 26.0)
-	_coin_label = UiKit.label(wallet_card, "coin_value", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
+	UiKit.place(_coin_label, rail_x + 30.0, 324.0, rail_w - 30.0, 28.0)
+	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 356.0, 24.0, 24.0)
+	_life_label = UiKit.label(goals_rail, "life_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_coin_label, COLUMN_W - 40.0 - 58.0, 0.0, 54.0, WALLET_HEIGHT)
+	UiKit.place(_life_label, rail_x + 30.0, 354.0, rail_w - 30.0, 28.0)
 
-	_boosters_heading = UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
-		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_boosters_heading, COLUMN_X, GOALS_Y, COLUMN_W, BOOSTER_HEAD_HEIGHT)
-
-	# ---- booster bar: all five in one row, sized for a thumb --------------------------------------
+	# ---- right rail: the tools, then the two ways out of the level --------------------------------
+	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,
+		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER, true)
+	UiKit.place(_boosters_heading, rail_x, 6.0, rail_w, 16.0)
 	for kind in range(BoosterBag.SLOTS):
-		var x := COLUMN_X + float(kind) * (BOOSTER_SIZE + BOOSTER_GAP)
+		var y := BOOSTER_ROWS_Y + float(kind) * BOOSTER_PITCH
 		var handler := _on_booster_pressed.bind(kind)
-		var button := UiKit.button(self, "booster_%d" % kind, "", x, GOALS_Y, BOOSTER_SIZE,
-			BOOSTER_SIZE, UiTokens.SURFACE_RAISED, UiTokens.TEXT, handler, UiTokens.RADIUS_MD)
+		# The tool is a painted orb: a round plate, so its rect is square and it is never nine-sliced.
+		var button := UiKit.art_button(tools_rail, "booster_%d" % kind,
+			(RAIL_W - BOOSTER_SIZE) * 0.5, y, BOOSTER_SIZE, BOOSTER_SIZE, "ui_orb", 0, handler)
 		_booster_buttons.append(button)
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 6.0, 5.0,
-			BOOSTER_SIZE - 12.0, BOOSTER_SIZE - 22.0))
-		var count := UiKit.label(button, "count", "", UiTokens.TYPE_XS, UiTokens.TEXT,
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 8.0, 8.0,
+			BOOSTER_SIZE - 16.0, BOOSTER_SIZE - 16.0))
+		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
+		# stacked at 64 dp pitch and there is no room for a caption under each.
+		var badge := UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 26.0,
+			BOOSTER_SIZE - 26.0, 22.0, 22.0)
+		badge.modulate = Color(1, 1, 1, 1)
+		var count := UiKit.label(button, "count", "", UiTokens.TYPE_XS, UiTokens.ON_GOLD,
 			HORIZONTAL_ALIGNMENT_CENTER, true)
-		UiKit.place(count, 2.0, BOOSTER_SIZE - 20.0, BOOSTER_SIZE - 4.0, 16.0)
+		UiKit.place(count, BOOSTER_SIZE - 26.0, BOOSTER_SIZE - 26.0, 22.0, 22.0)
 		_booster_counts.append(count)
 
-	# ---- playfield: frame picture, then the tray, then the board ----------------------------------
-	# The tray is painted velvet with a faint star lattice in the pile, and the case is painted round it:
-	# both are stretched whole (border 0) because both are always drawn square, so nothing smears.
-	UiKit.art_panel(self, "board_tray", BOARD_LEFT, BOARD_TOP, BOARD_SIZE, BOARD_SIZE,
+	# The two ways out are gold plates like the level chip, not navy ones: a navy button on a cream
+	# rail reads as an object from another screen.
+	UiKit.button(tools_rail, "home", "خانه", rail_x, 336.0, rail_w, 32.0, UiTokens.GOLD,
+		UiTokens.ON_GOLD, _on_home, UiTokens.RADIUS_MD)
+	UiKit.button(tools_rail, "pause_button", "مکث", rail_x, 372.0, rail_w, 32.0, UiTokens.GOLD,
+		UiTokens.ON_GOLD, _on_pause, UiTokens.RADIUS_MD)
+
+	# ---- playfield: the carpet, then the board on top of it ---------------------------------------
+	UiKit.art_panel(self, "board_tray", PLATE_LEFT, PLATE_TOP, PLATE_SIZE, PLATE_SIZE,
 		"ui_board_tray", 0, UiTokens.BG)
 	_board = BoardView.new()
 	_board.name = "board"
@@ -203,48 +197,9 @@ func build() -> void:
 	_hint_hand = UiKit.icon(self, "tutorial_hand", "tutorial_hand", 0.0, 0.0, HAND_SIZE, HAND_SIZE)
 	_hint_hand.visible = false
 
-	_layout_column()
 	_build_overlay()
 	_build_pause()
 
-## Places the goal chips, the sentence, the purse and the booster bar so the column has no hole in it
-## and no dead band at the bottom, whatever the level asks for. Called again whenever a goal chip is
-## shown or hidden, so the stack follows the level rather than the level fitting the stack.
-func _layout_column() -> void:
-	if _status_card == null or _wallet_card == null or _boosters_heading == null:
-		return
-	var rows := 0
-	for chip in _goal_chips:
-		var control := chip as Control
-		if control != null and control.visible:
-			rows += 1
-	rows = clampi(rows, 1, _goal_chips.size())
-	var top := GOALS_Y + float(rows) * (CHIP_HEIGHT + CHIP_GAP) - CHIP_GAP
-	var blocks := STATUS_HEIGHT + WALLET_HEIGHT + BOOSTER_HEAD_HEIGHT + BOOSTER_SIZE
-	var slack := maxf(COLUMN_BOTTOM - top - blocks - COLUMN_GAP_MIN * 4.0, 0.0)
-	var gap := COLUMN_GAP_MIN + slack / 4.0
-	var y := top + gap
-	UiKit.place(_status_card, COLUMN_X, y, COLUMN_W, STATUS_HEIGHT)
-	y += STATUS_HEIGHT + gap
-	UiKit.place(_wallet_card, COLUMN_X, y, COLUMN_W, WALLET_HEIGHT)
-	y += WALLET_HEIGHT + gap
-	UiKit.place(_boosters_heading, COLUMN_X, y, COLUMN_W, BOOSTER_HEAD_HEIGHT)
-	y += BOOSTER_HEAD_HEIGHT + gap
-	for kind in range(_booster_buttons.size()):
-		UiKit.place(_booster_buttons[kind], COLUMN_X + float(kind) * (BOOSTER_SIZE + BOOSTER_GAP),
-			y, BOOSTER_SIZE, BOOSTER_SIZE)
-
-## A card: a shipped plate with a caption and a number on it. Never a StyleBoxFlat — the panel art is
-## what keeps the HUD looking like the palace instead of a form.
-func _build_card(node_name: String, x: float, y: float, width: float, height: float) -> Panel:
-	# The small plate's 6 px nine-slice, not the large plate's 20 px one: a 20 px margin on a 46 px card
-	# leaves a 6 px band for two lines of text, and Vazir's line height is not that small.
-	return UiKit.art_panel(self, node_name, x, y, width, height, "ui_panel_raised_sm",
-		UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
-
-# ---- lifecycle ----------------------------------------------------------------------------------
-
-## Starts (or restarts) a level. Returns false and leaves a hint on screen when it may not start.
 func start_level(level_to_play: int) -> bool:
 	var attempt := session.start_attempt(level_to_play)
 	var run_value: LevelRun = attempt.get("run", null)
@@ -313,8 +268,7 @@ func refresh_goals() -> void:
 		_goal_labels[index].text = PersianText.fraction(mini(progress, target), target)
 		var complete := progress >= target
 		_goal_labels[index].add_theme_color_override("font_color",
-			UiTokens.SUCCESS if complete else UiTokens.TEXT)
-	_layout_column()
+			UiTokens.SUCCESS if complete else UiTokens.INK)
 
 static func _piece_art(kind: int) -> String:
 	var path := AssetCatalog.piece_path(kind)

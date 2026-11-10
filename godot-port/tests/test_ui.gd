@@ -111,8 +111,10 @@ func _run() -> void:
 	var ui_files := _list_pngs("res://assets/ui")
 	failures += _check(art_files.size() == 85,
 		"all 85 game plates are present (%d found)" % art_files.size())
-	failures += _check(ui_files.size() == 30,
-		"all 30 picture-chrome plates are present (%d found)" % ui_files.size())
+	# 32: the 30 chrome plates plus the painted rail both sides of the board hang on and the orb its
+	# five tools are cut from.
+	failures += _check(ui_files.size() == 32,
+		"all 32 picture-chrome plates are present (%d found)" % ui_files.size())
 	# The backdrops are their own pictures at their own size. A square Unity plate scaled to cover a
 	# landscape window is a crop, not a backdrop, and the first device screenshot showed exactly that.
 	var backdrop_files := _list_pngs("res://assets/backdrops")
@@ -352,50 +354,72 @@ func _run() -> void:
 			screen.refresh()
 			failures += _check(score_label.text == PersianText.number(1234),
 				"level %d shows the score in Persian numerals" % number)
-			var score_card := screen.get_node_or_null("score_card") as Panel
-			failures += _check(score_card != null and score_card.get_rect().position.y >= 36.0
-				and score_card.get_rect().end.y <= 120.0,
-				"level %d keeps the score card under the header" % number)
-			# Strict picture rule: every surface on this screen is a shipped plate, not a drawn shape.
-			var plate_checks := {"score_card": score_card, "moves": screen.get_node_or_null("moves"),
-				"status_card": screen.get_node_or_null("status_card"),
-				"wallet_card": screen.get_node_or_null("wallet_card"),
-				"board_tray": screen.get_node_or_null("board_tray")}
+			# The layout the player asked for: the board centred, a capsule rail down each side.
+			# Goals on the left, tools on the right — and the board big enough to hit.
+			var goals_rail := screen.get_node_or_null("rail_goals") as Panel
+			var tools_rail := screen.get_node_or_null("rail_tools") as Panel
+			var board_view := screen.get_node_or_null("board") as BoardView
+			var tray := screen.get_node_or_null("board_tray") as Panel
 			var drawn: Array[String] = []
-			for key in plate_checks:
-				var plate := plate_checks[key] as Panel
-				if plate == null or not (plate.get("theme_override_styles/panel") is StyleBoxTexture):
-					drawn.append(str(key))
+			for plate in {"rail_goals": goals_rail, "rail_tools": tools_rail, "board_tray": tray}:
+				var node := plate as Control
+				if node == null or not node.visible or not (node.get("theme_override_styles/panel") is StyleBoxTexture):
+					drawn.append(str(plate))
 			failures += _check(drawn.is_empty(),
-				"level %d draws every card and the board frame with picture plates (%s)" % [number, ", ".join(drawn)])
-			# The column is a stack with four shared gaps. With one goal it used to leave a 64 dp hole
-			# under the chip and a dead band under the boosters; the widest gap is the whole complaint
-			# in one number, so it is measured rather than eyeballed on a screenshot.
-			var last_goal: Control = null
-			for index in range(3):
-				var chip := screen.get_node_or_null("goal_%d" % index) as Control
-				if chip != null and chip.visible:
-					last_goal = chip
-			var previous := last_goal
-			var widest := 0.0
-			for key in ["status_card", "wallet_card", "boosters_heading", "booster_0"]:
-				var block := screen.get_node_or_null(key) as Control
-				if block == null:
+				"level %d builds both rails and the board out of picture plates (%s)"
+				% [number, ", ".join(drawn)])
+			# Centred is a measurement, not an opinion: the board's midpoint is the canvas midpoint
+			# and the tray plate encloses the grid on every side.
+			if board_view != null and tray != null:
+				var board_rect := board_view.get_global_rect()
+				var tray_rect := tray.get_global_rect()
+				# Relative to the screen, not to the window: the stage is centred in whatever window the
+				# test happens to run in, and that offset is not what "centred" means here.
+				var origin := (screen as Control).get_global_rect().position
+				var centre := board_rect.get_center() - origin
+				failures += _check(absf(centre.x - 369.0) <= 2.0 and absf(centre.y - 207.5) <= 2.0,
+					"level %d centres the board (%s)" % [number, str(centre)])
+				failures += _check(tray_rect.encloses(board_rect),
+					"level %d lays the grid inside the carpet" % number)
+				failures += _check(board_view.cell_size >= 40.0,
+					"level %d gives a stone a %.1f dp target" % [number, board_view.cell_size])
+				# The rails must not eat the board: the grid is the biggest thing on the screen.
+				failures += _check(board_rect.size.x >= 360.0,
+					"level %d keeps the playfield at %.0f dp" % [number, board_rect.size.x])
+			# Every control on a rail has to stay on its rail: a label that escapes its capsule is the
+			# bug class this layout invites, and it is invisible in a green test run.
+			var escaped: Array[String] = []
+			for rail in [goals_rail, tools_rail]:
+				if rail == null:
 					continue
-				if previous != null:
-					widest = maxf(widest, block.get_rect().position.y - previous.get_rect().end.y)
-				previous = block
-			failures += _check(previous != null and widest >= 6.0 and widest <= 26.0
-				and previous.get_rect().end.y <= 400.0,
-				"level %d stacks the column without a dead band (widest gap %.1f dp, bottom %.1f)"
-				% [number, widest, previous.get_rect().end.y if previous != null else -1.0])
-			# The column has to fill its height: a stack that stops at two thirds leaves a dead band
-			# under the boosters, which is what the phone screenshot showed.
-			var low: Control = screen.get_node_or_null("booster_0") as Control
-			failures += _check(low != null and low.get_rect().end.y >= 360.0,
-				"level %d puts the boosters at the bottom of the column, not halfway down" % number)
-			failures += _check(low != null and low.get_rect().size.y >= 48.0 and low.get_rect().size.x >= 48.0,
-				"level %d gives every booster a thumb-sized target" % number)
+				var rail_rect := rail.get_global_rect().grow(1.0)
+				for child in rail.get_children():
+					if child is Control and child.visible and not rail_rect.encloses(child.get_global_rect()):
+						escaped.append("%s in %s" % [child.name, rail.name])
+			failures += _check(escaped.is_empty(),
+				"level %d keeps every rail control on its rail (%s)" % [number, ", ".join(escaped)])
+			# Ink, not light text: the rails are painted cream, and the game's text colour would be
+			# invisible on them.
+			var moves_label := screen.get("_moves_label") as Label
+			failures += _check(moves_label != null
+				and moves_label.get_theme_color("font_color") == UiTokens.INK,
+				"level %d writes the counter in ink on the cream rail" % number)
+			# The five tools are round painted orbs down the right rail, each thumb-sized and stacked
+			# without overlapping the next.
+			var previous_end := -1.0
+			var tidy := true
+			for index in range(BoosterBag.SLOTS):
+				var orb := screen.get_node_or_null("booster_%d" % index) as Control
+				if orb == null:
+					tidy = false
+					break
+				tidy = tidy and orb.visible and orb.get_global_rect().size.x >= 48.0
+				tidy = tidy and orb.get_global_rect().position.y >= previous_end
+				previous_end = orb.get_global_rect().end.y
+				if tools_rail != null:
+					tidy = tidy and tools_rail.get_global_rect().grow(1.0).encloses(orb.get_global_rect())
+			failures += _check(tidy,
+				"level %d stacks five thumb-sized tools down the right rail" % number)
 			var coin_label := screen.get("_coin_label") as Label
 			failures += _check(coin_label != null and coin_label.text == PersianText.number(session.wallet.coins),
 				"level %d shows the coin balance on the board" % number)
