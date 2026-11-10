@@ -72,7 +72,7 @@ func build() -> void:
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_progress_label, CARD_PAD, 86.0, CARD_INNER, 16.0)
 
-	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_SM, UiTokens.WARNING,
+	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_SM, UiTokens.GOLD_TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_hint, card_x, 254.0, CARD_W, 22.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

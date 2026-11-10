@@ -135,26 +135,26 @@ func build() -> void:
 	# ---- the score, the line that says what to do, and the purse ---------------------------------
 	var score_caption := UiKit.label(goals_rail, "score_caption", "امتیاز", UiTokens.TYPE_XS,
 		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(score_caption, rail_x, 194.0, rail_w, 14.0)
+	UiKit.place(score_caption, rail_x, 150.0, rail_w, 14.0)
 	_score_label = UiKit.label(goals_rail, "score", "", UiTokens.TYPE_LG, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, rail_x, 208.0, rail_w, 26.0)
+	UiKit.place(_score_label, rail_x, 164.0, rail_w, 26.0)
 
 	# The sentence sits on the rail like a note on the panel: no plate behind it, because a plate on
 	# cream reads as a sticker, and the line is short enough to fit the rail in three lines.
 	_hint = UiKit.label(goals_rail, "hint", "", UiTokens.TYPE_XS, UiTokens.INK_SOFT,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, rail_x, 238.0, rail_w, 54.0)
+	UiKit.place(_hint, rail_x, 200.0, rail_w, 56.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 298.0, 22.0, 22.0)
+	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 276.0, 22.0, 22.0)
 	_coin_label = UiKit.label(goals_rail, "coin_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_coin_label, rail_x + 24.0, 298.0, rail_w - 24.0, 22.0)
-	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 328.0, 22.0, 22.0)
+	UiKit.place(_coin_label, rail_x + 24.0, 276.0, rail_w - 24.0, 22.0)
+	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 310.0, 22.0, 22.0)
 	_life_label = UiKit.label(goals_rail, "life_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_life_label, rail_x + 24.0, 328.0, rail_w - 24.0, 22.0)
+	UiKit.place(_life_label, rail_x + 24.0, 310.0, rail_w - 24.0, 22.0)
 
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
 	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,
@@ -275,8 +275,8 @@ func refresh_goals() -> void:
 			UiTokens.SUCCESS_TEXT if complete else UiTokens.INK)
 	_stack_goals()
 
-## Centres the goal rows that are shown in the band they share, so a level with one goal looks laid out
-## rather than truncated.
+## Stacks the goal rows that are shown in the band they share, starting at the band's top: a level with
+## one goal then sits under the moves counter instead of floating in the middle of the rail.
 func _stack_goals() -> void:
 	var rows := 0
 	for chip in _goal_chips:
@@ -284,8 +284,7 @@ func _stack_goals() -> void:
 			rows += 1
 	if rows == 0:
 		return
-	var height := float(rows) * GOAL_ROW_PITCH - 2.0
-	var top := GOAL_BAND_Y + (GOAL_BAND_H - height) * 0.5
+	var top := GOAL_BAND_Y
 	for chip in _goal_chips:
 		if chip == null or not chip.visible:
 			continue

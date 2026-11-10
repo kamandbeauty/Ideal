@@ -14,8 +14,8 @@ const CARD_HEIGHT := 286.0
 const EDGE := 18.0
 # The painted plaque has an arch ornament across its top third, so the title starts below it and the five
 # rows and the two action buttons are packed tighter to make the room back.
-const TITLE_Y := 36.0
-const ROW_Y := 60.0
+const TITLE_Y := 44.0
+const ROW_Y := 68.0
 const ROW_PITCH := 30.0
 const ACTION_Y := 216.0
 const CARD_WIDTH := 232.0
@@ -69,16 +69,12 @@ func _build_card(index: int) -> void:
 	card.add_child(plate)
 	card.move_child(plate, 0)
 	# Inside the moulding, not over it: the painted frame has to stay painted.
-	UiKit.place(plate, EDGE, EDGE, CARD_WIDTH - EDGE * 2.0, CARD_HEIGHT - EDGE * 2.0)
+	UiKit.place(plate, EDGE + 6.0, EDGE + 6.0, CARD_WIDTH - (EDGE + 6.0) * 2.0, CARD_HEIGHT - (EDGE + 6.0) * 2.0)
 	_plates.append(plate)
 
-	# The plate is art, the rows are the game: a wash over the illustration keeps every price readable
-	# without hiding the place being rebuilt.
-	var veil := UiKit.veil(card, "plate_veil",
-		Color(UiTokens.SURFACE.r, UiTokens.SURFACE.g, UiTokens.SURFACE.b, 0.30))
-	card.move_child(veil, 1)
-	# The wash is for the district illustration; the painted moulding stays clear of it.
-	UiKit.place(veil, EDGE, EDGE, CARD_WIDTH - EDGE * 2.0, CARD_HEIGHT - EDGE * 2.0)
+	# No wash over the illustration any more. A flat cream veil on top of a painting reads as a grey
+	# rectangle pasted inside the card; the illustration is simply drawn faint, so it is an engraving on
+	# the plaque and the rows sit on the cream.
 
 	var title := UiKit.label(card, "title", "", UiTokens.TYPE_BASE, UiTokens.GOLD_TEXT,
 		HORIZONTAL_ALIGNMENT_RIGHT, true)
@@ -175,7 +171,7 @@ func refresh() -> void:
 		if plate_art == null:
 			plate_art = UiKit.texture("district_" + district_id)
 		_plates[index].texture = plate_art
-		_plates[index].modulate = Color(1, 1, 1, 0.44 if built_now else 0.34)
+		_plates[index].modulate = Color(1, 1, 1, 0.30 if built_now else 0.22)
 
 		var chest_open := session.is_chest_open(district)
 		_chest_icons[index].texture = UiKit.texture("reward_chest_open" if chest_open
