@@ -40,4 +40,9 @@ def engine(t,n,l,l2):
 write('boat_engine',1.,engine)
 write('ramp_clank',1.2,lambda t,n,l,l2: (sum(a*math.sin(2*math.pi*f*t)*math.exp(-t*d) for f,a,d in [(310,.5,5),(720,.35,7),(1180,.25,9),(1690,.15,12)]))+n*.3*math.exp(-t*60))
 write('splash',1.2,lambda t,n,l,l2: l2*2.4*(min(1,t/.05))*math.exp(-t*3.5)+math.sin(2*math.pi*(300+900*t)*t)*.08*math.exp(-t*6))
-print('Synthesized ten original audio assets at',RATE,'Hz')
+# Impact clips for surfaces the original set did not cover. Flesh is a soft, low thud with no ring;
+# metal rings with inharmonic partials and a short bright click; the critical ping is a clean two-partial chime.
+write('impact_flesh',.32,lambda t,n,l,l2: l*.9*math.exp(-t*30)+math.sin(2*math.pi*(70*t-15*t*t))*.5*math.exp(-t*14)+n*.12*math.exp(-t*45))
+write('impact_metal',.9,lambda t,n,l,l2: sum(a*math.sin(2*math.pi*f*t)*math.exp(-t*d) for f,a,d in [(1180,.5,7),(1870,.35,9),(2760,.22,12)])+n*.35*math.exp(-t*60))
+write('critical',.7,lambda t,n,l,l2: sum(a*math.sin(2*math.pi*f*t)*math.exp(-t*d) for f,a,d in [(1320,.45,6),(1980,.3,8),(2640,.18,11)])+n*.08*math.exp(-t*90))
+print('Synthesized original audio assets at',RATE,'Hz')

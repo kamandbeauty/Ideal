@@ -583,14 +583,17 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 		return
 	if collider and collider.has_method("receive_damage") and damage > 0.0:
 		var dealt: Variant = null
+		var critical: bool = DamageModel.is_critical(_unit_kind(collider), randf())
 		if collider is EnemySoldier:
-			dealt = collider.call("receive_damage", damage, point, -normal)
+			dealt = collider.call("receive_damage", damage, point, -normal, critical)
+		elif collider is EnemyVehicle:
+			dealt = collider.call("receive_damage", damage, critical)
 		else:
 			dealt = collider.call("receive_damage", damage)
 		if collider.has_method("is_dead"):
 			killed = bool(collider.call("is_dead"))
-		hud.confirm_hit(killed)
-		_show_hit_number(point, float(dealt) if dealt is float else 0.0, collider)
+		hud.confirm_hit(killed, critical)
+		_show_hit_number(point, float(dealt) if dealt is float else 0.0, collider, critical)
 	if blast > 0.0:
 		_explode(point, normal, blast)
 		if not killed:
@@ -598,7 +601,15 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 		return
 	var surface: Dictionary = ImpactSurface.profile(ImpactSurface.kind_for(collider))
 	effects.explode(point, normal, float(surface.radius), point.y, true)
-	Sound.play_at("impact", point, float(surface.volume_db))
+	Sound.play_at(String(surface.sound), point, float(surface.volume_db))
+
+## Damage-rule category of a unit for the critical-hit roll; "" means no critical spot.
+static func _unit_kind(collider: Object) -> String:
+	if collider is EnemySoldier:
+		return "soldier"
+	if collider is EnemyVehicle:
+		return "vehicle"
+	return ""
 
 ## Head hits on infantry deal extra damage; the readout shows the scaled figure.
 static func is_head_hit(base_y: float, hit_y: float) -> bool:
@@ -606,7 +617,7 @@ static func is_head_hit(base_y: float, hit_y: float) -> bool:
 
 ## Shows the health actually removed from an infantry, vehicle or aircraft hit.
 ## Landing craft and barrels are skipped: they do not report the removed amount.
-func _show_hit_number(point: Vector3, dealt: float, collider: Object) -> void:
+func _show_hit_number(point: Vector3, dealt: float, collider: Object, critical: bool = false) -> void:
 	if dealt <= 0.0 or not (collider is EnemySoldier or collider is EnemyVehicle or collider is EnemyAircraft):
 		return
 	if camera == null or camera.is_position_behind(point):
@@ -616,7 +627,7 @@ func _show_hit_number(point: Vector3, dealt: float, collider: Object) -> void:
 		return
 	var unit := collider as Node3D
 	var headshot: bool = collider is EnemySoldier and is_head_hit(unit.global_position.y, point.y)
-	hud.show_damage_number(screen, dealt, headshot)
+	hud.show_damage_number(screen, dealt, headshot, critical)
 
 ## Ground blasts are anchored to the terrain or sea surface, so a shell that
 ## strikes a craft's hull or a tank's turret does not leave a cloud hanging in the air.

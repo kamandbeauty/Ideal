@@ -15,11 +15,12 @@ static func kind_for(collider: Object) -> String:
 		return METAL
 	return GROUND
 
-## Feedback for a surface: effect radius and impact volume in dB.
+## Feedback for a surface: effect radius, impact volume in dB, and the clip it plays.
+## Flesh and metal have their own clips; ground reuses the original impact clip.
 static func profile(kind: String) -> Dictionary:
 	match kind:
 		FLESH:
-			return {"radius": 0.35, "volume_db": -15.0}
+			return {"radius": 0.35, "volume_db": -15.0, "sound": "impact_flesh"}
 		METAL:
-			return {"radius": 0.5, "volume_db": -9.0}
-	return {"radius": 0.7, "volume_db": -16.0}
+			return {"radius": 0.5, "volume_db": -9.0, "sound": "impact_metal"}
+	return {"radius": 0.7, "volume_db": -16.0, "sound": "impact"}

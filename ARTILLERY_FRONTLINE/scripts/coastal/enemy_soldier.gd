@@ -206,8 +206,15 @@ func _fallback_limb(name: String, pivot: Vector3, size: Vector3, color: Color) -
 	MeshFactory.box(limb, "Mesh", Vector3(0, -size.y * 0.5, 0), size, color, true, "fabric")
 	return limb
 
-## Returns the health actually removed (after the headshot multiplier), for damage readouts.
-func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_direction: Vector3 = Vector3.ZERO) -> float:
+## Formal armour rating. Infantry wear no plate, so 0: the unit takes the full hit.
+var armor: float = 0.0
+
+## Fraction of an incoming hit this unit removes (0 for infantry); see DamageModel.
+func damage_resistance_for(amount: float) -> float:
+	return DamageModel.damage_resistance(amount, armor)
+
+## Returns the health actually removed (after the headshot and critical multipliers), for damage readouts.
+func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_direction: Vector3 = Vector3.ZERO, critical: bool = false) -> float:
 	if state == State.DEAD or amount <= 0.0:
 		return 0.0
 	last_hit_damage = amount
@@ -218,8 +225,9 @@ func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_directi
 	var scale: float = 1.0
 	if hit_point != Vector3.INF and hit_point.y - global_position.y >= HEAD_HEIGHT:
 		scale = HEADSHOT_MULTIPLIER
+	scale *= DamageModel.critical_scale(critical)
 	var before: float = health
-	health = maxf(0.0, health - amount * scale)
+	health = maxf(0.0, health - DamageModel.taken(amount * scale, armor))
 	damaged.emit(self, health / max_health)
 	if health <= 0.0:
 		_die()

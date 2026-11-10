@@ -158,6 +158,7 @@ const STRINGS: Dictionary = {
 	# ---- coastal HUD --------------------------------------------------
 	"coastal_autofire": "شلیک خودکار",
 	"coastal_headshot": "سر!",
+	"coastal_critical": "ضربهٔ حیاتی",
 	"coastal_boss": "تانک بوس",
 	"settings_aim_assist": "کمک نشانه‌گیری",
 	"settings_aim_assist_note": "کشش ملایم نشانه‌گیر به سوی دشمن نزدیک به مرکز که دید واضح دارد. هرگز پشت سنگر قفل نمی‌کند.",

@@ -65,6 +65,7 @@ class Crosshair extends Control:
 	var hot: bool = false
 	var hit_timer: float = 0.0
 	var kill_timer: float = 0.0
+	var critical: bool = false
 	func _ready() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 	func _process(delta: float) -> void:
@@ -72,8 +73,9 @@ class Crosshair extends Control:
 			hit_timer = maxf(0.0, hit_timer - delta)
 			kill_timer = maxf(0.0, kill_timer - delta)
 			queue_redraw()
-	func confirm_hit(killed: bool) -> void:
+	func confirm_hit(killed: bool, critical_hit: bool = false) -> void:
 		hit_timer = 0.18
+		critical = critical_hit
 		if killed:
 			kill_timer = 0.45
 		queue_redraw()
@@ -88,6 +90,11 @@ class Crosshair extends Control:
 			var alpha: float = clampf(hit_timer / 0.18, 0.0, 1.0)
 			var hit_color: Color = Color(1.0, 0.32, 0.22, alpha) if kill_timer > 0.0 else Color(1.0, 0.95, 0.75, alpha)
 			var radius: float = 12.0 if kill_timer > 0.0 else 9.0
+			if critical:
+				# Critical hits: gold ticks, a wider ring and a gold ring around the marker.
+				hit_color = Color(1.0, 0.8, 0.22, alpha)
+				radius = 15.0
+				draw_arc(c, 22.0, 0, TAU, 40, hit_color, 3.0, true)
 			for dir in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
 				draw_line(c + dir.normalized() * 6.0, c + dir.normalized() * radius, hit_color, 3.0, true)
 
@@ -431,13 +438,23 @@ func hide_boss() -> void:
 		boss_panel.visible = false
 
 ## Floating damage readout at a hit's screen position. Capped so a fast MG burst cannot flood the layer.
-func show_damage_number(screen_pos: Vector2, amount: float, headshot: bool) -> void:
+func show_damage_number(screen_pos: Vector2, amount: float, headshot: bool, critical: bool = false) -> void:
 	if damage_layer == null or damage_layer.get_child_count() >= MAX_DAMAGE_NUMBERS:
 		return
 	var text: String = Loc.number(int(roundf(amount)))
 	if headshot:
 		text += "  " + Loc.t("coastal_headshot")
-	var label: Label = UITheme.label(text, 30 if headshot else 22, Color(1.0, 0.42, 0.25) if headshot else Color(1.0, 0.95, 0.75), true)
+	if critical:
+		text += "  " + Loc.t("coastal_critical")
+	var colour: Color = Color(1.0, 0.95, 0.75)
+	var font_size: int = 22
+	if headshot:
+		colour = Color(1.0, 0.42, 0.25)
+		font_size = 30
+	if critical:
+		colour = Color(1.0, 0.82, 0.25)
+		font_size = 34 if headshot else 30
+	var label: Label = UITheme.label(text, font_size, colour, true)
 	label.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	label.add_theme_constant_override("outline_size", 6)
 	label.position = screen_pos - Vector2(28, 18)
@@ -568,10 +585,13 @@ func show_result(success: bool, stats: Dictionary) -> void:
 	result_title.text = Loc.t("coastal_held") if success else Loc.t("coastal_lost")
 	result_body.text = Loc.t("coastal_result_body") % [Loc.number(int(stats.get("round", 1))), Loc.number(int(stats.get("kills", 0))), Loc.decimal(float(stats.get("time", 0.0)))]
 
-func confirm_hit(killed: bool) -> void:
+func confirm_hit(killed: bool, critical: bool = false) -> void:
 	if crosshair:
-		crosshair.confirm_hit(killed)
-	Sound.play_ui("click" if not killed else "reload")
+		crosshair.confirm_hit(killed, critical)
+	if critical:
+		Sound.play_ui("critical")
+	else:
+		Sound.play_ui("click" if not killed else "reload")
 
 func flash_damage() -> void:
 	if damage_overlay == null:

@@ -182,13 +182,19 @@ func _build_muzzle_flash() -> void:
 func is_dead() -> bool:
 	return dead
 
-## Returns the health actually removed after armour, for damage readouts.
-func receive_damage(amount: float) -> float:
+## Formal armour rating. Every vehicle is full plate (1.0), so hits are resisted as before.
+var armor: float = 1.0
+
+## Fraction of an incoming hit this vehicle removes; see DamageModel.
+func damage_resistance_for(amount: float) -> float:
+	return DamageModel.damage_resistance(amount, armor)
+
+## Returns the health actually removed after armour (and the critical multiplier), for damage readouts.
+func receive_damage(amount: float, critical: bool = false) -> float:
 	if dead:
 		return 0.0
-	var armor: float = 0.22 if amount <= 25.0 else (0.65 if amount < 100.0 else 0.9)
 	var before: float = health
-	health = maxf(0.0, health - amount * armor)
+	health = maxf(0.0, health - DamageModel.taken(amount, armor) * DamageModel.critical_scale(critical))
 	damaged.emit(self, health / max_health)
 	_check_stages()
 	if health <= 0.0:
