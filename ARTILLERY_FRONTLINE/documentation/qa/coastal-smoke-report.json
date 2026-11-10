@@ -178,10 +178,10 @@
   "passed": true,
   "performance": {
     "draw_calls": 321,
-    "fps": 10.5,
-    "frame_ms": 95.36,
-    "objects": 1997,
-    "primitives": 157958,
+    "fps": 12.4,
+    "frame_ms": 80.82,
+    "objects": 2004,
+    "primitives": 158008,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"

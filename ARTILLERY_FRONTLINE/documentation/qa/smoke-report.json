@@ -117,14 +117,6 @@
       "passed": true
     },
     {
-      "name": "fire control t03",
-      "passed": true
-    },
-    {
-      "name": "fire t03",
-      "passed": true
-    },
-    {
       "name": "target destroyed t03",
       "passed": true
     },
@@ -147,28 +139,28 @@
   ],
   "failures": 0,
   "mission": {
-    "accuracy": 66.6666666666667,
-    "coins": 476,
+    "accuracy": 100.0,
+    "coins": 534,
     "hits": 2,
     "mission_id": "sr01",
     "objectives": 2,
     "optional": false,
-    "points": 1,
+    "points": 2,
     "reason": "reason_success",
     "required": 2,
-    "shots": 3,
-    "star_gain": 2,
-    "stars": 2,
+    "shots": 2,
+    "star_gain": 3,
+    "stars": 3,
     "success": true,
-    "time": 21.304159
+    "time": 14.050002
   },
   "passed": true,
   "performance": {
     "draw_calls": 29,
-    "fps": 14.2,
-    "frame_ms": 70.39,
+    "fps": 17.2,
+    "frame_ms": 58.29,
     "objects": 1590,
-    "primitives": 730,
+    "primitives": 736,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
