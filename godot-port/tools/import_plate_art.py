@@ -34,6 +34,16 @@ FRAME_SIZE = 732
 # 30 dp ring the board has for it and covers the header — so it is trimmed off before the resize.
 FRAME_TRIM = 0.035
 
+# The two card plaques are authored at exactly the size the screens draw them (330x126 and 232x286) and
+# stretched whole, because a card is a fixed size: nine-slicing a painted moulding at 40 dp corners
+# would crop the ornament. The painted plate is 16:9; it is squashed to the card's shape, which is the
+# only distortion it gets and is not visible in the moulding at this size.
+CARD_TRIM = 0.032
+CARDS = {
+    "ui_card_frame.png": ("card_wide", (660, 252)),
+    "ui_card_tall.png": ("card_tall", (464, 572)),
+}
+
 # How much of the painted tray is velvet: the rest is the moulding, which becomes the case instead.
 TRAY_KEEP = 0.60
 
@@ -80,8 +90,25 @@ def build_frame() -> Image.Image:
     return _grain(frame, 2.5, 23)
 
 
+def build_card(source_name: str, size: tuple) -> Image.Image:
+    source = _load(source_name)
+    width, height = source.size
+    trim_x = int(width * CARD_TRIM)
+    trim_y = int(height * CARD_TRIM)
+    source = source.crop((trim_x, trim_y, width - trim_x, height - trim_y))
+    plate = source.resize(size, Image.LANCZOS)
+    plate = plate.filter(ImageFilter.UnsharpMask(radius=1.6, percent=55, threshold=2))
+    # A touch darker: the captions on a card are small, and the lacquer is a face, not a light.
+    pixels = np.asarray(plate).astype(np.float32) * np.array([0.94, 0.95, 0.98], dtype=np.float32)
+    plate = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGB")
+    return _grain(plate, 2.0, 37)
+
+
 def main() -> None:
-    for name, picture in (("ui_board_tray.png", build_tray()), ("ui_board_frame.png", build_frame())):
+    plates = [("ui_board_tray.png", build_tray()), ("ui_board_frame.png", build_frame())]
+    for name, (source_name, size) in CARDS.items():
+        plates.append((name, build_card(source_name, size)))
+    for name, picture in plates:
         path = os.path.join(OUT, name)
         picture.save(path, optimize=True)
         print("%-22s %dx%d  %6.1f kB" % (name, picture.width, picture.height,
