@@ -30,7 +30,7 @@
 
 ## آزمون‌ها و شواهد
 
-- `artillery-test-results.json`: **۸۱۸ بررسی، ۰ شکست**.
+- `artillery-test-results.json`: **۸۳۳ بررسی، ۰ شکست**.
 - `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۳۴ بررسی، ۰ شکست** (دو بررسی شلیک دوم فقط وقتی اجرا می‌شود که گلولهٔ اول هدف را نزند؛ پراکندگی تصادفی گلوله این تعداد را تغییر می‌دهد).
 - `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۴۲ بررسی، ۰ شکست**.
 - `delivery/package-validation.json` و `delivery/SHA256SUMS.txt`: راستی‌آزمایی بسته‌ها.
@@ -42,9 +42,9 @@
 
 | فایل | بایت | SHA-256 | وضعیت |
 |---|---:|---|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 55,387,428 | `ed38944bb92613be3ac35a58b9242b31546a7bcf54204f15d48e7b832f1ff154` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
-| `delivery/Artillery-Frontline-arm64.aab` | 54,784,710 | `59a152f33a1aa92722b67ee755dc048b8a1e1d817da68d3c5d5736cdc4461929` | Gradle ARM64، امضای JAR تأییدشده |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,387,428 | `265a167fbfa31090de2ca5cb1822e8ea9e51ff6f73bfc5be1cb02e710c53590e` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
+| `delivery/Artillery-Frontline-arm64.apk` | 55,935,275 | `f722f920696a894185967980f95250eac96ed3e33f43ebe2f2f935adb3bf00de` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
+| `delivery/Artillery-Frontline-arm64.aab` | 55,333,567 | `9f061cb8ed6a378cb713f8a7b4782736524c7f3a33d989d60f3c505bee65e03f` | Gradle ARM64، امضای JAR تأییدشده |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,935,275 | `ea09056bfe34ad22c045da90fcad43cdea94b9d2bc2ace76ed16c52bf1f1a2e8` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
 
 APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام نمایشی برنامه در manifest فارسی است. امضا: **کلید موقت توسعه**، نه کلید انتشار فروشگاه.
 
