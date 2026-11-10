@@ -34,10 +34,13 @@ const BOARD_SIZE := 378.0
 # Left rail: the title, the level, the moves, the goals, the score, the line that says what to do, and
 # the purse. Right rail: five tools and the two ways out of the level.
 const GOAL_ROW_PITCH := 34.0
-const GOAL_ROWS_Y := 96.0
+# The band the goals live in. A level with one goal centres it in the band instead of leaving the hole
+# under it — the first render of this layout had one goal at the top and 70 dp of nothing below.
+const GOAL_BAND_Y := 96.0
+const GOAL_BAND_H := 100.0
 const BOOSTER_SIZE := 56.0
-const BOOSTER_PITCH := 62.0
-const BOOSTER_ROWS_Y := 38.0
+const BOOSTER_PITCH := 60.0
+const BOOSTER_ROWS_Y := 44.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -114,7 +117,7 @@ func build() -> void:
 
 	# ---- the goals, one compact row each ----------------------------------------------------------
 	for index in range(3):
-		var y := GOAL_ROWS_Y + float(index) * GOAL_ROW_PITCH
+		var y := GOAL_BAND_Y + float(index) * GOAL_ROW_PITCH
 		# A goal is a picture and a count straight on the panel, with no plate behind it: the reference
 		# puts its goals on the card, and a second plate on cream is either invisible or a sticker.
 		var chip := Control.new()
@@ -144,14 +147,14 @@ func build() -> void:
 	UiKit.place(_hint, rail_x, 252.0, rail_w, 56.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 316.0, 24.0, 24.0)
+	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 308.0, 24.0, 24.0)
 	_coin_label = UiKit.label(goals_rail, "coin_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_coin_label, rail_x + 28.0, 314.0, rail_w - 28.0, 28.0)
-	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 348.0, 24.0, 24.0)
+	UiKit.place(_coin_label, rail_x + 28.0, 306.0, rail_w - 28.0, 28.0)
+	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 338.0, 24.0, 24.0)
 	_life_label = UiKit.label(goals_rail, "life_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_life_label, rail_x + 28.0, 346.0, rail_w - 28.0, 28.0)
+	UiKit.place(_life_label, rail_x + 28.0, 336.0, rail_w - 28.0, 28.0)
 
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
 	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,
@@ -270,6 +273,24 @@ func refresh_goals() -> void:
 		var complete := progress >= target
 		_goal_labels[index].add_theme_color_override("font_color",
 			UiTokens.SUCCESS if complete else UiTokens.INK)
+	_stack_goals()
+
+## Centres the goal rows that are shown in the band they share, so a level with one goal looks laid out
+## rather than truncated.
+func _stack_goals() -> void:
+	var rows := 0
+	for chip in _goal_chips:
+		if chip != null and chip.visible:
+			rows += 1
+	if rows == 0:
+		return
+	var height := float(rows) * GOAL_ROW_PITCH - 2.0
+	var top := GOAL_BAND_Y + (GOAL_BAND_H - height) * 0.5
+	for chip in _goal_chips:
+		if chip == null or not chip.visible:
+			continue
+		UiKit.place(chip, chip.position.x, top, chip.size.x, GOAL_ROW_PITCH - 2.0)
+		top += GOAL_ROW_PITCH
 
 static func _piece_art(kind: int) -> String:
 	var path := AssetCatalog.piece_path(kind)

@@ -361,10 +361,13 @@ func _run() -> void:
 			var board_view := screen.get_node_or_null("board") as BoardView
 			var tray := screen.get_node_or_null("board_tray") as Panel
 			var drawn: Array[String] = []
-			for plate in {"rail_goals": goals_rail, "rail_tools": tools_rail, "board_tray": tray}:
-				var node := plate as Control
+			# Over the dictionary's keys, not over the dictionary: iterating a Dictionary yields its keys,
+			# and casting a String to Control is a hard error at run time.
+			var plate_checks := {"rail_goals": goals_rail, "rail_tools": tools_rail, "board_tray": tray}
+			for key in plate_checks:
+				var node := plate_checks[key] as Control
 				if node == null or not node.visible or not (node.get("theme_override_styles/panel") is StyleBoxTexture):
-					drawn.append(str(plate))
+					drawn.append(str(key))
 			failures += _check(drawn.is_empty(),
 				"level %d builds both rails and the board out of picture plates (%s)"
 				% [number, ", ".join(drawn)])
