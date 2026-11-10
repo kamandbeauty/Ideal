@@ -136,7 +136,7 @@ func _run() -> void:
 	}
 	var missing_brand: Array[String] = []
 	for name in brand_sizes:
-		var path := "res://assets/branding/" + name
+		var path: String = "res://assets/branding/" + str(name)
 		var picture := load(path) as Texture2D
 		var wanted: Vector2i = brand_sizes[name]
 		if picture == null or picture.get_width() != wanted.x or picture.get_height() != wanted.y:
