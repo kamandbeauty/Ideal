@@ -8,8 +8,8 @@
 
 ## خلاصهٔ نتیجه
 
-- آزمون‌های headless: **۸۳۷ بررسی، ۰ شکست** در `artillery-test-results.json`.
-- smoke بازی با رندر نرم‌افزاری: **۳۶ بررسی، ۰ شکست** در `documentation/qa/smoke-report.json`.
+- آزمون‌های headless: **۸۳۹ بررسی، ۰ شکست** در `artillery-test-results.json`.
+- smoke بازی با رندر نرم‌افزاری: **۳۸ بررسی، ۰ شکست** در `documentation/qa/smoke-report.json`.
 - smoke دفاع ساحلی با رندر نرم‌افزاری: **۴۲ بررسی، ۰ شکست** در `documentation/qa/coastal-smoke-report.json`.
 - APK اصلی ARM64، AAB ARM64 و APK سازگاری در CI خروجی گرفته و راستی‌آزمایی شدند.
 - امضای APK v2/v3 و امضای JAR فایل AAB تأیید شد؛ ARM64، CRC، افقی بودن و نبود مجوز INTERNET بررسی شد.
@@ -22,7 +22,7 @@
 |---|---|---|
 | نصب Godot با SHA-256 پین‌شده | CI | موفق |
 | import پروژه و کامپایل منابع | CI headless | موفق |
-| آزمون‌های واحد/یکپارچه | CI headless | **۸۳۷ / ۰** |
+| آزمون‌های واحد/یکپارچه | CI headless | **۸۳۹ / ۰** |
 | smoke gameplay | CI، Xvfb/llvmpipe، Compatibility | **۳۴ / ۰** |
 | smoke ساحلی | CI، Xvfb/llvmpipe، Compatibility | **۴۲ / ۰** |
 | خروجی APK/AAB/Compatibility | CI | موفق |
@@ -67,9 +67,9 @@
 
 | فایل | بایت | SHA-256 |
 |---|---:|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 58,314,938 | `490c650b5dfe7d6cb6207247d4e749d2e00251c8cac4c643cb52c0218d2da031` |
-| `delivery/Artillery-Frontline-arm64.aab` | 57,711,659 | `b605dcb10cbd0314553a4090f2ff7653361169ee0eb3d982053bf8e763c00d48` |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,314,938 | `b60d759dd8d6dad1da4bc1961cc112a42c94cb1775dc82661bf79c65402dcd90` |
+| `delivery/Artillery-Frontline-arm64.apk` | 58,315,111 | `8f978ecae0bbccb98208afd24a724da1a87c34fad9b3d6a6c0ca6f24172a947c` |
+| `delivery/Artillery-Frontline-arm64.aab` | 57,714,367 | `58c4457a65a0712599f806c7023347a4d270f33b195acad5760bfd4d17df07ef` |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,315,111 | `744bf9362cadad0e2553ec6206b059fe489f11750d2195862e8436d8932ff3e1` |
 
 واقعیت‌های بسته:
 
