@@ -30,7 +30,7 @@ SOURCE = os.path.join(HERE, "assets", "gems", "source")
 OUT = os.path.join(HERE, "assets", "gems")
 
 SIZE = 160          # the plate every screen scales from
-STONE_BOX = 150     # how much of the plate the stone fills
+PIECE_BOX = 158     # how much of the plate the fruit fills
 KEY_TOLERANCE = 26  # how near-black the field has to be to get filled
 
 
@@ -63,9 +63,9 @@ def _centred(cut: Image.Image) -> Image.Image:
     # the same width do not look like the same size of stone.
     alpha = np.asarray(stone.getchannel("A")).astype(np.float32) / 255.0
     area = float(alpha.sum())
-    target = (STONE_BOX ** 2) * 0.62
+    target = (PIECE_BOX ** 2) * 0.62
     scale = (target / area) ** 0.5 if area > 1.0 else 1.0
-    scale = min(scale, STONE_BOX / max(stone.width, stone.height))
+    scale = min(scale, PIECE_BOX / max(stone.width, stone.height))
     stone = stone.resize((max(1, int(stone.width * scale + 0.5)),
                           max(1, int(stone.height * scale + 0.5))), Image.LANCZOS)
     plate = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))

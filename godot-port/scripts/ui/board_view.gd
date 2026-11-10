@@ -33,7 +33,9 @@ const REJECT_TINT := Color(1.0, 0.80, 0.78, 1.0)
 const TILE_INSET := 1.0
 # A gem that floats inside its tile with a wide dark margin is the single biggest reason the board
 # read as a prototype: the art is 128 px with a gold rim, so at 36 dp the rim IS the border.
-const PIECE_INSET := 0.5
+# The fruit overhangs its cell by a dp on every side: the painted plate has a margin of its own, and a
+# piece that stops short of the cell reads as a sticker on a board instead of fruit on a table.
+const PIECE_INSET := -1.0
 
 var run: LevelRun
 var cell_size := 44.0

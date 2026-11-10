@@ -37,6 +37,7 @@ func build() -> void:
 	var subtitle := UiKit.label(self, "subtitle", SUBTITLE, UiTokens.TYPE_BASE, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(subtitle, 0.0, 100.0, UiTokens.CANVAS_WIDTH, 22.0)
+	UiKit.outline(subtitle, UiTokens.SURFACE_RAISED, 5)
 
 	# The card is the same width in either orientation, because it holds the same four lines; what
 	# changes in landscape is that there is room to centre it and to put the doors on one row.

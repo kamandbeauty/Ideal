@@ -25,6 +25,7 @@ func build() -> void:
 	var title := UiKit.label(self, "title", "تنظیمات", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(title, 16.0, 46.0, UiTokens.CANVAS_WIDTH - 32.0, 36.0)
+	UiKit.outline(title, UiTokens.SURFACE_RAISED, 5)
 
 	var labels := ["موسیقی", "جلوه‌های صوتی", "لرزش", "یادآوری تمرین"]
 	var keys := ["music_on", "sfx_on", "haptics_on", "push_on"]

@@ -42,6 +42,7 @@ func build() -> void:
 	_header = UiKit.label(self, "title", "محله‌های کاخ", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(_header, 16.0, 46.0, UiTokens.CANVAS_WIDTH - 32.0, 36.0)
+	UiKit.outline(_header, UiTokens.SURFACE_RAISED, 5)
 
 	_potions = UiKit.label(self, "potions", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)

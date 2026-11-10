@@ -22,6 +22,7 @@ func build() -> void:
 	var title := UiKit.label(self, "title", "فروشگاه", UiTokens.TYPE_LG, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(title, 16.0, 48.0, UiTokens.CANVAS_WIDTH - 32.0, 36.0)
+	UiKit.outline(title, UiTokens.SURFACE_RAISED, 5)
 
 	_coins = UiKit.label(self, "coins", "", UiTokens.TYPE_SM, UiTokens.GOLD_TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_coins, 16.0, 84.0, UiTokens.CANVAS_WIDTH - 32.0, 20.0)

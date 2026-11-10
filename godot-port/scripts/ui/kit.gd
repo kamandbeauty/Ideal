@@ -228,6 +228,16 @@ static func label(parent: Node, node_name: String, text: String, size: int, colo
 	place(node, 0.0, 0.0, W, float(size) * 1.5)
 	return node
 
+## A pale halo around a label's glyphs, so ink can be written straight on a painted backdrop.
+##
+## Every other word in the game sits on a cream plate and needs nothing. A screen title does not: it is
+## written on the painting, and the paintings are bright, busy, and different on every screen.
+static func outline(node: Label, color: Color, size: int) -> void:
+	if node == null:
+		return
+	node.add_theme_color_override("font_outline_color", color)
+	node.add_theme_constant_override("outline_size", size)
+
 ## Shrinks a label's font until its text fits the width it was given, and remembers the size it started
 ## at so a counter that grows and shrinks ("۹" then "۱۲۳") settles back to the design size.
 static func fit_font(node: Label, max_width: float, min_size: int = 10) -> void:

@@ -160,7 +160,7 @@ func build() -> void:
 	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,
 		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER, true)
 	# Below the capsule's cap: at 14 the heading sat on the amber rim, and dark ink on the rim vanishes.
-	UiKit.place(_boosters_heading, rail_x, 26.0, rail_w, 14.0)
+	UiKit.place(_boosters_heading, rail_x, 30.0, rail_w, 14.0)
 	for kind in range(BoosterBag.SLOTS):
 		var y := BOOSTER_ROWS_Y + float(kind) * BOOSTER_PITCH
 		var handler := _on_booster_pressed.bind(kind)
@@ -170,8 +170,10 @@ func build() -> void:
 		_booster_buttons.append(button)
 		# The tool's own picture is a medallion with a gold rim of its own, so it is drawn small inside
 		# the orb: two rims at the same size fight, one inside the other reads as a setting.
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 10.0, 10.0,
-			BOOSTER_SIZE - 20.0, BOOSTER_SIZE - 20.0))
+		# The orb is a dome inside a rose ring now, so the tool's own picture is smaller and sits
+		# inside the dome rather than over the ring.
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 13.0, 13.0,
+			BOOSTER_SIZE - 26.0, BOOSTER_SIZE - 26.0))
 		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
 		# stacked at 62 dp pitch and there is no room for a caption under each.
 		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0,
