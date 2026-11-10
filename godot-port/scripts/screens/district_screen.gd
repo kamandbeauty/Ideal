@@ -31,7 +31,6 @@ var _chest_buttons: Array[Button] = []
 var _chest_icons: Array[TextureRect] = []
 var _chest_labels: Array[Label] = []
 var _district_titles: Array[Label] = []
-var _plates: Array[TextureRect] = []
 var _task_rows: Array[Dictionary] = []
 
 func build() -> void:
@@ -59,22 +58,10 @@ func _build_card(index: int) -> void:
 		CARD_HEIGHT, "ui_card_tall", 0, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 	_cards.append(card)
 
-	# The district's own illustration, dimmed to a watermark the way the Unity screen draws it: the art
-	# is what tells the player which place they are rebuilding.
-	var plate := TextureRect.new()
-	plate.name = "plate"
-	plate.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	plate.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.add_child(plate)
-	card.move_child(plate, 0)
-	# Inside the moulding, not over it: the painted frame has to stay painted.
-	UiKit.place(plate, EDGE + 6.0, EDGE + 6.0, CARD_WIDTH - (EDGE + 6.0) * 2.0, CARD_HEIGHT - (EDGE + 6.0) * 2.0)
-	_plates.append(plate)
-
-	# No wash over the illustration any more. A flat cream veil on top of a painting reads as a grey
-	# rectangle pasted inside the card; the illustration is simply drawn faint, so it is an engraving on
-	# the plaque and the rows sit on the cream.
+	# The district's own painting is *not* washed over the plaque. At card size a dimmed illustration
+	# with hard rectangular edges reads as a grey box pasted inside the frame, and a cream veil on top of
+	# it only makes the box greyer. The title is the district's identity here; the paintings still ship
+	# as the build art the task rows unlock, and the map behind the screen is one of them.
 
 	var title := UiKit.label(card, "title", "", UiTokens.TYPE_BASE, UiTokens.GOLD_TEXT,
 		HORIZONTAL_ALIGNMENT_RIGHT, true)
@@ -164,14 +151,8 @@ func refresh() -> void:
 		_district_buttons[index].modulate = Color(1, 1, 1, 1) if not _district_buttons[index].disabled \
 			else Color(0.82, 0.78, 0.72, 1)
 
-		var built_now := session.is_district_built(district)
-		var district_id := str(district.get("id", "")).replace("-", "_")
-		var plate_id := "district_" + district_id + ("_lit" if built_now else "")
-		var plate_art := UiKit.texture(plate_id)
-		if plate_art == null:
-			plate_art = UiKit.texture("district_" + district_id)
-		_plates[index].texture = plate_art
-		_plates[index].modulate = Color(1, 1, 1, 0.30 if built_now else 0.22)
+		# A finished district is said by its own button ("کامل شد") and by its task titles turning
+		# green; the plaque carries no washed illustration any more, so there is no plate to re-point.
 
 		var chest_open := session.is_chest_open(district)
 		_chest_icons[index].texture = UiKit.texture("reward_chest_open" if chest_open

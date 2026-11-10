@@ -39,8 +39,8 @@ const GOAL_ROW_PITCH := 32.0
 const GOAL_BAND_Y := 88.0
 const GOAL_BAND_H := 96.0
 const BOOSTER_SIZE := 48.0
-const BOOSTER_PITCH := 56.0
-const BOOSTER_ROWS_Y := 42.0
+const BOOSTER_PITCH := 54.0
+const BOOSTER_ROWS_Y := 46.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -159,7 +159,8 @@ func build() -> void:
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
 	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,
 		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_boosters_heading, rail_x, 14.0, rail_w, 14.0)
+	# Below the capsule's cap: at 14 the heading sat on the amber rim, and dark ink on the rim vanishes.
+	UiKit.place(_boosters_heading, rail_x, 26.0, rail_w, 14.0)
 	for kind in range(BoosterBag.SLOTS):
 		var y := BOOSTER_ROWS_Y + float(kind) * BOOSTER_PITCH
 		var handler := _on_booster_pressed.bind(kind)
@@ -183,9 +184,10 @@ func build() -> void:
 	# The two ways out sit side by side on the bottom of the rail: stacked, they run into the capsule's
 	# bottom curve, and a button that touches the paint looks clipped.
 	var out_width := (rail_w - 5.0) * 0.5
-	UiKit.button(tools_rail, "home", "خانه", rail_x, 330.0, out_width, 26.0, UiTokens.GOLD,
+	# Off the capsule's bottom curve: at 330 the two exits sat on the painted rim.
+	UiKit.button(tools_rail, "home", "خانه", rail_x, 322.0, out_width, 26.0, UiTokens.GOLD,
 		UiTokens.ON_GOLD, _on_home, UiTokens.RADIUS_MD)
-	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 330.0, out_width,
+	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 322.0, out_width,
 		26.0, UiTokens.GOLD, UiTokens.ON_GOLD, _on_pause, UiTokens.RADIUS_MD)
 
 	# ---- playfield: the carpet, then the board on top of it ---------------------------------------
