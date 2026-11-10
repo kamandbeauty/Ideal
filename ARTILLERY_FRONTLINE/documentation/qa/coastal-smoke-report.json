@@ -9,6 +9,10 @@
       "passed": true
     },
     {
+      "name": "amphibious craft sails toward the beach",
+      "passed": true
+    },
+    {
       "name": "at least 8 animated soldiers",
       "passed": true
     },
@@ -61,8 +65,8 @@
       "passed": true
     },
     {
-      "name": "amphibious craft moves",
-      "passed": false
+      "name": "landing craft has grounded and released its cargo",
+      "passed": true
     },
     {
       "name": "touch drag aims weapon",
@@ -165,15 +169,15 @@
       "passed": true
     }
   ],
-  "failures": 1,
+  "failures": 0,
   "kills": 1,
-  "passed": false,
+  "passed": true,
   "performance": {
-    "draw_calls": 308,
-    "fps": 17.0,
-    "frame_ms": 58.72,
-    "objects": 1818,
-    "primitives": 141604,
+    "draw_calls": 311,
+    "fps": 13.9,
+    "frame_ms": 72.18,
+    "objects": 1813,
+    "primitives": 153137,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
