@@ -30,8 +30,8 @@
 
 ## آزمون‌ها و شواهد
 
-- `artillery-test-results.json`: **۸۳۹ بررسی، ۰ شکست**.
-- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۳۸ بررسی، ۰ شکست** (دو بررسی شلیک دوم فقط وقتی اجرا می‌شود که گلولهٔ اول هدف را نزند؛ پراکندگی تصادفی گلوله این تعداد را تغییر می‌دهد).
+- `artillery-test-results.json`: **۸۴۶ بررسی، ۰ شکست**.
+- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۳۴ بررسی، ۰ شکست** (دو بررسی شلیک دوم فقط وقتی اجرا می‌شود که گلولهٔ اول هدف را نزند؛ پراکندگی تصادفی گلوله این تعداد را تغییر می‌دهد).
 - `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۴۲ بررسی، ۰ شکست**.
 - `delivery/package-validation.json` و `delivery/SHA256SUMS.txt`: راستی‌آزمایی بسته‌ها.
 - تصویرهای منو/HUD/ساحل در `ARTILLERY_FRONTLINE/documentation/qa/` بازبینی شدند.
@@ -42,9 +42,9 @@
 
 | فایل | بایت | SHA-256 | وضعیت |
 |---|---:|---|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 58,315,111 | `8f978ecae0bbccb98208afd24a724da1a87c34fad9b3d6a6c0ca6f24172a947c` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
-| `delivery/Artillery-Frontline-arm64.aab` | 57,714,367 | `58c4457a65a0712599f806c7023347a4d270f33b195acad5760bfd4d17df07ef` | Gradle ARM64، امضای JAR تأییدشده |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,315,111 | `744bf9362cadad0e2553ec6206b059fe489f11750d2195862e8436d8932ff3e1` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
+| `delivery/Artillery-Frontline-arm64.apk` | 58,315,111 | `09380f3b8da2aabbb6186e6f4c81db864329c33ab8db2ce8cd0c22267fba6afe` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
+| `delivery/Artillery-Frontline-arm64.aab` | 57,715,254 | `081fe8ecf7f1ebf43d02027bade83b20ad171b1852d8ff1be194d861f875beff` | Gradle ARM64، امضای JAR تأییدشده |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,315,111 | `965f1dffea1a18e737c9a0e11d2f2cf0987f35033d494fd622c3427446905d5a` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
 
 APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام نمایشی برنامه در manifest فارسی است. امضا: **کلید موقت توسعه**، نه کلید انتشار فروشگاه.
 

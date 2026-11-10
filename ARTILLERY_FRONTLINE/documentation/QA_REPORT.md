@@ -8,8 +8,8 @@
 
 ## خلاصهٔ نتیجه
 
-- آزمون‌های headless: **۸۳۹ بررسی، ۰ شکست** در `artillery-test-results.json`.
-- smoke بازی با رندر نرم‌افزاری: **۳۸ بررسی، ۰ شکست** در `documentation/qa/smoke-report.json`.
+- آزمون‌های headless: **۸۴۶ بررسی، ۰ شکست** در `artillery-test-results.json`.
+- smoke بازی با رندر نرم‌افزاری: **۳۴ بررسی، ۰ شکست** در `documentation/qa/smoke-report.json`.
 - smoke دفاع ساحلی با رندر نرم‌افزاری: **۴۲ بررسی، ۰ شکست** در `documentation/qa/coastal-smoke-report.json`.
 - APK اصلی ARM64، AAB ARM64 و APK سازگاری در CI خروجی گرفته و راستی‌آزمایی شدند.
 - امضای APK v2/v3 و امضای JAR فایل AAB تأیید شد؛ ARM64، CRC، افقی بودن و نبود مجوز INTERNET بررسی شد.
@@ -67,9 +67,9 @@
 
 | فایل | بایت | SHA-256 |
 |---|---:|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 58,315,111 | `8f978ecae0bbccb98208afd24a724da1a87c34fad9b3d6a6c0ca6f24172a947c` |
-| `delivery/Artillery-Frontline-arm64.aab` | 57,714,367 | `58c4457a65a0712599f806c7023347a4d270f33b195acad5760bfd4d17df07ef` |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,315,111 | `744bf9362cadad0e2553ec6206b059fe489f11750d2195862e8436d8932ff3e1` |
+| `delivery/Artillery-Frontline-arm64.apk` | 58,315,111 | `09380f3b8da2aabbb6186e6f4c81db864329c33ab8db2ce8cd0c22267fba6afe` |
+| `delivery/Artillery-Frontline-arm64.aab` | 57,715,254 | `081fe8ecf7f1ebf43d02027bade83b20ad171b1852d8ff1be194d861f875beff` |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,315,111 | `965f1dffea1a18e737c9a0e11d2f2cf0987f35033d494fd622c3427446905d5a` |
 
 واقعیت‌های بسته:
 
