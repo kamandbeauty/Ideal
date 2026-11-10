@@ -6,6 +6,8 @@ func run(t: TestContext) -> void:
 	t.check(float(CoastalWeapon.WEAPONS.rocket.blast) > 0.0, "Rocket ammunition has blast radius")
 	t.check(float(CoastalWeapon.WEAPONS.bazooka.damage) > float(CoastalWeapon.WEAPONS.rocket.damage), "Bazooka is a distinct heavier anti-armor weapon")
 	t.equal(WaveManager.target_count(WaveManager.ROUNDS[0]), 11, "First wave combines infantry, armor, aircraft and landing craft")
+	t.equal(WaveManager.target_count(WaveManager.ROUNDS[1]), 20, "Armored push adds a second helicopter and fighter pair")
+	t.equal(WaveManager.target_count(WaveManager.ROUNDS[2]), 29, "Final assault brings 20 infantry, two tanks and four aircraft")
 	t.check("airstrike" in WaveManager.ROUNDS[0].support, "Airstrike is available in the first playable scene")
 	var waves := WaveManager.new()
 	var finished: Array[bool] = []

@@ -190,6 +190,10 @@ func set_auto_fire(enabled: bool) -> void:
 func toggle_zoom() -> void:
 	zoomed = not zoomed
 
+## Magnification implied by the 60° → 30° field-of-view change (about 2.15×).
+static func zoom_factor() -> float:
+	return tan(deg_to_rad(30.0)) / tan(deg_to_rad(15.0))
+
 func cycle_weapon() -> void:
 	weapon.cycle()
 
@@ -701,4 +705,4 @@ func _state() -> Dictionary:
 		var offset: Vector3 = nearest.global_position - camera.global_position
 		bearing = wrapf(rad_to_deg(atan2(-offset.x, -offset.z)) - yaw_current, -180.0, 180.0)
 		distance = best
-	return {"mission": "TIDE WALL", "label": waves.current_label(), "remaining": waves.remaining, "round": waves.round_index + 1, "rounds": waves.total_rounds(), "time": elapsed, "health": player_health, "health_max": MAX_HEALTH, "ammo": weapon.ammo, "magazine": int(weapon.config().magazine), "reserve": weapon.reserve, "weapon": String(weapon.config().display), "weapon_id": weapon.weapon_id, "reloading": weapon.reload_remaining > 0.0, "auto": auto_fire, "supports": waves.supports(), "support_cooldowns": support_timers.duplicate(), "support_charges": support_charges.duplicate(), "intermission": waves.intermission, "threat_bearing": bearing, "threat_distance": distance}
+	return {"zoomed": zoomed, "zoom_factor": zoom_factor(), "mission": "TIDE WALL", "label": waves.current_label(), "remaining": waves.remaining, "round": waves.round_index + 1, "rounds": waves.total_rounds(), "time": elapsed, "health": player_health, "health_max": MAX_HEALTH, "ammo": weapon.ammo, "magazine": int(weapon.config().magazine), "reserve": weapon.reserve, "weapon": String(weapon.config().display), "weapon_id": weapon.weapon_id, "reloading": weapon.reload_remaining > 0.0, "auto": auto_fire, "supports": waves.supports(), "support_cooldowns": support_timers.duplicate(), "support_charges": support_charges.duplicate(), "intermission": waves.intermission, "threat_bearing": bearing, "threat_distance": distance}

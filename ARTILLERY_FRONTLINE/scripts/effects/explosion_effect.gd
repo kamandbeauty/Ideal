@@ -2,6 +2,7 @@ class_name ExplosionEffect
 extends Node3D
 ## Reusable layered GPU fire/smoke/dust, bounded manual debris, light and ring.
 var fire: GPUParticles3D
+var sparks: GPUParticles3D
 var smoke: GPUParticles3D
 var dust: GPUParticles3D
 var debris: Array[MeshInstance3D] = []
@@ -16,6 +17,8 @@ var muzzle: bool = false
 var particle_ratio: float = 1.0
 var rng := RandomNumberGenerator.new()
 const SMOKE_LIFE: float = 3.0
+const SPARK_LIFE: float = 0.7
+const DEBRIS_COUNT: int = 14
 const DUST_LIFE: float = 2.0
 const EFFECT_LIFE: float = 3.4
 static var puff_texture: ImageTexture
@@ -28,6 +31,14 @@ func _ready() -> void:
 	fire = _particles("FlashFire", 48, 0.85, fire_ramp, true)
 	_set_velocity(fire, 6.0, 17.0)
 	(fire.process_material as ParticleProcessMaterial).gravity = Vector3(0, 3, 0)
+	sparks = _particles("HotSparks", 18, SPARK_LIFE, fire_ramp, true)
+	_set_velocity(sparks, 4.0, 12.0)
+	var spark_process: ParticleProcessMaterial = sparks.process_material
+	# Low gravity keeps the sparks above the ground plane for their whole life.
+	spark_process.gravity = Vector3(0, -4.0, 0)
+	spark_process.spread = 60.0
+	spark_process.scale_min = 0.12
+	spark_process.scale_max = 0.3
 	smoke = _particles("LayeredSmoke", 40, SMOKE_LIFE, smoke_ramp, false)
 	_set_velocity(smoke, 1.0, 3.0)
 	var smoke_process: ParticleProcessMaterial = smoke.process_material
@@ -41,7 +52,7 @@ func _ready() -> void:
 	var dust_process: ParticleProcessMaterial = dust.process_material
 	dust_process.gravity = Vector3(0, -1.5, 0)
 	dust_process.spread = 75.0
-	for index in range(8):
+	for index in range(DEBRIS_COUNT):
 		var piece := MeshInstance3D.new()
 		var mesh := BoxMesh.new()
 		mesh.size = Vector3(0.25, 0.18, 0.4)
@@ -164,22 +175,28 @@ func activate(point: Vector3, blast_radius: float, ground: float, quality_ratio:
 	set_process(true)
 	rng.seed = int(absf(point.x * 731.0 + point.z * 193.0)) + 42
 	var effect_scale: float = clampf(radius / 12.0, 0.18, 1.8)
-	for particles in [fire, smoke, dust]:
-		var base_amount: int = 48 if particles == fire else (40 if particles == smoke else 30)
+	for particles in [fire, sparks, smoke, dust]:
+		var base_amount: int = 48 if particles == fire else (18 if particles == sparks else (40 if particles == smoke else 30))
 		var wanted: int = maxi(4, int(base_amount * quality_ratio))
 		# Changing GPU particle amount reallocates buffers; only do it when the
 		# quality tier actually changes, never on every shot.
 		if particles.amount != wanted:
 			particles.amount = wanted
 		var process: ParticleProcessMaterial = particles.process_material as ParticleProcessMaterial
-		process.scale_min = (1.4 if particles == fire else 2.5) * effect_scale
-		process.scale_max = (3.8 if particles == fire else (4.0 if particles == smoke else 5.0)) * minf(effect_scale, 1.2)
+		if particles == sparks:
+			process.scale_min = 0.12 * minf(effect_scale, 1.6)
+			process.scale_max = 0.3 * minf(effect_scale, 1.6)
+		else:
+			process.scale_min = (1.4 if particles == fire else 2.5) * effect_scale
+			process.scale_max = (3.8 if particles == fire else (4.0 if particles == smoke else 5.0)) * minf(effect_scale, 1.2)
 		particles.restart()
 		particles.emitting = true
 	_set_velocity(fire, 6.0 * effect_scale, 17.0 * effect_scale)
+	_set_velocity(sparks, 4.0 * effect_scale, 12.0 * effect_scale)
 	_set_velocity(smoke, 1.0 * effect_scale, 3.0 * effect_scale)
 	_set_velocity(dust, 8.0 * effect_scale, 19.0 * effect_scale)
 	dust.visible = not muzzle and quality_ratio > 0.75
+	sparks.visible = not muzzle and quality_ratio > 0.5
 	shockwave.visible = not muzzle
 	shockwave.position = Vector3(0, ground - point.y + 0.2, 0)
 	shockwave.scale = Vector3.ONE * 0.1
@@ -187,7 +204,7 @@ func activate(point: Vector3, blast_radius: float, ground: float, quality_ratio:
 	flash.visible = true
 	for index in range(debris.size()):
 		var piece: MeshInstance3D = debris[index]
-		piece.visible = not muzzle and index < int(8 * quality_ratio)
+		piece.visible = not muzzle and index < int(DEBRIS_COUNT * quality_ratio)
 		piece.position = Vector3.ZERO
 		piece.scale = Vector3.ONE * effect_scale
 		debris_velocity[index] = Vector3(rng.randf_range(-12, 12), rng.randf_range(9, 22), rng.randf_range(-12, 12)) * effect_scale
@@ -199,6 +216,7 @@ func _process(delta: float) -> void:
 	(fire.material_override as StandardMaterial3D).albedo_color.a = 0.9 * maxf(0.0, 1.0 - age / 0.85)
 	(smoke.material_override as StandardMaterial3D).albedo_color.a = 0.42 * minf(age / 0.6, 1.0) * maxf(0.0, 1.0 - age / SMOKE_LIFE)
 	(dust.material_override as StandardMaterial3D).albedo_color.a = 0.4 * maxf(0.0, 1.0 - age / DUST_LIFE)
+	(sparks.material_override as StandardMaterial3D).albedo_color.a = 0.95 * maxf(0.0, 1.0 - age / SPARK_LIFE)
 	flash.light_energy = maxf(0.0, 18.0 * (1.0 - age / 0.28))
 	flash.visible = age < 0.28
 	if age < 0.65:
@@ -223,5 +241,5 @@ func deactivate() -> void:
 	active = false
 	visible = false
 	set_process(false)
-	for particles in [fire, smoke, dust]:
+	for particles in [fire, sparks, smoke, dust]:
 		particles.emitting = false

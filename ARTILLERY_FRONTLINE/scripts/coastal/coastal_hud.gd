@@ -110,6 +110,7 @@ var aim_button: Button
 var weapon_button: Button
 var reload_button: Button
 var rocket_button: Button
+var zoom_label: Label
 var support_buttons: Dictionary = {}
 var support_labels: Dictionary = {}
 var pause_panel: Control
@@ -253,6 +254,10 @@ func _build_right() -> void:
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	aim_button = _circular("crosshair", Loc.t("coastal_zoom"), 92.0, func(): aim_pressed.emit())
 	column.add_child(aim_button)
+	zoom_label = UITheme.label("۱×", 20, UITheme.ACCENT, true)
+	zoom_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UITheme.place(zoom_label, Vector4(1, 0.5, 1, 0.5), Vector4(-160, -206, -24, -180))
+	root.add_child(zoom_label)
 	fire_button = _circular("bullets", Loc.t("coastal_fire"), 136.0, func(): pass)
 	fire_button.button_down.connect(func(): fire_down.emit(); fire_button.scale = Vector2.ONE * 0.95)
 	fire_button.button_up.connect(func(): fire_up.emit(); fire_button.scale = Vector2.ONE)
@@ -388,6 +393,7 @@ func _build_results() -> void:
 	page_root.add_child(result_panel)
 
 func update_state(data: Dictionary) -> void:
+	zoom_label.text = (Loc.decimal(float(data.get("zoom_factor", 1.0)), 1) + "×") if bool(data.get("zoomed", false)) else "۱×"
 	mission_label.text = Loc.t("coastal_title") % Loc.wave(String(data.get("label", "COASTAL DEFENSE")))
 	enemies_label.text = Loc.t("coastal_enemies") % Loc.number(int(data.get("remaining", 0)))
 	round_label.text = Loc.t("coastal_round") % [Loc.number(int(data.get("round", 1))), Loc.number(int(data.get("rounds", 3)))]

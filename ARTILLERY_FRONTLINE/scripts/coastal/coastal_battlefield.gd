@@ -38,22 +38,22 @@ func _build_lighting() -> void:
 		sky.sky_material = panorama
 	else:
 		var sky_material := ProceduralSkyMaterial.new()
-		sky_material.sky_top_color = Color(0.18, 0.34, 0.52)
-		sky_material.sky_horizon_color = Color(0.72, 0.78, 0.80)
+		sky_material.sky_top_color = Color(0.22, 0.46, 0.74)
+		sky_material.sky_horizon_color = Color(0.82, 0.88, 0.90)
 		sky_material.ground_bottom_color = Color(0.24, 0.26, 0.24)
 		sky_material.ground_horizon_color = Color(0.66, 0.70, 0.68)
 		sky.sky_material = sky_material
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.36
+	env.ambient_light_energy = 0.48
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	env.tonemap_exposure = 0.96
 	env.fog_enabled = true
-	env.fog_light_color = Color(0.58, 0.65, 0.70)
-	env.fog_light_energy = 0.82
-	env.fog_density = 0.00045
+	env.fog_light_color = Color(0.74, 0.82, 0.86)
+	env.fog_light_energy = 0.9
+	env.fog_density = 0.00028
 	env.fog_sky_affect = 0.06
 	env.fog_aerial_perspective = 0.35
 	env.fog_sun_scatter = 0.12
@@ -66,7 +66,7 @@ func _build_lighting() -> void:
 	sun.name = "CoastalSun"
 	sun.rotation_degrees = Vector3(-36.0, -24.0, 0.0)
 	sun.light_color = Color(1.0, 0.93, 0.82)
-	sun.light_energy = 1.12
+	sun.light_energy = 1.38
 	sun.shadow_enabled = true
 	sun.shadow_bias = 0.5
 	sun.shadow_normal_bias = 1.0

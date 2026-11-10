@@ -8,8 +8,8 @@ signal mission_finished(success: bool)
 
 const ROUNDS: Array[Dictionary] = [
 	{"soldiers": 8, "tanks": 1, "transports": 0, "helicopters": 1, "fighters": 0, "craft": 1, "label": "FIRST LANDING", "support": ["repair", "airstrike"]},
-	{"soldiers": 12, "tanks": 1, "transports": 1, "helicopters": 1, "fighters": 1, "craft": 2, "label": "ARMORED PUSH", "support": ["repair", "airstrike", "helicopter"]},
-	{"soldiers": 16, "tanks": 2, "transports": 1, "helicopters": 1, "fighters": 1, "craft": 2, "label": "FINAL ASSAULT", "support": ["repair", "airstrike", "helicopter", "airdrop"]}
+	{"soldiers": 12, "tanks": 1, "transports": 1, "helicopters": 2, "fighters": 2, "craft": 2, "label": "ARMORED PUSH", "support": ["repair", "airstrike", "helicopter"]},
+	{"soldiers": 20, "tanks": 2, "transports": 1, "helicopters": 2, "fighters": 2, "craft": 2, "label": "FINAL ASSAULT", "support": ["repair", "airstrike", "helicopter", "airdrop"]}
 ]
 const INTERMISSION: float = 6.0
 var round_index: int = -1
