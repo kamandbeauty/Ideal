@@ -25,7 +25,7 @@ var _chapter_label: Label
 func build() -> void:
 	# The palace is the window's own picture (AppRoot paints it full-bleed at whatever shape the device
 	# is); the screen only dims it enough for the title to read.
-	set_backdrop("garden_dusk", 0.20, 0.5, 0.5, 0.80, 0.70)
+	set_backdrop("garden_dusk", 0.10, 0.5, 0.5, 0.80, 0.70)
 
 	# The logotype is a picture, drawn offline in gold by tools/make_title_art.py, not a string set in
 	# whatever font the engine found. `TITLE` stays as the spoken name for the tests and the store.

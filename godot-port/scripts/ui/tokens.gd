@@ -8,13 +8,15 @@ extends RefCounted
 
 # ---- colour -------------------------------------------------------------------------------------
 
-const BG := Color(0.0431, 0.1020, 0.1843, 1.0)              # #0B1A2F
-const SURFACE := Color(0.0784, 0.1608, 0.2902, 1.0)         # #14294A
-const SURFACE_RAISED := Color(0.1137, 0.2275, 0.3804, 1.0)  # #1D3A61
-const BORDER := Color(0.1725, 0.3059, 0.4706, 1.0)          # #2C4E78
-const BORDER_INPUT := Color(0.3529, 0.5137, 0.6941, 1.0)    # #5A83B1
-const TEXT := Color(0.9686, 0.9490, 0.9020, 1.0)            # #F7F2E6
-const TEXT_MUTED := Color(0.7490, 0.7961, 0.8588, 1.0)      # #BFCBDB
+# The game is painted now: cream parchment, amber rims and warm shadows, with ink for text. The
+# palette changed in one place and every screen followed, because a screen only ever names a token.
+const BG := Color(0.1412, 0.1020, 0.0706, 1.0)              # #241A12
+const SURFACE := Color(0.9647, 0.9059, 0.7843, 1.0)         # #F6E7C8
+const SURFACE_RAISED := Color(0.9882, 0.9490, 0.8588, 1.0)  # #FCF2DB
+const BORDER := Color(0.7843, 0.6039, 0.3216, 1.0)          # #C89A52
+const BORDER_INPUT := Color(0.6588, 0.4980, 0.2706, 1.0)    # #A87F45
+const TEXT := Color(0.2314, 0.1647, 0.0941, 1.0)            # #3B2A18
+const TEXT_MUTED := Color(0.4784, 0.3725, 0.2392, 1.0)      # #7A5F3D
 # The board's two side rails are painted cream parchment, not a dark plate, so the ink on them is dark
 # and warm rather than the light text the rest of the game uses: light text on cream is invisible.
 const INK := Color(0.2784, 0.1922, 0.1059, 1.0)             # #47311B
@@ -29,7 +31,7 @@ const ON_DANGER := Color(1.0, 0.9647, 0.9529, 1.0)          # #FFF6F3
 const SUCCESS := Color(0.3451, 0.7882, 0.5412, 1.0)         # #58C98A
 const WARNING := Color(0.9412, 0.7059, 0.1608, 1.0)         # #F0B429
 const DANGER_STRONG := Color(0.7020, 0.2275, 0.1412, 1.0)   # #B33A24
-const SHADOW := Color(0.0, 0.0, 0.0, 0.45)
+const SHADOW := Color(0.1294, 0.0863, 0.0471, 0.30)
 const TRANSPARENT := Color(1.0, 1.0, 1.0, 0.0)
 
 const PIECE_FIROUZEH := Color(0.1804, 0.7686, 0.7137, 1.0)  # #2EC4B6

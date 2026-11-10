@@ -33,7 +33,7 @@ var _plates: Array[TextureRect] = []
 var _task_rows: Array[Dictionary] = []
 
 func build() -> void:
-	set_backdrop("map_terrace", 0.26, 0.5, 0.5, 0.85, 0.78)
+	set_backdrop("map_terrace", 0.12, 0.5, 0.5, 0.85, 0.78)
 
 	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 46.0, 84.0, 36.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)
@@ -157,14 +157,14 @@ func refresh() -> void:
 				UiTokens.SUCCESS if done else UiTokens.TEXT)
 			button.text = "ساخته شد" if done else PersianText.number(int(task.get("potion_cost", 0)))
 			button.disabled = done or not session.wallet.can_afford_potions(int(task.get("potion_cost", 0)))
-			button.modulate = Color(1, 1, 1, 1) if not button.disabled else Color(0.76, 0.78, 0.84, 1)
+			button.modulate = Color(1, 1, 1, 1) if not button.disabled else Color(0.82, 0.78, 0.72, 1)
 
 		var built := session.is_district_built(district)
 		var remaining := session.remaining_potions(district)
 		_district_buttons[index].text = "کامل شد" if built else "ساخت همه (" + PersianText.number(remaining) + ")"
 		_district_buttons[index].disabled = built or not session.can_afford(district)
 		_district_buttons[index].modulate = Color(1, 1, 1, 1) if not _district_buttons[index].disabled \
-			else Color(0.76, 0.78, 0.84, 1)
+			else Color(0.82, 0.78, 0.72, 1)
 
 		var built_now := session.is_district_built(district)
 		var district_id := str(district.get("id", "")).replace("-", "_")
@@ -181,7 +181,7 @@ func refresh() -> void:
 		_chest_labels[index].text = "باز شد" if chest_open else "باز کن"
 		_chest_buttons[index].disabled = chest_open or not built
 		_chest_buttons[index].modulate = Color(1, 1, 1, 1) if not _chest_buttons[index].disabled \
-			else Color(0.55, 0.55, 0.6, 1)
+			else Color(0.62, 0.58, 0.52, 1)
 
 func _on_task_pressed(district_index: int, task_index: int) -> void:
 	if district_index >= session.districts.size():

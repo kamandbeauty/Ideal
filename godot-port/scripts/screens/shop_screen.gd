@@ -14,7 +14,7 @@ var _coins: Label
 var _feedback: Label
 
 func build() -> void:
-	set_backdrop("bazaar", 0.32, 0.5, 0.5, 0.85, 0.80)
+	set_backdrop("bazaar", 0.14, 0.5, 0.5, 0.85, 0.80)
 
 	UiKit.button(self, "back", "بازگشت", UiTokens.CANVAS_WIDTH - 16.0 - 84.0, 48.0, 84.0, 36.0,
 		UiTokens.SURFACE_RAISED, UiTokens.TEXT, _on_back, UiTokens.RADIUS_MD)

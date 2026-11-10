@@ -85,7 +85,7 @@ func build() -> void:
 	shows_top_bar = false
 	# The hall is dimmed harder than the other screens: the board is a lit carpet in a dark room, and
 	# nothing behind it should compete with the stones.
-	set_backdrop("hall_night", 0.30, 0.5, 0.5, 0.62, 0.70)
+	set_backdrop("hall_night", 0.16, 0.5, 0.5, 0.62, 0.70)
 
 	# ---- the two rails: painted cream capsules, one per side --------------------------------------
 	# Both are the same painting drawn at its own size, never nine-sliced: a painted moulding stretched
@@ -234,7 +234,7 @@ func refresh() -> void:
 	for kind in range(_booster_buttons.size()):
 		var owned := session.boosters.count(kind)
 		_booster_counts[kind].text = PersianText.number(owned)
-		_booster_buttons[kind].modulate = Color(1, 1, 1, 1) if owned > 0 else Color(0.76, 0.78, 0.84, 1)
+		_booster_buttons[kind].modulate = Color(1, 1, 1, 1) if owned > 0 else Color(0.82, 0.78, 0.72, 1)
 		_booster_buttons[kind].disabled = owned <= 0
 	if run == null:
 		return
@@ -514,7 +514,7 @@ func _build_overlay() -> void:
 	add_child(_overlay)
 	UiKit.stretch(_overlay, 0.0, 0.0)
 
-	var dim := UiKit.veil(_overlay, "dim", Color(0.01, 0.02, 0.05, 0.78))
+	var dim := UiKit.veil(_overlay, "dim", Color(0.09, 0.06, 0.04, 0.72))
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_overlay_card = UiKit.art_panel(_overlay, "card", (UiTokens.CANVAS_WIDTH - OVERLAY_CARD_WIDTH) * 0.5,
@@ -559,7 +559,7 @@ func _show_result(first_clear: bool, reward: RewardBundle) -> void:
 	var stars := StarRating.from_run(run) if won else 0
 	for index in range(_result_stars.size()):
 		_result_stars[index].modulate = Color(1, 1, 1, 1) if index < stars \
-			else Color(0.3, 0.33, 0.4, 1.0)
+			else Color(0.55, 0.46, 0.34, 1.0)
 
 	_result_title.text = "مرحله کامل شد" if won else "حرکت‌ها تمام شد"
 	UiKit.fit_font(_result_title, 190.0)
@@ -668,7 +668,7 @@ func _build_pause() -> void:
 	add_child(_pause)
 	UiKit.stretch(_pause, 0.0, 0.0)
 
-	var dim := UiKit.veil(_pause, "dim", Color(0.01, 0.02, 0.05, 0.82))
+	var dim := UiKit.veil(_pause, "dim", Color(0.09, 0.06, 0.04, 0.76))
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var card := UiKit.art_panel(_pause, "card", (UiTokens.CANVAS_WIDTH - PAUSE_CARD_WIDTH) * 0.5,

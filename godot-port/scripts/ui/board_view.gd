@@ -74,7 +74,7 @@ func set_selection(pos: Vector2i) -> void:
 	_highlight = pos
 	var tile: Control = _tiles.get(pos)
 	if tile != null and is_instance_valid(tile):
-		tile.modulate = Color(1.3, 1.3, 1.15, 1)
+		tile.modulate = Color(1.12, 1.10, 1.02, 1)
 
 func is_busy() -> bool:
 	return _busy
@@ -127,7 +127,7 @@ func rebuild() -> void:
 func _apply_highlight() -> void:
 	var tile: Control = _tiles.get(_highlight)
 	if tile != null and is_instance_valid(tile):
-		tile.modulate = Color(1.3, 1.3, 1.15, 1)
+		tile.modulate = Color(1.12, 1.10, 1.02, 1)
 
 func _build_cell(pos: Vector2i, cell, tile_art: Texture2D) -> Control:
 	var tile := Control.new()
@@ -147,7 +147,7 @@ func _build_cell(pos: Vector2i, cell, tile_art: Texture2D) -> Control:
 		blocked.texture = UiKit.ui_texture("ui_veil")
 		blocked.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		blocked.stretch_mode = TextureRect.STRETCH_SCALE
-		blocked.modulate = Color(0.02, 0.05, 0.10, 0.85)
+		blocked.modulate = Color(0.10, 0.07, 0.04, 0.74)
 		blocked.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tile.add_child(blocked)
 		blocked.position = Vector2(TILE_INSET, TILE_INSET)

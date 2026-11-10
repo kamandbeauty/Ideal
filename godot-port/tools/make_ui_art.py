@@ -27,12 +27,16 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "ui")
 
-BG = (11, 26, 47)
-SURFACE = (20, 41, 74)
-RAISED = (29, 58, 97)
-BORDER = (44, 78, 120)
-TEXT = (247, 242, 230)
-MUTED = (191, 203, 219)
+# The furniture is drawn in the same family as the painted plates: cream parchment, an amber rim and a
+# warm dark shadow, so a drawn button sits beside a painted rail without looking borrowed from another
+# game. Shadow edges are a deep brown rather than navy — a cool shadow under a warm plate is the one
+# thing that makes cartoon chrome look like a photograph of chrome.
+BG = (36, 26, 18)
+SURFACE = (246, 231, 200)
+RAISED = (252, 242, 219)
+BORDER = (200, 154, 82)
+TEXT = (255, 248, 232)
+MUTED = (150, 120, 86)
 GOLD = (224, 169, 63)
 GOLD_DARK = (154, 106, 26)
 GOLD_LIGHT = (247, 214, 140)
@@ -300,20 +304,23 @@ def main():
     # A row in a list: same plate, a touch flatter, because rows are stacked shoulder to shoulder.
     plate("ui_row", (96, 72), 18, SURFACE, (58, 92, 136), rim_colour=None, gloss=0.25, marks=BORDER)
 
-    # The tray the board sits on: velvet with a lattice worked into it and a gold stitch. The board used
-    # to float on whatever the backdrop happened to be, which read as "the gems are on the wallpaper".
-    tray = gradient((96, 96), 18, [(0.0, (44, 60, 96)), (0.45, (24, 34, 60)), (1.0, (15, 22, 42))])
-    lattice = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
-    lattice_draw = ImageDraw.Draw(lattice)
-    for step in range(-96, 192, 12):
-        lattice_draw.line((step, 0, step + 96, 96), fill=(120, 156, 200, 34), width=1)
-        lattice_draw.line((step, 96, step + 96, 0), fill=(120, 156, 200, 26), width=1)
-    tray.alpha_composite(lattice)
-    tray = bevel(tray, 18, top_alpha=70, bottom_alpha=150)
-    tray = grain(tray, strength=4)
-    tray = rim(tray, 18, (46, 64, 104), width=2)
-    tray = hairline(tray, 18, GOLD, inset=6, alpha=90)
-    save(tray, "ui_board_tray")
+    # `ui_board_tray` is painted now — the Persian carpet in tools/import_plate_art.py. The drawn
+    # velvet tray is kept, commented, as the record of what the board used to sit on; this file must
+    # never write over a painted plate.
+    # # The tray the board sits on: velvet with a lattice worked into it and a gold stitch. The board used
+    # # to float on whatever the backdrop happened to be, which read as "the gems are on the wallpaper".
+    # tray = gradient((96, 96), 18, [(0.0, (44, 60, 96)), (0.45, (24, 34, 60)), (1.0, (15, 22, 42))])
+    # lattice = Image.new("RGBA", (96, 96), (0, 0, 0, 0))
+    # lattice_draw = ImageDraw.Draw(lattice)
+    # for step in range(-96, 192, 12):
+    #     lattice_draw.line((step, 0, step + 96, 96), fill=(120, 156, 200, 34), width=1)
+    #     lattice_draw.line((step, 96, step + 96, 0), fill=(120, 156, 200, 26), width=1)
+    # tray.alpha_composite(lattice)
+    # tray = bevel(tray, 18, top_alpha=70, bottom_alpha=150)
+    # tray = grain(tray, strength=4)
+    # tray = rim(tray, 18, (46, 64, 104), width=2)
+    # tray = hairline(tray, 18, GOLD, inset=6, alpha=90)
+    # save(tray, "ui_board_tray")
 
     # The board's tile: a carved well the gem sits in. The corner dashes are gone — on a 36 dp cell
     # they read as stitching round every stone — and the well is deeper so five colours of gem are the
@@ -339,19 +346,19 @@ def main():
     # save(tile, "ui_tile_frame")
 
     # The switch: a track the knob slides in, and a knob that is a knob.
-    track_off = gradient((64, 32), 16, [(0.0, (26, 44, 72)), (1.0, (12, 22, 40))])
+    track_off = gradient((64, 32), 16, [(0.0, (214, 196, 166)), (1.0, (176, 154, 120))])
     track_off = bevel(track_off, 16, top_alpha=60, bottom_alpha=120)
     track_off = grain(track_off, strength=4)
-    track_off = rim(track_off, 16, (58, 92, 136), width=2)
+    track_off = rim(track_off, 16, (150, 120, 86), width=2)
     save(track_off, "ui_switch_off")
     track_on = gradient((64, 32), 16, [(0.0, _scale(ACCENT, 1.2)), (1.0, ACCENT_DARK)])
     track_on = bevel(track_on, 16, top_alpha=110, bottom_alpha=110)
     track_on = grain(track_on, strength=4)
     track_on = rim(track_on, 16, GOLD, width=2)
     save(track_on, "ui_switch_on")
-    knob = gradient((28, 28), 14, [(0.0, WHITE), (0.55, TEXT), (1.0, (206, 200, 188))])
+    knob = gradient((28, 28), 14, [(0.0, WHITE), (0.55, (250, 240, 218)), (1.0, (214, 194, 160))])
     knob = bevel(knob, 14, top_alpha=150, bottom_alpha=90)
-    knob = rim(knob, 14, (120, 130, 150), width=1)
+    knob = rim(knob, 14, (186, 152, 100), width=1)
     save(knob, "ui_knob")
 
     # Washes and hairlines: pictures too, so nothing full-screen is a ColorRect.
@@ -366,7 +373,7 @@ def main():
 
     # The scrollbar: the platform default is a grey rectangle, and grey rectangles are what we are
     # getting rid of.
-    bar = gradient((8, 32), 4, [(0.0, (44, 78, 120)), (1.0, (24, 46, 74))])
+    bar = gradient((8, 32), 4, [(0.0, (232, 212, 176)), (1.0, (188, 164, 126))])
     save(bar, "ui_scrollbar")
     grabber = gradient((8, 32), 4, [(0.0, GOLD_LIGHT), (1.0, GOLD_DARK)])
     save(grabber, "ui_scrollgrabber")
@@ -390,7 +397,7 @@ def main():
     # A soft shadow plate a panel can sit on, so depth is a picture and not a StyleBoxFlat shadow.
     shadow = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
     d = ImageDraw.Draw(shadow)
-    d.rounded_rectangle((6, 8, 57, 57), radius=18, fill=(0, 0, 0, 120))
+    d.rounded_rectangle((6, 8, 57, 57), radius=18, fill=(46, 30, 16, 110))
     shadow = shadow.filter(ImageFilter.GaussianBlur(4))
     save(shadow, "ui_shadow")
 

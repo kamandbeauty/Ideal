@@ -32,11 +32,13 @@ W, H = 1476, 830
 # warmth    — >0 pushes toward amber, <0 toward blue.
 # grain     — amplitude of the noise, in 8-bit levels.
 SCENES = {
-    "garden_dusk": dict(exposure=1.02, centre=0.00, vignette=0.42, warmth=0.02, grain=3.0, seed=11),
-    "hall_night": dict(exposure=0.80, centre=0.24, vignette=0.58, warmth=-0.04, grain=4.0, seed=23),
-    "map_terrace": dict(exposure=0.94, centre=0.00, vignette=0.34, warmth=0.03, grain=2.5, seed=37),
-    "bazaar": dict(exposure=0.94, centre=0.00, vignette=0.50, warmth=0.04, grain=3.5, seed=51),
-    "courtyard": dict(exposure=0.90, centre=0.00, vignette=0.46, warmth=-0.02, grain=3.0, seed=67),
+    # Cartoon plates are already bright and flat, so the grade is gentle: a touch of vignette to hold
+    # the HUD at the edges, a whisper of warmth, and grain fine enough to read as paper.
+    "garden_dusk": dict(exposure=1.00, centre=0.00, vignette=0.22, warmth=0.02, grain=1.6, seed=11),
+    "hall_night": dict(exposure=0.94, centre=0.10, vignette=0.30, warmth=0.00, grain=2.0, seed=23),
+    "map_terrace": dict(exposure=1.00, centre=0.00, vignette=0.20, warmth=0.02, grain=1.6, seed=37),
+    "bazaar": dict(exposure=0.98, centre=0.00, vignette=0.24, warmth=0.02, grain=1.8, seed=51),
+    "courtyard": dict(exposure=0.96, centre=0.00, vignette=0.24, warmth=0.00, grain=1.8, seed=67),
 }
 
 
