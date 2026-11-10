@@ -47,6 +47,8 @@ var muzzle_light: OmniLight3D
 var flash_timer: float = 0.0
 var suspension_phase: float = 0.0
 var turret_rest_y: float = 0.0
+## True for procedural models: their turret and gun face -Z and elevate with +X rotation.
+var procedural_aim: bool = false
 var stage: int = 0
 
 func _ready() -> void:
@@ -76,6 +78,7 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 		barrel_pivot = null
 		recoil_node = null
 		muzzle = null
+		procedural_aim = false
 		var shape := BoxShape3D.new()
 		shape.size = hull_size()
 		collision.shape = shape
@@ -106,6 +109,12 @@ func _build_model() -> void:
 		muzzle = model_root.find_child("Muzzle", true, false) as Node3D
 		for child in model_root.find_children("Wheel*", "Node3D", true, false):
 			wheels.append(child as Node3D)
+		# APC and boss hulls carry a turret pivot with a gun pivot inside it.
+		turret = model_root.find_child("TurretPivot", true, false) as Node3D
+		if turret:
+			turret_rest_y = turret.position.y
+			barrel_pivot = turret.find_child("GunPivot", true, false) as Node3D
+			procedural_aim = true
 		_build_muzzle_flash()
 		return
 	var path: String = "res://assets/models/warden.glb" if kind == "tank" else "res://assets/models/nomad.glb"
@@ -213,7 +222,9 @@ func _die() -> void:
 	tween.tween_property(model_root, "rotation:z", randf_range(-0.06, 0.06), 1.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(model_root, "position:y", -0.08, 1.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	if barrel_pivot:
-		tween.tween_property(barrel_pivot, "rotation:x", 0.12, 1.2)
+		# Procedural guns elevate with +X, so a droop is a negative angle there.
+		var droop: float = -0.12 if procedural_aim else 0.12
+		tween.tween_property(barrel_pivot, "rotation:x", droop, 1.2)
 	if turret:
 		tween.tween_property(turret, "rotation:z", randf_range(-0.05, 0.05), 1.2)
 	died.emit(self)
@@ -282,6 +293,9 @@ func _suspension(delta: float, current_speed: float) -> void:
 func _aim_turret(delta: float) -> void:
 	if turret == null:
 		return
+	if procedural_aim:
+		_aim_procedural_turret(delta)
+		return
 	var local_target: Vector3 = model_root.to_local(objective + Vector3.UP * 1.2)
 	var desired: float = atan2(local_target.x, local_target.z)
 	turret.rotation.y = lerp_angle(turret.rotation.y, desired, delta * 1.5)
@@ -289,6 +303,18 @@ func _aim_turret(delta: float) -> void:
 		var horizontal: float = Vector2(local_target.x, local_target.z).length()
 		var pitch: float = clampf(atan2(local_target.y - barrel_pivot.position.y, horizontal), -0.12, 0.22)
 		barrel_pivot.rotation.x = lerpf(barrel_pivot.rotation.x, -pitch, delta * 2.0)
+
+## Procedural turrets face -Z, so the yaw that points their front at the target is atan2(-x, -z).
+## Elevation is positive when the gun rises, because -Z rotates upward around +X.
+func _aim_procedural_turret(delta: float) -> void:
+	# Target relative to the turret pivot, in model space (the pivot itself is unrotated).
+	var offset: Vector3 = model_root.to_local(objective + Vector3.UP * 1.2) - turret.position
+	var yaw: float = atan2(-offset.x, -offset.z)
+	turret.rotation.y = lerp_angle(turret.rotation.y, yaw, delta * 1.5)
+	if barrel_pivot:
+		var horizontal: float = Vector2(offset.x, offset.z).length()
+		var elevation: float = atan2(offset.y - barrel_pivot.position.y, horizontal)
+		barrel_pivot.rotation.x = lerpf(barrel_pivot.rotation.x, clampf(elevation, -0.12, 0.22), delta * 2.0)
 
 func _tick_recoil(delta: float) -> void:
 	recoil_velocity += (-recoil_offset * 140.0 - recoil_velocity * 16.0) * delta

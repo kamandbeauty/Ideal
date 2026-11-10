@@ -64,9 +64,12 @@ static func build_apc() -> Node3D:
 	MeshFactory.box(root, "Roof", Vector3(0, 2.05, 0.4), Vector3(2.5, 0.1, 4.6), DARK)
 	for x in [-0.7, 0.7]:
 		MeshFactory.box(root, "Hatch", Vector3(x, 2.17, 1.8), Vector3(0.5, 0.06, 0.5), DARK)
-	MeshFactory.cylinder(root, "Turret", Vector3(0, 2.35, -0.8), 0.55, 0.5, STEEL, 16)
-	_barrel(root, "Barrel", Vector3(0, 2.5, -1.7), 0.05, 1.0, STEEL)
-	_marker(root, "Muzzle", Vector3(0, 2.5, -2.2))
+	# Turret and gun sit on pivots so the enemy can turn and elevate them at the target.
+	var turret_pivot: Node3D = _pivot(root, "TurretPivot", Vector3(0, 2.35, -0.8))
+	MeshFactory.cylinder(turret_pivot, "Turret", Vector3.ZERO, 0.55, 0.5, STEEL, 16)
+	var gun: Node3D = _pivot(turret_pivot, "GunPivot", Vector3(0, 0.15, -0.3))
+	_barrel(gun, "Barrel", Vector3(0, 0, -0.6), 0.05, 1.0, STEEL)
+	_marker(gun, "Muzzle", Vector3(0, 0, -1.1))
 	for x in [-0.9, 0.9]:
 		MeshFactory.box(root, "Headlamp", Vector3(x, 1.1, -3.05), Vector3(0.3, 0.2, 0.05), LAMP)
 	for x in [-1.5, 1.5]:
@@ -89,14 +92,17 @@ static func build_boss_tank() -> Node3D:
 		MeshFactory.box(root, "Fender", Vector3(x * 0.92, 1.6, 0.2), Vector3(0.2, 0.1, 7.4), STEEL)
 		for z in [-3.0, -1.8, -0.6, 0.6, 1.8, 3.0]:
 			_wheel(root, "TrackWheel", Vector3(x, 0.35, z), 0.3, 0.5)
-	MeshFactory.box(root, "Turret", Vector3(0, 2.1, -0.2), Vector3(2.2, 0.9, 2.4), DARK)
-	MeshFactory.cylinder(root, "TurretRing", Vector3(0, 2.6, -0.2), 0.8, 0.2, STEEL, 18)
-	MeshFactory.cylinder(root, "Cupola", Vector3(0.5, 2.8, 0.2), 0.25, 0.25, STEEL, 12)
-	MeshFactory.box(root, "Mantlet", Vector3(0, 2.0, -1.5), Vector3(1.2, 0.6, 0.4), STEEL)
+	# Turret pivot at the turret centre; the gun pivot is the trunnion the twin barrels elevate around.
+	var turret_pivot: Node3D = _pivot(root, "TurretPivot", Vector3(0, 2.1, -0.2))
+	MeshFactory.box(turret_pivot, "Turret", Vector3.ZERO, Vector3(2.2, 0.9, 2.4), DARK)
+	MeshFactory.cylinder(turret_pivot, "TurretRing", Vector3(0, 0.5, 0), 0.8, 0.2, STEEL, 18)
+	MeshFactory.cylinder(turret_pivot, "Cupola", Vector3(0.5, 0.7, 0.4), 0.25, 0.25, STEEL, 12)
+	MeshFactory.box(turret_pivot, "Mantlet", Vector3(0, -0.1, -1.3), Vector3(1.2, 0.6, 0.4), STEEL)
+	var gun: Node3D = _pivot(turret_pivot, "GunPivot", Vector3(0, 0.2, -1.3))
 	for x in [-0.32, 0.32]:
-		_barrel(root, "Barrel", Vector3(x, 2.3, -3.6), 0.14, 4.4, STEEL)
-		_barrel(root, "MuzzleBrake", Vector3(x, 2.3, -5.9), 0.2, 0.4, DARK)
-	_marker(root, "Muzzle", Vector3(0, 2.3, -6.1))
+		_barrel(gun, "Barrel", Vector3(x, 0, -2.1), 0.14, 4.4, STEEL)
+		_barrel(gun, "MuzzleBrake", Vector3(x, 0, -4.4), 0.2, 0.4, DARK)
+	_marker(gun, "Muzzle", Vector3(0, 0, -4.6))
 	MeshFactory.box(root, "RustPlate", Vector3(1.0, 1.4, 1.5), Vector3(0.6, 0.15, 1.2), RUST)
 	MeshFactory.box(root, "RustPlate", Vector3(-1.0, 1.4, -0.6), Vector3(0.5, 0.15, 0.9), RUST)
 	_barrel(root, "Exhaust", Vector3(1.4, 1.9, 2.8), 0.12, 0.8, DARK)
@@ -115,6 +121,14 @@ static func _wheel(parent: Node3D, name: String, pos: Vector3, radius: float, wi
 static func _barrel(parent: Node3D, name: String, center: Vector3, radius: float, length: float, color: Color) -> void:
 	var barrel := MeshFactory.cylinder(parent, name + "_%d" % parent.get_child_count(), center, radius, length, color, 10)
 	barrel.rotation.x = PI * 0.5
+
+## Plain transform node that a turret or gun turns around.
+static func _pivot(parent: Node3D, name: String, pos: Vector3) -> Node3D:
+	var pivot := Node3D.new()
+	pivot.name = name
+	pivot.position = pos
+	parent.add_child(pivot)
+	return pivot
 
 ## Invisible pivot used as the shot origin and muzzle-flash anchor.
 static func _marker(parent: Node3D, name: String, pos: Vector3) -> void:

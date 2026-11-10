@@ -25,6 +25,25 @@ func run(t: TestContext) -> void:
 	boss_unit.receive_damage(400.0)
 	t.equal(boss_stages, [1, 2], "Boss tank reports damage stages at 60% and 30% health")
 	boss_unit.queue_free()
+	# Turrets must turn their guns onto the target, not away from it, and a high target must raise the barrel.
+	for turret_kind in ["apc", "boss"]:
+		var gunner := EnemyVehicle.new()
+		t.tree.root.add_child(gunner)
+		gunner.configure(Vector3(0, 0, 60), Vector3(30, 0, 20), turret_kind)
+		for step in range(300):
+			gunner._aim_turret(0.05)
+		var aim_point: Vector3 = Vector3(30, 0, 20) + Vector3.UP * 1.2
+		var forward: Vector3 = -gunner.turret.global_transform.basis.z
+		forward.y = 0.0
+		var to_target: Vector3 = aim_point - gunner.turret.global_position
+		to_target.y = 0.0
+		t.check(forward.normalized().dot(to_target.normalized()) > 0.99, "%s turret turns its gun onto a target to the side" % turret_kind)
+		gunner.objective = Vector3(0, 30, 20)
+		for step in range(300):
+			gunner._aim_turret(0.05)
+		var gun_forward: Vector3 = -gunner.barrel_pivot.global_transform.basis.z
+		t.check(gunner.barrel_pivot.rotation.x > 0.2 and gun_forward.y > 0.1, "%s gun elevates toward a high target" % turret_kind)
+		gunner.queue_free()
 	t.check(CoastalWeapon.ORDER.size() == 5, "Five mounted weapon types include machine guns, cannon, rocket, bazooka and autocannon")
 	t.check(bool(CoastalWeapon.WEAPONS.twin_hmg.automatic), "Twin heavy machine gun supports automatic fire")
 	t.check(float(CoastalWeapon.WEAPONS.rocket.blast) > 0.0, "Rocket ammunition has blast radius")

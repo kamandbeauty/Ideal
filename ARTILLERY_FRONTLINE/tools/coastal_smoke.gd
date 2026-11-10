@@ -148,6 +148,24 @@ func run() -> void:
 	await capture("coastal-pause")
 	coastal.hud.set_paused(false)
 	await get_tree().create_timer(0.2).timeout
+	# Boss battle view: a boss tank on the sand at about 65 m, already at its first damage stage.
+	# It is frozen (no movement, no fire) so the capture shows the model, turret and health bar only.
+	coastal.hud.result_panel.visible = false
+	coastal._spawn_vehicle(Vector3(0.0, 0.0, -7.0), "boss")
+	var boss: EnemyVehicle = coastal.vehicles[coastal.vehicles.size() - 1]
+	boss.speed = 0.0
+	boss.shoot_cooldown = 1000.0
+	boss.receive_damage(400.0)
+	coastal.aim_at(boss.global_position + Vector3.UP * 1.6)
+	coastal.toggle_zoom()
+	await get_tree().create_timer(0.9).timeout
+	check("boss health bar shows the first damage stage", coastal.hud.boss_panel.visible and absf(coastal.hud.boss_bar.value - 0.6) < 0.01)
+	await capture("coastal-boss")
+	coastal.toggle_zoom()
+	coastal.vehicles.erase(boss)
+	boss.queue_free()
+	coastal.hud.hide_boss()
+	await get_tree().create_timer(0.2).timeout
 	coastal._finish(true)
 	await get_tree().create_timer(0.3).timeout
 	check("mission results panel appears", coastal.hud.result_panel.visible)

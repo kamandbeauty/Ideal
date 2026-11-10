@@ -78,6 +78,7 @@ jobs:
           test -s "$PROJECT/documentation/qa/coastal-beach.png"
           test -s "$PROJECT/documentation/qa/coastal-pause.png"
           test -s "$PROJECT/documentation/qa/coastal-results.png"
+          test -s "$PROJECT/documentation/qa/coastal-boss.png"
       - name: Preserve validation evidence
         if: always() && github.ref == 'refs/heads/arena/40ad7d87-ideal'
         run: |
