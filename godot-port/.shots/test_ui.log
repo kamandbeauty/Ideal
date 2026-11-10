@@ -12,12 +12,104 @@ UI STAGE 3: the session contract
 UI STAGE 4: the board view's meaning of a touch
 UI STAGE 4b: the animations end with the board exact
 UI STAGE 5: every level boots and plays through the screen
-SCRIPT ERROR: Invalid cast: can't convert a non-object value to an object type.
-          at: _run (res://tests/test_ui.gd:365)
-          GDScript backtrace (most recent call first):
-              [0] _run (res://tests/test_ui.gd:365)
-              [1] animate_reject (res://scripts/ui/board_view.gd:356)
-ERROR: test_ui timed out
+ERROR: FAILED: level 1 stacks five thumb-sized tools down the right rail
    at: push_error (core/variant/variant_utility.cpp:1023)
    GDScript backtrace (most recent call first):
-       [0] _on_timeout (res://tests/test_ui.gd:22)
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+       [2] animate_reject (res://scripts/ui/board_view.gd:356)
+ERROR: FAILED: level 2 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+ERROR: FAILED: level 3 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+ERROR: FAILED: level 4 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+ERROR: FAILED: level 5 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+ERROR: FAILED: level 6 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+ERROR: FAILED: level 7 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+ERROR: FAILED: level 8 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+ERROR: FAILED: level 9 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+ERROR: FAILED: level 10 stacks five thumb-sized tools down the right rail
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:425)
+UI STAGE 6: sound assets and the director
+UI STAGE 7: particles and the tutorial hand
+UI STAGE 9: haptics obey the save and never crash off-device
+UI STAGE 8: the real AppRoot composes one screen at a time
+WARNING: [boot] no save found, starting a new one
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _boot (res://scripts/app_root.gd:42)
+         [1] _ready (res://scripts/app_root.gd:33)
+         [2] _run (res://tests/test_ui.gd:566)
+[boot] save at user://shazdeh-save.json — level 1, 0 potions, 5 lives
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] place (res://scripts/ui/kit.gd:173)
+         [1] _build_card (res://scripts/screens/district_screen.gd:79)
+         [2] build (res://scripts/screens/district_screen.gd:52)
+         [3] init_screen (res://scripts/ui/ui_screen.gd:43)
+         [4] _boot (res://scripts/app_root.gd:94)
+         [5] _ready (res://scripts/app_root.gd:33)
+         [6] _run (res://tests/test_ui.gd:566)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] place (res://scripts/ui/kit.gd:173)
+         [1] _build_card (res://scripts/screens/district_screen.gd:79)
+         [2] build (res://scripts/screens/district_screen.gd:52)
+         [3] init_screen (res://scripts/ui/ui_screen.gd:43)
+         [4] _boot (res://scripts/app_root.gd:94)
+         [5] _ready (res://scripts/app_root.gd:33)
+         [6] _run (res://tests/test_ui.gd:566)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+     at: _set_size (scene/gui/control.cpp:1519)
+     GDScript backtrace (most recent call first):
+         [0] place (res://scripts/ui/kit.gd:173)
+         [1] _build_card (res://scripts/screens/district_screen.gd:79)
+         [2] build (res://scripts/screens/district_screen.gd:52)
+         [3] init_screen (res://scripts/ui/ui_screen.gd:43)
+         [4] _boot (res://scripts/app_root.gd:94)
+         [5] _ready (res://scripts/app_root.gd:33)
+         [6] _run (res://tests/test_ui.gd:566)
+test_ui: 10 failure(s)
+::error title=test_ui (10 failures)::level 1 stacks five thumb-sized tools down the right rail%0Alevel 2 stacks five thumb-sized tools down the right rail%0Alevel 3 stacks five thumb-sized tools down the right rail%0Alevel 4 stacks five thumb-sized tools down the right rail%0Alevel 5 stacks five thumb-sized tools down the right rail%0Alevel 6 stacks five thumb-sized tools down the right rail%0Alevel 7 stacks five thumb-sized tools down the right rail%0Alevel 8 stacks five thumb-sized tools down the right rail%0Alevel 9 stacks five thumb-sized tools down the right rail%0Alevel 10 stacks five thumb-sized tools down the right rail
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
