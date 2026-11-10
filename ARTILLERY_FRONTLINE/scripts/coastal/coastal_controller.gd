@@ -705,4 +705,11 @@ func _state() -> Dictionary:
 		var offset: Vector3 = nearest.global_position - camera.global_position
 		bearing = wrapf(rad_to_deg(atan2(-offset.x, -offset.z)) - yaw_current, -180.0, 180.0)
 		distance = best
-	return {"zoomed": zoomed, "zoom_factor": zoom_factor(), "mission": "TIDE WALL", "label": waves.current_label(), "remaining": waves.remaining, "round": waves.round_index + 1, "rounds": waves.total_rounds(), "time": elapsed, "health": player_health, "health_max": MAX_HEALTH, "ammo": weapon.ammo, "magazine": int(weapon.config().magazine), "reserve": weapon.reserve, "weapon": String(weapon.config().display), "weapon_id": weapon.weapon_id, "reloading": weapon.reload_remaining > 0.0, "auto": auto_fire, "supports": waves.supports(), "support_cooldowns": support_timers.duplicate(), "support_charges": support_charges.duplicate(), "intermission": waves.intermission, "threat_bearing": bearing, "threat_distance": distance}
+	var lock_on: bool = false
+	var lock_point: Vector2 = Vector2.ZERO
+	if nearest:
+		var aim_at: Vector3 = nearest.global_position + Vector3.UP * 1.2
+		if not camera.is_position_behind(aim_at):
+			lock_point = camera.unproject_position(aim_at)
+			lock_on = get_viewport().get_visible_rect().has_point(lock_point)
+	return {"lock_on": lock_on, "lock_point": lock_point, "lock_range": best if nearest else 0.0, "zoomed": zoomed, "zoom_factor": zoom_factor(), "mission": "TIDE WALL", "label": waves.current_label(), "remaining": waves.remaining, "round": waves.round_index + 1, "rounds": waves.total_rounds(), "time": elapsed, "health": player_health, "health_max": MAX_HEALTH, "ammo": weapon.ammo, "magazine": int(weapon.config().magazine), "reserve": weapon.reserve, "weapon": String(weapon.config().display), "weapon_id": weapon.weapon_id, "reloading": weapon.reload_remaining > 0.0, "auto": auto_fire, "supports": waves.supports(), "support_cooldowns": support_timers.duplicate(), "support_charges": support_charges.duplicate(), "intermission": waves.intermission, "threat_bearing": bearing, "threat_distance": distance}

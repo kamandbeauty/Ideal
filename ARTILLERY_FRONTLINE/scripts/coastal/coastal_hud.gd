@@ -118,6 +118,7 @@ var result_panel: Control
 var result_title: Label
 var result_body: Label
 var quality_select: OptionButton
+var target_lock: TargetLock
 var crosshair: Crosshair
 var damage_overlay: ColorRect
 const DEFAULT_HEALTH: float = 6000.0
@@ -144,6 +145,8 @@ func _ready() -> void:
 	_build_right()
 	_build_bottom()
 	_build_crosshair()
+	target_lock = TargetLock.new()
+	add_child(target_lock)
 	_build_pause()
 	_build_results()
 	get_viewport().size_changed.connect(_update_safe_area)
@@ -393,6 +396,7 @@ func _build_results() -> void:
 	page_root.add_child(result_panel)
 
 func update_state(data: Dictionary) -> void:
+	target_lock.set_lock(data.get("lock_point", Vector2.ZERO), float(data.get("lock_range", 0.0)), bool(data.get("lock_on", false)))
 	zoom_label.text = (Loc.decimal(float(data.get("zoom_factor", 1.0)), 1) + "×") if bool(data.get("zoomed", false)) else "۱×"
 	mission_label.text = Loc.t("coastal_title") % Loc.wave(String(data.get("label", "COASTAL DEFENSE")))
 	enemies_label.text = Loc.t("coastal_enemies") % Loc.number(int(data.get("remaining", 0)))
