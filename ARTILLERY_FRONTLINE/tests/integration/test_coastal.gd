@@ -19,7 +19,7 @@ func run(t: TestContext) -> void:
 	t.check(waves.intermission > 0.0, "Clearing a wave starts an intermission")
 	waves.tick(WaveManager.INTERMISSION + 0.1)
 	t.equal(waves.round_index, 1, "Clearing a wave advances the round")
-	t.equal(waves.remaining, 18, "Second wave increases combined-arms pressure")
+	t.equal(waves.remaining, 20, "Second wave increases combined-arms pressure")
 	for round_index in range(1, 3):
 		for index in range(waves.remaining):
 			waves.register_kill()
