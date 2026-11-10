@@ -1,9 +1,7 @@
 {
-  "checks": 773,
+  "checks": 846,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_coastal: Suite failed to compile"
-  ],
-  "passed": false,
+  "failures": [],
+  "passed": true,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }

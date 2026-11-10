@@ -38,7 +38,7 @@
     },
     {
       "name": "muzzles point away from camera",
-      "passed": true
+      "passed": false
     },
     {
       "name": "muzzles stay in lower aiming band",
@@ -46,7 +46,7 @@
     },
     {
       "name": "twin muzzles visually separated",
-      "passed": true
+      "passed": false
     },
     {
       "name": "independent recoil pivots present",
@@ -169,15 +169,15 @@
       "passed": true
     }
   ],
-  "failures": 0,
+  "failures": 2,
   "kills": 1,
-  "passed": true,
+  "passed": false,
   "performance": {
-    "draw_calls": 313,
-    "fps": 10.7,
-    "frame_ms": 93.27,
+    "draw_calls": 323,
+    "fps": 15.4,
+    "frame_ms": 64.85,
     "objects": 1893,
-    "primitives": 153058,
+    "primitives": 157570,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
@@ -185,9 +185,9 @@
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 03 skinned infantry/detailed war machines/weapons; not Android hardware",
   "soldiers": 8,
   "weapon_screen_bounds": {
-    "h": 1467.73474121094,
+    "h": 1518.28479003906,
     "w": 857.062805175781,
     "x": 285.749084472656,
-    "y": 455.543914794922
+    "y": 404.993865966797
   }
 }
