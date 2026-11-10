@@ -1,7 +1,7 @@
 {
   "Artillery-Frontline-arm64.apk": {
-    "bytes": 55557436,
-    "sha256": "c87a9453c2a087b142854be3d819f3d0da56bfedaa0691b25c2fb80a272be006",
+    "bytes": 55935275,
+    "sha256": "f722f920696a894185967980f95250eac96ed3e33f43ebe2f2f935adb3bf00de",
     "arm64": true,
     "zip_crc": "pass",
     "package_id_verified": true,
@@ -11,15 +11,15 @@
     "no_internet_permission": true
   },
   "Artillery-Frontline-arm64.aab": {
-    "bytes": 54951801,
-    "sha256": "a92f3a267529e2c0f3426aebe5bfca5e41066fb3d1b1f3b092cf9edb007b843e",
+    "bytes": 55333567,
+    "sha256": "9f061cb8ed6a378cb713f8a7b4782736524c7f3a33d989d60f3c505bee65e03f",
     "arm64": true,
     "zip_crc": "pass",
     "signature_check": "jarsigner verified; META-INF signature block present"
   },
   "Artillery-Frontline-compatibility.apk": {
-    "bytes": 55557436,
-    "sha256": "e962ab2afba32961a71423d424d24b50ccf809df683cf009cd66080bbfe79372",
+    "bytes": 55935275,
+    "sha256": "ea09056bfe34ad22c045da90fcad43cdea94b9d2bc2ace76ed16c52bf1f1a2e8",
     "arm64": true,
     "zip_crc": "pass",
     "package_id_verified": true,
