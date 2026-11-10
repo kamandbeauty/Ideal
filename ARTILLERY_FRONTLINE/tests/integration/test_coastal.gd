@@ -91,22 +91,22 @@ func run(t: TestContext) -> void:
 	t.check(AimAssist.choose(Vector3.ZERO, 0.0, 0.0, [near_target], blocked_sight, null) == null, "Aim assist never picks a hostile without line of sight")
 	t.check(AimAssist.choose(Vector3.ZERO, 0.0, 0.0, [near_target, far_target], open_sight, far_target) == far_target, "Aim assist keeps its current target while it stays in the cone")
 	t.check(AimAssist.choose(Vector3.ZERO, 0.0, 0.0, [near_target, far_target], open_sight, null) == near_target, "Aim assist without a lock picks the closest to the crosshair")
-	var step: Vector2 = AimAssist.pull(Vector2(1.0, -0.5), 1.0, 0.1)
-	t.check(step.x > 0.0 and step.y < 0.0 and step.x <= AimAssist.MAX_PULL_DEG_PER_S * 0.1 + 0.0001, "Aim assist pulls toward the target with a capped step")
+	var pull_step: Vector2 = AimAssist.pull(Vector2(1.0, -0.5), 1.0, 0.1)
+	t.check(pull_step.x > 0.0 and pull_step.y < 0.0 and pull_step.x <= AimAssist.MAX_PULL_DEG_PER_S * 0.1 + 0.0001, "Aim assist pulls toward the target with a capped step")
 	t.check(AimAssist.pull(Vector2(1.0, 0.0), 0.0, 0.1) == Vector2.ZERO, "Aim assist does nothing at zero strength")
 	t.check(AimAssist.pull(Vector2(6.0, 0.0), 1.0, 0.1) == Vector2.ZERO, "Aim assist ignores hostiles outside the capture cone")
 	near_target.queue_free()
 	far_target.queue_free()
 	# Cover on physics layer 1 blocks both the aim pull and the bullet; a hostile behind it is never struck.
-	var cover := StaticBody3D.new()
-	cover.collision_layer = 1
-	cover.collision_mask = 0
+	var cover_body := StaticBody3D.new()
+	cover_body.collision_layer = 1
+	cover_body.collision_mask = 0
 	var cover_shape := CollisionShape3D.new()
 	var cover_box := BoxShape3D.new()
 	cover_box.size = Vector3(12, 4, 0.6)
 	cover_shape.shape = cover_box
-	cover.add_child(cover_shape)
-	cover.position = Vector3(0, 2, -10)
+	cover_body.add_child(cover_shape)
+	cover_body.position = Vector3(0, 2, -10)
 	var hostile := StaticBody3D.new()
 	hostile.collision_layer = 2
 	hostile.collision_mask = 0
@@ -116,7 +116,7 @@ func run(t: TestContext) -> void:
 	hostile_shape.shape = hostile_box
 	hostile.add_child(hostile_shape)
 	hostile.position = Vector3(0, 1.0, -20)
-	t.tree.root.add_child(cover)
+	t.tree.root.add_child(cover_body)
 	t.tree.root.add_child(hostile)
 	await t.tree.physics_frame
 	await t.tree.physics_frame
@@ -129,9 +129,9 @@ func run(t: TestContext) -> void:
 	shooter.launch(Vector3(0, 2, 0), Vector3(0, 0, -60), 20.0, 0.0, 7)
 	for frame in range(40):
 		await t.tree.physics_frame
-	t.check(struck.size() == 1 and struck[0] == cover, "A bullet stops at cover and never reaches the hostile behind it")
+	t.check(struck.size() == 1 and struck[0] == cover_body, "A bullet stops at cover and never reaches the hostile behind it")
 	shooter.queue_free()
-	cover.queue_free()
+	cover_body.queue_free()
 	hostile.queue_free()
 	# Impact surfaces: each kind of hit gets its own feedback.
 	var soldier_unit := EnemySoldier.new()
