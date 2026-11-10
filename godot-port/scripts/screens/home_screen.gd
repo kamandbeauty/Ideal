@@ -43,28 +43,32 @@ func build() -> void:
 	var card := UiKit.art_panel(self, "card", card_x, 126.0, CARD_W, 126.0,
 		"ui_card_frame", 0, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 
+	# The card is a painted plaque now, so its moulding is 22 dp deep: every line has to sit inside
+	# that, or the gold band eats it. The old offsets started at 6 dp and wrote on the moulding.
+	const CARD_PAD := 22.0
+	const CARD_INNER := CARD_W - CARD_PAD * 2.0
 	_chapter_label = UiKit.label(card, "chapter", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_chapter_label, 0.0, 6.0, CARD_W, 18.0)
+	UiKit.place(_chapter_label, CARD_PAD, 22.0, CARD_INNER, 18.0)
 
 	_level_label = UiKit.label(card, "level", "", UiTokens.TYPE_XL, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, 0.0, 22.0, CARD_W, 36.0)
+	UiKit.place(_level_label, CARD_PAD, 40.0, CARD_INNER, 34.0)
 
 	var star_row := Control.new()
 	star_row.name = "stars"
 	star_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(star_row)
-	UiKit.place(star_row, 0.0, 60.0, CARD_W, 26.0)
-	var star_size := 24.0
+	UiKit.place(star_row, CARD_PAD, 74.0, CARD_INNER, 20.0)
+	var star_size := 20.0
 	var total := star_size * 3.0 + 8.0 * 2.0
 	for index in range(3):
-		var star_x := (CARD_W - total) * 0.5 + float(index) * (star_size + 8.0)
+		var star_x := (CARD_INNER - total) * 0.5 + float(index) * (star_size + 8.0)
 		_stars.append(UiKit.icon(star_row, "star_%d" % index, "icon_star", star_x, 0.0, star_size, star_size))
 
 	_progress_label = UiKit.label(card, "progress", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_progress_label, 0.0, 90.0, CARD_W, 20.0)
+	UiKit.place(_progress_label, CARD_PAD, 96.0, CARD_INNER, 18.0)
 
 	_hint = UiKit.label(self, "hint", "", UiTokens.TYPE_SM, UiTokens.WARNING,
 		HORIZONTAL_ALIGNMENT_CENTER)
