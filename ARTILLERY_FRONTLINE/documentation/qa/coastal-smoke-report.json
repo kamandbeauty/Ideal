@@ -186,14 +186,14 @@
     }
   ],
   "failures": 0,
-  "kills": 1,
+  "kills": 3,
   "passed": true,
   "performance": {
-    "draw_calls": 346,
-    "fps": 10.7,
-    "frame_ms": 93.79,
-    "objects": 2045,
-    "primitives": 159602,
+    "draw_calls": 348,
+    "fps": 10.8,
+    "frame_ms": 92.97,
+    "objects": 2093,
+    "primitives": 159072,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"

@@ -1,9 +1,7 @@
 {
   "checks": 1041,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_enemy_behaviour: The jeep strafes across the target's front, covering over 15 m in five seconds"
-  ],
-  "passed": false,
+  "failures": [],
+  "passed": true,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }
