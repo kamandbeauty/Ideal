@@ -20,6 +20,7 @@ Deterministic: the grain uses a fixed seed, so the same bytes come out on every 
 
 from __future__ import annotations
 
+import math
 import os
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
@@ -282,13 +283,16 @@ def main():
           inlay=ACCENT, studs=True)
     plate("ui_panel_raised", (96, 96), 22, RAISED, BORDER, rim_colour=GOLD, gloss=0.55, marks=GOLD,
           inlay=ACCENT, studs=True)
-    plate("ui_button", (96, 64), 20, RAISED, BORDER, rim_colour=GOLD, gloss=0.55)
+    plate("ui_button", (96, 64), 20, RAISED, BORDER, rim_colour=GOLD, gloss=0.55, studs=True)
     plate("ui_button_gold", (96, 64), 20, GOLD, GOLD_DARK, rim_colour=GOLD_LIGHT, gloss=0.65,
-          marks=WHITE)
+          marks=WHITE, studs=True)
     plate("ui_button_accent", (96, 64), 20, ACCENT, ACCENT_DARK, rim_colour=GOLD, gloss=0.65,
-          marks=WHITE)
+          marks=WHITE, studs=True)
     plate("ui_button_danger", (96, 64), 20, DANGER, DANGER_DARK, rim_colour=GOLD_LIGHT, gloss=0.65,
-          marks=WHITE)
+          marks=WHITE, studs=True)
+    # A pill and a chip are used at 24-30 dp, where their nine-slice border is 6: anything drawn
+    # deeper than that lands in the stretched strip and smears, so they stay plain and rely on
+    # the gold rim. (Tried a turquoise inlay here; it never survived the scaling.)
     plate("ui_pill", (72, 44), 22, RAISED, BORDER, rim_colour=GOLD, gloss=0.55)
     plate("ui_chip", (64, 32), 16, RAISED, BORDER, rim_colour=GOLD, gloss=0.5)
     plate("ui_slot", (72, 72), 16, SURFACE, BORDER, rim_colour=None, gloss=0.35, marks=BORDER)
@@ -311,13 +315,22 @@ def main():
     tray = hairline(tray, 18, GOLD, inset=6, alpha=90)
     save(tray, "ui_board_tray")
 
-    # The board's tile: a carved square the gem sits in, with a gold rim and a dark well.
-    tile = gradient((72, 72), 14, [(0.0, _scale(SURFACE, 1.45)), (0.5, SURFACE), (1.0, _scale(BG, 1.2))])
-    tile = bevel(tile, 14, top_alpha=120, bottom_alpha=150)
+    # The board's tile: a carved well the gem sits in. The corner dashes are gone — on a 36 dp cell
+    # they read as stitching round every stone — and the well is deeper so five colours of gem are the
+    # brightest thing on the board.
+    tile = gradient((72, 72), 14, [(0.0, (34, 58, 96)), (0.55, (22, 40, 70)), (1.0, (13, 24, 44))])
+    tile = bevel(tile, 14, top_alpha=150, bottom_alpha=120)
     tile = grain(tile, strength=6)
-    tile = rim(tile, 14, (58, 96, 140), width=2)
-    tile = hairline(tile, 14, GOLD, inset=4, alpha=110)
-    tile = corner_marks(tile, 14, GOLD, inset=5, size=2, alpha=150)
+    tile = rim(tile, 14, (52, 86, 128), width=2)
+    tile = hairline(tile, 14, GOLD, inset=4, alpha=80)
+    # An octagon cut inside the square: the facet a real inlay tile has, faint enough to stay quiet.
+    octagon = ImageDraw.Draw(tile, "RGBA")
+    inset = 9.0
+    points = []
+    for index in range(8):
+        angle = math.pi / 8 + index * math.pi / 4
+        points.append((36 + math.cos(angle) * (36 - inset), 36 + math.sin(angle) * (36 - inset)))
+    octagon.line(points + [points[0]], fill=(236, 210, 150, 46), width=2, joint="curve")
     save(tile, "ui_tile_frame")
 
     # The switch: a track the knob slides in, and a knob that is a knob.
