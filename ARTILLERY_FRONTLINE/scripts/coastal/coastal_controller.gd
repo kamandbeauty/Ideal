@@ -33,6 +33,8 @@ var crafts: Array[LandingCraft] = []
 var active: bool = false
 var paused: bool = false
 var auto_fire: bool = true
+## Hostile currently pulling the aim (touch aim assist); kept while it stays in the capture cone.
+var aim_assist_target: Node3D = null
 var firing: bool = false
 var zoomed: bool = false
 var player_health: float = MAX_HEALTH
@@ -191,6 +193,26 @@ func set_auto_fire(enabled: bool) -> void:
 	auto_fire = enabled
 	if hud:
 		hud.auto_check.button_pressed = enabled
+
+## Touch aim assist: a gentle, capped pull toward a hostile near the crosshair with a clear line of sight.
+## Turned off from Settings. The pull changes only the aim target, so the camera still moves smoothly.
+func _apply_aim_assist(delta: float) -> void:
+	var settings: Dictionary = Profile.data.settings
+	if camera == null or not bool(settings.get("aim_assist", true)):
+		aim_assist_target = null
+		return
+	var origin: Vector3 = camera.global_position
+	aim_assist_target = AimAssist.choose(origin, yaw_target, pitch_target, living_targets(), Callable(self, "_clear_line_to"), aim_assist_target)
+	if aim_assist_target == null:
+		return
+	var offset: Vector2 = AimAssist.offset_to(origin, yaw_target, pitch_target, aim_assist_target.global_position + Vector3.UP * 1.2)
+	var step: Vector2 = AimAssist.pull(offset, float(settings.get("aim_assist_strength", 0.5)), delta)
+	yaw_target = wrapf(yaw_target + step.x, -180.0, 180.0)
+	pitch_target = clampf(pitch_target + step.y, -35.0, 65.0)
+
+## Line of sight from the emplacement camera to a point: cover blocks it, hostiles do not.
+func _clear_line_to(point: Vector3) -> bool:
+	return AimAssist.line_clear(get_world_3d(), camera.global_position, point)
 
 ## True when a living hostile (infantry, vehicle, aircraft or craft) sits inside the crosshair cone.
 func auto_target_in_sight() -> bool:
@@ -574,8 +596,9 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 		if not killed:
 			hud.confirm_hit(false)
 		return
-	effects.explode(point, normal, 0.55, point.y, true)
-	Sound.play_at("impact", point, -18.0)
+	var surface: Dictionary = ImpactSurface.profile(ImpactSurface.kind_for(collider))
+	effects.explode(point, normal, float(surface.radius), point.y, true)
+	Sound.play_at("impact", point, float(surface.volume_db))
 
 ## Head hits on infantry deal extra damage; the readout shows the scaled figure.
 static func is_head_hit(base_y: float, hit_y: float) -> bool:
@@ -684,6 +707,7 @@ func _process(delta: float) -> void:
 	_smooth_camera(delta)
 	if not active:
 		return
+	_apply_aim_assist(delta)
 	elapsed += delta
 	distant_clock += delta
 	waves.tick(delta)

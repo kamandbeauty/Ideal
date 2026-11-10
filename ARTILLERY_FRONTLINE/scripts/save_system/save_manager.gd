@@ -11,7 +11,8 @@ static func defaults() -> Dictionary:
 		"completed": [], "unlocked": ["sr01"], "records": {},
 		"settings": {"quality": "auto", "fps_target": 60, "sensitivity": 1.0,
 			"master_volume": 0.8, "sfx_volume": 0.9, "ambient_volume": 0.35,
-			"camera_shake": true, "advanced_drag": false, "show_performance": false, "auto_reload": true}
+			"camera_shake": true, "advanced_drag": false, "show_performance": false, "auto_reload": true,
+			"aim_assist": true, "aim_assist_strength": 0.5}
 	}
 
 static func validate(raw: Variant) -> Dictionary:
@@ -55,6 +56,7 @@ static func validate(raw: Variant) -> Dictionary:
 			settings.quality = "auto"
 		settings.fps_target = 30 if int(settings.fps_target) == 30 else 60
 		settings.sensitivity = clampf(float(settings.sensitivity), 0.3, 2.5)
+		settings.aim_assist_strength = clampf(float(settings.aim_assist_strength), 0.0, 1.0)
 		for key in ["master_volume", "sfx_volume", "ambient_volume"]:
 			settings[key] = clampf(float(settings[key]), 0.0, 1.0)
 	if source.get("records", {}) is Dictionary:

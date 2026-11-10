@@ -405,6 +405,8 @@ func _build_settings() -> void:
 	_add_slider(grid, Loc.t("settings_master"), Loc.t("settings_master_note"), "master_volume", 0.0, 1.0)
 	_add_slider(grid, Loc.t("settings_sfx"), Loc.t("settings_sfx_note"), "sfx_volume", 0.0, 1.0)
 	_add_slider(grid, Loc.t("settings_ambient"), Loc.t("settings_ambient_note"), "ambient_volume", 0.0, 1.0)
+	_add_toggle(grid, Loc.t("settings_aim_assist"), Loc.t("settings_aim_assist_note"), "aim_assist")
+	_add_slider(grid, Loc.t("settings_aim_assist_strength"), Loc.t("settings_aim_assist_strength_note"), "aim_assist_strength", 0.0, 1.0)
 	_add_toggle(grid, Loc.t("settings_shake"), Loc.t("settings_shake_note"), "camera_shake")
 	_add_toggle(grid, Loc.t("settings_autoreload"), Loc.t("settings_autoreload_note"), "auto_reload")
 	_add_toggle(grid, Loc.t("settings_drag"), Loc.t("settings_drag_note"), "advanced_drag")
