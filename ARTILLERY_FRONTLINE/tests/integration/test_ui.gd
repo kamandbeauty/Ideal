@@ -13,6 +13,12 @@ func run(t: TestContext) -> void:
 		menu.show_screen(id)
 		await t.tree.process_frame
 		_audit(t, menu, latin, id)
+	menu.show_screen("campaign")
+	t.check(menu.is_animating(), "Menu pages animate in")
+	menu.settle()
+	t.check(not menu.is_animating(), "Settling ends every running menu tween")
+	t.check(is_equal_approx(menu.screens["campaign"].modulate.a, 1.0), "Settled menu page is fully opaque")
+	t.check(menu.screens["main"].get_child(0) is ColorRect and is_equal_approx((menu.screens["main"].get_child(0) as ColorRect).color.a, 1.0), "Animated home keeps its opaque backdrop")
 	t.check(_has_texture(menu.screens["main"], UITheme.texture("hero_beach.jpg")), "Home screen uses painted beach key art")
 	t.check(_count_buttons(menu.screens["main"]) >= 5, "Home screen exposes image-led command cards")
 	t.check(menu.campaign_map.layout_direction == Control.LAYOUT_DIRECTION_RTL, "Campaign map is RTL")

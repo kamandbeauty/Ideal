@@ -34,6 +34,8 @@ var toast_label: Label
 var toast_time: float = 0.0
 var last_result: Dictionary = {}
 var arsenal_stats: Label
+## Running menu tweens as [Tween, finish Callable]; settle() ends them at rest.
+var _motion: Array = []
 
 
 func _ready() -> void:
@@ -86,17 +88,21 @@ func _update_content_insets() -> void:
 		margin.add_theme_constant_override("margin_bottom", int(ceilf(maxf(32.0, insets.w))))
 
 
-func _base(id: String, art_file: String = "hero_beach.jpg", dim: float = 0.62) -> VBoxContainer:
+func _base(id: String, art_file: String = "hero_beach.jpg", dim: float = 0.62, ambient: bool = false) -> VBoxContainer:
 	var root := Control.new()
 	root.name = id.capitalize()
 	root.layout_direction = Control.LAYOUT_DIRECTION_RTL
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_STOP
 	root.add_child(UITheme.backdrop())
-	root.add_child(UITheme.art(art_file, dim))
+	var art := UITheme.art(art_file, dim)
+	root.add_child(art)
+	MenuMotion.drift(art)
 	root.add_child(UITheme.overlay("scrim_right.png", 0.88))
 	root.add_child(UITheme.overlay("scrim_bottom.png", 0.72))
 	root.add_child(UITheme.overlay("vignette.png", 0.9))
+	if ambient:
+		MenuMotion.dust(root)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# The page itself is full-bleed; only the content respects the display cutout.
@@ -125,6 +131,8 @@ func _art_button(title: String, hint: String, art_file: String, action: Callable
 	## Image-led command card: thumbnail on the RTL start side, copy beside it.
 	var node: Button = UITheme.button("", action, accent)
 	node.custom_minimum_size = Vector2(396, 70 if compact else 86)
+	if accent:
+		MenuMotion.add_sweep(node)
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	for side in ["left", "right"]:
@@ -161,21 +169,47 @@ func _art_button(title: String, hint: String, art_file: String, action: Callable
 
 
 func _build_splash() -> void:
-	var box := _base("splash", "hero_beach.jpg", 0.78)
+	var box := _base("splash", "hero_beach.jpg", 0.78, true)
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
 	var icon: TextureRect = UITheme.emblem(150)
 	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(icon)
+	_track(MenuMotion.reveal(icon, 0.1, 0.9, 0.55), MenuMotion.snap.bind(icon))
 	var title := UITheme.label(Loc.t("game_title"), 56, UITheme.TEXT, true)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(title)
+	_track(MenuMotion.reveal(title, 0.42, 0.9), MenuMotion.snap.bind(title))
+	var rule := ColorRect.new()
+	rule.color = Color(UITheme.ACCENT, 0.85)
+	rule.custom_minimum_size = Vector2(0.0, 2.0)
+	rule.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(rule)
+	var rule_tween := MenuMotion.tween_on(rule)
+	rule_tween.tween_property(rule, "custom_minimum_size:x", 300.0, 1.0).set_delay(0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_track(rule_tween, MenuMotion.finish.bind(rule, "custom_minimum_size:x", 300.0))
 	var subtitle := UITheme.label(Loc.t("splash_boot") + "  /  " + Loc.t("splash_offline"), 20, UITheme.ACCENT)
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(subtitle)
+	_track(MenuMotion.reveal(subtitle, 0.9, 0.7), MenuMotion.snap.bind(subtitle))
+	## Loading meter matches the 1.4 s boot delay in game.gd, so the menu appears as it fills.
+	var meter := ProgressBar.new()
+	meter.show_percentage = false
+	meter.min_value = 0.0
+	meter.max_value = 100.0
+	meter.value = 0.0
+	meter.custom_minimum_size = Vector2(320.0, 4.0)
+	meter.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	meter.add_theme_stylebox_override("background", MenuMotion.bar_style(Color(1.0, 1.0, 1.0, 0.12)))
+	meter.add_theme_stylebox_override("fill", MenuMotion.bar_style(UITheme.ACCENT))
+	box.add_child(meter)
+	var meter_tween := MenuMotion.tween_on(meter)
+	meter_tween.tween_property(meter, "value", 100.0, 1.2).set_delay(0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_track(meter_tween, MenuMotion.finish.bind(meter, "value", 100.0))
 
 
 func _build_main() -> void:
-	var box := _base("main", "hero_beach.jpg", 1.0)
+	var box := _base("main", "hero_beach.jpg", 1.0, true)
 	var top := UITheme.row(14)
 	var icon: TextureRect = UITheme.emblem(52)
 	top.add_child(icon)
@@ -486,6 +520,47 @@ func show_screen(id: String) -> void:
 	if id == "upgrades":
 		_refresh_upgrades()
 	_refresh_currency()
+	_enter(id)
+
+
+func _enter(id: String) -> void:
+	## Each page fades in, and its command controls step in one after another.
+	var root: Control = screens[id]
+	root.modulate.a = 0.0
+	var fade := MenuMotion.tween_on(root)
+	fade.tween_property(root, "modulate:a", 1.0, 0.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_track(fade, MenuMotion.finish.bind(root, "modulate:a", 1.0))
+	var index := 0
+	for node in root.find_children("*", "Button", true, false):
+		var button := node as Button
+		if button == null or not button.is_visible_in_tree():
+			continue
+		MenuMotion.attach_press(button)
+		_track(MenuMotion.reveal(button, 0.05 + minf(index, 14) * 0.045, 0.45, 0.94), MenuMotion.snap.bind(button))
+		index += 1
+
+
+func settle() -> void:
+	## Finishes every running menu tween at its resting state. Smoke captures call
+	## this so screenshots show the settled interface rather than a mid-motion frame.
+	for entry in _motion:
+		var tween: Tween = entry[0]
+		if tween.is_valid():
+			tween.kill()
+		entry[1].call()
+	_motion.clear()
+
+
+func is_animating() -> bool:
+	for entry in _motion:
+		if entry[0].is_valid():
+			return true
+	return false
+
+
+func _track(tween: Tween, finish: Callable) -> void:
+	_motion = _motion.filter(func(entry): return entry[0].is_valid())
+	_motion.append([tween, finish])
 
 
 func show_briefing(id: String) -> void:

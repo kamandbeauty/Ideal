@@ -15,6 +15,9 @@ func check(name: String, passed: bool) -> void:
 		push_error("SMOKE FAIL: " + name)
 
 func capture(name: String) -> void:
+	# Menus fade and step in; photograph the settled layout, not a mid-motion frame.
+	if game.menus and game.menus.visible:
+		game.menus.settle()
 	await RenderingServer.frame_post_draw
 	var image: Image = get_viewport().get_texture().get_image()
 	var error: int = image.save_png(output + "/" + name + ".png")
