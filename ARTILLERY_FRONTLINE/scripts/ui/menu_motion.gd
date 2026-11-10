@@ -32,9 +32,10 @@ static func snap(node: Control) -> void:
 	## scale tween still owned by the node, so nothing keeps moving afterwards.
 	if not is_instance_valid(node):
 		return
-	var owned: Variant = node.get_meta("scale_tween", null)
-	if owned is Tween and owned.is_valid():
-		owned.kill()
+	if node.has_meta("scale_tween"):
+		var owned: Variant = node.get_meta("scale_tween")
+		if owned is Tween and owned.is_valid():
+			owned.kill()
 	node.modulate.a = 1.0
 	node.scale = Vector2.ONE
 
