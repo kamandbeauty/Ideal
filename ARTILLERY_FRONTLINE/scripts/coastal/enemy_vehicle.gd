@@ -26,6 +26,10 @@ const SMOKE_THRESHOLD: float = 0.6
 const FIRE_THRESHOLD: float = 0.3
 ## Lateral speed (m/s) of a jeep circling its target.
 const STRAFE_SPEED: float = 5.0
+## A circling jeep keeps strafing anywhere inside this band; the approach only runs outside it.
+## Without a band, the tangential step pushes it just past the stand-off, and the approach
+## branch then pulls it straight back in each frame, so it never actually circles.
+const STRAFE_BAND: float = 2.0
 var health: float = TANK_HEALTH
 var max_health: float = TANK_HEALTH
 var speed: float = 3.2
@@ -354,7 +358,7 @@ func _physics_process(delta: float) -> void:
 	var direction: Vector3 = offset / distance if distance > 0.001 else -global_transform.basis.z
 	var desired_yaw: float = atan2(-direction.x, -direction.z)
 	var current_speed: float = 0.0
-	if strafes(kind) and distance <= stop_distance:
+	if strafes(kind) and distance <= stop_distance + STRAFE_BAND:
 		# The jeep does not park: it circles its target at the stand-off distance.
 		current_speed = _strafe(delta, direction, distance, desired_yaw)
 	elif distance > stop_distance:
