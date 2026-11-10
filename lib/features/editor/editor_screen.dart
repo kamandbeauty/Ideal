@@ -21,6 +21,7 @@ import '../../core/errors/app_failure.dart';
 import '../../core/models/photo_item.dart';
 import '../../core/models/project.dart';
 import '../../core/models/transition.dart';
+import '../../core/models/audio_settings.dart';
 import '../../core/models/watermark.dart';
 import '../../core/utils/ratio_utils.dart';
 import '../transitions/timeline_engine.dart';
@@ -44,6 +45,10 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   /// or resize one edge. A single `setWatermark` commit happens on release
   /// so undo gets one entry per drag, not one per frame.
   _WmDrag? _wmDrag;
+
+  /// Local (uncommitted) drag of the music lane's trim handles. A single
+  /// `setAudio` commit happens on release.
+  _MusicTrimDrag? _musicTrim;
 
   @override
   void initState() {
@@ -704,9 +709,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   }
 
   // ---------------------------------------------------------------- music
-  /// The music lane: the track's REAL decoded waveform over the video length
-  /// (tiled when the track loops; flat once it ends when it doesn't).
-  /// Tapping anywhere seeks the playhead to that moment.
+  /// The music lane: the track's REAL decoded waveform laid out across the
+  /// lane (source time 0→duration) with draggable trim handles, so the user
+  /// picks exactly which part of the song plays (the renderer loops/trims it
+  /// to the video length). The red marker shows where in the song the
+  /// timeline currently is.
   Widget _musicLane(
       BuildContext context, L10n l10n, ProjectEditorState st, FrameState playback) {
     final audio = st.project.audio!;
@@ -718,7 +725,6 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final value = wf.valueOrNull;
     final peaks = value?.$2 ?? const <double>[];
     final srcDur = value?.$1 ?? 0.0;
-    final total = st.project.totalDuration;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -749,7 +755,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
               Padding(
                 padding: const EdgeInsets.only(left: 6),
                 child: Text(
-                  l10n.t('music_tap_seek'),
+                  l10n.t('music_drag_trim'),
                   style: context.theme.textTheme.labelSmall?.copyWith(
                       fontSize: 9,
                       color: context.theme.colorScheme.onSurfaceVariant),
@@ -758,37 +764,138 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           ],
         ),
         const SizedBox(height: 4),
-        LayoutBuilder(
-          builder: (BuildContext c, BoxConstraints box) {
-            final W = box.maxWidth;
-            return SizedBox(
-              height: 30,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapDown: (d) {
-                  if (W <= 0 || total <= 0) return;
-                  ref.read(playbackProvider.notifier).seek(
-                      (d.localPosition.dx / W * total)
-                          .clamp(0.0, total)
-                          .toDouble());
-                },
-                child: CustomPaint(
-                  size: Size.infinite,
-                  painter: _WaveformPainter(
-                    peaks: peaks,
-                    sourceDuration: srcDur,
-                    loop: audio.loop,
-                    trimStart: audio.trimStart,
-                    trimEnd: audio.trimEnd,
-                    total: total,
-                    playhead: playback.time,
+        if (peaks.isEmpty || srcDur <= 0)
+          const SizedBox(height: 30)
+        else
+          _musicTrimStrip(audio, peaks, srcDur, playback),
+      ],
+    );
+  }
+
+  /// The draggable source-waveform strip: the full track across the lane
+  /// width, the selected [trimStart, trimEnd] span highlighted, with a handle
+  /// on each edge to trim it. One `setAudio` commit per finished drag.
+  Widget _musicTrimStrip(
+    AudioSettings audio,
+    List<double> peaks,
+    double srcDur,
+    FrameState playback,
+  ) {
+    const minTrim = 0.2;
+    final committedEnd = audio.trimEnd ?? srcDur;
+    final tStart = _musicTrim?.start ?? audio.trimStart;
+    final tEnd = _musicTrim?.end ?? committedEnd;
+
+    void commit() {
+      final drag = _musicTrim;
+      if (drag == null) return;
+      setState(() => _musicTrim = null);
+      if ((drag.start - audio.trimStart).abs() > 0.001 ||
+          (drag.end - committedEnd).abs() > 0.001) {
+        ref
+            .read(projectEditorProvider.notifier)
+            .setAudio(audio.copyWith(trimStart: drag.start, trimEnd: drag.end));
+      }
+    }
+
+    return LayoutBuilder(
+      builder: (BuildContext c, BoxConstraints box) {
+        final W = box.maxWidth;
+        if (W <= 0) return const SizedBox.shrink();
+        double px(double srcT) => (srcT / srcDur * W).clamp(0.0, W).toDouble();
+
+        return SizedBox(
+          height: 38,
+          child: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1B1B26),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                 ),
               ),
-            );
-          },
-        ),
-      ],
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CustomPaint(
+                    painter: _MusicTrimPainter(
+                      peaks: peaks,
+                      sourceDuration: srcDur,
+                      trimStart: tStart,
+                      trimEnd: tEnd,
+                      loop: audio.loop,
+                      playhead: playback.time,
+                    ),
+                  ),
+                ),
+              ),
+              // Left handle → trimStart.
+              Positioned(
+                left: (px(tStart) - 11).clamp(0.0, W).toDouble(),
+                width: 22,
+                top: 0,
+                bottom: 0,
+                child: GestureDetector(
+                  onHorizontalDragStart: (d) => setState(() => _musicTrim =
+                      _MusicTrimDrag(audio.trimStart, committedEnd,
+                          audio.trimStart, committedEnd)),
+                  onHorizontalDragUpdate: (d) {
+                    final cur = _musicTrim!;
+                    cur.start += d.delta.dx / W * srcDur;
+                    cur.start =
+                        cur.start.clamp(0.0, cur.end - minTrim).toDouble();
+                    setState(() {});
+                  },
+                  onHorizontalDragEnd: (_) => commit(),
+                  child: Container(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      width: 4,
+                      margin: const EdgeInsets.only(left: 9),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF46E0C0),
+                        borderRadius: BorderRadius.all(Radius.circular(2)),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Right handle → trimEnd.
+              Positioned(
+                left: (px(tEnd) - 11).clamp(0.0, W).toDouble(),
+                width: 22,
+                top: 0,
+                bottom: 0,
+                child: GestureDetector(
+                  onHorizontalDragStart: (d) => setState(() => _musicTrim =
+                      _MusicTrimDrag(audio.trimStart, committedEnd,
+                          audio.trimStart, committedEnd)),
+                  onHorizontalDragUpdate: (d) {
+                    final cur = _musicTrim!;
+                    cur.end += d.delta.dx / W * srcDur;
+                    cur.end = cur.end.clamp(cur.start + minTrim, srcDur).toDouble();
+                    setState(() {});
+                  },
+                  onHorizontalDragEnd: (_) => commit(),
+                  child: Container(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      width: 4,
+                      margin: const EdgeInsets.only(right: 9),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF46E0C0),
+                        borderRadius: BorderRadius.all(Radius.circular(2)),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1571,79 +1678,87 @@ class _WmDrag {
   double end;
 }
 
-/// The music timeline: bars of the track's real decoded amplitude, mapped
-/// over the VIDEO length (the pattern tiles when the track loops and goes
-/// flat once a non-looping track ends), with the global playhead.
-class _WaveformPainter extends CustomPainter {
-  _WaveformPainter({
+/// In-progress trim of the music track: the committed span (base) plus the
+/// live start/end while a handle is being dragged.
+class _MusicTrimDrag {
+  _MusicTrimDrag(this.baseStart, this.baseEnd, this.start, this.end);
+
+  final double baseStart;
+  final double baseEnd;
+  double start;
+  double end;
+}
+
+/// The music trim strip: bars of the track's real decoded amplitude laid out
+/// across SOURCE time (0→duration), with the selected [trimStart, trimEnd]
+/// span highlighted (dim outside) and a red marker at the current source
+/// position (loop-aware, derived from the video playhead).
+class _MusicTrimPainter extends CustomPainter {
+  _MusicTrimPainter({
     required this.peaks,
     required this.sourceDuration,
-    required this.loop,
     required this.trimStart,
     required this.trimEnd,
-    required this.total,
+    required this.loop,
     required this.playhead,
   });
 
   final List<double> peaks;
   final double sourceDuration;
-  final bool loop;
   final double trimStart;
-  final double? trimEnd;
-  final double total;
+  final double trimEnd;
+  final bool loop;
   final double playhead;
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (total <= 0 || size.isEmpty) return;
-    final hasData = peaks.isNotEmpty && sourceDuration > 0;
+    if (sourceDuration <= 0 || size.isEmpty || peaks.isEmpty) return;
     final n = (size.width / 2.5).floor().clamp(24, 400);
     final barW = size.width / n;
-    final barPaint =
+    final selPaint =
         Paint()..color = const Color(0xFF46E0C0).withValues(alpha: 0.9);
     final dimPaint = Paint()..color = const Color(0xFF2A2A3A);
-    final span = (trimEnd ?? sourceDuration) - trimStart;
 
     for (var i = 0; i < n; i++) {
-      final t = (i + 0.5) / n * total;
-      double amp = 0;
-      if (hasData && span > 0) {
-        // video time -> source time (trimmed span, tiled when looping).
-        final st = trimStart + (loop ? t % span : t);
-        if (st < (trimEnd ?? sourceDuration)) {
-          final idx = (st / sourceDuration * peaks.length)
-              .floor()
-              .clamp(0, peaks.length - 1);
-          amp = peaks[idx];
-        }
-      }
+      final st = (i + 0.5) / n * sourceDuration;
+      final idx = (st / sourceDuration * peaks.length)
+          .floor()
+          .clamp(0, peaks.length - 1);
+      final amp = peaks[idx];
+      final selected = st >= trimStart - 0.001 && st <= trimEnd + 0.001;
       final h =
-          (amp * (size.height - 4)).clamp(2.0, size.height - 4).toDouble();
+          (amp * (size.height - 6)).clamp(2.0, size.height - 6).toDouble();
       final x = i * barW;
       canvas.drawRect(
         Rect.fromLTWH(x + 0.5, (size.height - h) / 2,
             math.max(1.0, barW - 1.5), h),
-        amp > 0 ? barPaint : dimPaint,
+        amp > 0 && selected ? selPaint : dimPaint,
       );
     }
 
-    final px = playhead / total * size.width;
-    canvas.drawLine(
-      Offset(px, 0),
-      Offset(px, size.height),
-      Paint()
-        ..color = const Color(0xFFFF3B5C)
-        ..strokeWidth = 2,
-    );
+    // Current source position from the video playhead (loop-aware).
+    final span = (trimEnd - trimStart).clamp(0.01, sourceDuration).toDouble();
+    final stNow = loop
+        ? trimStart + (playhead % span)
+        : (trimStart + playhead).clamp(trimStart, trimEnd);
+    if (stNow >= 0 && stNow <= sourceDuration) {
+      final px = stNow / sourceDuration * size.width;
+      canvas.drawLine(
+        Offset(px, 0),
+        Offset(px, size.height),
+        Paint()
+          ..color = const Color(0xFFFF3B5C)
+          ..strokeWidth = 2,
+      );
+    }
   }
 
   @override
-  bool shouldRepaint(_WaveformPainter old) =>
+  bool shouldRepaint(_MusicTrimPainter old) =>
       old.peaks != peaks ||
       old.sourceDuration != sourceDuration ||
-      old.loop != loop ||
       old.trimStart != trimStart ||
       old.trimEnd != trimEnd ||
-      old.total != total ||
+      old.loop != loop ||
       (old.playhead - playhead).abs() > 0.0005;
 }

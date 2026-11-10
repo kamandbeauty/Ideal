@@ -133,6 +133,7 @@ class L10n {
       'waveform_loading': 'Analyzing audio…',
       'waveform_unavailable': 'Waveform unavailable',
       'music_tap_seek': 'Tap the waveform to seek',
+      'music_drag_trim': 'Drag the edges to trim',
       // motion editor
       'motion_title': 'Motion editor',
       'motion_start_frame': 'Start frame',
@@ -496,6 +497,7 @@ class L10n {
       'waveform_loading': 'در حال تحلیل صدا…',
       'waveform_unavailable': 'نمای صدا در دسترس نیست',
       'music_tap_seek': 'روی موج صدا ضربه بزن تا به همان لحظه برسی',
+      'music_drag_trim': 'برای تراش، لبه‌ها را بکشید',
       'motion_title': 'ویرایش حرکت',
       'motion_start_frame': 'فریم شروع',
       'motion_end_frame': 'فریم پایان',
