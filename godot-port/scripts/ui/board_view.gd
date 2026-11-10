@@ -111,16 +111,14 @@ func rebuild() -> void:
 	_tiles.clear()
 	if run == null:
 		return
-	# The cell is a carved picture too: the Unity plate is a flat dark square, and a flat dark square
-	# behind every gem is what made the board look like a prototype rather than a jewelled tray.
-	var tile_art := UiKit.ui_texture("ui_tile_frame")
-	if tile_art == null:
-		tile_art = UiKit.texture("board_tile")
+	# No plate per cell. The board floor already carries one soft grey square per cell, and a second,
+	# cream plate inside every one of them boxed the fruit in: the player asked for fruit with no box,
+	# sitting straight on a pale grey table.
 	for y in range(run.board.height):
 		for x in range(run.board.width):
 			var pos := Vector2i(x, y)
 			var cell := run.board.at(x, y)
-			var tile := _build_cell(pos, cell, tile_art)
+			var tile := _build_cell(pos, cell)
 			_tiles[pos] = tile
 	_apply_highlight()
 
@@ -129,7 +127,7 @@ func _apply_highlight() -> void:
 	if tile != null and is_instance_valid(tile):
 		tile.modulate = Color(1.12, 1.10, 1.02, 1)
 
-func _build_cell(pos: Vector2i, cell, tile_art: Texture2D) -> Control:
+func _build_cell(pos: Vector2i, cell) -> Control:
 	var tile := Control.new()
 	tile.name = "cell_%d_%d" % [pos.x, pos.y]
 	# The cell travels with the tile: a tile is asked to go home after a refused move, and reading the
@@ -153,16 +151,6 @@ func _build_cell(pos: Vector2i, cell, tile_art: Texture2D) -> Control:
 		blocked.position = Vector2(TILE_INSET, TILE_INSET)
 		blocked.size = Vector2(cell_size - TILE_INSET * 2.0, cell_size - TILE_INSET * 2.0)
 		return tile
-
-	if tile_art != null:
-		var background := TextureRect.new()
-		background.texture = tile_art
-		background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		background.stretch_mode = TextureRect.STRETCH_SCALE
-		tile.add_child(background)
-		background.position = Vector2(TILE_INSET, TILE_INSET)
-		background.size = Vector2(cell_size - TILE_INSET * 2.0, cell_size - TILE_INSET * 2.0)
 
 	if cell.has_piece:
 		var piece_art := AssetCatalog.piece_texture(cell.piece)

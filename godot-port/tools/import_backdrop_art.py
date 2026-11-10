@@ -32,13 +32,16 @@ W, H = 1476, 830
 # warmth    — >0 pushes toward amber, <0 toward blue.
 # grain     — amplitude of the noise, in 8-bit levels.
 SCENES = {
+    # These five are painted in daylight now: a soft, bright, rounded cartoon hand. The grade is only
+    # there to hold the HUD at the edges, so it is a light vignette and a whisper of grain.
+    #
     # Cartoon plates are already bright and flat, so the grade is gentle: a touch of vignette to hold
     # the HUD at the edges, a whisper of warmth, and grain fine enough to read as paper.
-    "garden_dusk": dict(exposure=1.00, centre=0.00, vignette=0.22, warmth=0.02, grain=1.6, seed=11),
-    "hall_night": dict(exposure=0.94, centre=0.10, vignette=0.30, warmth=0.00, grain=2.0, seed=23),
-    "map_terrace": dict(exposure=1.00, centre=0.00, vignette=0.20, warmth=0.02, grain=1.6, seed=37),
-    "bazaar": dict(exposure=0.98, centre=0.00, vignette=0.24, warmth=0.02, grain=1.8, seed=51),
-    "courtyard": dict(exposure=0.96, centre=0.00, vignette=0.24, warmth=0.00, grain=1.8, seed=67),
+    "garden_dusk": dict(exposure=1.00, centre=0.00, vignette=0.16, warmth=0.02, grain=1.4, seed=11),
+    "hall_night": dict(exposure=0.98, centre=0.06, vignette=0.22, warmth=0.02, grain=1.6, seed=23),
+    "map_terrace": dict(exposure=1.00, centre=0.00, vignette=0.14, warmth=0.02, grain=1.4, seed=37),
+    "bazaar": dict(exposure=0.99, centre=0.00, vignette=0.18, warmth=0.02, grain=1.5, seed=51),
+    "courtyard": dict(exposure=1.00, centre=0.00, vignette=0.16, warmth=0.01, grain=1.4, seed=67),
 }
 
 

@@ -57,7 +57,9 @@ CARDS = {
 # How much of the painted carpet is kept: the centre only. The painting's border is a wide geometric
 # band — beautiful, and 60 dp of playfield if shipped whole. Keeping the middle 68% thins it to about
 # 18 dp at the size the board is drawn, which frames the grid instead of competing with it.
-TRAY_KEEP = 0.68
+# Where the 9 x 9 grid starts inside the board plate, as a fraction of the plate: BoardScreen puts the
+# grid 15 dp into a 408 dp plate.
+BOARD_INSET = 15.0 / 408.0
 
 
 def _load(name: str) -> Image.Image:
@@ -92,26 +94,47 @@ def _field_keyed(source: Image.Image) -> Image.Image:
 
 
 def build_tray() -> Image.Image:
-    """The carpet. Shipped whole: the board is the playfield and the weave is its only frame."""
-    source = _load("tray")
-    width, height = source.size
-    half_x = int(width * TRAY_KEEP * 0.5)
-    half_y = int(height * TRAY_KEEP * 0.5)
-    source = source.crop((width // 2 - half_x, height // 2 - half_y,
-                          width // 2 + half_x, height // 2 + half_y))
-    tray = source.resize((TRAY_SIZE, TRAY_SIZE), Image.LANCZOS)
-    # A touch warmer and a touch darker than the painted plate: the stones sit on it, so it must not
-    # compete with them.
-    # A step darker and warmer than the cells that sit on it: the carpet is the floor of the board and
-    # the cells are its furniture, so the cells have to read as raised.
-    pixels = np.asarray(tray).astype(np.float32) * np.array([0.92, 0.89, 0.82], dtype=np.float32)
-    tray = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGB")
-    tray = tray.filter(ImageFilter.UnsharpMask(radius=1.8, percent=45, threshold=3))
-    # The reference art the player judges this by is juicy, and the carpet is the largest picture on the
-    # screen: a little colour and a little light, or it reads as a dark rug under bright fruit.
-    tray = ImageEnhance.Color(tray).enhance(1.26)
-    tray = ImageEnhance.Brightness(tray).enhance(1.05)
-    return _grain(tray, 2.0, 11)
+    """The board floor: a soft grey table with one rounded cell per playfield square."""
+    # The board is a soft grey table, not a carpet: the fruits are the only saturated thing on the
+    # screen, and a painted rug under them fought every one of the five colours. It is still a picture —
+    # drawn here, offline, at exactly the geometry the board uses, so the cells line up to the pixel.
+    scale = 4
+    size = TRAY_SIZE * scale
+    picture = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(picture)
+    radius = int(size * 0.075)
+    draw.rounded_rectangle((0, 0, size - 1, size - 1), radius=radius, fill=(224, 220, 212, 255))
+
+    # The cells: one soft rounded square per playfield cell, lifted out of the field by a lighter face.
+    # 15 dp of margin and a 42 dp pitch are the same numbers BoardScreen places the grid with.
+    inset = int(size * BOARD_INSET)
+    pitch = (size - inset * 2) / 9.0
+    gap = max(2, int(pitch * 0.035))
+    cell_radius = int(pitch * 0.30)
+    for row in range(9):
+        for column in range(9):
+            x = inset + column * pitch + gap * 0.5
+            y = inset + row * pitch + gap * 0.5
+            draw.rounded_rectangle((x, y, x + pitch - gap, y + pitch - gap),
+                                   radius=cell_radius, fill=(236, 233, 226, 255))
+
+    picture = picture.resize((TRAY_SIZE, TRAY_SIZE), Image.LANCZOS)
+
+    # Light from above: a soft white band across the top and a soft shadow under the bottom rim, so the
+    # table has an edge without a drawn outline.
+    shade = Image.new("RGBA", (TRAY_SIZE, TRAY_SIZE), (0, 0, 0, 0))
+    painter = ImageDraw.Draw(shade)
+    painter.rectangle((0, 0, TRAY_SIZE, int(TRAY_SIZE * 0.06)), fill=(255, 255, 255, 42))
+    painter.rectangle((0, TRAY_SIZE - int(TRAY_SIZE * 0.05), TRAY_SIZE, TRAY_SIZE),
+                      fill=(120, 110, 96, 18))
+    shade = shade.filter(ImageFilter.GaussianBlur(TRAY_SIZE * 0.02))
+    picture = Image.alpha_composite(picture, shade)
+    # The cells are drawn edge to edge, so the table's own rounded shape is stamped back on last.
+    mask = Image.new("L", (TRAY_SIZE, TRAY_SIZE), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, TRAY_SIZE - 1, TRAY_SIZE - 1),
+                                           radius=int(TRAY_SIZE * 0.075), fill=255)
+    picture.putalpha(mask)
+    return _grain(picture.convert("RGB"), 1.4, 11)
 
 
 def build_rail() -> Image.Image:
