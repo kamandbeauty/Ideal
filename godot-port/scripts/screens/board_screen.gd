@@ -272,7 +272,7 @@ func refresh_goals() -> void:
 		_goal_labels[index].text = PersianText.fraction(mini(progress, target), target)
 		var complete := progress >= target
 		_goal_labels[index].add_theme_color_override("font_color",
-			UiTokens.SUCCESS if complete else UiTokens.INK)
+			UiTokens.SUCCESS_TEXT if complete else UiTokens.INK)
 	_stack_goals()
 
 ## Centres the goal rows that are shown in the band they share, so a level with one goal looks laid out
@@ -450,7 +450,7 @@ func _show_combo(combo_count: int, combo_bonus: int) -> void:
 	# Words and Persian digits only. A "+" or a "×" between a word and a number is a neutral character
 	# in the bidi algorithm, and the run it splits can come out reading backwards on screen; a sentence
 	# with a Persian connector cannot.
-	var popup := UiKit.label(toast, "combo_popup", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
+	var popup := UiKit.label(toast, "combo_popup", "", UiTokens.TYPE_BASE, UiTokens.GOLD_TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	popup.text = "کمبو " + PersianText.number(combo_count) + " و پاداش " \
 		+ PersianText.number(combo_bonus) + " امتیاز"
@@ -528,7 +528,7 @@ func _build_overlay() -> void:
 
 	# The Unity banner plate is a frame with nothing printed on it, so the title goes inside the frame:
 	# otherwise the first thing a player sees at the end of a level is an empty ornate box.
-	_result_title = UiKit.label(_overlay_card, "title", "", UiTokens.TYPE_LG, UiTokens.GOLD,
+	_result_title = UiKit.label(_overlay_card, "title", "", UiTokens.TYPE_LG, UiTokens.GOLD_TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(_result_title, 115.0, 10.0, 210.0, 58.0)
 
@@ -676,7 +676,7 @@ func _build_pause() -> void:
 		"ui_panel", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 	card.mouse_filter = Control.MOUSE_FILTER_STOP
 
-	var title := UiKit.label(card, "title", "بازی متوقف شد", UiTokens.TYPE_LG, UiTokens.GOLD,
+	var title := UiKit.label(card, "title", "بازی متوقف شد", UiTokens.TYPE_LG, UiTokens.GOLD_TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(title, 16.0, 18.0, PAUSE_CARD_WIDTH - 32.0, 34.0)
 

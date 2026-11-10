@@ -31,6 +31,13 @@ const ON_DANGER := Color(1.0, 0.9647, 0.9529, 1.0)          # #FFF6F3
 const SUCCESS := Color(0.3451, 0.7882, 0.5412, 1.0)         # #58C98A
 const WARNING := Color(0.9412, 0.7059, 0.1608, 1.0)         # #F0B429
 const DANGER_STRONG := Color(0.7020, 0.2275, 0.1412, 1.0)   # #B33A24
+
+# Text flavours of the accents. GOLD, SUCCESS and DANGER are *plate* colours: they carry their meaning
+# as a button face, and on the cream ground they are far too pale to write with. Anything that puts an
+# accent straight on a cream panel or a chip writes in these instead.
+const GOLD_TEXT := Color(0.5961, 0.3765, 0.0471, 1.0)       # #98600C
+const SUCCESS_TEXT := Color(0.0902, 0.4157, 0.2275, 1.0)    # #176A3A
+const DANGER_TEXT := Color(0.7020, 0.2275, 0.1412, 1.0)     # #B33A24
 const SHADOW := Color(0.1294, 0.0863, 0.0471, 0.30)
 const TRANSPARENT := Color(1.0, 1.0, 1.0, 0.0)
 

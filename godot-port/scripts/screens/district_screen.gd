@@ -78,7 +78,7 @@ func _build_card(index: int) -> void:
 	# The wash is for the district illustration; the painted moulding stays clear of it.
 	UiKit.place(veil, EDGE, EDGE, CARD_WIDTH - EDGE * 2.0, CARD_HEIGHT - EDGE * 2.0)
 
-	var title := UiKit.label(card, "title", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
+	var title := UiKit.label(card, "title", "", UiTokens.TYPE_BASE, UiTokens.GOLD_TEXT,
 		HORIZONTAL_ALIGNMENT_RIGHT, true)
 	UiKit.place(title, EDGE, TITLE_Y, CARD_WIDTH - EDGE * 2.0, 22.0)
 	_district_titles.append(title)
@@ -154,7 +154,7 @@ func refresh() -> void:
 			var done := session.progression.is_task_complete(str(task.get("key", "")))
 			label.text = str(task.get("title", ""))
 			label.add_theme_color_override("font_color",
-				UiTokens.SUCCESS if done else UiTokens.TEXT)
+				UiTokens.SUCCESS_TEXT if done else UiTokens.TEXT)
 			button.text = "ساخته شد" if done else PersianText.number(int(task.get("potion_cost", 0)))
 			button.disabled = done or not session.wallet.can_afford_potions(int(task.get("potion_cost", 0)))
 			button.modulate = Color(1, 1, 1, 1) if not button.disabled else Color(0.82, 0.78, 0.72, 1)
@@ -181,7 +181,7 @@ func refresh() -> void:
 		_chest_labels[index].text = "باز شد" if chest_open else "باز کن"
 		_chest_buttons[index].disabled = chest_open or not built
 		_chest_buttons[index].modulate = Color(1, 1, 1, 1) if not _chest_buttons[index].disabled \
-			else Color(0.62, 0.58, 0.52, 1)
+			else Color(0.88, 0.84, 0.78, 1)
 
 func _on_task_pressed(district_index: int, task_index: int) -> void:
 	if district_index >= session.districts.size():

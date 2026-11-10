@@ -23,7 +23,7 @@ func build() -> void:
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(title, 16.0, 48.0, UiTokens.CANVAS_WIDTH - 32.0, 36.0)
 
-	_coins = UiKit.label(self, "coins", "", UiTokens.TYPE_SM, UiTokens.GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+	_coins = UiKit.label(self, "coins", "", UiTokens.TYPE_SM, UiTokens.GOLD_TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_coins, 16.0, 84.0, UiTokens.CANVAS_WIDTH - 32.0, 20.0)
 
 	# Five rows do not fit one column in a 415 tall window, so they go two abreast: three on the right
@@ -55,7 +55,7 @@ func build() -> void:
 
 		_rows.append({"owned": owned, "buy": price})
 
-	_feedback = UiKit.label(self, "feedback", "", UiTokens.TYPE_SM, UiTokens.SUCCESS,
+	_feedback = UiKit.label(self, "feedback", "", UiTokens.TYPE_SM, UiTokens.SUCCESS_TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_feedback, 16.0, 366.0, UiTokens.CANVAS_WIDTH - 32.0, 40.0)
 	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -88,10 +88,10 @@ func refresh() -> void:
 func _on_buy(kind: int) -> void:
 	if session.buy_booster(kind):
 		SoundDirector.play("reward")
-		_feedback.add_theme_color_override("font_color", UiTokens.SUCCESS)
+		_feedback.add_theme_color_override("font_color", UiTokens.SUCCESS_TEXT)
 		_feedback.text = BoosterBag.booster_name(kind) + " خریداری شد"
 	else:
-		_feedback.add_theme_color_override("font_color", UiTokens.DANGER)
+		_feedback.add_theme_color_override("font_color", UiTokens.DANGER_TEXT)
 		_feedback.text = "سکه کافی نیست یا انبار پر است"
 	session.notify_changed()
 	refresh()

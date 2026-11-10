@@ -32,7 +32,9 @@ func build() -> void:
 	var title := UiKit.icon(self, "title", TITLE_ART, 0.0, 22.0, UiTokens.CANVAS_WIDTH, 78.0)
 	title.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
-	var subtitle := UiKit.label(self, "subtitle", SUBTITLE, UiTokens.TYPE_BASE, UiTokens.TEXT_MUTED,
+	# Ink, not the muted brown: the subtitle sits straight on the garden, and the muted tone vanished
+	# into the sky.
+	var subtitle := UiKit.label(self, "subtitle", SUBTITLE, UiTokens.TYPE_BASE, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(subtitle, 0.0, 100.0, UiTokens.CANVAS_WIDTH, 22.0)
 
