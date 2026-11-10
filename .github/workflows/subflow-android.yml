@@ -301,16 +301,27 @@ jobs:
               playback of the original file, project management on SQLite;
             - Whisper (base, q5_1) ships inside the APK - no download step, no side-load - and the
               opt-in online provider stays available for anyone who configures a key;
-            - 10 embedded OFL font families (7 Persian-capable) and a caption effect engine
-              (17 entrances / 9 exits / 8 word effects / 6 easings) with 40 ready looks in
-              Persian and English plus a live style gallery;
+            - 24 embedded OFL font families (21 of them Persian-capable, every one checked
+              against its own cmap for پ چ ژ گ ک ی and Persian digits) and a caption effect
+              engine (17 entrances / 9 exits / 8 word effects / 6 easings) with 34 ready
+              looks - 68 presets across Persian and English;
+            - per-caption styling: pick one caption, give it its own font, colours, effects and
+              position, then apply that look to the whole film in one tap - or take it back.
+              The burn-in renderer resolves the style per cue, so a caption with its own font
+              really does leave the encoder with that font;
+            - automatic emoji: an offline table of 110 Persian keywords appends a matching
+              emoji to each caption in a single undoable step;
             - a subtitle studio: add / split / merge / retime / delete captions, undo and redo,
               word-level karaoke driven by the real playhead, atomic autosave, style
               copy-paste, and SRT / ASS / TXT export that never re-encodes the video;
             - a two-screen layout built around that studio (home + timeline editor);
             - video export: burn the captions into a new MP4 (1080p / 720p / 480p, optional trim)
               with real encoder progress, a working cancel button and the system share sheet.
-              The source video is never modified.
+              The source video is never modified;
+            - one premium progress surface for every slow step: a gradient bar with a real
+              percentage and a Persian time estimate for export, import, transcription, model
+              download and the cloud check - and an honest indeterminate band when the engine
+              cannot report a fraction yet.
 
             Watermarks and silence removal are later phases and are marked "not yet" inside the
             app — no fake progress, no placeholder buttons.
