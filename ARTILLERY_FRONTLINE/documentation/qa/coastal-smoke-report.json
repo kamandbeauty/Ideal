@@ -187,9 +187,9 @@
   "performance": {
     "draw_calls": 346,
     "fps": 10.8,
-    "frame_ms": 92.92,
+    "frame_ms": 92.77,
     "objects": 2009,
-    "primitives": 158784,
+    "primitives": 159108,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
