@@ -64,10 +64,10 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  65% ] [90m[1mupdate_scripts_classes[22m | CampaignMap[39m[0m
 [  66% ] [90m[1mupdate_scripts_classes[22m | GameplayHUD[39m[0m
 [  67% ] [90m[1mupdate_scripts_classes[22m | Loc[39m[0m
-[  69% ] [90m[1mupdate_scripts_classes[22m | MenuScreens[39m[0m
-[  70% ] [90m[1mupdate_scripts_classes[22m | TacticalOverlay[39m[0m
-[  71% ] [90m[1mupdate_scripts_classes[22m | UITheme[39m[0m
-[  73% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  69% ] [90m[1mupdate_scripts_classes[22m | MenuMotion[39m[0m
+[  70% ] [90m[1mupdate_scripts_classes[22m | MenuScreens[39m[0m
+[  71% ] [90m[1mupdate_scripts_classes[22m | TacticalOverlay[39m[0m
+[  73% ] [90m[1mupdate_scripts_classes[22m | UITheme[39m[0m
 [  74% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  75% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  76% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
@@ -83,13 +83,13 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  89% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  91% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  92% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
-[  93% ] [90m[1mupdate_scripts_classes[22m | TestContext[39m[0m
-[  94% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  93% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  94% ] [90m[1mupdate_scripts_classes[22m | TestContext[39m[0m
 [  96% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  97% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [92m[ DONE ][39m [1mupdate_scripts_classes[22m
 [0m
-[   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (117 steps)[39m[0m
+[   0% ] [90m[1m_update_scan_actions[22m | Started Scanning actions... (116 steps)[39m[0m
 [   0% ] [90m[1m_update_scan_actions[22m | boat_engine.wav[39m[0m
 [   0% ] [90m[1m_update_scan_actions[22m | cannon.wav[39m[0m
 [   1% ] [90m[1m_update_scan_actions[22m | click.wav[39m[0m
@@ -110,93 +110,92 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  14% ] [90m[1m_update_scan_actions[22m | Vazirmatn-SemiBold.ttf[39m[0m
 [  15% ] [90m[1m_update_scan_actions[22m | bazooka.glb[39m[0m
 [  16% ] [90m[1m_update_scan_actions[22m | fighter.glb[39m[0m
-[  16% ] [90m[1m_update_scan_actions[22m | hangar.glb[39m[0m
+[  17% ] [90m[1m_update_scan_actions[22m | hangar.glb[39m[0m
 [  17% ] [90m[1m_update_scan_actions[22m | helicopter.glb[39m[0m
 [  18% ] [90m[1m_update_scan_actions[22m | kestrel.glb[39m[0m
 [  19% ] [90m[1m_update_scan_actions[22m | landing_craft.glb[39m[0m
 [  20% ] [90m[1m_update_scan_actions[22m | mounted_autocannon.glb[39m[0m
 [  21% ] [90m[1m_update_scan_actions[22m | mounted_cannon.glb[39m[0m
 [  22% ] [90m[1m_update_scan_actions[22m | mounted_rocket.glb[39m[0m
-[  22% ] [90m[1m_update_scan_actions[22m | mounted_twin_hmg.glb[39m[0m
+[  23% ] [90m[1m_update_scan_actions[22m | mounted_twin_hmg.glb[39m[0m
 [  23% ] [90m[1m_update_scan_actions[22m | nomad.glb[39m[0m
 [  24% ] [90m[1m_update_scan_actions[22m | patrol_boat.glb[39m[0m
 [  25% ] [90m[1m_update_scan_actions[22m | sentry.glb[39m[0m
 [  26% ] [90m[1m_update_scan_actions[22m | soldier.glb[39m[0m
 [  27% ] [90m[1m_update_scan_actions[22m | warden.glb[39m[0m
-[  27% ] [90m[1m_update_scan_actions[22m | concrete_albedo.jpg[39m[0m
-[  28% ] [90m[1m_update_scan_actions[22m | concrete_normal.png[39m[0m
+[  28% ] [90m[1m_update_scan_actions[22m | concrete_albedo.jpg[39m[0m
+[  29% ] [90m[1m_update_scan_actions[22m | concrete_normal.png[39m[0m
 [  29% ] [90m[1m_update_scan_actions[22m | concrete_orm.png[39m[0m
 [  30% ] [90m[1m_update_scan_actions[22m | fabric_albedo.jpg[39m[0m
 [  31% ] [90m[1m_update_scan_actions[22m | fabric_normal.png[39m[0m
 [  32% ] [90m[1m_update_scan_actions[22m | fabric_orm.png[39m[0m
 [  33% ] [90m[1m_update_scan_actions[22m | foliage_albedo.jpg[39m[0m
-[  33% ] [90m[1m_update_scan_actions[22m | foliage_normal.png[39m[0m
-[  34% ] [90m[1m_update_scan_actions[22m | foliage_orm.png[39m[0m
+[  34% ] [90m[1m_update_scan_actions[22m | foliage_normal.png[39m[0m
+[  35% ] [90m[1m_update_scan_actions[22m | foliage_orm.png[39m[0m
 [  35% ] [90m[1m_update_scan_actions[22m | grass_card.png[39m[0m
 [  36% ] [90m[1m_update_scan_actions[22m | gravel_albedo.jpg[39m[0m
 [  37% ] [90m[1m_update_scan_actions[22m | gravel_normal.png[39m[0m
 [  38% ] [90m[1m_update_scan_actions[22m | gravel_orm.png[39m[0m
-[  38% ] [90m[1m_update_scan_actions[22m | leather_albedo.jpg[39m[0m
-[  39% ] [90m[1m_update_scan_actions[22m | leather_normal.png[39m[0m
-[  40% ] [90m[1m_update_scan_actions[22m | leather_orm.png[39m[0m
+[  39% ] [90m[1m_update_scan_actions[22m | leather_albedo.jpg[39m[0m
+[  40% ] [90m[1m_update_scan_actions[22m | leather_normal.png[39m[0m
+[  41% ] [90m[1m_update_scan_actions[22m | leather_orm.png[39m[0m
 [  41% ] [90m[1m_update_scan_actions[22m | muzzle_flash.png[39m[0m
 [  42% ] [90m[1m_update_scan_actions[22m | paint_olive_albedo.jpg[39m[0m
 [  43% ] [90m[1m_update_scan_actions[22m | paint_olive_normal.png[39m[0m
 [  44% ] [90m[1m_update_scan_actions[22m | paint_olive_orm.png[39m[0m
-[  44% ] [90m[1m_update_scan_actions[22m | paint_sand_albedo.jpg[39m[0m
-[  45% ] [90m[1m_update_scan_actions[22m | paint_sand_normal.png[39m[0m
-[  46% ] [90m[1m_update_scan_actions[22m | paint_sand_orm.png[39m[0m
+[  45% ] [90m[1m_update_scan_actions[22m | paint_sand_albedo.jpg[39m[0m
+[  46% ] [90m[1m_update_scan_actions[22m | paint_sand_normal.png[39m[0m
+[  47% ] [90m[1m_update_scan_actions[22m | paint_sand_orm.png[39m[0m
 [  47% ] [90m[1m_update_scan_actions[22m | rock_albedo.jpg[39m[0m
 [  48% ] [90m[1m_update_scan_actions[22m | rock_normal.png[39m[0m
 [  49% ] [90m[1m_update_scan_actions[22m | rock_orm.png[39m[0m
 [  50% ] [90m[1m_update_scan_actions[22m | rubber_albedo.jpg[39m[0m
-[  50% ] [90m[1m_update_scan_actions[22m | rubber_normal.png[39m[0m
-[  51% ] [90m[1m_update_scan_actions[22m | rubber_orm.png[39m[0m
+[  51% ] [90m[1m_update_scan_actions[22m | rubber_normal.png[39m[0m
+[  52% ] [90m[1m_update_scan_actions[22m | rubber_orm.png[39m[0m
 [  52% ] [90m[1m_update_scan_actions[22m | sand_albedo.jpg[39m[0m
 [  53% ] [90m[1m_update_scan_actions[22m | sand_normal.png[39m[0m
 [  54% ] [90m[1m_update_scan_actions[22m | sand_orm.png[39m[0m
 [  55% ] [90m[1m_update_scan_actions[22m | skin_albedo.jpg[39m[0m
-[  55% ] [90m[1m_update_scan_actions[22m | skin_normal.png[39m[0m
-[  56% ] [90m[1m_update_scan_actions[22m | skin_orm.png[39m[0m
-[  57% ] [90m[1m_update_scan_actions[22m | sky_panorama.jpg[39m[0m
+[  56% ] [90m[1m_update_scan_actions[22m | skin_normal.png[39m[0m
+[  57% ] [90m[1m_update_scan_actions[22m | skin_orm.png[39m[0m
+[  58% ] [90m[1m_update_scan_actions[22m | sky_panorama.jpg[39m[0m
 [  58% ] [90m[1m_update_scan_actions[22m | steel_albedo.jpg[39m[0m
 [  59% ] [90m[1m_update_scan_actions[22m | steel_normal.png[39m[0m
 [  60% ] [90m[1m_update_scan_actions[22m | steel_orm.png[39m[0m
 [  61% ] [90m[1m_update_scan_actions[22m | weapon_brass_albedo.jpg[39m[0m
-[  61% ] [90m[1m_update_scan_actions[22m | weapon_brass_normal.png[39m[0m
-[  62% ] [90m[1m_update_scan_actions[22m | weapon_brass_orm.png[39m[0m
-[  63% ] [90m[1m_update_scan_actions[22m | weapon_metal_albedo.jpg[39m[0m
+[  62% ] [90m[1m_update_scan_actions[22m | weapon_brass_normal.png[39m[0m
+[  63% ] [90m[1m_update_scan_actions[22m | weapon_brass_orm.png[39m[0m
+[  64% ] [90m[1m_update_scan_actions[22m | weapon_metal_albedo.jpg[39m[0m
 [  64% ] [90m[1m_update_scan_actions[22m | weapon_metal_normal.png[39m[0m
 [  65% ] [90m[1m_update_scan_actions[22m | weapon_metal_orm.png[39m[0m
 [  66% ] [90m[1m_update_scan_actions[22m | weapon_paint_albedo.jpg[39m[0m
-[  66% ] [90m[1m_update_scan_actions[22m | weapon_paint_normal.png[39m[0m
-[  67% ] [90m[1m_update_scan_actions[22m | weapon_paint_orm.png[39m[0m
-[  68% ] [90m[1m_update_scan_actions[22m | wood_albedo.jpg[39m[0m
-[  69% ] [90m[1m_update_scan_actions[22m | wood_normal.png[39m[0m
+[  67% ] [90m[1m_update_scan_actions[22m | weapon_paint_normal.png[39m[0m
+[  68% ] [90m[1m_update_scan_actions[22m | weapon_paint_orm.png[39m[0m
+[  69% ] [90m[1m_update_scan_actions[22m | wood_albedo.jpg[39m[0m
+[  70% ] [90m[1m_update_scan_actions[22m | wood_normal.png[39m[0m
 [  70% ] [90m[1m_update_scan_actions[22m | wood_orm.png[39m[0m
 [  71% ] [90m[1m_update_scan_actions[22m | check_off.png[39m[0m
 [  72% ] [90m[1m_update_scan_actions[22m | check_on.png[39m[0m
-[  72% ] [90m[1m_update_scan_actions[22m | chevron_down.png[39m[0m
-[  73% ] [90m[1m_update_scan_actions[22m | chevron_left.png[39m[0m
-[  74% ] [90m[1m_update_scan_actions[22m | divider.png[39m[0m
-[  75% ] [90m[1m_update_scan_actions[22m | emblem.png[39m[0m
+[  73% ] [90m[1m_update_scan_actions[22m | chevron_down.png[39m[0m
+[  74% ] [90m[1m_update_scan_actions[22m | chevron_left.png[39m[0m
+[  75% ] [90m[1m_update_scan_actions[22m | divider.png[39m[0m
+[  76% ] [90m[1m_update_scan_actions[22m | emblem.png[39m[0m
 [  76% ] [90m[1m_update_scan_actions[22m | hero_beach.jpg[39m[0m
 [  77% ] [90m[1m_update_scan_actions[22m | hero_gun.jpg[39m[0m
-[  77% ] [90m[1m_update_scan_actions[22m | hero_ridge.jpg[39m[0m
-[  78% ] [90m[1m_update_scan_actions[22m | plate_button.png[39m[0m
-[  79% ] [90m[1m_update_scan_actions[22m | plate_button_accent.png[39m[0m
-[  80% ] [90m[1m_update_scan_actions[22m | plate_button_accent_hover.png[39m[0m
-[  81% ] [90m[1m_update_scan_actions[22m | plate_button_hover.png[39m[0m
+[  78% ] [90m[1m_update_scan_actions[22m | hero_ridge.jpg[39m[0m
+[  79% ] [90m[1m_update_scan_actions[22m | plate_button.png[39m[0m
+[  80% ] [90m[1m_update_scan_actions[22m | plate_button_accent.png[39m[0m
+[  81% ] [90m[1m_update_scan_actions[22m | plate_button_accent_hover.png[39m[0m
+[  82% ] [90m[1m_update_scan_actions[22m | plate_button_hover.png[39m[0m
 [  82% ] [90m[1m_update_scan_actions[22m | plate_button_pressed.png[39m[0m
 [  83% ] [90m[1m_update_scan_actions[22m | plate_card.png[39m[0m
-[  83% ] [90m[1m_update_scan_actions[22m | plate_disabled.png[39m[0m
-[  84% ] [90m[1m_update_scan_actions[22m | plate_panel.png[39m[0m
-[  85% ] [90m[1m_update_scan_actions[22m | scrim_bottom.png[39m[0m
-[  86% ] [90m[1m_update_scan_actions[22m | scrim_right.png[39m[0m
-[  87% ] [90m[1m_update_scan_actions[22m | slider_grabber.png[39m[0m
+[  84% ] [90m[1m_update_scan_actions[22m | plate_disabled.png[39m[0m
+[  85% ] [90m[1m_update_scan_actions[22m | plate_panel.png[39m[0m
+[  86% ] [90m[1m_update_scan_actions[22m | scrim_bottom.png[39m[0m
+[  87% ] [90m[1m_update_scan_actions[22m | scrim_right.png[39m[0m
+[  88% ] [90m[1m_update_scan_actions[22m | slider_grabber.png[39m[0m
 [  88% ] [90m[1m_update_scan_actions[22m | vignette.png[39m[0m
-[  88% ] [90m[1m_update_scan_actions[22m | icon.png[39m[0m
-[  89% ] [90m[1m_update_scan_actions[22m | icon.svg[39m[0m
+[  89% ] [90m[1m_update_scan_actions[22m | icon.png[39m[0m
 [  90% ] [90m[1m_update_scan_actions[22m | contact.wav[39m[0m
 [  91% ] [90m[1m_update_scan_actions[22m | get_down.wav[39m[0m
 [  92% ] [90m[1m_update_scan_actions[22m | incoming.wav[39m[0m
@@ -209,7 +208,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  98% ] [90m[1m_update_scan_actions[22m | take_cover.wav[39m[0m
 [92m[ DONE ][39m [1m_update_scan_actions[22m
 [0m
-[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (117 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (116 steps)[39m[0m
 [   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [   0% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [   1% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
@@ -230,85 +229,84 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  14% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  15% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  16% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  17% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  18% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  19% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  20% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  21% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  22% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  23% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  24% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  25% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  26% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  27% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  28% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  29% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  30% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  31% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  32% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  33% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  34% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  35% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  36% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  37% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  38% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  39% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  40% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  41% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  42% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  43% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  44% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  45% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  46% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  47% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  48% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  49% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  50% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  51% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  52% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  53% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  54% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  55% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  56% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  57% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  58% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  59% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  60% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  61% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  62% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  63% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  64% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  65% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  66% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  67% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  68% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  69% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  70% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  71% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  72% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  73% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  74% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  75% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  76% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  77% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  78% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  79% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  80% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  81% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
-[  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
+[  82% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  83% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  84% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
 [  85% ] [90m[1mreimport[22m | Preparing files to reimport...[39m[0m
@@ -336,105 +334,104 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [   0% ] [90m[1mreimport[22m | Vazirmatn-SemiBold.ttf[39m[0m
 [   0% ] [90m[1mreimport[22m | Vazirmatn-Regular.ttf[39m[0m
 [   1% ] [90m[1mreimport[22m | Vazirmatn-Medium.ttf[39m[0m
-[   2% ] [90m[1mreimport[22m | Rajdhani-Medium.ttf[39m[0m
-[   3% ] [90m[1mreimport[22m | Rajdhani-SemiBold.ttf[39m[0m
-[   4% ] [90m[1mreimport[22m | Vazirmatn-Bold.ttf[39m[0m
+[   2% ] [90m[1mreimport[22m | Vazirmatn-Bold.ttf[39m[0m
+[   3% ] [90m[1mreimport[22m | Rajdhani-Medium.ttf[39m[0m
+[   4% ] [90m[1mreimport[22m | Rajdhani-SemiBold.ttf[39m[0m
 [   5% ] [90m[1mreimport[22m | Vazirmatn-SemiBold.ttf[39m[0m
 [   5% ] [90m[1mreimport[22m | Vazirmatn-Regular.ttf[39m[0m
 [   6% ] [90m[1mreimport[22m | Vazirmatn-Medium.ttf[39m[0m
-[   7% ] [90m[1mreimport[22m | Rajdhani-Medium.ttf[39m[0m
-[   8% ] [90m[1mreimport[22m | Rajdhani-SemiBold.ttf[39m[0m
-[   9% ] [90m[1mreimport[22m | Vazirmatn-Bold.ttf[39m[0m
-[  10% ] [90m[1mreimport[22m | sky_panorama.jpg[39m[0m
-[  11% ] [90m[1mreimport[22m | skin_orm.png[39m[0m
+[   7% ] [90m[1mreimport[22m | Vazirmatn-Bold.ttf[39m[0m
+[   8% ] [90m[1mreimport[22m | Rajdhani-Medium.ttf[39m[0m
+[   9% ] [90m[1mreimport[22m | Rajdhani-SemiBold.ttf[39m[0m
+[  10% ] [90m[1mreimport[22m | skin_orm.png[39m[0m
 [  11% ] [90m[1mreimport[22m | skin_normal.png[39m[0m
-[  12% ] [90m[1mreimport[22m | skin_albedo.jpg[39m[0m
-[  13% ] [90m[1mreimport[22m | sand_orm.png[39m[0m
-[  14% ] [90m[1mreimport[22m | sand_normal.png[39m[0m
-[  15% ] [90m[1mreimport[22m | sand_albedo.jpg[39m[0m
-[  16% ] [90m[1mreimport[22m | rubber_orm.png[39m[0m
+[  11% ] [90m[1mreimport[22m | skin_albedo.jpg[39m[0m
+[  12% ] [90m[1mreimport[22m | sand_orm.png[39m[0m
+[  13% ] [90m[1mreimport[22m | sand_normal.png[39m[0m
+[  14% ] [90m[1mreimport[22m | sand_albedo.jpg[39m[0m
+[  15% ] [90m[1mreimport[22m | rubber_orm.png[39m[0m
 [  16% ] [90m[1mreimport[22m | rubber_normal.png[39m[0m
 [  17% ] [90m[1mreimport[22m | rubber_albedo.jpg[39m[0m
-[  18% ] [90m[1mreimport[22m | rock_orm.png[39m[0m
-[  19% ] [90m[1mreimport[22m | rock_normal.png[39m[0m
-[  20% ] [90m[1mreimport[22m | rock_albedo.jpg[39m[0m
-[  21% ] [90m[1mreimport[22m | paint_sand_orm.png[39m[0m
-[  22% ] [90m[1mreimport[22m | paint_sand_normal.png[39m[0m
+[  17% ] [90m[1mreimport[22m | rock_orm.png[39m[0m
+[  18% ] [90m[1mreimport[22m | rock_normal.png[39m[0m
+[  19% ] [90m[1mreimport[22m | rock_albedo.jpg[39m[0m
+[  20% ] [90m[1mreimport[22m | paint_sand_orm.png[39m[0m
+[  21% ] [90m[1mreimport[22m | paint_sand_normal.png[39m[0m
 [  22% ] [90m[1mreimport[22m | paint_sand_albedo.jpg[39m[0m
 [  23% ] [90m[1mreimport[22m | paint_olive_orm.png[39m[0m
-[  24% ] [90m[1mreimport[22m | paint_olive_normal.png[39m[0m
-[  25% ] [90m[1mreimport[22m | paint_olive_albedo.jpg[39m[0m
-[  26% ] [90m[1mreimport[22m | muzzle_flash.png[39m[0m
-[  27% ] [90m[1mreimport[22m | leather_orm.png[39m[0m
-[  27% ] [90m[1mreimport[22m | emblem.png[39m[0m
-[  28% ] [90m[1mreimport[22m | divider.png[39m[0m
-[  29% ] [90m[1mreimport[22m | chevron_left.png[39m[0m
-[  30% ] [90m[1mreimport[22m | chevron_down.png[39m[0m
-[  31% ] [90m[1mreimport[22m | check_on.png[39m[0m
-[  32% ] [90m[1mreimport[22m | check_off.png[39m[0m
-[  33% ] [90m[1mreimport[22m | wood_orm.png[39m[0m
-[  33% ] [90m[1mreimport[22m | wood_normal.png[39m[0m
-[  34% ] [90m[1mreimport[22m | wood_albedo.jpg[39m[0m
-[  35% ] [90m[1mreimport[22m | weapon_paint_orm.png[39m[0m
-[  36% ] [90m[1mreimport[22m | weapon_paint_normal.png[39m[0m
-[  37% ] [90m[1mreimport[22m | weapon_paint_albedo.jpg[39m[0m
-[  38% ] [90m[1mreimport[22m | weapon_metal_orm.png[39m[0m
-[  38% ] [90m[1mreimport[22m | weapon_metal_normal.png[39m[0m
-[  39% ] [90m[1mreimport[22m | weapon_metal_albedo.jpg[39m[0m
-[  40% ] [90m[1mreimport[22m | weapon_brass_orm.png[39m[0m
-[  41% ] [90m[1mreimport[22m | weapon_brass_normal.png[39m[0m
-[  42% ] [90m[1mreimport[22m | weapon_brass_albedo.jpg[39m[0m
-[  43% ] [90m[1mreimport[22m | steel_orm.png[39m[0m
-[  44% ] [90m[1mreimport[22m | steel_normal.png[39m[0m
-[  44% ] [90m[1mreimport[22m | steel_albedo.jpg[39m[0m
-[  45% ] [90m[1mreimport[22m | icon.svg[39m[0m
-[  46% ] [90m[1mreimport[22m | icon.png[39m[0m
-[  47% ] [90m[1mreimport[22m | vignette.png[39m[0m
-[  48% ] [90m[1mreimport[22m | slider_grabber.png[39m[0m
-[  49% ] [90m[1mreimport[22m | scrim_right.png[39m[0m
-[  50% ] [90m[1mreimport[22m | scrim_bottom.png[39m[0m
-[  50% ] [90m[1mreimport[22m | plate_panel.png[39m[0m
-[  51% ] [90m[1mreimport[22m | plate_disabled.png[39m[0m
-[  52% ] [90m[1mreimport[22m | plate_card.png[39m[0m
-[  53% ] [90m[1mreimport[22m | plate_button_pressed.png[39m[0m
-[  54% ] [90m[1mreimport[22m | plate_button_hover.png[39m[0m
-[  55% ] [90m[1mreimport[22m | plate_button_accent_hover.png[39m[0m
-[  55% ] [90m[1mreimport[22m | plate_button_accent.png[39m[0m
-[  56% ] [90m[1mreimport[22m | plate_button.png[39m[0m
-[  57% ] [90m[1mreimport[22m | hero_ridge.jpg[39m[0m
-[  58% ] [90m[1mreimport[22m | hero_gun.jpg[39m[0m
-[  59% ] [90m[1mreimport[22m | leather_normal.png[39m[0m
-[  60% ] [90m[1mreimport[22m | leather_albedo.jpg[39m[0m
-[  61% ] [90m[1mreimport[22m | gravel_orm.png[39m[0m
+[  23% ] [90m[1mreimport[22m | paint_olive_normal.png[39m[0m
+[  24% ] [90m[1mreimport[22m | paint_olive_albedo.jpg[39m[0m
+[  25% ] [90m[1mreimport[22m | muzzle_flash.png[39m[0m
+[  26% ] [90m[1mreimport[22m | leather_orm.png[39m[0m
+[  27% ] [90m[1mreimport[22m | divider.png[39m[0m
+[  28% ] [90m[1mreimport[22m | chevron_left.png[39m[0m
+[  29% ] [90m[1mreimport[22m | chevron_down.png[39m[0m
+[  29% ] [90m[1mreimport[22m | check_on.png[39m[0m
+[  30% ] [90m[1mreimport[22m | check_off.png[39m[0m
+[  31% ] [90m[1mreimport[22m | wood_orm.png[39m[0m
+[  32% ] [90m[1mreimport[22m | wood_normal.png[39m[0m
+[  33% ] [90m[1mreimport[22m | wood_albedo.jpg[39m[0m
+[  34% ] [90m[1mreimport[22m | weapon_paint_orm.png[39m[0m
+[  35% ] [90m[1mreimport[22m | weapon_paint_normal.png[39m[0m
+[  35% ] [90m[1mreimport[22m | weapon_paint_albedo.jpg[39m[0m
+[  36% ] [90m[1mreimport[22m | weapon_metal_orm.png[39m[0m
+[  37% ] [90m[1mreimport[22m | weapon_metal_normal.png[39m[0m
+[  38% ] [90m[1mreimport[22m | weapon_metal_albedo.jpg[39m[0m
+[  39% ] [90m[1mreimport[22m | weapon_brass_orm.png[39m[0m
+[  40% ] [90m[1mreimport[22m | weapon_brass_normal.png[39m[0m
+[  41% ] [90m[1mreimport[22m | weapon_brass_albedo.jpg[39m[0m
+[  41% ] [90m[1mreimport[22m | steel_orm.png[39m[0m
+[  42% ] [90m[1mreimport[22m | steel_normal.png[39m[0m
+[  43% ] [90m[1mreimport[22m | steel_albedo.jpg[39m[0m
+[  44% ] [90m[1mreimport[22m | sky_panorama.jpg[39m[0m
+[  45% ] [90m[1mreimport[22m | icon.png[39m[0m
+[  46% ] [90m[1mreimport[22m | vignette.png[39m[0m
+[  47% ] [90m[1mreimport[22m | slider_grabber.png[39m[0m
+[  47% ] [90m[1mreimport[22m | scrim_right.png[39m[0m
+[  48% ] [90m[1mreimport[22m | scrim_bottom.png[39m[0m
+[  49% ] [90m[1mreimport[22m | plate_panel.png[39m[0m
+[  50% ] [90m[1mreimport[22m | plate_disabled.png[39m[0m
+[  51% ] [90m[1mreimport[22m | plate_card.png[39m[0m
+[  52% ] [90m[1mreimport[22m | plate_button_pressed.png[39m[0m
+[  52% ] [90m[1mreimport[22m | plate_button_hover.png[39m[0m
+[  53% ] [90m[1mreimport[22m | plate_button_accent_hover.png[39m[0m
+[  54% ] [90m[1mreimport[22m | plate_button_accent.png[39m[0m
+[  55% ] [90m[1mreimport[22m | plate_button.png[39m[0m
+[  56% ] [90m[1mreimport[22m | hero_ridge.jpg[39m[0m
+[  57% ] [90m[1mreimport[22m | hero_gun.jpg[39m[0m
+[  58% ] [90m[1mreimport[22m | hero_beach.jpg[39m[0m
+[  58% ] [90m[1mreimport[22m | leather_normal.png[39m[0m
+[  59% ] [90m[1mreimport[22m | leather_albedo.jpg[39m[0m
+[  60% ] [90m[1mreimport[22m | gravel_orm.png[39m[0m
 [  61% ] [90m[1mreimport[22m | gravel_normal.png[39m[0m
 [  62% ] [90m[1mreimport[22m | gravel_albedo.jpg[39m[0m
 [  63% ] [90m[1mreimport[22m | grass_card.png[39m[0m
 [  64% ] [90m[1mreimport[22m | foliage_orm.png[39m[0m
-[  65% ] [90m[1mreimport[22m | foliage_normal.png[39m[0m
-[  66% ] [90m[1mreimport[22m | foliage_albedo.jpg[39m[0m
+[  64% ] [90m[1mreimport[22m | foliage_normal.png[39m[0m
+[  65% ] [90m[1mreimport[22m | foliage_albedo.jpg[39m[0m
 [  66% ] [90m[1mreimport[22m | fabric_orm.png[39m[0m
 [  67% ] [90m[1mreimport[22m | Vazirmatn-SemiBold.ttf[39m[0m
 [  68% ] [90m[1mreimport[22m | Vazirmatn-Regular.ttf[39m[0m
 [  69% ] [90m[1mreimport[22m | Vazirmatn-Medium.ttf[39m[0m
+[  70% ] [90m[1mreimport[22m | Vazirmatn-Bold.ttf[39m[0m
 [  70% ] [90m[1mreimport[22m | Rajdhani-Medium.ttf[39m[0m
 [  71% ] [90m[1mreimport[22m | Rajdhani-SemiBold.ttf[39m[0m
-[  72% ] [90m[1mreimport[22m | Vazirmatn-Bold.ttf[39m[0m
-[  72% ] [90m[1mreimport[22m | sky_panorama.jpg[39m[0m
-[  73% ] [90m[1mreimport[22m | skin_orm.png[39m[0m
-[  74% ] [90m[1mreimport[22m | skin_normal.png[39m[0m
-[  75% ] [90m[1mreimport[22m | skin_albedo.jpg[39m[0m
-[  76% ] [90m[1mreimport[22m | sand_orm.png[39m[0m
-[  77% ] [90m[1mreimport[22m | sand_normal.png[39m[0m
-[  77% ] [90m[1mreimport[22m | sand_albedo.jpg[39m[0m
-[  78% ] [90m[1mreimport[22m | rubber_orm.png[39m[0m
-[  79% ] [90m[1mreimport[22m | rubber_normal.png[39m[0m
-[  80% ] [90m[1mreimport[22m | rubber_albedo.jpg[39m[0m
-[  81% ] [90m[1mreimport[22m | rock_orm.png[39m[0m
-[  82% ] [90m[1mreimport[22m | rock_normal.png[39m[0m
-[  83% ] [90m[1mreimport[22m | rock_albedo.jpg[39m[0m
-[  83% ] [90m[1mreimport[22m | paint_sand_orm.png[39m[0m
-[  84% ] [90m[1mreimport[22m | paint_sand_normal.png[39m[0m
-[  85% ] [90m[1mreimport[22m | paint_sand_albedo.jpg[39m[0m
+[  72% ] [90m[1mreimport[22m | skin_orm.png[39m[0m
+[  73% ] [90m[1mreimport[22m | skin_normal.png[39m[0m
+[  74% ] [90m[1mreimport[22m | skin_albedo.jpg[39m[0m
+[  75% ] [90m[1mreimport[22m | sand_orm.png[39m[0m
+[  76% ] [90m[1mreimport[22m | sand_normal.png[39m[0m
+[  76% ] [90m[1mreimport[22m | sand_albedo.jpg[39m[0m
+[  77% ] [90m[1mreimport[22m | rubber_orm.png[39m[0m
+[  78% ] [90m[1mreimport[22m | rubber_normal.png[39m[0m
+[  79% ] [90m[1mreimport[22m | rubber_albedo.jpg[39m[0m
+[  80% ] [90m[1mreimport[22m | rock_orm.png[39m[0m
+[  81% ] [90m[1mreimport[22m | rock_normal.png[39m[0m
+[  82% ] [90m[1mreimport[22m | rock_albedo.jpg[39m[0m
+[  82% ] [90m[1mreimport[22m | paint_sand_orm.png[39m[0m
+[  83% ] [90m[1mreimport[22m | paint_sand_normal.png[39m[0m
+[  84% ] [90m[1mreimport[22m | paint_sand_albedo.jpg[39m[0m
+[  85% ] [90m[1mreimport[22m | paint_olive_orm.png[39m[0m
 [  86% ] [90m[1mreimport[22m | bazooka.glb[39m[0m
 [   0% ] [90m[1mimport[22m | Started Import Scene (104 steps)[39m[0m
 [   0% ] [90m[1mimport[22m | Importing Scene...[39m[0m
@@ -543,7 +540,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  99% ] [90m[1mreimport[22m | Finalizing Asset Import...[39m[0m
 [92m[ DONE ][39m [1mreimport[22m
 [0m
-[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (117 steps)[39m[0m
+[   0% ] [90m[1mreimport[22m | Started (Re)Importing Assets (116 steps)[39m[0m
 [   0% ] [90m[1mreimport[22m | Executing post-reimport operations...[39m[0m
 [92m[ DONE ][39m [1mreimport[22m
 [0m
