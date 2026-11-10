@@ -30,6 +30,10 @@ func run() -> void:
 	var coastal: CoastalController = game.coastal
 	check("coastal scene initialized", coastal != null and coastal.battlefield != null)
 	check("landing craft carries the first wave", coastal.crafts.size() >= 1 and coastal.crafts[0].cargo.size() >= 8)
+	var craft_start: float = coastal.crafts[0].progress
+	await get_tree().create_timer(0.8).timeout
+	check("amphibious craft sails toward the beach", coastal.crafts[0].progress > craft_start or coastal.crafts[0].is_dead())
+	# Land the wave now so the infantry, tank and transport checks below have units to drive.
 	coastal.disembark_all_now()
 	check("at least 8 animated soldiers", coastal.soldiers.size() >= 8)
 	check("destructible tank present", coastal.vehicles.size() >= 1)
@@ -69,11 +73,13 @@ func run() -> void:
 	await get_tree().create_timer(0.6).timeout
 	var soldier: EnemySoldier = coastal.soldiers[0]
 	var before: Vector3 = soldier.global_position
-	await get_tree().create_timer(0.8).timeout
-	check("soldiers advance toward objectives", soldier.global_position.distance_to(before) > 0.05 or soldier.is_dead())
-	var craft_before: float = coastal.crafts[0].progress
-	await get_tree().create_timer(0.8).timeout
-	check("amphibious craft moves", coastal.crafts[0].progress > craft_before or coastal.crafts[0].is_dead())
+	# Infantry bound forward and halt to look around, so sample a longer window.
+	var advanced: bool = false
+	for step in range(28):
+		await get_tree().create_timer(0.1).timeout
+		advanced = advanced or soldier.global_position.distance_to(before) > 0.5 or soldier.is_dead()
+	check("soldiers advance toward objectives", advanced)
+	check("landing craft has grounded and released its cargo", coastal.crafts[0].has_arrived and coastal.disembark_queue.is_empty())
 	var anchor: Vector3 = coastal.aim_yaw.global_position
 	var yaw_before: float = coastal.yaw_target
 	var drag := InputEventScreenDrag.new()
