@@ -89,13 +89,15 @@ static func build_boss_tank() -> Node3D:
 	return root
 
 ## Horizontal wheel with a hub; the tyre axis runs along X.
+## Names get a unique suffix: Godot silently renames duplicate siblings otherwise.
 static func _wheel(parent: Node3D, name: String, pos: Vector3, radius: float, width: float) -> void:
-	var tyre := MeshFactory.cylinder(parent, name, pos, radius, width, TIRE, 14)
+	var tag: String = "_%d" % parent.get_child_count()
+	var tyre := MeshFactory.cylinder(parent, name + tag, pos, radius, width, TIRE, 14)
 	tyre.rotation.z = PI * 0.5
-	var hub := MeshFactory.cylinder(parent, name + "Hub", pos, radius * 0.5, width + 0.02, OLIVE, 10)
+	var hub := MeshFactory.cylinder(parent, name + "Hub" + tag, pos, radius * 0.5, width + 0.02, OLIVE, 10)
 	hub.rotation.z = PI * 0.5
 
 ## Cylinder whose axis runs along Z (the barrel direction); centred on `center`.
 static func _barrel(parent: Node3D, name: String, center: Vector3, radius: float, length: float, color: Color) -> void:
-	var barrel := MeshFactory.cylinder(parent, name, center, radius, length, color, 10)
+	var barrel := MeshFactory.cylinder(parent, name + "_%d" % parent.get_child_count(), center, radius, length, color, 10)
 	barrel.rotation.x = PI * 0.5
