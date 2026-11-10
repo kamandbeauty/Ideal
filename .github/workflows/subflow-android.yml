@@ -142,6 +142,13 @@ jobs:
           tail -n 8 /tmp/test.log | while IFS= read -r line; do
             [ -n "$line" ] && echo "::warning title=dart test tail::$(echo "$line" | cut -c1-300)"
           done || true
+          # The per-step annotation budget is ~10, so every failing test name is
+          # packed into a single annotation - otherwise only the last few are
+          # readable from automation.
+          FAILED="$(grep -oE '[^ :]+test/[^ ]+\.dart: .*\[E\]' /tmp/test.log | sed -E 's/.*test\///' | sort -u | tr '\n' '|')"
+          echo "::error title=dart failing tests::$(echo "${FAILED:-unknown}" | cut -c1-900)"
+          FIRST="$(grep -nE '^[[:space:]]+(Expected|Actual|Which):' /tmp/test.log | head -8 | tr '\n' '|')"
+          echo "::error title=dart assertions::$(echo "${FIRST:-none}" | cut -c1-900)"
           exit 1
 
       # The Gradle distribution is ~130 MB and its redirect has failed on this

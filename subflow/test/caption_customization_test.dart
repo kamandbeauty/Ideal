@@ -101,10 +101,14 @@ void main() {
 
     test('copies survive the editor history and one undo reverts them all', () {
       final SubtitleEditorModel model = SubtitleEditorModel(document: threeLines());
+      final String style = jsonEncode(PresetsLibrary.byId('katibeh-fa').toMap());
+      expect(model.setSegmentPreset('a', style), isTrue);
       expect(model.applySegmentPresetToAll('a'), isTrue);
+      expect(model.document.segments.every((SubtitleSegment s) => s.presetJson == style), isTrue);
+      expect(model.undo(), isTrue);
       expect(model.document.byId('c')!.presetJson, isNull);
       expect(model.undo(), isTrue);
-      expect(model.document.segments.every((SubtitleSegment s) => !s.hasOwnStyle), isTrue);
+      expect(model.document.byId('a')!.presetJson, isNull);
     });
 
     test('the segment map carries the style to the database row', () {
