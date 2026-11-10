@@ -53,9 +53,9 @@ func run(t: TestContext) -> void:
 	t.check(scene.soldiers.size() >= 8, "Playable milestone spawns animated infantry")
 	var min_x: float = INF
 	var max_x: float = -INF
-	for soldier in scene.soldiers:
-		min_x = minf(min_x, soldier.global_position.x)
-		max_x = maxf(max_x, soldier.global_position.x)
+	for unit in scene.soldiers:
+		min_x = minf(min_x, unit.global_position.x)
+		max_x = maxf(max_x, unit.global_position.x)
 	t.check(max_x - min_x >= 3.0, "Infantry step ashore across a spread of the craft front, not one point")
 	t.check(scene.disembark_queue.is_empty(), "Every unit leaves the landing craft")
 	t.check(scene.vehicles.size() >= 1, "Playable milestone includes a destructible tank")
