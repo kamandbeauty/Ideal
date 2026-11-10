@@ -36,10 +36,10 @@ const BOARD_SIZE := 378.0
 const GOAL_ROW_PITCH := 32.0
 # The band the goals live in. A level with one goal centres it in the band instead of leaving the hole
 # under it — the first render of this layout had one goal at the top and 70 dp of nothing below.
-const GOAL_BAND_Y := 82.0
-const GOAL_BAND_H := 94.0
+const GOAL_BAND_Y := 88.0
+const GOAL_BAND_H := 96.0
 const BOOSTER_SIZE := 48.0
-const BOOSTER_PITCH := 54.0
+const BOOSTER_PITCH := 56.0
 const BOOSTER_ROWS_Y := 42.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
@@ -135,26 +135,26 @@ func build() -> void:
 	# ---- the score, the line that says what to do, and the purse ---------------------------------
 	var score_caption := UiKit.label(goals_rail, "score_caption", "امتیاز", UiTokens.TYPE_XS,
 		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(score_caption, rail_x, 182.0, rail_w, 14.0)
+	UiKit.place(score_caption, rail_x, 194.0, rail_w, 14.0)
 	_score_label = UiKit.label(goals_rail, "score", "", UiTokens.TYPE_LG, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, rail_x, 196.0, rail_w, 26.0)
+	UiKit.place(_score_label, rail_x, 208.0, rail_w, 26.0)
 
 	# The sentence sits on the rail like a note on the panel: no plate behind it, because a plate on
 	# cream reads as a sticker, and the line is short enough to fit the rail in three lines.
 	_hint = UiKit.label(goals_rail, "hint", "", UiTokens.TYPE_XS, UiTokens.INK_SOFT,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, rail_x, 224.0, rail_w, 48.0)
+	UiKit.place(_hint, rail_x, 238.0, rail_w, 54.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 282.0, 22.0, 22.0)
+	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 298.0, 22.0, 22.0)
 	_coin_label = UiKit.label(goals_rail, "coin_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_coin_label, rail_x + 26.0, 278.0, rail_w - 26.0, 28.0)
-	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 314.0, 22.0, 22.0)
+	UiKit.place(_coin_label, rail_x + 24.0, 298.0, rail_w - 24.0, 22.0)
+	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 328.0, 22.0, 22.0)
 	_life_label = UiKit.label(goals_rail, "life_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_life_label, rail_x + 26.0, 310.0, rail_w - 26.0, 28.0)
+	UiKit.place(_life_label, rail_x + 24.0, 328.0, rail_w - 24.0, 22.0)
 
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
 	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,

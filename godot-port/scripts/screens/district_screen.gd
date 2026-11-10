@@ -12,10 +12,12 @@ signal back_requested
 const CARD_HEIGHT := 286.0
 # The card is a painted plaque: its moulding is 18 dp deep, so nothing may be drawn outside this inset.
 const EDGE := 18.0
-const TITLE_Y := 32.0
-const ROW_Y := 54.0
-const ROW_PITCH := 34.0
-const ACTION_Y := 224.0
+# The painted plaque has an arch ornament across its top third, so the title starts below it and the five
+# rows and the two action buttons are packed tighter to make the room back.
+const TITLE_Y := 36.0
+const ROW_Y := 60.0
+const ROW_PITCH := 30.0
+const ACTION_Y := 216.0
 const CARD_WIDTH := 232.0
 const CARD_GAP := 8.0
 
@@ -73,7 +75,7 @@ func _build_card(index: int) -> void:
 	# The plate is art, the rows are the game: a wash over the illustration keeps every price readable
 	# without hiding the place being rebuilt.
 	var veil := UiKit.veil(card, "plate_veil",
-		Color(UiTokens.SURFACE.r, UiTokens.SURFACE.g, UiTokens.SURFACE.b, 0.45))
+		Color(UiTokens.SURFACE.r, UiTokens.SURFACE.g, UiTokens.SURFACE.b, 0.30))
 	card.move_child(veil, 1)
 	# The wash is for the district illustration; the painted moulding stays clear of it.
 	UiKit.place(veil, EDGE, EDGE, CARD_WIDTH - EDGE * 2.0, CARD_HEIGHT - EDGE * 2.0)
@@ -92,14 +94,14 @@ func _build_card(index: int) -> void:
 		row.name = "task_%d" % task_index
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(row)
-		UiKit.place(row, EDGE, y, CARD_WIDTH - EDGE * 2.0, 30.0)
+		UiKit.place(row, EDGE, y, CARD_WIDTH - EDGE * 2.0, 26.0)
 
 		var label := UiKit.label(row, "title", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(label, 56.0, 0.0, CARD_WIDTH - EDGE * 2.0 - 56.0, 30.0)
+		UiKit.place(label, 48.0, 0.0, CARD_WIDTH - EDGE * 2.0 - 48.0, 26.0)
 		_row_titles.append(label)
 
-		var button := UiKit.button(row, "build", "", 0.0, 0.0, 50.0, 30.0, UiTokens.ACCENT,
+		var button := UiKit.button(row, "build", "", 0.0, 0.0, 44.0, 26.0, UiTokens.ACCENT,
 			UiTokens.ON_ACCENT, Callable(self, "_on_task_pressed").bind(index, task_index),
 			UiTokens.RADIUS_SM)
 		button.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
@@ -173,7 +175,7 @@ func refresh() -> void:
 		if plate_art == null:
 			plate_art = UiKit.texture("district_" + district_id)
 		_plates[index].texture = plate_art
-		_plates[index].modulate = Color(1, 1, 1, 0.62 if built_now else 0.50)
+		_plates[index].modulate = Color(1, 1, 1, 0.44 if built_now else 0.34)
 
 		var chest_open := session.is_chest_open(district)
 		_chest_icons[index].texture = UiKit.texture("reward_chest_open" if chest_open
