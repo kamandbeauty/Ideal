@@ -32,19 +32,23 @@ OUT = os.path.join(HERE, "assets", "ui")
 
 # The tray is drawn at 408 dp, so the plate ships at twice that.
 TRAY_SIZE = 816
-# The two rails are drawn at 134x403 dp; the orb and the cell at 64 and 42 dp. Everything ships at two
+# The two rails are drawn at 118x388 dp; the orb and the cell at 64 and 42 dp. Everything ships at two
 # times the size it is drawn, so a 3x screen still has pixels to spend.
-RAIL_SIZE = (268, 806)
+RAIL_SIZE = (236, 776)
 ORB_SIZE = 128
 TILE_SIZE = 128
 # How near-black a plate's field has to be before the key fills it.
 KEY_TOLERANCE = 26
 
-# The two card plaques are authored at exactly the size the screens draw them (330x126 and 232x286) and
-# stretched whole, because a card is a fixed size: nine-slicing a painted moulding at 40 dp corners
-# would crop the ornament. The painted plate is 16:9; it is squashed to the card's shape, which is the
-# only distortion it gets and is not visible in the moulding at this size.
-CARD_TRIM = 0.032
+# The two card plaques are painted 16:9-ish and the cards are 2.6:1 and 0.81:1, so a plain stretch would
+# turn the painted corner medallions into ellipses. They are nine-sliced here, in the tool, at the size
+# the screens draw them (330x126 and 232x286 dp, doubled): the corners keep their shape, the plain bands
+# between them take up the difference, and the shipped plate is already the card's exact shape, so the
+# screens still stretch it whole and never slice it at runtime.
+CARD_MARGINS = {
+    "card_wide": (0.20, 0.42),
+    "card_tall": (0.22, 0.34),
+}
 CARDS = {
     "ui_card_frame.png": ("card_wide", (660, 252)),
     "ui_card_tall.png": ("card_tall", (464, 572)),
@@ -121,18 +125,49 @@ def build_round_plate(name: str, size: int) -> Image.Image:
     return plate.filter(ImageFilter.UnsharpMask(radius=1.2, percent=50, threshold=2))
 
 
+def _nine_slice(cut: Image.Image, size: tuple, margins: tuple) -> Image.Image:
+    """Stretch the plain bands of a painted plaque, never its corners.
+
+    Each of the nine regions is scaled separately: the four corners are placed at one common scale, so
+    a painted medallion keeps its circle, and the four edge bands and the middle take up the rest of
+    the target. Without this a 16:9 plaque drawn into a 2.6:1 card turns every ornament oval.
+    """
+    target_w, target_h = size
+    width, height = cut.size
+    scale = min(target_w / float(width), target_h / float(height))
+    source_x = max(1, int(width * margins[0]))
+    source_y = max(1, int(height * margins[1]))
+    corner_x = min(target_w // 2, max(1, int(source_x * scale)))
+    corner_y = min(target_h // 2, max(1, int(source_y * scale)))
+    columns = [(0, source_x, 0, corner_x),
+               (source_x, width - source_x, corner_x, target_w - corner_x),
+               (width - source_x, width, target_w - corner_x, target_w)]
+    rows = [(0, source_y, 0, corner_y),
+            (source_y, height - source_y, corner_y, target_h - corner_y),
+            (height - source_y, height, target_h - corner_y, target_h)]
+    plate = Image.new("RGBA", size, (0, 0, 0, 0))
+    for top, bottom, out_top, out_bottom in rows:
+        for left, right, out_left, out_right in columns:
+            if right <= left or out_right <= out_left or bottom <= top or out_bottom <= out_top:
+                continue
+            tile = cut.crop((left, top, right, bottom)).resize(
+                (out_right - out_left, out_bottom - out_top), Image.LANCZOS)
+            plate.paste(tile, (out_left, out_top))
+    return plate
+
+
 def build_card(source_name: str, size: tuple) -> Image.Image:
-    source = _load(source_name)
-    width, height = source.size
-    trim_x = int(width * CARD_TRIM)
-    trim_y = int(height * CARD_TRIM)
-    source = source.crop((trim_x, trim_y, width - trim_x, height - trim_y))
-    plate = source.resize(size, Image.LANCZOS)
-    plate = plate.filter(ImageFilter.UnsharpMask(radius=1.6, percent=55, threshold=2))
-    # A touch darker: the captions on a card are small, and the lacquer is a face, not a light.
-    pixels = np.asarray(plate).astype(np.float32) * np.array([0.94, 0.95, 0.98], dtype=np.float32)
-    plate = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGB")
-    return _grain(plate, 2.0, 37)
+    cut = _field_keyed(_load(source_name))
+    plate = _nine_slice(cut, size, CARD_MARGINS[source_name])
+    # The frame is painted cream; keep its alpha, grade only the colour, or the keyed field would be
+    # multiplied back into a black card.
+    pixels = np.asarray(plate).astype(np.float32)
+    pixels[..., :3] = pixels[..., :3] * np.array([0.97, 0.96, 0.93], dtype=np.float32)
+    card = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGBA")
+    card = card.filter(ImageFilter.UnsharpMask(radius=1.4, percent=45, threshold=2))
+    graded = np.asarray(card).astype(np.float32)
+    graded[..., :3] = np.asarray(_grain(card.convert("RGB"), 2.0, 37)).astype(np.float32)
+    return Image.fromarray(np.clip(graded, 0, 255).astype(np.uint8), "RGBA")
 
 
 def main() -> None:

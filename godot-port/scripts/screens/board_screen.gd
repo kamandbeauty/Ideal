@@ -15,14 +15,14 @@ signal retry_requested(level_number: int)
 # The reference the player judges this screen by is a landscape board in the middle with a capsule
 # panel down each side: goals and the purse on the left, the tools on the right. The board is the
 # screen, so it is centred, and the panels are narrow because the board must not pay for them.
-const RAIL_LEFT_X := 10.0
-const RAIL_RIGHT_X := 594.0
-const RAIL_Y := 6.0
-const RAIL_W := 134.0
-const RAIL_H := 403.0
+const RAIL_LEFT_X := 8.0
+const RAIL_RIGHT_X := 612.0
+const RAIL_Y := 8.0
+const RAIL_W := 118.0
+const RAIL_H := 388.0
 # The painted capsule's cream field starts 8 dp in and its cap curves for another 12, so the content is
 # inset well past the paint: an icon at 8 dp sits on the amber border and reads as a clipped icon.
-const RAIL_PAD := 16.0
+const RAIL_PAD := 13.0
 # The playfield is the painted carpet, and the cells sit inside it: the carpet's own border is the only
 # frame the board gets, so the plate is 15 dp larger than the 9 x 42 dp grid on every side.
 const PLATE_LEFT := 165.0
@@ -33,14 +33,14 @@ const BOARD_TOP := 18.0
 const BOARD_SIZE := 378.0
 # Left rail: the title, the level, the moves, the goals, the score, the line that says what to do, and
 # the purse. Right rail: five tools and the two ways out of the level.
-const GOAL_ROW_PITCH := 34.0
+const GOAL_ROW_PITCH := 32.0
 # The band the goals live in. A level with one goal centres it in the band instead of leaving the hole
 # under it — the first render of this layout had one goal at the top and 70 dp of nothing below.
-const GOAL_BAND_Y := 96.0
-const GOAL_BAND_H := 100.0
-const BOOSTER_SIZE := 56.0
-const BOOSTER_PITCH := 60.0
-const BOOSTER_ROWS_Y := 44.0
+const GOAL_BAND_Y := 82.0
+const GOAL_BAND_H := 94.0
+const BOOSTER_SIZE := 48.0
+const BOOSTER_PITCH := 54.0
+const BOOSTER_ROWS_Y := 42.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -100,20 +100,20 @@ func build() -> void:
 	var rail_w := RAIL_W - RAIL_PAD * 2.0
 
 	# ---- left rail, top to bottom -----------------------------------------------------------------
-	# The rail is 102 dp of usable width. The game's name is not on it: the home screen carries that,
+	# The rail is 92 dp of usable width. The game's name is not on it: the home screen carries that,
 	# and the reference puts nothing above the level tab.
-	var level_chip := UiKit.art_panel(goals_rail, "level_chip", rail_x, 20.0, rail_w, 26.0,
+	var level_chip := UiKit.art_panel(goals_rail, "level_chip", rail_x, 14.0, rail_w, 24.0,
 		"ui_button_gold_sm", UiTokens.BORDER_PLATE_SMALL, UiTokens.GOLD, UiTokens.RADIUS_MD)
-	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_SM, UiTokens.ON_GOLD,
+	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_XS, UiTokens.ON_GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, 2.0, 0.0, rail_w - 4.0, 26.0)
+	UiKit.place(_level_label, 2.0, 0.0, rail_w - 4.0, 24.0)
 
 	# The moves counter is the one figure a player checks every second, so it is the biggest thing on
 	# the rail, with the icon the port already ships beside it.
-	UiKit.icon(goals_rail, "moves_icon", "icon_moves", rail_x + 2.0, 56.0, 24.0, 24.0)
-	_moves_label = UiKit.label(goals_rail, "moves", "", UiTokens.TYPE_XL, UiTokens.INK,
+	UiKit.icon(goals_rail, "moves_icon", "icon_moves", rail_x + 2.0, 48.0, 20.0, 20.0)
+	_moves_label = UiKit.label(goals_rail, "moves", "", UiTokens.TYPE_LG, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_moves_label, rail_x + 28.0, 50.0, rail_w - 28.0, 36.0)
+	UiKit.place(_moves_label, rail_x + 24.0, 42.0, rail_w - 24.0, 32.0)
 
 	# ---- the goals, one compact row each ----------------------------------------------------------
 	for index in range(3):
@@ -126,40 +126,40 @@ func build() -> void:
 		goals_rail.add_child(chip)
 		UiKit.place(chip, rail_x, y, rail_w, GOAL_ROW_PITCH - 2.0)
 		_goal_chips.append(chip)
-		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", 2.0, 2.0, 28.0, 28.0))
+		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", 1.0, 2.0, 26.0, 26.0))
 		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_XS, UiTokens.INK,
 			HORIZONTAL_ALIGNMENT_CENTER, true)
-		UiKit.place(label, 34.0, 0.0, rail_w - 36.0, GOAL_ROW_PITCH - 2.0)
+		UiKit.place(label, 30.0, 0.0, rail_w - 32.0, GOAL_ROW_PITCH - 2.0)
 		_goal_labels.append(label)
 
 	# ---- the score, the line that says what to do, and the purse ---------------------------------
 	var score_caption := UiKit.label(goals_rail, "score_caption", "امتیاز", UiTokens.TYPE_XS,
 		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(score_caption, rail_x, 198.0, rail_w, 14.0)
+	UiKit.place(score_caption, rail_x, 182.0, rail_w, 14.0)
 	_score_label = UiKit.label(goals_rail, "score", "", UiTokens.TYPE_LG, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, rail_x, 212.0, rail_w, 26.0)
+	UiKit.place(_score_label, rail_x, 196.0, rail_w, 26.0)
 
 	# The sentence sits on the rail like a note on the panel: no plate behind it, because a plate on
 	# cream reads as a sticker, and the line is short enough to fit the rail in three lines.
 	_hint = UiKit.label(goals_rail, "hint", "", UiTokens.TYPE_XS, UiTokens.INK_SOFT,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, rail_x, 244.0, rail_w, 56.0)
+	UiKit.place(_hint, rail_x, 224.0, rail_w, 48.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 304.0, 24.0, 24.0)
+	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 282.0, 22.0, 22.0)
 	_coin_label = UiKit.label(goals_rail, "coin_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_coin_label, rail_x + 28.0, 302.0, rail_w - 28.0, 28.0)
-	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 332.0, 24.0, 24.0)
+	UiKit.place(_coin_label, rail_x + 26.0, 278.0, rail_w - 26.0, 28.0)
+	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 314.0, 22.0, 22.0)
 	_life_label = UiKit.label(goals_rail, "life_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_life_label, rail_x + 28.0, 330.0, rail_w - 28.0, 28.0)
+	UiKit.place(_life_label, rail_x + 26.0, 310.0, rail_w - 26.0, 28.0)
 
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
 	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,
 		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_boosters_heading, rail_x, 20.0, rail_w, 16.0)
+	UiKit.place(_boosters_heading, rail_x, 14.0, rail_w, 14.0)
 	for kind in range(BoosterBag.SLOTS):
 		var y := BOOSTER_ROWS_Y + float(kind) * BOOSTER_PITCH
 		var handler := _on_booster_pressed.bind(kind)
@@ -169,24 +169,24 @@ func build() -> void:
 		_booster_buttons.append(button)
 		# The tool's own picture is a medallion with a gold rim of its own, so it is drawn small inside
 		# the orb: two rims at the same size fight, one inside the other reads as a setting.
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 11.0, 11.0,
-			BOOSTER_SIZE - 22.0, BOOSTER_SIZE - 22.0))
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 10.0, 10.0,
+			BOOSTER_SIZE - 20.0, BOOSTER_SIZE - 20.0))
 		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
 		# stacked at 62 dp pitch and there is no room for a caption under each.
-		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 24.0, BOOSTER_SIZE - 24.0,
-			20.0, 20.0)
-		var count := UiKit.label(button, "count", "", 11, UiTokens.ON_GOLD,
+		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0,
+			18.0, 18.0)
+		var count := UiKit.label(button, "count", "", 10, UiTokens.ON_GOLD,
 			HORIZONTAL_ALIGNMENT_CENTER, true)
-		UiKit.place(count, BOOSTER_SIZE - 24.0, BOOSTER_SIZE - 24.0, 20.0, 20.0)
+		UiKit.place(count, BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0, 18.0, 18.0)
 		_booster_counts.append(count)
 
 	# The two ways out sit side by side on the bottom of the rail: stacked, they run into the capsule's
 	# bottom curve, and a button that touches the paint looks clipped.
-	var out_width := (rail_w - 6.0) * 0.5
-	UiKit.button(tools_rail, "home", "خانه", rail_x, 350.0, out_width, 28.0, UiTokens.GOLD,
+	var out_width := (rail_w - 5.0) * 0.5
+	UiKit.button(tools_rail, "home", "خانه", rail_x, 330.0, out_width, 26.0, UiTokens.GOLD,
 		UiTokens.ON_GOLD, _on_home, UiTokens.RADIUS_MD)
-	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 6.0, 350.0, out_width,
-		28.0, UiTokens.GOLD, UiTokens.ON_GOLD, _on_pause, UiTokens.RADIUS_MD)
+	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 330.0, out_width,
+		26.0, UiTokens.GOLD, UiTokens.ON_GOLD, _on_pause, UiTokens.RADIUS_MD)
 
 	# ---- playfield: the carpet, then the board on top of it ---------------------------------------
 	UiKit.art_panel(self, "board_tray", PLATE_LEFT, PLATE_TOP, PLATE_SIZE, PLATE_SIZE,
