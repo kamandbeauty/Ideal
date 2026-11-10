@@ -124,6 +124,9 @@ var damage_overlay: ColorRect
 var damage_layer: Control
 var boss_panel: PanelContainer
 var boss_bar: ProgressBar
+var target_panel: PanelContainer
+var target_label: Label
+var target_status: Label
 const MAX_DAMAGE_NUMBERS: int = 24
 const DEFAULT_HEALTH: float = 6000.0
 
@@ -150,6 +153,7 @@ func _ready() -> void:
 	_build_bottom()
 	_build_crosshair()
 	_build_boss_bar()
+	_build_target_panel()
 	target_lock = TargetLock.new()
 	add_child(target_lock)
 	_build_pause()
@@ -378,6 +382,41 @@ func _build_boss_bar() -> void:
 	boss_panel.visible = false
 	root.add_child(boss_panel)
 
+## Target panel under the boss bar: names what the crosshair is on and the shooting state.
+func _build_target_panel() -> void:
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 2)
+	target_label = UITheme.label("", 20, UITheme.ACCENT, true)
+	target_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	target_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(target_label)
+	target_status = UITheme.label("", 16, Color(0.9, 0.95, 0.85), false)
+	target_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	target_status.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(target_status)
+	target_panel = _glass(column, 8)
+	target_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	target_panel.offset_left = -240
+	target_panel.offset_right = 240
+	target_panel.offset_top = 178
+	target_panel.offset_bottom = 240
+	target_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	target_panel.visible = false
+	root.add_child(target_panel)
+
+## Shows the aimed hostile and lights the crosshair while a hostile is under it; hides both otherwise.
+func update_target(info: Dictionary) -> void:
+	if target_panel == null:
+		return
+	var aimed: bool = not info.is_empty()
+	target_panel.visible = aimed
+	if aimed:
+		target_label.text = String(info.get("text", ""))
+		target_status.text = String(info.get("status", ""))
+	if crosshair and crosshair.hot != aimed:
+		crosshair.hot = aimed
+		crosshair.queue_redraw()
+
 func show_boss() -> void:
 	if boss_panel:
 		boss_bar.value = 1.0
@@ -462,6 +501,7 @@ func _build_results() -> void:
 
 func update_state(data: Dictionary) -> void:
 	target_lock.set_lock(data.get("lock_point", Vector2.ZERO), float(data.get("lock_range", 0.0)), bool(data.get("lock_on", false)))
+	update_target(data.get("aim_info", {}))
 	zoom_label.text = (Loc.decimal(float(data.get("zoom_factor", 1.0)), 1) + "×") if bool(data.get("zoomed", false)) else "۱×"
 	mission_label.text = Loc.t("coastal_title") % Loc.wave(String(data.get("label", "COASTAL DEFENSE")))
 	enemies_label.text = Loc.t("coastal_enemies") % Loc.number(int(data.get("remaining", 0)))

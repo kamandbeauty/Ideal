@@ -55,6 +55,30 @@ func run(t: TestContext) -> void:
 	t.check(axle_before.dot(tyre.global_transform.basis.y) > 0.999, "Jeep wheels spin about their axle without tumbling")
 	t.check(spin_before.dot(tyre.global_transform.basis.x) < 0.99, "Jeep wheels visibly turn while rolling")
 	rolling.queue_free()
+	# Target panel: the aimed hostile is the one nearest the crosshair axis inside the cone.
+	var centre_target := Node3D.new()
+	centre_target.position = Vector3(0, 0, -50)
+	var side_target := Node3D.new()
+	side_target.position = Vector3(5, 0, -50)
+	t.tree.root.add_child(centre_target)
+	t.tree.root.add_child(side_target)
+	t.check(TargetInfo.aimed_target(Vector3.ZERO, Vector3(0, 0, -1), [side_target, centre_target], 3.0) == centre_target, "Aim picks the hostile nearest the crosshair axis")
+	t.check(TargetInfo.aimed_target(Vector3.ZERO, Vector3(0, 0, -1), [side_target], 3.0) == null, "Hostiles outside the aim cone are not aimed at")
+	centre_target.queue_free()
+	side_target.queue_free()
+	var boss_kind := EnemyVehicle.new()
+	boss_kind.kind = "boss"
+	t.equal(TargetInfo.kind_key(boss_kind), "target_boss", "Target panel names the boss tank")
+	boss_kind.health = 450.0
+	boss_kind.max_health = 900.0
+	t.check(absf(TargetInfo.health_ratio(boss_kind) - 0.5) < 0.001, "Target panel reports remaining health as a ratio")
+	boss_kind.free()
+	var plane := EnemyAircraft.new()
+	plane.kind = "fighter"
+	t.equal(TargetInfo.kind_key(plane), "target_fighter", "Target panel names fighters")
+	plane.free()
+	t.check(TargetInfo.status(true, false) == Loc.t("target_auto_fire"), "Status reports automatic fire on the target")
+	t.check(TargetInfo.status(true, true) == Loc.t("target_reloading"), "Reloading takes priority in the status line")
 	t.check(CoastalWeapon.ORDER.size() == 5, "Five mounted weapon types include machine guns, cannon, rocket, bazooka and autocannon")
 	t.check(bool(CoastalWeapon.WEAPONS.twin_hmg.automatic), "Twin heavy machine gun supports automatic fire")
 	t.check(float(CoastalWeapon.WEAPONS.rocket.blast) > 0.0, "Rocket ammunition has blast radius")
