@@ -18,7 +18,7 @@ const BOARD_LEFT := 366.0
 const BOARD_TOP := 60.0
 const BOARD_SIZE := 330.0
 # The frame art is a 256 px plate with a 24 px border, so the board sits exactly inside it.
-const BOARD_FRAME_BORDER := 24.0
+const BOARD_FRAME_BORDER := 34.0
 const COLUMN_X := 16.0
 const COLUMN_W := 318.0
 # The column is 415 dp tall and has to be full: a stack of cards that stops two thirds of the way down
@@ -179,11 +179,11 @@ func build() -> void:
 	# ---- playfield: frame picture, then the tray, then the board ----------------------------------
 	UiKit.art_panel(self, "board_frame", BOARD_LEFT - BOARD_FRAME_BORDER, BOARD_TOP - BOARD_FRAME_BORDER,
 		BOARD_SIZE + BOARD_FRAME_BORDER * 2.0, BOARD_SIZE + BOARD_FRAME_BORDER * 2.0,
-		"board_frame", int(BOARD_FRAME_BORDER), UiTokens.BG)
-	# The tray is a picture too: velvet with a lattice worked into it, so the board sits in a case
-	# instead of floating on whatever the screen's backdrop happens to be.
+		"ui_board_frame", 0, UiTokens.BG)
+	# The tray is painted velvet with a faint star lattice in the pile, and the case is painted round it:
+	# both are stretched whole (border 0) because both are always drawn square, so nothing smears.
 	UiKit.art_panel(self, "board_tray", BOARD_LEFT, BOARD_TOP, BOARD_SIZE, BOARD_SIZE,
-		"ui_board_tray", 18, UiTokens.BG)
+		"ui_board_tray", 0, UiTokens.BG)
 	_board = BoardView.new()
 	_board.name = "board"
 	add_child(_board)

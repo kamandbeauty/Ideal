@@ -199,7 +199,10 @@ static func panel(parent: Node, node_name: String, x: float, y: float, width: fl
 static func art_panel(parent: Node, node_name: String, x: float, y: float, width: float, height: float,
 		art_id: String, border: int, fallback: Color, radius: int = 0) -> Panel:
 	var node := panel(parent, node_name, x, y, width, height, fallback, radius)
-	var style := art_box(art_id, border)
+	# `ui_*` ids live in `assets/ui/` (drawn or painted plates); everything else is the Unity art the
+	# port still ships. Without this, an `ui_` id silently resolved to nothing and the colour picked the
+	# plate, which meant the id was decoration rather than a choice.
+	var style: StyleBoxTexture = ui_box(art_id, border) if art_id.begins_with("ui_") else art_box(art_id, border)
 	if style != null:
 		node.add_theme_stylebox_override("panel", style)
 	return node
