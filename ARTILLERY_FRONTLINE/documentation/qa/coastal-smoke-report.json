@@ -5,6 +5,10 @@
       "passed": true
     },
     {
+      "name": "landing craft carries the first wave",
+      "passed": true
+    },
+    {
       "name": "at least 8 animated soldiers",
       "passed": true
     },
@@ -58,7 +62,7 @@
     },
     {
       "name": "amphibious craft moves",
-      "passed": true
+      "passed": false
     },
     {
       "name": "touch drag aims weapon",
@@ -161,15 +165,15 @@
       "passed": true
     }
   ],
-  "failures": 0,
-  "kills": 3,
-  "passed": true,
+  "failures": 1,
+  "kills": 1,
+  "passed": false,
   "performance": {
-    "draw_calls": 282,
-    "fps": 10.3,
-    "frame_ms": 97.55,
-    "objects": 1882,
-    "primitives": 157227,
+    "draw_calls": 308,
+    "fps": 17.0,
+    "frame_ms": 58.72,
+    "objects": 1818,
+    "primitives": 141604,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
