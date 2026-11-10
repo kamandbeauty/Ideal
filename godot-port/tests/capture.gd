@@ -130,8 +130,11 @@ func _swap_strip(board_screen) -> void:
 		return
 	board_screen._hide_hand()
 	await _frames(2)
-	var board = board_screen.get("board")
+	var board = board_screen.get_node_or_null("board")
 	_log("STRIP board :: %s" % str(board))
+	if board == null:
+		_log("STRIP skipped :: the screen has no board view")
+		return
 	var a: Vector2 = board.position + board.cell_center(move[0])
 	var b: Vector2 = board.position + board.cell_center(move[1])
 	var window := Rect2i(Vector2i(int(minf(a.x, b.x) - 62.0), int(minf(a.y, b.y) - 62.0)),
