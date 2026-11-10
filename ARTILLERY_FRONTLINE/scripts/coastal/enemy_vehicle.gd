@@ -5,12 +5,17 @@ extends CharacterBody3D
 signal died(vehicle: EnemyVehicle)
 signal damaged(vehicle: EnemyVehicle, ratio: float)
 signal shoot_requested(origin: Vector3, target: Vector3, damage: float, blast: float)
+## Boss tanks report 1 at 60% health and 2 at 30%, so the controller can show the damage.
+signal stage_changed(vehicle: EnemyVehicle, stage: int)
 
 var kind: String = "tank"
 ## Armour is light enough that two cannon hits (or two rockets) stop a tank and
 ## one cannon hit stops a transport.
 const TANK_HEALTH: float = 260.0
 const TRANSPORT_HEALTH: float = 120.0
+const JEEP_HEALTH: float = 90.0
+const APC_HEALTH: float = 220.0
+const BOSS_HEALTH: float = 900.0
 const WADE_FLOOR: float = -0.35
 var health: float = TANK_HEALTH
 var max_health: float = TANK_HEALTH
@@ -42,6 +47,7 @@ var muzzle_light: OmniLight3D
 var flash_timer: float = 0.0
 var suspension_phase: float = 0.0
 var turret_rest_y: float = 0.0
+var stage: int = 0
 
 func _ready() -> void:
 	collision_layer = 2
@@ -50,9 +56,9 @@ func _ready() -> void:
 	add_to_group("damageable")
 	collision = CollisionShape3D.new()
 	var shape := BoxShape3D.new()
-	shape.size = Vector3(3.4, 2.6, 6.2) if kind == "tank" else Vector3(3.0, 2.6, 6.8)
+	shape.size = hull_size()
 	collision.shape = shape
-	collision.position.y = 1.3
+	collision.position.y = hull_size().y * 0.5
 	add_child(collision)
 	_build_model()
 
@@ -71,20 +77,20 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 		recoil_node = null
 		muzzle = null
 		var shape := BoxShape3D.new()
-		shape.size = Vector3(3.4, 2.6, 6.2) if kind == "tank" else Vector3(3.0, 2.6, 6.8)
+		shape.size = hull_size()
 		collision.shape = shape
+		collision.position.y = hull_size().y * 0.5
 		_build_model()
 	advance_origin = spawn
 	var flat_spawn := Vector3(spawn.x, 0.0, spawn.z)
 	var flat_target := Vector3(target.x, 0.0, target.z)
 	advance_span = flat_spawn.distance_to(flat_target)
-	if kind == "tank":
-		health = TANK_HEALTH
-		speed = 3.0
+	health = health_for(kind)
+	speed = cruise_speed()
+	stage = 0
+	if is_armoured():
 		stop_distance = maxf(MIN_HOLD_DISTANCE, advance_span * ADVANCE_FRACTION)
 	else:
-		health = TRANSPORT_HEALTH
-		speed = 5.0
 		stop_distance = 28.0
 	holding = false
 	max_health = health
@@ -92,6 +98,16 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 	suspension_phase = randf() * TAU
 
 func _build_model() -> void:
+	var procedural: Node3D = VehicleModels.build_kind(kind)
+	if procedural:
+		# Procedural models already face -Z, which is this node's forward direction.
+		model_root = procedural
+		add_child(model_root)
+		muzzle = model_root.find_child("Muzzle", true, false) as Node3D
+		for child in model_root.find_children("Wheel*", "Node3D", true, false):
+			wheels.append(child as Node3D)
+		_build_muzzle_flash()
+		return
 	var path: String = "res://assets/models/warden.glb" if kind == "tank" else "res://assets/models/nomad.glb"
 	if ResourceLoader.exists(path):
 		model_root = load(path).instantiate()
@@ -128,7 +144,7 @@ func _build_muzzle_flash() -> void:
 		return
 	muzzle_flash = MeshInstance3D.new()
 	var quad := QuadMesh.new()
-	quad.size = Vector2(1.6, 1.6) if kind == "tank" else Vector2(0.7, 0.7)
+	quad.size = Vector2(1.6, 1.6) if is_heavy() else Vector2(0.7, 0.7)
 	muzzle_flash.mesh = quad
 	var material := StandardMaterial3D.new()
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -160,9 +176,21 @@ func receive_damage(amount: float) -> float:
 	var before: float = health
 	health = maxf(0.0, health - amount * armor)
 	damaged.emit(self, health / max_health)
+	_check_stages()
 	if health <= 0.0:
 		_die()
 	return before - health
+
+func _check_stages() -> void:
+	if kind != "boss" or dead:
+		return
+	var ratio: float = health / max_health
+	if stage < 1 and ratio <= 0.6:
+		stage = 1
+		stage_changed.emit(self, stage)
+	if stage < 2 and ratio <= 0.3:
+		stage = 2
+		stage_changed.emit(self, stage)
 
 func react_to_explosion(point: Vector3, radius: float) -> void:
 	if dead:
@@ -196,15 +224,15 @@ func muzzle_position() -> Vector3:
 	return global_position + Vector3.UP * 2.2 - global_transform.basis.z * 3.0
 
 func _fire() -> void:
-	recoil_velocity += 7.0 if kind == "tank" else 3.5
-	flash_timer = 0.07 if kind == "tank" else 0.045
+	recoil_velocity += 7.0 if is_heavy() else 3.5
+	flash_timer = 0.07 if is_heavy() else 0.045
 	if muzzle_flash:
 		muzzle_flash.visible = true
 		muzzle_flash.rotation.z = randf_range(0.0, TAU)
 		muzzle_flash.scale = Vector3.ONE * randf_range(0.85, 1.25)
 	if muzzle_light:
-		muzzle_light.light_energy = 4.0 if kind == "tank" else 2.0
-	shoot_requested.emit(muzzle_position(), objective, 150.0 if kind == "tank" else 22.0, 5.0 if kind == "tank" else 0.0)
+		muzzle_light.light_energy = 4.0 if is_heavy() else 2.0
+	shoot_requested.emit(muzzle_position(), objective, shell_damage(), shell_blast())
 
 func _physics_process(delta: float) -> void:
 	if dead:
@@ -232,13 +260,13 @@ func _physics_process(delta: float) -> void:
 	_aim_turret(delta)
 	_tick_recoil(delta)
 	if shoot_cooldown <= 0.0 and distance < 170.0:
-		shoot_cooldown = 4.6 if kind == "tank" else 2.6
+		shoot_cooldown = fire_interval()
 		_fire()
 
 func _roll_wheels(delta: float, current_speed: float) -> void:
 	if current_speed <= 0.0:
 		return
-	var radius: float = 0.55 if kind == "tank" else 0.45
+	var radius: float = wheel_radius()
 	var angular: float = current_speed / radius
 	for wheel in wheels:
 		wheel.rotate_object_local(Vector3.RIGHT, angular * delta)
@@ -272,3 +300,92 @@ func _tick_recoil(delta: float) -> void:
 		muzzle_flash.visible = false
 	if muzzle_light:
 		muzzle_light.light_energy = maxf(0.0, muzzle_light.light_energy - delta * 40.0)
+
+## Per-kind stats. Armour stays the same for every hull, so anti-armour weapons
+## (cannon, rocket, bazooka) are what break a boss; small arms only scratch it.
+static func health_for(vehicle_kind: String) -> float:
+	match vehicle_kind:
+		"boss":
+			return BOSS_HEALTH
+		"apc":
+			return APC_HEALTH
+		"jeep":
+			return JEEP_HEALTH
+		"transport":
+			return TRANSPORT_HEALTH
+	return TANK_HEALTH
+
+func hull_size() -> Vector3:
+	match kind:
+		"boss":
+			return Vector3(3.4, 3.0, 8.6)
+		"apc":
+			return Vector3(3.0, 2.6, 6.2)
+		"jeep":
+			return Vector3(2.0, 2.0, 3.6)
+		"transport":
+			return Vector3(3.0, 2.6, 6.8)
+	return Vector3(3.4, 2.6, 6.2)
+
+func is_heavy() -> bool:
+	return kind == "tank" or kind == "boss"
+
+## Armoured hulls advance to a hold line; light vehicles stop at a fixed range.
+func is_armoured() -> bool:
+	return kind == "tank" or kind == "boss" or kind == "apc"
+
+func cruise_speed() -> float:
+	match kind:
+		"boss":
+			return 2.4
+		"apc":
+			return 3.8
+		"jeep":
+			return 6.0
+		"transport":
+			return 5.0
+	return 3.0
+
+func wheel_radius() -> float:
+	match kind:
+		"boss", "tank":
+			return 0.55
+		"apc":
+			return 0.6
+		"jeep":
+			return 0.5
+	return 0.45
+
+func fire_interval() -> float:
+	match kind:
+		"boss":
+			return 3.8
+		"tank":
+			return 4.6
+		"apc":
+			return 3.2
+		"jeep":
+			return 2.0
+	return 2.6
+
+func shell_damage() -> float:
+	match kind:
+		"boss":
+			return 220.0
+		"tank":
+			return 150.0
+		"apc":
+			return 40.0
+		"jeep":
+			return 14.0
+	return 22.0
+
+func shell_blast() -> float:
+	match kind:
+		"boss":
+			return 6.0
+		"tank":
+			return 5.0
+		"apc":
+			return 2.5
+	return 0.0

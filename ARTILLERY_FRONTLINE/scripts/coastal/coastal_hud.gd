@@ -122,6 +122,8 @@ var target_lock: TargetLock
 var crosshair: Crosshair
 var damage_overlay: ColorRect
 var damage_layer: Control
+var boss_panel: PanelContainer
+var boss_bar: ProgressBar
 const MAX_DAMAGE_NUMBERS: int = 24
 const DEFAULT_HEALTH: float = 6000.0
 
@@ -147,6 +149,7 @@ func _ready() -> void:
 	_build_right()
 	_build_bottom()
 	_build_crosshair()
+	_build_boss_bar()
 	target_lock = TargetLock.new()
 	add_child(target_lock)
 	_build_pause()
@@ -348,6 +351,45 @@ func _build_crosshair() -> void:
 	damage_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	damage_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(damage_layer)
+
+## Boss health bar under the top status strip; hidden unless a boss tank is in the field.
+func _build_boss_bar() -> void:
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 4)
+	var title: Label = UITheme.label(Loc.t("coastal_boss"), 20, UITheme.ACCENT, true)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(title)
+	boss_bar = ProgressBar.new()
+	boss_bar.show_percentage = false
+	boss_bar.min_value = 0.0
+	boss_bar.max_value = 1.0
+	boss_bar.value = 1.0
+	boss_bar.custom_minimum_size = Vector2(360, 18)
+	boss_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(boss_bar)
+	boss_panel = _glass(column, 10)
+	boss_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	boss_panel.offset_left = -200
+	boss_panel.offset_right = 200
+	boss_panel.offset_top = 104
+	boss_panel.offset_bottom = 170
+	boss_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	boss_panel.visible = false
+	root.add_child(boss_panel)
+
+func show_boss() -> void:
+	if boss_panel:
+		boss_bar.value = 1.0
+		boss_panel.visible = true
+
+func update_boss(ratio: float) -> void:
+	if boss_bar:
+		boss_bar.value = clampf(ratio, 0.0, 1.0)
+
+func hide_boss() -> void:
+	if boss_panel:
+		boss_panel.visible = false
 
 ## Floating damage readout at a hit's screen position. Capped so a fast MG burst cannot flood the layer.
 func show_damage_number(screen_pos: Vector2, amount: float, headshot: bool) -> void:

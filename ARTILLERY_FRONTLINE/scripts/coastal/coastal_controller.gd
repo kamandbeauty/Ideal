@@ -144,6 +144,7 @@ func start() -> void:
 
 func restart() -> void:
 	get_tree().paused = false
+	hud.hide_boss()
 	for group in [soldiers, vehicles, aircraft, crafts]:
 		for node in group:
 			if is_instance_valid(node):
@@ -338,6 +339,12 @@ func _load_landing_cargo(setup: Dictionary, new_crafts: Array[LandingCraft], zon
 		vehicles.append("tank")
 	for index in range(int(setup.transports)):
 		vehicles.append("transport")
+	for index in range(int(setup.get("jeeps", 0))):
+		vehicles.append("jeep")
+	for index in range(int(setup.get("apcs", 0))):
+		vehicles.append("apc")
+	for index in range(int(setup.get("bosses", 0))):
+		vehicles.append("boss")
 	var soldier_count: int = int(setup.soldiers)
 	if new_crafts.is_empty():
 		var time: float = 0.2
@@ -433,6 +440,10 @@ func _spawn_vehicle(spawn: Vector3, kind: String) -> void:
 	var vehicle := EnemyVehicle.new()
 	add_child(vehicle)
 	vehicle.configure(spawn, emplacement, kind)
+	if kind == "boss":
+		vehicle.stage_changed.connect(_on_boss_stage)
+		vehicle.damaged.connect(_on_boss_damaged)
+		hud.show_boss()
 	vehicle.died.connect(_on_vehicle_destroyed)
 	vehicle.shoot_requested.connect(_on_enemy_heavy_shoot)
 	vehicles.append(vehicle)
@@ -459,7 +470,18 @@ func _register_kill() -> void:
 
 func _on_vehicle_destroyed(vehicle: EnemyVehicle) -> void:
 	_register_kill()
-	_explode(vehicle.global_position + Vector3.UP * 1.2, Vector3.UP, 7.0)
+	var radius: float = 12.0 if vehicle.kind == "boss" else 7.0
+	if vehicle.kind == "boss":
+		hud.hide_boss()
+	_explode(vehicle.global_position + Vector3.UP * 1.2, Vector3.UP, radius)
+
+## Boss health and stage changes: the bar follows damage, and each stage throws a burst.
+func _on_boss_damaged(_vehicle: EnemyVehicle, ratio: float) -> void:
+	hud.update_boss(ratio)
+
+func _on_boss_stage(vehicle: EnemyVehicle, stage: int) -> void:
+	_explode(vehicle.global_position + Vector3.UP * 1.5, Vector3.UP, 4.0 if stage == 1 else 6.0)
+	camera_shake = maxf(camera_shake, 0.6)
 
 func _on_aircraft_destroyed(plane: EnemyAircraft) -> void:
 	_register_kill()
@@ -625,6 +647,7 @@ func _on_mission_finished(success: bool) -> void:
 func _finish(success: bool) -> void:
 	if not active:
 		return
+	hud.hide_boss()
 	active = false
 	firing = false
 	var survived: int = waves.round_index + 1 if success else waves.round_index

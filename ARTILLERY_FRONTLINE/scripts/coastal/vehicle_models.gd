@@ -13,6 +13,17 @@ const GLASS: Color = Color(0.5, 0.6, 0.66)
 const TIRE: Color = Color(0.1, 0.1, 0.1)
 const LAMP: Color = Color(0.95, 0.93, 0.8)
 
+## Returns the procedural model for a vehicle kind, or null for kinds that still use GLB files.
+static func build_kind(vehicle_kind: String) -> Node3D:
+	match vehicle_kind:
+		"jeep":
+			return build_jeep()
+		"apc":
+			return build_apc()
+		"boss":
+			return build_boss_tank()
+	return null
+
 ## Builds the light jeep: open cabin, roll cage, roof-mounted machine gun, jerrycan.
 static func build_jeep() -> Node3D:
 	var root := Node3D.new()
@@ -34,6 +45,7 @@ static func build_jeep() -> Node3D:
 	var ring := MeshFactory.cylinder(root, "MountRing", Vector3(0, 2.25, 1.1), 0.45, 0.05, STEEL, 16)
 	MeshFactory.box(root, "GunCradle", Vector3(0, 2.42, 1.1), Vector3(0.22, 0.22, 0.4), STEEL)
 	_barrel(root, "Barrel", Vector3(0, 2.46, 0.55), 0.035, 0.9, STEEL)
+	_marker(root, "Muzzle", Vector3(0, 2.46, 0.1))
 	MeshFactory.box(root, "Jerrycan", Vector3(0.95, 1.1, 1.5), Vector3(0.35, 0.6, 0.25), SAND)
 	for z in [-1.2, 1.2]:
 		for x in [-0.95, 0.95]:
@@ -54,6 +66,7 @@ static func build_apc() -> Node3D:
 		MeshFactory.box(root, "Hatch", Vector3(x, 2.17, 1.8), Vector3(0.5, 0.06, 0.5), DARK)
 	MeshFactory.cylinder(root, "Turret", Vector3(0, 2.35, -0.8), 0.55, 0.5, STEEL, 16)
 	_barrel(root, "Barrel", Vector3(0, 2.5, -1.7), 0.05, 1.0, STEEL)
+	_marker(root, "Muzzle", Vector3(0, 2.5, -2.2))
 	for x in [-0.9, 0.9]:
 		MeshFactory.box(root, "Headlamp", Vector3(x, 1.1, -3.05), Vector3(0.3, 0.2, 0.05), LAMP)
 	for x in [-1.5, 1.5]:
@@ -83,6 +96,7 @@ static func build_boss_tank() -> Node3D:
 	for x in [-0.32, 0.32]:
 		_barrel(root, "Barrel", Vector3(x, 2.3, -3.6), 0.14, 4.4, STEEL)
 		_barrel(root, "MuzzleBrake", Vector3(x, 2.3, -5.9), 0.2, 0.4, DARK)
+	_marker(root, "Muzzle", Vector3(0, 2.3, -6.1))
 	MeshFactory.box(root, "RustPlate", Vector3(1.0, 1.4, 1.5), Vector3(0.6, 0.15, 1.2), RUST)
 	MeshFactory.box(root, "RustPlate", Vector3(-1.0, 1.4, -0.6), Vector3(0.5, 0.15, 0.9), RUST)
 	_barrel(root, "Exhaust", Vector3(1.4, 1.9, 2.8), 0.12, 0.8, DARK)
@@ -101,3 +115,10 @@ static func _wheel(parent: Node3D, name: String, pos: Vector3, radius: float, wi
 static func _barrel(parent: Node3D, name: String, center: Vector3, radius: float, length: float, color: Color) -> void:
 	var barrel := MeshFactory.cylinder(parent, name + "_%d" % parent.get_child_count(), center, radius, length, color, 10)
 	barrel.rotation.x = PI * 0.5
+
+## Invisible pivot used as the shot origin and muzzle-flash anchor.
+static func _marker(parent: Node3D, name: String, pos: Vector3) -> void:
+	var marker := Node3D.new()
+	marker.name = name
+	marker.position = pos
+	parent.add_child(marker)
