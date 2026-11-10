@@ -73,7 +73,7 @@ func _build_card(index: int) -> void:
 	# The plate is art, the rows are the game: a wash over the illustration keeps every price readable
 	# without hiding the place being rebuilt.
 	var veil := UiKit.veil(card, "plate_veil",
-		Color(UiTokens.SURFACE.r, UiTokens.SURFACE.g, UiTokens.SURFACE.b, 0.62))
+		Color(UiTokens.SURFACE.r, UiTokens.SURFACE.g, UiTokens.SURFACE.b, 0.45))
 	card.move_child(veil, 1)
 	# The wash is for the district illustration; the painted moulding stays clear of it.
 	UiKit.place(veil, EDGE, EDGE, CARD_WIDTH - EDGE * 2.0, CARD_HEIGHT - EDGE * 2.0)
