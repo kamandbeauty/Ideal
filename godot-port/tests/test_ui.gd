@@ -390,12 +390,13 @@ func _run() -> void:
 			# bug class this layout invites, and it is invisible in a green test run.
 			var escaped: Array[String] = []
 			for rail in [goals_rail, tools_rail]:
-				if rail == null:
+				var rail_node := rail as Control
+				if rail_node == null:
 					continue
-				var rail_rect := rail.get_global_rect().grow(1.0)
-				for child in rail.get_children():
+				var rail_rect: Rect2 = rail_node.get_global_rect().grow(1.0)
+				for child in rail_node.get_children():
 					if child is Control and child.visible and not rail_rect.encloses(child.get_global_rect()):
-						escaped.append("%s in %s" % [child.name, rail.name])
+						escaped.append("%s in %s" % [child.name, rail_node.name])
 			failures += _check(escaped.is_empty(),
 				"level %d keeps every rail control on its rail (%s)" % [number, ", ".join(escaped)])
 			# Ink, not light text: the rails are painted cream, and the game's text colour would be
