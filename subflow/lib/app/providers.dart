@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -23,6 +24,7 @@ import '../services/media_service.dart';
 import '../services/project_repository.dart';
 import '../services/subtitle_export_service.dart';
 import '../services/video_export_service.dart';
+import '../features/subtitles/emoji_suggester.dart';
 
 // ---------------------------------------------------------------- infrastructure
 final Provider<NativeBridge> nativeBridgeProvider =
@@ -396,6 +398,25 @@ class SubtitleEditorNotifier extends FamilyAsyncNotifier<SubtitleEditorSnapshot,
 
   void pasteStyle() {
     if (_require.pasteStyle()) _publish();
+  }
+
+  /// Offline "AI emoji": one emoji per caption, matched on a Persian keyword
+  /// table. Returns how many captions changed so the UI can say so.
+  int addEmojis() {
+    final int changed = _require.addEmojis(EmojiSuggester.decorate);
+    if (changed > 0) _publish();
+    return changed;
+  }
+
+  /// Pins a per-caption style (null clears it and returns to the project style).
+  void setSegmentPreset(String segmentId, Map<String, Object?>? preset) {
+    final String? payload = preset == null ? null : jsonEncode(preset);
+    if (_require.setSegmentPreset(segmentId, payload)) _publish();
+  }
+
+  /// "اعمال برای کل زیرنویس فیلم": every caption inherits the given one's style.
+  void applySegmentPresetToAll(String segmentId) {
+    if (_require.applySegmentPresetToAll(segmentId)) _publish();
   }
 
   /// Saves the mapped gallery style and applies it to every caption.

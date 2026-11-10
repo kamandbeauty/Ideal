@@ -13,6 +13,7 @@ import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextDirectionHeuristics
 import android.text.TextPaint
+import java.util.HashMap
 import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.max
@@ -26,6 +27,11 @@ import kotlin.math.sin
  *
  * Design notes that matter:
  *
+ *  * Every cue may carry **its own style**. A project has a default look, but a
+ *    single line can be customised (font, colours, effects, position) and that
+ *    difference has to survive the export - otherwise "customise one caption"
+ *    would only be true in the preview. Styles are resolved once per cue, so
+ *    the font is loaded a handful of times per export, not once per frame.
  *  * The bitmap is always the size of the *output* frame, and a single overlay
  *    covers the frame 1:1, so no anchor/scale maths can drift: caption position
  *    is expressed in the same normalised `positionY`/`widthFraction` units the
@@ -41,8 +47,8 @@ import kotlin.math.sin
  *    looks like the editor instead of "close enough".
  */
 internal class CaptionFramePainter(
-    context: Context,
-    private val look: CaptionLook,
+    private val context: Context,
+    baseLook: CaptionLook,
     private val frameW: Int,
     private val frameH: Int,
     private val cues: List<ExportCue>,
@@ -50,19 +56,15 @@ internal class CaptionFramePainter(
     private val sourceOffsetUs: Long,
 ) {
 
-    private val typeface: Typeface = FontAssets.resolve(context, look.fontFamily, look.fontWeight)
+    /** One cue's style, resolved once: typeface lookups are not free. */
+    private class Resolved(
+        val look: CaptionLook,
+        val typeface: Typeface,
+        val fontPx: Float,
+        val pxScale: Float,
+    )
+
     private val shortEdge = min(frameW, frameH).toFloat()
-    private val fontPx = (look.fontScale * shortEdge).coerceIn(8f, frameH * 0.42f)
-
-    /**
-     * Pixel-valued style fields (stroke, shadow offset, glow, box radius) are
-     * authored against the editor stage, which is ~390 dp wide. Scaling them by
-     * how much the frame grew is what makes a 2.5 px outline look like the
-     * preview instead of vanishing at 1080p.
-     */
-    private val pxScale = shortEdge / 390f
-
-    private val empty: Bitmap = Bitmap.createBitmap(frameW, frameH, Bitmap.Config.ARGB_8888)
 
     /**
      * A 1080p ARGB frame is ~8 MB, so the cache is deliberately tiny and even
@@ -76,17 +78,35 @@ internal class CaptionFramePainter(
             size > cacheLimit
     }
 
+    private val empty: Bitmap = Bitmap.createBitmap(frameW, frameH, Bitmap.Config.ARGB_8888)
+
+    private val typefaces = HashMap<String, Typeface>()
+
+    private val cueStyles: List<Resolved> = cues.map { resolve(it.style ?: baseLook) }
+
+    private fun resolve(look: CaptionLook): Resolved {
+        val key = "${look.fontFamily}#${look.fontWeight}"
+        val typeface = synchronized(typefaces) {
+            typefaces.getOrPut(key) {
+                FontAssets.resolve(context, look.fontFamily, look.fontWeight)
+            }
+        }
+        val fontPx = (look.fontScale * shortEdge).coerceIn(8f, frameH * 0.42f)
+        return Resolved(look, typeface, fontPx, shortEdge / 390f)
+    }
+
     fun bitmapFor(presentationTimeUs: Long): Bitmap {
         val timeUs = presentationTimeUs + sourceOffsetUs
         val index = cueIndexAt(timeUs)
         if (index < 0) return empty
         val cue = cues[index]
-        val progress = enterProgress(cue, timeUs)
-        val step = if (look.enter == "none") 0 else (progress * 8f).roundToInt()
-        val active = activeWordIndex(cue, timeUs)
+        val style = cueStyles[index]
+        val progress = enterProgress(cue, timeUs, style.look)
+        val step = if (style.look.enter == "none") 0 else (progress * 8f).roundToInt()
+        val active = activeWordIndex(cue, timeUs, style.look)
         val key = "$index|$step|$active"
         synchronized(cache) { cache[key]?.let { return it } }
-        val bitmap = render(cue, timeUs, progress, active)
+        val bitmap = render(cue, style, timeUs, progress, active)
         synchronized(cache) { cache[key] = bitmap }
         return bitmap
     }
@@ -112,7 +132,7 @@ internal class CaptionFramePainter(
         return found
     }
 
-    private fun activeWordIndex(cue: ExportCue, timeUs: Long): Int {
+    private fun activeWordIndex(cue: ExportCue, timeUs: Long, look: CaptionLook): Int {
         if (look.wordEffect == "none" || cue.words.isEmpty()) return -1
         cue.words.forEachIndexed { index, word ->
             if (timeUs >= word.startUs && timeUs < word.endUs) return index
@@ -123,13 +143,13 @@ internal class CaptionFramePainter(
         return if (timeUs >= cue.words.last().endUs) cue.words.size - 1 else -1
     }
 
-    private fun enterProgress(cue: ExportCue, timeUs: Long): Float {
+    private fun enterProgress(cue: ExportCue, timeUs: Long, look: CaptionLook): Float {
         if (look.enter == "none") return 1f
         val durationUs = look.durationMs.coerceAtLeast(1) * 1000L
         return ((timeUs - cue.startUs).toFloat() / durationUs).coerceIn(0f, 1f)
     }
 
-    private fun ease(p: Float): Float = when (look.easing) {
+    private fun ease(p: Float, easing: String): Float = when (easing) {
         "linear" -> p
         "easeinout" -> if (p < 0.5f) 4f * p * p * p else 1f - (-2f * p + 2f).pow(3) / 2f
         "easeoutback" -> {
@@ -149,12 +169,19 @@ internal class CaptionFramePainter(
 
     // -------------------------------------------------------------- painting
 
-    private fun render(cue: ExportCue, timeUs: Long, progress: Float, active: Int): Bitmap {
+    private fun render(
+        cue: ExportCue,
+        style: Resolved,
+        timeUs: Long,
+        progress: Float,
+        active: Int,
+    ): Bitmap {
+        val look = style.look
         val bitmap = Bitmap.createBitmap(frameW, frameH, Bitmap.Config.ARGB_8888)
-        val body = visibleText(cue, progress)
+        val body = visibleText(cue, progress, look)
         if (body.isBlank()) return bitmap
 
-        val eased = ease(progress)
+        val eased = ease(progress, look.easing)
         var alpha = 1f
         var scale = 1f
         var rotation = 0f
@@ -189,7 +216,8 @@ internal class CaptionFramePainter(
                 alpha *= eased
             }
             "pop" -> scale *= 0.55f + 0.45f * eased
-            "bounce" -> scale *= 0.7f + 0.3f * eased + 0.06f * sin(eased * Math.PI.toFloat() * 2f) * (1f - eased)
+            "bounce" ->
+                scale *= 0.7f + 0.3f * eased + 0.06f * sin(eased * Math.PI.toFloat() * 2f) * (1f - eased)
             "rotate" -> {
                 rotation += (1f - eased) * 8f
                 alpha *= eased
@@ -204,9 +232,9 @@ internal class CaptionFramePainter(
 
         val layoutWidth = max(1, (frameW * look.widthFraction).roundToInt())
         val fillPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-            typeface = this@CaptionFramePainter.typeface
-            textSize = fontPx
-            letterSpacing = if (fontPx > 0f) look.letterSpacing / fontPx else 0f
+            typeface = style.typeface
+            textSize = style.fontPx
+            letterSpacing = if (style.fontPx > 0f) look.letterSpacing / style.fontPx else 0f
             color = look.textColor
         }
         val lineHeight = look.lineHeight
@@ -249,8 +277,12 @@ internal class CaptionFramePainter(
         }
 
         if (look.boxBackground) {
-            val pad = fontPx * 0.28f
-            val radius = if (look.backgroundRadius <= 0f) fontPx * 0.15f else look.backgroundRadius * pxScale
+            val pad = style.fontPx * 0.28f
+            val radius = if (look.backgroundRadius <= 0f) {
+                style.fontPx * 0.15f
+            } else {
+                look.backgroundRadius * style.pxScale
+            }
             val box = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = withAlpha(look.backgroundColor, look.backgroundOpacity)
             }
@@ -263,13 +295,16 @@ internal class CaptionFramePainter(
         }
 
         if (active >= 0) {
-            drawActiveWord(canvas, fill, body, active, cue, timeUs, left, top)
+            drawActiveWord(canvas, fill, body, active, cue, timeUs, left, top, style)
         }
 
         if (look.glowRadius > 0f) {
             val glowPaint = TextPaint(fillPaint).apply {
                 color = look.glowColor
-                maskFilter = BlurMaskFilter(max(1f, look.glowRadius * pxScale * 0.45f), BlurMaskFilter.Blur.NORMAL)
+                maskFilter = BlurMaskFilter(
+                    max(1f, look.glowRadius * style.pxScale * 0.45f),
+                    BlurMaskFilter.Blur.NORMAL,
+                )
             }
             canvas.save()
             canvas.translate(left, top)
@@ -281,9 +316,9 @@ internal class CaptionFramePainter(
             val shadowPaint = TextPaint(fillPaint).apply {
                 color = look.shadowColor
                 setShadowLayer(
-                    max(0.5f, look.shadowBlur * pxScale * 0.3f),
+                    max(0.5f, look.shadowBlur * style.pxScale * 0.3f),
                     0f,
-                    look.shadowOffsetY * pxScale,
+                    look.shadowOffsetY * style.pxScale,
                     look.shadowColor,
                 )
             }
@@ -297,7 +332,7 @@ internal class CaptionFramePainter(
             val strokePaint = TextPaint(fillPaint).apply {
                 color = look.strokeColor
                 style = Paint.Style.STROKE
-                strokeWidth = look.strokeWidth * pxScale
+                strokeWidth = look.strokeWidth * style.pxScale
                 strokeJoin = Paint.Join.ROUND
                 strokeCap = Paint.Cap.ROUND
             }
@@ -345,13 +380,14 @@ internal class CaptionFramePainter(
         timeUs: Long,
         left: Float,
         top: Float,
+        style: Resolved,
     ) {
         val ranges = wordRanges(body)
         if (ranges.isEmpty()) return
         val index = min(active, ranges.size - 1)
         val range = ranges[index]
         val start = range.first
-        val end = (range.second).coerceAtMost(body.length)
+        val end = range.second.coerceAtMost(body.length)
         if (start >= end) return
         val line = layout.getLineForOffset(start)
         val x0 = left + layout.getPrimaryHorizontal(start)
@@ -363,12 +399,13 @@ internal class CaptionFramePainter(
             top + layout.getLineBottom(line),
         )
         if (wordRect.width() <= 0f) return
+        val look = style.look
         val accent = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = look.accentColor }
 
         when (look.wordEffect) {
             "activebackground" -> {
-                val pad = fontPx * 0.12f
-                val radius = fontPx * 0.16f
+                val pad = style.fontPx * 0.12f
+                val radius = style.fontPx * 0.16f
                 accent.alpha = (0.92f * 255f).roundToInt()
                 canvas.drawRoundRect(
                     RectF(
@@ -383,7 +420,7 @@ internal class CaptionFramePainter(
                 )
             }
             "activeunderline" -> {
-                val thickness = max(2f, fontPx * 0.09f)
+                val thickness = max(2f, style.fontPx * 0.09f)
                 canvas.drawRoundRect(
                     RectF(
                         wordRect.left,
@@ -401,15 +438,26 @@ internal class CaptionFramePainter(
                 val fraction = if (word == null || word.endUs <= word.startUs) {
                     1f
                 } else {
-                    ((timeUs - word.startUs).toFloat() / (word.endUs - word.startUs)).coerceIn(0f, 1f)
+                    ((timeUs - word.startUs).toFloat() / (word.endUs - word.startUs))
+                        .coerceIn(0f, 1f)
                 }
                 canvas.save()
                 if (look.rtl) {
-                    canvas.clipRect(wordRect.right - wordRect.width() * fraction, wordRect.top, wordRect.right, wordRect.bottom)
+                    canvas.clipRect(
+                        wordRect.right - wordRect.width() * fraction,
+                        wordRect.top,
+                        wordRect.right,
+                        wordRect.bottom,
+                    )
                 } else {
-                    canvas.clipRect(wordRect.left, wordRect.top, wordRect.left + wordRect.width() * fraction, wordRect.bottom)
+                    canvas.clipRect(
+                        wordRect.left,
+                        wordRect.top,
+                        wordRect.left + wordRect.width() * fraction,
+                        wordRect.bottom,
+                    )
                 }
-                drawAccentText(canvas, body, accent, left, top)
+                drawAccentText(canvas, body, accent, left, top, style)
                 canvas.restore()
             }
             // activeColor / activeScale / wordPop / neighborDim all end up as
@@ -419,7 +467,7 @@ internal class CaptionFramePainter(
             "activecolor", "activescale", "wordpop", "neighbordim" -> {
                 canvas.save()
                 canvas.clipRect(wordRect)
-                drawAccentText(canvas, body, accent, left, top)
+                drawAccentText(canvas, body, accent, left, top, style)
                 canvas.restore()
             }
             else -> Unit
@@ -432,12 +480,14 @@ internal class CaptionFramePainter(
         paint: Paint,
         left: Float,
         top: Float,
+        style: Resolved,
     ) {
+        val look = style.look
         val accentLayout = StaticLayout.Builder
             .obtain(body, 0, body.length, TextPaint(paint).apply {
-                typeface = this@CaptionFramePainter.typeface
-                textSize = fontPx
-                letterSpacing = if (fontPx > 0f) look.letterSpacing / fontPx else 0f
+                typeface = style.typeface
+                textSize = style.fontPx
+                letterSpacing = if (style.fontPx > 0f) look.letterSpacing / style.fontPx else 0f
             }, max(1, (frameW * look.widthFraction).roundToInt()))
             .setAlignment(Layout.Alignment.ALIGN_CENTER)
             .setTextDirection(if (look.rtl) TextDirectionHeuristics.RTL else TextDirectionHeuristics.LTR)
@@ -462,9 +512,9 @@ internal class CaptionFramePainter(
      * are real animations, not decoration, so they are reproduced here instead
      * of rendering the full line early.
      */
-    private fun visibleText(cue: ExportCue, progress: Float): String {
+    private fun visibleText(cue: ExportCue, progress: Float, look: CaptionLook): String {
         val display = if (look.uppercase) cue.text.uppercase() else cue.text
-        val eased = ease(progress)
+        val eased = ease(progress, look.easing)
         return when (look.enter) {
             "typewriter" -> {
                 val budget = floor(display.length * eased).toInt().coerceIn(0, display.length)

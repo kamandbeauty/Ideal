@@ -1,7 +1,7 @@
 name: subflow
 description: SubFlow - Professional Offline AI Subtitle & Video Editor for Android.
 publish_to: "none"
-version: 0.10.0+13
+version: 0.11.0+14
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -82,6 +82,87 @@ flutter:
     - family: Lalezar
       fonts:
         - asset: assets/fonts/Lalezar-Regular.ttf
+    # --------------------------------------- Persian classics & calligraphy (OFL)
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Amiri-Bold.ttf
+          weight: 700
+    - family: ScheherazadeNew
+      fonts:
+        - asset: assets/fonts/ScheherazadeNew-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ScheherazadeNew-Bold.ttf
+          weight: 700
+    - family: Lateef
+      fonts:
+        - asset: assets/fonts/Lateef-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Lateef-Bold.ttf
+          weight: 700
+    - family: Harmattan
+      fonts:
+        - asset: assets/fonts/Harmattan-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Harmattan-Bold.ttf
+          weight: 700
+    - family: Almarai
+      fonts:
+        - asset: assets/fonts/Almarai-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Almarai-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Almarai-ExtraBold.ttf
+          weight: 800
+    - family: IBMPlexSansArabic
+      fonts:
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700
+    - family: Mirza
+      fonts:
+        - asset: assets/fonts/Mirza-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Mirza-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Mirza-Bold.ttf
+          weight: 700
+    - family: ArefRuqaa
+      fonts:
+        - asset: assets/fonts/ArefRuqaa-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/ArefRuqaa-Bold.ttf
+          weight: 700
+    - family: Katibeh
+      fonts:
+        - asset: assets/fonts/Katibeh-Regular.ttf
+          weight: 400
+    - family: Jomhuria
+      fonts:
+        - asset: assets/fonts/Jomhuria-Regular.ttf
+          weight: 400
+    - family: Rakkas
+      fonts:
+        - asset: assets/fonts/Rakkas-Regular.ttf
+          weight: 400
+    - family: Qahiri
+      fonts:
+        - asset: assets/fonts/Qahiri-Regular.ttf
+          weight: 400
+    - family: Gulzar
+      fonts:
+        - asset: assets/fonts/Gulzar-Regular.ttf
+          weight: 400
+    - family: Vibes
+      fonts:
+        - asset: assets/fonts/Vibes-Regular.ttf
+          weight: 400
     # ------------------------------------------------- "viral" Latin display
     - family: Archivo Black
       fonts:

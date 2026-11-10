@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
@@ -45,6 +46,10 @@ class SubtitleStudioScreen extends ConsumerStatefulWidget {
 class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
   late final SfPlayerController _player = SfPlayerController.create();
   CaptionPreset _preset = PresetsLibrary.byId('viral-fa');
+
+  /// When true the style controls write a per-caption style instead of the
+  /// project-wide one - the "customise just this line" mode.
+  bool _styleOnlyThisCaption = false;
   SubtitleStyle? _style;
   bool _exporting = false;
   StudioTool _tool = StudioTool.style;
@@ -192,7 +197,7 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
           onTap: () => state.isPlaying ? _player.pause() : _player.play(),
           player: NativeVideoPlayer(uri: asset.uri, controller: _player),
           caption: CaptionSurface(
-            preset: _preset,
+            preset: _presetFor(segment),
             text: segment?.text ?? '',
             activeWord: activeWord,
             wordFills: fills,
@@ -237,6 +242,16 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
   }
 
   Widget _panel(SubtitleEditorSnapshot snapshot, VideoAsset? asset) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _styleScopeBar(snapshot),
+        _toolPanel(snapshot, asset),
+      ],
+    );
+  }
+
+  Widget _toolPanel(SubtitleEditorSnapshot snapshot, VideoAsset? asset) {
     switch (_tool) {
       case StudioTool.style:
         return Column(
@@ -441,6 +456,118 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
     );
   }
 
+  /// The caption under the playhead - the one a per-caption edit lands on.
+  SubtitleSegment? _activeSegment() {
+    final SubtitleEditorSnapshot? snapshot =
+        ref.read(subtitleEditorProvider(widget.projectId)).valueOrNull;
+    if (snapshot == null) return null;
+    final int? index = snapshot.document.indexAt(_player.state.value.positionUs);
+    return index == null ? null : snapshot.document.segments[index];
+  }
+
+  /// A caption's own preset when it has one, otherwise the project style.
+  CaptionPreset _presetFor(SubtitleSegment? segment) {
+    final String? raw = segment?.presetJson;
+    if (raw == null || raw.isEmpty) return _preset;
+    try {
+      return CaptionPreset.fromMap(jsonDecode(raw) as Map<String, Object?>);
+    } on Object {
+      // A style written by a newer build must never crash the editor; the
+      // project style is always a valid fallback.
+      return _preset;
+    }
+  }
+
+  Widget _styleScopeBar(SubtitleEditorSnapshot snapshot) {
+    final SubtitleSegment? active = _activeSegment();
+    final bool hasOwn = active?.hasOwnStyle ?? false;
+    final String caption = active == null
+        ? 'یک زیرنویس را انتخاب کن'
+        : '«${_shorten(active.text)}» · ${TimeUs.clock(active.startUs)} تا ${TimeUs.clock(active.endUs)}';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceHigh,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: _styleOnlyThisCaption ? AppColors.primarySoft : AppColors.outline,
+          width: _styleOnlyThisCaption ? 1.5 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Icon(
+                _styleOnlyThisCaption ? Icons.filter_center_focus_rounded : Icons.layers_rounded,
+                size: 17,
+                color: _styleOnlyThisCaption ? AppColors.primarySoft : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      _styleOnlyThisCaption ? 'فقط همین متن' : 'همهٔ زیرنویس‌های فیلم',
+                      style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      caption,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 10.5, color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _styleOnlyThisCaption,
+                activeColor: AppColors.primarySoft,
+                onChanged: (bool value) => setState(() => _styleOnlyThisCaption = value),
+              ),
+            ],
+          ),
+          if (hasOwn && active != null)
+            Row(
+              children: <Widget>[
+                Text(
+                  'این متن استایل خودش را دارد',
+                  style: const TextStyle(fontSize: 10.5, color: AppColors.primarySoft),
+                ),
+                const Spacer(),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 30),
+                  ),
+                  onPressed: () => _notifier.applySegmentPresetToAll(active.id),
+                  child: const Text('اعمال روی کل فیلم', style: TextStyle(fontSize: 11.5)),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(0, 30),
+                  ),
+                  onPressed: () => _notifier.setSegmentPreset(active.id, null),
+                  child: const Text('حذف استایل', style: TextStyle(fontSize: 11.5)),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  static String _shorten(String text) {
+    final String trimmed = text.trim();
+    if (trimmed.length <= 24) return trimmed;
+    return '${trimmed.substring(0, 24)}…';
+  }
+
   void _applyColor(int color) {
     if (color == 0) return;
     setState(() => _rainbow = color == -1);
@@ -459,6 +586,16 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
   }
 
   Future<void> _applyPreset(CaptionPreset preset) async {
+    if (_styleOnlyThisCaption) {
+      final SubtitleSegment? target = _activeSegment();
+      if (target != null) {
+        // Only this line changes; the project style stays where the user left
+        // it, which is what makes the two modes predictable.
+        _notifier.setSegmentPreset(target.id, preset.toMap());
+        setState(() => _preset = preset);
+        return;
+      }
+    }
     final SubtitleStyle style = PresetStyleMapper.toStyle(
       preset,
       id: 'style-${widget.projectId}',
@@ -490,6 +627,22 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
               onTap: () {
                 Navigator.of(sheetContext).pop();
                 _notifier.insertAt(_playheadUs);
+              },
+            ),
+            _SheetAction(
+              icon: Icons.emoji_emotions_outlined,
+              label: 'افزودن ایموجی خودکار به متن‌ها',
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                final int changed = _notifier.addEmojis();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(changed == 0
+                        ? 'ایموجی تازه‌ای پیدا نشد؛ همهٔ متن‌ها یا ایموجی دارند یا کلیدواژهٔ شناخته‌شده ندارند.'
+                        : 'به $changed زیرنویس ایموجی مناسب اضافه شد (با یک بار واگرد برمی‌گردد).'),
+                    backgroundColor: changed == 0 ? AppColors.surfaceHigh : AppColors.primarySoft,
+                  ),
+                );
               },
             ),
             _SheetAction(
@@ -610,6 +763,10 @@ class _SubtitleStudioScreenState extends ConsumerState<SubtitleStudioScreen> {
   Future<void> _pickStyle() async {
     final CaptionPreset? picked = await context.push<CaptionPreset>('/captions');
     if (picked == null || !mounted) return;
+    if (_styleOnlyThisCaption) {
+      await _applyPreset(picked);
+      return;
+    }
     final SubtitleStyle style = PresetStyleMapper.toStyle(
       picked,
       id: 'style-${widget.projectId}',

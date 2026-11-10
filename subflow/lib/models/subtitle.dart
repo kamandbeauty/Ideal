@@ -117,6 +117,7 @@ class SubtitleSegment {
     this.confidence,
     this.reviewState = ReviewState.unreviewed,
     this.words = const <SubtitleWord>[],
+    this.presetJson,
   });
 
   final String id;
@@ -133,6 +134,14 @@ class SubtitleSegment {
   final int updatedAtMs;
   final List<SubtitleWord> words;
 
+  /// Per-caption style override, serialised with `CaptionPreset.toMap()`.
+  ///
+  /// Null means "use the project style" - the common case, and the reason an
+  /// existing project keeps looking identical after the column was added.
+  final String? presetJson;
+
+  bool get hasOwnStyle => presetJson != null && presetJson!.isNotEmpty;
+
   int get durationUs => endUs - startUs;
 
   factory SubtitleSegment.fromMap(Map<String, Object?> map) => SubtitleSegment(
@@ -148,6 +157,7 @@ class SubtitleSegment {
         reviewState: ReviewState.fromDb(map['review_state'] as String?),
         createdAtMs: map['created_at_ms']! as int,
         updatedAtMs: map['updated_at_ms']! as int,
+        presetJson: map['preset_json'] as String?,
       );
 
   Map<String, Object?> toMap() => <String, Object?>{
@@ -163,6 +173,7 @@ class SubtitleSegment {
         'review_state': reviewState.dbValue,
         'created_at_ms': createdAtMs,
         'updated_at_ms': updatedAtMs,
+        'preset_json': presetJson,
       };
 
   SubtitleSegment copyWith({
@@ -173,6 +184,8 @@ class SubtitleSegment {
     ReviewState? reviewState,
     List<SubtitleWord>? words,
     int? updatedAtMs,
+    String? presetJson,
+    bool clearPreset = false,
   }) {
     return SubtitleSegment(
       id: id,
@@ -188,6 +201,7 @@ class SubtitleSegment {
       createdAtMs: createdAtMs,
       updatedAtMs: updatedAtMs ?? this.updatedAtMs,
       words: words ?? this.words,
+      presetJson: clearPreset ? null : (presetJson ?? this.presetJson),
     );
   }
 }

@@ -127,6 +127,32 @@ class SubtitleEditorModel {
   bool applyStyleToAll(String styleId) =>
       _commit(_document.withStyleAll(styleId), select: _selectionId);
 
+  /// Appends a matching emoji to every caption that has none yet, in one
+  /// undoable step. Returns how many captions changed.
+  int addEmojis(String Function(String text) decorate) {
+    SubtitleDocument next = _document;
+    int changed = 0;
+    for (final SubtitleSegment segment in _document.segments) {
+      final String decorated = decorate(segment.text);
+      if (decorated == segment.text) continue;
+      next = next.withText(segment.id, decorated);
+      changed++;
+    }
+    if (changed == 0) return 0;
+    _commit(next, select: _selectionId);
+    return changed;
+  }
+
+  /// Pins a per-caption style to [segmentId] (null clears it).
+  bool setSegmentPreset(String segmentId, String? presetJson) =>
+      _commit(_document.withPreset(segmentId, presetJson), select: segmentId);
+
+  /// Applies [segmentId]'s own style to every caption in one undoable step.
+  bool applySegmentPresetToAll(String segmentId) {
+    if (_document.byId(segmentId) == null) return false;
+    return _commit(_document.withPresetFrom(segmentId), select: segmentId);
+  }
+
   /// Remembers the selected caption's style for "paste style".
   void copyStyle() {
     _clipboardStyleId = selectedStyleId;

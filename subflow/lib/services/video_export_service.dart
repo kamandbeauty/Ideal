@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
@@ -148,6 +149,18 @@ class VideoExportService {
 
   Future<void> cancel() => _bridge.cancelRender();
 
+  /// Decodes the per-caption style column, tolerating anything a future build
+  /// might have written: a broken style must not stop the whole export.
+  static Map<String, Object?>? decodePreset(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final Object? decoded = jsonDecode(raw);
+      return decoded is Map<String, Object?> ? decoded : null;
+    } on FormatException {
+      return null;
+    }
+  }
+
   /// The cue list the renderer expects: plain maps, word timings included so
   /// karaoke/active-word effects burn in with the real rhythm of the speech.
   static List<Map<String, Object?>> cuesOf(SubtitleDocument document) {
@@ -156,6 +169,10 @@ class VideoExportService {
               'startUs': segment.startUs,
               'endUs': segment.endUs,
               'text': segment.text,
+              // A caption with its own style keeps it in the render; without
+              // this the MP4 would silently flatten every line to the project
+              // style, which is exactly the bug the feature exists to avoid.
+              'style': decodePreset(segment.presetJson),
               'words': segment.words
                   .map((SubtitleWord word) => <String, Object?>{
                         'startUs': word.startUs,

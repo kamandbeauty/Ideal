@@ -20,6 +20,8 @@ internal data class ExportCue(
     val endUs: Long,
     val text: String,
     val words: List<ExportWord>,
+    /** Set when this caption carries its own style (per-caption customisation). */
+    val style: CaptionLook? = null,
 )
 
 /**
@@ -93,6 +95,7 @@ internal data class ExportRequest(
             val start = (map["startUs"] as? Number)?.toLong() ?: return null
             val end = (map["endUs"] as? Number)?.toLong() ?: return null
             if (end <= start) return null
+            val cueStyle = (map["style"] as? Map<*, *>)?.let { look(it) }
             val words = (map["words"] as? List<*>)
                 ?.mapNotNull { raw ->
                     val word = raw as? Map<*, *> ?: return@mapNotNull null
@@ -103,7 +106,7 @@ internal data class ExportRequest(
                     ExportWord(wordStart, wordEnd, wordText)
                 }
                 ?: emptyList()
-            return ExportCue(start, end, text, words)
+            return ExportCue(start, end, text, words, cueStyle)
         }
 
         private fun look(map: Map<*, *>): CaptionLook {

@@ -133,6 +133,59 @@ class CaptionPreset {
     );
   }
 
+  /// Rebuilds a preset from [toMap]. Used by per-caption styles, which are
+  /// stored as exactly this map: one serialiser, so a caption styled on one
+  /// build reopens identically on the next.
+  factory CaptionPreset.fromMap(Map<String, Object?> map) {
+    double readDouble(String key, double fallback) {
+      final Object? raw = map[key];
+      return raw is num ? raw.toDouble() : fallback;
+    }
+
+    int readInt(String key, int fallback) {
+      final Object? raw = map[key];
+      return raw is num ? raw.toInt() : fallback;
+    }
+
+    bool readBool(String key, bool fallback) {
+      final Object? raw = map[key];
+      return raw is bool ? raw : fallback;
+    }
+
+    final Object? gradient = map['gradientEnd'];
+    return CaptionPreset(
+      id: map['id'] as String? ?? 'custom',
+      name: map['name'] as String? ?? 'سبک سفارشی',
+      category: map['category'] as String? ?? 'custom',
+      language: map['language'] as String? ?? 'fa',
+      fontFamily: map['fontFamily'] as String? ?? 'Vazirmatn',
+      fontWeight: readInt('fontWeight', 700),
+      fontScale: readDouble('fontScale', 0.062),
+      textColor: readInt('textColor', 0xFFFFFFFF),
+      accentColor: readInt('accentColor', 0xFF3B82F6),
+      strokeWidth: readDouble('strokeWidth', 0),
+      strokeColor: readInt('strokeColor', 0xFF000000),
+      shadowBlur: readDouble('shadowBlur', 0),
+      shadowColor: readInt('shadowColor', 0xFF000000),
+      shadowOffsetY: readDouble('shadowOffsetY', 0),
+      glowRadius: readDouble('glowRadius', 0),
+      glowColor: readInt('glowColor', 0xFF000000),
+      gradientEnd: gradient is num ? gradient.toInt() : null,
+      boxBackground: readBool('boxBackground', false),
+      backgroundColor: readInt('backgroundColor', 0xFF000000),
+      backgroundOpacity: readDouble('backgroundOpacity', 0),
+      backgroundRadius: readDouble('backgroundRadius', 0),
+      letterSpacing: readDouble('letterSpacing', 0),
+      lineHeight: readDouble('lineHeight', 1.15),
+      positionY: readDouble('positionY', 0.82),
+      widthFraction: readDouble('widthFraction', 0.88),
+      uppercase: readBool('uppercase', false),
+      effects: CaptionEffects.fromMap(
+        map['effects'] as Map<String, Object?>? ?? const <String, Object?>{},
+      ),
+    );
+  }
+
   Map<String, Object?> toMap() => <String, Object?>{
         'id': id,
         'name': name,

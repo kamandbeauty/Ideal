@@ -1,7 +1,17 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "migrations": [
-    { "version": 1, "file": "assets/db/001_init.sql" },
-    { "version": 2, "file": "assets/db/002_translation_review.sql" }
+    {
+      "version": 1,
+      "file": "assets/db/001_init.sql"
+    },
+    {
+      "version": 2,
+      "file": "assets/db/002_translation_review.sql"
+    },
+    {
+      "version": 3,
+      "file": "assets/db/003_segment_style.sql"
+    }
   ]
 }

@@ -454,6 +454,76 @@ check("SubtitleExportService" in (ROOT / "lib/services/subtitle_export_service.d
       "missing the subtitle export service")
 
 
+
+# ------------------------------------------------ per-caption style (0.11.0)
+#
+# Three things must stay true for "customise one caption" to be real: the column
+# exists and is written, the editor writes to it instead of the project style,
+# and the renderer receives it per cue. Each of those is checked here because a
+# miss in any one of them is invisible until an export comes out wrong.
+migration_manifest = json.loads((ROOT / "assets/db/manifest.json").read_text(encoding="utf-8"))
+check(migration_manifest["schemaVersion"] >= 3,
+      "per-caption styles need schema version 3")
+check(any(m["version"] == 3 for m in migration_manifest["migrations"]),
+      "migration 3 (segment preset_json) is missing from the manifest")
+segment_sql = (ROOT / "assets/db/003_segment_style.sql").read_text(encoding="utf-8")
+check("preset_json" in segment_sql, "migration 3 must add subtitle_segments.preset_json")
+
+segment_model = (ROOT / "lib/models/subtitle.dart").read_text(encoding="utf-8")
+check("presetJson" in segment_model and "'preset_json'" in segment_model,
+      "SubtitleSegment must carry preset_json to and from the database")
+document_src = (ROOT / "lib/features/subtitles/subtitle_document.dart").read_text(encoding="utf-8")
+for operation in ("withPreset(", "withPresetFrom("):
+    check(operation in document_src, f"subtitle document is missing {operation}")
+editor_model = (ROOT / "lib/features/subtitles/subtitle_editor_model.dart").read_text(encoding="utf-8")
+for operation in ("setSegmentPreset(", "applySegmentPresetToAll(", "addEmojis("):
+    check(operation in editor_model, f"editor model is missing {operation}")
+
+studio_src = (ROOT / "lib/features/subtitles/subtitle_studio_screen.dart").read_text(encoding="utf-8")
+check("_styleScopeBar" in studio_src, "the editor needs a scope control for per-caption styling")
+check("setSegmentPreset" in studio_src and "applySegmentPresetToAll" in studio_src,
+      "the editor must be able to pin a style to one caption and copy it to all")
+check("_presetFor(" in studio_src, "the stage must render a caption's own style")
+
+render_service_src = (ROOT / "lib/services/video_export_service.dart").read_text(encoding="utf-8")
+check("decodePreset" in render_service_src, "the renderer must decode per-caption styles")
+check("'style': decodePreset" in render_service_src,
+      "each render cue must carry its own style when it has one")
+exporter_model = (ROOT / "android/app/src/main/kotlin/app/subflow/export/ExportRequest.kt").read_text(encoding="utf-8")
+check("val style: CaptionLook?" in exporter_model,
+      "the Kotlin cue model must accept a per-caption style")
+painter_src_2 = (ROOT / "android/app/src/main/kotlin/app/subflow/export/CaptionFramePainter.kt").read_text(encoding="utf-8")
+check("cueStyles" in painter_src_2, "the native painter must resolve a style per cue")
+
+# ------------------------------------------------------------- font catalogue
+fonts_dir = ROOT / "assets/fonts"
+catalog_src = (ROOT / "lib/features/effects/caption_fonts.dart").read_text(encoding="utf-8")
+pubspec_src = (ROOT / "pubspec.yaml").read_text(encoding="utf-8")
+catalogue_families = re.findall(r"family: '([^']+)'", catalog_src)
+check(len(catalogue_families) >= 24,
+      f"expected at least 24 caption families, found {len(catalogue_families)}")
+for family in catalogue_families:
+    check(f"family: {family}" in pubspec_src,
+          f"font family '{family}' is in the catalogue but not declared in pubspec.yaml")
+    stem = family.replace(" ", "")
+    regular = fonts_dir / f"{stem}-Regular.ttf"
+    check(regular.exists(), f"missing font file for family '{family}'")
+    licences = list((fonts_dir / "licenses").glob(f"*{stem}*"))
+    check(bool(licences), f"missing licence file for font family '{family}'")
+    for weight_file in (fonts_dir).glob(f"{stem}-*.ttf"):
+        check(weight_file.stat().st_size > 8 * 1024,
+              f"{weight_file.name} looks truncated")
+
+# Persian coverage record: the fonts were verified with fontTools at review time,
+# and the emoji table must stay non-trivial for the auto-emoji pass to be honest.
+persian_doc = (ROOT / "docs/PHASE-3-REPORT.md").read_text(encoding="utf-8")
+check("fontTools" in persian_doc or "fontTools" in (ROOT / "assets/fonts/README.md").read_text(encoding="utf-8")
+      if (ROOT / "assets/fonts/README.md").exists() else True,
+      "font coverage verification must be documented")
+emoji_src = (ROOT / "lib/features/subtitles/emoji_suggester.dart").read_text(encoding="utf-8")
+check(emoji_src.count("': '") >= 60, "the emoji keyword table lost entries")
+check("_endsWithEmoji" in emoji_src, "auto-emoji must not stack emojis on repeat runs")
+
 # ------------------------------------------------------ video render (phase 5)
 #
 # The renderer is the only place where the app re-implements the caption look,

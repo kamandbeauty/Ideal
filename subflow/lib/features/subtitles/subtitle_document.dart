@@ -323,6 +323,47 @@ class SubtitleDocument {
     return SubtitleDocument(trackId: trackId, segments: next, clock: _clock);
   }
 
+  // ------------------------------------------------- per-caption style (0.11)
+
+  /// Pins a serialised `CaptionPreset` to one caption, or removes it.
+  ///
+  /// Passing null is the "back to the project style" gesture, so it clears the
+  /// column instead of writing an empty string.
+  SubtitleDocument withPreset(String segmentId, String? presetJson) {
+    final int index = indexOf(segmentId);
+    if (index < 0) return this;
+    final SubtitleSegment current = segments[index];
+    if ((current.presetJson ?? '') == (presetJson ?? '')) return this;
+    return _replace(
+      index,
+      current.copyWith(
+        presetJson: presetJson,
+        clearPreset: presetJson == null,
+        updatedAtMs: msNow,
+      ),
+    );
+  }
+
+  /// Copies one caption's own style onto every caption ("اعمال برای کل فیلم").
+  ///
+  /// Segments that are already the same stay untouched so the undo step only
+  /// records real changes.
+  SubtitleDocument withPresetFrom(String segmentId) {
+    final SubtitleSegment? source = byId(segmentId);
+    if (source == null) return this;
+    final String? preset = source.presetJson;
+    final List<SubtitleSegment> next = segments
+        .map((SubtitleSegment s) => (s.presetJson ?? '') == (preset ?? '')
+            ? s
+            : s.copyWith(
+                presetJson: preset,
+                clearPreset: preset == null,
+                updatedAtMs: msNow,
+              ))
+        .toList(growable: false);
+    return SubtitleDocument(trackId: trackId, segments: next, clock: _clock);
+  }
+
   // --------------------------------------------------------------- helpers
   SubtitleDocument _replace(int index, SubtitleSegment segment) {
     final List<SubtitleSegment> next = <SubtitleSegment>[...segments]..[index] = segment;
