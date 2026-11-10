@@ -12,7 +12,7 @@ ERROR: The object does not have any 'meta' values with the key 'scale_tween'.
        [0] snap (res://scripts/ui/menu_motion.gd:35)
        [1] settle (res://scripts/ui/menu_screens.gd:550)
        [2] run (res://tests/integration/test_ui.gd:18)
-ARTILLERY_TEST_REPORT {"checks":846,"engine":"4.7.2-stable (official)","failures":[],"passed":true,"scope":"Headless desktop logic and scene integration; NOT Android device validation"}
+ARTILLERY_TEST_REPORT {"checks":850,"engine":"4.7.2-stable (official)","failures":[],"passed":true,"scope":"Headless desktop logic and scene integration; NOT Android device validation"}
 WARNING: 5 ObjectDB instances were leaked at exit (run with `--verbose` for details).
    at: cleanup (core/object/object.cpp:2536)
 ERROR: 2 resources still in use at exit (run with --verbose for details).
