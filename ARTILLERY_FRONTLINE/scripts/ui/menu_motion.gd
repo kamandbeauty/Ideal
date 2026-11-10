@@ -39,6 +39,13 @@ static func snap(node: Control) -> void:
 	node.scale = Vector2.ONE
 
 
+## True when a finish callback has no bound node or its bound node still exists.
+static func target_alive(finish: Callable) -> bool:
+	if finish.get_bound_arguments_count() == 0:
+		return true
+	return is_instance_valid(finish.get_bound_arguments()[0])
+
+
 static func finish(node: Object, property: String, value: Variant) -> void:
 	if is_instance_valid(node):
 		node.set_indexed(property, value)

@@ -7,6 +7,21 @@ func run(t: TestContext) -> void:
 	t.check(menu.layout_direction == Control.LAYOUT_DIRECTION_RTL, "Menu root is RTL")
 	for id in ["splash", "main", "campaign", "briefing", "arsenal", "upgrades", "settings", "pause", "results"]:
 		t.check(menu.screens.has(id), "Menu screen built: " + id)
+	# Regression: settling motion for a control that was freed mid-entrance must not raise a script error.
+	var stale := Button.new()
+	menu.add_child(stale)
+	var stale_settle: Callable = MenuMotion.snap.bind(stale)
+	stale.free()
+	t.check(not MenuMotion.target_alive(stale_settle), "Freed control is not settled")
+	var live := Button.new()
+	menu.add_child(live)
+	t.check(MenuMotion.target_alive(MenuMotion.snap.bind(live)), "Live control is settled")
+	live.free()
+	var spent_tween: Tween = menu.create_tween()
+	spent_tween.kill()
+	menu._motion.append([spent_tween, stale_settle])
+	menu.settle()
+	t.check(menu._motion.is_empty(), "Settling clears the motion list after a freed control")
 	var latin := RegEx.new()
 	latin.compile("[A-Za-z]")
 	for id in ["splash", "main", "campaign", "arsenal", "upgrades", "settings", "pause", "results"]:

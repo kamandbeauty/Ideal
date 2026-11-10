@@ -547,7 +547,10 @@ func settle() -> void:
 		var tween: Tween = entry[0]
 		if tween.is_valid():
 			tween.kill()
-		entry[1].call()
+		# A control freed mid-motion has nothing left to settle; calling its bound callback
+		# would pass a freed object as an argument and raise a script error.
+		if MenuMotion.target_alive(entry[1]):
+			entry[1].call()
 	_motion.clear()
 
 
