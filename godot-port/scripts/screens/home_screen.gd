@@ -13,6 +13,7 @@ signal settings_requested
 
 const TITLE := "کاخِ شازده"
 const SUBTITLE := "کاخ را از نو بساز"
+const TITLE_ART := "res://assets/branding/title_plate.png"
 
 var _level_label: Label
 var _progress_label: Label
@@ -26,13 +27,14 @@ func build() -> void:
 	# is); the screen only dims it enough for the title to read.
 	set_backdrop("garden_dusk", 0.20, 0.5, 0.5, 0.80, 0.70)
 
-	var title := UiKit.label(self, "title", TITLE, UiTokens.TYPE_DISPLAY, UiTokens.GOLD,
-		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(title, 0.0, 48.0, UiTokens.CANVAS_WIDTH, 52.0)
+	# The logotype is a picture, drawn offline in gold by tools/make_title_art.py, not a string set in
+	# whatever font the engine found. `TITLE` stays as the spoken name for the tests and the store.
+	var title := UiKit.icon(self, "title", TITLE_ART, 0.0, 22.0, UiTokens.CANVAS_WIDTH, 78.0)
+	title.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 	var subtitle := UiKit.label(self, "subtitle", SUBTITLE, UiTokens.TYPE_BASE, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(subtitle, 0.0, 98.0, UiTokens.CANVAS_WIDTH, 22.0)
+	UiKit.place(subtitle, 0.0, 100.0, UiTokens.CANVAS_WIDTH, 22.0)
 
 	# The card is the same width in either orientation, because it holds the same four lines; what
 	# changes in landscape is that there is room to centre it and to put the doors on one row.

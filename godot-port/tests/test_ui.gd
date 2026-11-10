@@ -126,6 +126,29 @@ func _run() -> void:
 	failures += _check(narrow.is_empty(),
 		"every backdrop is painted at landscape size, not upscaled from a square (%s)" % ", ".join(narrow))
 
+	# The identity of the app is a picture too: the launcher icon, the two adaptive layers Android
+	# composites, and the splash. A flat `icon_432.png` stood in for all of them until now, which is
+	# why the icon on the phone was a placeholder and not the logo.
+	var brand_sizes := {
+		"icon_512.png": Vector2i(512, 512), "icon_192.png": Vector2i(192, 192),
+		"icon_128.png": Vector2i(128, 128), "icon_foreground_432.png": Vector2i(432, 432),
+		"icon_background_432.png": Vector2i(432, 432), "title_plate.png": Vector2i(1024, 232),
+	}
+	var missing_brand: Array[String] = []
+	for name in brand_sizes:
+		var path := "res://assets/branding/" + name
+		var picture := load(path) as Texture2D
+		var wanted: Vector2i = brand_sizes[name]
+		if picture == null or picture.get_width() != wanted.x or picture.get_height() != wanted.y:
+			missing_brand.append(name)
+	failures += _check(missing_brand.is_empty(),
+		"the icon, its two adaptive layers and the logotype ship at their exact sizes (%s)" % ", ".join(missing_brand))
+	var foreground := load("res://assets/branding/icon_foreground_432.png") as Texture2D
+	if foreground != null:
+		var image := foreground.get_image()
+		failures += _check(image.get_pixel(0, 0).a < 0.1 and image.get_pixel(216, 216).a > 0.9,
+			"the adaptive foreground is transparent at the corner and opaque at the centre, so the mask keeps the crest")
+
 	# The stones are re-cut pictures in their own folder, on top of the Unity ones that still ship, so
 	# counting `assets/art` alone would not notice if they went missing.
 	var gem_files := _list_pngs("res://assets/gems")

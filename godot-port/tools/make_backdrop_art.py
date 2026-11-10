@@ -123,21 +123,46 @@ def onion_dome(centre_x, base_y, width, height, steps=44):
     return left + [(centre_x, base_y - height * 1.05)] + right
 
 
-def cypress(centre_x, base_y, height, width, colour):
+def cypress(centre_x, base_y, height, width, colour=None):
+    """The outline of a cypress: a flame, wider at the foot, tapering to a point."""
     points = []
-    steps = 24
+    steps = 26
     for index in range(steps + 1):
         t = index / steps
         y = base_y - height * t
-        half = width * 0.5 * (1.0 - t) ** 0.72 * (0.35 + 0.65 * min(1.0, t * 3.2))
+        half = width * 0.5 * (1.0 - t) ** 0.62 * (0.55 + 0.45 * min(1.0, t * 4.0))
         points.append((centre_x - half, y))
     for index in range(steps + 1):
         t = 1.0 - index / steps
         y = base_y - height * t
-        half = width * 0.5 * (1.0 - t) ** 0.72 * (0.35 + 0.65 * min(1.0, t * 3.2))
+        half = width * 0.5 * (1.0 - t) ** 0.62 * (0.55 + 0.45 * min(1.0, t * 4.0))
         points.append((centre_x + half, y))
     return points
 
+
+def draw_cypress(image, centre_x, base_y, height, width, dark=(8, 22, 26), light=(20, 46, 42)):
+    """A tree, not a line: silhouette, then overlapping tufts of foliage down both edges.
+
+    The first pass drew these 46 px wide on a 1476 px canvas, which on a phone is a one-pixel scratch
+    beside the frame. At this width they read as cypresses from the terrace.
+    """
+    draw = ImageDraw.Draw(image, "RGBA")
+    draw.polygon(cypress(centre_x, base_y, height, width), fill=dark + (255,))
+    tufts = 28
+    for index in range(tufts):
+        t = index / tufts
+        y = base_y - height * t * 0.94
+        half = width * 0.5 * (1.0 - t) ** 0.62 * (0.55 + 0.45 * min(1.0, t * 4.0))
+        if half < 1.5:
+            break
+        offset = (index % 2) * 0.6 + 0.4
+        r = max(1.2, half * 0.20)
+        for sign in (-1, 1):
+            x = centre_x + sign * half * offset
+            draw.ellipse((x - r, y - r * 1.5, x + r, y + r * 1.5), fill=light + (95,))
+    # The lit edge, on the side the sky is brighter.
+    left = [(x, y) for x, y in cypress(centre_x, base_y, height, width) if x <= centre_x]
+    draw.line(left, fill=(46, 78, 70, 150), width=2)
 
 
 def draw_pavilion(image, centre_x, width, base_y, height, warm=(244, 190, 122)):
@@ -176,22 +201,28 @@ def draw_pavilion(image, centre_x, width, base_y, height, warm=(244, 190, 122)):
     left_arc = [(x, y) for x, y in dome if x <= centre_x]
     draw.line(left_arc, fill=(160, 186, 196, 110), width=3)
 
-    arch_width = width * 0.20
+    arch_width = width * 0.155
     for index in (-1, 0, 1):
         x0 = centre_x + index * width * 0.27 - arch_width * 0.5
         x1 = x0 + arch_width
         spring = base_y - body_height * 0.10
-        arch = arch_points(x0, x1, spring, body_height * 0.52)
+        arch = arch_points(x0, x1, spring, body_height * 0.44)
         opening = arch + [(x1, base_y), (x0, base_y)]
-        top = spring - body_height * 0.52
+        top = spring - body_height * 0.44
+        # The opening is lit from the floor, not flooded: a lamp pool at the bottom and a dark
+        # head under the arch. Filling the whole opening with the warm colour is what turned these
+        # pavilions into beige balloons on the first pass.
         gradient = vertical_gradient((max(2, int(x1 - x0)), max(2, int(base_y - top))),
-                                     [(0.0, (22, 28, 34)), (0.35, mix(warm, (50, 36, 30), 0.55)),
-                                      (1.0, warm)]).convert("RGBA")
+                                     [(0.0, (18, 22, 30)), (0.52, mix(warm, (40, 30, 26), 0.70)),
+                                      (0.86, mix(warm, (120, 74, 40), 0.35)), (1.0, warm)]).convert("RGBA")
         canvas = Image.new("RGBA", image.size, (0, 0, 0, 0))
         canvas.paste(gradient, (int(x0), int(top)), gradient)
         image.alpha_composite(Image.composite(canvas, Image.new("RGBA", image.size, (0, 0, 0, 0)),
                                               mask_of(opening, image.size)))
-        draw.line(arch, fill=(255, 216, 162, 120), width=2)
+        draw.line(arch, fill=(198, 172, 128, 110), width=2)
+        # A mullion down the middle of each opening, so it reads as a window and not a hole.
+        draw.line([(centre_x + index * width * 0.27, top), (centre_x + index * width * 0.27, base_y)],
+                  fill=(26, 24, 28, 130), width=2)
 
     draw.line([(centre_x - width * 0.45, body_top + 2), (centre_x + width * 0.45, body_top + 2)],
               fill=(120, 146, 156, 130), width=3)
@@ -238,12 +269,13 @@ def draw_path(image, draw, base_half, top_half, colour=(38, 44, 46)):
 SCENES = {
     # The title screen: warm, open, the moon high over the garden.
     "garden_dusk": dict(
-        sky=[(0.00, (9, 20, 38)), (0.42, (18, 44, 74)), (0.62, (58, 96, 120)), (0.70, (196, 138, 78))],
+        sky=[(0.00, (9, 20, 38)), (0.38, (18, 44, 74)), (0.56, (46, 82, 108)),
+             (0.66, (116, 104, 96)), (0.72, (172, 132, 92))],
         horizon=0.70, moon=(0.70, 0.20, 46), arches=0, wall=0.0, trees=True, pool=True,
         lanterns=[(0.30, 0.66, 26), (0.62, 0.67, 20)], grain=5, vignette=0.62, seed=11,
         pavilions=[(0.50, 0.34, 0.30), (0.135, 0.26, 0.24), (0.865, 0.24, 0.22)],
         fireflies=16, tilework=False,
-        lantern_strings=[(13, 0.055 * H)], path=None, clouds=5,
+        lantern_strings=[(13, 0.055 * H)], path=None, clouds=5, foreground=True,
     ),
     # The board: the same place at night, dimmer and quieter, because five colours of gem have to be
     # the brightest thing on the screen.
@@ -251,7 +283,7 @@ SCENES = {
         sky=[(0.00, (6, 14, 28)), (0.45, (11, 28, 50)), (0.66, (20, 46, 72)), (0.74, (46, 68, 84))],
         horizon=0.74, moon=(0.22, 0.14, 30), arches=5, wall=0.46, trees=False, pool=False,
         lanterns=[], grain=6, vignette=0.78, pavilions=[], fireflies=0, tilework=True,
-        lantern_strings=[], path=None, clouds=0, floor_pools=True,
+        lantern_strings=[], path=None, clouds=0, floor_pools=True, foreground=False,
         seed=23,
     ),
     # The districts map: a terrace in daylight, hedges instead of lanterns.
@@ -260,7 +292,7 @@ SCENES = {
         horizon=0.68, moon=None, arches=3, wall=0.40, trees=True, pool=False,
         lanterns=[], grain=5, vignette=0.55, seed=37,
         pavilions=[(0.20, 0.26, 0.22), (0.80, 0.24, 0.20)], fireflies=0, tilework=False,
-        lantern_strings=[], path=None, clouds=3,
+        lantern_strings=[], path=None, clouds=3, foreground=True,
     ),
     # The bazaar: warm, close, lamps everywhere.
     "bazaar": dict(
@@ -268,7 +300,7 @@ SCENES = {
         horizon=0.72, moon=None, arches=6, wall=0.52, trees=False, pool=False,
         lanterns=[(0.14, 0.62, 22), (0.34, 0.63, 26), (0.54, 0.63, 22), (0.74, 0.63, 26), (0.90, 0.62, 20)],
         grain=6, vignette=0.66, seed=51, pavilions=[], fireflies=0, tilework=False,
-        lantern_strings=[(9, 0.045 * H)], path=None, clouds=0,
+        lantern_strings=[(9, 0.045 * H)], path=None, clouds=0, foreground=False,
     ),
     # Settings: a quiet courtyard, nothing moving.
     "courtyard": dict(
@@ -276,7 +308,7 @@ SCENES = {
         horizon=0.74, moon=(0.50, 0.16, 34), arches=4, wall=0.44, trees=True, pool=False,
         lanterns=[(0.26, 0.60, 22), (0.74, 0.60, 22)], grain=5, vignette=0.60, seed=67,
         pavilions=[(0.50, 0.34, 0.28)], fireflies=8, tilework=True,
-        lantern_strings=[], path=None, clouds=2,
+        lantern_strings=[], path=None, clouds=2, foreground=False,
     ),
 }
 
@@ -490,10 +522,12 @@ def build(name):
 
     # ---- cypresses -------------------------------------------------------------------------------
     if scene["trees"]:
-        for tx, height, width in [(0.05, 0.36, 46), (0.12, 0.27, 32), (0.95, 0.34, 44), (0.885, 0.25, 30)]:
-            draw.polygon(cypress(W * tx, H * 0.995, H * height, width, None), fill=(7, 20, 24, 255))
-            draw.polygon(cypress(W * tx, H * 0.995, H * height * 0.97, width * 0.52, None),
-                         fill=(15, 36, 32, 255))
+        # Planted in two clusters of three, so the pair behind reads as a row and not as two marks.
+        grove = [(0.035, 0.44, 118), (0.085, 0.58, 150), (0.132, 0.40, 104),
+                 (0.965, 0.46, 124), (0.915, 0.60, 152), (0.868, 0.38, 100)]
+        for tx, height, width in grove:
+            draw_cypress(image, W * tx, H * 0.995, H * height, width)
+        draw = ImageDraw.Draw(image, "RGBA")
 
     # ---- a string of lamps across the courtyard ---------------------------------------------------
     for count, sag in scene.get("lantern_strings", []):
@@ -504,6 +538,28 @@ def build(name):
         for index in range(scene["arches"]):
             x = W * (index + 0.5) / scene["arches"]
             image.alpha_composite(radial_layer(size, (x, H * 0.93), W * 0.055, (240, 190, 120), 0.30, 2.0))
+
+    # ---- foreground: the colonnade the player is standing in --------------------------------------
+    # A dark near wall down each edge, its inner face curving out of the top of the frame. Without it
+    # the courtyard is a picture of a place; with it, it is a place you are looking out of. (The first
+    # version blacked out the whole frame around an arch that was mostly off-canvas, which is how it
+    # ended up as a black rectangle with a line on it.)
+    if scene.get("foreground"):
+        for mirrored in (False, True):
+            steps = 24
+            curve = []
+            for index in range(steps + 1):
+                t = index / steps
+                x = W * (0.045 + 0.085 * (t ** 1.6))
+                y = H * (0.16 + 0.84 * t)
+                curve.append((W - x, y) if mirrored else (x, y))
+            outer = [(W, 0), (W, H)] if mirrored else [(0, 0), (0, H)]
+            mask = Image.new("L", size, 0)
+            ImageDraw.Draw(mask).polygon(curve + outer, fill=255)
+            mask = mask.filter(ImageFilter.GaussianBlur(5))
+            wall = Image.new("RGBA", size, (5, 9, 16, 255))
+            wall.putalpha(mask.point(lambda v: int(v * 0.96)))
+            image.alpha_composite(wall)
 
     # ---- finish: vignette, then grain ------------------------------------------------------------
     vignette = Image.new("L", size, 0)

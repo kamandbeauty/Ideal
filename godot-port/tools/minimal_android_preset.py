@@ -42,8 +42,8 @@ package/name="Prince's Palace"
 package/signed=true
 package/app_category=2
 launcher_icons/main_192x192="res://assets/branding/icon_192.png"
-launcher_icons/adaptive_foreground_432x432="res://assets/branding/icon_432.png"
-launcher_icons/adaptive_background_432x432="res://assets/branding/icon_432.png"
+launcher_icons/adaptive_foreground_432x432="res://assets/branding/icon_foreground_432.png"
+launcher_icons/adaptive_background_432x432="res://assets/branding/icon_background_432.png"
 permissions/internet=true
 """
 
