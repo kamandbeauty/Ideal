@@ -21,6 +21,8 @@ const BURST_GAP: float = 0.14
 ## Seconds without a clear line before a firing-line unit looks for another firing position.
 const REPOSITION_AFTER: float = 1.2
 ## Height of the eyes/muzzle used for line-of-fire checks.
+const TARGET_HEIGHT: float = 1.2
+const HOLD_BAND: float = 0.5
 const EYE_HEIGHT: float = 1.5
 ## Infantry role (rifle, heavy, RPG). Set with set_role before the unit enters a wave.
 var role_kind: int = InfantryRole.Kind.RIFLE
@@ -391,11 +393,9 @@ func _stop_distance() -> float:
 	return 2.5
 
 ## Firing-line roles stop at their hold distance and stay put until they are ordered elsewhere.
+## A small band keeps the unit from flickering in and out of "holding" as it settles on its line.
 func _update_hold(distance: float) -> void:
-	if state == State.ADVANCE and reposition_point == Vector3.INF and InfantryRole.holds(role_kind):
-		holding_position = distance <= InfantryRole.hold_distance(role_kind)
-	else:
-		holding_position = false
+	holding_position = state == State.ADVANCE and reposition_point == Vector3.INF and InfantryRole.holds(role_kind) and distance <= InfantryRole.hold_distance(role_kind) + HOLD_BAND
 
 func _tick_reposition() -> void:
 	if reposition_point == Vector3.INF:
@@ -470,7 +470,9 @@ func _line_of_fire_from(point: Vector3) -> bool:
 	if sight_override >= 0:
 		return sight_override == 1
 	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
-	return FireControl.line_clear(space, point + Vector3.UP * EYE_HEIGHT, player_position + Vector3.UP * 1.2)
+	# The emplacement sits on its pad, so the aim point is measured from the ground there, not from y = 0.
+	var aim: Vector3 = Vector3(player_position.x, CoastalTerrain.height_at(player_position.x, player_position.z) + TARGET_HEIGHT, player_position.z)
+	return FireControl.line_clear(space, point + Vector3.UP * EYE_HEIGHT, aim)
 
 ## Picks the first nearby point with a clear line: forward first, then flanks, then further out.
 func _seek_firing_position() -> void:

@@ -15,6 +15,7 @@ func run(t: TestContext) -> void:
 	await t.tree.process_frame
 	# Freeze the scripted first wave so only the units spawned by each check act.
 	scene.set_process(false)
+	scene.set_physics_process(false)
 	scene.disembark_all_now()
 	for unit in scene.soldiers:
 		unit.set_physics_process(false)
@@ -27,6 +28,12 @@ func run(t: TestContext) -> void:
 	await _check_heavy_fires_three_round_burst(t, scene)
 	await _check_rpg_fires_once_then_falls_back(t, scene)
 	await _check_firing_line_repositions(t, scene)
+	await _check_vehicle_rules(t)
+	await _check_tank_pivots_before_driving(t)
+	await _check_turret_waits_for_alignment(t)
+	await _check_jeep_strafes(t)
+	await _check_vehicle_damage_states(t)
+	await _check_cook_off(t)
 	scene.queue_free()
 	await t.tree.process_frame
 
@@ -108,6 +115,9 @@ func _spawn(scene: CoastalController, z: float, role: String, sight: int) -> Ene
 	var unit: EnemySoldier = scene.soldiers[scene.soldiers.size() - 1]
 	unit.set_physics_process(false)
 	unit.global_position = Vector3(0.0, CoastalTerrain.height_at(0.0, z), z)
+	# Fixed aim point on the emplacement, so line-of-fire geometry is the same on every run.
+	unit.objective = Vector3(0.0, 0.0, scene.emplacement.z)
+	unit.player_position = unit.objective
 	unit.sight_override = sight
 	unit.shoot_cooldown = 0.0
 	return unit
@@ -136,7 +146,7 @@ func _check_rifle_advances_and_holds_fire(t: TestContext, scene: CoastalControll
 
 func _check_heavy_holds_at_range(t: TestContext, scene: CoastalController) -> void:
 	var heavy: EnemySoldier = _spawn(scene, 0.0, "heavy", 0)
-	_step(heavy, 1800)
+	_step(heavy, 3600)
 	var range_now: float = _flat_distance(heavy.global_position, heavy.objective)
 	t.check(heavy.holding_position, "Heavy infantry stop and hold a firing line")
 	t.near(range_now, InfantryRole.hold_distance(InfantryRole.Kind.HEAVY), 0.6, "Heavy infantry hold at their set-up distance, not at the emplacement")
@@ -171,9 +181,12 @@ func _check_rpg_fires_once_then_falls_back(t: TestContext, scene: CoastalControl
 	t.check(rpg.reload_timer > 0.0, "The RPG reloads after firing")
 	_step(rpg, 240)
 	t.equal(shots[0], 1, "The RPG does not fire again while it is reloading")
+	t.check(rpg.state == EnemySoldier.State.COVER, "The RPG stays in cover while it reloads")
 	t.check(_flat_distance(rpg.global_position, scene.emplacement) > fired_from - 0.5, "The RPG falls back from the emplacement after its shot")
-	_step(rpg, 420)
-	t.check(rpg.state != EnemySoldier.State.COVER, "The RPG returns to the firing line once reloaded")
+	# The reload takes five seconds; the RPG goes back to the firing line the moment it is loaded.
+	_step(rpg, 70)
+	t.check(rpg.state == EnemySoldier.State.ADVANCE, "The RPG returns to the firing line once reloaded")
+	t.equal(shots[0], 1, "Reloading does not itself fire the next rocket")
 	rpg.queue_free()
 	scene.soldiers.erase(rpg)
 
@@ -209,8 +222,119 @@ func _check_firing_line_repositions(t: TestContext, scene: CoastalController) ->
 	t.check(seen_reposition, "Blocked heavy infantry pick a flank firing position")
 	t.equal(shots_before_reposition, 0, "Heavy infantry hold fire while cover blocks their line")
 	t.check(reached_flank, "Heavy infantry reach the flank position")
+	# Setting up at the flank takes the heavy's set-up time, so give it time to fire before judging.
+	_step(heavy, 300)
 	t.check(shots[0] >= 1, "Heavy infantry fire from the flank once the line is clear")
 	heavy.queue_free()
 	scene.soldiers.erase(heavy)
 	blocker.queue_free()
 	await scene.get_tree().process_frame
+
+## Vehicle handling rules: each role turns, traverses and aims differently, and only carriers cook off.
+func _check_vehicle_rules(t: TestContext) -> void:
+	t.check(EnemyVehicle.turn_rate("tank") < EnemyVehicle.turn_rate("jeep"), "Heavy hulls turn more slowly than a jeep")
+	t.check(EnemyVehicle.traverse_rate("boss") < EnemyVehicle.traverse_rate("tank"), "The boss turret traverses more slowly than a tank turret")
+	t.check(EnemyVehicle.aim_tolerance("tank") < EnemyVehicle.aim_tolerance("jeep"), "A tank gun needs a tighter aim than a jeep's machine gun")
+	t.check(EnemyVehicle.cook_off_radius("tank") > 0.0 and EnemyVehicle.cook_off_radius("boss") > 0.0 and EnemyVehicle.cook_off_radius("apc") > 0.0, "Tanks, APCs and the boss carry ammunition that cooks off")
+	t.check(EnemyVehicle.cook_off_radius("jeep") == 0.0 and EnemyVehicle.cook_off_radius("transport") == 0.0, "Jeeps and transports carry no cook-off")
+	t.check(EnemyVehicle.strafes("jeep") and not EnemyVehicle.strafes("tank") and not EnemyVehicle.strafes("transport"), "Only the jeep strafes its target")
+
+func _vehicle(t: TestContext, kind: String, spawn: Vector3, target: Vector3) -> EnemyVehicle:
+	var unit := EnemyVehicle.new()
+	t.tree.root.add_child(unit)
+	unit.configure(spawn, target, kind)
+	unit.set_physics_process(false)
+	unit.shoot_cooldown = 10000.0
+	return unit
+
+## A tank that faces away pivots on the spot before it drives, then reaches its half-way hold line.
+func _check_tank_pivots_before_driving(t: TestContext) -> void:
+	var tank: EnemyVehicle = _vehicle(t, "tank", Vector3(0, 0, 0), Vector3(0, 0, 40))
+	for index in range(60):
+		tank._physics_process(STEP)
+	var moved: float = Vector2(tank.global_position.x, tank.global_position.z).length()
+	t.check(moved < 0.01, "A tank facing away does not drive while it swings round")
+	t.near(absf(angle_difference(0.0, tank.rotation.y)), EnemyVehicle.turn_rate("tank"), 0.05, "The tank swings round at its turn rate")
+	for index in range(1200):
+		tank._physics_process(STEP)
+	t.check(tank.holding, "After turning, the tank drives to its hold line")
+	t.near(Vector2(tank.global_position.x, tank.global_position.z).distance_to(Vector2(0, 40)), tank.stop_distance, 0.02, "The tank parks at its half-way line")
+	tank.queue_free()
+
+## The gun only fires once the turret is on the bearing: a misaligned turret holds fire, then traverses and fires.
+func _check_turret_waits_for_alignment(t: TestContext) -> void:
+	var tank: EnemyVehicle = _vehicle(t, "tank", Vector3(0, 0, 0), Vector3(0, 0, -5))
+	tank.turret.rotation.y = PI
+	tank.shoot_cooldown = 0.0
+	var shots: Array = [0]
+	tank.shoot_requested.connect(func(_muzzle, _aim, _damage, _blast): shots[0] += 1)
+	for index in range(30):
+		tank._physics_process(STEP)
+	t.check(tank.aim_error > 1.0, "A turret facing away from the target is not on the bearing")
+	t.equal(shots[0], 0, "The gun holds fire while the turret is misaligned")
+	var fired_misaligned: bool = false
+	for index in range(600):
+		var before: int = shots[0]
+		tank._physics_process(STEP)
+		if shots[0] > before and tank.aim_error > EnemyVehicle.aim_tolerance("tank") + 0.001:
+			fired_misaligned = true
+	t.check(shots[0] >= 1, "The gun fires once the turret has traversed onto the target")
+	t.check(not fired_misaligned, "No shot leaves while the turret is outside the aim tolerance")
+	tank.queue_free()
+
+## A jeep does not park: it circles its target at its stand-off distance and keeps covering the ground.
+func _check_jeep_strafes(t: TestContext) -> void:
+	var jeep: EnemyVehicle = _vehicle(t, "jeep", Vector3(0, 0, 60), Vector3(0, 0, 0))
+	for index in range(900):
+		jeep._physics_process(STEP)
+	t.check(not jeep.holding, "The jeep keeps moving instead of parking")
+	var path: float = 0.0
+	var low: float = INF
+	var high: float = 0.0
+	var previous: Vector3 = jeep.global_position
+	for index in range(300):
+		jeep._physics_process(STEP)
+		path += Vector2(jeep.global_position.x - previous.x, jeep.global_position.z - previous.z).length()
+		previous = jeep.global_position
+		var radius: float = Vector2(jeep.global_position.x, jeep.global_position.z).length()
+		low = minf(low, radius)
+		high = maxf(high, radius)
+	t.check(path > 15.0, "The jeep strafes across the target's front, covering over 15 m in five seconds")
+	t.check(low > 36.0 and high < 44.0, "The jeep holds its stand-off distance while it circles")
+	jeep.queue_free()
+
+## Damage shows on the hull: a hit rocks it, and smoke then fire build on the wreck as health falls.
+func _check_vehicle_damage_states(t: TestContext) -> void:
+	var tank: EnemyVehicle = _vehicle(t, "tank", Vector3(0, 0, 0), Vector3(0, 0, -5))
+	tank.receive_damage(40.0)
+	t.check(tank.hit_jolt > 0.0, "A hit sets a hull jolt")
+	for index in range(3):
+		tank._physics_process(STEP)
+	t.check(absf(tank.model_root.rotation.x) > 0.0001, "The hull rocks after a hit")
+	t.check(tank.smoke_plume == null and tank.fire_plume == null, "A healthy vehicle shows no damage smoke")
+	tank.health = tank.max_health * 0.55
+	tank.receive_damage(1.0)
+	t.check(tank.smoke_plume != null and tank.fire_plume == null, "Below 60% health the vehicle smokes")
+	tank.health = tank.max_health * 0.25
+	tank.receive_damage(1.0)
+	t.check(tank.fire_plume != null, "Below 30% health the vehicle burns")
+	tank.queue_free()
+
+## Ammunition carriers cook off after their fuse, once each; an unarmoured jeep does not.
+func _check_cook_off(t: TestContext) -> void:
+	var tank: EnemyVehicle = _vehicle(t, "tank", Vector3(0, 0, 0), Vector3(0, 0, -5))
+	var cooked: Array = []
+	tank.cook_off.connect(func(_source, radius): cooked.append(radius))
+	tank._die()
+	t.equal(cooked.size(), 0, "A destroyed tank does not cook off instantly")
+	await tank.get_tree().create_timer(EnemyVehicle.COOK_OFF_DELAY + 0.4).timeout
+	t.equal(cooked.size(), 1, "A destroyed tank cooks off once after its fuse")
+	t.near(float(cooked[0]) if cooked.size() > 0 else -1.0, EnemyVehicle.cook_off_radius("tank"), 0.0001, "The cook-off uses the tank's blast radius")
+	var jeep: EnemyVehicle = _vehicle(t, "jeep", Vector3(0, 0, 0), Vector3(0, 0, -5))
+	var jeep_cooked: Array = []
+	jeep.cook_off.connect(func(_source, radius): jeep_cooked.append(radius))
+	jeep._die()
+	await jeep.get_tree().create_timer(EnemyVehicle.COOK_OFF_DELAY + 0.4).timeout
+	t.equal(jeep_cooked.size(), 0, "A destroyed jeep does not cook off")
+	tank.queue_free()
+	jeep.queue_free()

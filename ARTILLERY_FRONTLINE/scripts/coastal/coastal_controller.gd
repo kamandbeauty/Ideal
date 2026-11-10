@@ -490,6 +490,7 @@ func _spawn_vehicle(spawn: Vector3, kind: String) -> void:
 		vehicle.damaged.connect(_on_boss_damaged)
 		hud.show_boss()
 	vehicle.died.connect(_on_vehicle_destroyed)
+	vehicle.cook_off.connect(_on_vehicle_cook_off)
 	vehicle.shoot_requested.connect(_on_enemy_heavy_shoot)
 	vehicles.append(vehicle)
 
@@ -519,6 +520,16 @@ func _on_vehicle_destroyed(vehicle: EnemyVehicle) -> void:
 	if vehicle.kind == "boss":
 		hud.hide_boss()
 	_explode(vehicle.global_position + Vector3.UP * 1.2, Vector3.UP, radius)
+
+## Ammunition cooking off after a wreck: a smaller secondary blast that hurts infantry and barrels
+## near the wreck. The player is not hit again; the destruction blast already covered them.
+func _on_vehicle_cook_off(vehicle: EnemyVehicle, radius: float) -> void:
+	if not is_instance_valid(vehicle):
+		return
+	var grounded: Vector3 = _blast_point(vehicle.global_position + Vector3.UP * 0.8)
+	effects.explode(grounded, Vector3.UP, radius, grounded.y - 0.08)
+	Sound.play_at("explosion", grounded, -8.0, 0.85)
+	_explode_damage(grounded, radius, false, vehicle)
 
 ## Boss health and stage changes: the bar follows damage, and each stage throws a burst.
 func _on_boss_damaged(_vehicle: EnemyVehicle, ratio: float) -> void:

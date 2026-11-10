@@ -7,6 +7,8 @@ signal damaged(vehicle: EnemyVehicle, ratio: float)
 signal shoot_requested(origin: Vector3, target: Vector3, damage: float, blast: float)
 ## Boss tanks report 1 at 60% health and 2 at 30%, so the controller can show the damage.
 signal stage_changed(vehicle: EnemyVehicle, stage: int)
+## Fired a moment after a vehicle that carries ammunition is destroyed (tanks, APCs, the boss).
+signal cook_off(vehicle: EnemyVehicle, radius: float)
 
 var kind: String = "tank"
 ## Armour is light enough that two cannon hits (or two rockets) stop a tank and
@@ -17,6 +19,13 @@ const JEEP_HEALTH: float = 90.0
 const APC_HEALTH: float = 220.0
 const BOSS_HEALTH: float = 900.0
 const WADE_FLOOR: float = -0.35
+## Seconds between a vehicle's destruction and its ammunition cooking off.
+const COOK_OFF_DELAY: float = 0.9
+## Health ratios at which the wreck starts smoking and then burning.
+const SMOKE_THRESHOLD: float = 0.6
+const FIRE_THRESHOLD: float = 0.3
+## Lateral speed (m/s) of a jeep circling its target.
+const STRAFE_SPEED: float = 5.0
 var health: float = TANK_HEALTH
 var max_health: float = TANK_HEALTH
 var speed: float = 3.2
@@ -52,6 +61,16 @@ var procedural_aim: bool = false
 ## True when the model comes from VehicleModels rather than a GLB file.
 var built_procedurally: bool = false
 var stage: int = 0
+## Angle (rad) between the turret and the bearing to the target. The gun only fires inside aim_tolerance.
+var aim_error: float = 0.0
+## Direction of a jeep's circling, flipped every few seconds.
+var strafe_sign: float = 1.0
+var strafe_timer: float = 2.0
+## Hull pitch kick from the last hit, decaying over time.
+var hit_jolt: float = 0.0
+var hit_jolt_phase: float = 0.0
+var smoke_plume: CPUParticles3D
+var fire_plume: CPUParticles3D
 
 func _ready() -> void:
 	collision_layer = 2
@@ -96,12 +115,25 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 	stage = 0
 	if is_armoured():
 		stop_distance = maxf(MIN_HOLD_DISTANCE, advance_span * ADVANCE_FRACTION)
+	elif kind == "jeep":
+		# The jeep circles at a wider stand-off than a transport parks at.
+		stop_distance = 40.0
 	else:
 		stop_distance = 28.0
 	holding = false
 	max_health = health
 	shoot_cooldown = randf_range(2.5, 4.5)
 	suspension_phase = randf() * TAU
+	hit_jolt = 0.0
+	aim_error = 0.0
+	strafe_timer = randf_range(1.0, 2.0)
+	strafe_sign = 1.0 if randf() < 0.5 else -1.0
+	if smoke_plume != null:
+		smoke_plume.queue_free()
+		smoke_plume = null
+	if fire_plume != null:
+		fire_plume.queue_free()
+		fire_plume = null
 
 func _build_model() -> void:
 	var procedural: Node3D = VehicleModels.build_kind(kind)
@@ -195,11 +227,53 @@ func receive_damage(amount: float, critical: bool = false) -> float:
 		return 0.0
 	var before: float = health
 	health = maxf(0.0, health - DamageModel.taken(amount, armor) * DamageModel.critical_scale(critical))
+	var removed: float = before - health
+	# A hit rocks the hull; a bigger share of health lost gives a bigger kick.
+	if removed > 0.0:
+		hit_jolt = maxf(hit_jolt, clampf(removed / max_health * 0.5, 0.01, 0.06))
 	damaged.emit(self, health / max_health)
+	_update_damage_state()
 	_check_stages()
 	if health <= 0.0:
 		_die()
-	return before - health
+	return removed
+
+## Smoke from the engine deck below 60% health, flames below 30%. Each plume is built once.
+func _update_damage_state() -> void:
+	var ratio: float = health / max_health
+	if smoke_plume == null and ratio <= SMOKE_THRESHOLD:
+		smoke_plume = _make_plume(false)
+	if fire_plume == null and ratio <= FIRE_THRESHOLD:
+		fire_plume = _make_plume(true)
+
+func _make_plume(burning: bool) -> CPUParticles3D:
+	var plume := CPUParticles3D.new()
+	plume.name = "FirePlume" if burning else "SmokePlume"
+	plume.amount = 18 if burning else 12
+	plume.lifetime = 1.3 if burning else 2.8
+	plume.local_coords = true
+	plume.emitting = true
+	plume.direction = Vector3.UP
+	plume.spread = 20.0
+	plume.initial_velocity_min = 0.8 if burning else 1.0
+	plume.initial_velocity_max = 1.6 if burning else 2.0
+	plume.gravity = Vector3(0.0, 0.4, 0.0)
+	plume.scale_amount_min = 0.5
+	plume.scale_amount_max = 1.2
+	var puff := SphereMesh.new()
+	puff.radius = 0.5
+	puff.height = 1.0
+	puff.radial_segments = 8
+	puff.rings = 4
+	var puff_material := StandardMaterial3D.new()
+	puff_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	puff_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	puff_material.albedo_color = Color(1.0, 0.45, 0.12, 0.85) if burning else Color(0.18, 0.18, 0.17, 0.55)
+	puff.material = puff_material
+	plume.mesh = puff
+	plume.position = Vector3(0.0, hull_size().y + 0.3, -0.6)
+	add_child(plume)
+	return plume
 
 func _check_stages() -> void:
 	if kind != "boss" or dead:
@@ -228,6 +302,14 @@ func _die() -> void:
 		muzzle_flash.visible = false
 	if muzzle_light:
 		muzzle_light.light_energy = 0.0
+	# Destruction sequence: the wreck keeps smoking, and carriers of ammunition cook off after a short fuse.
+	if smoke_plume == null:
+		smoke_plume = _make_plume(false)
+	var fuse_radius: float = cook_off_radius(kind)
+	if fuse_radius > 0.0:
+		var fuse: Tween = create_tween()
+		fuse.tween_interval(COOK_OFF_DELAY)
+		fuse.tween_callback(_cook_off.bind(fuse_radius))
 	# Persistent wreck: suspension settles, turret droops; no sinking tween.
 	var tween: Tween = create_tween().set_parallel(true)
 	tween.tween_property(model_root, "rotation:z", randf_range(-0.06, 0.06), 1.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -239,6 +321,11 @@ func _die() -> void:
 	if turret:
 		tween.tween_property(turret, "rotation:z", randf_range(-0.05, 0.05), 1.2)
 	died.emit(self)
+
+func _cook_off(radius: float) -> void:
+	if fire_plume == null:
+		fire_plume = _make_plume(true)
+	cook_off.emit(self, radius)
 
 func muzzle_position() -> Vector3:
 	if muzzle:
@@ -264,15 +351,26 @@ func _physics_process(delta: float) -> void:
 	var offset: Vector3 = objective - global_position
 	offset.y = 0.0
 	var distance: float = offset.length()
-	var moving: bool = distance > stop_distance
-	holding = not moving
-	var current_speed: float = speed if moving else 0.0
-	if moving:
-		var direction: Vector3 = offset.normalized()
-		# Clamp the last step so even a slow physics frame cannot overshoot the
-		# half-way hold line and oscillate around it.
-		global_position += direction * minf(speed * delta, distance - stop_distance)
-		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 2.0)
+	var direction: Vector3 = offset / distance if distance > 0.001 else -global_transform.basis.z
+	var desired_yaw: float = atan2(-direction.x, -direction.z)
+	var current_speed: float = 0.0
+	if strafes(kind) and distance <= stop_distance:
+		# The jeep does not park: it circles its target at the stand-off distance.
+		current_speed = _strafe(delta, direction, distance, desired_yaw)
+	elif distance > stop_distance:
+		holding = false
+		var error: float = absf(angle_difference(rotation.y, desired_yaw))
+		rotation.y = _turn_toward(rotation.y, desired_yaw, turn_rate(kind) * delta)
+		# Turn before driving: full speed when roughly facing the target, a pivot when far off.
+		var drive: float = clampf((1.6 - error) / 1.0, 0.0, 1.0)
+		current_speed = speed * drive
+		if current_speed > 0.0:
+			# Clamp the last step so even a slow physics frame cannot overshoot the
+			# half-way hold line and oscillate around it.
+			global_position += direction * minf(current_speed * delta, distance - stop_distance)
+	else:
+		holding = true
+		rotation.y = _turn_toward(rotation.y, desired_yaw, turn_rate(kind) * delta)
 	# Hulls follow the beach and wade out of the surf; they drop from a landing
 	# craft's ramp rather than teleporting to the sand.
 	var ground: float = maxf(CoastalTerrain.height_at(global_position.x, global_position.z), WADE_FLOOR)
@@ -281,9 +379,28 @@ func _physics_process(delta: float) -> void:
 	_suspension(delta, current_speed)
 	_aim_turret(delta)
 	_tick_recoil(delta)
-	if shoot_cooldown <= 0.0 and distance < 170.0:
+	# Attack timing: the gun waits until the turret is on the bearing, then fires.
+	if shoot_cooldown <= 0.0 and distance < 170.0 and aim_error <= aim_tolerance(kind):
 		shoot_cooldown = fire_interval()
 		_fire()
+
+## Circling for a jeep: a tangential run with a radial correction back to the stand-off distance.
+func _strafe(delta: float, direction: Vector3, distance: float, desired_yaw: float) -> float:
+	strafe_timer -= delta
+	if strafe_timer <= 0.0:
+		strafe_sign = -strafe_sign
+		strafe_timer = randf_range(2.5, 3.5)
+	var tangent: Vector3 = Vector3(-direction.z, 0.0, direction.x) * strafe_sign * STRAFE_SPEED
+	var radial: Vector3 = direction * clampf((distance - stop_distance) * 0.8, -3.0, 3.0)
+	var velocity: Vector3 = tangent + radial
+	global_position += velocity * delta
+	rotation.y = _turn_toward(rotation.y, desired_yaw, turn_rate(kind) * delta)
+	holding = false
+	return velocity.length()
+
+## Moves an angle toward a target by at most max_step radians (shortest way round).
+static func _turn_toward(current: float, target: float, max_step: float) -> float:
+	return current + clampf(angle_difference(current, target), -max_step, max_step)
 
 func _roll_wheels(delta: float, current_speed: float) -> void:
 	if current_speed <= 0.0:
@@ -298,20 +415,25 @@ func _roll_wheels(delta: float, current_speed: float) -> void:
 func _suspension(delta: float, current_speed: float) -> void:
 	suspension_phase += delta * (2.0 + current_speed * 1.5)
 	var amplitude: float = 0.015 * clampf(current_speed / maxf(speed, 0.1), 0.0, 1.0)
+	hit_jolt = move_toward(hit_jolt, 0.0, delta * 0.2)
+	hit_jolt_phase += delta * 24.0
+	var jolt: float = -hit_jolt * sin(hit_jolt_phase)
 	if turret:
 		turret.position.y = turret_rest_y + sin(suspension_phase) * amplitude
 	if model_root:
-		model_root.rotation.x = sin(suspension_phase * 0.7) * amplitude * 0.35
+		model_root.rotation.x = sin(suspension_phase * 0.7) * amplitude * 0.35 + jolt
 
 func _aim_turret(delta: float) -> void:
 	if turret == null:
+		aim_error = 0.0
 		return
 	if procedural_aim:
 		_aim_procedural_turret(delta)
 		return
 	var local_target: Vector3 = model_root.to_local(objective + Vector3.UP * 1.2)
 	var desired: float = atan2(local_target.x, local_target.z)
-	turret.rotation.y = lerp_angle(turret.rotation.y, desired, delta * 1.5)
+	aim_error = absf(angle_difference(turret.rotation.y, desired))
+	turret.rotation.y = _turn_toward(turret.rotation.y, desired, traverse_rate(kind) * delta)
 	if barrel_pivot:
 		var horizontal: float = Vector2(local_target.x, local_target.z).length()
 		var pitch: float = clampf(atan2(local_target.y - barrel_pivot.position.y, horizontal), -0.12, 0.22)
@@ -323,7 +445,8 @@ func _aim_procedural_turret(delta: float) -> void:
 	# Target relative to the turret pivot, in model space (the pivot itself is unrotated).
 	var offset: Vector3 = model_root.to_local(objective + Vector3.UP * 1.2) - turret.position
 	var yaw: float = atan2(-offset.x, -offset.z)
-	turret.rotation.y = lerp_angle(turret.rotation.y, yaw, delta * 1.5)
+	aim_error = absf(angle_difference(turret.rotation.y, yaw))
+	turret.rotation.y = _turn_toward(turret.rotation.y, yaw, traverse_rate(kind) * delta)
 	if barrel_pivot:
 		var horizontal: float = Vector2(offset.x, offset.z).length()
 		var elevation: float = atan2(offset.y - barrel_pivot.position.y, horizontal)
@@ -365,6 +488,60 @@ func hull_size() -> Vector3:
 		"transport":
 			return Vector3(3.0, 2.6, 6.8)
 	return Vector3(3.4, 2.6, 6.2)
+
+## Handling per vehicle role. Heavy hulls turn and traverse slowly and must line up before they fire;
+## light vehicles turn quickly, and the jeep keeps moving.
+static func turn_rate(vehicle_kind: String) -> float:
+	match vehicle_kind:
+		"boss":
+			return 0.35
+		"tank":
+			return 0.6
+		"apc":
+			return 0.8
+		"jeep":
+			return 2.4
+	return 1.0
+
+## Turret traverse in radians per second.
+static func traverse_rate(vehicle_kind: String) -> float:
+	match vehicle_kind:
+		"boss":
+			return 0.3
+		"tank":
+			return 0.7
+		"apc":
+			return 0.9
+		"jeep":
+			return 2.2
+	return 1.0
+
+## Angle (rad) the turret must be within before the gun fires.
+static func aim_tolerance(vehicle_kind: String) -> float:
+	match vehicle_kind:
+		"boss":
+			return 0.05
+		"tank":
+			return 0.04
+		"apc":
+			return 0.06
+		"jeep":
+			return 0.12
+	return 0.1
+
+## Blast radius when the vehicle's ammunition cooks off after its destruction; zero for unarmoured carriers.
+static func cook_off_radius(vehicle_kind: String) -> float:
+	match vehicle_kind:
+		"boss":
+			return 8.0
+		"tank":
+			return 5.0
+		"apc":
+			return 3.0
+	return 0.0
+
+static func strafes(vehicle_kind: String) -> bool:
+	return vehicle_kind == "jeep"
 
 func is_heavy() -> bool:
 	return kind == "tank" or kind == "boss"
