@@ -40,8 +40,10 @@ func build() -> void:
 	# changes in landscape is that there is room to centre it and to put the doors on one row.
 	const CARD_W := 330.0
 	var card_x := (UiTokens.CANVAS_WIDTH - CARD_W) * 0.5
+	# Interim: the painted plaque is still the dark one, so the card uses the drawn cream panel until the
+	# cartoon plaque is painted. Both are nine-sliced pictures, so nothing here is a drawn shape.
 	var card := UiKit.art_panel(self, "card", card_x, 126.0, CARD_W, 126.0,
-		"ui_card_frame", 0, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
+		"ui_panel", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 
 	# The card is a painted plaque now, so its moulding is 22 dp deep: every line has to sit inside
 	# that, or the gold band eats it. The old offsets started at 6 dp and wrote on the moulding.

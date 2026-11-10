@@ -381,7 +381,9 @@ def main():
     # The edge scrims. These used to be a GradientTexture2D built in `app_root._make_scrim`, which is a
     # picture the engine painted at runtime — the one thing the picture rule does not allow. They are
     # baked here at the background colour, and the screen tints them with `modulate.a`.
-    bg = BG
+    # The scrims fade to the panel cream, not to the background: the screens set their titles straight
+    # on the backdrop in ink now, and ink needs a pale edge to sit on.
+    bg = SURFACE
     top = Image.new("RGBA", (8, 256))
     bottom = Image.new("RGBA", (8, 256))
     for y in range(256):

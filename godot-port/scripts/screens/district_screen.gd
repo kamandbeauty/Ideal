@@ -54,7 +54,7 @@ func build() -> void:
 func _build_card(index: int) -> void:
 	var card_x := 12.0 + float(index) * (CARD_WIDTH + CARD_GAP)
 	var card := UiKit.art_panel(self, "district_%d" % index, card_x, 106.0, CARD_WIDTH,
-		CARD_HEIGHT, "ui_card_tall", 0, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
+		CARD_HEIGHT, "ui_panel", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 	_cards.append(card)
 
 	# The district's own illustration, dimmed to a watermark the way the Unity screen draws it: the art
