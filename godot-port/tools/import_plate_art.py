@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Grade the two painted plates the board sits in, and write the files the game ships.
+"""Grade the painted plates the board sits on, and write the files the game ships.
 
-Everything else on the board screen is a picture already; the tray and the case around it were the last
-two surfaces drawn by code. They are painted once by an image model and graded here:
+Everything else on the board screen is a picture already; the tray and the two cards were the last
+surfaces drawn by code. They are painted once by an image model and graded here:
 
-  ui_board_frame   the carved case, drawn *behind* the tray: stretched 1:1 (no nine-slice, because it is
-                   always drawn square), so its corner bosses stay round.
-  ui_board_tray    the velvet the stones lie on. Only the centre of the painted tray is kept: the ornate
-                   band of that plate is the case, and if it stayed in the tray the eight-one cells would
-                   sit on top of it.
+  ui_board_tray    the velvet the stones lie on. Only the centre of the painted tray is kept — its
+                   painted moulding is not shipped: the case that used to ring the board read as a
+                   picture frame, so the tray is the board now.
+  ui_card_frame    the wide plaque on the home screen.
+  ui_card_tall     the portrait plaque on the districts screen.
 
 The ungraded paintings live in `assets/ui/source/` (committed, with a .gdignore so the export does not
 ship them twice), so this script reproduces both PNGs exactly.
@@ -27,12 +27,8 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SOURCE = os.path.join(HERE, "assets", "ui", "source")
 OUT = os.path.join(HERE, "assets", "ui")
 
-# Draw sizes in the port: the tray is 306 dp and the case 366 dp, so the plates ship at twice that.
-TRAY_SIZE = 612
-FRAME_SIZE = 732
-# The painted case has a band of empty background around its moulding. Left in, it eats most of the
-# 30 dp ring the board has for it and covers the header — so it is trimmed off before the resize.
-FRAME_TRIM = 0.035
+# The tray is drawn at 330 dp, so the plate ships at twice that.
+TRAY_SIZE = 660
 
 # The two card plaques are authored at exactly the size the screens draw them (330x126 and 232x286) and
 # stretched whole, because a card is a fixed size: nine-slicing a painted moulding at 40 dp corners
@@ -44,7 +40,7 @@ CARDS = {
     "ui_card_tall.png": ("card_tall", (464, 572)),
 }
 
-# How much of the painted tray is velvet: the rest is the moulding, which becomes the case instead.
+# How much of the painted tray is velvet: the painted moulding is not shipped.
 TRAY_KEEP = 0.60
 
 
@@ -75,21 +71,6 @@ def build_tray() -> Image.Image:
     return _grain(tray, 3.0, 11)
 
 
-def build_frame() -> Image.Image:
-    source = _load("frame")
-    width, height = source.size
-    trim_x = int(width * FRAME_TRIM)
-    trim_y = int(height * FRAME_TRIM)
-    source = source.crop((trim_x, trim_y, width - trim_x, height - trim_y))
-    frame = source.resize((FRAME_SIZE, FRAME_SIZE), Image.LANCZOS)
-    frame = frame.filter(ImageFilter.UnsharpMask(radius=2.2, percent=62, threshold=2))
-    # Brighten slightly: this is the gold in the room, and the hall behind it is dark.
-    pixels = np.asarray(frame).astype(np.float32)
-    pixels = np.clip(pixels * 1.06 + 4.0, 0, 255)
-    frame = Image.fromarray(pixels.astype(np.uint8), "RGB")
-    return _grain(frame, 2.5, 23)
-
-
 def build_card(source_name: str, size: tuple) -> Image.Image:
     source = _load(source_name)
     width, height = source.size
@@ -105,7 +86,7 @@ def build_card(source_name: str, size: tuple) -> Image.Image:
 
 
 def main() -> None:
-    plates = [("ui_board_tray.png", build_tray()), ("ui_board_frame.png", build_frame())]
+    plates = [("ui_board_tray.png", build_tray())]
     for name, (source_name, size) in CARDS.items():
         plates.append((name, build_card(source_name, size)))
     for name, picture in plates:

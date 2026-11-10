@@ -14,12 +14,11 @@ signal retry_requested(level_number: int)
 
 # Landscape puts the playfield on the right and everything that describes the level in a column on the
 # left, which is also the reading order of an RTL player: goals first, then the board they play on.
-const BOARD_LEFT := 360.0
-const BOARD_TOP := 74.0
-const BOARD_SIZE := 306.0
-# The case is a painted plate, not a nine-slice: drawn whole at 306 + 30 + 30 = 366 dp. Its top edge has
-# to clear the header (44 dp) and its bottom edge the canvas (415 dp): 74 - 30 and 74 + 306 + 30 fit.
-const BOARD_FRAME_BORDER := 30.0
+const BOARD_LEFT := 366.0
+const BOARD_TOP := 60.0
+const BOARD_SIZE := 330.0
+# No case around the board: the tray is the board. The painted moulding that used to ring it read as a
+# picture frame and ate 30 dp of playfield on every side.
 const COLUMN_X := 16.0
 const COLUMN_W := 318.0
 # The column is 415 dp tall and has to be full: a stack of cards that stops two thirds of the way down
@@ -178,9 +177,6 @@ func build() -> void:
 		_booster_counts.append(count)
 
 	# ---- playfield: frame picture, then the tray, then the board ----------------------------------
-	UiKit.art_panel(self, "board_frame", BOARD_LEFT - BOARD_FRAME_BORDER, BOARD_TOP - BOARD_FRAME_BORDER,
-		BOARD_SIZE + BOARD_FRAME_BORDER * 2.0, BOARD_SIZE + BOARD_FRAME_BORDER * 2.0,
-		"ui_board_frame", 0, UiTokens.BG)
 	# The tray is painted velvet with a faint star lattice in the pile, and the case is painted round it:
 	# both are stretched whole (border 0) because both are always drawn square, so nothing smears.
 	UiKit.art_panel(self, "board_tray", BOARD_LEFT, BOARD_TOP, BOARD_SIZE, BOARD_SIZE,
@@ -342,7 +338,7 @@ func _attempt_swap(from_pos: Vector2i, to_pos: Vector2i) -> void:
 		Haptics.thump()
 		await _board.animate_reject(from_pos, to_pos)
 		return
-	_hint.text = ""
+	_hint.text = DEFAULT_STATUS
 	SoundDirector.play("swap")
 	Haptics.tick()
 	var cascades := int(result.get("cascades", 0))
@@ -382,7 +378,7 @@ func _apply_booster(pos: Vector2i) -> void:
 	if not bool(outcome.get("ok", false)):
 		_hint.text = "این بوستر مصرف نشد"
 		return
-	_hint.text = ""
+	_hint.text = DEFAULT_STATUS
 	SoundDirector.play("power")
 	await _board.play_result(before, outcome["result"].get("events", []))
 	_play_result_cues(outcome["result"])
@@ -463,7 +459,7 @@ func _on_booster_pressed(kind: int) -> void:
 	if _booster_kind == kind:
 		_booster_kind = -1
 		_board.set_booster_mode(-1)
-		_hint.text = ""
+		_hint.text = DEFAULT_STATUS
 		_mark_booster(kind, false)
 		return
 	_booster_kind = kind

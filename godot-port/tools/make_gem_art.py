@@ -20,6 +20,11 @@ clean at 36 dp, which is the size a phone actually shows them at.
     python3 godot-port/tools/make_gem_art.py
 """
 
+NOTE: the shipped pieces are painted — see tools/import_gem_art.py and assets/gems/source/.
+This generator stays as the fallback and as the record of the geometry (silhouettes, settings
+and the light rig); running it overwrites the painted PNGs, so run it deliberately.
+
+
 from __future__ import annotations
 
 import math
