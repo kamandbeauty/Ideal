@@ -51,6 +51,12 @@ func run(t: TestContext) -> void:
 	t.check(scene.soldiers.size() == 0 and scene.crafts[0].cargo.size() >= 9, "Infantry and armour wait inside the landing craft until it grounds")
 	scene.disembark_all_now()
 	t.check(scene.soldiers.size() >= 8, "Playable milestone spawns animated infantry")
+	var min_x: float = INF
+	var max_x: float = -INF
+	for soldier in scene.soldiers:
+		min_x = minf(min_x, soldier.global_position.x)
+		max_x = maxf(max_x, soldier.global_position.x)
+	t.check(max_x - min_x >= 3.0, "Infantry step ashore across a spread of the craft front, not one point")
 	t.check(scene.disembark_queue.is_empty(), "Every unit leaves the landing craft")
 	t.check(scene.vehicles.size() >= 1, "Playable milestone includes a destructible tank")
 	t.check(scene.aircraft.size() >= 1, "Playable milestone includes a hostile aircraft")
@@ -126,6 +132,10 @@ func run(t: TestContext) -> void:
 	for cover in scene.weapon.cover_nodes:
 		t.check(absf(cover.rotation.x) < 0.001, "Feed cover returns closed after the firing cycle")
 	t.equal(scene.weapon.ammo, ammo - 1, "Firing consumes ammunition")
+	t.check(scene.auto_fire, "Automatic fire is on by default")
+	t.check(CoastalController.within_cone(Vector3.FORWARD, Vector3(0, 0, -10), 3.0), "A target dead ahead is inside the auto-fire cone")
+	t.check(not CoastalController.within_cone(Vector3.FORWARD, Vector3(10, 0, -10), 3.0), "A target 45 degrees off-axis stays outside the auto-fire cone")
+	t.check(not CoastalController.within_cone(Vector3.FORWARD, Vector3(0, 0, 10), 3.0), "A target behind the emplacement is not auto-fired at")
 	scene.set_auto_fire(true)
 	t.check(scene.auto_fire, "Automatic fire toggle state is exposed")
 	scene.set_auto_fire(false)

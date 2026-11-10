@@ -95,10 +95,11 @@ func run() -> void:
 	coastal.hud.fire_button.button_up.emit()
 	check("HUD fire button fires weapon", coastal.weapon.ammo < ammo_before)
 	await capture("coastal-fire")
-	coastal.set_auto_fire(true)
-	var auto_before: int = coastal.weapon.ammo
-	await get_tree().create_timer(0.9).timeout
 	coastal.set_auto_fire(false)
+	var auto_before: int = coastal.weapon.ammo
+	coastal.firing = true
+	await get_tree().create_timer(0.9).timeout
+	coastal.firing = false
 	check("automatic fire consumes ammunition", coastal.weapon.ammo < auto_before)
 	check("reload starts", coastal.weapon.start_reload())
 	await get_tree().create_timer(1.0).timeout

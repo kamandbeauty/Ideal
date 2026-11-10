@@ -8,7 +8,7 @@ references' presentation, not copied assets or UI artwork.
 - The player never leaves the emplacement. Drag to traverse/elevate; defend
   against sea, flank and rear approaches across three escalating rounds.
 - Desktop: left mouse/Space fire, right-drag aim, R reload, Q cycle weapon,
-  Z zoom, F auto-fire, 1 repair, 2 airstrike, 3 helicopter, 4 airdrop.
+  Z zoom, F auto-fire (on by default: fires while a hostile is inside the crosshair cone; hold fire for manual), 1 repair, 2 airstrike, 3 helicopter, 4 airdrop.
 - Android: drag battlefield to aim; right-side FIRE/ZOOM/WEAPON controls;
   bottom support, reload and rocket controls; top-left settings and AUTO.
 

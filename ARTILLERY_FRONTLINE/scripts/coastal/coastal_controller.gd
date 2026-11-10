@@ -8,6 +8,10 @@ signal mission_finished(success: bool)
 ## few stray rounds no longer end the run.
 const MAX_HEALTH: float = 6000.0
 const DAMAGE_SCALE: float = 0.55
+## Automatic fire shoots only while a hostile is inside this cone around the crosshair.
+const AUTO_FIRE_CONE_DEG: float = 3.0
+## Half-width (m) along the craft's beam where cargo steps off, so units do not share one pixel.
+const DISEMBARK_SPREAD: float = 6.0
 const REPAIR_AMOUNT: float = 1500.0
 const AIRDROP_REPAIR: float = 1000.0
 var battlefield: CoastalBattlefield
@@ -28,7 +32,7 @@ var aircraft: Array[EnemyAircraft] = []
 var crafts: Array[LandingCraft] = []
 var active: bool = false
 var paused: bool = false
-var auto_fire: bool = false
+var auto_fire: bool = true
 var firing: bool = false
 var zoomed: bool = false
 var player_health: float = MAX_HEALTH
@@ -187,6 +191,23 @@ func set_auto_fire(enabled: bool) -> void:
 	if hud:
 		hud.auto_check.button_pressed = enabled
 
+## True when a living hostile (infantry, vehicle, aircraft or craft) sits inside the crosshair cone.
+func auto_target_in_sight() -> bool:
+	if camera == null or not active or paused:
+		return false
+	var forward: Vector3 = -camera.global_transform.basis.z
+	for node in living_targets():
+		var to_target: Vector3 = (node.global_position + Vector3.UP * 1.2) - camera.global_position
+		if within_cone(forward, to_target, AUTO_FIRE_CONE_DEG):
+			return true
+	return false
+
+## Pure geometry: is the direction to a target within cone_deg of the forward axis?
+static func within_cone(forward: Vector3, to_target: Vector3, cone_deg: float) -> bool:
+	if to_target.length_squared() < 0.0001 or forward.length_squared() < 0.0001:
+		return false
+	return forward.normalized().dot(to_target.normalized()) >= cos(deg_to_rad(cone_deg))
+
 func toggle_zoom() -> void:
 	zoomed = not zoomed
 
@@ -290,8 +311,10 @@ func _on_round_started(round_number: int, setup: Dictionary) -> void:
 	contact_called = false
 	var zones: Array[Vector3] = _spawn_zones(round_number)
 	var new_crafts: Array[LandingCraft] = []
-	for index in range(int(setup.craft)):
-		var x: float = -34.0 + index * 68.0
+	var craft_count: int = int(setup.craft)
+	for index in range(craft_count):
+		# Spread the boats across the whole bay instead of one fixed flank.
+		var x: float = lerpf(-64.0, 64.0, (index + 0.5) / float(craft_count))
 		var landing := LandingCraft.new()
 		add_child(landing)
 		landing.configure(Vector3(x, 0, -190.0 - index * 20.0), Vector3(x, 0, -12.0))
@@ -377,7 +400,9 @@ func _spawn_entry(entry: Dictionary) -> void:
 		var landing = entry.craft
 		if not is_instance_valid(landing):
 			return
-		point = (landing as LandingCraft).disembark_point()
+		var hull: LandingCraft = landing as LandingCraft
+		point = hull.disembark_point() + hull.global_transform.basis.x * randf_range(-DISEMBARK_SPREAD, DISEMBARK_SPREAD)
+		point.y = 0.0
 		Sound.play_at("splash", point, -10.0)
 	if String(entry.kind) == "soldier":
 		_spawn_soldier(point)
@@ -627,7 +652,7 @@ func _process(delta: float) -> void:
 		support_timers[id] = maxf(0.0, float(support_timers[id]) - delta)
 	_tick_airstrikes(delta)
 	_tick_support_flights(delta)
-	if (firing or auto_fire) and weapon.can_fire():
+	if (firing or (auto_fire and auto_target_in_sight())) and weapon.can_fire():
 		weapon.try_fire()
 	if weapon.ammo <= 0 and weapon.reload_remaining <= 0.0:
 		if auto_reload_delay < 0.0:
