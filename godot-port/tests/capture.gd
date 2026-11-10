@@ -137,13 +137,21 @@ func _swap_strip(board_screen) -> void:
 		return
 	var a: Vector2 = board.position + board.cell_center(move[0])
 	var b: Vector2 = board.position + board.cell_center(move[1])
-	var window := Rect2i(Vector2i(int(minf(a.x, b.x) - 62.0), int(minf(a.y, b.y) - 62.0)),
-		Vector2i(180, 140))
+	# Three cells of neighbourhood around the pair and nothing else: the strip is about two stones
+	# trading places, and a crop of half the board hides them among seventy others.
+	var span := int(maxf(float(board.cell_size) * 3.4, 96.0))
+	var centre := (a + b) * 0.5
+	var window := Rect2i(Vector2i(int(centre.x) - span / 2, int(centre.y) - span / 2),
+		Vector2i(span, span))
 	board_screen._hide_hand()
+	# The resting board first, so the strip opens on what the player saw before the move.
+	var frames: Array = []
+	var before: Image = await _grab_rect(window)
+	if before != null:
+		frames.append(before)
 	Engine.time_scale = 0.2
 	board_screen._attempt_swap(move[0], move[1])
-	var offsets := [0.02, 0.02, 0.02, 0.03, 0.04, 0.05, 0.07, 0.09, 0.12, 0.16]
-	var frames: Array = []
+	var offsets := [0.02, 0.03, 0.04, 0.06, 0.08, 0.11, 0.16, 0.22, 0.30]
 	for index in range(offsets.size()):
 		await get_tree().create_timer(float(offsets[index])).timeout
 		var grabbed: Image = await _grab_rect(window)
@@ -152,23 +160,30 @@ func _swap_strip(board_screen) -> void:
 			frames.append(grabbed)
 	Engine.time_scale = 1.0
 	await _frames(4)
-	_save_strip(frames, "11-swap-strip")
+	_save_strip(frames, "11-swap-strip", 5, 3)
 
 ## A horizontal filmstrip of already-cropped frames, doubled so the stones are big enough to judge.
-func _save_strip(frames: Array, strip_name: String) -> void:
+## A grid of already-cropped frames, enlarged, laid out left to right and top to bottom. A strip in one
+## long row is unreadable on screen — five frames and it is wider than the window it is judged in.
+func _save_strip(frames: Array, strip_name: String, columns: int = 5, scale: int = 3) -> void:
 	if frames.is_empty():
+		_log("STRIP %s skipped :: no frames" % strip_name)
 		return
 	var cell: Image = frames[0]
-	var pad := 12
-	var strip := Image.create(pad + (cell.get_width() * 2 + pad) * frames.size(),
-		cell.get_height() * 2 + pad * 2, false, Image.FORMAT_RGB8)
+	var pad := 10
+	var cell_w := cell.get_width() * scale
+	var cell_h := cell.get_height() * scale
+	var cols := clampi(columns, 1, frames.size())
+	var rows := int(ceil(float(frames.size()) / float(cols)))
+	var strip := Image.create(pad + (cell_w + pad) * cols, pad + (cell_h + pad) * rows, false,
+		Image.FORMAT_RGB8)
 	strip.fill(Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b))
 	for index in range(frames.size()):
 		var frame: Image = frames[index]
 		frame.convert(Image.FORMAT_RGB8)
-		frame.resize(cell.get_width() * 2, cell.get_height() * 2, Image.INTERPOLATE_LANCZOS)
+		frame.resize(cell_w, cell_h, Image.INTERPOLATE_LANCZOS)
 		strip.blit_rect(frame, Rect2i(Vector2i.ZERO, frame.get_size()),
-			Vector2i(pad + index * (cell.get_width() * 2 + pad), pad))
+			Vector2i(pad + (index % cols) * (cell_w + pad), pad + (index / cols) * (cell_h + pad)))
 	strip.save_png("%s/%s.png" % [SHOTS, strip_name])
 	_log("STRIP %s %dx%d frames=%d" % [strip_name, strip.get_width(), strip.get_height(),
 		frames.size()])
