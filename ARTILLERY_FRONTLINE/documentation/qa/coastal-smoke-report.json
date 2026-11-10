@@ -161,7 +161,7 @@
       "passed": true
     },
     {
-      "name": "target panel shows the aimed hostile: سرباز   ۲۹ متر   سلامت ۱۰۰٪",
+      "name": "target panel shows the aimed hostile: قایق پیاده‌سازی   ۷۰ متر   سلامت ۹۵٪",
       "passed": true
     },
     {
@@ -189,11 +189,11 @@
   "kills": 1,
   "passed": true,
   "performance": {
-    "draw_calls": 346,
-    "fps": 10.6,
-    "frame_ms": 94.55,
+    "draw_calls": 345,
+    "fps": 19.8,
+    "frame_ms": 50.44,
     "objects": 2021,
-    "primitives": 159470,
+    "primitives": 157658,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
@@ -201,9 +201,9 @@
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 03 skinned infantry/detailed war machines/weapons; not Android hardware",
   "soldiers": 8,
   "weapon_screen_bounds": {
-    "h": 1467.73376464844,
-    "w": 857.063720703125,
-    "x": 285.748291015625,
-    "y": 455.543853759766
+    "h": 1467.73474121094,
+    "w": 857.062805175781,
+    "x": 285.749084472656,
+    "y": 455.543914794922
   }
 }

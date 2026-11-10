@@ -1,9 +1,7 @@
 {
-  "checks": 956,
+  "checks": 958,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_coastal: A hit adds one damage readout over the target (got 2, expected 1)"
-  ],
-  "passed": false,
+  "failures": [],
+  "passed": true,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }
