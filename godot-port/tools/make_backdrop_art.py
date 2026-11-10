@@ -23,6 +23,12 @@ place rather than five unrelated backgrounds.
 Deterministic: fixed seeds, so the same bytes come out of every run.
 """
 
+NOTE: the shipped backdrops are graded paintings — see tools/import_backdrop_art.py and
+assets/backdrops/source/. This procedural generator is kept because it is the fallback and the
+reference for the plate geometry (horizon, arcade sill, lantern height); running it overwrites the
+shipped files, so run it deliberately.
+
+
 from __future__ import annotations
 
 import math
