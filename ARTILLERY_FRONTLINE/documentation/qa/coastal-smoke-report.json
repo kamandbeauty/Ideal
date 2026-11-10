@@ -161,6 +161,10 @@
       "passed": true
     },
     {
+      "name": "target panel names the aimed boss",
+      "passed": false
+    },
+    {
       "name": "capture coastal-boss",
       "passed": true
     },
@@ -181,15 +185,15 @@
       "passed": true
     }
   ],
-  "failures": 0,
+  "failures": 1,
   "kills": 1,
-  "passed": true,
+  "passed": false,
   "performance": {
     "draw_calls": 346,
-    "fps": 10.8,
-    "frame_ms": 92.77,
-    "objects": 2009,
-    "primitives": 159108,
+    "fps": 10.2,
+    "frame_ms": 97.69,
+    "objects": 2013,
+    "primitives": 159270,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
@@ -197,9 +201,9 @@
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 03 skinned infantry/detailed war machines/weapons; not Android hardware",
   "soldiers": 8,
   "weapon_screen_bounds": {
-    "h": 1467.73474121094,
-    "w": 857.062805175781,
-    "x": 285.749084472656,
+    "h": 1467.73681640625,
+    "w": 857.0615234375,
+    "x": 285.749664306641,
     "y": 455.543914794922
   }
 }
