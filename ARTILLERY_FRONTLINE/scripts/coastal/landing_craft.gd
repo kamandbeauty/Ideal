@@ -7,7 +7,10 @@ signal died(craft: LandingCraft)
 var start: Vector3 = Vector3.ZERO
 var destination: Vector3 = Vector3.ZERO
 var progress: float = 0.0
-var speed: float = 0.055
+var speed: float = 0.07
+## Troops and vehicles carried inside the hull. They leave through the ramp when
+## the craft grounds, or spill out of the wreck if it is sunk on the way in.
+var cargo: Array[String] = []
 var ramp: Node3D
 var model_root: Node3D
 var has_arrived: bool = false
@@ -19,6 +22,33 @@ var collision: CollisionShape3D
 var propellers: Array[Node3D] = []
 var radar: Node3D
 var wake_clock: float = 0.0
+
+## Puts the craft on its landing point at once (tests and the smoke driver).
+func ground_now() -> void:
+	if dead:
+		return
+	progress = 1.0
+	has_arrived = true
+	global_position = Vector3(destination.x, maxf(0.08, CoastalTerrain.height_at(destination.x, destination.z) + 0.15), destination.z)
+
+func load_cargo(kinds: Array[String]) -> void:
+	cargo = kinds.duplicate()
+
+## Returns and clears the cargo so it can only be unloaded once.
+func unload() -> Array[String]:
+	var kinds: Array[String] = cargo.duplicate()
+	cargo.clear()
+	return kinds
+
+## World point just outside the ramp, on the sea surface, where cargo steps off.
+func disembark_point() -> Vector3:
+	var point: Vector3
+	if ramp and ramp.is_inside_tree():
+		point = ramp.global_position
+	else:
+		point = global_position + global_transform.basis.z * 6.0
+	point.y = 0.0
+	return point
 
 func configure(from: Vector3, to: Vector3) -> void:
 	start = from

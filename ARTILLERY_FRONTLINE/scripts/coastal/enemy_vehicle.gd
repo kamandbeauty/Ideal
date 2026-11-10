@@ -7,8 +7,13 @@ signal damaged(vehicle: EnemyVehicle, ratio: float)
 signal shoot_requested(origin: Vector3, target: Vector3, damage: float, blast: float)
 
 var kind: String = "tank"
-var health: float = 650.0
-var max_health: float = 650.0
+## Armour is light enough that two cannon hits (or two rockets) stop a tank and
+## one cannon hit stops a transport.
+const TANK_HEALTH: float = 260.0
+const TRANSPORT_HEALTH: float = 120.0
+const WADE_FLOOR: float = -0.35
+var health: float = TANK_HEALTH
+var max_health: float = TANK_HEALTH
 var speed: float = 3.2
 var objective: Vector3 = Vector3.ZERO
 var model_root: Node3D
@@ -74,11 +79,11 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 	var flat_target := Vector3(target.x, 0.0, target.z)
 	advance_span = flat_spawn.distance_to(flat_target)
 	if kind == "tank":
-		health = 650.0
+		health = TANK_HEALTH
 		speed = 3.0
 		stop_distance = maxf(MIN_HOLD_DISTANCE, advance_span * ADVANCE_FRACTION)
 	else:
-		health = 380.0
+		health = TRANSPORT_HEALTH
 		speed = 5.0
 		stop_distance = 28.0
 	holding = false
@@ -215,7 +220,10 @@ func _physics_process(delta: float) -> void:
 		# half-way hold line and oscillate around it.
 		global_position += direction * minf(speed * delta, distance - stop_distance)
 		rotation.y = lerp_angle(rotation.y, atan2(-direction.x, -direction.z), delta * 2.0)
-	global_position.y = CoastalTerrain.height_at(global_position.x, global_position.z)
+	# Hulls follow the beach and wade out of the surf; they drop from a landing
+	# craft's ramp rather than teleporting to the sand.
+	var ground: float = maxf(CoastalTerrain.height_at(global_position.x, global_position.z), WADE_FLOOR)
+	global_position.y = move_toward(global_position.y, ground, 2.2 * delta)
 	_roll_wheels(delta, current_speed)
 	_suspension(delta, current_speed)
 	_aim_turret(delta)

@@ -46,6 +46,9 @@ var camera_shake: float = 0.0
 var distant_clock: float = 0.0
 var auto_reload_delay: float = -1.0
 var emplacement := Vector3(0, 0, 58)
+## Units waiting to leave a landing craft: {kind, craft, point, time}.
+var disembark_queue: Array[Dictionary] = []
+var current_wave: int = 1
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -150,6 +153,7 @@ func restart() -> void:
 			flight.node.queue_free()
 	support_flights.clear()
 	airstrike_queue.clear()
+	disembark_queue.clear()
 	bullets.clear()
 	effects.clear()
 	weapon.resupply()
@@ -277,41 +281,115 @@ func _spawn_zones(round_number: int) -> Array[Vector3]:
 	return zones
 
 func _on_round_started(round_number: int, setup: Dictionary) -> void:
+	current_wave = round_number
 	var zones: Array[Vector3] = _spawn_zones(round_number)
-	var count: int = int(setup.soldiers)
-	for index in range(count):
-		var zone: Vector3 = zones[index % zones.size()]
-		var spawn: Vector3 = zone + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0) - index * 1.2)
-		spawn.y = CoastalTerrain.height_at(spawn.x, spawn.z)
-		var soldier := EnemySoldier.new()
-		add_child(soldier)
-		soldier.configure(spawn, emplacement + Vector3(randf_range(-6, 6), 0, randf_range(-4, 4)), battlefield.random_cover())
-		soldier.speed = 2.4 + round_number * 0.3
-		soldier.died.connect(func(_s): _register_kill())
-		soldier.shoot_requested.connect(_on_enemy_shoot)
-		soldiers.append(soldier)
-	for index in range(int(setup.tanks)):
-		var spawn := Vector3(-28.0 + index * 56.0, 0.0, 12.0 - index * 6.0)
-		spawn.y = CoastalTerrain.height_at(spawn.x, spawn.z)
-		_spawn_vehicle(spawn, "tank")
-	for index in range(int(setup.transports)):
-		var side: float = -1.0 if index % 2 == 0 else 1.0
-		var spawn := Vector3(side * 86.0, 0.0, 34.0)
-		spawn.y = CoastalTerrain.height_at(spawn.x, spawn.z)
-		_spawn_vehicle(spawn, "transport")
-	for index in range(int(setup.helicopters)):
-		_spawn_aircraft("helicopter", PI * 0.5 + index * 1.7)
-	for index in range(int(setup.fighters)):
-		_spawn_aircraft("fighter", PI * 1.2 + index * 2.1)
+	var new_crafts: Array[LandingCraft] = []
 	for index in range(int(setup.craft)):
 		var x: float = -34.0 + index * 68.0
 		var landing := LandingCraft.new()
 		add_child(landing)
 		landing.configure(Vector3(x, 0, -190.0 - index * 20.0), Vector3(x, 0, -12.0))
 		landing.died.connect(_on_craft_destroyed)
+		landing.arrived.connect(_unload)
 		crafts.append(landing)
+		new_crafts.append(landing)
 		if craft == null:
 			craft = landing
+	_load_landing_cargo(setup, new_crafts, zones)
+	for index in range(int(setup.helicopters)):
+		_spawn_aircraft("helicopter", PI * 0.5 + index * 1.7)
+	for index in range(int(setup.fighters)):
+		_spawn_aircraft("fighter", PI * 1.2 + index * 2.1)
+
+## Infantry and armour ride inside the landing craft and come ashore from the
+## water. With no vessel in a wave they are landed directly on the beach instead.
+func _load_landing_cargo(setup: Dictionary, new_crafts: Array[LandingCraft], zones: Array[Vector3]) -> void:
+	var vehicles: Array[String] = []
+	for index in range(int(setup.tanks)):
+		vehicles.append("tank")
+	for index in range(int(setup.transports)):
+		vehicles.append("transport")
+	var soldier_count: int = int(setup.soldiers)
+	if new_crafts.is_empty():
+		var time: float = 0.2
+		for index in range(soldier_count):
+			var zone: Vector3 = zones[index % zones.size()]
+			var beach: Vector3 = zone + Vector3(randf_range(-12.0, 12.0), 0.0, randf_range(-8.0, 8.0) - index * 1.2)
+			beach.y = CoastalTerrain.height_at(beach.x, beach.z)
+			_queue_entry("soldier", null, beach, time)
+			time += 0.4
+		for index in range(vehicles.size()):
+			var spawn := Vector3(-28.0 + index * 56.0, 0.0, 12.0 - index * 6.0)
+			spawn.y = CoastalTerrain.height_at(spawn.x, spawn.z)
+			_queue_entry(vehicles[index], null, spawn, time)
+			time += 1.7
+		return
+	var loads: Array = []
+	for landing in new_crafts:
+		loads.append([])
+	for index in range(vehicles.size()):
+		loads[index % new_crafts.size()].append(vehicles[index])
+	for index in range(soldier_count):
+		loads[index % new_crafts.size()].append("soldier")
+	for index in range(new_crafts.size()):
+		var kinds: Array[String] = []
+		for kind in loads[index]:
+			kinds.append(String(kind))
+		new_crafts[index].load_cargo(kinds)
+
+## Empties a craft's hold onto the disembark queue, one unit at a time.
+func _unload(landing: LandingCraft) -> void:
+	if not is_instance_valid(landing):
+		return
+	var kinds: Array[String] = landing.unload()
+	var time: float = 0.6
+	for kind in kinds:
+		_queue_entry(kind, landing, Vector3.ZERO, time)
+		time += 1.7 if kind != "soldier" else 0.45
+
+func _queue_entry(kind: String, landing: LandingCraft, point: Vector3, time: float) -> void:
+	disembark_queue.append({"kind": kind, "craft": landing, "from_craft": landing != null, "point": point, "time": time})
+
+func _tick_disembark(delta: float) -> void:
+	var index: int = 0
+	while index < disembark_queue.size():
+		var entry: Dictionary = disembark_queue[index]
+		entry.time = float(entry.time) - delta
+		if float(entry.time) > 0.0:
+			index += 1
+			continue
+		disembark_queue.remove_at(index)
+		_spawn_entry(entry)
+
+func _spawn_entry(entry: Dictionary) -> void:
+	var point: Vector3 = entry.point
+	if bool(entry.from_craft):
+		var landing = entry.craft
+		if not is_instance_valid(landing):
+			return
+		point = (landing as LandingCraft).disembark_point()
+	if String(entry.kind) == "soldier":
+		_spawn_soldier(point)
+	else:
+		_spawn_vehicle(point, String(entry.kind))
+
+## Skips the landing sequence for headless tests and the smoke driver.
+func disembark_all_now() -> void:
+	for landing in crafts:
+		if is_instance_valid(landing):
+			landing.ground_now()
+		_unload(landing)
+	_tick_disembark(1000.0)
+
+func _spawn_soldier(point: Vector3) -> void:
+	var soldier := EnemySoldier.new()
+	add_child(soldier)
+	var spawn: Vector3 = point + Vector3(randf_range(-1.1, 1.1), 0.0, randf_range(-0.9, 0.9))
+	soldier.configure(spawn, emplacement + Vector3(randf_range(-6, 6), 0, randf_range(-4, 4)), battlefield.random_cover())
+	soldier.speed = 2.4 + current_wave * 0.3
+	soldier.died.connect(func(_s): _register_kill())
+	soldier.shoot_requested.connect(_on_enemy_shoot)
+	soldiers.append(soldier)
 
 func _spawn_vehicle(spawn: Vector3, kind: String) -> void:
 	var vehicle := EnemyVehicle.new()
@@ -345,6 +423,8 @@ func _on_aircraft_destroyed(plane: EnemyAircraft) -> void:
 func _on_craft_destroyed(landing: LandingCraft) -> void:
 	_register_kill()
 	_explode(landing.global_position + Vector3.UP, Vector3.UP, 8.0)
+	# A craft sunk on the way in still lands its troops and vehicles in the surf.
+	_unload(landing)
 
 func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	if not active or soldier.is_dead():
@@ -420,10 +500,17 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 	effects.explode(point, normal, 0.55, point.y, true)
 	Sound.play_at("impact", point, -18.0)
 
-func _explode(point: Vector3, normal: Vector3, radius: float) -> void:
-	effects.explode(point, normal, radius, CoastalTerrain.height_at(point.x, point.z))
-	Sound.play_at("explosion", point, -4.0)
-	_explode_damage(point, radius)
+## Ground blasts are anchored to the terrain or sea surface, so a shell that
+## strikes a craft's hull or a tank's turret does not leave a cloud hanging in the air.
+func _explode(point: Vector3, _normal: Vector3, radius: float) -> void:
+	var grounded: Vector3 = _blast_point(point)
+	effects.explode(grounded, Vector3.UP, radius, grounded.y - 0.08)
+	Sound.play_at("explosion", grounded, -4.0)
+	_explode_damage(grounded, radius)
+
+func _blast_point(point: Vector3) -> Vector3:
+	var ground: float = maxf(CoastalTerrain.height_at(point.x, point.z), 0.0)
+	return Vector3(point.x, ground + 0.08, point.z)
 
 func _explode_damage(point: Vector3, radius: float, hurt_player: bool = true) -> void:
 	for soldier in soldiers:
@@ -508,6 +595,7 @@ func _process(delta: float) -> void:
 		if is_instance_valid(landing):
 			landing.tick(delta)
 	weapon.tick(delta)
+	_tick_disembark(delta)
 	for id in support_timers:
 		support_timers[id] = maxf(0.0, float(support_timers[id]) - delta)
 	_tick_airstrikes(delta)

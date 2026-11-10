@@ -333,7 +333,8 @@ func random_cover() -> Vector3:
 	return cover_points[rng.randi_range(0, cover_points.size() - 1)]
 
 func apply_quality(tier: String, settings: Dictionary) -> void:
-	if noise_texture:
+	if noise_texture and noise_texture.width != int(settings.texture_size):
+		# Regenerating the noise image is a main-thread stall; only do it on a real change.
 		noise_texture.width = int(settings.texture_size)
 		noise_texture.height = int(settings.texture_size)
 	if terrain_material:

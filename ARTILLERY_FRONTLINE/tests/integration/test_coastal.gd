@@ -27,11 +27,12 @@ func run(t: TestContext) -> void:
 	t.tree.root.add_child(soldier)
 	soldier.configure(Vector3(0, 0, -20), Vector3(0, 0, 40), Vector3(4, 0, 20))
 	t.equal(soldier.max_health, EnemySoldier.BASE_HEALTH, "Infantry uses the reduced health pool")
-	t.check(soldier.max_health <= 2.0 * float(CoastalWeapon.WEAPONS.twin_hmg.damage), "Two heavy-MG body hits can drop infantry")
+	t.check(soldier.max_health <= float(CoastalWeapon.WEAPONS.twin_hmg.damage), "One heavy-MG body hit is enough to drop infantry")
 	soldier.receive_damage(float(CoastalWeapon.WEAPONS.twin_hmg.damage))
-	t.check(not soldier.is_dead() and soldier.health > 0.0, "One heavy-MG body hit wounds infantry")
-	soldier.receive_damage(float(CoastalWeapon.WEAPONS.twin_hmg.damage))
-	t.check(soldier.is_dead(), "Second heavy-MG body hit kills infantry")
+	t.check(soldier.is_dead(), "One heavy-MG body hit kills infantry")
+	t.check(EnemyVehicle.TANK_HEALTH <= 2.0 * 0.9 * float(CoastalWeapon.WEAPONS.cannon.damage) and EnemyVehicle.TANK_HEALTH > 0.9 * float(CoastalWeapon.WEAPONS.cannon.damage), "Two cannon hits destroy a tank")
+	t.check(EnemyVehicle.TRANSPORT_HEALTH <= 0.9 * float(CoastalWeapon.WEAPONS.cannon.damage), "One cannon hit destroys a transport")
+	t.check(ExplosionEffect.SMOKE_LIFE <= 3.5 and ExplosionEffect.EFFECT_LIFE <= 4.0, "Explosion smoke fades out within a few seconds")
 	soldier.queue_free()
 	var head_target := EnemySoldier.new()
 	t.tree.root.add_child(head_target)
@@ -43,11 +44,18 @@ func run(t: TestContext) -> void:
 	t.tree.root.add_child(scene)
 	await t.tree.process_frame
 	await t.tree.process_frame
+	t.check(scene.soldiers.size() == 0 and scene.crafts[0].cargo.size() >= 9, "Infantry and armour wait inside the landing craft until it grounds")
+	scene.disembark_all_now()
 	t.check(scene.soldiers.size() >= 8, "Playable milestone spawns animated infantry")
+	t.check(scene.disembark_queue.is_empty(), "Every unit leaves the landing craft")
 	t.check(scene.vehicles.size() >= 1, "Playable milestone includes a destructible tank")
 	t.check(scene.aircraft.size() >= 1, "Playable milestone includes a hostile aircraft")
 	t.check(scene.crafts.size() >= 1, "Playable milestone includes landing craft")
 	t.equal(scene.living_targets().size(), scene.waves.remaining, "Enemy counter matches living hostile targets")
+	var grounded: Vector3 = scene._blast_point(Vector3(3.0, 7.0, 20.0))
+	t.near(grounded.y, CoastalTerrain.height_at(3.0, 20.0) + 0.08, 0.001, "A shell burst on the beach is anchored to the ground, not the air")
+	var sea_burst: Vector3 = scene._blast_point(Vector3(0.0, 3.0, -40.0))
+	t.near(sea_burst.y, 0.08, 0.001, "A burst over the sea sits on the water surface")
 	var bounds: Rect2 = scene.weapon.screen_bounds(scene.camera)
 	var viewport_size: Vector2 = scene.get_viewport().get_visible_rect().size
 	var viewport_height: float = viewport_size.y
@@ -131,6 +139,7 @@ func run(t: TestContext) -> void:
 	tank.receive_damage(10000.0)
 	t.check(tank.is_dead(), "Tank can be destroyed by player damage")
 	for round_index in range(3):
+		scene.disembark_all_now()
 		for target in scene.living_targets():
 			if is_instance_valid(target) and not target.is_dead():
 				target.receive_damage(100000.0)

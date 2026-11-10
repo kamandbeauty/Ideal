@@ -8,7 +8,8 @@ func run(t: TestContext) -> void:
 	await t.tree.process_frame
 	await t.tree.process_frame
 	scene.set_paused(false)
-	# Freeze the battle so tests are deterministic.
+	# Land the first wave at once, then freeze the battle so tests are deterministic.
+	scene.disembark_all_now()
 	for unit in scene.soldiers:
 		unit.set_physics_process(false)
 	for vehicle in scene.vehicles:

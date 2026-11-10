@@ -29,6 +29,8 @@ func run() -> void:
 	await get_tree().create_timer(1.6).timeout
 	var coastal: CoastalController = game.coastal
 	check("coastal scene initialized", coastal != null and coastal.battlefield != null)
+	check("landing craft carries the first wave", coastal.crafts.size() >= 1 and coastal.crafts[0].cargo.size() >= 8)
+	coastal.disembark_all_now()
 	check("at least 8 animated soldiers", coastal.soldiers.size() >= 8)
 	check("destructible tank present", coastal.vehicles.size() >= 1)
 	check("hostile aircraft present", coastal.aircraft.size() >= 1)

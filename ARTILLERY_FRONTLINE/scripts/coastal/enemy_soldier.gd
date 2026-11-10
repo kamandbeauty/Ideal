@@ -8,8 +8,10 @@ signal shoot_requested(soldier: EnemySoldier, target: Vector3)
 
 enum State { ADVANCE, COVER, STAGGER, DEAD }
 var state: State = State.ADVANCE
-## Infantry is soft-skinned: two heavy-MG rounds drop a rifleman, one head hit.
-const BASE_HEALTH: float = 40.0
+## Infantry is soft-skinned: one heavy-MG body hit drops a rifleman.
+const BASE_HEALTH: float = 20.0
+## Ground below this depth is treated as deep water: infantry wade at the surface.
+const WADE_FLOOR: float = -0.45
 const HEADSHOT_MULTIPLIER: float = 2.2
 const HEAD_HEIGHT: float = 1.45
 var health: float = BASE_HEALTH
@@ -54,12 +56,20 @@ var player_position: Vector3 = Vector3.ZERO
 var torso_rest_y: float = 0.0
 var gait_phase: float = 0.0
 var aim_blend: float = 0.0
+## Movement state: real infantry accelerates, weaves, halts to look around and
+## bunches up less, rather than marching in a ruler-straight line at constant speed.
+var current_speed: float = 0.0
+var bound_timer: float = 0.0
+var bound_pausing: bool = false
+var lateral_phase: float = 0.0
+var lateral_strength: float = 0.25
 
 func _ready() -> void:
 	collision_layer = 2
 	collision_mask = 0
 	add_to_group("enemy")
 	add_to_group("damageable")
+	add_to_group("infantry")
 	collision = CollisionShape3D.new()
 	var shape := CapsuleShape3D.new()
 	shape.radius = 0.34
@@ -70,6 +80,9 @@ func _ready() -> void:
 	_build_model()
 	shoot_cooldown = randf_range(1.0, 2.6)
 	gait_phase = randf() * TAU
+	lateral_phase = randf() * TAU
+	lateral_strength = randf_range(0.16, 0.32)
+	bound_timer = randf_range(0.5, 2.5)
 
 func configure(spawn: Vector3, target: Vector3, cover: Vector3) -> void:
 	global_position = spawn
@@ -279,31 +292,93 @@ func _physics_process(delta: float) -> void:
 		return
 	clock += delta
 	shoot_cooldown -= delta
+	_settle_height(delta)
 	if stagger_time > 0.0:
 		stagger_time -= delta
 		if stagger_time <= 0.0 and state == State.STAGGER:
 			state = State.ADVANCE
-		_animate(delta, 0.2)
+		current_speed = move_toward(current_speed, 0.0, 9.0 * delta)
+		_animate(delta, current_speed)
 		return
 	var target: Vector3 = objective if state == State.ADVANCE else cover_point
 	var offset: Vector3 = target - global_position
 	offset.y = 0.0
 	var distance: float = offset.length()
+	var stop_at: float = 1.2 if state == State.COVER else 2.5
 	var wounded: float = 0.55 if health < max_health * 0.4 else 1.0
-	var moving: bool = distance > (1.2 if state == State.COVER else 2.5)
-	if moving:
-		var direction: Vector3 = offset.normalized()
-		global_position += direction * speed * wounded * delta
-		rotation.y = lerp_angle(rotation.y, atan2(direction.x, direction.z), delta * 6.0)
-		_animate(delta, speed * wounded)
+	var pausing: bool = _update_bounding(delta, distance)
+	var wants_move: bool = distance > stop_at and not pausing
+	var target_speed: float = speed * wounded * _wade_factor() if wants_move else 0.0
+	# Heavy kit: quick to stop, slower to get going again.
+	current_speed = move_toward(current_speed, target_speed, (5.0 if target_speed > current_speed else 8.0) * delta)
+	var heading: Vector3 = offset.normalized() if distance > 0.01 else Vector3.FORWARD
+	if wants_move:
+		if state == State.ADVANCE:
+			heading = _weave(heading, distance)
+		heading = _avoid_neighbours(heading)
+		if current_speed > 0.02:
+			var step: float = minf(current_speed * delta, maxf(0.0, distance - stop_at))
+			global_position += heading * step
+		rotation.y = lerp_angle(rotation.y, atan2(heading.x, heading.z), delta * 5.0)
 	else:
-		_animate(delta, 0.0)
-	global_position.y = CoastalTerrain.height_at(global_position.x, global_position.z)
-	var to_player: Vector3 = player_position - global_position
-	aim_blend = lerpf(aim_blend, 1.0 if to_player.length() < 150.0 else 0.0, delta * 3.0)
-	if shoot_cooldown <= 0.0 and to_player.length() < 150.0:
+		# Halted: turn to face the emplacement while the squad covers.
+		var to_player: Vector3 = player_position - global_position
+		to_player.y = 0.0
+		if to_player.length_squared() > 0.01:
+			rotation.y = lerp_angle(rotation.y, atan2(to_player.x, to_player.z), delta * 3.0)
+	_animate(delta, current_speed)
+	var to_target: Vector3 = player_position - global_position
+	aim_blend = lerpf(aim_blend, 1.0 if to_target.length() < 150.0 else 0.0, delta * 3.0)
+	# Infantry climb out of the surf before they open fire.
+	var ashore: bool = CoastalTerrain.height_at(global_position.x, global_position.z) > -0.25
+	if shoot_cooldown <= 0.0 and to_target.length() < 150.0 and ashore:
 		shoot_cooldown = randf_range(1.6, 3.2)
 		shoot_requested.emit(self, player_position)
+
+## Bounded advance: run, then stop and crouch to look around, as squads do.
+func _update_bounding(delta: float, distance: float) -> bool:
+	if state != State.ADVANCE or distance < 8.0:
+		bound_pausing = false
+		return false
+	bound_timer -= delta
+	if bound_timer <= 0.0:
+		bound_pausing = not bound_pausing
+		bound_timer = randf_range(0.6, 1.3) if bound_pausing else randf_range(2.2, 4.0)
+	return bound_pausing
+
+## Gentle sideways drift so the approach does not look scripted.
+func _weave(heading: Vector3, distance: float) -> Vector3:
+	var side: Vector3 = Vector3(-heading.z, 0.0, heading.x)
+	var amount: float = sin(clock * 0.8 + lateral_phase) * lateral_strength * clampf(distance / 12.0, 0.0, 1.0)
+	return (heading + side * amount).normalized()
+
+## Soft separation from squad mates so infantry spread out instead of stacking.
+func _avoid_neighbours(heading: Vector3) -> Vector3:
+	var push: Vector3 = Vector3.ZERO
+	for node in get_tree().get_nodes_in_group("infantry"):
+		var mate: EnemySoldier = node as EnemySoldier
+		if mate == null or mate == self or mate.is_dead():
+			continue
+		var offset: Vector3 = global_position - mate.global_position
+		offset.y = 0.0
+		var length: float = offset.length()
+		if length > 0.001 and length < 1.0:
+			push += offset / length * (1.0 - length)
+	if push.length_squared() < 0.0001:
+		return heading
+	return (heading + push * 0.9).normalized()
+
+func _ground_height() -> float:
+	return maxf(CoastalTerrain.height_at(global_position.x, global_position.z), WADE_FLOOR)
+
+## Feet follow the terrain (or the surf) with a short drop when leaving a landing craft.
+func _settle_height(delta: float) -> void:
+	global_position.y = move_toward(global_position.y, _ground_height(), 2.2 * delta)
+
+## Waist-deep water slows the squad; the beach is full speed.
+func _wade_factor() -> float:
+	var depth: float = maxf(0.0, -CoastalTerrain.height_at(global_position.x, global_position.z))
+	return lerpf(1.0, 0.55, clampf(depth / 1.2, 0.0, 1.0))
 
 func _tick_corpse(delta: float) -> void:
 	death_time += delta

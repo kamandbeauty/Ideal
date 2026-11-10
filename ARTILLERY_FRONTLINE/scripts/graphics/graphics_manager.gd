@@ -10,6 +10,8 @@ const PROFILES: Dictionary = {
 	"ultra": {"scale": 1.0, "shadows": true, "shadow_distance": 240.0, "particles": 1.0, "effect_slots": 10, "detail": 1.0, "visibility": 1600.0, "msaa": 2, "texture_size": 1024, "mip_bias": -0.2, "ssao": true, "glow": true, "dof": true}
 }
 var tier: String = "medium"
+## Current 3D render scale inside the selected tier; auto mode moves only this.
+var render_scale: float = 1.0
 var monitor := SustainedFrameMonitor.new()
 var last_usec: int = 0
 var warmup: float = 0.0
@@ -54,6 +56,7 @@ func apply_tier(value: String) -> void:
 	if viewport:
 		viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
 		viewport.scaling_3d_scale = settings.scale
+		render_scale = float(settings.scale)
 		viewport.msaa_3d = Viewport.MSAA_DISABLED if compatibility else int(settings.msaa)
 		viewport.positional_shadow_atlas_size = 0 if tier == "low" else (1024 if tier == "medium" else 2048)
 		viewport.texture_mipmap_bias = float(settings.mip_bias)
@@ -74,9 +77,14 @@ func _process(delta: float) -> void:
 		return
 	var adjustment: int = monitor.tick(frame_ms, delta)
 	if adjustment != 0:
-		var index: int = clampi(TIERS.find(tier) + adjustment, 0, AUTO_MAX_INDEX)
-		if TIERS[index] != tier:
-			apply_tier(TIERS[index])
+		# Only the render resolution moves mid-battle. Switching tiers toggles
+		# shadows, MSAA, SSAO and glow, which recompiles shaders and stalls frames.
+		var base: float = float(profile().scale)
+		var lowest: float = float(PROFILES.low.scale) * 0.9
+		render_scale = clampf(render_scale + float(adjustment) * 0.06, lowest, base)
+		var viewport: Viewport = get_viewport()
+		if viewport:
+			viewport.scaling_3d_scale = render_scale
 
 func snapshot() -> Dictionary:
 	return {"fps": snappedf(fps, 0.1), "frame_ms": snappedf(1000.0 / maxf(fps, 0.1), 0.01), "draw_calls": draw_calls, "primitives": primitives, "tier": tier, "scale": profile().scale, "objects": int(Performance.get_monitor(Performance.OBJECT_NODE_COUNT)), "renderer": "Compatibility" if compatibility else "Mobile"}
