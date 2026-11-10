@@ -158,7 +158,7 @@
     },
     {
       "name": "boss health bar shows the first damage stage",
-      "passed": false
+      "passed": true
     },
     {
       "name": "capture coastal-boss",
@@ -181,15 +181,15 @@
       "passed": true
     }
   ],
-  "failures": 1,
-  "kills": 2,
-  "passed": false,
+  "failures": 0,
+  "kills": 1,
+  "passed": true,
   "performance": {
-    "draw_calls": 320,
-    "fps": 10.6,
-    "frame_ms": 94.71,
-    "objects": 2006,
-    "primitives": 158792,
+    "draw_calls": 322,
+    "fps": 18.0,
+    "frame_ms": 55.6,
+    "objects": 1983,
+    "primitives": 158010,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
