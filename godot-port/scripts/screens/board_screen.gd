@@ -238,7 +238,7 @@ func refresh() -> void:
 	for kind in range(_booster_buttons.size()):
 		var owned := session.boosters.count(kind)
 		_booster_counts[kind].text = PersianText.number(owned)
-		_booster_buttons[kind].modulate = Color(1, 1, 1, 1) if owned > 0 else Color(0.6, 0.6, 0.65, 1)
+		_booster_buttons[kind].modulate = Color(1, 1, 1, 1) if owned > 0 else Color(0.76, 0.78, 0.84, 1)
 		_booster_buttons[kind].disabled = owned <= 0
 	if run == null:
 		return

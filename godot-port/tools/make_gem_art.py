@@ -100,7 +100,7 @@ def silhouette(spec):
     if spec["shape"] == "round":
         return _circle(radius)
     if spec["shape"] == "star8":
-        return _star(8, radius * 1.02, radius * 0.60)
+        return _star(8, radius * 1.02, radius * 0.76)
     if spec["shape"] == "drop":
         return _drop(radius * 0.74, radius * 1.10)
     return _octagon(radius * 1.00)
@@ -217,14 +217,39 @@ def faceted(spec, points, bevel=0.16):
         crease.line([(a_in[0] * SS, a_in[1] * SS), (b_in[0] * SS, b_in[1] * SS)],
                     fill=(0, 0, 0, 46), width=max(1, SS // 2))
 
+    # Facet lines from the centre to each point of the star. A cut stone is a table with edges running
+    # out to the girdle; without them the star is a shape with a bevel, not a stone.
+    facet_draw = ImageDraw.Draw(canvas, "RGBA")
+    if len(points) >= 12:
+        for index in range(0, len(points), 2):
+            x, y = points[index]
+            facet_draw.line([(CX * SS, CY * SS), (x * SS, y * SS)], fill=(255, 255, 255, 26),
+                            width=max(1, SS // 2))
+        # Alternate wedges get a touch of shade: the table catches the light unevenly, as a real cut does.
+        for index in range(0, len(points), 4):
+            a = points[index]
+            b = points[(index + 2) % len(points)]
+            wedge = [(CX, CY), a, b]
+            shade_layer = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
+            ImageDraw.Draw(shade_layer).polygon([(x * SS, y * SS) for x, y in wedge],
+                                                fill=(8, 12, 28, 30))
+            canvas.alpha_composite(_crop(shade_layer, mask_of(points)))
+
     # Specular: one soft pass over the upper left of the plate.
     spec_layer = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
     spec_draw = ImageDraw.Draw(spec_layer)
-    spec_draw.ellipse((CX * SS - SIZE * SS * 0.34, CY * SS - SIZE * SS * 0.40,
-                       CX * SS + SIZE * SS * 0.02, CY * SS - SIZE * SS * 0.10),
-                      fill=WHITE + (110,))
-    canvas.alpha_composite(clip_to(spec_layer.filter(ImageFilter.GaussianBlur(SS * 3.2)),
+    # Small and off-centre: a wide soft ellipse over a faceted plate reads as a cloud sitting on the
+    # stone, which is what the first pass looked like on the lapis star.
+    spec_draw.ellipse((CX * SS - SIZE * SS * 0.24, CY * SS - SIZE * SS * 0.30,
+                       CX * SS - SIZE * SS * 0.02, CY * SS - SIZE * SS * 0.12),
+                      fill=WHITE + (86,))
+    canvas.alpha_composite(clip_to(spec_layer.filter(ImageFilter.GaussianBlur(SS * 1.8)),
                                    mask_of(points)))
+    spark = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
+    ImageDraw.Draw(spark).ellipse((CX * SS - SIZE * SS * 0.135, CY * SS - SIZE * SS * 0.185,
+                                   CX * SS - SIZE * SS * 0.075, CY * SS - SIZE * SS * 0.125),
+                                  fill=WHITE + (200,))
+    canvas.alpha_composite(clip_to(spark.filter(ImageFilter.GaussianBlur(SS * 0.5)), mask_of(points)))
     return canvas
 
 

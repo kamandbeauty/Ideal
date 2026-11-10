@@ -148,14 +148,14 @@ func refresh() -> void:
 				UiTokens.SUCCESS if done else UiTokens.TEXT)
 			button.text = "ساخته شد" if done else PersianText.number(int(task.get("potion_cost", 0)))
 			button.disabled = done or not session.wallet.can_afford_potions(int(task.get("potion_cost", 0)))
-			button.modulate = Color(1, 1, 1, 1) if not button.disabled else Color(0.6, 0.6, 0.65, 1)
+			button.modulate = Color(1, 1, 1, 1) if not button.disabled else Color(0.76, 0.78, 0.84, 1)
 
 		var built := session.is_district_built(district)
 		var remaining := session.remaining_potions(district)
 		_district_buttons[index].text = "کامل شد" if built else "ساخت همه (" + PersianText.number(remaining) + ")"
 		_district_buttons[index].disabled = built or not session.can_afford(district)
 		_district_buttons[index].modulate = Color(1, 1, 1, 1) if not _district_buttons[index].disabled \
-			else Color(0.6, 0.6, 0.65, 1)
+			else Color(0.76, 0.78, 0.84, 1)
 
 		var built_now := session.is_district_built(district)
 		var district_id := str(district.get("id", "")).replace("-", "_")
