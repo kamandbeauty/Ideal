@@ -8,9 +8,9 @@
 
 ## خلاصهٔ نتیجه
 
-- آزمون‌های headless: **۸۵۰ بررسی، ۰ شکست** در `artillery-test-results.json`.
-- smoke بازی با رندر نرم‌افزاری: **۳۸ بررسی، ۰ شکست** در `documentation/qa/smoke-report.json`.
-- smoke دفاع ساحلی با رندر نرم‌افزاری: **۴۲ بررسی، ۰ شکست** در `documentation/qa/coastal-smoke-report.json`.
+- آزمون‌های headless: **۸۵۴ بررسی، ۰ شکست** در `artillery-test-results.json`.
+- smoke بازی با رندر نرم‌افزاری: **۳۶ بررسی، ۰ شکست** در `documentation/qa/smoke-report.json`.
+- smoke دفاع ساحلی با رندر نرم‌افزاری: **۴۳ بررسی، ۰ شکست** در `documentation/qa/coastal-smoke-report.json`.
 - APK اصلی ARM64، AAB ARM64 و APK سازگاری در CI خروجی گرفته و راستی‌آزمایی شدند.
 - امضای APK v2/v3 و امضای JAR فایل AAB تأیید شد؛ ARM64، CRC، افقی بودن و نبود مجوز INTERNET بررسی شد.
 - تصویرهای منوی خانه، کارزار، شرح مأموریت، جنگ‌افزار، ارتقا، تنظیمات، توقف، نتایج و کارت‌های ساحلی بازبینی شدند.
@@ -23,7 +23,7 @@
 | نصب Godot با SHA-256 پین‌شده | CI | موفق |
 | import پروژه و کامپایل منابع | CI headless | موفق |
 | آزمون‌های واحد/یکپارچه | CI headless | **۸۳۹ / ۰** |
-| smoke gameplay | CI، Xvfb/llvmpipe، Compatibility | **۳۸ / ۰** |
+| smoke gameplay | CI، Xvfb/llvmpipe، Compatibility | **۳۶ / ۰** |
 | smoke ساحلی | CI، Xvfb/llvmpipe، Compatibility | **۴۲ / ۰** |
 | خروجی APK/AAB/Compatibility | CI | موفق |
 | Prefetch و بررسی SHA-256 Gradle 8.11.1 | CI | موفق |
@@ -67,9 +67,9 @@
 
 | فایل | بایت | SHA-256 |
 |---|---:|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 58,319,207 | `48eb62e8fd500d4338a9ac6e4d417044a697df0161f98f0cf30a9469a3e0d558` |
-| `delivery/Artillery-Frontline-arm64.aab` | 57,716,722 | `0e9f5c90c5c5ed2062aaa49aa477ae8fe2071034b0588e746b1aa4dc63c16589` |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,319,207 | `921a79e044ed3d46cba48c744bcb004693d09baf5b6873c5aa05aec5868d41e9` |
+| `delivery/Artillery-Frontline-arm64.apk` | 58,323,482 | `73499974b7c4c72b49a4a3e99b4914b42be619066347b76de4c32eda791598ab` |
+| `delivery/Artillery-Frontline-arm64.aab` | 57,721,976 | `e791967de16e6dca92d011711ed7edcca41110a896c0a2efa0dcddc4ff82d46a` |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,323,482 | `77ddda072ab2e83758964e83d93ab35bfe765017e58211ce6c1b9e7d5d8194b7` |
 
 واقعیت‌های بسته:
 

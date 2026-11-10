@@ -30,9 +30,9 @@
 
 ## آزمون‌ها و شواهد
 
-- `artillery-test-results.json`: **۸۵۰ بررسی، ۰ شکست**.
-- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۳۸ بررسی، ۰ شکست** (دو بررسی شلیک دوم فقط وقتی اجرا می‌شود که گلولهٔ اول هدف را نزند؛ پراکندگی تصادفی گلوله این تعداد را تغییر می‌دهد).
-- `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۴۲ بررسی، ۰ شکست**.
+- `artillery-test-results.json`: **۸۵۴ بررسی، ۰ شکست**.
+- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۳۶ بررسی، ۰ شکست** (دو بررسی شلیک دوم فقط وقتی اجرا می‌شود که گلولهٔ اول هدف را نزند؛ پراکندگی تصادفی گلوله این تعداد را تغییر می‌دهد).
+- `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۴۳ بررسی، ۰ شکست**.
 - `delivery/package-validation.json` و `delivery/SHA256SUMS.txt`: راستی‌آزمایی بسته‌ها.
 - تصویرهای منو/HUD/ساحل در `ARTILLERY_FRONTLINE/documentation/qa/` بازبینی شدند.
 
@@ -42,9 +42,9 @@
 
 | فایل | بایت | SHA-256 | وضعیت |
 |---|---:|---|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 58,319,207 | `48eb62e8fd500d4338a9ac6e4d417044a697df0161f98f0cf30a9469a3e0d558` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
-| `delivery/Artillery-Frontline-arm64.aab` | 57,716,722 | `0e9f5c90c5c5ed2062aaa49aa477ae8fe2071034b0588e746b1aa4dc63c16589` | Gradle ARM64، امضای JAR تأییدشده |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,319,207 | `921a79e044ed3d46cba48c744bcb004693d09baf5b6873c5aa05aec5868d41e9` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
+| `delivery/Artillery-Frontline-arm64.apk` | 58,323,482 | `73499974b7c4c72b49a4a3e99b4914b42be619066347b76de4c32eda791598ab` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
+| `delivery/Artillery-Frontline-arm64.aab` | 57,721,976 | `e791967de16e6dca92d011711ed7edcca41110a896c0a2efa0dcddc4ff82d46a` | Gradle ARM64، امضای JAR تأییدشده |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 58,323,482 | `77ddda072ab2e83758964e83d93ab35bfe765017e58211ce6c1b9e7d5d8194b7` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
 
 APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام نمایشی برنامه در manifest فارسی است. امضا: **کلید موقت توسعه**، نه کلید انتشار فروشگاه.
 
