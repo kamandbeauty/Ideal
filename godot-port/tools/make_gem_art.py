@@ -39,17 +39,17 @@ GOLD_LIGHT = (248, 220, 150)
 WHITE = (255, 255, 255)
 
 GEMS = {
-    # Turquoise cabochon: a dome in a ring, the stone the bazaar is famous for.
-    "firouzeh": dict(shape="round", cut="cabochon", body=(36, 174, 164), deep=(12, 96, 96),
+    # Turquoise cushion: the square a tile is polished into, cut like a stone rather than domed.
+    "firouzeh": dict(shape="cushion", cut="faceted", body=(36, 174, 164), deep=(12, 96, 96),
                      light=(168, 246, 238)),
-    # Lapis eight-point star: flat, polished, the points cut straight.
-    "lajvard": dict(shape="star8", cut="faceted", body=(38, 74, 168), deep=(16, 34, 96),
+    # Lapis hexagon: six flat faces, the shape of a glazed tile, not a star and not a dome.
+    "lajvard": dict(shape="hexagon", cut="faceted", body=(38, 74, 168), deep=(16, 34, 96),
                     light=(146, 180, 246)),
     # Carnelian drop: the deep orange red of a seal stone.
-    "aqiq": dict(shape="drop", cut="cabochon", body=(190, 62, 44), deep=(104, 24, 20),
+    "aqiq": dict(shape="drop", cut="faceted", body=(190, 62, 44), deep=(104, 24, 20),
                  light=(250, 168, 140)),
-    # Emerald octagon: faceted, with the bevels doing the work.
-    "zomorrod": dict(shape="octagon", cut="faceted", body=(28, 128, 74), deep=(10, 62, 38),
+    # Emerald cut: a tall rectangle with clipped corners, step-faceted.
+    "zomorrod": dict(shape="emerald", cut="faceted", body=(28, 128, 74), deep=(10, 62, 38),
                      light=(150, 236, 176)),
     # Pearl: a sphere, lit once.
     "morvarid": dict(shape="round", cut="sphere", body=(226, 214, 192), deep=(150, 138, 120),
@@ -90,6 +90,31 @@ def _drop(width, height, steps=64):
     return left + right
 
 
+def _cushion(radius):
+    """A rounded square with twelve corners — a cushion cut, not a circle and not a plain box."""
+    points = []
+    corners = [(1, -1), (1, 1), (-1, 1), (-1, -1)]
+    for index, (sx, sy) in enumerate(corners):
+        base = -math.pi / 4 + index * math.pi / 2
+        for step in (-0.20, 0.0, 0.20):
+            angle = base + step
+            points.append((CX + math.cos(angle) * radius, CY + math.sin(angle) * radius))
+    return points
+
+
+def _hexagon(radius):
+    return [(CX + math.cos(-math.pi / 2 + index * math.pi / 3) * radius,
+             CY + math.sin(-math.pi / 2 + index * math.pi / 3) * radius) for index in range(6)]
+
+
+def _emerald(width, height, cut):
+    """An emerald cut: a tall rectangle with its corners clipped and no curve anywhere."""
+    hw, hh = width * 0.5, height * 0.5
+    return [(CX - hw + cut, CY - hh), (CX + hw - cut, CY - hh), (CX + hw, CY - hh + cut),
+            (CX + hw, CY + hh - cut), (CX + hw - cut, CY + hh), (CX - hw + cut, CY + hh),
+            (CX - hw, CY + hh - cut), (CX - hw, CY - hh + cut)]
+
+
 def _octagon(radius):
     return [(CX + math.cos(math.pi / 8 + i * math.pi / 4) * radius,
              CY + math.sin(math.pi / 8 + i * math.pi / 4) * radius) for i in range(8)]
@@ -97,12 +122,17 @@ def _octagon(radius):
 
 def silhouette(spec):
     radius = SIZE * 0.45
-    if spec["shape"] == "round":
+    shape = spec["shape"]
+    if shape == "round":
         return _circle(radius)
-    if spec["shape"] == "star8":
-        return _star(8, radius * 1.02, radius * 0.76)
-    if spec["shape"] == "drop":
-        return _drop(radius * 0.74, radius * 1.10)
+    if shape == "cushion":
+        return _cushion(radius)
+    if shape == "hexagon":
+        return _hexagon(radius)
+    if shape == "emerald":
+        return _emerald(radius * 1.18, radius * 1.98, radius * 0.26)
+    if shape == "drop":
+        return _drop(radius * 0.78, radius * 1.12)
     return _octagon(radius * 1.00)
 
 
@@ -220,19 +250,21 @@ def faceted(spec, points, bevel=0.16):
     # Facet lines from the centre to each point of the star. A cut stone is a table with edges running
     # out to the girdle; without them the star is a shape with a bevel, not a stone.
     facet_draw = ImageDraw.Draw(canvas, "RGBA")
-    if len(points) >= 12:
-        for index in range(0, len(points), 2):
-            x, y = points[index]
-            facet_draw.line([(CX * SS, CY * SS), (x * SS, y * SS)], fill=(255, 255, 255, 26),
+    if len(points) <= 16:
+        # A cut stone is a table with edges running out to the girdle; a polygon with a table reads as a
+        # gem, a polygon with only a bevel reads as a shape. Every vertex gets a line from the table.
+        table = scale_points(points, 0.54)
+        facet_draw.line(table + [table[0]], fill=(255, 255, 255, 46), width=max(1, SS // 2))
+        for x, y in points:
+            facet_draw.line([(CX * SS, CY * SS), (x * SS, y * SS)], fill=(255, 255, 255, 30),
                             width=max(1, SS // 2))
-        # Alternate wedges get a touch of shade: the table catches the light unevenly, as a real cut does.
-        for index in range(0, len(points), 4):
+        for index in range(0, len(points), 2):
             a = points[index]
-            b = points[(index + 2) % len(points)]
+            b = points[(index + 1) % len(points)]
             wedge = [(CX, CY), a, b]
             shade_layer = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
             ImageDraw.Draw(shade_layer).polygon([(x * SS, y * SS) for x, y in wedge],
-                                                fill=(8, 12, 28, 30))
+                                                fill=(255, 255, 255, 22))
             canvas.alpha_composite(_crop(shade_layer, mask_of(points)))
 
     # Specular: one soft pass over the upper left of the plate.
