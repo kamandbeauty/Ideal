@@ -5,13 +5,13 @@
 ## دانلود بستهٔ اندرویدِ تأییدشده
 
 منبع ساخت: `0ed3f189f16570476eae0b5e79a9504f166c3431`
-انتشار بسته‌ها توسط CI: `6df94a4db9d514a96599ec9e8e0934a78f14533a`
+انتشار بسته‌ها توسط CI: `5988df5103fe12d3db2ee5687d85d95bd0084c2a`
 اجرای موفق CI: [42593105670](https://github.com/kamandbeauty/Ideal/actions/runs/42593105670)
 
 | بسته | کاربرد | لینک |
 |---|---|---|
-| APK اصلی ARM64 | نصب آزمایشی روی گوشی/تبلت ARM64، اندروید ۷٫۰/API 24 به بالا | [دانلود APK](https://github.com/kamandbeauty/Ideal/raw/6df94a4db9d514a96599ec9e8e0934a78f14533a/delivery/Artillery-Frontline-arm64.apk) |
-| AAB ARM64 | خروجی Gradle برای انتشار/Bundletool؛ نصب مستقیم نیست | [دانلود AAB](https://github.com/kamandbeauty/Ideal/raw/6df94a4db9d514a96599ec9e8e0934a78f14533a/delivery/Artillery-Frontline-arm64.aab) |
+| APK اصلی ARM64 | نصب آزمایشی روی گوشی/تبلت ARM64، اندروید ۷٫۰/API 24 به بالا | [دانلود APK](https://github.com/kamandbeauty/Ideal/raw/5988df5103fe12d3db2ee5687d85d95bd0084c2a/delivery/Artillery-Frontline-arm64.apk) |
+| AAB ARM64 | خروجی Gradle برای انتشار/Bundletool؛ نصب مستقیم نیست | [دانلود AAB](https://github.com/kamandbeauty/Ideal/raw/5988df5103fe12d3db2ee5687d85d95bd0084c2a/delivery/Artillery-Frontline-arm64.aab) |
 | APK سازگاری OpenGL | فقط به‌صورت artifact در CI، برای دستگاه‌های بدون شروع موفق Vulkan | [artifact سازگاری](https://github.com/kamandbeauty/Ideal/actions/runs/42593105670) |
 
 هشدار امضا: بسته‌ها با کلید موقت توسعه امضا شده‌اند، نه کلید انتشار فروشگاه. اگر نسخهٔ آزمایشی قبلی با کلید موقت دیگری نصب است، به‌روزرسانی مستقیم ممکن است شکست بخورد و حذف نصب قبلی لازم شود؛ حذف نصب می‌تواند ذخیرهٔ محلی را پاک کند.

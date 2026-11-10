@@ -3,7 +3,7 @@
 شاخه: `arena/40ad7d87-ideal`
 مخزن: `kamandbeauty/Ideal`
 منبع ساخت بسته‌ها: `0ed3f189f16570476eae0b5e79a9504f166c3431`
-انتشار بسته‌ها توسط CI: `6df94a4db9d514a96599ec9e8e0934a78f14533a`
+انتشار بسته‌ها توسط CI: `5988df5103fe12d3db2ee5687d85d95bd0084c2a`
 اجرای موفق CI: [42593105670](https://github.com/kamandbeauty/Ideal/actions/runs/42593105670)
 موتور: Godot **4.7.2 stable**
 
@@ -30,9 +30,9 @@
 
 ## آزمون‌ها و شواهد
 
-- `artillery-test-results.json`: **۸۱۴ بررسی، ۰ شکست**.
-- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۳۶ بررسی، ۰ شکست**.
-- `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۴۰ بررسی، ۰ شکست**.
+- `artillery-test-results.json`: **۸۱۸ بررسی، ۰ شکست**.
+- `ARTILLERY_FRONTLINE/documentation/qa/smoke-report.json`: **۳۴ بررسی، ۰ شکست** (دو بررسی شلیک دوم فقط وقتی اجرا می‌شود که گلولهٔ اول هدف را نزند؛ پراکندگی تصادفی گلوله این تعداد را تغییر می‌دهد).
+- `ARTILLERY_FRONTLINE/documentation/qa/coastal-smoke-report.json`: **۴۲ بررسی، ۰ شکست**.
 - `delivery/package-validation.json` و `delivery/SHA256SUMS.txt`: راستی‌آزمایی بسته‌ها.
 - تصویرهای منو/HUD/ساحل در `ARTILLERY_FRONTLINE/documentation/qa/` بازبینی شدند.
 
@@ -42,9 +42,9 @@
 
 | فایل | بایت | SHA-256 | وضعیت |
 |---|---:|---|---|
-| `delivery/Artillery-Frontline-arm64.apk` | 55,383,332 | `7eb0cd11aab01c667cfb557db0cc76731324b947521c0ced50dcddfda0705194` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
-| `delivery/Artillery-Frontline-arm64.aab` | 54,779,084 | `b66f5d3d531ffb7b0f425ffc081a4f24e373e4e3d193ca89d8ae7447ec28d80d` | Gradle ARM64، امضای JAR تأییدشده |
-| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,383,332 | `9a9c680ce89dd2204f001dcfa3b4fe0725510b093a7768a71096c8f4eb042e21` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
+| `delivery/Artillery-Frontline-arm64.apk` | 55,387,428 | `ed38944bb92613be3ac35a58b9242b31546a7bcf54204f15d48e7b832f1ff154` | ARM64، امضای v2/v3، landscape، بدون INTERNET |
+| `delivery/Artillery-Frontline-arm64.aab` | 54,784,710 | `59a152f33a1aa92722b67ee755dc048b8a1e1d817da68d3c5d5736cdc4461929` | Gradle ARM64، امضای JAR تأییدشده |
+| `Artillery-Frontline-compatibility.apk`، فقط artifact CI | 55,387,428 | `265a167fbfa31090de2ca5cb1822e8ea9e51ff6f73bfc5be1cb02e710c53590e` | ARM64 OpenGL، شناسهٔ بستهٔ جدا |
 
 APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام نمایشی برنامه در manifest فارسی است. امضا: **کلید موقت توسعه**، نه کلید انتشار فروشگاه.
 
@@ -52,7 +52,7 @@ APKها: min SDK 24، target SDK 36. AAB: override حداقل SDK 26. نام ن�
 
 ## کارایی مشاهده‌شده در CI
 
-رندر Compatibility روی Xvfb/llvmpipe: gameplay حدود **14.9 FPS** و coastal حدود **10.3 FPS**. این اعداد رستر نرم‌افزاری دسکتاپ هستند و کارایی GPU موبایل، حرارت یا 30/60 FPS پایدار را ثابت نمی‌کنند.
+رندر Compatibility روی Xvfb/llvmpipe: gameplay حدود **18.6 FPS** و coastal حدود **13.9 FPS**. این اعداد رستر نرم‌افزاری دسکتاپ هستند و کارایی GPU موبایل، حرارت یا 30/60 FPS پایدار را ثابت نمی‌کنند.
 
 ## محدودیت‌ها
 
