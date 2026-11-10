@@ -30,14 +30,17 @@ const CARD_ROW_Y := 38.0
 const CHIP_HEIGHT := 26.0
 const CHIP_GAP := 2.0
 const GOALS_Y := 100.0
-const STATUS_Y := 190.0
 const STATUS_HEIGHT := 58.0
-const WALLET_Y := 256.0
 const WALLET_HEIGHT := 44.0
-const BOOSTER_HEAD_Y := 306.0
+const BOOSTER_HEAD_HEIGHT := 16.0
 const BOOSTER_SIZE := 58.0
 const BOOSTER_GAP := 7.0
-const BOOSTER_Y := 324.0
+# The column below the two counters is a stack with four gaps, not a table of fixed rows: a level
+# with one goal left a 64 dp hole between the goal chip and the sentence under it, which is what the
+# device screenshot showed. The gaps share whatever height the blocks leave, and are never under
+# COLUMN_GAP_MIN, so the column fills its height at one goal or at three.
+const COLUMN_BOTTOM := 390.0
+const COLUMN_GAP_MIN := 8.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -54,6 +57,9 @@ const HAND_SIZE := 44.0
 var _moves_label: Label
 var _score_label: Label
 var _hint: Label
+var _status_card: Panel
+var _wallet_card: Panel
+var _boosters_heading: Label
 var _coin_label: Label
 var _life_label: Label
 var _goal_chips: Array[Panel] = []
@@ -127,15 +133,16 @@ func build() -> void:
 		var chip := UiKit.art_panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
 			"ui_chip", UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 		_goal_chips.append(chip)
-		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 26.0, 3.0,
+		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 30.0, 3.0,
 			20.0, 20.0))
 		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_CENTER)
-		UiKit.place(label, 6.0, 0.0, COLUMN_W - 34.0, CHIP_HEIGHT)
+		UiKit.place(label, 6.0, 0.0, COLUMN_W - 40.0, CHIP_HEIGHT)
 		_goal_labels.append(label)
 
 	# ---- the line that tells the player what to do, or what just went wrong ------------------------
-	var status_card := _build_card("status_card", COLUMN_X, STATUS_Y, COLUMN_W, STATUS_HEIGHT)
+	var status_card := _build_card("status_card", COLUMN_X, GOALS_Y, COLUMN_W, STATUS_HEIGHT)
+	_status_card = status_card
 	_hint = UiKit.label(status_card, "hint", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_hint, 8.0, 2.0, COLUMN_W - 16.0, STATUS_HEIGHT - 4.0)
@@ -144,7 +151,8 @@ func build() -> void:
 	# ---- the player's purse, on one plate: coins at one end, lives at the other --------------------
 	# The board is where a player spends both, so they belong here and not only on the home screen.
 	# Every part of it is a picture: the plate, the coin and the heart are all shipped PNGs.
-	var wallet_card := _build_card("wallet_card", COLUMN_X, WALLET_Y, COLUMN_W, WALLET_HEIGHT)
+	var wallet_card := _build_card("wallet_card", COLUMN_X, GOALS_Y, COLUMN_W, WALLET_HEIGHT)
+	_wallet_card = wallet_card
 	# Each figure is centred in its own little group rather than pushed against an edge: the labels are
 	# right-to-left, so Godot mirrors LEFT and RIGHT alignment, and edge-hugging text lands in the
 	# middle of the card — which is exactly where the two numbers collided on the first attempt.
@@ -158,15 +166,15 @@ func build() -> void:
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(_coin_label, COLUMN_W - 40.0 - 68.0, 0.0, 68.0, WALLET_HEIGHT)
 
-	var boosters_heading := UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
+	_boosters_heading = UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
 		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(boosters_heading, COLUMN_X, BOOSTER_HEAD_Y, COLUMN_W, 16.0)
+	UiKit.place(_boosters_heading, COLUMN_X, GOALS_Y, COLUMN_W, BOOSTER_HEAD_HEIGHT)
 
 	# ---- booster bar: all five in one row, sized for a thumb --------------------------------------
 	for kind in range(BoosterBag.SLOTS):
 		var x := COLUMN_X + float(kind) * (BOOSTER_SIZE + BOOSTER_GAP)
 		var handler := _on_booster_pressed.bind(kind)
-		var button := UiKit.button(self, "booster_%d" % kind, "", x, BOOSTER_Y, BOOSTER_SIZE,
+		var button := UiKit.button(self, "booster_%d" % kind, "", x, GOALS_Y, BOOSTER_SIZE,
 			BOOSTER_SIZE, UiTokens.SURFACE_RAISED, UiTokens.TEXT, handler, UiTokens.RADIUS_MD)
 		_booster_buttons.append(button)
 		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 6.0, 5.0,
@@ -191,8 +199,36 @@ func build() -> void:
 	_hint_hand = UiKit.icon(self, "tutorial_hand", "tutorial_hand", 0.0, 0.0, HAND_SIZE, HAND_SIZE)
 	_hint_hand.visible = false
 
+	_layout_column()
 	_build_overlay()
 	_build_pause()
+
+## Places the goal chips, the sentence, the purse and the booster bar so the column has no hole in it
+## and no dead band at the bottom, whatever the level asks for. Called again whenever a goal chip is
+## shown or hidden, so the stack follows the level rather than the level fitting the stack.
+func _layout_column() -> void:
+	if _status_card == null or _wallet_card == null or _boosters_heading == null:
+		return
+	var rows := 0
+	for chip in _goal_chips:
+		var control := chip as Control
+		if control != null and control.visible:
+			rows += 1
+	rows = clampi(rows, 1, _goal_chips.size())
+	var top := GOALS_Y + float(rows) * (CHIP_HEIGHT + CHIP_GAP) - CHIP_GAP
+	var blocks := STATUS_HEIGHT + WALLET_HEIGHT + BOOSTER_HEAD_HEIGHT + BOOSTER_SIZE
+	var slack := maxf(COLUMN_BOTTOM - top - blocks - COLUMN_GAP_MIN * 4.0, 0.0)
+	var gap := COLUMN_GAP_MIN + slack / 4.0
+	var y := top + gap
+	UiKit.place(_status_card, COLUMN_X, y, COLUMN_W, STATUS_HEIGHT)
+	y += STATUS_HEIGHT + gap
+	UiKit.place(_wallet_card, COLUMN_X, y, COLUMN_W, WALLET_HEIGHT)
+	y += WALLET_HEIGHT + gap
+	UiKit.place(_boosters_heading, COLUMN_X, y, COLUMN_W, BOOSTER_HEAD_HEIGHT)
+	y += BOOSTER_HEAD_HEIGHT + gap
+	for kind in range(_booster_buttons.size()):
+		UiKit.place(_booster_buttons[kind], COLUMN_X + float(kind) * (BOOSTER_SIZE + BOOSTER_GAP),
+			y, BOOSTER_SIZE, BOOSTER_SIZE)
 
 ## A card: a shipped plate with a caption and a number on it. Never a StyleBoxFlat — the panel art is
 ## what keeps the HUD looking like the palace instead of a form.
@@ -274,6 +310,7 @@ func refresh_goals() -> void:
 		var complete := progress >= target
 		_goal_labels[index].add_theme_color_override("font_color",
 			UiTokens.SUCCESS if complete else UiTokens.TEXT)
+	_layout_column()
 
 static func _piece_art(kind: int) -> String:
 	var path := AssetCatalog.piece_path(kind)

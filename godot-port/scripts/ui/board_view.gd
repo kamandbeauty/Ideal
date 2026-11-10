@@ -20,8 +20,16 @@ const SWIPE_MIN_DP := 8.0
 const CLEAR_SECONDS := 0.14
 const SQUASH_SECONDS := 0.18
 const FALL_SECONDS := 0.22
-const SWAP_SECONDS := 0.14
-const REJECT_SECONDS := 0.16
+const SWAP_SECONDS := 0.18
+const REJECT_SECONDS := 0.20
+## How much a stone grows as it is lifted off the tray for a swap. Small on purpose: past 1.1 the
+## stone no longer looks handled, it looks like a button being pressed.
+const SWAP_LIFT := 1.07
+## A new stone arrives at this fraction of its size and swells to full, so a refilled column is seen
+## to be refilled.
+const SPAWN_SCALE := 0.55
+const CLEAR_TWIST := 0.38
+const REJECT_TINT := Color(1.0, 0.80, 0.78, 1.0)
 const TILE_INSET := 1.0
 # A gem that floats inside its tile with a wide dark margin is the single biggest reason the board
 # read as a prototype: the art is 128 px with a gold rim, so at 36 dp the rim IS the border.
@@ -94,7 +102,11 @@ func cell_at(local_position: Vector2) -> Vector2i:
 # ---- drawing ------------------------------------------------------------------------------------
 
 func rebuild() -> void:
+	# Out of the tree first, freed after: a queued node is still a child until the frame ends, and a new
+	# tile added under the same name while the old one is still there is silently renamed. Every tile is
+	# named after its cell, so the names have to stay exactly what they are.
 	for child in get_children():
+		remove_child(child)
 		child.queue_free()
 	_tiles.clear()
 	if run == null:
@@ -120,6 +132,9 @@ func _apply_highlight() -> void:
 func _build_cell(pos: Vector2i, cell, tile_art: Texture2D) -> Control:
 	var tile := Control.new()
 	tile.name = "cell_%d_%d" % [pos.x, pos.y]
+	# The cell travels with the tile: a tile is asked to go home after a refused move, and reading the
+	# cell back out of the name would depend on the name never being touched.
+	tile.set_meta("cell", pos)
 	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tile.pivot_offset = Vector2(cell_size, cell_size) * 0.5
 	add_child(tile)
@@ -265,39 +280,88 @@ func _release(local_position: Vector2) -> void:
 
 ## Plays the swap the player asked for. The board has already been mutated by the resolver, so this
 ## only moves the two tiles to each other's place before the settle pass redraws the truth.
+##
+## Three things together make a swap read as a gem being moved rather than two pictures sliding: the
+## pair is drawn on top of the rest of the tray while it travels, both stones lift as they leave their
+## cell (a stone that is being handled is closer to the eye, so it is briefly bigger), and the travel
+## is eased in and out instead of running at a constant speed. The lift is a second tween on the same
+## nodes: the move and the scale run on different curves, and only the move decides when the swap is
+## over, so both are the same length and can be awaited once.
 func animate_swap(a: Vector2i, b: Vector2i) -> void:
 	var tile_a: Control = _tiles.get(a)
 	var tile_b: Control = _tiles.get(b)
 	if tile_a == null or tile_b == null:
 		return
 	_busy = true
+	move_child(tile_a, -1)
+	move_child(tile_b, -1)
 	var position_a := tile_a.position
 	var position_b := tile_b.position
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(tile_a, "position", position_b, SWAP_SECONDS).set_trans(Tween.TRANS_QUAD)
-	tween.tween_property(tile_b, "position", position_a, SWAP_SECONDS).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(tile_a, "position", position_b, SWAP_SECONDS) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(tile_b, "position", position_a, SWAP_SECONDS) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	var lift := create_tween()
+	lift.set_parallel(true)
+	for tile in [tile_a, tile_b]:
+		lift.tween_property(tile, "scale", Vector2(SWAP_LIFT, SWAP_LIFT),
+			SWAP_SECONDS * 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		lift.tween_property(tile, "scale", Vector2.ONE, SWAP_SECONDS * 0.55) \
+			.set_delay(SWAP_SECONDS * 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	await tween.finished
+	if lift.is_valid():
+		lift.kill()
 	rebuild()
 	_busy = false
 
-## A refused move: the tiles go back and the player sees why without reading anything.
+## A refused move: the pair shakes along the axis the player pushed, the swing dying out like a stone
+## nudged against another that will not give, and the stones warm towards red for the length of the
+## shake so the refusal is seen as well as felt. Both halves use the same clock, so the shake is over
+## exactly when the tint is, and the tiles are put back on their cells by hand afterwards: a tween that
+## is interrupted must never leave a gem a few dp off its cell.
 func animate_reject(a: Vector2i, b: Vector2i = Vector2i(-1, -1)) -> void:
 	_busy = true
+	var axis := Vector2.RIGHT
+	if b.x >= 0 and b != a:
+		var step := b - a
+		axis = Vector2(signf(float(step.x)), 0.0)
+		if absi(step.y) > absi(step.x):
+			axis = Vector2(0.0, signf(float(step.y)))
+	var amplitude := maxf(cell_size * 0.16, 5.0)
+	var swing := [1.0, -0.72, 0.46, -0.22]
 	var targets: Array[Control] = []
 	for pos in [a, b]:
 		var tile: Control = _tiles.get(pos)
-		if tile != null:
+		if tile != null and not targets.has(tile):
 			targets.append(tile)
 	for tile in targets:
 		var home := tile.position
 		var tween := create_tween()
-		tween.tween_property(tile, "position", home + Vector2(5.0, 0.0), REJECT_SECONDS * 0.25)
-		tween.tween_property(tile, "position", home - Vector2(5.0, 0.0), REJECT_SECONDS * 0.5)
-		tween.tween_property(tile, "position", home, REJECT_SECONDS * 0.25)
+		for step in swing:
+			tween.tween_property(tile, "position", home + axis * amplitude * float(step),
+				REJECT_SECONDS * 0.22).set_trans(Tween.TRANS_SINE)
+		tween.tween_property(tile, "position", home, REJECT_SECONDS * 0.12)
+		var blush := create_tween()
+		blush.tween_property(tile, "modulate", REJECT_TINT, REJECT_SECONDS * 0.35)
+		blush.tween_property(tile, "modulate", Color(1, 1, 1, 1), REJECT_SECONDS * 0.65)
 	if not targets.is_empty():
 		await get_tree().create_timer(REJECT_SECONDS).timeout
+	for tile in targets:
+		if not is_instance_valid(tile):
+			continue
+		tile.position = _home_of(tile)
+		tile.modulate = Color(1, 1, 1, 1)
 	_busy = false
+
+## The cell a tile belongs on, carried on the tile itself, so a tile can always be put back after an
+## interrupted tween without a second lookup table.
+func _home_of(tile: Control) -> Vector2:
+	var cell = tile.get_meta("cell", null)
+	if cell is Vector2i:
+		return position_for(cell)
+	return tile.position
 
 ## Plays back one accepted move: cleared tiles pop, survivors fall, new tiles drop in, then the view
 ## is an exact picture of the board the resolver produced.
@@ -322,7 +386,11 @@ func play_result(before: BoardModel, events: Array) -> void:
 				continue
 			Fx.spark(self, cell_center(pos), Fx.piece_tint(int(cleared[pos])), 8,
 				cell_size / 44.0)
-			tween.tween_property(tile, "scale", Vector2(0.2, 0.2), CLEAR_SECONDS)
+			tween.tween_property(tile, "scale", Vector2(0.2, 0.2), CLEAR_SECONDS) \
+				.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			# A small twist as it goes: a matched stone is lifted and taken, and a stone that only
+			# shrinks on its own axis is the one effect every match-3 has already shown the player.
+			tween.tween_property(tile, "rotation", CLEAR_TWIST, CLEAR_SECONDS)
 			tween.tween_property(tile, "modulate", Color(1, 1, 1, 0), CLEAR_SECONDS)
 		await tween.finished
 
@@ -349,6 +417,7 @@ func _squash_all(landed: Array) -> void:
 
 func _settle(before: BoardModel, cleared: Dictionary) -> void:
 	var offsets := {}
+	var spawned_cells: Array[Vector2i] = []
 	var board := run.board
 	var falls_down := run.level.gravity == GameTypes.GravityDirection.DOWN
 	for x in range(board.width):
@@ -377,6 +446,7 @@ func _settle(before: BoardModel, cleared: Dictionary) -> void:
 			var to_y: int = finals[index] if falls_down else finals[finals.size() - 1 - index]
 			var depth := float(spawned - index)
 			offsets[Vector2i(x, to_y)] = -depth if falls_down else depth
+			spawned_cells.append(Vector2i(x, to_y))
 
 	rebuild()
 	if offsets.is_empty():
@@ -394,5 +464,12 @@ func _settle(before: BoardModel, cleared: Dictionary) -> void:
 		tween.tween_property(tile, "position", target, FALL_SECONDS) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tween.tween_property(tile, "modulate", Color(1, 1, 1, 1), FALL_SECONDS)
+		# A gem that comes in from beyond the tray is new, so it arrives small and swells to its size
+		# while it falls. Without this the refilled column is a teleport: five stones appear already
+		# in place, which is the one thing on the board that a real tray of stones would never do.
+		if spawned_cells.has(pos):
+			tile.scale = Vector2(SPAWN_SCALE, SPAWN_SCALE)
+			tween.tween_property(tile, "scale", Vector2.ONE, FALL_SECONDS) \
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	await _squash_all(offsets.keys())

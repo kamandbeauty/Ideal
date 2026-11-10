@@ -304,6 +304,34 @@ func _run() -> void:
 		"a swipe off the edge of the board asks for nothing (%d taps, %d swipes)"
 		% [taps.size(), swaps.size()])
 
+	# The animations are tweens, so the view is only correct again once they finish. A tween that is
+	# killed halfway, or one that forgets to put a node back, leaves a stone a few dp off its cell — and
+	# that stone is still there on the next move, because nothing redraws the board between moves.
+	print("UI STAGE 4b: the animations end with the board exact")
+	await view.animate_swap(Vector2i(0, 0), Vector2i(1, 0))
+	var swapped_a := view.get_node_or_null("cell_0_0") as Control
+	var swapped_b := view.get_node_or_null("cell_1_0") as Control
+	failures += _check(not view.is_busy(), "the swap hands the board back")
+	failures += _check(swapped_a != null and swapped_b != null
+		and swapped_a.position.is_equal_approx(view.position_for(Vector2i(0, 0)))
+		and swapped_b.position.is_equal_approx(view.position_for(Vector2i(1, 0)))
+		and swapped_a.scale.is_equal_approx(Vector2.ONE)
+		and swapped_b.scale.is_equal_approx(Vector2.ONE),
+		"the swap leaves both stones on their cells at full size (%s %s)"
+		% [str(swapped_a.position if swapped_a != null else Vector2.ZERO),
+			str(swapped_a.scale if swapped_a != null else Vector2.ZERO)])
+	# A refused move shakes the pair along the axis the player pushed: a stone left warm-tinted or a
+	# few dp off would show on the next screenshot and never be corrected by anything.
+	await view.animate_reject(Vector2i(0, 0), Vector2i(0, 1))
+	var rejected := view.get_node_or_null("cell_0_0") as Control
+	failures += _check(rejected != null and not view.is_busy()
+		and rejected.position.is_equal_approx(view.position_for(Vector2i(0, 0)))
+		and rejected.modulate.is_equal_approx(Color(1, 1, 1, 1)),
+		"a refused move puts the pair back, tint off, and hands the board back")
+	# Every tile still answers to its own name, which the screen looks up by name when it is placed.
+	failures += _check(view.get_child_count() == 81 and view.get_node_or_null("cell_8_8") != null,
+		"the rebuilt board keeps one named tile per cell (%d children)" % view.get_child_count())
+
 	print("UI STAGE 5: every level boots and plays through the screen")
 	for number in range(1, GameSession.LEVEL_COUNT + 1):
 		session.save.level_number = number
@@ -340,6 +368,27 @@ func _run() -> void:
 					drawn.append(str(key))
 			failures += _check(drawn.is_empty(),
 				"level %d draws every card and the board frame with picture plates (%s)" % [number, ", ".join(drawn)])
+			# The column is a stack with four shared gaps. With one goal it used to leave a 64 dp hole
+			# under the chip and a dead band under the boosters; the widest gap is the whole complaint
+			# in one number, so it is measured rather than eyeballed on a screenshot.
+			var last_goal: Control = null
+			for index in range(3):
+				var chip := screen.get_node_or_null("goal_%d" % index) as Control
+				if chip != null and chip.visible:
+					last_goal = chip
+			var previous := last_goal
+			var widest := 0.0
+			for key in ["status_card", "wallet_card", "boosters_heading", "booster_0"]:
+				var block := screen.get_node_or_null(key) as Control
+				if block == null:
+					continue
+				if previous != null:
+					widest = maxf(widest, block.get_rect().position.y - previous.get_rect().end.y)
+				previous = block
+			failures += _check(previous != null and widest >= 6.0 and widest <= 26.0
+				and previous.get_rect().end.y <= 400.0,
+				"level %d stacks the column without a dead band (widest gap %.1f dp, bottom %.1f)"
+				% [number, widest, previous.get_rect().end.y if previous != null else -1.0])
 			# The column has to fill its height: a stack that stops at two thirds leaves a dead band
 			# under the boosters, which is what the phone screenshot showed.
 			var low: Control = screen.get_node_or_null("booster_0") as Control
