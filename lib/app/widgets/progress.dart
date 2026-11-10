@@ -392,7 +392,7 @@ Future<T?> runHeroProgress<T>(
   bool cancellable = false,
   String? cancelLabel,
   String? cancellingLabel,
-}) {
+}) async {
   final notifier = ValueNotifier<_HeroUi>(_HeroUi(title: title, detail: detail));
   final token = HeroToken();
   final cancelText = cancelLabel;
@@ -405,7 +405,7 @@ Future<T?> runHeroProgress<T>(
         fraction: fraction,
         fractionSet: true,
       );
-      notifier.notify();
+      notifier.notifyListeners();
     },
     token,
   );
@@ -431,16 +431,16 @@ Future<T?> runHeroProgress<T>(
         fraction: 1,
         fractionSet: true,
       );
-      notifier.notify();
+      notifier.notifyListeners();
     }
     return value;
   } on HeroCancelled {
     notifier.value = notifier.value.copyWith(phase: _HeroPhase.cancelled);
-    notifier.notify();
+    notifier.notifyListeners();
     return null;
   } catch (_) {
     notifier.value = notifier.value.copyWith(phase: _HeroPhase.failed);
-    notifier.notify();
+    notifier.notifyListeners();
     rethrow;
   }
 }
@@ -513,7 +513,7 @@ class _HeroCardState extends State<_HeroCard>
     return PopScope(
       canPop: false,
       child: FadeTransition(
-        opacity: Curves.easeOut.transform(_enter.value),
+        opacity: CurvedAnimation(parent: _enter, curve: Curves.easeOut),
         child: ScaleTransition(
           scale: Tween<double>(begin: 0.92, end: 1.0).animate(
             CurvedAnimation(parent: _enter, curve: Curves.easeOutCubic),
@@ -603,7 +603,7 @@ class _HeroCardState extends State<_HeroCard>
                                     widget.notifier.value = widget
                                         .notifier.value
                                         .copyWith(cancelling: true);
-                                    widget.notifier.notify();
+                                    widget.notifier.notifyListeners();
                                     widget.token.cancel();
                                   },
                             icon: Icon(
