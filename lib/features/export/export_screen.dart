@@ -15,6 +15,7 @@ import '../../app/providers.dart';
 import '../../app/router.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
+import '../../app/widgets/progress.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/models/export_settings.dart';
 import '../../core/utils/ratio_utils.dart';
@@ -63,7 +64,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
     if (st == null) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.t('export_title'))),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(child: HeroSpinner()),
       );
     }
     final settings = _settings(st);

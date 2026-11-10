@@ -12,6 +12,7 @@ import '../../app/providers.dart';
 import '../../app/router.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
+import '../../app/widgets/progress.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/models/motion_profile.dart';
 import '../../core/models/photo_item.dart';
@@ -35,20 +36,40 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
     if (_busy) return;
     setState(() => _busy = true);
     final bootstrap = ref.read(bootstrapProvider);
+    final l10n = context.l10n;
     try {
-      final photos = await bootstrap.mediaPicker.pickPhotos();
-      if (photos.isEmpty) return;
-      for (final p in photos) {
-        _picked.add(p);
-        // Thumbnail generation is best-effort: failure just means the tile
-        // falls back to the full file.
-        try {
-          final thumb = await bootstrap.thumbs.generate(p.id, p.bytes);
-          _thumbPaths[p.id] = thumb.path;
-        } catch (_) {
-          // ignored on purpose — see comment above
-        }
-      }
+      // Returns the imported count so the overlay flashes its check;
+      // an empty (cancelled) pick returns no flash.
+      await runHeroProgress<int>(
+        context,
+        title: l10n.t('import_photos_title'),
+        detail: l10n.t('import_photos_selecting'),
+        cancellable: true,
+        task: (report, token) async {
+          final photos = await bootstrap.mediaPicker.pickPhotos(
+            progress: (f, {detail}) => report(0.6 * (f ?? 0), detail: detail),
+            token: token,
+          );
+          if (photos.isEmpty) return null;
+          for (var i = 0; i < photos.length; i++) {
+            token.check();
+            report(0.6 + 0.4 * (i / photos.length),
+                detail: l10n.t('import_photos_preparing'));
+            final p = photos[i];
+            _picked.add(p);
+            // Thumbnail generation is best-effort: failure just means the
+            // tile falls back to the full file.
+            try {
+              final thumb = await bootstrap.thumbs.generate(p.id, p.bytes);
+              _thumbPaths[p.id] = thumb.path;
+            } catch (_) {
+              // ignored on purpose — see comment above
+            }
+          }
+          report(1.0);
+          return photos.length;
+        },
+      );
       if (mounted) setState(() {});
     } on AppFailure catch (e) {
       if (mounted) context.snack(context.l10n.t(e.messageKey), isError: true);

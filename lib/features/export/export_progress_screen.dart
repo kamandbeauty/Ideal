@@ -18,6 +18,7 @@ import '../../app/providers.dart';
 import '../../app/router.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
+import '../../app/widgets/progress.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/utils/ratio_utils.dart';
 import '../export/export_manager.dart';
@@ -145,30 +146,17 @@ class _ExportProgressScreenState extends ConsumerState<ExportProgressScreen> {
   }
 
   Widget _progressView(BuildContext context, L10n l10n) {
-    final pct = (_job.progress * 100).clamp(0, 100);
+    final hasProgress = _job.framesTotal > 0 && _job.progress > 0;
+    final progress = hasProgress ? _job.progress : null;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
+          HeroRing(value: progress, size: 170, strokeWidth: 11),
+          const SizedBox(height: AppTheme.s20),
           SizedBox(
-            width: 150,
-            height: 150,
-            child: Stack(
-              fit: StackFit.expand,
-              children: <Widget>[
-                CircularProgressIndicator(
-                  value: _job.progress <= 0 ? null : _job.progress,
-                  strokeWidth: 6,
-                ),
-                Center(
-                  child: Text(
-                    '${pct.round()}%',
-                    style: context.theme.textTheme.headlineSmall
-                        ?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ],
-            ),
+            width: 260,
+            child: HeroBar(value: progress, height: 10),
           ),
           const SizedBox(height: AppTheme.s24),
           Text(l10n.t(_job.stage.messageKey),

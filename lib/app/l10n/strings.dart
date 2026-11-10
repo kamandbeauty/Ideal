@@ -135,6 +135,12 @@ class L10n {
       'music_tap_seek': 'Tap the waveform to seek',
       'music_drag_trim': 'Drag the edges to trim',
       'music_drag_start': 'Drag the knob to move when the music starts',
+      // imports
+      'import_photos_title': 'Importing photos',
+      'import_photos_selecting': 'Choose your photos to import',
+      'import_photos_preparing': 'Preparing previews…',
+      'import_audio_title': 'Importing music',
+      'import_audio_selecting': 'Choose your song',
       // motion editor
       'motion_title': 'Motion editor',
       'motion_start_frame': 'Start frame',
@@ -378,6 +384,7 @@ class L10n {
       // actions
       'action_ok': 'OK',
       'action_cancel': 'Cancel',
+      'action_cancelling': 'Cancelling…',
       'action_delete': 'Delete',
       'action_retry': 'Try again',
       'action_close': 'Close',
@@ -500,6 +507,12 @@ class L10n {
       'music_tap_seek': 'روی موج صدا ضربه بزن تا به همان لحظه برسی',
       'music_drag_trim': 'برای تراش، لبه‌ها را بکشید',
       'music_drag_start': 'برای جابه‌جایی شروع موسیقی، دستگیره را بکشید',
+      // ایمپورت
+      'import_photos_title': 'وارد کردن تصاویر',
+      'import_photos_selecting': 'تصویرهایتان را انتخاب کنید',
+      'import_photos_preparing': 'در حال آماده‌سازی پیش‌نمایش‌ها…',
+      'import_audio_title': 'وارد کردن موسیقی',
+      'import_audio_selecting': 'آهنگ موردنظرتان را انتخاب کنید',
       'motion_title': 'ویرایش حرکت',
       'motion_start_frame': 'فریم شروع',
       'motion_end_frame': 'فریم پایان',
@@ -732,6 +745,7 @@ class L10n {
       'error_pick_supported_formats': 'انتخاب فرمت‌های پشتیبانی‌شده',
       'action_ok': 'تأیید',
       'action_cancel': 'لغو',
+      'action_cancelling': 'در حال لغو…',
       'action_delete': 'حذف',
       'action_retry': 'تلاش دوباره',
       'action_close': 'بستن',

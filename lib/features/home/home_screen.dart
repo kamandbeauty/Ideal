@@ -12,6 +12,7 @@ import '../../app/providers.dart';
 import '../../app/router.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
+import '../../app/widgets/progress.dart';
 import '../../core/models/project.dart';
 import '../../core/storage/project_repository.dart';
 import '../project/project_editor_controller.dart';
@@ -107,7 +108,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     return const SliverToBoxAdapter(
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 32),
-                        child: Center(child: CircularProgressIndicator()),
+                        child: Center(child: HeroSpinner()),
                       ),
                     );
                   }

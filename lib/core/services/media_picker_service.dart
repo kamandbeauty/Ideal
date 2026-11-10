@@ -17,6 +17,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 
 import '../errors/app_failure.dart';
+import '../utils/progress.dart';
 import '../utils/thumbnail_service_ref.dart' show decodeImageSize;
 
 /// A picked image ready to become a [PhotoItem].
@@ -51,7 +52,11 @@ class MediaPickerService {
   final ImagePicker _picker;
 
   /// Picks multiple images. Returns an empty list when the user cancels.
-  Future<List<PickedPhoto>> pickPhotos() async {
+  ///
+  /// [progress] (optional) is called with the import fraction 0..1 — the
+  /// picker phase itself is not measurable and stays indeterminate.
+  Future<List<PickedPhoto>> pickPhotos(
+      {HeroReport? progress, HeroToken? token}) async {
     final List<XFile> files;
     try {
       files = await _picker.pickMultiImage(
@@ -64,14 +69,24 @@ class MediaPickerService {
         technicalDetail: '${e.code}: ${e.message}',
       );
     }
-    return importPaths(files);
+    return importPaths(files, progress: progress, token: token);
   }
 
   /// Adds images that were picked elsewhere (e.g. share intents or a restore).
-  Future<List<PickedPhoto>> importPaths(List<XFile> files) async {
+  ///
+  /// [progress] reports 0..1 as files are copied, with the current file name
+  /// as detail; [token] allows cooperative cancellation between files.
+  Future<List<PickedPhoto>> importPaths(
+    List<XFile> files, {
+    HeroReport? progress,
+    HeroToken? token,
+  }) async {
     final out = <PickedPhoto>[];
     final failures = <String>[];
-    for (final f in files) {
+    for (var i = 0; i < files.length; i++) {
+      token?.check();
+      final f = files[i];
+      progress?.call(i / files.length, detail: f.name);
       try {
         final bytes = await f.readAsBytes();
         if (bytes.isEmpty) {
@@ -98,6 +113,7 @@ class MediaPickerService {
         failures.add('${f.name}: ${e.runtimeType}');
       }
     }
+    progress?.call(1.0);
     if (out.isEmpty && failures.isNotEmpty) {
       throw AppFailure(
         FailureKind.photoUnreadable,

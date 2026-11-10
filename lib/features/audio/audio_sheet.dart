@@ -10,6 +10,7 @@ import '../../app/l10n/strings.dart';
 import '../../app/providers.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
+import '../../app/widgets/progress.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/models/audio_settings.dart';
 import '../../core/utils/ratio_utils.dart';
@@ -68,9 +69,18 @@ class _AudioSheetState extends ConsumerState<_AudioSheet> {
   }
 
   Future<void> _pick() async {
+    final l10n = context.l10n;
     setState(() => _busy = true);
     try {
-      final file = await ref.read(bootstrapProvider).mediaPicker.pickAudio();
+      // The overlay stays behind the native picker, then covers the copy of
+      // the file (which the native side does after selection).
+      final file = await runHeroProgress<File>(
+        context,
+        title: l10n.t('import_audio_title'),
+        detail: l10n.t('import_audio_selecting'),
+        task: (report, token) =>
+            ref.read(bootstrapProvider).mediaPicker.pickAudio(),
+      );
       if (file == null) return;
       final st = ref.read(projectEditorProvider);
       final current = st?.project.audio ?? const AudioSettings();

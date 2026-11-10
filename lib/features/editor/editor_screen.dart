@@ -16,6 +16,7 @@ import '../../app/providers.dart';
 import '../../app/router.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
+import '../../app/widgets/progress.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/errors/app_failure.dart';
 import '../../core/models/photo_item.dart';
@@ -779,7 +780,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
           const SizedBox(height: 4),
         ],
         if (peaks.isEmpty || srcDur <= 0)
-          const SizedBox(height: 30)
+          _WaveformSkeleton(loading: wf.isLoading)
         else
           _musicTrimStrip(audio, peaks, srcDur, playback),
       ],
@@ -1113,28 +1114,48 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     final settings = ref.read(settingsProvider);
     setState(() => _picking = true);
     try {
-      final picked = await bootstrap.mediaPicker.pickPhotos();
-      if (picked.isEmpty) return;
-      final photos = <PhotoItem>[];
-      for (final p in picked) {
-        String? thumb;
-        // Thumbnails are best-effort, same as the gallery flow.
-        try {
-          thumb = (await bootstrap.thumbs.generate(p.id, p.bytes)).path;
-        } catch (_) {
-          thumb = null;
-        }
-        photos.add(PhotoItem(
-          id: p.id,
-          sourceUri: p.path,
-          width: p.width,
-          height: p.height,
-          duration: settings.defaultPhotoDuration,
-          order: photos.length,
-          displayName: p.originalName,
-          thumbnailPath: thumb,
-        ));
-      }
+      final photos = await runHeroProgress<List<PhotoItem>>(
+        context,
+        title: l10n.t('import_photos_title'),
+        detail: l10n.t('import_photos_selecting'),
+        cancellable: true,
+        task: (report, token) async {
+          // Phase 1: pick + private copy (0 → 60%).
+          final picked = await bootstrap.mediaPicker.pickPhotos(
+            progress: (f, {detail}) => report(0.6 * (f ?? 0), detail: detail),
+            token: token,
+          );
+          if (picked.isEmpty) return null;
+          // Phase 2: thumbnails (60 → 100%).
+          final photos = <PhotoItem>[];
+          for (var i = 0; i < picked.length; i++) {
+            token.check();
+            report(0.6 + 0.4 * (i / picked.length),
+                detail: l10n.t('import_photos_preparing'));
+            final p = picked[i];
+            String? thumb;
+            // Thumbnails are best-effort, same as the gallery flow.
+            try {
+              thumb = (await bootstrap.thumbs.generate(p.id, p.bytes)).path;
+            } catch (_) {
+              thumb = null;
+            }
+            photos.add(PhotoItem(
+              id: p.id,
+              sourceUri: p.path,
+              width: p.width,
+              height: p.height,
+              duration: settings.defaultPhotoDuration,
+              order: photos.length,
+              displayName: p.originalName,
+              thumbnailPath: thumb,
+            ));
+          }
+          report(1.0);
+          return photos;
+        },
+      );
+      if (photos == null || photos.isEmpty) return;
       final ctrl = ref.read(projectEditorProvider.notifier);
       ctrl.addPhotos(photos);
       // Motion for the newcomers only; existing shots keep theirs.
@@ -1867,4 +1888,101 @@ class _MusicTrimPainter extends CustomPainter {
       old.trimEnd != trimEnd ||
       old.loop != loop ||
       (old.playhead - playhead).abs() > 0.0005;
+}
+
+/// Placeholder for the music lane while the native waveform decode runs
+/// ([loading] → shimmer) or when no waveform is available (dim static bars).
+class _WaveformSkeleton extends StatefulWidget {
+  const _WaveformSkeleton({required this.loading});
+
+  final bool loading;
+
+  @override
+  State<_WaveformSkeleton> createState() => _WaveformSkeletonState();
+}
+
+class _WaveformSkeletonState extends State<_WaveformSkeleton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.loading) _c.repeat();
+  }
+
+  @override
+  void didUpdateWidget(_WaveformSkeleton old) {
+    super.didUpdateWidget(old);
+    if (widget.loading && !_c.isAnimating) _c.repeat();
+    if (!widget.loading && _c.isAnimating) _c.stop();
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 30,
+      child: AnimatedBuilder(
+        animation: _c,
+        builder: (BuildContext _, __) => Container(
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1B1B26),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: CustomPaint(
+            painter: _WaveformSkeletonPainter(
+              t: _c.value,
+              animating: widget.loading,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WaveformSkeletonPainter extends CustomPainter {
+  _WaveformSkeletonPainter({required this.t, required this.animating});
+
+  final double t;
+  final bool animating;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const bars = 44;
+    final w = size.width / bars;
+    for (var i = 0; i < bars; i++) {
+      // Stable pseudo-random height per bar.
+      final r = (math.sin(i * 127.1 + 311.7) * 43758.5453) % 1.0;
+      final frac = 0.25 + 0.75 * r.abs();
+      final h = (size.height * frac).clamp(3.0, size.height).toDouble();
+      final alpha = animating
+          ? 0.14 +
+              0.20 * (0.5 + 0.5 * math.sin(2 * math.pi * (t - i * 0.045)))
+          : 0.16;
+      final y = (size.height - h) / 2;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(i * w + 1, y, (w - 2).clamp(1.0, 8.0), h),
+          const Radius.circular(1.2),
+        ),
+        Paint()..color = const Color(0xFF46E0C0).withValues(alpha: alpha),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_WaveformSkeletonPainter old) =>
+      old.t != t || old.animating != animating;
 }

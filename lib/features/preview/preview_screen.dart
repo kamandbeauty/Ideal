@@ -9,6 +9,7 @@ import '../../app/l10n/strings.dart';
 import '../../app/router.dart';
 import '../../app/theme/app_theme.dart';
 import '../../app/widgets/common.dart';
+import '../../app/widgets/progress.dart';
 import '../../core/utils/ratio_utils.dart';
 import '../project/project_editor_controller.dart';
 import '../transitions/timeline_engine.dart';
@@ -56,7 +57,7 @@ class _PreviewScreenState extends ConsumerState<PreviewScreen> {
     if (st == null) {
       return Scaffold(
         appBar: AppBar(title: Text(l10n.t('preview_title'))),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(child: HeroSpinner()),
       );
     }
     final ctrl = ref.read(playbackProvider.notifier);
