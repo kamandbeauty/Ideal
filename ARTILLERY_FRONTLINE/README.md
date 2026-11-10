@@ -77,7 +77,7 @@ godot --headless --path ARTILLERY_FRONTLINE --editor --import
 godot --headless --path ARTILLERY_FRONTLINE --script res://tests/run_tests.gd
 ```
 
-آخرین CI موفق: **۸۶۶ بررسی headless / ۰ شکست**، **۳۴ بررسی gameplay smoke / ۰ شکست**، **۴۵ بررسی coastal smoke / ۰ شکست** (اجرای [42860691391](https://github.com/kamandbeauty/Ideal/actions/runs/42860691391) روی `850a3b7`). این‌ها بررسی دسکتاپ/CI هستند، نه اجرای اندروید.
+آخرین CI موفق: **۸۶۸ بررسی headless / ۰ شکست**، **۳۴ بررسی gameplay smoke / ۰ شکست**، **۴۵ بررسی coastal smoke / ۰ شکست** (اجرای [42866947820](https://github.com/kamandbeauty/Ideal/actions/runs/42866947820) روی `99cfc48`). این‌ها بررسی دسکتاپ/CI هستند، نه اجرای اندروید.
 
 ## ساخت اندروید
 
