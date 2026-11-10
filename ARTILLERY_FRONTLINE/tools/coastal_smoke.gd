@@ -153,6 +153,20 @@ func run() -> void:
 	check("mission results panel appears", coastal.hud.result_panel.visible)
 	check("coastal results cover the full viewport", coastal.hud.result_panel.get_global_rect().is_equal_approx(viewport_rect))
 	await capture("coastal-results")
+	# Vehicle design preview: the three approved models on the beach, HUD hidden, front facing the camera.
+	coastal.hud.root.visible = false
+	var preview := Node3D.new()
+	preview.name = "VehiclePreview"
+	coastal.add_child(preview)
+	var lineup: Array = [[VehicleModels.build_jeep(), -6.0], [VehicleModels.build_apc(), 0.0], [VehicleModels.build_boss_tank(), 6.0]]
+	for entry in lineup:
+		var model: Node3D = entry[0]
+		model.position = Vector3(float(entry[1]), CoastalTerrain.height_at(float(entry[1]), 36.0), 36.0)
+		model.rotation.y = PI
+		preview.add_child(model)
+	coastal.aim_at(Vector3(0.0, 1.5, 36.0))
+	await get_tree().create_timer(1.0).timeout
+	await capture("vehicle-models")
 	var report: Dictionary = {"scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 03 skinned infantry/detailed war machines/weapons; not Android hardware", "checks": checks, "failures": failures, "passed": failures == 0, "performance": Graphics.snapshot(), "soldiers": coastal.soldiers.size(), "kills": coastal.kills, "weapon_screen_bounds": {"x": bounds.position.x, "y": bounds.position.y, "w": bounds.size.x, "h": bounds.size.y}}
 	var file: FileAccess = FileAccess.open(output + "/coastal-smoke-report.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify(report, "  "))

@@ -1,6 +1,18 @@
 extends RefCounted
 
 func run(t: TestContext) -> void:
+	var jeep: Node3D = VehicleModels.build_jeep()
+	t.equal(jeep.find_children("Wheel", "MeshInstance3D", true, false).size(), 4, "Military jeep has four road wheels")
+	t.check(jeep.find_child("Barrel", true, false) != null, "Military jeep carries a roof machine gun")
+	jeep.free()
+	var apc: Node3D = VehicleModels.build_apc()
+	t.equal(apc.find_children("Wheel", "MeshInstance3D", true, false).size(), 8, "APC has eight wheels")
+	t.check(apc.find_child("Turret", true, false) != null, "APC has a roof turret")
+	apc.free()
+	var boss: Node3D = VehicleModels.build_boss_tank()
+	t.equal(boss.find_children("Barrel", "MeshInstance3D", true, false).size(), 2, "Boss tank has twin cannon barrels")
+	t.equal(boss.find_children("TrackWheel", "MeshInstance3D", true, false).size(), 12, "Boss tank has twelve track wheels")
+	boss.free()
 	t.check(CoastalWeapon.ORDER.size() == 5, "Five mounted weapon types include machine guns, cannon, rocket, bazooka and autocannon")
 	t.check(bool(CoastalWeapon.WEAPONS.twin_hmg.automatic), "Twin heavy machine gun supports automatic fire")
 	t.check(float(CoastalWeapon.WEAPONS.rocket.blast) > 0.0, "Rocket ammunition has blast radius")
