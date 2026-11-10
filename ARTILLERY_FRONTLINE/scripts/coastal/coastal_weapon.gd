@@ -347,30 +347,63 @@ func screen_bounds(active_camera: Camera3D) -> Rect2:
 				result = result.expand(screen)
 	return result
 
+## Brass casings come from a fixed pool. Each casing is a node created once, with shared meshes and
+## one material, so automatic fire reuses nodes instead of creating and freeing them every shot.
+const CASING_POOL_SIZE: int = 24
+const CASING_LIFE: float = 1.3
+var casing_pool: Array[MeshInstance3D] = []
+var casing_free: Array[MeshInstance3D] = []
+var casing_meshes: Dictionary = {}
+var casing_material: Material
+var casing_parent: Node
+
+func _ensure_casing_pool() -> void:
+	if not casing_pool.is_empty():
+		return
+	casing_parent = get_tree().current_scene if get_tree().current_scene else get_parent()
+	var small := CylinderMesh.new()
+	small.top_radius = 0.012
+	small.bottom_radius = 0.012
+	small.height = 0.09
+	small.radial_segments = 10
+	var large := CylinderMesh.new()
+	large.top_radius = 0.03
+	large.bottom_radius = 0.03
+	large.height = 0.2
+	large.radial_segments = 10
+	casing_meshes = {"small": small, "large": large}
+	casing_material = MaterialLibrary.weapon_surface("weapon_brass", Color.WHITE, true)
+	for index in range(CASING_POOL_SIZE):
+		var casing := MeshInstance3D.new()
+		casing.material_override = casing_material
+		casing.top_level = true
+		casing.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		casing.visible = false
+		casing_parent.add_child(casing)
+		casing_pool.append(casing)
+		casing_free.append(casing)
+
 func _eject_casing() -> void:
 	if weapon_id == "rocket" or weapon_id == "bazooka":
 		return
-	if casings.size() > 22:
-		var old: Dictionary = casings.pop_front()
-		if is_instance_valid(old.node):
-			old.node.queue_free()
-	var casing := MeshInstance3D.new()
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = 0.012 if weapon_id == "twin_hmg" else 0.03
-	mesh.bottom_radius = mesh.top_radius
-	mesh.height = 0.09 if weapon_id == "twin_hmg" else 0.2
-	mesh.radial_segments = 10
-	casing.mesh = mesh
-	casing.material_override = MaterialLibrary.weapon_surface("weapon_brass", Color.WHITE, true)
-	casing.top_level = true
-	var casing_parent: Node = get_tree().current_scene if get_tree().current_scene else get_parent()
-	casing_parent.add_child(casing)
+	_ensure_casing_pool()
+	var casing: MeshInstance3D
+	if not casing_free.is_empty():
+		casing = casing_free.pop_back()
+	elif not casings.is_empty():
+		# Every casing is in flight: recycle the oldest one rather than allocating.
+		var oldest: Dictionary = casings.pop_front()
+		casing = oldest.node
+	else:
+		return
+	casing.mesh = casing_meshes["small"] if weapon_id == "twin_hmg" else casing_meshes["large"]
 	var eject_index: int = (muzzle_index - 1) % maxi(ejection_markers.size(), 1)
 	if not ejection_markers.is_empty():
 		casing.global_position = ejection_markers[eject_index].global_position
 	else:
 		casing.global_position = global_position + global_transform.basis.x * 0.22 + Vector3.UP * -0.05
-	casing.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	casing.visible = true
+	casing.rotation = Vector3.ZERO
 	casings.append({"node": casing, "velocity": global_transform.basis.x * rng.randf_range(1.4, 2.6) + Vector3.UP * rng.randf_range(1.2, 2.2), "age": 0.0})
 
 func _tick_casings(delta: float) -> void:
@@ -384,6 +417,14 @@ func _tick_casings(delta: float) -> void:
 		entry.velocity.y -= 9.81 * delta
 		node.global_position += entry.velocity * delta
 		node.rotation += Vector3(4.0, 6.0, 3.0) * delta
-		if entry.age > 1.3:
-			node.queue_free()
+		if entry.age > CASING_LIFE:
+			node.visible = false
+			casing_free.append(node)
 			casings.remove_at(index)
+
+## Hides every casing at once (used when the weapon is reset between missions).
+func clear_casings() -> void:
+	for node in casing_pool:
+		node.visible = false
+	casings.clear()
+	casing_free = casing_pool.duplicate()

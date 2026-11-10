@@ -349,6 +349,21 @@ func run(t: TestContext) -> void:
 	scene.use_support("repair")
 	t.near(scene.player_health, minf(CoastalController.MAX_HEALTH, player_before - 500.0 * CoastalController.DAMAGE_SCALE + CoastalController.REPAIR_AMOUNT), 0.001, "Repair restores the configured amount")
 	t.check(scene.player_health > 2500.0, "Repair remains usable while airstrike is cooling down")
+	# Casings come from a fixed pool: sustained automatic fire reuses nodes instead of allocating new ones.
+	var previous_weapon: String = scene.weapon.weapon_id
+	scene.weapon.select("twin_hmg")
+	scene.weapon._ensure_casing_pool()
+	var casing_nodes_before: int = scene.weapon.casing_parent.get_child_count()
+	for shot in range(120):
+		scene.weapon._eject_casing()
+		scene.weapon._tick_casings(0.05)
+	t.equal(scene.weapon.casing_pool.size(), CoastalWeapon.CASING_POOL_SIZE, "Casing pool holds a fixed number of nodes")
+	t.check(scene.weapon.casings.size() <= CoastalWeapon.CASING_POOL_SIZE, "Live casings never exceed the pool")
+	t.equal(scene.weapon.casing_parent.get_child_count(), casing_nodes_before, "Sustained fire creates no new casing nodes")
+	scene.weapon.clear_casings()
+	t.equal(scene.weapon.casing_free.size(), CoastalWeapon.CASING_POOL_SIZE, "Clearing returns every casing to the pool")
+	t.check(scene.weapon.casings.is_empty(), "Clearing leaves no live casings")
+	scene.weapon.select(previous_weapon)
 	var tank: EnemyVehicle = scene.vehicles[0]
 	tank.receive_damage(10000.0)
 	t.check(tank.is_dead(), "Tank can be destroyed by player damage")
