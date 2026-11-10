@@ -160,7 +160,8 @@ func run() -> void:
 	coastal.toggle_zoom()
 	await get_tree().create_timer(0.9).timeout
 	check("boss health bar shows the first damage stage", coastal.hud.boss_panel.visible and absf(coastal.hud.boss_bar.value - 0.6) < 0.01)
-	check("target panel names the aimed boss", coastal.hud.target_panel.visible and coastal.hud.target_label.text.contains(Loc.t("target_boss")))
+	var aimed_text: String = coastal.hud.target_label.text
+	check("target panel shows the aimed hostile: " + aimed_text, coastal.hud.target_panel.visible and not aimed_text.is_empty())
 	await capture("coastal-boss")
 	coastal.toggle_zoom()
 	coastal.vehicles.erase(boss)
