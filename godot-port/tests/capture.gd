@@ -55,6 +55,11 @@ func _ready() -> void:
 	_report(app, "board")
 	await _shot("05-board")
 
+	# Motion cannot be judged from a still. The swap is played in slow motion and photographed as it
+	# runs, and the crops are laid out in a strip: this is the only evidence that the stones travel,
+	# lift and land rather than teleporting, and the animation work has to show itself.
+	await _swap_strip(app.get("board"))
+
 	# The combo bubble lives for nine tenths of a second inside a chain, so a camera that waits for one
 	# would photograph an empty board. Ask the real screen to show a real bonus, pin the tween to its
 	# legible frame, and shoot the element a player would actually see.
@@ -106,6 +111,61 @@ func _ready() -> void:
 	_save_report()
 	print("[capture] wrote the whole set to %s" % SHOTS)
 	get_tree().quit()
+
+## Takes the board through one real move in slow motion and writes the flight of the two stones as a
+## strip of crops. Engine.time_scale is what makes it possible: at a fifth of real time the 0.18 s swap
+## is long enough to sample ten times, and every offset below is a time in the game's own clock, so the
+## strip is the same strip whatever the renderer's frame rate on the day is.
+func _swap_strip(board_screen) -> void:
+	var move: Array = board_screen._find_hint_move()
+	if move.size() != 2:
+		_log("STRIP skipped :: no legal move on the board")
+		return
+	board_screen._hide_hand()
+	await _frames(2)
+	var board = board_screen.get("board")
+	var a: Vector2 = board.position + board.cell_center(move[0])
+	var b: Vector2 = board.position + board.cell_center(move[1])
+	var window := Rect2i(Vector2i(int(minf(a.x, b.x) - 62.0), int(minf(a.y, b.y) - 62.0)),
+		Vector2i(180, 140))
+	board_screen._hide_hand()
+	Engine.time_scale = 0.2
+	board_screen._attempt_swap(move[0], move[1])
+	var offsets := [0.02, 0.02, 0.02, 0.03, 0.04, 0.05, 0.07, 0.09, 0.12, 0.16]
+	var frames: Array = []
+	for offset in offsets:
+		await get_tree().create_timer(float(offset)).timeout
+		frames.append(await _grab_rect(window))
+	Engine.time_scale = 1.0
+	await _frames(4)
+	_save_strip(frames, "11-swap-strip")
+
+## A horizontal filmstrip of already-cropped frames, doubled so the stones are big enough to judge.
+func _save_strip(frames: Array, strip_name: String) -> void:
+	if frames.is_empty():
+		return
+	var cell: Image = frames[0]
+	var pad := 12
+	var strip := Image.create(pad + (cell.get_width() * 2 + pad) * frames.size(),
+		cell.get_height() * 2 + pad * 2, false, Image.FORMAT_RGB8)
+	strip.fill(Color(UiTokens.BG.r, UiTokens.BG.g, UiTokens.BG.b))
+	for index in range(frames.size()):
+		var frame: Image = frames[index]
+		frame.convert(Image.FORMAT_RGB8)
+		frame.resize(cell.get_width() * 2, cell.get_height() * 2, Image.INTERPOLATE_LANCZOS)
+		strip.blit_rect(frame, Rect2i(Vector2i.ZERO, frame.get_size()),
+			Vector2i(pad + index * (cell.get_width() * 2 + pad), pad))
+	strip.save_png("%s/%s.png" % [SHOTS, strip_name])
+	_log("STRIP %s %dx%d frames=%d" % [strip_name, strip.get_width(), strip.get_height(),
+		frames.size()])
+
+## A crop of what the camera sees right now. Everything is drawn before the crop is taken, or the strip
+## shows the frame before the one it claims to.
+func _grab_rect(rect: Rect2i) -> Image:
+	await RenderingServer.frame_post_draw
+	var image := get_viewport().get_texture().get_image()
+	var safe := rect.intersection(Rect2i(Vector2i.ZERO, image.get_size()))
+	return image.get_region(safe)
 
 ## One image with every screen side by side, so a reviewer can see the whole game without opening five
 ## files. Built here rather than in the workflow so it needs nothing but Godot.
