@@ -281,26 +281,30 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: subflow-apk-latest
-          name: SubFlow APK (latest)
+          name: SubFlow APK — ${{ steps.collect.outputs.version }}
           prerelease: true
           allow_updates: true
           body: |
-            SubFlow ${{ steps.collect.outputs.version }}.
+            SubFlow ${{ steps.collect.outputs.version }} — نسخهٔ ۶۴ بیتی، اندروید ۸٫۰ (API 26) به بالا.
 
             Install: enable "install unknown apps" for your browser/file manager, then open the APK.
-            Requires Android 8.0 (API 26) or newer on a 64-bit ARM device.
 
             What this build really does:
-            - video import through the Android Photo Picker, exact technical probing,
-              Media3 playback of the original file, project management on SQLite;
+            - video import through the Android Photo Picker, exact technical probing, Media3
+              playback of the original file, project management on SQLite;
+            - Whisper (base, q5_1) ships inside the APK - no download step, no side-load - and the
+              opt-in online provider stays available for anyone who configures a key;
             - 10 embedded OFL font families (7 Persian-capable) and a caption effect engine
               (17 entrances / 9 exits / 8 word effects / 6 easings) with 40 ready looks in
               Persian and English plus a live style gallery;
             - a subtitle studio: add / split / merge / retime / delete captions, undo and redo,
               word-level karaoke driven by the real playhead, atomic autosave, style
-              copy-paste, and SRT / ASS / TXT export that never re-encodes the video.
+              copy-paste, and SRT / ASS / TXT export that never re-encodes the video;
+            - a two-screen layout built around that studio (home + timeline editor);
+            - video export: burn the captions into a new MP4 (1080p / 720p / 480p, optional trim)
+              with real encoder progress, a working cancel button and the system share sheet.
+              The source video is never modified.
 
-            Speech recognition (Whisper), translation, watermarks, silence removal and video
-            rendering are later phases and are marked "not yet" inside the app — no fake
-            progress, no placeholder buttons.
+            Watermarks and silence removal are later phases and are marked "not yet" inside the
+            app — no fake progress, no placeholder buttons.
           files: dist/*
