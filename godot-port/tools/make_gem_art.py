@@ -120,20 +120,47 @@ def _octagon(radius):
              CY + math.sin(math.pi / 8 + i * math.pi / 4) * radius) for i in range(8)]
 
 
+def _polygon_area(points):
+    total = 0.0
+    for index in range(len(points)):
+        x0, y0 = points[index]
+        x1, y1 = points[(index + 1) % len(points)]
+        total += x0 * y1 - x1 * y0
+    return abs(total) * 0.5
+
+
+def _balance(points, target_area, max_extent):
+    """Give every silhouette the same visual weight, and keep it inside the plate.
+
+    A square inscribed in the same radius as a circle has two thirds of its area, so the cut stones read
+    smaller than the round ones and the board looks like it holds two different sizes of piece.
+    """
+    area = _polygon_area(points)
+    factor = math.sqrt(target_area / area) if area > 1.0 else 1.0
+    balanced = scale_points(points, factor)
+    xs = [x for x, _ in balanced]
+    ys = [y for _, y in balanced]
+    extent = max(max(xs) - min(xs), max(ys) - min(ys))
+    if extent > max_extent:
+        balanced = scale_points(balanced, max_extent / extent)
+    return balanced
+
+
 def silhouette(spec):
     radius = SIZE * 0.45
     shape = spec["shape"]
     if shape == "round":
-        return _circle(radius)
+        return _balance(_circle(radius), math.pi * radius * radius * 0.98, SIZE * 0.90)
     if shape == "cushion":
-        return _cushion(radius)
+        return _balance(_cushion(radius), math.pi * radius * radius * 0.98, SIZE * 0.90)
     if shape == "hexagon":
-        return _hexagon(radius)
+        return _balance(_hexagon(radius), math.pi * radius * radius * 0.98, SIZE * 0.90)
     if shape == "emerald":
-        return _emerald(radius * 1.18, radius * 1.98, radius * 0.26)
+        return _balance(_emerald(radius * 1.16, radius * 1.92, radius * 0.24),
+                        math.pi * radius * radius * 0.98, SIZE * 0.90)
     if shape == "drop":
-        return _drop(radius * 0.78, radius * 1.12)
-    return _octagon(radius * 1.00)
+        return _balance(_drop(radius * 0.78, radius * 1.12), math.pi * radius * radius * 0.98, SIZE * 0.90)
+    return _balance(_octagon(radius), math.pi * radius * radius * 0.98, SIZE * 0.90)
 
 
 def scale_points(points, factor, centre=(CX, CY)):
