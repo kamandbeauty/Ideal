@@ -273,6 +273,21 @@ jobs:
             unzip -l "$OUT" | grep -E 'lib/' | head -20
             echo "::error title=subflow apk::libapp.so missing for arm64-v8a"
             exit 1; }
+          # The Persian font pack and the schema migrations only help if they
+          # actually ship: both are plain assets, and a missing asset declaration
+          # fails silently at runtime (fallback font, or a database stuck at v2).
+          FONT_COUNT=$(unzip -l "$OUT" | grep -c "flutter_assets/assets/fonts/.*\.ttf" || true)
+          echo "bundled caption fonts: $FONT_COUNT"
+          if [ "$FONT_COUNT" -lt 44 ]; then
+            echo "::error title=subflow apk::expected 44+ bundled TTF files, found $FONT_COUNT"
+            unzip -l "$OUT" | grep "assets/fonts/" | head -10
+            exit 1
+          fi
+          for migration in 001_init.sql 002_translation_review.sql 003_segment_style.sql; do
+            unzip -l "$OUT" | grep -q "flutter_assets/assets/db/$migration" || {
+              echo "::error title=subflow apk::migration $migration missing from the APK"
+              exit 1; }
+          done
           echo "APK content verified (arm64 native core + flutter engine)"
 
       - name: Upload APK artefact
