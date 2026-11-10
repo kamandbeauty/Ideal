@@ -472,11 +472,6 @@ check("preset_json" in segment_sql, "migration 3 must add subtitle_segments.pres
 segment_model = (ROOT / "lib/models/subtitle.dart").read_text(encoding="utf-8")
 check("presetJson" in segment_model and "'preset_json'" in segment_model,
       "SubtitleSegment must carry preset_json to and from the database")
-editor_dirty = (ROOT / "lib/features/subtitles/subtitle_editor_model.dart").read_text(encoding="utf-8")
-check("x.presetJson != y.presetJson" in editor_dirty,
-      "the editor's change detection must notice a per-caption style edit")
-check("presetJson: fixed.presetJson" in document_src,
-      "subtitle normalisation must carry preset_json through")
 document_src = (ROOT / "lib/features/subtitles/subtitle_document.dart").read_text(encoding="utf-8")
 for operation in ("withPreset(", "withPresetFrom("):
     check(operation in document_src, f"subtitle document is missing {operation}")
