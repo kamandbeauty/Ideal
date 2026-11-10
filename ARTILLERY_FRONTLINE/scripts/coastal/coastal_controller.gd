@@ -480,7 +480,8 @@ func _on_boss_damaged(_vehicle: EnemyVehicle, ratio: float) -> void:
 	hud.update_boss(ratio)
 
 func _on_boss_stage(vehicle: EnemyVehicle, stage: int) -> void:
-	_explode(vehicle.global_position + Vector3.UP * 1.5, Vector3.UP, 4.0 if stage == 1 else 6.0)
+	# The burst hits the soldiers and vehicles around the boss, never the boss itself.
+	_explode(vehicle.global_position + Vector3.UP * 1.5, Vector3.UP, 4.0 if stage == 1 else 6.0, vehicle)
 	camera_shake = maxf(camera_shake, 0.6)
 
 func _on_aircraft_destroyed(plane: EnemyAircraft) -> void:
@@ -596,22 +597,23 @@ func _show_hit_number(point: Vector3, dealt: float, collider: Object) -> void:
 
 ## Ground blasts are anchored to the terrain or sea surface, so a shell that
 ## strikes a craft's hull or a tank's turret does not leave a cloud hanging in the air.
-func _explode(point: Vector3, _normal: Vector3, radius: float) -> void:
+## `source` is a vehicle that must not be hurt by its own blast (a boss stage burst).
+func _explode(point: Vector3, _normal: Vector3, radius: float, source: Object = null) -> void:
 	var grounded: Vector3 = _blast_point(point)
 	effects.explode(grounded, Vector3.UP, radius, grounded.y - 0.08)
 	Sound.play_at("explosion", grounded, -4.0)
-	_explode_damage(grounded, radius)
+	_explode_damage(grounded, radius, true, source)
 
 func _blast_point(point: Vector3) -> Vector3:
 	var ground: float = maxf(CoastalTerrain.height_at(point.x, point.z), 0.0)
 	return Vector3(point.x, ground + 0.08, point.z)
 
-func _explode_damage(point: Vector3, radius: float, hurt_player: bool = true) -> void:
+func _explode_damage(point: Vector3, radius: float, hurt_player: bool = true, source: Object = null) -> void:
 	for soldier in soldiers:
 		if is_instance_valid(soldier) and not soldier.is_dead():
 			soldier.react_to_explosion(point, radius)
 	for vehicle in vehicles:
-		if is_instance_valid(vehicle) and not vehicle.is_dead():
+		if vehicle != source and is_instance_valid(vehicle) and not vehicle.is_dead():
 			vehicle.react_to_explosion(point, radius)
 	for plane in aircraft:
 		if is_instance_valid(plane) and not plane.is_dead():
