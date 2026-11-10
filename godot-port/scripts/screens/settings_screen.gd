@@ -40,7 +40,7 @@ func build() -> void:
 		var x := 16.0 if column == 1 else UiTokens.CANVAS_WIDTH - 16.0 - ROW_W
 		var y := 92.0 + float(slot) * (ROW_HEIGHT + 8.0)
 		var row := UiKit.art_panel(self, "row_%d" % index, x, y, ROW_W, ROW_HEIGHT,
-			"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
+			"ui_panel", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 
 		# The switch occupies 8..64, so the glyph starts after it: at 58 the note sat on the track.
 		UiKit.icon(row, "glyph", icons[index], 72.0, (ROW_HEIGHT - 26.0) * 0.5, 26.0, 26.0)
@@ -74,7 +74,7 @@ func build() -> void:
 		_switches.append({"key": keys[index], "toggle": toggle, "knob": knob})
 
 	var sample_panel := UiKit.art_panel(self, "sample", 16.0, 212.0, UiTokens.CANVAS_WIDTH - 32.0, 76.0,
-		"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
+		"ui_panel", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 	_sample = UiKit.label(sample_panel, "sample_text", SAMPLE, UiTokens.TYPE_BASE, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(_sample, 12.0, 6.0, UiTokens.CANVAS_WIDTH - 56.0, 30.0)
@@ -96,7 +96,7 @@ func build() -> void:
 	UiKit.place(version, 16.0, 292.0, UiTokens.CANVAS_WIDTH - 32.0, 18.0)
 
 	var about := UiKit.art_panel(self, "about", 16.0, 314.0, UiTokens.CANVAS_WIDTH - 32.0, 78.0,
-		"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
+		"ui_panel", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 	var about_text := UiKit.label(about, "about_text",
 		"کاخِ شازده — بازی مستقل با موتور گودو\nهمهٔ هنر بازی و همهٔ قاب‌ها، دکمه‌ها و قرص‌های رابط، تصویرِ آماده‌اند؛ روی صفحه هیچ شکلِ کشیده‌شده در کد نیست",
 		UiTokens.TYPE_SM, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)

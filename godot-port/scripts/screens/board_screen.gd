@@ -505,7 +505,7 @@ func _build_overlay() -> void:
 
 	_overlay_card = UiKit.art_panel(_overlay, "card", (UiTokens.CANVAS_WIDTH - OVERLAY_CARD_WIDTH) * 0.5,
 		(UiTokens.CANVAS_HEIGHT - OVERLAY_CARD_HEIGHT) * 0.5, OVERLAY_CARD_WIDTH, OVERLAY_CARD_HEIGHT,
-		"panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
+		"ui_panel", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 	_overlay_card.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var banner := UiKit.icon(_overlay_card, "banner", "result_win",
@@ -659,7 +659,7 @@ func _build_pause() -> void:
 
 	var card := UiKit.art_panel(_pause, "card", (UiTokens.CANVAS_WIDTH - PAUSE_CARD_WIDTH) * 0.5,
 		(UiTokens.CANVAS_HEIGHT - PAUSE_CARD_HEIGHT) * 0.5, PAUSE_CARD_WIDTH, PAUSE_CARD_HEIGHT,
-		"panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
+		"ui_panel", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 	card.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var title := UiKit.label(card, "title", "بازی متوقف شد", UiTokens.TYPE_LG, UiTokens.GOLD,

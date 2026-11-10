@@ -41,7 +41,7 @@ func build() -> void:
 	const CARD_W := 330.0
 	var card_x := (UiTokens.CANVAS_WIDTH - CARD_W) * 0.5
 	var card := UiKit.art_panel(self, "card", card_x, 126.0, CARD_W, 126.0,
-		"panel_frame", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
+		"ui_panel", UiTokens.BORDER_CARD, UiTokens.SURFACE, UiTokens.RADIUS_PANEL)
 
 	_chapter_label = UiKit.label(card, "chapter", "", UiTokens.TYPE_XS, UiTokens.TEXT_MUTED,
 		HORIZONTAL_ALIGNMENT_CENTER)

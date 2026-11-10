@@ -234,7 +234,8 @@ def save(img, name):
 # ---- the plate ----------------------------------------------------------------------------------
 
 
-def plate(name, size, radius, base, edge, rim_colour=None, marks=None, gloss=0.55, grain_strength=5):
+def plate(name, size, radius, base, edge, rim_colour=None, marks=None, gloss=0.55, grain_strength=5,
+          inlay=None, studs=False):
     """One plate, built from the same six layers every other plate uses."""
     top = _scale(base, 1.0 + 0.34 * gloss)
     middle = _scale(base, 1.0 + 0.06 * gloss)
@@ -247,8 +248,20 @@ def plate(name, size, radius, base, edge, rim_colour=None, marks=None, gloss=0.5
     img = rim(img, radius, edge, width=2, inset=1)
     if rim_colour:
         img = hairline(img, radius, rim_colour, inset=4, alpha=210)
+    if inlay:
+        # A turquoise line just inside the gold: the second colour a Persian frame always carries.
+        img = hairline(img, radius, inlay, inset=7, alpha=64)
     if marks:
         img = corner_marks(img, radius, marks, inset=max(4, radius // 3), size=2)
+    if studs:
+        stud = ImageDraw.Draw(img)
+        for cx, cy in ((radius * 0.62, radius * 0.62), (size[0] - radius * 0.62, radius * 0.62),
+                       (radius * 0.62, size[1] - radius * 0.62),
+                       (size[0] - radius * 0.62, size[1] - radius * 0.62)):
+            r = 3.0
+            stud.ellipse((cx - r, cy - r, cx + r, cy + r), fill=ACCENT + (235,))
+            stud.ellipse((cx - r * 0.45, cy - r * 0.55, cx + r * 0.1, cy - r * 0.05),
+                         fill=WHITE + (200,))
     save(img, name)
 
 
@@ -265,8 +278,10 @@ def main():
           marks=WHITE)
 
     # Panels and cards: 96 dp with a 20 dp border, so a nine-slice at any size keeps its corners.
-    plate("ui_panel", (96, 96), 22, SURFACE, BORDER, rim_colour=GOLD, gloss=0.4, marks=GOLD)
-    plate("ui_panel_raised", (96, 96), 22, RAISED, BORDER, rim_colour=GOLD, gloss=0.55, marks=GOLD)
+    plate("ui_panel", (96, 96), 22, SURFACE, BORDER, rim_colour=GOLD, gloss=0.4, marks=GOLD,
+          inlay=ACCENT, studs=True)
+    plate("ui_panel_raised", (96, 96), 22, RAISED, BORDER, rim_colour=GOLD, gloss=0.55, marks=GOLD,
+          inlay=ACCENT, studs=True)
     plate("ui_button", (96, 64), 20, RAISED, BORDER, rim_colour=GOLD, gloss=0.55)
     plate("ui_button_gold", (96, 64), 20, GOLD, GOLD_DARK, rim_colour=GOLD_LIGHT, gloss=0.65,
           marks=WHITE)

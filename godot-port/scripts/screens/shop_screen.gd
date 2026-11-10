@@ -36,7 +36,7 @@ func build() -> void:
 		var x := float(columns[column])
 		var y := 112.0 + float(slot) * (ROW_HEIGHT + 8.0)
 		var row := UiKit.art_panel(self, "row_%d" % kind, x, y, ROW_W, ROW_HEIGHT,
-			"panel_frame", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
+			"ui_panel", UiTokens.BORDER_PANEL, UiTokens.SURFACE, UiTokens.RADIUS_MD)
 
 		UiKit.icon(row, "icon", _booster_icon(kind), 10.0, (ROW_HEIGHT - 42.0) * 0.5, 42.0, 42.0)
 
