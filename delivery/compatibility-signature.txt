@@ -7,11 +7,11 @@ Verified using v4 scheme (APK Signature Scheme v4): false
 Verified for SourceStamp: false
 Number of signers: 1
 Signer #1 certificate DN: CN=Artillery Frontline Development, O=Frontline, C=DE
-Signer #1 certificate SHA-256 digest: ee8538e1afc2e733cfd993259aac6ab4a9f273763fa956883f65bc9c492469fe
-Signer #1 certificate SHA-1 digest: 80e969ad0faf8884183490a2b1d1957ab84f7976
-Signer #1 certificate MD5 digest: 8637b57b3c809cf1e9144a4c517dde60
+Signer #1 certificate SHA-256 digest: b049f47391f8919c86a458308a7685807754a1fde02477e67212174027dfd97b
+Signer #1 certificate SHA-1 digest: afb22c1351fa0451640d99da8857e04c79f17e36
+Signer #1 certificate MD5 digest: 5282c424a8b260a13f11cb00fc65a20f
 Signer #1 key algorithm: RSA
 Signer #1 key size (bits): 2048
-Signer #1 public key SHA-256 digest: 32a0eef622723bd9d19110744745b8ee10728ec2a8ef0d0937c51826a4837d23
-Signer #1 public key SHA-1 digest: e113bc26d5dbbfab005dc17399412426f1d2c955
-Signer #1 public key MD5 digest: 0f64fa040bbd24dced58c60b138a1439
+Signer #1 public key SHA-256 digest: de2486f26f9bf165f773d9db19cbc111926372f05ff30dde183ca84beb595498
+Signer #1 public key SHA-1 digest: 0eb708670b788dc9df3de927167c31e240058ad9
+Signer #1 public key MD5 digest: b4a79340324bd10c427e640bf4240574
