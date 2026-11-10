@@ -242,13 +242,16 @@ def faceted(spec, points, bevel=0.16):
     # stone, which is what the first pass looked like on the lapis star.
     spec_draw.ellipse((CX * SS - SIZE * SS * 0.24, CY * SS - SIZE * SS * 0.30,
                        CX * SS - SIZE * SS * 0.02, CY * SS - SIZE * SS * 0.12),
-                      fill=WHITE + (86,))
-    canvas.alpha_composite(clip_to(spec_layer.filter(ImageFilter.GaussianBlur(SS * 1.8)),
-                                   mask_of(points)))
+                      fill=WHITE + (46,))
+    # Only on the dome-cut stones: over a faceted plate a soft ellipse reads as a smudge, so those
+    # keep just the sharp spark below.
+    if spec["cut"] != "faceted":
+        canvas.alpha_composite(clip_to(spec_layer.filter(ImageFilter.GaussianBlur(SS * 1.1)),
+                                       mask_of(points)))
     spark = Image.new("RGBA", (SIZE * SS, SIZE * SS), (0, 0, 0, 0))
-    ImageDraw.Draw(spark).ellipse((CX * SS - SIZE * SS * 0.135, CY * SS - SIZE * SS * 0.185,
-                                   CX * SS - SIZE * SS * 0.075, CY * SS - SIZE * SS * 0.125),
-                                  fill=WHITE + (200,))
+    ImageDraw.Draw(spark).ellipse((CX * SS - SIZE * SS * 0.125, CY * SS - SIZE * SS * 0.170,
+                                   CX * SS - SIZE * SS * 0.085, CY * SS - SIZE * SS * 0.130),
+                                  fill=WHITE + (185,))
     canvas.alpha_composite(clip_to(spark.filter(ImageFilter.GaussianBlur(SS * 0.5)), mask_of(points)))
     return canvas
 
@@ -303,8 +306,10 @@ def build(name):
     setting.putalpha(mask_of(points))
     canvas.alpha_composite(setting)
 
-    # 2. The stone, inset by the width of the setting.
-    inset_factor = 0.955
+    # 2. The stone, inset by the width of the setting. A star needs a wider band than a round stone:
+    # at 0.955 the gold disappears into the points, and the lapis looked loose in the tray next to the
+    # other four, which all sit in a visible ring.
+    inset_factor = 0.905 if spec["shape"] == "star8" else 0.955
     stone_points = scale_points(points, inset_factor)
     stone_mask = mask_of(stone_points)
     if spec["cut"] == "cabochon":
