@@ -14,10 +14,11 @@ signal retry_requested(level_number: int)
 
 # Landscape puts the playfield on the right and everything that describes the level in a column on the
 # left, which is also the reading order of an RTL player: goals first, then the board they play on.
-const BOARD_LEFT := 366.0
-const BOARD_TOP := 60.0
-const BOARD_SIZE := 330.0
-# The frame art is a 256 px plate with a 24 px border, so the board sits exactly inside it.
+const BOARD_LEFT := 364.0
+const BOARD_TOP := 48.0
+const BOARD_SIZE := 324.0
+# The case is a painted plate, not a nine-slice: it is drawn whole at 324 + 34 + 34 = 392 dp, which is
+# the widest band that still fits the 415 dp canvas under the level chip.
 const BOARD_FRAME_BORDER := 34.0
 const COLUMN_X := 16.0
 const COLUMN_W := 318.0
