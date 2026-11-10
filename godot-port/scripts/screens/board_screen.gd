@@ -172,8 +172,8 @@ func build() -> void:
 		# the orb: two rims at the same size fight, one inside the other reads as a setting.
 		# The orb is a dome inside a rose ring now, so the tool's own picture is smaller and sits
 		# inside the dome rather than over the ring.
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 13.0, 13.0,
-			BOOSTER_SIZE - 26.0, BOOSTER_SIZE - 26.0))
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 12.0, 12.0,
+			BOOSTER_SIZE - 24.0, BOOSTER_SIZE - 24.0))
 		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
 		# stacked at 62 dp pitch and there is no room for a caption under each.
 		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0,
