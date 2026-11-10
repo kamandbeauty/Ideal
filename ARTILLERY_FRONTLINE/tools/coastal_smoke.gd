@@ -155,6 +155,8 @@ func run() -> void:
 	await capture("coastal-results")
 	# Vehicle design preview: the three approved models on the beach, HUD hidden, front facing the camera.
 	coastal.hud.root.visible = false
+	coastal.hud.result_panel.visible = false
+	coastal.hud.pause_panel.visible = false
 	var preview := Node3D.new()
 	preview.name = "VehiclePreview"
 	coastal.add_child(preview)
