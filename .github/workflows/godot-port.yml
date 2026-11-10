@@ -56,11 +56,27 @@ jobs:
           done
           exit 0
 
+      # A failing assertion is a line in the log, and the log is behind a login: every FAIL is lifted
+      # into an annotation so the reason shows on the run itself instead of being guessed at.
       - name: Core tests (rules, determinism, save, content)
-        run: godot --headless --path godot-port --script res://tests/test_core.gd
+        run: |
+          set +e
+          godot --headless --path godot-port --script res://tests/test_core.gd 2>&1 | tee /tmp/core.log
+          status=${PIPESTATUS[0]}
+          grep -E "FAIL" /tmp/core.log | head -20 | while IFS= read -r line; do
+            echo "::error title=test_core::$line"
+          done
+          exit $status
 
       - name: UI tests (Persian numerals, kit, session, board, every level)
-        run: godot --headless --path godot-port --script res://tests/test_ui.gd
+        run: |
+          set +e
+          godot --headless --path godot-port --script res://tests/test_ui.gd 2>&1 | tee /tmp/ui.log
+          status=${PIPESTATUS[0]}
+          grep -E "FAIL" /tmp/ui.log | head -20 | while IFS= read -r line; do
+            echo "::error title=test_ui::$line"
+          done
+          exit $status
 
       - name: Boot the game headlessly and prove it reaches the title screen
         run: |
