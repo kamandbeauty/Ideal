@@ -133,11 +133,11 @@ func build() -> void:
 		var chip := UiKit.art_panel(self, "goal_%d" % index, COLUMN_X, y, COLUMN_W, CHIP_HEIGHT,
 			"ui_chip", UiTokens.BORDER_PLATE_SMALL, UiTokens.SURFACE_RAISED, UiTokens.RADIUS_MD)
 		_goal_chips.append(chip)
-		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 30.0, 3.0,
+		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", COLUMN_W - 34.0, 3.0,
 			20.0, 20.0))
 		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_CENTER)
-		UiKit.place(label, 6.0, 0.0, COLUMN_W - 40.0, CHIP_HEIGHT)
+		UiKit.place(label, 6.0, 0.0, COLUMN_W - 44.0, CHIP_HEIGHT)
 		_goal_labels.append(label)
 
 	# ---- the line that tells the player what to do, or what just went wrong ------------------------
@@ -157,14 +157,18 @@ func build() -> void:
 	# right-to-left, so Godot mirrors LEFT and RIGHT alignment, and edge-hugging text lands in the
 	# middle of the card — which is exactly where the two numbers collided on the first attempt.
 	var icon_box := (WALLET_HEIGHT - 26.0) * 0.5
+	# Each figure sits in the same group as the picture it counts: the coin number beside the coin, the
+	# life number beside the heart. They used to be centred in fixed thirds of the card, which on the
+	# device read as two icons and two dots — a Persian zero is a dot, and a dot 60 dp from its coin is
+	# not a number anymore.
 	UiKit.icon(wallet_card, "life_icon", "icon_life", 14.0, icon_box, 26.0, 26.0)
-	_life_label = UiKit.label(wallet_card, "life_value", "", UiTokens.TYPE_SM, UiTokens.TEXT,
+	_life_label = UiKit.label(wallet_card, "life_value", "", UiTokens.TYPE_BASE, UiTokens.TEXT,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_life_label, 44.0, 0.0, 68.0, WALLET_HEIGHT)
+	UiKit.place(_life_label, 44.0, 0.0, 56.0, WALLET_HEIGHT)
 	UiKit.icon(wallet_card, "coin_icon", "icon_coin", COLUMN_W - 40.0, icon_box, 26.0, 26.0)
-	_coin_label = UiKit.label(wallet_card, "coin_value", "", UiTokens.TYPE_SM, UiTokens.GOLD,
+	_coin_label = UiKit.label(wallet_card, "coin_value", "", UiTokens.TYPE_BASE, UiTokens.GOLD,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_coin_label, COLUMN_W - 40.0 - 68.0, 0.0, 68.0, WALLET_HEIGHT)
+	UiKit.place(_coin_label, COLUMN_W - 40.0 - 58.0, 0.0, 54.0, WALLET_HEIGHT)
 
 	_boosters_heading = UiKit.label(self, "boosters_heading", "ابزارهای کمکی",
 		UiTokens.TYPE_XS, UiTokens.TEXT_MUTED, HORIZONTAL_ALIGNMENT_CENTER)
