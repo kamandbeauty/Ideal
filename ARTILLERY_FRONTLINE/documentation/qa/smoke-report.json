@@ -106,7 +106,7 @@
     },
     {
       "name": "fire control t03",
-      "passed": true
+      "passed": false
     },
     {
       "name": "fire t03",
@@ -117,8 +117,40 @@
       "passed": true
     },
     {
-      "name": "target destroyed t03",
+      "name": "fire control t03",
+      "passed": false
+    },
+    {
+      "name": "fire t03",
       "passed": true
+    },
+    {
+      "name": "fire control t03",
+      "passed": false
+    },
+    {
+      "name": "fire t03",
+      "passed": true
+    },
+    {
+      "name": "fire control t03",
+      "passed": false
+    },
+    {
+      "name": "fire t03",
+      "passed": true
+    },
+    {
+      "name": "fire control t03",
+      "passed": false
+    },
+    {
+      "name": "fire t03",
+      "passed": true
+    },
+    {
+      "name": "target destroyed t03",
+      "passed": false
     },
     {
       "name": "engaged t01",
@@ -130,7 +162,7 @@
     },
     {
       "name": "mission results displayed",
-      "passed": true
+      "passed": false
     },
     {
       "name": "capture mission-results",
@@ -138,7 +170,7 @@
     },
     {
       "name": "upgrade purchase persists",
-      "passed": true
+      "passed": false
     },
     {
       "name": "capture upgrades",
@@ -151,51 +183,29 @@
       "direct": true,
       "shot": 1,
       "target": "t01",
-      "time": 7.4
+      "time": 7.7
     },
     {
       "amount": 8.1,
       "direct": false,
       "shot": 1,
       "target": "crate01",
-      "time": 7.4
-    },
-    {
-      "amount": 110.0,
-      "direct": true,
-      "shot": 2,
-      "target": "t03",
-      "time": 13.8
+      "time": 7.7
     }
   ],
   "engagements": {
     "t01": 1,
-    "t03": 1
+    "t03": 5
   },
-  "failures": 0,
-  "mission": {
-    "accuracy": 100.0,
-    "coins": 534,
-    "hits": 2,
-    "mission_id": "sr01",
-    "objectives": 2,
-    "optional": false,
-    "points": 2,
-    "reason": "reason_success",
-    "required": 2,
-    "shots": 2,
-    "star_gain": 3,
-    "stars": 3,
-    "success": true,
-    "time": 13.8152567777778
-  },
-  "passed": true,
+  "failures": 8,
+  "mission": {},
+  "passed": false,
   "performance": {
-    "draw_calls": 54,
-    "fps": 25.8,
-    "frame_ms": 38.78,
-    "objects": 1590,
-    "primitives": 1894,
+    "draw_calls": 478,
+    "fps": 6.9,
+    "frame_ms": 144.02,
+    "objects": 1589,
+    "primitives": 185294,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
