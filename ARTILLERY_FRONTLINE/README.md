@@ -86,11 +86,18 @@ camera cut-out, and reads right-to-left in Persian.
 | Graphics quality | auto / low / medium / high |
 | Show frame rate | on / off |
 
-"Auto" starts a phone on the medium tier. If frames stay slow it lowers the
-3D render resolution step by step, and if that is not enough it gives up one
-tier for the rest of the session. The low tier drops shadows, normal maps,
-the lights of flashes, rockets and blasts, and the particle dressing; the
-high tier adds 2× MSAA and glow.
+"Auto" starts a phone on the medium tier and then watches the frame time.
+It lowers the 3D render resolution a step at a time while frames stay slow,
+and raises it again when they are fast; a step up that is regretted at once
+sets a ceiling, so the resolution does not swing back and forth. If the
+resolution has gone all the way down and frames are no shorter, it is given
+back and left alone. Still slow, one tier is given up; if that buys nothing
+either, the tier is taken back and tiers are left alone. A tier the player
+picks is never touched. Every number involved (what counts as slow, the
+steps, the floors, the patience) is in `resources/graphics/governor.tres`;
+none of them has been tuned on a phone yet. The low tier drops shadows,
+normal maps, the lights of flashes, rockets and blasts, and the particle
+dressing; the high tier adds 2× MSAA and glow.
 
 ## Project layout
 
@@ -107,7 +114,8 @@ scripts/
   environment/ LevelLayout, CityLevel, Defense, DefenseData
   effects/     EffectPool, Explosions, MarkPool, CasingPool
   ui/          Hud, HudWidgets, Menus, MenuWidgets, UITheme, Loc
-  audio/ graphics/ performance/ save/
+  graphics/    quality tiers, the automatic-quality governor and its settings, materials
+  audio/ performance/ save/
 resources/     the numbers: aim/, weapons/, explosions/, zombies/, waves/, defense/, levels/
 assets/        models, textures, audio, fonts
 tests/         headless unit and integration suites
@@ -130,6 +138,7 @@ Everything that shapes play is an exported property of a resource:
 | `resources/defense/city_wall.tres` | wall and gate health, warning thresholds |
 | `resources/waves/city_siege_waves.tres` | every wave: groups of any kind, counts, timing, routes, targets, the hint shown under its banner, growth per wave, rockets and grenades handed out when it is cleared |
 | `resources/levels/city_siege_layout.tres` | routes, attack places, effect anchors (written by `tools/build_city.py`) |
+| `resources/graphics/governor.tres` | automatic quality: target frame rate, what counts as a slow frame, resolution steps and floor, how long to wait, the lowest tier allowed, or off altogether |
 
 `tools/make_waves.gd` rewrites the shipped waves if you want them back.
 
@@ -140,6 +149,7 @@ godot --path .                                  # play on desktop (mouse = touch
 godot --headless --path . --editor --import     # import assets, build the class cache
 godot --headless --path . --script res://tests/run_tests.gd
 godot --path . --rendering-method gl_compatibility -- --smoke   # self-driving run with screenshots
+python3 tools/audit_project.py                  # nothing broken, nothing left over (no engine needed)
 ```
 
 The workflow in `.github/workflows/last-wall.yml` does the same with the
@@ -163,4 +173,4 @@ gun, which was modelled for the earlier project. Nothing is downloaded. See
 | 2 | RPG launcher and hand grenades, weapon selection, grenade button, area damage | done |
 | 3 | Fast, Heavy and Boss zombies, full wave progression | done |
 | 4 | HUD and menu polish, audio and visual polish | done |
-| 5 | Optimisation, clean-up, final verification | next |
+| 5 | Optimisation, clean-up, final verification | done; not yet run on a phone |

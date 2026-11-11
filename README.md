@@ -23,11 +23,15 @@ The project is being built in phases. Phase 1 made the playable core: the
 wall, the gun, one zombie type, the gate and wall health, and data-driven
 waves. Phase 2 added the RPG launcher, hand grenades, weapon selection and
 area damage. Phase 3 added the runner, the brute and the boss, and the full
-eight-wave siege. Phase 4 (this state) redraws the HUD and the menus, adds
-the visual and audible feedback of a fight, and lays everything out for
-20:9 and 4:3 screens as well. Still to come: optimisation and final
-verification. The game has not yet been run on a phone. See the project
-README for details and the roadmap.
+eight-wave siege. Phase 4 redrew the HUD and the menus, added the visual
+and audible feedback of a fight, and laid everything out for 20:9 and 4:3
+screens as well. Phase 5 (this state) audited and cleaned the project,
+fixed what the audit found, rebuilt the automatic quality control so that it
+can be tuned from one file, and switched the delivered APK to a release
+build. **The game has not yet been run on a phone or an emulator**: the APK
+is built, signed and inspected, and the game is played by a script on a
+desktop. The first device test is the next step; the Phase 5 report lists
+what to look at. See the project README for details and the roadmap.
 
 The image files and the `.max`/`.dds` files in this folder are reference
 material supplied for the project; the game does not use them.
