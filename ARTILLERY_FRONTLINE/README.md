@@ -66,6 +66,32 @@ Aim limits are yaw −70°…+70° and pitch −15°…+45°. Pitch follows the 
 convention: negative is below the horizon, so the gun depresses 15° and
 elevates 45°. Every attack position in the level is inside those limits.
 
+### Screens and settings
+
+The HUD keeps each thing at the edge it belongs to: wall and gate top left,
+the wave (and the Behemoth's bar) top centre, kills and PAUSE top right, the
+firing hand in one bottom corner and the weapon cards in the other. A blow
+on the wall or the gate that lands outside the view raises an arrow on that
+side of the screen. Pause tells where the match stands and asks twice before
+RESTART or MAIN MENU throws it away; the result screen gives ten figures.
+Everything is laid out for 16:9, 20:9 and 4:3 screens, steps in from a
+camera cut-out, and reads right-to-left in Persian.
+
+| Setting | Choices |
+| --- | --- |
+| Aim sensitivity, invert vertical aim, left-handed layout | slider and switches |
+| Screen shake | on / off; changes the picture only, never where rounds go |
+| Language | Persian / English |
+| Master, effects and music volume | sliders; the wind follows the effects volume |
+| Graphics quality | auto / low / medium / high |
+| Show frame rate | on / off |
+
+"Auto" starts a phone on the medium tier. If frames stay slow it lowers the
+3D render resolution step by step, and if that is not enough it gives up one
+tier for the rest of the session. The low tier drops shadows, normal maps,
+the lights of flashes, rockets and blasts, and the particle dressing; the
+high tier adds 2× MSAA and glow.
+
 ## Project layout
 
 ```
@@ -79,8 +105,8 @@ scripts/
   zombies/     ZombieData, Zombie, Horde, AttackLines
   waves/       SpawnGroup, WaveData, WaveSet, WaveDirector
   environment/ LevelLayout, CityLevel, Defense, DefenseData
-  effects/     EffectPool, Explosions
-  ui/          Hud, HudWidgets, Menus, UITheme, Loc
+  effects/     EffectPool, Explosions, MarkPool, CasingPool
+  ui/          Hud, HudWidgets, Menus, MenuWidgets, UITheme, Loc
   audio/ graphics/ performance/ save/
 resources/     the numbers: aim/, weapons/, explosions/, zombies/, waves/, defense/, levels/
 assets/        models, textures, audio, fonts
@@ -136,5 +162,5 @@ gun, which was modelled for the earlier project. Nothing is downloaded. See
 | 1 | Wall and city, fixed first-person gunner, twin HMG, walker zombie, wall and gate health, zombie attacks, data-driven waves, HUD and basic menus | done |
 | 2 | RPG launcher and hand grenades, weapon selection, grenade button, area damage | done |
 | 3 | Fast, Heavy and Boss zombies, full wave progression | done |
-| 4 | HUD and menu polish, audio and visual polish | next |
-| 5 | Optimisation, clean-up, final verification | planned |
+| 4 | HUD and menu polish, audio and visual polish | done |
+| 5 | Optimisation, clean-up, final verification | next |

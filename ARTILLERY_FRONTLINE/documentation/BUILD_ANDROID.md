@@ -10,11 +10,14 @@ session branch that touches the project.
    - downloads Godot 4.7.2 (checksum verified) and imports the project;
      any script or shader error fails the job;
    - runs the headless suites (`tests/run_tests.gd`) and requires the report
-     to pass with at least 950 checks;
+     to pass with at least 1450 checks;
    - plays the real game under a software renderer (`-- --smoke`): menus,
      every weapon, every kind of zombie, the boss at the gate, the gate
-     falling and the defeat screen, with a screenshot of each step (23 of
-     them) and a report;
+     falling and the defeat screen, then the same game on a 20:9 phone with
+     a camera cut-out and on a 4:3 tablet, with a screenshot of each step
+     (28 of them) and a report that says how each picture came about. The
+     pictures are taken on the medium quality tier, the one a phone starts
+     on;
    - commits the evidence to `documentation/qa/`.
 2. **android** (only if validate passed)
    - installs Java 17, Android SDK 36 and the Godot export templates;

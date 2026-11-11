@@ -13,7 +13,7 @@ the two font families. Nothing is downloaded at build time or at run time.
 | `assets/models/weapons/rpg_launcher.glb`, `rocket.glb`, `frag_grenade.glb` | `tools/build_weapons.py` | The shoulder launcher with its loaded round, the round in flight and the hand grenade, built from lathed and boxed primitives |
 | `resources/levels/city_siege_layout.tres` | `tools/build_city.py` | Routes and attack places, from the same numbers as the mesh |
 | `assets/textures/world/*.jpg`, `*_n.png`, `sky_dusk.jpg` | `tools/build_textures.py` | Tiling surfaces with normal maps, and the sky panorama |
-| `assets/audio/*.wav` | `tools/build_audio.py` | Synthesized from oscillators and filtered noise, including the rocket launch, both explosions and the boss's roar and death |
+| `assets/audio/*.wav` (43 clips) | `tools/build_audio.py` | Synthesized from oscillators and filtered noise: the guns and the tail of a burst, strikes, voices, the rocket launch, both explosions, the boss's roar and death, a body falling, the interface sounds, the victory and defeat stings, the wind bed and the music loop |
 | `assets/textures/icon.png` | `tools/build_icon.py` | App icon |
 
 ## Carried over from the earlier project

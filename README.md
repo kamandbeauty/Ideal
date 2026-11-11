@@ -22,10 +22,12 @@ the eighth and last wave the Behemoth. Hold it.
 The project is being built in phases. Phase 1 made the playable core: the
 wall, the gun, one zombie type, the gate and wall health, and data-driven
 waves. Phase 2 added the RPG launcher, hand grenades, weapon selection and
-area damage. Phase 3 (this state) adds the runner, the brute and the boss,
-and the full eight-wave siege. Still to come: interface, sound and visual
-polish, then optimisation. The game has not yet been run on a phone. See the
-project README for details and the roadmap.
+area damage. Phase 3 added the runner, the brute and the boss, and the full
+eight-wave siege. Phase 4 (this state) redraws the HUD and the menus, adds
+the visual and audible feedback of a fight, and lays everything out for
+20:9 and 4:3 screens as well. Still to come: optimisation and final
+verification. The game has not yet been run on a phone. See the project
+README for details and the roadmap.
 
 The image files and the `.max`/`.dds` files in this folder are reference
 material supplied for the project; the game does not use them.
