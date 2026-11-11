@@ -5,13 +5,16 @@ extends Node
 signal quality_changed(tier: String)
 
 const TIERS: Array[String] = ["low", "medium", "high"]
+## What each tier pays for. "lights" are the short-lived lights of muzzle
+## flashes and blasts, "detail" the particle dressing a fight can do without
+## (stone chips, gun smoke), "ash" the flecks drifting over the street.
 const PROFILES: Dictionary = {
 	"low": {"scale": 0.7, "shadows": false, "shadow_distance": 60.0, "msaa": 0, "glow": false, "normal_maps": false, "particles": 0.5,
-		"corpses": 10, "fires": 2, "ash": false},
+		"corpses": 10, "fires": 2, "ash": false, "lights": false, "detail": false},
 	"medium": {"scale": 0.85, "shadows": true, "shadow_distance": 85.0, "msaa": 0, "glow": false, "normal_maps": true, "particles": 0.75,
-		"corpses": 18, "fires": 4, "ash": true},
+		"corpses": 18, "fires": 4, "ash": true, "lights": true, "detail": true},
 	"high": {"scale": 1.0, "shadows": true, "shadow_distance": 130.0, "msaa": 1, "glow": true, "normal_maps": true, "particles": 1.0,
-		"corpses": 28, "fires": 8, "ash": true},
+		"corpses": 28, "fires": 8, "ash": true, "lights": true, "detail": true},
 }
 
 var tier: String = "medium"

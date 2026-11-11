@@ -8,6 +8,8 @@ enum State { POOLED, ADVANCE, WAIT, ATTACK, BREACH, DYING, CORPSE }
 const LOOPING: Array[String] = ["walk", "idle", "attack"]
 ## A blast throws a body over this long.
 const KNOCK_TIME: float = 0.38
+## The most a hit can tip the figure, in degrees.
+const ROCK_LIMIT: float = 7.0
 
 var data: ZombieData
 var horde: Horde
@@ -38,6 +40,10 @@ var knock_left: float = 0.0
 var retry_left: float = 0.0
 var facing_goal: float = 0.0
 var current_clip: String = ""
+## The figure itself, under this node; a hit tips it for a moment without moving the zombie.
+var model: Node3D
+## Degrees the figure is tipped right now: (backwards, sideways).
+var rock := Vector2.ZERO
 var anim: AnimationPlayer
 var skeleton: Skeleton3D
 var body_mesh: MeshInstance3D
@@ -47,6 +53,7 @@ var blows: int = 0
 
 
 func _ready() -> void:
+	model = get_node_or_null("Model")
 	anim = find_child("AnimationPlayer", true, false)
 	skeleton = find_child("Skeleton3D", true, false)
 	for node: Node in find_children("*", "MeshInstance3D", true, false):
@@ -125,6 +132,7 @@ func _sleep() -> void:
 	alive = false
 	visible = false
 	slot = null
+	_settle_rock()
 	_set_hittable(false)
 	if anim:
 		anim.stop()
@@ -153,6 +161,7 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	knock_left = 0.0
 	retry_left = rng.randf_range(0.2, 0.8)
 	blows = 0
+	_settle_rock()
 	scale = Vector3.ONE * rng.randf_range(data.scale_min, data.scale_max)
 	position = path[0] if path.size() > 0 else Vector3.ZERO
 	if path.size() > 1:
@@ -231,6 +240,12 @@ func enter_breach(route: PackedVector3Array) -> void:
 
 
 func tick(delta: float) -> void:
+	if rock != Vector2.ZERO:
+		# The figure rights itself in a fraction of a second.
+		rock = rock.lerp(Vector2.ZERO, 1.0 - exp(-13.0 * delta))
+		if rock.length_squared() < 0.0004:
+			rock = Vector2.ZERO
+		_apply_rock()
 	if knock_left > 0.0:
 		# Thrown by a blast: the push fades out as the body goes down.
 		var share: float = minf(delta, knock_left) / KNOCK_TIME
@@ -264,6 +279,7 @@ func tick(delta: float) -> void:
 			if timer <= 0.0:
 				state = State.CORPSE
 				timer = data.corpse_time
+				horde.fell(self)
 		State.CORPSE:
 			timer -= delta
 			if timer < 1.6:
@@ -360,6 +376,7 @@ func take_hit(amount: float, headshot: bool, _at: Vector3, direction: Vector3) -
 		_die(headshot, direction)
 		return true
 	flinch_left = 0.3
+	_rock(direction, clampf(amount / maxf(full_health, 1.0) * 6.0, 0.35, 1.0))
 	if state == State.ADVANCE and stagger_left <= 0.0 and amount >= data.max_health * data.stagger_health_share:
 		stagger_left = 0.36
 		_play("hit", 1.15, 0.06)
@@ -386,6 +403,7 @@ func take_blast(amount: float, origin: Vector3, share: float, blast: ExplosionDa
 	if data.blast_reel_scale <= 0.0:
 		# Too big to be stopped by a blast: it only shows the hit.
 		flinch_left = 0.3
+		_rock(away, 1.6)
 		return false
 	reel_left = maxf(reel_left, maxf(0.25, blast.stagger_time * share * data.blast_reel_scale))
 	flinch_left = reel_left + 0.3
@@ -395,6 +413,37 @@ func take_blast(amount: float, origin: Vector3, share: float, blast: ExplosionDa
 		anim.play("hit", 0.06, 1.0)
 		anim.speed_scale = clampf(anim.get_animation("hit").length / reel_left, 0.35, 1.4)
 	return false
+
+
+## Tips the figure away from a hit travelling along `direction` (world space). `weight` is 1 for a solid hit.
+func _rock(direction: Vector3, weight: float) -> void:
+	if model == null or data.hit_rock_degrees <= 0.0:
+		return
+	# In the zombie's own frame, +Z is where it faces and +X is its left.
+	var local: Vector3 = direction.rotated(Vector3.UP, -rotation.y)
+	var push: float = data.hit_rock_degrees * weight
+	rock = (rock + Vector2(local.z, -local.x) * push).limit_length(ROCK_LIMIT)
+	_apply_rock()
+
+
+func _apply_rock() -> void:
+	if model:
+		model.rotation = Vector3(deg_to_rad(rock.x), 0.0, deg_to_rad(rock.y))
+
+
+func _settle_rock() -> void:
+	rock = Vector2.ZERO
+	if model:
+		model.rotation = Vector3.ZERO
+
+
+## Where the body lies once it has fallen: on the ground, between the feet and the head.
+func resting_point() -> Vector3:
+	var rest: Vector3 = global_position
+	if head_area != null and head_area.is_inside_tree():
+		var head: Vector3 = head_area.global_position
+		rest = Vector3(lerpf(rest.x, head.x, 0.55), rest.y, lerpf(rest.z, head.z, 0.55))
+	return rest
 
 
 func kill(headshot: bool = false, direction: Vector3 = Vector3.BACK) -> void:

@@ -3,8 +3,8 @@ extends CanvasLayer
 ## Title, settings, pause and result screens. Ordinary Controls: these are the
 ## only places where taps go through Godot's GUI instead of the touch router.
 ## Every screen is laid out for the reading direction of the language in use.
-## Buttons are 88 canvas units high, the rows of the settings screen 76 and
-## its choice buttons 68 (7.4, 6.4 and 5.7 mm on a 6.5-inch phone).
+## Buttons and the rows of the settings screen are 88 canvas units high and
+## its choice buttons 84 (7.4 and 7.0 mm on a 6.5-inch phone).
 
 signal play_requested
 signal resume_requested
@@ -320,7 +320,7 @@ func _stat_column(rows: Array) -> VBoxContainer:
 # -- Settings --------------------------------------------------------------------------
 func _build_settings() -> void:
 	var column: VBoxContainer = _panel(1200.0)
-	column.add_child(_heading(Loc.t("settings"), 44, UITheme.TEXT))
+	column.add_child(_heading(Loc.t("settings"), 36, UITheme.TEXT))
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 52)
 	var controls: VBoxContainer = _group("group_controls")
@@ -329,22 +329,23 @@ func _build_settings() -> void:
 	controls.add_child(_check_row("left_handed"))
 	controls.add_child(_check_row("screen_shake"))
 	controls.add_child(_choice_row("language", ["فارسی", "English"], Profile.LANGUAGES.find(Loc.language),
-		func(index: int) -> void: Profile.set_setting("language", Profile.LANGUAGES[index])))
+		func(index: int) -> void: Profile.set_setting("language", Profile.LANGUAGES[index]), 300.0))
 	var sound: VBoxContainer = _group("group_sound")
 	sound.add_child(_slider_row("master_volume", 0.0, 1.0, 0.05))
 	sound.add_child(_slider_row("sfx_volume", 0.0, 1.0, 0.05))
 	sound.add_child(_slider_row("music_volume", 0.0, 1.0, 0.05))
+	# Four words do not fit beside a label on a phone, so the quality choices sit under their own heading.
 	sound.add_child(_group_title("group_display"))
 	var qualities: Array = []
 	for choice: String in Profile.QUALITY_CHOICES:
 		qualities.append(Loc.t("quality_" + choice))
-	sound.add_child(_choice_row("quality", qualities, Profile.QUALITY_CHOICES.find(String(Profile.setting("quality"))),
-		func(index: int) -> void: Profile.set_setting("quality", Profile.QUALITY_CHOICES[index])))
+	var quality := MenuWidgets.Choices.new(qualities, Profile.QUALITY_CHOICES.find(String(Profile.setting("quality"))))
+	quality.chosen.connect(func(index: int) -> void: Profile.set_setting("quality", Profile.QUALITY_CHOICES[index]))
+	sound.add_child(quality)
 	sound.add_child(_check_row("show_fps"))
 	columns.add_child(controls)
 	columns.add_child(sound)
 	column.add_child(columns)
-	column.add_child(_spacer(2))
 	column.add_child(UITheme.button(Loc.t("back"), func() -> void: _show(came_from), "accent", "ui_back"))
 
 
@@ -408,18 +409,14 @@ func _check_row(key: String) -> MenuWidgets.Row:
 	return row
 
 
-## The name on one line, the choices on the next: four words do not fit beside a label on a phone.
-func _choice_row(key: String, labels: Array, selected: int, action: Callable) -> VBoxContainer:
-	var block := VBoxContainer.new()
-	block.add_theme_constant_override("separation", 0)
-	var label: Label = UITheme.label(Loc.t(key), UITheme.BODY, UITheme.TEXT, false)
-	label.custom_minimum_size = Vector2(0.0, 38.0)
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	block.add_child(label)
+## A setting with a few named choices, beside its name.
+func _choice_row(key: String, labels: Array, selected: int, action: Callable, width: float) -> MenuWidgets.Row:
+	var row: MenuWidgets.Row = _row(key)
 	var choices := MenuWidgets.Choices.new(labels, selected)
+	choices.custom_minimum_size = Vector2(width, 0.0)
 	choices.chosen.connect(action)
-	block.add_child(choices)
-	return block
+	row.add_child(choices)
+	return row
 
 
 func _toggle_language() -> void:

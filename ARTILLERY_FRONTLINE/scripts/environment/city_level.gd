@@ -26,6 +26,9 @@ var rockets: RocketPool
 var grenades: GrenadePool
 var explosions: Explosions
 var effects: EffectPool
+var marks: MarkPool
+## Ash and the odd spark drifting over the court; the lowest tier goes without.
+var ash: CPUParticles3D
 var environment: Environment
 var sun: DirectionalLight3D
 var stats := MatchStats.new()
@@ -54,9 +57,13 @@ func _ready() -> void:
 	effects = EffectPool.new()
 	effects.name = "Effects"
 	add_child(effects)
+	marks = MarkPool.new()
+	marks.name = "Marks"
+	add_child(marks)
 	bullets = BulletPool.new()
 	bullets.name = "Bullets"
 	bullets.effects = effects
+	bullets.marks = marks
 	add_child(bullets)
 	explosions = Explosions.new()
 	explosions.name = "Explosions"
@@ -81,6 +88,7 @@ func _ready() -> void:
 	horde.name = "Horde"
 	add_child(horde)
 	horde.setup(layout, defense, effects, zombie_types)
+	horde.marks = marks
 	explosions.setup(horde, defense, effects, defender, layout)
 	for data: ZombieData in zombie_types:
 		horde.prewarm(data.id)
@@ -93,6 +101,7 @@ func _ready() -> void:
 	_build_lamps()
 	_build_fires()
 	_build_smoke()
+	_build_ash()
 	defense.struck.connect(_on_struck)
 	director.finished.connect(_on_waves_finished)
 	Events.gate_destroyed.connect(_on_gate_destroyed)
@@ -291,6 +300,48 @@ func _build_smoke() -> void:
 		add_child(column)
 
 
+## The city is burning: flecks of ash, and now and then a live spark, drift across the court on the wind.
+## One small emitter; it is dressing, so it is thin, slow and never between the sights and a target for long.
+func _build_ash() -> void:
+	var material := _particle_material(false)
+	var mesh := QuadMesh.new()
+	mesh.material = material
+	# Most flecks are grey ash; one in five still glows.
+	var tones := Gradient.new()
+	tones.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CONSTANT
+	tones.set_color(0, Color(0.16, 0.15, 0.14, 0.85))
+	tones.set_color(1, Color(1.0, 0.5, 0.16, 0.9))
+	tones.add_point(0.45, Color(0.3, 0.28, 0.26, 0.8))
+	tones.set_offset(2, 0.8)
+	var fade := Gradient.new()
+	fade.set_color(0, Color(1, 1, 1, 0))
+	fade.set_color(1, Color(1, 1, 1, 0))
+	fade.add_point(0.15, Color(1, 1, 1, 1))
+	fade.add_point(0.8, Color(1, 1, 1, 1))
+	ash = CPUParticles3D.new()
+	ash.name = "Ash"
+	ash.mesh = mesh
+	ash.amount = 40
+	ash.lifetime = 9.0
+	ash.preprocess = 9.0
+	ash.randomness = 1.0
+	ash.local_coords = false
+	ash.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	ash.emission_box_extents = Vector3(20.0, 5.0, 20.0)
+	ash.direction = Vector3(1.0, 0.1, 0.25)
+	ash.spread = 35.0
+	ash.initial_velocity_min = 0.25
+	ash.initial_velocity_max = 0.9
+	ash.gravity = Vector3(0.05, -0.07, 0.0)
+	ash.scale_amount_min = 0.03
+	ash.scale_amount_max = 0.07
+	ash.color_initial_ramp = tones
+	ash.color_ramp = fade
+	ash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	ash.position = Vector3(0.0, 5.5, layout.court_mouth_z * 0.5 - 2.0)
+	add_child(ash)
+
+
 func apply_quality(_tier: String, settings: Dictionary) -> void:
 	if sun:
 		sun.shadow_enabled = settings.shadows
@@ -299,6 +350,10 @@ func apply_quality(_tier: String, settings: Dictionary) -> void:
 		environment.glow_enabled = settings.glow
 	for index: int in fire_nodes.size():
 		fire_nodes[index].visible = index < int(settings.fires)
+	if ash:
+		var drifting: bool = bool(settings.get("ash", true))
+		ash.visible = drifting
+		ash.emitting = drifting
 
 
 # -- Match flow ------------------------------------------------------------------
@@ -425,8 +480,13 @@ func _on_gate_destroyed() -> void:
 		tween.tween_property(gate_leaves[index], "rotation:y", gate_rest[index] + deg_to_rad(swing[index % 2]), 0.6) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	var center: Vector3 = layout.gate_center
+	# The leaves burst inward, away from the court: splinters and dust go the same way.
+	var inward := Vector3(signf(center.x), 0.45, 0.0).normalized()
 	effects.burst("smoke", center + Vector3(-1.0, -0.6, 0.0), Vector3(-1.0, 0.4, 0.0), 1.2)
 	effects.burst("spark", center, Vector3(-1.0, 0.5, 0.0), 2.0)
+	effects.burst("debris", center + Vector3(0.0, -0.4, 0.0), inward, 0.7)
+	effects.burst("dust", center + Vector3(0.0, -1.4, 1.8), Vector3.UP, 2.6)
+	effects.burst("dust", center + Vector3(0.0, -1.4, -1.8), Vector3.UP, 2.6)
 	Sound.play_at("gate_break", center, 2.0)
 	Sound.play("critical", -6.0)
 	defender.jolt(1.3)
@@ -449,6 +509,7 @@ func _on_wall_breached() -> void:
 	effects.burst("smoke", center + Vector3(1.0, -0.4, 0.0), Vector3(1.0, 0.4, 0.0), 1.5)
 	effects.burst("dust", center + Vector3(0.8, 0.6, 1.5), Vector3(1.0, 0.5, 0.0), 2.5)
 	effects.burst("dust", center + Vector3(0.8, 0.6, -1.5), Vector3(1.0, 0.5, 0.0), 2.5)
+	effects.burst("debris", center + Vector3(0.6, 0.2, 0.0), Vector3(-signf(center.x), 0.6, 0.0).normalized(), 0.9)
 	Sound.play_at("wall_break", center, 4.0)
 	Sound.play("alarm", -3.0)
 	defender.jolt(2.2)

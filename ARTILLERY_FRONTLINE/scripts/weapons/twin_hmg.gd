@@ -17,7 +17,15 @@ var kick: Array[float] = [0.0, 0.0]
 var muzzles: Array[Node3D] = []
 var flashes: Array[MeshInstance3D] = []
 var flash_left: Array[float] = [0.0, 0.0]
-var casings: Array[CPUParticles3D] = []
+## Where each barrel throws its brass, and which way is outward from there (-1 left, +1 right of the gunner).
+var ports: Array[Node3D] = []
+var port_sides: Array[float] = []
+var casings: CasingPool
+## Rounds since the muzzles last smoked.
+var smoke_due: int = 0
+## Rounds in the burst being fired; when it stops, its report rolls on down the street.
+var burst: int = 0
+var lights_on: bool = true
 var ammo_cans: Array[Node3D] = []
 var can_rest: Array[Vector3] = []
 var light: OmniLight3D
@@ -38,7 +46,14 @@ func _build() -> void:
 			ammo_cans.append(can)
 			can_rest.append(can.position)
 		_build_flash(slide.get_node("Muzzle" + side))
-		_build_casings(slide.get_node("Ejection" + side), -1.0 if side == "L" else 1.0)
+		ports.append(slide.get_node("Ejection" + side))
+		# The model faces +Z under a half-turn, so its own +X is the gunner's left.
+		port_sides.append(-signf(slide.get_node("Ejection" + side).position.x - slide.get_node("Muzzle" + side).position.x))
+	casings = CasingPool.new()
+	casings.name = "Casings"
+	add_child(casings)
+	add_to_group("quality_listener")
+	lights_on = bool(Graphics.profile().get("lights", true))
 	light = OmniLight3D.new()
 	light.name = "MuzzleLight"
 	light.light_color = Color(1.0, 0.72, 0.4)
@@ -46,6 +61,7 @@ func _build() -> void:
 	light.omni_range = 9.0
 	light.shadow_enabled = false
 	light.position = Vector3(0.0, 0.1, 2.0)
+	light.visible = lights_on
 	pivot.add_child(light)
 
 
@@ -54,15 +70,16 @@ func _build_flash(muzzle: Node3D) -> void:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	material.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	material.billboard_keep_scale = true
-	material.albedo_texture = EffectPool.soft_dot()
-	material.albedo_color = Color(1.0, 0.74, 0.36, 0.95)
+	material.albedo_texture = EffectPool.flare(6)
+	# Brighter than white, so the tone mapper leaves the heart of the flash burnt out.
+	material.albedo_color = Color(2.2, 1.6, 0.8, 1.0)
+	# The gunner looks at the flash from behind the gun, along the bore.
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.disable_receive_shadows = true
 	material.disable_fog = true
-	material.no_depth_test = false
 	var mesh := QuadMesh.new()
-	mesh.size = Vector2(0.62, 0.62)
+	# Small enough that even its longest ray ends below the sight line.
+	mesh.size = Vector2(0.52, 0.52)
 	mesh.material = material
 	var flash := MeshInstance3D.new()
 	flash.name = "Flash"
@@ -74,35 +91,10 @@ func _build_flash(muzzle: Node3D) -> void:
 	flashes.append(flash)
 
 
-func _build_casings(port: Node3D, side: float) -> void:
-	var brass := StandardMaterial3D.new()
-	brass.albedo_color = Color(0.78, 0.6, 0.28)
-	brass.metallic = 0.85
-	brass.roughness = 0.35
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = 0.007
-	mesh.bottom_radius = 0.007
-	mesh.height = 0.06
-	mesh.radial_segments = 5
-	mesh.rings = 1
-	mesh.material = brass
-	var emitter := CPUParticles3D.new()
-	emitter.name = "Casings"
-	emitter.mesh = mesh
-	emitter.emitting = false
-	emitter.amount = 8
-	emitter.lifetime = 0.7
-	emitter.local_coords = false
-	emitter.direction = Vector3(side, 0.55, -0.15)
-	emitter.spread = 16.0
-	emitter.initial_velocity_min = 2.0
-	emitter.initial_velocity_max = 3.2
-	emitter.gravity = Vector3(0.0, -9.8, 0.0)
-	emitter.angular_velocity_min = -720.0
-	emitter.angular_velocity_max = 720.0
-	emitter.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	port.add_child(emitter)
-	casings.append(emitter)
+func apply_quality(_tier: String, settings: Dictionary) -> void:
+	lights_on = bool(settings.get("lights", true))
+	if light:
+		light.visible = lights_on
 
 
 func set_aim(yaw_degrees: float, pitch_degrees: float) -> void:
@@ -127,11 +119,34 @@ func _fire_round() -> void:
 	flash_left[barrel] = 0.05
 	var flash: MeshInstance3D = flashes[barrel]
 	flash.visible = true
-	flash.scale = Vector3.ONE * rng.randf_range(0.75, 1.3)
+	# Never the same flash twice: a new size and a new turn about the bore for every round.
+	flash.scale = Vector3.ONE * rng.randf_range(0.7, 1.25)
+	flash.rotation.z = rng.randf() * TAU
 	light.light_energy = 2.6
+	_eject(barrel)
+	burst += 1
+	smoke_due += 1
+	if effects and smoke_due >= 5:
+		smoke_due = 0
+		effects.burst("wisp", origin + bore_direction() * 0.25, Vector3.UP)
 	Sound.play("hmg_shot", -5.0, rng.randf_range(0.95, 1.05))
 	shot_fired.emit(barrel)
 	barrel = 1 - barrel
+
+
+## Throws the spent case out of the port of the barrel that fired: outward, a little up and forward,
+## so it leaves the picture to the side instead of crossing it.
+func _eject(index: int) -> void:
+	if casings == null or index >= ports.size():
+		return
+	var forward: Vector3 = bore_direction()
+	var right: Vector3 = forward.cross(Vector3.UP)
+	if right.length_squared() < 0.0001:
+		right = Vector3.RIGHT
+	right = right.normalized()
+	var velocity: Vector3 = right * port_sides[index] * rng.randf_range(1.9, 3.0) + Vector3.UP * rng.randf_range(0.7, 1.5) \
+		+ forward * rng.randf_range(0.1, 0.8)
+	casings.eject(ports[index].global_position, velocity)
 
 
 func _animate(delta: float) -> void:
@@ -143,10 +158,12 @@ func _animate(delta: float) -> void:
 			if flash_left[index] <= 0.0:
 				flashes[index].visible = false
 	light.light_energy = move_toward(light.light_energy, 0.0, delta * 30.0)
-	var firing: bool = since_shot < 0.12
-	for emitter: CPUParticles3D in casings:
-		if emitter.emitting != firing:
-			emitter.emitting = firing
+	if burst > 0 and since_shot > data.fire_interval * 1.7:
+		if burst >= 3:
+			Sound.play("hmg_tail", -9.0, rng.randf_range(0.94, 1.06))
+		burst = 0
+	if since_shot > 0.6:
+		smoke_due = 0
 	# Swapping the belt boxes: they drop out of sight and come back up.
 	var dip: float = sin(state.reload_progress() * PI) * 0.26 if state.reloading else 0.0
 	for index: int in ammo_cans.size():

@@ -24,6 +24,7 @@ flinch_slow = 0.45
 stagger_health_share = 0.3
 blast_reel_scale = 1.0
 knockback_scale = 1.0
+hit_rock_degrees = 3.0
 attack_damage = 3.0
 attack_interval = 1.1
 attack_hit_point = 0.55

@@ -29,6 +29,8 @@ var ground_height: float = 0.0
 var input_enabled: bool = false
 var touch_fire: bool = false
 var shake: Vector3 = Vector3.ZERO
+## Degrees the field of view is thrown open by a heavy shot or a close blast; it settles in a fraction of a second.
+var punch: float = 0.0
 var rng := RandomNumberGenerator.new()
 var aim_query := PhysicsRayQueryParameters3D.new()
 
@@ -243,6 +245,9 @@ func _process(delta: float) -> void:
 					break
 	aim.step(delta)
 	shake = shake.lerp(Vector3.ZERO, 1.0 - exp(-18.0 * delta))
+	punch = lerpf(punch, 0.0, 1.0 - exp(-9.0 * delta))
+	if punch < 0.01:
+		punch = 0.0
 	_apply_aim()
 
 
@@ -254,8 +259,10 @@ func _apply_aim() -> void:
 	# The shake is only in the picture: the weapons follow the cradle, so switching it off changes nothing about where rounds go.
 	if bool(Profile.setting("screen_shake")):
 		camera.rotation = Vector3(deg_to_rad(shake.x), deg_to_rad(shake.y), deg_to_rad(shake.z))
+		camera.fov = aim_settings.fov_degrees + punch
 	else:
 		camera.rotation = Vector3.ZERO
+		camera.fov = aim_settings.fov_degrees
 	for item: Weapon in weapons:
 		item.set_aim(yaw, pitch)
 
@@ -264,11 +271,14 @@ func _on_shot(_barrel: int, source: Weapon) -> void:
 	aim.kick(source.data.recoil_scale, rng.randf_range(-1.0, 1.0))
 	var amount: float = aim_settings.camera_shake_degrees * maxf(1.0, sqrt(source.data.recoil_scale))
 	shake += Vector3(rng.randf_range(-amount, amount), rng.randf_range(-amount, amount), rng.randf_range(-amount, amount) * 1.5)
+	if source.data.kind == "rocket":
+		punch = minf(punch + 1.8, 3.0)
 
 
 ## Adds a jolt from outside the weapon: the gate falling, the wall being struck, a blast.
 func jolt(degrees: float) -> void:
 	shake += Vector3(rng.randf_range(-degrees, degrees), rng.randf_range(-degrees, degrees), rng.randf_range(-degrees, degrees))
+	punch = minf(punch + degrees * 0.5, 3.0)
 
 
 func eye_position() -> Vector3:

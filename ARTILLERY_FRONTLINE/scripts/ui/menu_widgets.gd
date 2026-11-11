@@ -140,7 +140,7 @@ class Choices:
 			var button := Button.new()
 			button.text = labels[index]
 			button.focus_mode = Control.FOCUS_NONE
-			button.custom_minimum_size = Vector2(0.0, 68.0)
+			button.custom_minimum_size = Vector2(0.0, 84.0)
 			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			button.add_theme_font_override("font", UITheme.font(true))
 			button.add_theme_font_size_override("font_size", UITheme.font_size(24))
@@ -177,7 +177,8 @@ class Row:
 
 	func _init() -> void:
 		add_theme_constant_override("separation", 16)
-		custom_minimum_size = Vector2(0.0, 76.0)
+		# The whole row is the target, and it is as tall as a button.
+		custom_minimum_size = Vector2(0.0, UITheme.TOUCH)
 		mouse_filter = Control.MOUSE_FILTER_STOP
 
 	func _gui_input(event: InputEvent) -> void:

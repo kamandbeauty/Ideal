@@ -23,6 +23,7 @@ var cursor: int = 0
 var launched: int = 0
 var hits: int = 0
 var effects: EffectPool
+var marks: MarkPool
 var multimesh: MultiMesh
 var hidden := Transform3D(Basis.from_scale(Vector3.ZERO), Vector3(0.0, -1000.0, 0.0))
 var query := PhysicsRayQueryParameters3D.new()
@@ -172,6 +173,11 @@ func _resolve(slot: int, hit: Dictionary, velocity: Vector3) -> bool:
 	var metal: bool = collider != null and collider.has_meta("metal")
 	if effects:
 		effects.burst("spark" if metal else "dust", at + normal * 0.03, normal)
+		if not metal:
+			effects.burst("chips", at + normal * 0.03, normal)
+	# Stone keeps the scar. The gate and the wall patch do not: they move when they fall.
+	if marks and not metal:
+		marks.mark("scar", at, normal)
 	Sound.play_at("impact_metal" if metal else "impact", at, -10.0, randf_range(0.9, 1.15))
 	return true
 

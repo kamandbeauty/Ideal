@@ -42,6 +42,9 @@ extends Resource
 @export_range(0.0, 2.0, 0.05) var blast_reel_scale: float = 1.0
 ## How far a blast throws its body, against the blast's own knockback (0 = drops where it stood).
 @export_range(0.0, 2.0, 0.05) var knockback_scale: float = 1.0
+## Degrees a solid hit tips the figure before it rights itself (0 = it does not show hits this way).
+## Only what is seen: the hit volumes follow the figure, so keep it small.
+@export_range(0.0, 6.0, 0.1) var hit_rock_degrees: float = 3.0
 
 @export_group("Attack")
 @export_range(0.0, 1000.0, 0.5) var attack_damage: float = 3.0

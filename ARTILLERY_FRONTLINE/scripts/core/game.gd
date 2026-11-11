@@ -28,7 +28,8 @@ func _ready() -> void:
 	menus.restart_requested.connect(start_match)
 	menus.menu_requested.connect(to_menu)
 	Events.match_finished.connect(_on_match_finished)
-	Sound.start_loop("wind", "Music", -15.0)
+	# The wind is part of the place, not of the score: it follows the effects volume, so turning the music off leaves it.
+	Sound.start_loop("wind", "Effects", -19.0)
 	Sound.start_loop("music_theme", "Music", -13.0)
 	_load_level()
 	menus.show_main()
@@ -109,6 +110,7 @@ func _on_match_finished(victory: bool, stats: Dictionary) -> void:
 	var record: bool = int(Profile.data.stats.matches) > 0 and int(stats.get("wave", 0)) > int(Profile.data.stats.best_wave)
 	Profile.record_match(stats)
 	menus.show_result(victory, stats, record)
+	Sound.play("victory" if victory else "defeat", -5.0)
 
 
 ## Android's back button (and Escape in the menus): one step back from

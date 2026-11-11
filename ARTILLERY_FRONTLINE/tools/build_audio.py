@@ -2,10 +2,13 @@
 """Synthesize the game's sound effects. Every clip is generated from
 oscillators and filtered noise; nothing is sampled or downloaded.
 
-    python3 tools/build_audio.py            the siege clips: guns, explosives, zombies, wall, signals
-    python3 tools/build_audio.py --base     also re-render the base set (slow: pure Python)
+    python3 tools/build_audio.py                 the siege clips: guns, explosives, zombies, wall, signals, interface
+    python3 tools/build_audio.py --base          also re-render the base set (slow: pure Python)
+    python3 tools/build_audio.py --only=a,b      only these groups (see GROUPS at the end of the file)
+    python3 tools/build_audio.py --check         measure every clip on disk instead of writing any
 
 Requires numpy and scipy. Output: assets/audio/*.wav (24 kHz, mono, 16-bit).
+The generator is seeded: the same source gives the same files, byte for byte.
 """
 import os
 import sys
@@ -107,6 +110,18 @@ def hmg_shot():
     clack = bandpass(noise(seconds, 3), 2200, 5200) * decay(seconds, 90) * 0.5
     tail = lowpass(noise(seconds, 4), 500) * decay(seconds, 7) * 0.35
     write("hmg_shot", np.tanh((crack * 0.9 + body * 1.2 + thump * 1.4 + clack + tail) * 1.8))
+
+
+def hmg_tail():
+    """What is left of a burst once the trigger is released: the report rolling off the house fronts."""
+    seconds = 1.1
+    x = t(seconds)
+    roll = lowpass(noise(seconds, 421), 1100) * decay(seconds, 4.2, 0.012)
+    low = lowpass(noise(seconds, 422), 320) * decay(seconds, 3.0, 0.03) * 1.3
+    slaps = np.zeros_like(x)
+    for index, (at, gain) in enumerate(((0.09, 0.55), (0.21, 0.36), (0.38, 0.22))):
+        place(slaps, bandpass(noise(0.16, 423 + index), 500, 2600) * decay(0.16, 26, 0.004) * gain, at)
+    write("hmg_tail", roll + low + slaps, 0.6)
 
 
 def dry_fire():
@@ -288,6 +303,121 @@ def explosives():
     write("resupply", crate, 0.65)
 
 
+def bodies():
+    """Something heavy coming down on the paving: a brute, or the giant."""
+    seconds = 0.55
+    thud = sweep(seconds, 88, 34, curve=0.5) * decay(seconds, 11, 0.004) * 1.6
+    slap = lowpass(noise(seconds, 411), 700) * decay(seconds, 24, 0.002)
+    grit = bandpass(noise(seconds, 412), 900, 3200) * decay(seconds, 40) * 0.45
+    write("body_fall", np.tanh((thud + slap + grit) * 1.2), 0.85)
+
+
+def tone(freq, seconds, partials=(1.0, 0.4, 0.15)):
+    x = t(seconds)
+    return sum(gain * np.sin(2 * np.pi * freq * (index + 1) * x) for index, gain in enumerate(partials))
+
+
+def interface():
+    """Menu sounds. Short and dry, with enough body under 2 kHz to be heard through a phone speaker."""
+    # A switch thrown or a choice made.
+    seconds = 0.07
+    x = t(seconds)
+    tick = np.sin(2 * np.pi * 1320 * x) * np.exp(-x * 90) + 0.5 * np.sin(2 * np.pi * 1980 * x) * np.exp(-x * 120)
+    snap = bandpass(noise(seconds, 401), 2500, 7000) * decay(seconds, 220, 0.0005) * 0.5
+    write("ui_toggle", tick + snap, 0.7)
+    # The order to begin: a drum under two rising notes.
+    seconds = 0.5
+    begin = np.zeros(int(RATE * seconds))
+    place(begin, sweep(0.22, 140, 60) * decay(0.22, 18) * 1.2 + lowpass(noise(0.22, 402), 900) * decay(0.22, 30) * 0.5, 0.0)
+    for index, freq in enumerate((392.0, 587.3)):
+        place(begin, tone(freq, 0.34) * decay(0.34, 9.0, 0.004) * 0.6, 0.02 + index * 0.1)
+    write("ui_start", begin, 0.7)
+    # A step back: the same two notes, falling and softer.
+    seconds = 0.26
+    back = np.zeros(int(RATE * seconds))
+    for index, freq in enumerate((587.3, 392.0)):
+        place(back, tone(freq, 0.18, (1.0, 0.3)) * decay(0.18, 16.0, 0.003) * 0.6, index * 0.07)
+    write("ui_back", back, 0.5)
+
+
+def horn_note(freq, seconds, release=0.3):
+    """A plain brass-like tone: a stack of falling harmonics, slightly detuned against itself."""
+    x = t(seconds)
+    body = sum(np.sin(2 * np.pi * freq * k * x) / k ** 1.3 for k in range(1, 8))
+    body += 0.5 * sum(np.sin(2 * np.pi * freq * 1.004 * k * x + 1.0) / k ** 1.3 for k in range(1, 8))
+    return lowpass(body, 2600) * envelope(seconds, 0.035, release) * (1.0 + 0.03 * np.sin(2 * np.pi * 5.0 * x))
+
+
+def endings():
+    """The two stingers of the result screen."""
+    # The wall held: three pick-up notes and a long major chord over a drum roll that swells and stops.
+    seconds = 3.0
+    held = np.zeros(int(RATE * seconds))
+    for index, freq in enumerate((196.0, 261.6, 329.6)):
+        place(held, horn_note(freq, 0.3, 0.12) * 0.8, index * 0.2)
+    for freq, gain in ((261.6, 1.0), (329.6, 0.75), (392.0, 0.7), (523.3, 0.5)):
+        place(held, horn_note(freq, 2.3, 1.3) * gain * 0.55, 0.62)
+    place(held, sweep(0.5, 110, 46) * decay(0.5, 9.0, 0.004) * 1.6 + lowpass(noise(0.5, 431), 600) * decay(0.5, 14.0) * 0.6, 0.62)
+    write("victory", held, 0.8)
+    # The wall fell: a slow fall through a minor chord onto a low note that beats against itself and dies away.
+    seconds = 3.4
+    x = t(seconds)
+    fell = np.zeros(int(RATE * seconds))
+    for index, freq in enumerate((220.0, 174.6, 146.8)):
+        place(fell, horn_note(freq, 0.75, 0.45) * 0.7, index * 0.5)
+    low = (np.sin(2 * np.pi * 55.0 * x) + 0.8 * np.sin(2 * np.pi * 55.9 * x) + 0.5 * np.sin(2 * np.pi * 110.0 * x)
+           + 0.35 * np.sin(2 * np.pi * 164.8 * x)) * np.clip((x - 1.3) / 0.5, 0.0, 1.0) * np.clip((seconds - x) / 1.5, 0.0, 1.0)
+    toll = sweep(0.9, 82, 40) * decay(0.9, 5.0, 0.004) * 1.5 + lowpass(noise(0.9, 441), 400) * decay(0.9, 7.0, 0.01) * 0.8
+    place(fell, toll, 1.45)
+    write("defeat", fell + low * 0.9, 0.8)
+
+
+def wind_bed():
+    """The wind over the wall, as a loop with no seam: the tail is cross-faded into the head."""
+    seconds, overlap = 8.0, 0.6
+    raw = np.random.default_rng(451).uniform(-1.0, 1.0, int(RATE * (seconds + overlap)))
+    quick = signal.lfilter([0.06], [1.0, -0.94], raw)
+    slow = signal.lfilter([0.005], [1.0, -0.995], raw)
+    body = quick * 0.7 + slow * 1.5
+    count, lap = int(RATE * seconds), int(RATE * overlap)
+    loop = body[:count].copy()
+    # Equal-power: the two stretches of noise are unrelated.
+    blend = np.linspace(0.0, 1.0, lap)
+    loop[:lap] = body[:lap] * np.sqrt(blend) + body[count:count + lap] * np.sqrt(1.0 - blend)
+    loop *= 0.6 + 0.15 * np.sin(2 * np.pi * t(seconds) / seconds)
+    loop -= loop.mean()
+    loop = loop / np.abs(loop).max() * 0.78
+    with wave.open(os.path.join(OUT, "wind.wav"), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(RATE)
+        handle.writeframes(np.round(loop * 32767.0).astype("<i2").tobytes())
+    print("audio %-18s %.2fs (loop)" % ("wind", seconds))
+
+
+def check():
+    """Measures every clip on disk. Nobody can listen in a build machine, so the numbers stand in for ears:
+    level, the loudest tenth of a second, where the energy sits, and whether a clip starts or ends on a step."""
+    print("%-18s %6s %6s %6s %7s %6s %7s %7s" % ("clip", "sec", "peak", "rms", "loud.1", "centr", "first", "last"))
+    for name in sorted(os.listdir(OUT)):
+        if not name.endswith(".wav"):
+            continue
+        with wave.open(os.path.join(OUT, name)) as handle:
+            rate = handle.getframerate()
+            data = np.frombuffer(handle.readframes(handle.getnframes()), "<i2").astype(np.float64) / 32768.0
+        window = int(rate * 0.1)
+        if len(data) > window:
+            total = np.cumsum(np.insert(data ** 2, 0, 0.0))
+            loud = np.sqrt((total[window:] - total[:-window]).max() / window)
+        else:
+            loud = np.sqrt((data ** 2).mean())
+        spectrum = np.abs(np.fft.rfft(data * np.hanning(len(data))))
+        centre = (spectrum * np.fft.rfftfreq(len(data), 1.0 / rate)).sum() / max(spectrum.sum(), 1e-9)
+        level = lambda value: 20.0 * np.log10(max(value, 1e-9))
+        print("%-18s %6.2f %6.1f %6.1f %7.1f %6.0f %7.4f %7.4f" % (name[:-4], len(data) / rate, level(np.abs(data).max()),
+              level(np.sqrt((data ** 2).mean())), level(loud), centre, abs(data[0]), abs(data[-1])))
+
+
 def base_set():
     """The simple per-sample clips carried over from the first sound pass:
     interface click, impacts, reload, wind bed and the music loop."""
@@ -320,7 +450,7 @@ def base_set():
                                                  for a, f in [(0, 430), (0.24, 720), (0.53, 240)] if x >= a))
     render("click", 0.09, lambda x, n, l, l2: sin(2 * pi * 880 * x) * exp(-x * 55) * 0.4)
     render("impact", 0.65, lambda x, n, l, l2: n * 0.4 * exp(-x * 18) + sin(2 * pi * 110 * x) * exp(-x * 9) * 0.35)
-    render("wind", 8.0, lambda x, n, l, l2: (l * 0.7 + l2 * 1.5) * (0.6 + 0.15 * sin(2 * pi * x / 8)))
+    wind_bed()
     render("impact_flesh", 0.32, lambda x, n, l, l2: l * 0.9 * exp(-x * 30) + sin(2 * pi * (70 * x - 15 * x * x)) * 0.5 * exp(-x * 14) + n * 0.12 * exp(-x * 45))
     render("impact_metal", 0.9, lambda x, n, l, l2: sum(a * sin(2 * pi * f * x) * exp(-x * d) for f, a, d in [(1180, 0.5, 7), (1870, 0.35, 9), (2760, 0.22, 12)])
            + n * 0.35 * exp(-x * 60))
@@ -340,17 +470,37 @@ def base_set():
     render("music_theme", 48.0, theme)
 
 
+GROUPS = {
+    "hmg": lambda: (hmg_shot(), hmg_tail()),
+    "dry_fire": dry_fire,
+    "headshot": headshot,
+    "zombies": zombies,
+    "giants": giants,
+    "bodies": bodies,
+    "defenses": defenses,
+    "signals": signals,
+    "explosives": explosives,
+    "interface": interface,
+    "endings": endings,
+    "wind": wind_bed,
+}
+
+
 def main():
+    if "--check" in sys.argv:
+        check()
+        return
+    only = [name for argument in sys.argv if argument.startswith("--only=") for name in argument.split("=", 1)[1].split(",")]
+    if only:
+        for name in only:
+            GROUPS[name]()
+        return
     if "--base" in sys.argv:
         base_set()
-    hmg_shot()
-    dry_fire()
-    headshot()
-    zombies()
-    giants()
-    defenses()
-    signals()
-    explosives()
+    for name, build in GROUPS.items():
+        # The wind bed belongs to the base set; it is only rebuilt when asked for.
+        if name != "wind":
+            build()
 
 
 if __name__ == "__main__":

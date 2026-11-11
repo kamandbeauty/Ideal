@@ -7,8 +7,8 @@ extends Node3D
 const BLASTS: int = 5
 const SCORCHES: int = 10
 ## The light of a blast lasts FLASH_TIME; the white flash itself is over in a blink.
-const FLASH_TIME: float = 0.3
-const GLARE_TIME: float = 0.13
+const FLASH_TIME: float = 0.32
+const GLARE_TIME: float = 0.15
 const RING_TIME: float = 0.42
 const SCORCH_TIME: float = 30.0
 const GORE_PER_BLAST: int = 4
@@ -62,7 +62,8 @@ func _ready() -> void:
 		var quad := QuadMesh.new()
 		quad.size = Vector2.ONE
 		flash.mesh = quad
-		flash.material_override = _sprite(EffectPool.soft_dot(), Color(1.0, 0.8, 0.5, 1.0), true, true)
+		# Brighter than white, so the heart of the flash stays burnt out after tone mapping.
+		flash.material_override = _sprite(EffectPool.flare(8), Color(2.6, 2.1, 1.3, 1.0), true, true)
 		flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		flash.visible = false
 		add_child(flash)
@@ -101,7 +102,7 @@ func setup(the_horde: Horde, wall: Defense, effect_pool: EffectPool, gunner: Def
 
 
 func apply_quality(_tier: String, settings: Dictionary) -> void:
-	glow_lights = settings.shadows
+	glow_lights = bool(settings.get("lights", true))
 
 
 static func _radial(stops: Array) -> Texture2D:
@@ -203,7 +204,7 @@ func _show(at: Vector3, data: ExplosionData) -> void:
 		effects.burst("fireball", at + Vector3(0.0, 0.3 * size, 0.0), Vector3.UP, size)
 		effects.burst("blast_smoke", at + Vector3(0.0, 0.5 * size, 0.0), Vector3.UP, size)
 		effects.burst("debris", at, Vector3.UP, size)
-		effects.burst("spark", at + Vector3(0.0, 0.2, 0.0), Vector3.UP, 2.2 * size)
+		effects.burst("ember", at + Vector3(0.0, 0.25, 0.0), Vector3.UP, size)
 		effects.burst("dust", at, Vector3.UP, 3.0 * size)
 	var slot: int = cursor
 	cursor = (cursor + 1) % BLASTS
@@ -258,8 +259,9 @@ func _animate(delta: float) -> void:
 		lights[slot].light_energy = 10.0 * size * burn * burn
 		lights[slot].omni_range = 16.0 * size
 		var flash: MeshInstance3D = flashes[slot]
-		flash.scale = Vector3.ONE * lerpf(1.2, 3.6, clampf(age / GLARE_TIME, 0.0, 1.0)) * size
-		(flash.material_override as StandardMaterial3D).albedo_color.a = clampf(1.0 - age / GLARE_TIME, 0.0, 1.0)
+		var glare: float = clampf(age / GLARE_TIME, 0.0, 1.0)
+		flash.scale = Vector3.ONE * lerpf(2.2, 6.0, 1.0 - (1.0 - glare) * (1.0 - glare)) * size
+		(flash.material_override as StandardMaterial3D).albedo_color.a = 1.0 - glare * glare
 		var spread: float = clampf(age / RING_TIME, 0.0, 1.0)
 		var ring: MeshInstance3D = rings[slot]
 		ring.scale = Vector3.ONE * lerpf(1.0, reaches[slot] * 2.0, 1.0 - (1.0 - spread) * (1.0 - spread))

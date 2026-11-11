@@ -6,6 +6,8 @@ extends Node3D
 var layout: LevelLayout
 var defense: Defense
 var effects: EffectPool
+## Where the blood of the fallen is laid down; the level hands it over.
+var marks: MarkPool
 var lines := AttackLines.new()
 var types: Dictionary = {}
 var pooled: Dictionary = {}
@@ -246,6 +248,17 @@ func died(zombie: Zombie, headshot: bool) -> void:
 			oldest.state = Zombie.State.CORPSE
 			oldest.timer = minf(oldest.timer, 1.5)
 	Events.zombie_killed.emit(zombie, headshot)
+
+
+## A body has come to rest: blood spreads under it, and a heavy one raises the dust.
+func fell(zombie: Zombie) -> void:
+	var rest: Vector3 = zombie.resting_point()
+	var bulk: float = zombie.scale.x * (1.0 + 0.45 * float(zombie.data.footprint - 1))
+	if marks:
+		marks.mark("blood", rest, Vector3.UP, bulk)
+	if effects and zombie.data.footprint > 1:
+		effects.burst("dust", rest + Vector3(0.0, 0.2, 0.0), Vector3.UP, 1.1 * float(zombie.data.footprint))
+		Sound.play_at("body_fall", rest, -4.0 + 2.0 * float(zombie.data.footprint), randf_range(0.8, 0.95) / sqrt(float(zombie.data.footprint)))
 
 
 ## A zombie ran through a fallen gate (or the breached wall) into the city.
