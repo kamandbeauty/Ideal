@@ -41,6 +41,7 @@ func run(t: TestContext) -> void:
 	_check_destruction_profiles(t)
 	await _check_vehicle_destruction(t)
 	await _check_aircraft_damage_and_destruction(t)
+	_check_enemy_roles_distinct(t)
 	scene.queue_free()
 	await t.tree.process_frame
 
@@ -544,3 +545,34 @@ func _check_aircraft_damage_and_destruction(t: TestContext) -> void:
 	t.equal(fired[0], 0, "A destroyed aircraft does not fire")
 	plane.queue_free()
 	await t.tree.process_frame
+
+## Stage 6: every enemy type has its own combat signature. A type differs from every other type in what it does
+## (how it moves, where it stops, what it fires, how fast), not only in its health.
+func _check_enemy_roles_distinct(t: TestContext) -> void:
+	var vehicle_signatures: Dictionary = {}
+	for kind in ["tank", "apc", "transport", "jeep", "boss"]:
+		var unit: EnemyVehicle = _vehicle(t, kind, Vector3(0, 0, 0), Vector3(0, 0, -5))
+		var signature: String = "%s|%.1f|%.1f|%.0f|%.1f|%.2f" % [str(EnemyVehicle.strafes(kind)), EnemyVehicle.cook_off_radius(kind), unit.fire_interval(), unit.shell_damage(), unit.stop_distance, EnemyVehicle.aim_tolerance(kind)]
+		vehicle_signatures[kind] = signature
+		unit.queue_free()
+	var unique_vehicle: Dictionary = {}
+	for kind in vehicle_signatures:
+		unique_vehicle[vehicle_signatures[kind]] = true
+	t.equal(unique_vehicle.size(), vehicle_signatures.size(), "Each vehicle type has its own combat signature")
+	var aircraft_signatures: Dictionary = {}
+	for kind in ["helicopter", "fighter"]:
+		var plane := EnemyAircraft.new()
+		t.tree.root.add_child(plane)
+		plane.configure(Vector3(0, 0, 0), kind, 0.0)
+		plane.set_physics_process(false)
+		aircraft_signatures[kind] = "%.0f|%.0f|%.2f|%.0f" % [plane.orbit_radius, plane.altitude, plane.angular_speed, plane.max_health]
+		plane.queue_free()
+	t.check(aircraft_signatures["helicopter"] != aircraft_signatures["fighter"], "A helicopter and a fighter fly different patterns")
+	var infantry_signatures: Dictionary = {}
+	for kind in [InfantryRole.Kind.RIFLE, InfantryRole.Kind.HEAVY, InfantryRole.Kind.RPG]:
+		infantry_signatures[kind] = "%s|%.1f|%.1f|%s|%.1f|%.0f" % [str(InfantryRole.holds(kind)), InfantryRole.hold_distance(kind), InfantryRole.fire_range(kind), str(InfantryRole.damage_range(kind)), InfantryRole.setup_time(kind), InfantryRole.max_health(kind)]
+	var unique_infantry: Dictionary = {}
+	for kind in infantry_signatures:
+		unique_infantry[infantry_signatures[kind]] = true
+	t.equal(unique_infantry.size(), infantry_signatures.size(), "Each infantry role has its own combat signature")
+	t.check(not InfantryRole.holds(InfantryRole.Kind.RIFLE) and InfantryRole.holds(InfantryRole.Kind.HEAVY) and InfantryRole.holds(InfantryRole.Kind.RPG), "Riflemen keep moving; heavy and RPG soldiers hold a firing position")
