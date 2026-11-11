@@ -15,6 +15,8 @@ const DEFAULTS: Dictionary = {
 		"music_volume": 0.6,
 		"quality": "auto",
 		"show_fps": false,
+		"screen_shake": true,
+		"vibration": true,
 	},
 	"stats": {
 		"matches": 0,
@@ -64,7 +66,9 @@ func setting(key: String) -> Variant:
 	return data.settings[key]
 
 
-func set_setting(key: String, value: Variant) -> void:
+## `persist_now` is false while a slider is being dragged: the value takes
+## effect at once but storage is written once, when the thumb lifts.
+func set_setting(key: String, value: Variant, persist_now: bool = true) -> void:
 	if not data.settings.has(key) or data.settings[key] == value:
 		return
 	data.settings[key] = value
@@ -72,7 +76,8 @@ func set_setting(key: String, value: Variant) -> void:
 	if key == "language":
 		Loc.language = data.settings.language
 		Events.language_changed.emit()
-	save()
+	if persist_now:
+		save()
 	changed.emit()
 	Events.settings_changed.emit()
 

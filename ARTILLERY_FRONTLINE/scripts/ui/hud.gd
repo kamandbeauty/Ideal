@@ -430,13 +430,13 @@ func _layout() -> void:
 		slot.size = SLOT_SIZE
 		_fit(slot_labels[index], Rect2(slot.position + Vector2(SLOT_SIZE.x - 62.0, SLOT_SIZE.y - 40.0), Vector2(50.0, 34.0)))
 	var ammo_width: float = maxf(cards_width, SLOT_SIZE.x * 2.0 + SLOT_GAP)
-	var ammo_origin := Vector2((right - ammo_width) if left_handed else left, cards_top - 10.0 - 98.0)
+	var ammo_origin := Vector2((right - ammo_width) if left_handed else left, cards_top - 10.0 - 104.0)
 	ammo_plate.position = ammo_origin
-	ammo_plate.size = Vector2(ammo_width, 98.0)
-	_fit(weapon_label, Rect2(ammo_origin.x + 16.0, ammo_origin.y + 5.0, ammo_width - 32.0, 28.0))
-	_fit(ammo_label, Rect2(ammo_origin.x + 14.0, ammo_origin.y + 28.0, 126.0, 52.0))
-	_fit(magazine_label, Rect2(ammo_origin.x + 146.0, ammo_origin.y + 42.0, 120.0, 34.0))
-	ammo_gauge.position = Vector2(ammo_origin.x + 16.0, ammo_origin.y + 80.0)
+	ammo_plate.size = Vector2(ammo_width, 104.0)
+	_fit(weapon_label, Rect2(ammo_origin.x + 16.0, ammo_origin.y + 4.0, ammo_width - 32.0, 28.0))
+	_fit(ammo_label, Rect2(ammo_origin.x + 14.0, ammo_origin.y + 33.0, 126.0, 52.0))
+	_fit(magazine_label, Rect2(ammo_origin.x + 146.0, ammo_origin.y + 46.0, 120.0, 34.0))
+	ammo_gauge.position = Vector2(ammo_origin.x + 16.0, ammo_origin.y + 86.0)
 	ammo_gauge.size = Vector2(ammo_width - 32.0, 9.0)
 	_place_hint()
 

@@ -69,7 +69,15 @@ func pause() -> void:
 	mode = Mode.PAUSED
 	hud.set_active(false)
 	get_tree().paused = true
-	menus.show_pause()
+	menus.show_pause(match_status())
+
+
+## Where the match stands, for the pause screen.
+func match_status() -> Dictionary:
+	if level == null or not is_instance_valid(level):
+		return {}
+	return {"wave": level.stats.wave, "waves": level.stats.waves_total, "wall": level.defense.wall_fraction(),
+		"gate": level.defense.gate_fraction()}
 
 
 func resume() -> void:
@@ -97,8 +105,10 @@ func _on_match_finished(victory: bool, stats: Dictionary) -> void:
 	mode = Mode.RESULT
 	get_tree().paused = false
 	hud.set_active(false)
+	# A first match always beats "nothing"; only a later one can be called a record.
+	var record: bool = int(Profile.data.stats.matches) > 0 and int(stats.get("wave", 0)) > int(Profile.data.stats.best_wave)
 	Profile.record_match(stats)
-	menus.show_result(victory, stats)
+	menus.show_result(victory, stats, record)
 
 
 ## Android's back button (and Escape in the menus): one step back from
