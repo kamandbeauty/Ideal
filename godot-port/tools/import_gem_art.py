@@ -33,7 +33,7 @@ SIZE = 160          # the plate every screen scales from
 # How much of the plate a fruit is allowed to fill. The fruit sits inside a board cell with room around
 # it, so it is deliberately smaller than the cell: a piece that touches its neighbours reads as a wall
 # of colour instead of a board of pieces.
-PIECE_BOX = 128
+PIECE_BOX = 134
 KEY_TOLERANCE = 26  # how near the field colour a pixel has to be to get filled
 
 # The eight fruits, by the id the game asks for. The first five kept their stone names when the pieces
@@ -155,7 +155,7 @@ def _outlined(picture: Image.Image) -> Image.Image:
                           .astype(np.float32), 0.0, 1.0)
     line = Image.fromarray((ring * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(0.9))
     paint = Image.new("RGBA", (size, size), (62, 38, 24, 0))
-    paint.putalpha(line.point(lambda value: int(value * 0.86)))
+    paint.putalpha(line.point(lambda value: int(value * 0.82)))
     return Image.alpha_composite(picture, paint)
 
 
@@ -213,7 +213,7 @@ def _enamel(picture: Image.Image) -> Image.Image:
     # reads as washed out next to it.
     from PIL import ImageEnhance
     rgb = out.convert("RGB")
-    rgb = ImageEnhance.Color(rgb).enhance(1.16)
+    rgb = ImageEnhance.Color(rgb).enhance(1.20)
     rgb = ImageEnhance.Contrast(rgb).enhance(1.07)
     rgb = rgb.convert("RGBA")
     rgb.putalpha(out.getchannel("A"))

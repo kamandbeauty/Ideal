@@ -201,7 +201,7 @@ def build_tray() -> Image.Image:
     # Bright at the top and only a shade warmer at the bottom: a tile that goes brown by its lower edge
     # is what made the last board look dusty under a full grid of fruit.
     face = _plate((tile_side, tile_side), cell_radius,
-                  [(0.0, (255, 254, 250)), (0.50, (255, 250, 238)), (1.0, (250, 236, 208))])
+                  [(0.0, (255, 255, 253)), (0.50, (255, 252, 245)), (1.0, (252, 243, 224))])
     # A bright bevel along the top edge: the one line that makes a flat square read as a socket.
     bevel = Image.new("RGBA", (tile_side, tile_side), (0, 0, 0, 0))
     ImageDraw.Draw(bevel).rounded_rectangle((2, 2, tile_side - 3, tile_side - 3),
@@ -215,7 +215,7 @@ def build_tray() -> Image.Image:
     # darker lip where the light cannot reach.
     lip = Image.new("RGBA", (tile_side, tile_side), (0, 0, 0, 0))
     ImageDraw.Draw(lip).rounded_rectangle((2, 2, tile_side - 3, tile_side - 3), radius=cell_radius,
-                                          outline=(*_mix(IVORY_SHADE, GOLD_DARK, 0.35), 70), width=3)
+                                          outline=(*_mix(IVORY_SHADE, GOLD_DARK, 0.35), 52), width=3)
     lip = lip.filter(ImageFilter.GaussianBlur(2.0))
     face.alpha_composite(lip)
     face = _rim(face, cell_radius, _mix(GOLD, GOLD_LIGHT, 0.45), width=2)
