@@ -68,9 +68,11 @@ func _build() -> void:
 	light.light_energy = 0.0
 	light.omni_range = 7.0
 	light.shadow_enabled = false
-	# Well ahead of the muzzles and above the bores: a light a hand's breadth from the barrels
-	# turned both of them gold with every round, in broad daylight.
+	# Well ahead of the muzzles and above the bores, and with next to no highlight: gun metal shows a
+	# light only as its highlight, and a full one turned both barrels gold with every round, in broad
+	# daylight. What is left warms the stone of the parapet and little else.
 	light.position = Vector3(0.0, 0.45, 3.4)
+	light.light_specular = 0.1
 	light.visible = lights_on
 	pivot.add_child(light)
 

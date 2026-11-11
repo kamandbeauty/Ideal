@@ -72,6 +72,8 @@ func run(t: TestContext) -> void:
 	t.check(not level.ash.visible and not level.ash.emitting, "the ash stops")
 	t.check(not level.explosions.glow_lights, "blasts throw no light")
 	t.check(not gun.light.visible, "and neither does the muzzle")
+	t.check(level.rockets.glows.size() == RocketPool.CAPACITY and not level.rockets.glows.any(func(glow: OmniLight3D) -> bool: return glow.visible),
+		"nor a rocket in flight")
 	scars = int(marks.placed["scar"])
 	bursts = effects.bursts
 	bullets.fire(Vector3(-8.0, 3.0, -28.0), Vector3(0.0, -300.0, 0.0), 34.0, 100.0)
@@ -80,6 +82,7 @@ func run(t: TestContext) -> void:
 	t.equal(int(marks.placed["scar"]), scars + 1, "the scar stays: every scar there is costs one draw call")
 	Graphics.apply_tier("high")
 	t.check(effects.detail and level.ash.visible and level.ash.emitting and level.explosions.glow_lights, "a higher tier brings it all back")
+	t.check(gun.light.visible and level.rockets.glows.all(func(glow: OmniLight3D) -> bool: return glow.visible), "the lights of the guns with it")
 
 	# The gun: brass, flash, and the report rolling on after the burst.
 	level.begin_match()
@@ -129,7 +132,8 @@ func run(t: TestContext) -> void:
 	gun._animate(0.25)
 	t.check(gun.flashes[0].visible, "after a frame of a quarter of a second the flash is still there to be drawn")
 	t.near(gun.light.light_energy, TwinHmg.FLASH_LIGHT, 0.0001, "and so is its light")
-	t.check(gun.light.position.z > gun.muzzles[0].position.z + 1.0, "which stands well ahead of the muzzles, so it does not gild the barrels")
+	t.check(gun.light.position.z > gun.muzzles[0].position.z + 1.0, "which stands well ahead of the muzzles")
+	t.check(gun.light.light_specular <= 0.2, "and throws next to no highlight, so it does not gild the barrels")
 	gun._animate(0.25)
 	t.check(not gun.flashes[0].visible, "the frame after that puts it out")
 	gun._fire_round()

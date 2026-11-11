@@ -35,6 +35,10 @@ const SPATIAL_VOICES: int = 14
 const FLAT_VOICES: int = 10
 ## The master bus never passes this level, however much is sounding at once.
 const CEILING_DB: float = -0.8
+## Seconds a bed takes to come up. A loop is cut from the middle of a sound, so it starts on a
+## step, and a bed at full level the instant the game opens is heard as a fault, not as weather.
+const LOOP_FADE: float = 1.6
+const SILENT_DB: float = -60.0
 
 var clips: Dictionary = {}
 var spatial: Array[AudioStreamPlayer3D] = []
@@ -224,7 +228,7 @@ static func frames_of(stream: AudioStreamWAV) -> int:
 	return int(round(stream.get_length() * float(stream.mix_rate)))
 
 
-func start_loop(id: String, bus: String = "Music", volume_db: float = 0.0) -> void:
+func start_loop(id: String, bus: String = "Music", volume_db: float = 0.0, fade: float = LOOP_FADE) -> void:
 	if loops.has(id) or not clips.has(id):
 		return
 	var stream: AudioStreamWAV = clips[id].duplicate()
@@ -237,8 +241,16 @@ func start_loop(id: String, bus: String = "Music", volume_db: float = 0.0) -> vo
 	player.volume_db = volume_db
 	add_child(player)
 	loops[id] = player
-	if playback_enabled:
-		player.play()
+	if not playback_enabled:
+		return
+	if fade > 0.0:
+		player.volume_db = SILENT_DB
+		# Bound to the player, so stopping the bed stops its fade; it keeps rising while the game is paused.
+		var rise: Tween = player.create_tween()
+		rise.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		rise.tween_method(func(level: float) -> void: player.volume_db = linear_to_db(level),
+			db_to_linear(SILENT_DB), db_to_linear(volume_db), fade)
+	player.play()
 
 
 func stop_loop(id: String) -> void:

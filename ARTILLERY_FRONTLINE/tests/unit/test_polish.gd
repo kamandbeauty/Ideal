@@ -17,6 +17,7 @@ func run(t: TestContext) -> void:
 	_clips(t)
 	_voices(t)
 	_loops_and_buses(t)
+	await _loop_fade(t)
 	await _marks(t)
 	await _casings(t)
 	_flare(t)
@@ -97,6 +98,12 @@ func _governor(t: TestContext) -> void:
 	Profile.set_setting("quality", "high")
 	t.equal(Graphics.tier, "high", "choosing a tier applies it at once")
 	t.near(Graphics.render_scale, float(Graphics.PROFILES["high"].scale), 0.0001, "at its full resolution")
+	t.check(not Graphics.governing(), "and the governor leaves a tier the player chose alone")
+	Profile.set_setting("quality", "auto")
+	t.check(Graphics.governing(), "on \"auto\" it is at work")
+	Graphics.governor = false
+	t.check(not Graphics.governing(), "unless it has been switched off, as the screenshot run does")
+	Graphics.governor = true
 	Graphics.auto_tier = auto_before
 	Profile.reset()
 	Graphics.apply_preference()
@@ -224,6 +231,28 @@ func _loops_and_buses(t: TestContext) -> void:
 	Profile.set_setting("music_volume", 0.5)
 	t.near(AudioServer.get_bus_volume_db(Sound.music_bus), linear_to_db(0.5), 0.01, "half volume is six decibels down")
 	Profile.reset()
+
+
+## A bed comes up from silence instead of starting on a step.
+func _loop_fade(t: TestContext) -> void:
+	var enabled: bool = Sound.playback_enabled
+	Sound.playback_enabled = true
+	Sound.start_loop("ui_start", "Effects", -19.0, 0.25)
+	var player: AudioStreamPlayer = Sound.loops["ui_start"]
+	t.check(player.playing, "a bed that is started plays")
+	t.near(player.volume_db, Sound.SILENT_DB, 0.01, "from silence")
+	await t.tree.create_timer(0.12).timeout
+	t.check(player.volume_db > Sound.SILENT_DB + 6.0 and player.volume_db <= -18.99, "rising (%.1f dB part of the way through its fade)" % player.volume_db)
+	await t.tree.create_timer(0.25).timeout
+	t.near(player.volume_db, -19.0, 0.01, "to the level it was given")
+	Sound.stop_loop("ui_start")
+	await t.frames(2)
+	t.check(not Sound.is_looping("ui_start") and not is_instance_valid(player), "stopping it frees its player, and the fade with it")
+	Sound.start_loop("ui_back", "Effects", -12.0, 0.0)
+	t.near((Sound.loops["ui_back"] as AudioStreamPlayer).volume_db, -12.0, 0.01, "a bed asked for without a fade starts at its level")
+	Sound.stop_loop("ui_back")
+	Sound.playback_enabled = enabled
+	await t.frames(1)
 
 
 func _marks(t: TestContext) -> void:

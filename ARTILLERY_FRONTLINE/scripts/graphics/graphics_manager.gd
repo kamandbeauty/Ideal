@@ -25,6 +25,8 @@ const SCALE_FLOOR: float = 0.55
 const FLOOR_PATIENCE: float = 8.0
 
 var tier: String = "medium"
+## Switched off by the screenshot run, so that every picture shows the same tier at the same resolution.
+var governor: bool = true
 ## The tier "auto" has settled on in this session; empty until the governor has had to give one up. It only moves down.
 var auto_tier: String = ""
 var floor_time: float = 0.0
@@ -98,9 +100,13 @@ func _process(delta: float) -> void:
 	if warmup > 0.0:
 		warmup -= delta
 		return
-	if get_tree().paused or Profile.data.settings.quality != "auto":
-		return
-	observe(frame_ms, delta)
+	if governing():
+		observe(frame_ms, delta)
+
+
+## The governor only works for a player who left quality on "auto", and never judges a paused game.
+func governing() -> bool:
+	return governor and not get_tree().paused and Profile.data.settings.quality == "auto"
 
 
 ## Feeds one frame to the governor. Only called with quality on "auto".

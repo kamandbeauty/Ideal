@@ -17,6 +17,8 @@ const OUT: String = "res://documentation/qa/"
 const KINDS: Array[String] = ["screen", "play", "slowed", "staged", "preview"]
 ## A camera cut-out on the left edge of a phone held in landscape, in canvas units (about 90 px of a 2400 x 1080 screen).
 const CUTOUT: float = 68.0
+## The quality tier every picture is taken on: the one a phone starts with.
+const PICTURE_TIER: String = "medium"
 
 var game: Node
 var level: CityLevel
@@ -33,6 +35,13 @@ func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
 	Profile.persist = false
 	Profile.load_profile()
+	# Quality stays on "auto", as a new player has it, but "auto" is made to mean what it means on a phone, and
+	# the governor is switched off: it would answer the software renderer's few frames a second by lowering the
+	# resolution and then the tier, and the later pictures would show a different game from the earlier ones.
+	Profile.set_setting("quality", "auto", false)
+	Graphics.governor = false
+	Graphics.auto_tier = PICTURE_TIER
+	Graphics.apply_preference()
 	_run.call_deferred()
 
 
@@ -634,6 +643,12 @@ func _run() -> void:
 	check(game.menus.screen == "main", "MAIN MENU returns to the title")
 
 	await _other_screens()
+
+	var render: Dictionary = Graphics.snapshot()
+	check(String(render.tier) == PICTURE_TIER and is_equal_approx(float(render.scale), float(Graphics.PROFILES[PICTURE_TIER].scale)),
+		"every picture was taken on the %s tier at its own resolution (%s at %.2f)" % [PICTURE_TIER, render.tier, render.scale])
+	notes["pictures"] = {"tier": PICTURE_TIER, "render_scale": float(Graphics.PROFILES[PICTURE_TIER].scale),
+		"why": "the tier a phone starts on; the frame-time governor is off for the run"}
 
 	var by_kind: Dictionary = {}
 	for kind: String in KINDS:

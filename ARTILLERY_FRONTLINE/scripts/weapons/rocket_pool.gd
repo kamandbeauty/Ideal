@@ -13,6 +13,7 @@ const TRAIL_START: float = 7.0
 
 var explosions: Explosions
 var nodes: Array[Node3D] = []
+var glows: Array[OmniLight3D] = []
 var trails: Array[CPUParticles3D] = []
 var alive := PackedByteArray()
 var positions := PackedVector3Array()
@@ -51,6 +52,7 @@ func _ready() -> void:
 		glow.shadow_enabled = false
 		glow.position = Vector3(0.0, 0.0, 0.9)
 		round_node.add_child(glow)
+		glows.append(glow)
 		round_node.visible = false
 		add_child(round_node)
 		nodes.append(round_node)
@@ -58,6 +60,14 @@ func _ready() -> void:
 		trail.name = "Trail%d" % index
 		add_child(trail)
 		trails.append(trail)
+	add_to_group("quality_listener")
+	apply_quality(Graphics.tier, Graphics.profile())
+
+
+## The lowest tier pays for no moving lights at all: a round in flight is its flame and its smoke.
+func apply_quality(_tier: String, settings: Dictionary) -> void:
+	for glow: OmniLight3D in glows:
+		glow.visible = bool(settings.get("lights", true))
 
 
 func _smoke_material() -> StandardMaterial3D:
