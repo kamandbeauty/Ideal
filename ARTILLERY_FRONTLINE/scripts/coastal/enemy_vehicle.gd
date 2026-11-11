@@ -40,6 +40,8 @@ const STRAFE_SPEED: float = 3.5
 ## Without a band, the tangential step pushes it just past the stand-off, and the approach
 ## branch then pulls it straight back in each frame, so it never actually circles.
 const STRAFE_BAND: float = 2.0
+## Longitudinal acceleration limit (m/s^2) while a jeep eases from its approach speed onto the circling speed.
+const ORBIT_ACCEL: float = 4.0
 var health: float = TANK_HEALTH
 var max_health: float = TANK_HEALTH
 var speed: float = 3.2
@@ -79,6 +81,8 @@ var stage: int = 0
 var aim_error: float = 0.0
 ## Direction of a jeep's circling. Fixed for the whole run: a steady arc round the target, not a shuttle.
 var strafe_sign: float = 1.0
+## Horizontal speed (m/s) the hull carried into the last physics frame, used to ease the orbit speed.
+var carried_speed: float = 0.0
 ## Hull pitch kick from the last hit, decaying over time.
 var hit_jolt: float = 0.0
 var hit_jolt_phase: float = 0.0
@@ -146,6 +150,7 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 	hit_jolt = 0.0
 	aim_error = 0.0
 	strafe_sign = 1.0 if randf() < 0.5 else -1.0
+	carried_speed = 0.0
 	if smoke_plume != null:
 		smoke_plume.queue_free()
 		smoke_plume = null
@@ -381,7 +386,7 @@ func _physics_process(delta: float) -> void:
 		current_speed = _drive_to_firing_point(delta)
 	elif strafes(kind) and distance <= stop_distance + STRAFE_BAND:
 		# The jeep does not park: it circles its target at the stand-off distance.
-		current_speed = _strafe(delta, direction, distance, desired_yaw)
+		current_speed = _strafe(delta, direction, distance)
 	elif distance > stop_distance:
 		holding = false
 		var error: float = absf(angle_difference(rotation.y, desired_yaw))
@@ -400,6 +405,7 @@ func _physics_process(delta: float) -> void:
 	# craft's ramp rather than teleporting to the sand.
 	var ground: float = maxf(CoastalTerrain.height_at(global_position.x, global_position.z), WADE_FLOOR)
 	global_position.y = move_toward(global_position.y, ground, 2.2 * delta)
+	carried_speed = current_speed
 	_roll_wheels(delta, current_speed)
 	_suspension(delta, current_speed)
 	_aim_turret(delta)
@@ -477,15 +483,22 @@ func _drive_to_firing_point(delta: float) -> float:
 		global_position += direction * minf(current_speed * delta, remaining)
 	return current_speed
 
-## Circling for a jeep: a tangential run with a radial correction back to the stand-off distance.
-func _strafe(delta: float, direction: Vector3, distance: float, desired_yaw: float) -> float:
+## Circling for a jeep. The hull steers along its course (a tangential run with a radial correction back to
+## the stand-off distance) and drives along its own heading, so the body faces the way it moves. Forward speed
+## eases toward STRAFE_SPEED and drops while the hull is still turning onto the course.
+func _strafe(delta: float, direction: Vector3, distance: float) -> float:
 	var tangent: Vector3 = Vector3(-direction.z, 0.0, direction.x) * strafe_sign * STRAFE_SPEED
 	var radial: Vector3 = direction * clampf((distance - stop_distance) * 0.8, -3.0, 3.0)
-	var velocity: Vector3 = tangent + radial
-	global_position += velocity * delta
-	rotation.y = _turn_toward(rotation.y, desired_yaw, turn_rate(kind) * delta)
+	var course: Vector3 = tangent + radial
+	var course_yaw: float = atan2(-course.x, -course.z)
+	var error: float = absf(angle_difference(rotation.y, course_yaw))
+	rotation.y = _turn_toward(rotation.y, course_yaw, turn_rate(kind) * delta)
+	var target_speed: float = STRAFE_SPEED * clampf((1.6 - error) / 1.0, 0.0, 1.0)
+	var forward_speed: float = move_toward(carried_speed, target_speed, ORBIT_ACCEL * delta)
+	var forward := Vector3(-sin(rotation.y), 0.0, -cos(rotation.y))
+	global_position += forward * forward_speed * delta
 	holding = false
-	return velocity.length()
+	return forward_speed
 
 ## Moves an angle toward a target by at most max_step radians (shortest way round).
 static func _turn_toward(current: float, target: float, max_step: float) -> float:

@@ -32,6 +32,8 @@ func run(t: TestContext) -> void:
 	await _check_tank_pivots_before_driving(t)
 	await _check_turret_waits_for_alignment(t)
 	await _check_jeep_strafes(t)
+	_check_jeep_approach_to_orbit(t)
+	await _check_jeep_fires_while_circling(t)
 	await _check_vehicle_damage_states(t)
 	await _check_cook_off(t)
 	await _check_vehicle_line_of_fire(t)
@@ -319,6 +321,99 @@ func _check_jeep_strafes(t: TestContext) -> void:
 	t.check(path > 15.0, "The jeep strafes across the target's front, covering over 15 m in five seconds")
 	t.check(low > 36.0 and high < 44.0, "The jeep holds its stand-off distance while it circles")
 	t.check(not reversed and sense != 0.0, "The jeep circles one way round the target instead of shuttling left and right")
+	jeep.queue_free()
+
+## Phase 3.7: a jeep drives in from its landing point, stops at its stand-off, then circles the emplacement
+## one way with its body facing where it moves. The whole transition is checked, not only the orbit.
+func _check_jeep_approach_to_orbit(t: TestContext) -> void:
+	var emplacement := Vector3(0, 0, 58)
+	var jeep: EnemyVehicle = _vehicle(t, "jeep", Vector3(0, 0, -8), emplacement)
+	var band_edge: float = jeep.stop_distance + EnemyVehicle.STRAFE_BAND
+	var previous: Vector3 = jeep.global_position
+	var last_distance: float = Vector2(previous.x - emplacement.x, previous.z - emplacement.z).length()
+	var approach_closing: bool = true
+	var first_orbit: int = -1
+	var max_step: float = 0.0
+	var max_speed_change: float = 0.0
+	var previous_step: float = 0.0
+	var min_distance: float = INF
+	var max_distance: float = 0.0
+	var sense: float = 0.0
+	var reversed: bool = false
+	var previous_angle: float = 0.0
+	var sweep: float = 0.0
+	var aligned: bool = true
+	var worst_misalign: float = 0.0
+	var aim_hits: int = 0
+	var aim_frames: int = 0
+	var tolerance: float = EnemyVehicle.aim_tolerance("jeep")
+	for index in range(5400):
+		jeep._physics_process(STEP)
+		var now: Vector3 = jeep.global_position
+		var motion := Vector2(now.x - previous.x, now.z - previous.z)
+		var step: float = motion.length()
+		var offset := Vector2(now.x - emplacement.x, now.z - emplacement.z)
+		var distance: float = offset.length()
+		max_step = maxf(max_step, step)
+		if first_orbit < 0:
+			if distance > last_distance + 0.001:
+				approach_closing = false
+			last_distance = distance
+			if distance <= band_edge:
+				first_orbit = index
+				previous_angle = atan2(offset.y, offset.x)
+		else:
+			max_speed_change = maxf(max_speed_change, absf(step - previous_step))
+			min_distance = minf(min_distance, distance)
+			max_distance = maxf(max_distance, distance)
+			var previous_offset := Vector2(previous.x - emplacement.x, previous.z - emplacement.z)
+			var turn: float = previous_offset.x * offset.y - previous_offset.y * offset.x
+			if absf(turn) > 0.05:
+				if sense == 0.0:
+					sense = signf(turn)
+				elif signf(turn) != sense:
+					reversed = true
+			var angle_now: float = atan2(offset.y, offset.x)
+			if index > first_orbit + 600:
+				sweep += angle_difference(previous_angle, angle_now)
+			previous_angle = angle_now
+			if index > first_orbit + 180:
+				var forward := Vector2(-jeep.global_transform.basis.z.x, -jeep.global_transform.basis.z.z).normalized()
+				if step > 0.01:
+					var heading: Vector2 = motion.normalized()
+					var misalign: float = rad_to_deg(acos(clampf(forward.dot(heading), -1.0, 1.0)))
+					worst_misalign = maxf(worst_misalign, misalign)
+					if misalign > 5.0:
+						aligned = false
+				aim_frames += 1
+				if jeep.aim_error <= tolerance:
+					aim_hits += 1
+		previous_step = step
+		previous = now
+	t.check(first_orbit > 0, "The jeep reaches its stand-off zone after driving in from its landing point")
+	t.check(approach_closing, "The jeep closes on the emplacement while it approaches (its distance never grows)")
+	t.check(first_orbit >= 0 and min_distance >= 36.0 and max_distance <= 44.0, "The jeep holds its 40 m stand-off within the 36-44 m tolerance through the transition and the orbit")
+	t.check(sense != 0.0 and not reversed, "The jeep circles one way and its orbit direction never reverses")
+	t.check(absf(sweep) >= 1.5, "The jeep keeps moving round the emplacement instead of stopping or shuttling")
+	t.check(max_step <= jeep.cruise_speed() * STEP * 1.05, "The jeep never jumps: each frame moves no more than its cruise speed allows")
+	t.check(max_speed_change <= EnemyVehicle.ORBIT_ACCEL * STEP + 0.001, "The jeep eases its speed onto the orbit at the acceleration limit, with no sudden change")
+	t.check(aligned, "The jeep's body faces its direction of travel (within 5 degrees, worst %.1f)" % worst_misalign)
+	t.check(aim_frames > 0 and float(aim_hits) >= 0.95 * float(aim_frames), "The turret keeps the emplacement on target while the jeep circles")
+	t.check(not jeep.holding and not jeep.dead, "The jeep keeps moving instead of parking or stopping")
+	jeep.queue_free()
+
+## A circling jeep still fires on a clear line: its turret tracks while the hull moves.
+func _check_jeep_fires_while_circling(t: TestContext) -> void:
+	var jeep: EnemyVehicle = _vehicle(t, "jeep", Vector3(0, 0, -8), Vector3(0, 0, 58))
+	jeep.shoot_cooldown = 0.0
+	var shots: Array = [0]
+	jeep.shoot_requested.connect(func(_muzzle, _aim, _damage, _blast): shots[0] += 1)
+	var orbit_shots: int = 0
+	for index in range(3600):
+		jeep._physics_process(STEP)
+		if index == 600:
+			orbit_shots = shots[0]
+	t.check(shots[0] - orbit_shots >= 8, "A circling jeep keeps firing at the emplacement while it moves (%d shots in the last 50 s)" % (shots[0] - orbit_shots))
 	jeep.queue_free()
 
 ## Damage shows on the hull: a hit rocks it, and smoke then fire build on the wreck as health falls.
