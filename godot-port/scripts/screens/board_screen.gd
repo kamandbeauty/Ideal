@@ -199,8 +199,11 @@ func build() -> void:
 		# as smudges. An ivory disc inside the orb gives each one a face to be read against.
 		# The tool's own picture already carries a dark disc, so it is the button's face: no second
 		# plate under it, and large enough that the glyph is read at a glance.
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 6.0, 6.0,
-			BOOSTER_SIZE - 12.0, BOOSTER_SIZE - 12.0))
+		# The glyph is a plate of its own: the tool's silhouette in cream on the orb's own blue, so the
+		# picture and the button read as one lit ball. The pinned medallion it is derived from stays in
+		# `assets/art/` and still ships — it is the shop's picture, not the button's face.
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_face(kind), 4.0, 4.0,
+			BOOSTER_SIZE - 8.0, BOOSTER_SIZE - 8.0))
 		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
 		# stacked at 62 dp pitch and there is no room for a caption under each.
 		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0,
@@ -332,14 +335,14 @@ static func _obstacle_art(kind: int) -> String:
 	var path := AssetCatalog.obstacle_path(kind)
 	return path if not path.is_empty() else "obstacle_crate"
 
-static func _booster_icon(kind: int) -> String:
+static func _booster_face(kind: int) -> String:
 	match kind:
-		GameTypes.BoosterKind.MALLET: return "booster_mallet"
-		GameTypes.BoosterKind.RAM: return "booster_ram"
-		GameTypes.BoosterKind.AUGER: return "booster_auger"
-		GameTypes.BoosterKind.WHIRLWIND: return "booster_whirlwind"
-		GameTypes.BoosterKind.FALCON: return "booster_falcon"
-		_: return "booster_mallet"
+		GameTypes.BoosterKind.MALLET: return "res://assets/ui/ui_glyph_mallet.png"
+		GameTypes.BoosterKind.RAM: return "res://assets/ui/ui_glyph_ram.png"
+		GameTypes.BoosterKind.AUGER: return "res://assets/ui/ui_glyph_auger.png"
+		GameTypes.BoosterKind.WHIRLWIND: return "res://assets/ui/ui_glyph_whirlwind.png"
+		GameTypes.BoosterKind.FALCON: return "res://assets/ui/ui_glyph_falcon.png"
+		_: return "res://assets/ui/ui_glyph_mallet.png"
 
 # ---- input --------------------------------------------------------------------------------------
 

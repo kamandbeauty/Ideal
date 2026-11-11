@@ -333,34 +333,68 @@ def build_round_plate(name: str, size: int) -> Image.Image:
     if name == "orb":
         picture = Image.new("RGBA", (size, size), (0, 0, 0, 0))
         radius = size / 2.0
-        ring = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(ring)
         # A metallic band, bright at the top left and deep at the bottom right: that falloff is the only
         # cue that says gold rather than yellow.
         # A metal band, not a pale halo: the ring only occupies the outer eighth of the plate, so the
         # gold lives there and the gradient runs across that band alone.
-        ring_outer = radius
-        ring_inner = radius * 0.70
-        for step in range(int(ring_inner), int(ring_outer)):
-            t = max(0.0, min(1.0, (step - ring_inner) / max(1.0, ring_outer - ring_inner)))
-            colour = _mix((255, 232, 162), (156, 100, 20), t ** 0.55)
-            draw.ellipse((step, step, size - 1 - step, size - 1 - step), outline=colour + (255,))
-        draw.ellipse((int(ring_inner) - 2, int(ring_inner) - 2, size - 1 - int(ring_inner) + 2,
-                      size - 1 - int(ring_inner) + 2), outline=(90, 56, 10, 210), width=2)
-        draw.ellipse((1, 1, size - 2, size - 2), outline=(120, 78, 16, 200), width=2)
+        # Gold, not brass: the band is three values of the same gold — a bright lip at its inner
+        # edge, the metal across the middle, and a deeper gold at the outer edge — with a dark outline
+        # inside and out. The version that shipped the last capture fell to (156, 100, 20) at the outer
+        # edge, which at 48 dp is brown, and a brown ring round a blue ball is the one thing the
+        # reference's gold-rimmed orbs never are.
+        # The band's geometry was wrong for as long as this plate has existed: the outline boxes were
+        # written as (step, step, size - 1 - step, ...), which is a circle of radius (size - 1) / 2 -
+        # step, not of radius step. Every step therefore drew a circle inside the previous one and the
+        # whole band collapsed into a small disc under the sphere, which is why the orb only ever showed
+        # the thin keyline at its edge.
+        #
+        # It is a field now, not a stack of one-pixel outlines: drawn three times over and resampled, so
+        # the band is solid gold with a bright lip, a warm metal body, a lit arc on the upper left and a
+        # dark line on each edge — and no dotted edge, which is what PIL's own arc and thick ellipses
+        # leave at this radius.
+        ss = 3
+        n = size * ss
+        ramp = (np.arange(n, dtype=np.float32) + 0.5) / (n / 2.0) - 1.0
+        across, down = ramp[None, :], ramp[:, None]
+        distance = np.sqrt(across ** 2 + down ** 2)
+        ring_inner = 0.74
+        band = (distance >= ring_inner) & (distance <= 1.0)
+        t = np.clip((distance - ring_inner) / (1.0 - ring_inner), 0.0, 1.0)
+        gold_light = np.array(GOLD_LIGHT, dtype=np.float32)[None, None, :]
+        gold = np.array(GOLD, dtype=np.float32)[None, None, :]
+        gold_dark = np.array(GOLD_DARK, dtype=np.float32)[None, None, :]
+        line_dark = np.array((112, 72, 16), dtype=np.float32)[None, None, :]
+        colour = np.where(t[..., None] < 0.30,
+                          gold_light + (gold - gold_light) * (t[..., None] / 0.30),
+                          gold + (gold_dark - gold) * np.clip((t[..., None] - 0.90) / 0.10, 0.0, 1.0))
+        colour = np.where((t[..., None] < 0.06), line_dark + (gold_light - line_dark) * (t[..., None] / 0.06), colour)
+        # The lit arc: metal catches the light on the upper left and nowhere else.
+        lit = np.clip((across * -0.70 + down * -0.70), 0.0, 1.0) ** 2.2
+        colour = colour + (np.array((255, 250, 222), dtype=np.float32)[None, None, :] - colour) * (lit[..., None] * 0.75)
+        ring_pixels = np.dstack([colour, np.where(band, 255.0, 0.0)]).astype(np.uint8)
+        ring = Image.fromarray(ring_pixels, "RGBA").resize((size, size), Image.LANCZOS)
         picture.alpha_composite(ring)
-        sphere_size = int(size * 0.78)
+
+        # The sphere: a royal ball lit from the upper left, so it turns away from the light the way the
+        # reference's orbs do. Drawn as a field rather than as concentric rings, which is what made the
+        # version before this one a dark spot inside a light circle.
+        sphere_size = int(size * 0.82)
         sphere = Image.new("RGBA", (sphere_size, sphere_size), (0, 0, 0, 0))
-        paint = ImageDraw.Draw(sphere)
         half = sphere_size / 2.0
-        for step in range(int(half), 0, -1):
-            t = 1.0 - step / half  # 0 at the rim, 1 at the centre
-            # Royal blue with a turquoise rim light: the reference's boosters are blue buttons, and the
-            # turquoise belongs to the frame around them.
-            # Light at the top, royal at the bottom: the tools' own pictures are a dark blue disc with
-            # a gold glyph, and dark-on-dark is why five tools read as five smudges.
-            paint.ellipse((half - step, half - step, half + step, half + step),
-                          fill=_mix((126, 190, 246), ROYAL, t ** 1.2) + (255,))
+        coords = (np.arange(sphere_size, dtype=np.float32) + 0.5) / half - 1.0
+        across, down = coords[None, :], coords[:, None]
+        inside = (across ** 2 + down ** 2) <= 1.0
+        light = np.clip(0.62 - 0.46 * (0.50 * across + 0.88 * down), 0.0, 1.0)
+        light = light ** 1.15
+        dark = np.array(ROYAL_DARK, dtype=np.float32)[None, None, :]
+        lit = np.array((86, 170, 238), dtype=np.float32)[None, None, :]
+        field_rgb = dark + (lit - dark) * light[..., None]
+        sphere_np = np.dstack([field_rgb, np.where(inside, 255.0, 0.0)]).astype(np.uint8)
+        sphere = Image.fromarray(sphere_np, "RGBA")
+        # Anti-alias the ball's own edge: the mask is binary above, so the rim is softened here.
+        edge = Image.fromarray(np.where(inside, 255, 0).astype(np.uint8), "L")
+        sphere.putalpha(edge.filter(ImageFilter.GaussianBlur(0.8)))
+        sphere = sphere.filter(ImageFilter.GaussianBlur(0.4))
         # One small, sharp highlight and one thin rim light at the bottom: a big soft blob in the
         # middle of the sphere reads as a smudge on a blue marble.
         shine = Image.new("RGBA", (sphere_size, sphere_size), (0, 0, 0, 0))
@@ -368,11 +402,12 @@ def build_round_plate(name: str, size: int) -> Image.Image:
                                       sphere_size * 0.46, sphere_size * 0.30),
                                      fill=(255, 255, 255, 190))
         sphere.alpha_composite(shine.filter(ImageFilter.GaussianBlur(sphere_size * 0.022)))
+        # A rim light along the bottom of the ball, drawn as a narrow band on its own edge: the version
+        # that drew a full ellipse inside the sphere left a grey circle across the blue.
         rim = Image.new("RGBA", (sphere_size, sphere_size), (0, 0, 0, 0))
-        ImageDraw.Draw(rim).ellipse((sphere_size * 0.12, sphere_size * 0.34,
-                                     sphere_size * 0.88, sphere_size * 0.94),
-                                    outline=(140, 235, 240, 90), width=max(2, int(sphere_size * 0.03)))
-        sphere.alpha_composite(rim.filter(ImageFilter.GaussianBlur(sphere_size * 0.02)))
+        ImageDraw.Draw(rim).arc((2, 2, sphere_size - 3, sphere_size - 3), 28, 142,
+                                fill=(150, 240, 245, 130), width=max(2, int(sphere_size * 0.045)))
+        sphere.alpha_composite(rim.filter(ImageFilter.GaussianBlur(sphere_size * 0.012)))
         picture.alpha_composite(sphere, (int((size - sphere_size) / 2), int((size - sphere_size) / 2)))
         return _rim(picture, int(radius), GOLD_LIGHT, width=2, inset=int(size * 0.09))
 

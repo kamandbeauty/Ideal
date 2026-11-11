@@ -33,7 +33,7 @@ SIZE = 160          # the plate every screen scales from
 # How much of the plate a fruit is allowed to fill. The fruit sits inside a board cell with room around
 # it, so it is deliberately smaller than the cell: a piece that touches its neighbours reads as a wall
 # of colour instead of a board of pieces.
-PIECE_BOX = 148
+PIECE_BOX = 128
 KEY_TOLERANCE = 26  # how near the field colour a pixel has to be to get filled
 
 # The eight fruits, by the id the game asks for. The first five kept their stone names when the pieces
@@ -149,13 +149,13 @@ def _outlined(picture: Image.Image) -> Image.Image:
     # Out, not in: the dots sit on the very edge of the paint, so a line drawn inside would only
     # thicken them. The silhouette is grown by six pixels and the ring is the band that growth added,
     # which puts a clean contour over the dotted edge and leaves the fruit itself untouched.
-    grown = ndimage.binary_dilation(solid, iterations=6)
+    grown = ndimage.binary_dilation(solid, iterations=5)
     ring = np.clip(grown.astype(np.float32) - solid.astype(np.float32), 0.0, 1.0)
-    ring = ring + np.clip(solid.astype(np.float32) - ndimage.binary_erosion(solid, iterations=2)
+    ring = ring + np.clip(solid.astype(np.float32) - ndimage.binary_erosion(solid, iterations=1)
                           .astype(np.float32), 0.0, 1.0)
-    line = Image.fromarray((ring * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(0.6))
+    line = Image.fromarray((ring * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(0.9))
     paint = Image.new("RGBA", (size, size), (62, 38, 24, 0))
-    paint.putalpha(line.point(lambda value: int(value * 0.92)))
+    paint.putalpha(line.point(lambda value: int(value * 0.86)))
     return Image.alpha_composite(picture, paint)
 
 
@@ -183,6 +183,14 @@ def _enamel(picture: Image.Image) -> Image.Image:
     shading = shading.filter(ImageFilter.GaussianBlur(size * 0.045))
     out = Image.alpha_composite(picture, shading)
 
+    # 1b. Sheen: a broad, soft lift across the upper left of the fruit. The reference's fruit is
+    # glazed, and one crisp dot on a flat paint reads as a sticker with a hole in it; the wide sheen is
+    # what makes the surface look wet, and the dot below is what makes it look hard.
+    sheen_field = np.clip(0.75 - (across * 0.55 + down * 0.75), 0.0, 1.0) ** 1.6
+    sheen = Image.new("RGBA", (size, size), (255, 255, 244, 0))
+    sheen.putalpha(Image.fromarray((sheen_field * solid * 58.0).astype(np.uint8), "L"))
+    out = Image.alpha_composite(out, sheen.filter(ImageFilter.GaussianBlur(size * 0.03)))
+
     # 2. Specular: brighter and larger than a soft smudge, with a hard-ish core.
     spec_mask = Image.new("L", (size, size), 0)
     ImageDraw.Draw(spec_mask).ellipse((size * 0.24, size * 0.14, size * 0.46, size * 0.30), fill=255)
@@ -205,8 +213,8 @@ def _enamel(picture: Image.Image) -> Image.Image:
     # reads as washed out next to it.
     from PIL import ImageEnhance
     rgb = out.convert("RGB")
-    rgb = ImageEnhance.Color(rgb).enhance(1.10)
-    rgb = ImageEnhance.Contrast(rgb).enhance(1.05)
+    rgb = ImageEnhance.Color(rgb).enhance(1.16)
+    rgb = ImageEnhance.Contrast(rgb).enhance(1.07)
     rgb = rgb.convert("RGBA")
     rgb.putalpha(out.getchannel("A"))
     return rgb
