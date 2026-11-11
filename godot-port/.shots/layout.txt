@@ -16,20 +16,20 @@ DUMP   buy [P: (596.0, 210.0), S: (118.0, 36.0)] text=۶۰ سکه disabled=true
 STATE districts :: home=0 board=0 districts=1 shop=0 settings=0 :: root=(738.0, 415.0)
 LAYOUT districts :: 0 control(s) escape their parent
 DUMP district_0 [P: (12.0, 106.0), S: (232.0, 286.0)]
-DUMP   title [P: (30.0, 170.0), S: (196.0, 27.0)] text=میدانِ فیروزه
-DUMP   task_0 [P: (30.0, 194.0), S: (196.0, 25.0)]
-DUMP     title [P: (76.0, 194.0), S: (150.0, 25.0)] text=حوضِ فیروزه
-DUMP     build [P: (30.0, 194.0), S: (42.0, 32.0)] text=۲۵ disabled=true
-DUMP   task_1 [P: (30.0, 221.0), S: (196.0, 25.0)]
-DUMP     title [P: (76.0, 221.0), S: (150.0, 25.0)] text=کاشی‌کاریِ دیوار
-DUMP     build [P: (30.0, 221.0), S: (42.0, 32.0)] text=۳۰ disabled=true
-DUMP   task_2 [P: (30.0, 248.0), S: (196.0, 25.0)]
-DUMP     title [P: (76.0, 248.0), S: (150.0, 25.0)] text=رواقِ ورودی
-DUMP     build [P: (30.0, 248.0), S: (42.0, 32.0)] text=۳۵ disabled=true
-DUMP   task_3 [P: (30.0, 275.0), S: (196.0, 25.0)]
-DUMP     title [P: (76.0, 275.0), S: (150.0, 25.0)] text=حجره‌های بازار
-DUMP     build [P: (30.0, 275.0), S: (42.0, 32.0)] text=۴۰ disabled=true
-DUMP   task_4 [P: (30.0, 302.0), S: (196.0, 25.0)]
+DUMP   title [P: (30.0, 180.0), S: (196.0, 27.0)] text=میدانِ فیروزه
+DUMP   task_0 [P: (30.0, 202.0), S: (196.0, 24.0)]
+DUMP     title [P: (76.0, 202.0), S: (150.0, 24.0)] text=حوضِ فیروزه
+DUMP     build [P: (30.0, 202.0), S: (42.0, 32.0)] text=۲۵ disabled=true
+DUMP   task_1 [P: (30.0, 227.0), S: (196.0, 24.0)]
+DUMP     title [P: (76.0, 227.0), S: (150.0, 24.0)] text=کاشی‌کاریِ دیوار
+DUMP     build [P: (30.0, 227.0), S: (42.0, 32.0)] text=۳۰ disabled=true
+DUMP   task_2 [P: (30.0, 252.0), S: (196.0, 24.0)]
+DUMP     title [P: (76.0, 252.0), S: (150.0, 24.0)] text=رواقِ ورودی
+DUMP     build [P: (30.0, 252.0), S: (42.0, 32.0)] text=۳۵ disabled=true
+DUMP   task_3 [P: (30.0, 277.0), S: (196.0, 24.0)]
+DUMP     title [P: (76.0, 277.0), S: (150.0, 24.0)] text=حجره‌های بازار
+DUMP     build [P: (30.0, 277.0), S: (42.0, 32.0)] text=۴۰ disabled=true
+DUMP   task_4 [P: (30.0, 302.0), S: (196.0, 24.0)]
 DUMP   build_all [P: (128.0, 334.0), S: (96.0, 41.0)] text=ساخت همه (۱۳۰) disabled=true
 DUMP   chest [P: (30.0, 334.0), S: (94.0, 26.0)] text= disabled=true
 DUMP     chest_icon [P: (35.0, 336.0), S: (22.0, 22.0)]
@@ -37,16 +37,16 @@ DUMP     chest_label [P: (58.0, 334.0), S: (62.0, 26.0)] text=باز کن
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(738.0, 415.0)
 LAYOUT board :: 0 control(s) escape their parent
 STRIP start :: screen=BoardScreen:<Control#53116667478>
-STRIP move :: [(2, 0), (2, 1)]
+STRIP move :: [(2, 0), (3, 0)]
 STRIP board :: board:<Control#59391346417>
-STRIP frame 0 :: (142, 131)
-STRIP frame 1 :: (142, 131)
-STRIP frame 2 :: (142, 131)
-STRIP frame 3 :: (142, 131)
-STRIP frame 4 :: (142, 131)
-STRIP frame 5 :: (142, 131)
-STRIP frame 6 :: (142, 131)
-STRIP frame 7 :: (142, 131)
-STRIP frame 8 :: (142, 131)
-STRIP 11-swap-strip 2190x816 frames=10
+STRIP frame 0 :: (142, 110)
+STRIP frame 1 :: (142, 110)
+STRIP frame 2 :: (142, 110)
+STRIP frame 3 :: (142, 110)
+STRIP frame 4 :: (142, 110)
+STRIP frame 5 :: (142, 110)
+STRIP frame 6 :: (142, 110)
+STRIP frame 7 :: (142, 110)
+STRIP frame 8 :: (142, 110)
+STRIP 11-swap-strip 2190x690 frames=10
 CONTACT 3786x447
