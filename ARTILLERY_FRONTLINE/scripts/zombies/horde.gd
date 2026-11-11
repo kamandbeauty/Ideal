@@ -103,15 +103,29 @@ func spawn(type_id: StringName, route: String, target: String = "gate") -> Zombi
 		# Walk the route first, then pour through the gap.
 		zombie.path.append_array(layout.breach_path(target, lane * 0.7))
 		zombie.state = Zombie.State.BREACH
-	elif slot != null:
-		zombie.path.append(slot.position)
 	else:
-		zombie.path.append(_waiting_point(target, side))
+		var destination: Vector3 = slot.position if slot != null else _waiting_point(target, side)
+		if path.size() > 0:
+			zombie.path.append(_court_point(path[path.size() - 1], destination))
+		zombie.path.append(destination)
 	active.append(zombie)
 	living += 1
 	spawned_total += 1
 	Events.zombie_spawned.emit(zombie)
 	return zombie
+
+
+## A loose waypoint between the court mouth and the standing place, so a wave
+## crosses the court as a ragged crowd instead of a single file.
+func _court_point(from: Vector3, to: Vector3) -> Vector3:
+	var along: Vector3 = to - from
+	var across := Vector3(along.z, 0.0, -along.x).normalized()
+	var point: Vector3 = from.lerp(to, rng.randf_range(0.35, 0.65)) + across * rng.randf_range(-2.4, 2.4)
+	# Keep to the zombie's own half: clear of the wrecks down the middle and of the wall itself.
+	var half: float = signf(to.x) if absf(to.x) > 0.1 else signf(from.x)
+	point.x = half * clampf(absf(point.x), 3.6, 14.2)
+	point.y = 0.0
+	return point
 
 
 func _side_of(target: String, fallback: String) -> String:

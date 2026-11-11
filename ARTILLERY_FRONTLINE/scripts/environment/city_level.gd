@@ -105,6 +105,8 @@ func _build_environment() -> void:
 	environment = Environment.new()
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = sky
+	# The panorama is painted with its cool, smoke-streaked half in the image centre; turn that half toward the street.
+	environment.sky_rotation = Vector3(0.0, PI, 0.0)
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	environment.ambient_light_color = Color(0.55, 0.6, 0.72)
 	environment.ambient_light_energy = 1.0

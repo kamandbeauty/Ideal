@@ -1,9 +1,10 @@
 extends SceneTree
 ## Headless test runner: every suite in tests/unit and tests/integration.
 ##
-##     godot --headless --path . --script res://tests/run_tests.gd
+##     godot --headless --path . --script res://tests/run_tests.gd [-- --only=test_aim --report=/tmp/report.json]
 ##
-## Exits non-zero when any check fails and writes documentation/qa/test-results.json.
+## Exits non-zero when any check fails and writes documentation/qa/test-results.json
+## (or the --report path, so a local run does not touch the evidence CI records).
 
 const REPORT_PATH: String = "res://documentation/qa/test-results.json"
 
@@ -32,9 +33,12 @@ func _run() -> void:
 	profile.persist = false
 	profile.load_profile()
 	var only: String = ""
+	var report_path: String = REPORT_PATH
 	for argument: String in OS.get_cmdline_user_args():
 		if argument.begins_with("--only="):
 			only = argument.trim_prefix("--only=")
+		elif argument.begins_with("--report="):
+			report_path = argument.trim_prefix("--report=")
 	for path: String in _suites():
 		if only != "" and not path.contains(only):
 			continue
@@ -60,8 +64,8 @@ func _run() -> void:
 		"scope": "Headless logic and scene integration on desktop; not an Android device run",
 	}
 	print("LASTWALL_TEST_REPORT " + JSON.stringify(report))
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(REPORT_PATH.get_base_dir()))
-	var file := FileAccess.open(REPORT_PATH, FileAccess.WRITE)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(report_path.get_base_dir()))
+	var file := FileAccess.open(report_path, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(report, "  ") + "\n")
 		file.close()

@@ -50,13 +50,17 @@ for name, (metadata_file, manifest_file, package_id) in PACKAGES.items():
     found_id = field(metadata, "package: name=")
     min_sdk = field(metadata, "minSdkVersion") or field(metadata, "sdkVersion")
     target_sdk = field(metadata, "targetSdkVersion")
-    landscape = "android.hardware.screen.landscape" in metadata
+    # 0 landscape, 6 sensorLandscape, 8 reverseLandscape, 11 userLandscape. aapt2 only
+    # infers the landscape feature for plain "landscape", so read the attribute itself.
+    orientation = re.search(r"screenOrientation\(0x0101001e\)=(?:\(type 0x10\))?(0x[0-9a-fA-F]+|\d+)", manifest)
+    orientation_value = int(orientation.group(1), 0) if orientation else -1
+    landscape = orientation_value in (0, 6, 8, 11)
     expect(found_id == package_id, "%s: package id is '%s', expected '%s'" % (name, found_id, package_id))
     expect(min_sdk == "24", "%s: minimum Android API is '%s', expected 24" % (name, min_sdk))
     expect(target_sdk == "36", "%s: target Android API is '%s', expected 36" % (name, target_sdk))
     expect("android.permission.INTERNET" not in metadata and "android.permission.INTERNET" not in manifest, "%s: offline game requests INTERNET" % name)
     expect("screenOrientation" in manifest, "%s: activity orientation attribute missing" % name)
-    expect(landscape, "%s: the activity is not declared landscape" % name)
+    expect(landscape, "%s: the activity is not locked to landscape (screenOrientation=%d)" % (name, orientation_value))
     report[name] = {
         "bytes": package.stat().st_size,
         "sha256": hashlib.sha256(package.read_bytes()).hexdigest(),
@@ -65,6 +69,7 @@ for name, (metadata_file, manifest_file, package_id) in PACKAGES.items():
         "min_sdk": min_sdk,
         "target_sdk": target_sdk,
         "landscape": landscape,
+        "screen_orientation": orientation_value,
         "no_internet_permission": "android.permission.INTERNET" not in metadata,
     }
 report["problems"] = problems

@@ -465,6 +465,8 @@ func role_at(point: Vector2) -> String:
 
 
 func touch_down(index: int, point: Vector2) -> void:
+	if not active:
+		return
 	var role: String = role_at(point)
 	fingers[index] = role
 	match role:
@@ -479,6 +481,8 @@ func touch_down(index: int, point: Vector2) -> void:
 
 
 func touch_drag(index: int, relative: Vector2) -> void:
+	if not active:
+		return
 	var role: String = fingers.get(index, "")
 	if role == "aim" or role == "fire":
 		drag_total += relative
