@@ -111,10 +111,10 @@ func _run() -> void:
 	var ui_files := _list_pngs("res://assets/ui")
 	failures += _check(art_files.size() == 85,
 		"all 85 game plates are present (%d found)" % art_files.size())
-	# 32: the 30 chrome plates plus the painted rail both sides of the board hang on and the orb its
-	# five tools are cut from.
-	failures += _check(ui_files.size() == 32,
-		"all 32 picture-chrome plates are present (%d found)" % ui_files.size())
+	# 34: the chrome plates, the two rail/tray plates the board hangs on, the orb its five tools are cut
+	# from, and the royal blue pair the headers are set in.
+	failures += _check(ui_files.size() == 34,
+		"all 34 picture-chrome plates are present (%d found)" % ui_files.size())
 	# The backdrops are their own pictures at their own size. A square Unity plate scaled to cover a
 	# landscape window is a crop, not a backdrop, and the first device screenshot showed exactly that.
 	var backdrop_files := _list_pngs("res://assets/backdrops")
