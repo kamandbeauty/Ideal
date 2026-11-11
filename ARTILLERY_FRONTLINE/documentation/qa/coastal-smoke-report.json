@@ -161,7 +161,7 @@
       "passed": true
     },
     {
-      "name": "target panel shows the aimed hostile: قایق پیاده‌سازی   ۷۰ متر   سلامت ۹۵٪",
+      "name": "target panel shows the aimed hostile: سرباز   ۳۸ متر   سلامت ۱۰۰٪",
       "passed": true
     },
     {
@@ -189,11 +189,11 @@
   "kills": 5,
   "passed": true,
   "performance": {
-    "draw_calls": 348,
-    "fps": 18.0,
-    "frame_ms": 55.68,
+    "draw_calls": 349,
+    "fps": 16.9,
+    "frame_ms": 59.13,
     "objects": 2139,
-    "primitives": 157822,
+    "primitives": 157886,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"

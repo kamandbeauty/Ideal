@@ -165,7 +165,7 @@
       "direct": true,
       "shot": 2,
       "target": "t03",
-      "time": 13.5
+      "time": 13.7
     }
   ],
   "engagements": {
@@ -187,13 +187,13 @@
     "star_gain": 3,
     "stars": 3,
     "success": true,
-    "time": 13.5606746666667
+    "time": 13.8016523333333
   },
   "passed": true,
   "performance": {
     "draw_calls": 54,
-    "fps": 25.3,
-    "frame_ms": 39.57,
+    "fps": 23.4,
+    "frame_ms": 42.72,
     "objects": 1598,
     "primitives": 1894,
     "renderer": "Compatibility",
