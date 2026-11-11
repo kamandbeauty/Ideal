@@ -46,6 +46,9 @@ const PIECE_LAJVARD := Color(0.1843, 0.3725, 0.8157, 1.0)   # #2F5FD0
 const PIECE_AQIQ := Color(0.8235, 0.3333, 0.2471, 1.0)      # #D2553F
 const PIECE_ZOMORROD := Color(0.1804, 0.6196, 0.3569, 1.0)  # #2E9E5B
 const PIECE_MORVARID := Color(0.9373, 0.8902, 0.7843, 1.0)  # #EFE3C8
+const PIECE_ANANAS := Color(0.9490, 0.6980, 0.1098, 1.0)   # #F2B21C
+const PIECE_PORTEQAL := Color(0.9490, 0.4745, 0.1686, 1.0) # #F2792B
+const PIECE_MOZ := Color(0.9608, 0.8353, 0.2784, 1.0)      # #F5D547
 
 # ---- type scale (px = dp) -----------------------------------------------------------------------
 
