@@ -9,6 +9,9 @@ signal intermission_started(seconds: float, next_index: int)
 signal zombie_spawned(zombie: Node3D)
 signal zombie_killed(zombie: Node3D, headshot: bool)
 signal zombie_hit(position: Vector3, headshot: bool, lethal: bool)
+## A boss walked onto the field / was brought down.
+signal boss_appeared(zombie: Node3D)
+signal boss_fell(zombie: Node3D)
 signal wall_damaged(amount: float, health: float, max_health: float)
 signal gate_damaged(amount: float, health: float, max_health: float)
 signal gate_destroyed

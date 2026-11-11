@@ -11,6 +11,8 @@ class Meter:
 	var ghost: float = 1.0
 	var flash: float = 0.0
 	var broken: bool = false
+	## A fixed colour for the bar (an enemy's health); transparent to colour it by how full it is.
+	var tint := Color(0.0, 0.0, 0.0, 0.0)
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -31,6 +33,8 @@ class Meter:
 			queue_redraw()
 
 	func tone() -> Color:
+		if tint.a > 0.0:
+			return tint
 		if fraction > 0.5:
 			return UITheme.GREEN.lerp(UITheme.AMBER, (1.0 - fraction) * 2.0)
 		return UITheme.AMBER.lerp(UITheme.RED, clampf((0.5 - fraction) * 2.6, 0.0, 1.0))

@@ -7,9 +7,8 @@ extends Node3D
 @export var layout: LevelLayout
 @export var wave_set: WaveSet
 @export var defense_data: DefenseData
+## Every zombie type the waves may ask for. Each brings its own pool size.
 @export var zombie_types: Array[ZombieData] = []
-## Zombies built up front so the first wave does not hitch.
-@export_range(0, 80) var prewarm_count: int = 26
 
 ## The low sun is straight behind the gunner: whatever he looks at is lit from
 ## his side, and neither wall arm throws its shadow over the attackers.
@@ -84,7 +83,7 @@ func _ready() -> void:
 	horde.setup(layout, defense, effects, zombie_types)
 	explosions.setup(horde, defense, effects, defender, layout)
 	for data: ZombieData in zombie_types:
-		horde.prewarm(data.id, prewarm_count)
+		horde.prewarm(data.id)
 	director = WaveDirector.new()
 	director.name = "WaveDirector"
 	director.wave_set = wave_set
@@ -105,6 +104,8 @@ func _ready() -> void:
 	Events.wave_cleared.connect(_on_wave_cleared)
 	Events.grenade_thrown.connect(_on_grenade_thrown)
 	Events.explosion.connect(_on_explosion)
+	Events.boss_appeared.connect(_on_boss_appeared)
+	Events.boss_fell.connect(_on_boss_fell)
 	stats.waves_total = director.wave_count()
 	apply_quality(Graphics.tier, Graphics.profile())
 
@@ -378,21 +379,41 @@ func _on_zombie_hit(_at: Vector3, _headshot: bool, _lethal: bool) -> void:
 	stats.hits += 1
 
 
-func _on_zombie_killed(_zombie: Node3D, headshot: bool) -> void:
+func _on_zombie_killed(zombie: Node3D, headshot: bool) -> void:
 	stats.kills += 1
 	if headshot:
 		stats.headshots += 1
+	var fallen := zombie as Zombie
+	if fallen != null and fallen.data.id != &"walker":
+		stats.special_kills += 1
+		if fallen.data.is_boss:
+			stats.bosses += 1
 
 
-func _on_struck(target: String, at: Vector3, _amount: float) -> void:
+func _on_boss_appeared(_zombie: Node3D) -> void:
+	defender.jolt(0.8)
+
+
+func _on_boss_fell(zombie: Node3D) -> void:
+	# The ground shakes when it comes down.
+	defender.jolt(1.6)
+	effects.burst("dust", zombie.global_position + Vector3(0.0, 0.3, 0.0), Vector3.UP, 4.0)
+
+
+func _on_struck(target: String, at: Vector3, amount: float) -> void:
 	var outward := Vector3(-signf(at.x), 0.3, 0.0).normalized()
+	# A walker's claw is the measure; a brute's fists and the boss land several times as hard.
+	var weight: float = clampf(amount / 3.0, 1.0, 6.0)
+	var heavy: float = (weight - 1.0) / 5.0
 	if target == "gate":
-		gate_shake = minf(gate_shake + 0.55, 1.8)
-		effects.burst("spark", at, outward)
-		Sound.play_variant_at("gate_hit", 2, at, -2.0, randf_range(0.9, 1.1))
+		gate_shake = minf(gate_shake + 0.55 * sqrt(weight), 3.2)
+		effects.burst("spark", at, outward, 1.0 + heavy * 1.5)
+		Sound.play_variant_at("gate_hit", 2, at, -2.0 + heavy * 6.0, randf_range(0.9, 1.1) * (1.0 - heavy * 0.4))
 	else:
-		effects.burst("dust", at, outward)
-		Sound.play_variant_at("wall_hit", 2, at, -4.0, randf_range(0.9, 1.1))
+		effects.burst("dust", at, outward, 1.0 + heavy * 2.0)
+		Sound.play_variant_at("wall_hit", 2, at, -4.0 + heavy * 6.0, randf_range(0.9, 1.1) * (1.0 - heavy * 0.4))
+	if heavy > 0.5:
+		defender.jolt(0.25 * heavy)
 
 
 func _on_gate_destroyed() -> void:

@@ -42,6 +42,9 @@ var reload_button: HudWidgets.RoundButton
 var pause_button: HudWidgets.RoundButton
 var grenade_button: HudWidgets.RoundButton
 var grenade_label: Label
+var boss_meter: HudWidgets.Meter
+var boss_title: Label
+var boss_shown: bool = false
 var weapon_slots: Array[HudWidgets.WeaponSlot] = []
 var slot_labels: Array[Label] = []
 var gate_arrow: HudWidgets.ThreatArrow
@@ -98,6 +101,8 @@ func _ready() -> void:
 	Events.grenades_changed.connect(_on_grenades_changed)
 	Events.resupplied.connect(_on_resupplied)
 	Events.explosion.connect(_on_explosion)
+	Events.boss_appeared.connect(_on_boss_appeared)
+	Events.boss_fell.connect(_on_boss_fell)
 	Events.match_started.connect(_on_match_started)
 	Events.language_changed.connect(refresh_text)
 	Events.settings_changed.connect(_layout)
@@ -157,6 +162,12 @@ func _build() -> void:
 	for button: Control in [fire_button, reload_button, pause_button, grenade_button]:
 		root.add_child(button)
 	grenade_label = _label(26, UITheme.TEXT, true, HORIZONTAL_ALIGNMENT_CENTER)
+	boss_meter = HudWidgets.Meter.new()
+	boss_meter.tint = UITheme.RED
+	boss_meter.visible = false
+	root.add_child(boss_meter)
+	boss_title = _label(20, UITheme.RED, true, HORIZONTAL_ALIGNMENT_CENTER)
+	boss_title.visible = false
 	gate_arrow = HudWidgets.ThreatArrow.new()
 	wall_arrow = HudWidgets.ThreatArrow.new()
 	root.add_child(gate_arrow)
@@ -197,6 +208,10 @@ func bind(siege: CityLevel) -> void:
 		wave_total = level.director.wave_count()
 	wave_index = -1
 	kills = 0
+	boss_shown = false
+	if boss_meter:
+		boss_meter.visible = false
+		boss_title.visible = false
 	banner_left = 0.0
 	banner_hold = false
 	intermission_left = -1.0
@@ -264,6 +279,10 @@ func _layout() -> void:
 	wave_label.size = Vector2(520.0, 42.0)
 	hostiles_label.position = Vector2(view.x * 0.5 - 260.0, m + 30.0)
 	hostiles_label.size = Vector2(520.0, 28.0)
+	boss_title.position = Vector2(view.x * 0.5 - 260.0, m + 58.0)
+	boss_title.size = Vector2(520.0, 26.0)
+	boss_meter.position = Vector2(view.x * 0.5 - 230.0, m + 86.0)
+	boss_meter.size = Vector2(460.0, 14.0)
 	banner.position = Vector2(0.0, view.y * 0.2)
 	banner.size = Vector2(view.x, 60.0)
 	sub_banner.position = Vector2(0.0, view.y * 0.2 + 58.0)
@@ -420,6 +439,7 @@ func _process(delta: float) -> void:
 		grenade_total = defender.grenade_count
 		_refresh_values()
 	_update_weapons()
+	_update_boss()
 	_update_arrows()
 	var show_fps: bool = Profile.setting("show_fps")
 	fps_label.visible = show_fps
@@ -437,6 +457,20 @@ func _update_weapons() -> void:
 			slot_labels[index].text = caption
 	grenade_button.set_progress(defender.throw_readiness())
 	grenade_button.set_dim(defender.grenade_count <= 0)
+
+
+func _update_boss() -> void:
+	var boss: Zombie = level.horde.boss
+	var here: bool = boss != null and is_instance_valid(boss) and boss.alive
+	if here != boss_shown:
+		boss_shown = here
+		boss_meter.visible = here
+		boss_title.visible = here
+		if here:
+			boss_title.text = Loc.t(boss.data.name_key)
+			boss_meter.set_fraction(boss.health_fraction(), true)
+	if here and not is_equal_approx(boss_meter.fraction, boss.health_fraction()):
+		boss_meter.set_fraction(boss.health_fraction())
 
 
 func _update_arrows() -> void:
@@ -513,8 +547,22 @@ func _on_wave_started(index: int, total: int) -> void:
 	wave_index = index
 	wave_total = total
 	intermission_left = -1.0
-	show_banner(Loc.t("wave_incoming", [index + 1]), UITheme.TEXT)
+	# What is new or dangerous in this wave is written under its number.
+	var hint: String = ""
+	if level != null and is_instance_valid(level) and level.wave_set != null and index < level.wave_set.waves.size():
+		var key: String = level.wave_set.waves[index].hint_key
+		if key != "":
+			hint = Loc.t(key)
+	show_banner(Loc.t("wave_incoming", [index + 1]), UITheme.TEXT, hint)
 	_refresh_values()
+
+
+func _on_boss_appeared(zombie: Node3D) -> void:
+	show_banner(Loc.t("warn_boss"), UITheme.RED, Loc.t((zombie as Zombie).data.name_key))
+
+
+func _on_boss_fell(_zombie: Node3D) -> void:
+	show_banner(Loc.t("boss_down"), UITheme.GREEN)
 
 
 func _on_wave_cleared(_index: int, _total: int) -> void:

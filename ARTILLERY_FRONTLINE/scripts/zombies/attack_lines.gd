@@ -18,9 +18,13 @@ class Slot:
 	var target: String = "wall"
 	var side: String = ""
 	var occupant: Object = null
+	## The neighbouring places a wide occupant holds together; empty for a single place.
+	var members: Array[Slot] = []
 
 
 var lines: Dictionary = {}
+## Whoever the last wide claim pushed off their places; the horde finds them somewhere else to stand.
+var displaced: Array = []
 
 
 func setup(layout: LevelLayout) -> void:
@@ -101,7 +105,12 @@ func preference(target: String, side: String = "") -> Array[String]:
 
 ## Reserves a place for `who`. Front row of the preferred line first, then the
 ## rows behind it, then the next line. Null when every place is taken.
-func claim(who: Object, target: String, side: String = "", jitter: float = 0.0) -> Slot:
+## `width` > 1 asks for that many places side by side in a front row; with
+## `shove` whoever stands there is pushed off (see `displaced`).
+func claim(who: Object, target: String, side: String = "", jitter: float = 0.0, width: int = 1, shove: bool = false) -> Slot:
+	displaced.clear()
+	if width > 1:
+		return _claim_wide(who, target, side, jitter, width, shove)
 	for line_name: String in preference(target, side):
 		var line: Dictionary = lines[line_name]
 		for row: int in line.rows:
@@ -122,9 +131,83 @@ func claim(who: Object, target: String, side: String = "", jitter: float = 0.0) 
 	return null
 
 
+func _front_row(line: Dictionary) -> Array[Slot]:
+	var row: Array[Slot] = []
+	for slot: Slot in line.slots:
+		if slot.row == 0:
+			row.append(slot)
+	row.sort_custom(func(left: Slot, right: Slot) -> bool: return left.column < right.column)
+	return row
+
+
+func _claim_wide(who: Object, target: String, side: String, jitter: float, width: int, shove: bool) -> Slot:
+	for line_name: String in preference(target, side):
+		var line: Dictionary = lines[line_name]
+		var row: Array[Slot] = _front_row(line)
+		if row.size() < width:
+			continue
+		var middle: float = float(line.columns - 1) * 0.5
+		var best: int = -1
+		var best_score: float = INF
+		for first: int in range(0, row.size() - width + 1):
+			var taken: int = 0
+			var blocked: bool = false
+			for offset: int in width:
+				var holder: Object = row[first + offset].occupant
+				if holder == null or holder == who:
+					continue
+				taken += 1
+				# Never push aside something that is itself holding several places.
+				if not shove or _is_wide(row[first + offset]):
+					blocked = true
+			if blocked:
+				continue
+			var centre: float = float(first) + float(width - 1) * 0.5
+			var score: float = absf(centre - middle - jitter) + float(taken) * 0.4
+			if score < best_score:
+				best_score = score
+				best = first
+		if best < 0:
+			continue
+		var group := Slot.new()
+		group.line = line_name
+		group.row = 0
+		group.column = row[best].column
+		group.facing = row[best].facing
+		group.target = row[best].target
+		group.side = row[best].side
+		group.occupant = who
+		var sum := Vector3.ZERO
+		for offset: int in width:
+			var member: Slot = row[best + offset]
+			if member.occupant != null and member.occupant != who and not displaced.has(member.occupant):
+				displaced.append(member.occupant)
+			member.occupant = who
+			group.members.append(member)
+			sum += member.position
+		group.position = sum / float(width)
+		return group
+	return null
+
+
+## True when the place is one of several held together by a wide occupant.
+func _is_wide(slot: Slot) -> bool:
+	if slot.occupant == null:
+		return false
+	var line: Dictionary = lines[slot.line]
+	for other: Slot in line.slots:
+		if other != slot and other.occupant == slot.occupant:
+			return true
+	return false
+
+
 func release(slot: Slot) -> void:
-	if slot != null:
-		slot.occupant = null
+	if slot == null:
+		return
+	for member: Slot in slot.members:
+		if member.occupant == slot.occupant:
+			member.occupant = null
+	slot.occupant = null
 
 
 ## After a front place opens, returns [occupant, new_slot] pairs that step forward.
@@ -157,16 +240,17 @@ func advance_rows(line_name: String) -> Array:
 
 ## Closes a line (its target has fallen) and returns everyone who stood there.
 func close(line_name: String) -> Array:
-	var displaced: Array = []
+	var standing: Array = []
 	if not lines.has(line_name):
-		return displaced
+		return standing
 	var line: Dictionary = lines[line_name]
 	line.open = false
 	for slot: Slot in line.slots:
 		if slot.occupant != null:
-			displaced.append(slot.occupant)
+			if not standing.has(slot.occupant):
+				standing.append(slot.occupant)
 			slot.occupant = null
-	return displaced
+	return standing
 
 
 func lines_for_target(target: String) -> Array[String]:

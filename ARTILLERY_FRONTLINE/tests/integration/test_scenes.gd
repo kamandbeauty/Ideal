@@ -91,7 +91,7 @@ func run(t: TestContext) -> void:
 	t.check(defender.weapon.data != null and defender.weapon.bullets == level.bullets, "the gun is wired to its data and the bullet pool")
 
 	# Zombies.
-	t.equal(level.horde.pooled[&"walker"].size(), level.prewarm_count, "zombies are prewarmed into the pool")
+	t.equal(level.horde.pooled[&"walker"].size(), (level.horde.types[&"walker"] as ZombieData).prewarm, "zombies are prewarmed into the pool")
 	var zombie: Zombie = level.horde.pooled[&"walker"][0]
 	t.check(not zombie.visible and zombie.state == Zombie.State.POOLED, "pooled zombies are hidden and idle")
 	t.check(zombie.skeleton != null and zombie.skeleton.get_bone_count() == 18, "the zombie has its 18-bone skeleton")
@@ -118,7 +118,7 @@ func run(t: TestContext) -> void:
 	t.check(visible_spawns.is_empty(), "every spawn point is hidden from the gun (%s)" % str(visible_spawns))
 
 	# Wave director and effects.
-	t.equal(level.director.wave_count(), 5, "the director holds the five shipped waves")
+	t.equal(level.director.wave_count(), level.wave_set.waves.size(), "the director holds the shipped waves")
 	t.equal(level.director.phase, WaveDirector.Phase.IDLE, "no wave runs before the match begins")
 	t.check(level.effects.pool_size() >= 30, "effect emitters are pooled up front")
 	t.equal(level.bullets.multimesh.instance_count, BulletPool.CAPACITY, "one MultiMesh instance per pooled round")

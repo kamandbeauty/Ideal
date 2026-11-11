@@ -14,6 +14,8 @@ var horde: Horde
 var state: State = State.POOLED
 var alive: bool = false
 var health: float = 0.0
+## Health it started this life with (the type's health, hardened by the wave).
+var full_health: float = 1.0
 var speed: float = 1.0
 var path := PackedVector3Array()
 var path_index: int = 0
@@ -63,15 +65,16 @@ func _build_hit_volumes() -> void:
 	var radius: float = data.body_radius if data else 0.3
 	var height: float = data.body_height if data else 1.45
 	var head_radius: float = data.head_radius if data else 0.2
+	var lean: float = deg_to_rad(data.body_lean_degrees if data else 10.0)
 	body_area = _area("Body", false)
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = radius
-	capsule.height = height
+	capsule.height = maxf(height, radius * 2.0)
 	var body_shape := CollisionShape3D.new()
 	body_shape.shape = capsule
 	# The walk leans forward, so the trunk sits ahead of the feet.
-	body_shape.position = Vector3(0.0, height * 0.5 + 0.02, 0.1)
-	body_shape.rotation.x = deg_to_rad(10.0)
+	body_shape.position = Vector3(0.0, height * 0.5 + 0.02, sin(lean) * height * 0.4)
+	body_shape.rotation.x = lean
 	body_area.add_child(body_shape)
 	add_child(body_area)
 	head_area = _area("Head", true)
@@ -79,7 +82,8 @@ func _build_hit_volumes() -> void:
 	sphere.radius = head_radius
 	var head_shape := CollisionShape3D.new()
 	head_shape.shape = sphere
-	head_shape.position = Vector3(0.0, 0.1, 0.03)
+	# The skull sits half a radius above the joint that carries it.
+	head_shape.position = Vector3(0.0, head_radius * 0.5, head_radius * 0.15)
 	head_area.add_child(head_shape)
 	var bone: int = skeleton.find_bone("Head") if skeleton else -1
 	if bone >= 0:
@@ -90,7 +94,7 @@ func _build_hit_volumes() -> void:
 		attachment.bone_name = "Head"
 		attachment.add_child(head_area)
 	else:
-		head_area.position = Vector3(0.0, height + 0.1, 0.25)
+		head_area.position = Vector3(0.0, height + head_radius * 0.5, sin(lean) * height * 0.8)
 		add_child(head_area)
 
 
@@ -138,6 +142,7 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	side = lane_side
 	lateral = lane
 	health = data.max_health * health_scale
+	full_health = health
 	speed = data.speed * speed_scale * (1.0 + rng.randf_range(-data.speed_variance, data.speed_variance))
 	alive = true
 	state = State.ADVANCE
@@ -172,6 +177,24 @@ func _play(clip: String, rate: float = 1.0, blend: float = -1.0) -> void:
 	current_clip = clip
 	anim.play(clip, blend, 1.0)
 	anim.speed_scale = rate
+
+
+## Share of its starting health that is left.
+func health_fraction() -> float:
+	return clampf(health / maxf(full_health, 1.0), 0.0, 1.0)
+
+
+## Pushed off its place by something bigger: steps back to `point` and looks for another.
+func fall_back(point: Vector3) -> void:
+	slot = null
+	if not alive or state == State.BREACH:
+		return
+	path = PackedVector3Array([position, point])
+	path_index = 1
+	court_index = 0
+	state = State.ADVANCE
+	retry_left = 0.3
+	_play("walk", speed / data.stride_speed)
 
 
 ## Sends the zombie to a (new) standing place.
@@ -330,12 +353,14 @@ func _resume_clip() -> void:
 func take_hit(amount: float, headshot: bool, _at: Vector3, direction: Vector3) -> bool:
 	if not alive:
 		return false
+	if headshot:
+		amount *= data.head_damage_scale
 	health -= amount
 	if health <= 0.0:
 		_die(headshot, direction)
 		return true
 	flinch_left = 0.3
-	if state == State.ADVANCE and stagger_left <= 0.0 and amount >= data.max_health * 0.3:
+	if state == State.ADVANCE and stagger_left <= 0.0 and amount >= data.max_health * data.stagger_health_share:
 		stagger_left = 0.36
 		_play("hit", 1.15, 0.06)
 	return false
@@ -347,17 +372,22 @@ func take_hit(amount: float, headshot: bool, _at: Vector3, direction: Vector3) -
 func take_blast(amount: float, origin: Vector3, share: float, blast: ExplosionData) -> bool:
 	if not alive:
 		return false
-	health -= amount
+	health -= amount * data.blast_damage_scale
 	var away := Vector3(position.x - origin.x, 0.0, position.z - origin.z)
 	if away.length_squared() < 0.0004:
 		away = -Vector3(sin(rotation.y), 0.0, cos(rotation.y))
 	away = away.normalized()
 	if health <= 0.0:
-		knock = horde.clamp_throw(position, away * blast.knockback * share) if horde else away * blast.knockback * share
+		var throw: Vector3 = away * blast.knockback * share * data.knockback_scale
+		knock = horde.clamp_throw(position, throw) if horde else throw
 		knock_left = KNOCK_TIME
 		_die(false, away)
 		return true
-	reel_left = maxf(reel_left, maxf(0.25, blast.stagger_time * share))
+	if data.blast_reel_scale <= 0.0:
+		# Too big to be stopped by a blast: it only shows the hit.
+		flinch_left = 0.3
+		return false
+	reel_left = maxf(reel_left, maxf(0.25, blast.stagger_time * share * data.blast_reel_scale))
 	flinch_left = reel_left + 0.3
 	stagger_left = 0.0
 	if anim and anim.has_animation("hit"):

@@ -23,6 +23,9 @@ var health_scale: float = 1.0
 var speed_scale: float = 1.0
 var corpse_limit: int = 18
 var groan_left: float = 2.0
+## The boss on the field, if one is alive.
+var boss: Zombie = null
+var kills_by_type: Dictionary = {}
 ## Targets that have fallen; zombies heading for them run through instead.
 var fallen: Dictionary = {}
 
@@ -49,12 +52,14 @@ func setup(level_layout: LevelLayout, wall: Defense, effect_pool: EffectPool, zo
 				pooled[data.id] = []
 
 
-## Builds zombies ahead of time so the first wave does not hitch.
-func prewarm(type_id: StringName, count: int) -> void:
+## Builds zombies ahead of time so the first wave does not hitch. A negative
+## count builds as many as the type asks for.
+func prewarm(type_id: StringName, count: int = -1) -> void:
 	if not types.has(type_id):
 		return
-	for index: int in count:
-		pooled[type_id].append(_create(types[type_id]))
+	var data: ZombieData = types[type_id]
+	for index: int in (data.prewarm if count < 0 else count):
+		pooled[type_id].append(_create(data))
 
 
 func _create(data: ZombieData) -> Zombie:
@@ -89,13 +94,14 @@ func spawn(type_id: StringName, route: String, target: String = "gate") -> Zombi
 	var gone: bool = target != "any" and fallen.has(target)
 	var slot: AttackLines.Slot = null
 	var side: String = hint if hint != "" else ("left" if rng.randf() < 0.5 else "right")
-	if not gone:
+	if not gone and data.footprint <= 1:
 		slot = lines.claim(zombie, target, hint if target == "any" else "", rng.randf_range(-0.6, 0.6))
 		if slot != null:
 			side = slot.side
 		else:
 			side = _side_of(target, side)
 	else:
+		# The big ones pick their place when they get there, and take it.
 		side = _side_of(target, side)
 	var path: PackedVector3Array = layout.path_for(route, lane, side)
 	zombie.activate(path, slot, target, side, lane, health_scale, speed_scale, rng)
@@ -111,6 +117,11 @@ func spawn(type_id: StringName, route: String, target: String = "gate") -> Zombi
 	active.append(zombie)
 	living += 1
 	spawned_total += 1
+	if data.spawn_sound != "":
+		Sound.play(data.spawn_sound, data.voice_volume_db)
+	if data.is_boss:
+		boss = zombie
+		Events.boss_appeared.emit(zombie)
 	Events.zombie_spawned.emit(zombie)
 	return zombie
 
@@ -165,7 +176,8 @@ func _groan() -> void:
 	var zombie: Zombie = active[rng.randi() % active.size()]
 	if zombie.alive:
 		var clip: String = "zombie_attack" if zombie.state == Zombie.State.ATTACK else "zombie_groan"
-		Sound.play_variant_at(clip, 2 if clip == "zombie_attack" else 3, zombie.position + Vector3(0.0, 1.4, 0.0), -5.0, rng.randf_range(0.85, 1.12))
+		Sound.play_variant_at(clip, 2 if clip == "zombie_attack" else 3, zombie.position + Vector3(0.0, zombie.data.height() * 0.85, 0.0),
+			-5.0 + zombie.data.voice_volume_db, rng.randf_range(0.85, 1.12) * zombie.data.voice_pitch)
 
 
 ## A waiting zombie asks again for a place at the wall.
@@ -173,9 +185,25 @@ func find_place(zombie: Zombie) -> void:
 	if fallen.has(zombie.target):
 		zombie.enter_breach(layout.breach_path(zombie.target, zombie.lateral * 0.7))
 		return
-	var slot: AttackLines.Slot = lines.claim(zombie, zombie.target, zombie.side, rng.randf_range(-0.6, 0.6))
+	var wide: bool = zombie.data.footprint > 1
+	var slot: AttackLines.Slot = lines.claim(zombie, zombie.target, zombie.side, rng.randf_range(-0.6, 0.6), zombie.data.footprint, wide)
+	# Whoever it pushed aside steps back and looks for another place.
+	var pushed: Array = lines.displaced.duplicate()
 	if slot != null:
 		zombie.assign_slot(slot)
+	for other: Zombie in pushed:
+		_make_room(other, slot)
+
+
+func _make_room(zombie: Zombie, taken: AttackLines.Slot) -> void:
+	zombie.slot = null
+	if not zombie.alive:
+		return
+	var place: AttackLines.Slot = lines.claim(zombie, zombie.target, zombie.side, rng.randf_range(-0.6, 0.6))
+	if place != null:
+		zombie.assign_slot(place)
+	elif taken != null:
+		zombie.fall_back(lines.waiting_point(taken.line, rng))
 
 
 func release_place(zombie: Zombie) -> void:
@@ -192,15 +220,23 @@ func release_place(zombie: Zombie) -> void:
 func strike(zombie: Zombie, slot: AttackLines.Slot) -> void:
 	if defense == null:
 		return
-	var at: Vector3 = slot.position + slot.facing * 0.75 + Vector3(0.0, 1.25, 0.0)
+	var at: Vector3 = slot.position + slot.facing * 0.75 + Vector3(0.0, zombie.data.height() * 0.68, 0.0)
 	defense.apply_damage(slot.target, zombie.data.attack_damage, at)
 
 
 func died(zombie: Zombie, headshot: bool) -> void:
 	living -= 1
 	killed_total += 1
+	kills_by_type[zombie.data.id] = int(kills_by_type.get(zombie.data.id, 0)) + 1
 	corpses.append(zombie)
-	Sound.play_variant_at("zombie_death", 2, zombie.position + Vector3(0.0, 1.2, 0.0), -4.0, randf_range(0.88, 1.1))
+	if zombie.data.death_sound != "":
+		Sound.play(zombie.data.death_sound, zombie.data.voice_volume_db)
+	else:
+		Sound.play_variant_at("zombie_death", 2, zombie.position + Vector3(0.0, zombie.data.height() * 0.7, 0.0),
+			-4.0 + zombie.data.voice_volume_db, randf_range(0.88, 1.1) * zombie.data.voice_pitch)
+	if zombie == boss:
+		boss = null
+		Events.boss_fell.emit(zombie)
 	# Too many bodies: the oldest one starts sinking now.
 	if corpses.size() > corpse_limit:
 		var oldest: Zombie = corpses.pop_front()
@@ -217,6 +253,8 @@ func entered_city(zombie: Zombie) -> void:
 	zombie.alive = false
 	living -= 1
 	entered_total += 1
+	if zombie == boss:
+		boss = null
 	if defense:
 		defense.apply_breach(zombie.data.breach_damage)
 	recycle(zombie)
@@ -251,7 +289,7 @@ func clamp_throw(from: Vector3, push: Vector3) -> Vector3:
 		return push
 	var reach: float = layout.court_half_width - 0.9
 	var landing: Vector3 = from + push
-	if absf(from.x) <= reach and absf(landing.x) > reach:
+	if from.z > layout.court_mouth_z and absf(from.x) <= reach and absf(landing.x) > reach:
 		landing.x = signf(landing.x) * reach
 	return landing - from
 
@@ -278,6 +316,7 @@ func clear() -> void:
 	retired.clear()
 	corpses.clear()
 	living = 0
+	boss = null
 	fallen.clear()
 	for line_name: String in lines.lines:
 		lines.lines[line_name].open = true

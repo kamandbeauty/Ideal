@@ -3,7 +3,7 @@
 
 Every model is original and procedural: a signed-distance sculpt is meshed,
 reduced to a mobile triangle budget, unwrapped, painted from the sculpt
-(material layers, grime, blood, ambient occlusion), skinned to a 20-bone
+(material layers, grime, blood, ambient occlusion), skinned to an 18-bone
 skeleton and exported as binary glTF with its animation clips.
 
     python3 tools/build_zombies.py [--only walker] [--draft]
@@ -102,7 +102,56 @@ WALKER = {
     ],
 }
 
-SPECS = {"walker": WALKER}
+# Fast: lean, bare to the waist, sprinting bent forward with both arms clawing ahead.
+RUNNER = {
+    "name": "runner",
+    "scale": 0.97,
+    "torso_w": 0.86, "torso_d": 0.84, "belly": -0.25, "limb": 0.84, "arm": 1.08, "neck": 0.9, "head": 1.0,
+    "shoulder": 0.196, "hip": 0.088, "arm_spread": 32.0,
+    "outfit": {"sleeve": 0.0, "hem": 1.7, "left_leg": 0.36, "right_leg": 0.3, "shoes": (False, False), "tear": 0.62},
+    "faces": {"body": 1700, "head": 600},
+    "texture": 512,
+    "gait": {"period": 0.5, "stride": 0.85, "limp": 0.0, "lean": 31.0, "reach": 0.9, "lift": 0.17, "stance": 0.42, "arms": "flail"},
+    "palettes": [
+        {"skin": (0.66, 0.66, 0.62), "shirt": (0.2, 0.2, 0.2), "pants": (0.36, 0.08, 0.07), "shoes": (0.07, 0.06, 0.05), "hair": (0.06, 0.05, 0.05), "plaid": 0.0, "blood": 1.6},
+        {"skin": (0.62, 0.68, 0.66), "shirt": (0.2, 0.2, 0.2), "pants": (0.10, 0.13, 0.22), "shoes": (0.07, 0.06, 0.05), "hair": (0.30, 0.12, 0.06), "plaid": 0.0, "blood": 1.2},
+    ],
+}
+
+# Heavy: a wall of a man in a work coverall, slow, arms hanging like clubs.
+BRUTE = {
+    "name": "brute",
+    "scale": 1.35,
+    "torso_w": 1.42, "torso_d": 1.4, "belly": 0.9, "limb": 1.42, "arm": 1.06, "neck": 1.45, "head": 1.02,
+    "shoulder": 0.196, "hip": 0.122, "arm_spread": 27.0, "bulk": 1.0, "hand": 1.3, "foot": 1.3,
+    "outfit": {"sleeve": 0.42, "hem": 0.9, "left_leg": 0.97, "right_leg": 0.93, "shoes": (True, True), "tear": 0.7},
+    "faces": {"body": 2100, "head": 650},
+    "texture": 512,
+    "gait": {"period": 1.25, "stride": 0.6, "limp": 0.12, "lean": 11.0, "reach": 1.0, "arms": "hang"},
+    "attack": "slam",
+    "palettes": [
+        {"skin": (0.52, 0.56, 0.44), "shirt": (0.66, 0.33, 0.08), "pants": (0.62, 0.3, 0.07), "shoes": (0.06, 0.05, 0.05), "hair": (0.07, 0.06, 0.05), "plaid": 0.0, "blood": 1.1},
+        {"skin": (0.56, 0.52, 0.5), "shirt": (0.64, 0.58, 0.16), "pants": (0.6, 0.54, 0.15), "shoes": (0.06, 0.05, 0.05), "hair": (0.16, 0.14, 0.12), "plaid": 0.0, "blood": 0.8},
+    ],
+}
+
+# Boss: twice a man's height, pale and swollen, small-headed, bloody to the elbows.
+BOSS = {
+    "name": "boss",
+    "scale": 1.9,
+    "torso_w": 1.55, "torso_d": 1.5, "belly": 0.55, "limb": 1.55, "arm": 1.16, "neck": 1.6, "head": 0.94,
+    "shoulder": 0.196, "hip": 0.128, "arm_spread": 27.0, "bulk": 1.5, "hand": 1.55, "foot": 1.45,
+    "outfit": {"sleeve": 0.0, "hem": 1.7, "left_leg": 0.62, "right_leg": 0.44, "shoes": (False, False), "tear": 0.62},
+    "faces": {"body": 2700, "head": 800},
+    "texture": 512,
+    "gait": {"period": 1.3, "stride": 0.5, "limp": 0.0, "lean": 8.0, "reach": 1.0, "arms": "hang"},
+    "attack": "slam",
+    "palettes": [
+        {"skin": (0.74, 0.72, 0.66), "shirt": (0.2, 0.2, 0.2), "pants": (0.11, 0.1, 0.1), "shoes": (0.07, 0.06, 0.05), "hair": (0.05, 0.04, 0.04), "plaid": 0.0, "blood": 2.3},
+    ],
+}
+
+SPECS = {"walker": WALKER, "runner": RUNNER, "brute": BRUTE, "boss": BOSS}
 
 
 # ---------------------------------------------------------------------------
@@ -149,6 +198,7 @@ class Sculpt:
     def _build(self):
         s, sk = self.spec, self.skeleton
         tw, td, belly, limb, hs = s["torso_w"], s["torso_d"], s["belly"], s["limb"], s["head"]
+        bulk, hand, foot_size = s.get("bulk", 0.0), s.get("hand", 1.0), s.get("foot", 1.0)
         skin = []
         skin.append(ell((0, 0.965, -0.005), (0.136 * tw, 0.105, 0.098 * td), 0.0, "Hips"))
         skin.append(ell((0, 1.10, 0.008 + belly * 0.03), (0.127 * tw, 0.125, 0.088 * td + belly * 0.05), 0.05, "Spine"))
@@ -160,6 +210,15 @@ class Sculpt:
         skin.append(cap((0, 1.46, -0.005), (0, 1.60, 0.018), 0.043 * s["neck"], None, 0.03, "Neck"))
         outfit = s["outfit"]
         shirt_src = [skin[0], skin[1], skin[2], skin[3], skin[4]]
+        if bulk > 0.0:
+            # A slab of muscle across the upper back and a mound on each shoulder: the heavy silhouette.
+            slab = ell((0, 1.405, -0.045), (0.2 * tw, 0.085, 0.07 + 0.035 * bulk), 0.06, "Chest")
+            skin.append(slab)
+            shirt_src.append(slab)
+            for sign in (1.0, -1.0):
+                mound = sph((sw * sign, 1.44, -0.012), 0.062 + 0.02 * bulk, 0.04, "Chest")
+                skin.append(mound)
+                shirt_src.append(mound)
         pants_src = [skin[0]]
         shoes = []
         for side, sign in (("L", 1.0), ("R", -1.0)):
@@ -169,14 +228,15 @@ class Sculpt:
             skin.append(cap(elbow, wrist, 0.041 * limb, 0.029 * limb, 0.02, "LowerArm_" + side))
             # Palm, two finger groups curling forward and a thumb: a clawed mitten that survives decimation.
             front = np.array([0.0, 0.0, 1.0])
-            palm = wrist + d * 0.06
             basis = np.stack([d, front, np.cross(d, front)], axis=1)
-            skin.append(ell(palm, (0.062, 0.043, 0.02), 0.012, "Hand_" + side, basis))
-            for offset in (-0.016, 0.016):
-                a = wrist + d * 0.095 + front * offset
-                b = wrist + d * 0.17 + front * (offset * 1.5 + 0.035)
-                skin.append(cap(a, b, 0.0155, 0.011, 0.01, "Hand_" + side))
-            skin.append(cap(wrist + d * 0.03 + front * 0.03, wrist + d * 0.095 + front * 0.065, 0.014, 0.01, 0.01, "Hand_" + side))
+            palm = wrist + d * 0.06 * hand
+            skin.append(ell(palm, (0.062 * hand, 0.043 * hand, 0.02 * hand), 0.012, "Hand_" + side, basis))
+            for offset in (-0.016 * hand, 0.016 * hand):
+                a = wrist + d * 0.095 * hand + front * offset
+                b = wrist + d * 0.17 * hand + front * (offset * 1.5 + 0.035 * hand)
+                skin.append(cap(a, b, 0.0155 * hand, 0.011 * hand, 0.01, "Hand_" + side))
+            skin.append(cap(wrist + d * 0.03 * hand + front * 0.03 * hand, wrist + d * 0.095 * hand + front * 0.065 * hand, 0.014 * hand,
+                            0.01 * hand, 0.01, "Hand_" + side))
             shirt_src.append(cap(sh, sh + (elbow - sh) * outfit["sleeve"], 0.050 * limb, 0.044 * limb, 0.035))
             hp, knee, ankle = sk.position("UpperLeg_" + side), sk.position("LowerLeg_" + side), sk.position("Foot_" + side)
             thigh = cap(hp, knee, 0.086 * limb, 0.056 * limb, 0.035, "UpperLeg_" + side)
@@ -184,7 +244,8 @@ class Sculpt:
             skin.append(cap(knee, ankle, 0.054 * limb, 0.036 * limb, 0.03, "LowerLeg_" + side))
             calf = knee + (ankle - knee) * 0.3 + np.array([0.0, 0.0, -0.02])
             skin.append(ell(calf, (0.05 * limb, 0.11, 0.055 * limb), 0.03, "LowerLeg_" + side))
-            skin.append(ell(ankle + np.array([0.005 * sign, -0.045, 0.07]), (0.043, 0.038, 0.112), 0.02, "Foot_" + side))
+            skin.append(ell(ankle + np.array([0.005 * sign, -0.045, 0.07 * foot_size]), (0.043 * foot_size, 0.038, 0.112 * foot_size), 0.02,
+                            "Foot_" + side))
             reach = outfit["left_leg"] if side == "L" else outfit["right_leg"]
             if reach <= 0.5:
                 pants_src.append(cap(hp, hp + (knee - hp) * (reach * 2.0), 0.086 * limb, 0.062 * limb, 0.035))
@@ -192,9 +253,10 @@ class Sculpt:
                 pants_src.append(thigh)
                 pants_src.append(cap(knee, knee + (ankle - knee) * ((reach - 0.5) * 2.0), 0.056 * limb, 0.042 * limb, 0.03))
             if outfit["shoes"][0 if side == "L" else 1]:
-                center = ankle + np.array([0.006 * sign, -0.042, 0.074])
-                shoes.append(rbox(center, (0.052, 0.043, 0.135), 0.035, 0.0, "Foot_" + side))
-                shoes.append(cap(ankle + np.array([0.0, -0.02, 0.0]), ankle + np.array([0.0, 0.035, 0.0]), 0.047, None, 0.02, "Foot_" + side))
+                center = ankle + np.array([0.006 * sign, -0.042, 0.074 * foot_size])
+                shoes.append(rbox(center, (0.052 * foot_size, 0.043, 0.135 * foot_size), 0.035, 0.0, "Foot_" + side))
+                shoes.append(cap(ankle + np.array([0.0, -0.02, 0.0]), ankle + np.array([0.0, 0.035, 0.0]), 0.047 * max(1.0, limb * 0.9), None, 0.02,
+                                 "Foot_" + side))
         hc = self.head_center
         head = [
             ell(hc + (0, 0.028, -0.012), (0.078 * hs, 0.092 * hs, 0.098 * hs), 0.03, "Head"),
@@ -619,11 +681,54 @@ def clips(sculpt):
     def walk(t, duration):
         ph = t / duration
         stride, limp = gait["stride"], gait["limp"]
-        ly, lz = step(ph, stride, 0.085)
-        ry, rz = step(ph + 0.5, stride * (1.0 - limp * 0.35), 0.085 * (1.0 - limp))
+        lift, stance, arms = gait.get("lift", 0.085), gait.get("stance", 0.6), gait.get("arms", "drag")
+        ly, lz = step(ph, stride, lift, stance)
+        ry, rz = step(ph + 0.5, stride * (1.0 - limp * 0.35), lift * (1.0 - limp), stance)
         bob = -0.045 + 0.018 * math.cos(2 * tau * ph) - 0.012 * limp * math.sin(tau * ph)
         sway = 0.028 * math.sin(tau * ph)
         reach = gait["reach"]
+        if arms == "flail":
+            # A sprint: low, bent far forward, both arms clawing ahead and beating with the stride.
+            beat = math.sin(tau * ph)
+            return {
+                "hips": (0.02 * beat, -0.075 + 0.03 * math.cos(2 * tau * ph), 0.0),
+                "hips_rot": (lean * 0.5, 7.0 * beat, -3.0 * beat),
+                "spine": (lean * 0.4, -5.0 * beat, 0.0),
+                "chest": (lean * 0.4, -8.0 * beat, 0.0),
+                "neck": (-lean * 0.45, 0.0, 4.0),
+                "head": (-lean * 0.5 + 5.0 * math.sin(2 * tau * ph), 5.0 * beat, 6.0),
+                "foot_L": foot["L"] + np.array([0.0, ly, lz]),
+                "foot_R": foot["R"] + np.array([0.0, ry, rz]),
+                "toe_L": (0.0, -0.25 - ly * 5.0, 1.0),
+                "toe_R": (0.0, -0.25 - ry * 5.0, 1.0),
+                "knee_L": (0.1, 0.0, 1.0),
+                "knee_R": (-0.1, 0.0, 1.0),
+                "hand_L": shoulder["L"] + np.array([-0.02, -0.10 + 0.13 * beat, 0.42 * reach - 0.07 * beat]),
+                "hand_R": shoulder["R"] + np.array([0.02, -0.10 - 0.13 * beat, 0.42 * reach + 0.07 * beat]),
+                "wrist_L": (30.0, 0.0, 8.0),
+                "wrist_R": (30.0, 0.0, -8.0),
+            }
+        if arms == "hang":
+            # A heavy tread: the trunk rolls over each planted foot and the arms swing like weights.
+            roll = math.sin(tau * ph)
+            return {
+                "hips": (0.05 * roll, bob, 0.0),
+                "hips_rot": (lean * 0.45, 6.0 * roll, -5.0 * roll - 2.0 * limp),
+                "spine": (lean * 0.4, -4.0 * roll, 3.0 * roll),
+                "chest": (lean * 0.45, -6.0 * roll, 2.0 * roll),
+                "neck": (-4.0, 3.0 * math.sin(tau * ph + 0.6), 4.0),
+                "head": (-6.0 + 3.0 * math.sin(2 * tau * ph), 5.0 * math.sin(tau * ph + 1.0), 5.0),
+                "foot_L": foot["L"] + np.array([0.035, ly, lz]),
+                "foot_R": foot["R"] + np.array([-0.035, ry, rz]),
+                "toe_L": (0.2, -0.25 - ly * 5.0, 1.0),
+                "toe_R": (-0.2, -0.25 - ry * 4.0, 1.0),
+                "hand_L": shoulder["L"] + np.array([0.07, -0.5, 0.07 - 0.13 * roll]),
+                "hand_R": shoulder["R"] + np.array([-0.07, -0.5, 0.07 + 0.13 * roll]),
+                "elbow_L": (1.0, -0.6, -0.5),
+                "elbow_R": (-1.0, -0.6, -0.5),
+                "wrist_L": (12.0, 0.0, 14.0),
+                "wrist_R": (12.0, 0.0, -14.0),
+            }
         return {
             "hips": (sway, bob, 0.0),
             "hips_rot": (lean * 0.45, 5.0 * math.sin(tau * ph), -3.5 * math.sin(tau * ph) - 2.0 * limp),
@@ -686,6 +791,36 @@ def clips(sculpt):
             "elbow_R": (-1.0, -0.3, -0.4),
             "wrist_L": (-30.0 + 50.0 * left, 0.0, 0.0),
             "wrist_R": (-30.0 + 50.0 * right, 0.0, 0.0),
+        })
+        return pose
+
+    def slam(t, duration):
+        """Both fists raised overhead and brought down together; the blow lands at 0.56 of the clip."""
+        ph = (t / duration) % 1.0
+        if ph < 0.5:
+            up = rig.ease(ph / 0.5)
+        elif ph < 0.62:
+            up = 1.0 - rig.ease((ph - 0.5) / 0.12)
+        else:
+            up = 0.0
+        # Shudder of the impact, dying away while the fists rest on the target.
+        ring = math.sin(min(1.0, max(0.0, (ph - 0.62) / 0.2)) * math.pi) if ph >= 0.62 else 0.0
+        pose = stance_feet(0.05, (0.12, -0.14))
+        overhead = np.array([0.0, 0.37, 0.10])
+        struck = np.array([0.0, -0.04, 0.5])
+        pose.update({
+            "hips": (0.0, -0.07 + 0.02 * up, 0.07 - 0.07 * up),
+            "hips_rot": (15.0 - 21.0 * up + 3.0 * ring, 0.0, 0.0),
+            "spine": (13.0 - 21.0 * up, 0.0, 0.0),
+            "chest": (17.0 - 29.0 * up + 4.0 * ring, 0.0, 0.0),
+            "neck": (-10.0 + 6.0 * up, 0.0, 0.0),
+            "head": (-6.0 - 16.0 * up + 8.0 * ring, 0.0, 0.0),
+            "hand_L": shoulder["L"] + np.array([-0.06, 0.0, 0.0]) + overhead * up + struck * (1.0 - up),
+            "hand_R": shoulder["R"] + np.array([0.06, 0.0, 0.0]) + overhead * up + struck * (1.0 - up),
+            "elbow_L": (1.0, -0.3, -0.5),
+            "elbow_R": (-1.0, -0.3, -0.5),
+            "wrist_L": (20.0 - 50.0 * up, 0.0, 0.0),
+            "wrist_R": (20.0 - 50.0 * up, 0.0, 0.0),
         })
         return pose
 
@@ -764,7 +899,7 @@ def clips(sculpt):
     return {
         "walk": (walk, gait["period"], True),
         "idle": (idle, 2.4, True),
-        "attack": (attack, 1.1, True),
+        "attack": (slam if sculpt.spec.get("attack", "claw") == "slam" else attack, 1.1, True),
         "hit": (hit, 0.42, False),
         "death_back": (death_back, 1.25, False),
         "death_front": (death_front, 1.05, False),
@@ -832,6 +967,10 @@ def build(name, draft=False):
     print("%s: %d sculpt triangles -> %d triangles, %d vertices, %d bones, height %.2f m, texture %dpx x%d, %d KB, %.1fs" % (
         name, raw, faces_uv.shape[0], positions.shape[0], len(sk.names), height, resolution, len(textures), size // 1024, time.time() - started))
     print("  clips:", ", ".join(report))
+    gait = spec["gait"]
+    foot_speed = gait["stride"] / (gait.get("stance", 0.6) * gait["period"]) * scale
+    shoulder = float(np.abs(positions[positions[:, 1] > 1.3][:, 0]).max() * scale) * 2.0
+    print("  stride speed %.2f m/s, shoulder width %.2f m, head centre %.2f m" % (foot_speed, shoulder, sculpt.head_center[1] * scale))
     return path
 
 

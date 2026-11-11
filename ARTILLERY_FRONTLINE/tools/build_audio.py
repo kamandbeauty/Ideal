@@ -153,6 +153,27 @@ def zombies():
         write("zombie_death_%d" % (index + 1), place(cry, thud * 1.4, 0.62), 0.85)
 
 
+def giants():
+    """The boss: a roar that rolls down the street when it appears, and the long fall when it dies."""
+    seconds = 2.6
+    x = t(seconds)
+    swell = np.minimum(x / 0.35, 1.0) * np.clip((seconds - x) / 0.9, 0.0, 1.0)
+    throat = voice(seconds, 78, 46, 301, 0.85, ((260, 620), (700, 1400)), 0.3)
+    chest = lowpass(voice(seconds, 39, 27, 311, 0.9, ((90, 260), (300, 560)), 0.1), 420) * 1.6
+    rasp = bandpass(noise(seconds, 321), 1400, 3600) * (0.5 + 0.5 * np.abs(lowpass(noise(seconds, 322), 7)) * 5.0) * 0.25
+    echo = np.zeros_like(x)
+    place(echo, (throat + chest)[:int(RATE * (seconds - 0.19))] * 0.3, 0.19)
+    write("boss_roar", np.tanh((throat + chest + rasp + echo) * swell * 1.3), 0.95)
+    seconds = 2.9
+    x = t(seconds)
+    cry = voice(seconds, 96, 30, 331, 0.85, ((240, 600), (680, 1300)), 0.35) * np.minimum(x / 0.06, 1.0) * np.clip((1.9 - x) / 1.2, 0.0, 1.0)
+    under = lowpass(voice(seconds, 44, 22, 341, 0.9, ((80, 240), (280, 520)), 0.1), 380) * 1.5 * np.clip((2.0 - x) / 1.4, 0.0, 1.0)
+    fall = np.zeros_like(x)
+    place(fall, (sweep(0.9, 70, 26) * decay(0.9, 5.0, 0.004) * 2.4 + lowpass(noise(0.9, 351), 300) * decay(0.9, 6.0, 0.01) * 2.0
+                 + highpass(noise(0.9, 352), 2400) * decay(0.9, 9.0) * 0.3), 1.85)
+    write("boss_death", np.tanh((cry + under + fall) * 1.2), 0.95)
+
+
 def clang(seconds, partials, seed, ring=7.0):
     x = t(seconds)
     rng = np.random.default_rng(seed)
@@ -326,6 +347,7 @@ def main():
     dry_fire()
     headshot()
     zombies()
+    giants()
     defenses()
     signals()
     explosives()

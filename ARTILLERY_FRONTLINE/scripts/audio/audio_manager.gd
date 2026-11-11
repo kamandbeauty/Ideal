@@ -8,7 +8,7 @@ const CLIPS: Array[String] = [
 	"hmg_shot", "dry_fire", "reload", "click", "critical", "impact", "impact_flesh", "impact_metal", "explosion", "rocket",
 	"headshot", "zombie_groan_1", "zombie_groan_2", "zombie_groan_3", "zombie_death_1", "zombie_death_2", "zombie_attack_1",
 	"zombie_attack_2", "gate_hit_1", "gate_hit_2", "wall_hit_1", "wall_hit_2", "gate_break", "wall_break", "alarm", "wave_horn",
-	"wave_clear", "wind", "music_theme", "explosion_small", "grenade_throw", "grenade_bounce", "weapon_switch", "resupply",
+	"wave_clear", "wind", "music_theme", "explosion_small", "grenade_throw", "grenade_bounce", "weapon_switch", "resupply", "boss_roar", "boss_death",
 ]
 ## Shortest gap between two starts of the same clip, in milliseconds.
 const MIN_GAP_MS: Dictionary = {

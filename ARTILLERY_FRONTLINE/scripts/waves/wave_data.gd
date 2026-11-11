@@ -10,6 +10,17 @@ extends Resource
 ## Handed to the gunner when this wave is cleared (as far as there is room to carry it).
 @export_range(0, 20) var resupply_rockets: int = 1
 @export_range(0, 20) var resupply_grenades: int = 1
+## Text key of a line shown under the wave banner: what is new or dangerous in this wave. Empty for none.
+@export var hint_key: String = ""
+
+
+## How many of one zombie type this wave fields.
+func count_of(zombie: StringName) -> int:
+	var sum: int = 0
+	for group: SpawnGroup in groups:
+		if group != null and group.zombie == zombie:
+			sum += group.count
+	return sum
 
 
 func total() -> int:

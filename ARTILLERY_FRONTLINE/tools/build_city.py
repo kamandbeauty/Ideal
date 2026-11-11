@@ -948,6 +948,7 @@ def write_layout(layout, path):
     lines.append("mount_position = %s" % vec(layout["mount"]))
     lines.append("eye_position = %s" % vec(layout["eye"]))
     lines.append("court_half_width = %s" % fmt(ARM_X))
+    lines.append("court_mouth_z = %s" % fmt(ARM_Z0))
     routes = []
     for name, entries in layout["routes"].items():
         routes.append('"%s": {"points": %s, "widths": %s}' % (name, points(entries), widths(entries)))

@@ -92,3 +92,74 @@ func run(t: TestContext) -> void:
 	rng.seed = 5
 	var waiting: Vector3 = fresh.waiting_point("gate", rng)
 	t.check(waiting.x < first.position.x - 1.0, "the waiting area is behind the gate rows")
+
+	# Wide occupants: several places side by side in a front row, taken by shoving.
+	var wide := AttackLines.new()
+	wide.setup(layout)
+	var columns: int = wide.lines.gate.columns
+	var standing: Array = []
+	for index: int in columns:
+		var walker := RefCounted.new()
+		standing.append(walker)
+		wide.claim(walker, "gate")
+	t.equal(wide.occupied("gate"), columns, "the front row of the gate is full")
+	var brute := RefCounted.new()
+	var polite: AttackLines.Slot = wide.claim(brute, "gate", "", 0.0, 2, false)
+	t.check(polite == null or polite.line != "gate", "a polite wide claim goes to another wall rather than take places that are held")
+	t.check(wide.displaced.is_empty(), "and pushes nobody")
+	wide.release(polite)
+	var before: int = wide.occupied("gate")
+	var group: AttackLines.Slot = wide.claim(brute, "gate", "", 0.0, 2, true)
+	t.check(group != null and group.members.size() == 2 and group.row == 0 and group.line == "gate", "a shoving claim takes two places in the front row")
+	t.equal(wide.displaced.size(), 2, "and pushes two occupants off them")
+	t.check(standing.has(wide.displaced[0]) and standing.has(wide.displaced[1]) and wide.displaced[0] != wide.displaced[1], "the two it names are the ones who stood there")
+	t.equal(wide.occupied("gate"), before, "the places changed hands; none appeared or vanished")
+	t.check(group.members[0].occupant == brute and group.members[1].occupant == brute, "both places are held by the newcomer")
+	t.equal(absi(group.members[0].column - group.members[1].column), 1, "they are neighbours")
+	t.check(group.position.is_equal_approx((group.members[0].position + group.members[1].position) * 0.5), "it stands between the two")
+	t.check(absf(float(group.members[0].column + group.members[1].column) * 0.5 - float(columns - 1) * 0.5) <= 1.0, "near the middle of the gate")
+	t.check(group.facing.is_equal_approx(first.facing) and group.target == "gate", "facing the gate like everyone else")
+	# A second wide one takes other places and cannot push the first aside.
+	var boss := RefCounted.new()
+	var boss_group: AttackLines.Slot = wide.claim(boss, "gate", "", 0.0, 3, true)
+	t.check(boss_group != null and boss_group.members.size() == 3, "a three-wide claim finds three more places")
+	var overlap: bool = false
+	for member: AttackLines.Slot in boss_group.members:
+		if group.members.has(member):
+			overlap = true
+	t.check(not overlap and not wide.displaced.has(brute), "without taking the places of the other wide one")
+	t.check(group.members[0].occupant == brute, "which still holds its own")
+	# The displaced find places behind.
+	for pushed: Object in wide.displaced.duplicate():
+		var place: AttackLines.Slot = wide.claim(pushed, "gate")
+		t.check(place != null and place.members.is_empty() and (place.row == 1 or place.line != "gate"), "someone pushed aside finds a place behind or beside")
+	# Releasing a wide place frees every member, and the row behind steps up into them.
+	var behind: int = 0
+	for slot: AttackLines.Slot in wide.lines.gate.slots:
+		if slot.row == 1 and slot.occupant != null:
+			behind += 1
+	wide.release(boss_group)
+	var emptied: int = 0
+	for member: AttackLines.Slot in boss_group.members:
+		if member.occupant == null:
+			emptied += 1
+	t.equal(emptied, 3, "releasing a wide place frees all of its places")
+	var stepping: Array = wide.advance_rows("gate")
+	t.check(stepping.size() >= 1 and stepping.size() <= mini(3, behind), "those waiting close behind step forward into the gap (%d of %d)" % [
+		stepping.size(), behind])
+	var stepped_forward: bool = true
+	for move: Array in stepping:
+		if (move[1] as AttackLines.Slot).row != 0 or (move[1] as AttackLines.Slot).occupant != move[0]:
+			stepped_forward = false
+	t.check(stepped_forward, "each into a front place of its own")
+	# A line too short for the width is passed over; nothing free at all gives null.
+	var none := AttackLines.new()
+	none.setup(layout)
+	var too_wide: AttackLines.Slot = none.claim(RefCounted.new(), "gate", "", 0.0, 99, true)
+	t.check(too_wide == null, "a claim wider than every line gets nothing")
+	# Closing a line names a wide occupant once.
+	var closing := AttackLines.new()
+	closing.setup(layout)
+	var giant := RefCounted.new()
+	closing.claim(giant, "gate", "", 0.0, 3, true)
+	t.equal(closing.close("gate"), [giant], "closing a line lists a wide occupant once")
