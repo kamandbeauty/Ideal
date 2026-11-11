@@ -80,8 +80,8 @@ static func splash(parent: Node, center: Vector2, tint: Color, diameter: float =
 	drips.initial_velocity_min = 4.0
 	drips.initial_velocity_max = 22.0
 	drips.gravity = Vector2(0.0, 300.0)
-	drips.scale_amount_min = 0.28
-	drips.scale_amount_max = 0.52
+	drips.scale_amount_min = 0.20
+	drips.scale_amount_max = 0.38
 	drips.color = Color(tint.r, tint.g, tint.b, 0.92)
 	drips.emitting = true
 	parent.add_child(drips)
@@ -96,22 +96,27 @@ static func _splat(parent: Node, center: Vector2, tint: Color, diameter: float, 
 	splat.stretch_mode = TextureRect.STRETCH_SCALE
 	splat.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	splat.modulate = Color(tint.r, tint.g, tint.b, tint.a * 0.86)
-	splat.size = Vector2(diameter, diameter)
-	splat.position = center - Vector2(diameter, diameter) * 0.5
-	splat.pivot_offset = Vector2(diameter, diameter) * 0.5
+	# The node is laid out at the picture's own size and scaled to the cell: a TextureRect's rect is
+	# clamped to its texture, so asking for a 44 dp rect gave a 512 px one and the splat came out three
+	# cells wide.
+	var native := float(splat.texture.get_width())
+	splat.size = Vector2(native, native)
+	splat.pivot_offset = Vector2(native, native) * 0.5
+	splat.position = center - Vector2(native, native) * 0.5
 	splat.rotation = randf_range(-0.45, 0.45)
-	splat.scale = Vector2(0.35, 0.35)
+	var full := diameter / native
+	splat.scale = Vector2(full * 0.55, full * 0.55)
 	parent.add_child(splat)
 	var tween := splat.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(splat, "scale", Vector2(1.22, 1.22), lifetime) \
+	tween.tween_property(splat, "scale", Vector2(full * 1.22, full * 1.22), lifetime) \
 		.set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(splat, "modulate", Color(tint.r, tint.g, tint.b, 0.0), lifetime) \
 		.set_delay(delay + lifetime * 0.35)
 	tween.chain().tween_callback(splat.queue_free)
 
 ## The rocket's beam: a light bar laid along the row or column it is about to clear, opening from the
-## cell the rocket fired from outwards. `horizontal` is the axis of the clear, not of the picture.
+## cell the rocket fired from outwards. `horizontal` is the axis of the clear.
 static func streak(parent: Node, center: Vector2, length: float, horizontal: bool,
 		tint: Color = Color(1, 1, 1, 0.85)) -> void:
 	var bar := TextureRect.new()
@@ -121,12 +126,11 @@ static func streak(parent: Node, center: Vector2, length: float, horizontal: boo
 	bar.stretch_mode = TextureRect.STRETCH_SCALE
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bar.modulate = Color(tint.r, tint.g, tint.b, 0.0)
-	# One picture, one size, turned a quarter turn for a column: rotating about the centre keeps the
-	# bar on the row it is clearing without a second set of offsets.
-	var thickness := maxf(12.0, length * 0.12)
-	bar.size = Vector2(length, thickness)
-	bar.pivot_offset = bar.size * 0.5
-	bar.position = center - bar.size * 0.5
+	var native := Vector2(bar.texture.get_width(), bar.texture.get_height())
+	bar.size = native
+	bar.pivot_offset = native * 0.5
+	bar.position = center - native * 0.5
+	bar.scale = Vector2(length / native.x, maxf(0.35, length * 0.10) / native.y)
 	if not horizontal:
 		bar.rotation = PI * 0.5
 	parent.add_child(bar)
@@ -135,8 +139,9 @@ static func streak(parent: Node, center: Vector2, length: float, horizontal: boo
 	tween.tween_property(bar, "modulate:a", tint.a, STREAK_SECONDS * 0.25)
 	tween.tween_property(bar, "modulate:a", 0.0, STREAK_SECONDS * 0.75) \
 		.set_delay(STREAK_SECONDS * 0.25)
-	tween.tween_property(bar, "scale", Vector2(1.0, 1.6) if horizontal else Vector2(1.6, 1.0),
-		STREAK_SECONDS).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	var wide := Vector2(1.0, 1.7) if horizontal else Vector2(1.7, 1.0)
+	tween.tween_property(bar, "scale", bar.scale * wide, STREAK_SECONDS) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.chain().tween_callback(bar.queue_free)
 
 
@@ -156,8 +161,8 @@ static func _droplets(parent: Node, center: Vector2, tint: Color, diameter: floa
 	drops.gravity = Vector2(0.0, 560.0)
 	drops.damping_min = 30.0
 	drops.damping_max = 80.0
-	drops.scale_amount_min = 0.55
-	drops.scale_amount_max = 1.25
+	drops.scale_amount_min = 0.32
+	drops.scale_amount_max = 0.72
 	drops.color = tint
 	drops.emitting = true
 	parent.add_child(drops)
@@ -173,14 +178,16 @@ static func whirlwind(parent: Node, center: Vector2, diameter: float = 96.0,
 	swirl.stretch_mode = TextureRect.STRETCH_SCALE
 	swirl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	swirl.modulate = tint
-	swirl.size = Vector2(diameter, diameter)
-	swirl.position = center - Vector2(diameter, diameter) * 0.5
-	swirl.pivot_offset = Vector2(diameter, diameter) * 0.5
-	swirl.scale = Vector2(0.5, 0.5)
+	var native := float(swirl.texture.get_width())
+	swirl.size = Vector2(native, native)
+	swirl.pivot_offset = Vector2(native, native) * 0.5
+	swirl.position = center - Vector2(native, native) * 0.5
+	var full := diameter / native
+	swirl.scale = Vector2(full * 0.55, full * 0.55)
 	parent.add_child(swirl)
 	var tween := swirl.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(swirl, "scale", Vector2(1.25, 1.25), WHIRLWIND_SECONDS) \
+	tween.tween_property(swirl, "scale", Vector2(full * 1.2, full * 1.2), WHIRLWIND_SECONDS) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(swirl, "rotation", TAU * 1.6, WHIRLWIND_SECONDS)
 	tween.tween_property(swirl, "modulate", Color(tint.r, tint.g, tint.b, 0.0), WHIRLWIND_SECONDS) \
