@@ -436,8 +436,9 @@ func play_result(before: BoardModel, events: Array) -> void:
 			if tile == null:
 				continue
 			# Juice, not sparks: the fruit bursts into its own colour, and the splat is a piece of art.
-			Fx.splash(self, cell_center(pos), Fx.piece_tint(int(cleared[pos])),
-				cell_size * 1.05)
+			# The cell itself is the boundary of the splash: one fruit's juice never lands in the
+			# next fruit's square.
+			Fx.splash(self, cell_center(pos), Fx.piece_tint(int(cleared[pos])), cell_size)
 			tween.tween_property(tile, "scale", Vector2(0.2, 0.2), CLEAR_SECONDS) \
 				.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 			# A small twist as it goes: a matched stone is lifted and taken, and a stone that only

@@ -27,7 +27,8 @@ const SPARK_LIFETIME := 0.42
 const COIN_LIFETIME := 0.7
 const SPLASH_SECONDS := 0.44
 const DROP_LIFETIME := 0.40
-const DRIP_LIFETIME := 0.90
+const DRIP_LIFETIME := 0.40
+const SPRAY_LIFETIME := 0.26
 const STREAK_SECONDS := 0.48
 const WHIRLWIND_SECONDS := 0.58
 
@@ -55,37 +56,75 @@ static func spark(parent: Node, center: Vector2, tint: Color, amount: int = 10, 
 	parent.add_child(particles)
 	particles.finished.connect(particles.queue_free)
 
-## A fruit bursting into juice: a splat on the tile, droplets thrown off it, and drips that keep falling
-## after the splat has gone.
+## A fruit bursting into juice: a splat on its own tile, a spray of droplets to the left and to the
+## right, and three drops that sag under it.
+##
+## Everything here happens inside the cell the fruit stood on. A splash big enough to reach the
+## neighbouring cells reads as paint thrown over the board; a splash bounded by its own square reads as
+## one fruit being crushed. `diameter` is that square.
 ##
 ## Everything is a painted picture — the splat, the droplet and the offset second splat — tinted with the
 ## fruit's own colour. Nothing here is a circle the engine drew, because a piece in this game squashes,
 ## and what sells a squash is the juice underneath it.
 static func splash(parent: Node, center: Vector2, tint: Color, diameter: float = 44.0) -> void:
-	_splat(parent, center, tint, diameter * 1.05, 1.0, SPLASH_SECONDS)
-	_splat(parent, center, tint.lightened(0.22), diameter * 0.62, 0.0, SPLASH_SECONDS * 0.72)
-	_droplets(parent, center, tint, diameter)
+	# Nothing this effect draws may cross the edge of the cell the fruit stood on: the board is a grid of
+	# separate fruits, and a splash that runs into the next cell turns a match into a paint fight.
+	_splat(parent, center, tint, diameter * 0.92, 1.0, SPLASH_SECONDS)
+	_splat(parent, center, tint.lightened(0.22), diameter * 0.56, 0.0, SPLASH_SECONDS * 0.7)
+	_spray(parent, center, tint, diameter, -1.0)
+	_spray(parent, center, tint, diameter, 1.0)
+	_sag(parent, center, tint, diameter)
 
-	var drips := CPUParticles2D.new()
-	drips.name = "drips"
-	drips.texture = load(DROP)
-	drips.position = center + Vector2(0.0, diameter * 0.16)
-	drips.texture = load(DRIP)
-	drips.amount = 4
-	drips.lifetime = DRIP_LIFETIME
-	drips.one_shot = true
-	drips.explosiveness = 0.35
-	drips.direction = Vector2(0.0, 1.0)
-	drips.spread = 26.0
-	drips.initial_velocity_min = 4.0
-	drips.initial_velocity_max = 22.0
-	drips.gravity = Vector2(0.0, 300.0)
-	drips.scale_amount_min = 0.20
-	drips.scale_amount_max = 0.38
-	drips.color = Color(tint.r, tint.g, tint.b, 0.92)
-	drips.emitting = true
-	parent.add_child(drips)
-	drips.finished.connect(drips.queue_free)
+## The droplets go sideways, not up: a fruit crushed between two others sprays left and right. The
+## speeds are chosen against the damping below so a droplet dies about a fifth of a cell from the
+## middle of the cell, which keeps the whole spray inside the cell's own square.
+static func _spray(parent: Node, center: Vector2, tint: Color, diameter: float, side: float) -> void:
+	var spray := CPUParticles2D.new()
+	spray.name = "spray_left" if side < 0.0 else "spray_right"
+	spray.texture = load(DROP)
+	spray.position = center + Vector2(side * diameter * 0.18, 0.0)
+	spray.amount = 4
+	spray.lifetime = SPRAY_LIFETIME
+	spray.one_shot = true
+	spray.explosiveness = 0.85
+	spray.direction = Vector2(side, 0.0)
+	spray.spread = 24.0
+	spray.initial_velocity_min = diameter * 0.45
+	spray.initial_velocity_max = diameter * 1.15
+	spray.damping_min = diameter * 4.0
+	spray.damping_max = diameter * 5.5
+	spray.gravity = Vector2.ZERO
+	spray.scale_amount_min = 0.16
+	spray.scale_amount_max = 0.30
+	spray.color = Color(tint.r, tint.g, tint.b, 0.95)
+	spray.emitting = true
+	parent.add_child(spray)
+	spray.finished.connect(spray.queue_free)
+
+## Three small drops that sag downwards under the fruit and stop inside the cell: the juice that does
+## not fly sideways still runs, so the burst keeps its weight without staining the neighbouring cells.
+static func _sag(parent: Node, center: Vector2, tint: Color, diameter: float) -> void:
+	var drip := CPUParticles2D.new()
+	drip.name = "sag"
+	drip.texture = load(DRIP)
+	drip.position = center + Vector2(0.0, diameter * 0.10)
+	drip.amount = 3
+	drip.lifetime = DRIP_LIFETIME
+	drip.one_shot = true
+	drip.explosiveness = 0.5
+	drip.direction = Vector2(0.0, 1.0)
+	drip.spread = 30.0
+	drip.initial_velocity_min = diameter * 0.10
+	drip.initial_velocity_max = diameter * 0.34
+	drip.gravity = Vector2(0.0, diameter * 2.2)
+	drip.damping_min = diameter * 3.0
+	drip.damping_max = diameter * 4.0
+	drip.scale_amount_min = 0.18
+	drip.scale_amount_max = 0.30
+	drip.color = Color(tint.r, tint.g, tint.b, 0.92)
+	drip.emitting = true
+	parent.add_child(drip)
+	drip.finished.connect(drip.queue_free)
 
 static func _splat(parent: Node, center: Vector2, tint: Color, diameter: float, delay: float,
 		lifetime: float) -> void:
@@ -109,7 +148,7 @@ static func _splat(parent: Node, center: Vector2, tint: Color, diameter: float, 
 	parent.add_child(splat)
 	var tween := splat.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(splat, "scale", Vector2(full * 1.15, full * 1.15), lifetime) \
+	tween.tween_property(splat, "scale", Vector2(full, full), lifetime) \
 		.set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(splat, "modulate", Color(tint.r, tint.g, tint.b, 0.0), lifetime) \
 		.set_delay(delay + lifetime * 0.35)
@@ -144,29 +183,6 @@ static func streak(parent: Node, center: Vector2, length: float, horizontal: boo
 		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.chain().tween_callback(bar.queue_free)
 
-
-static func _droplets(parent: Node, center: Vector2, tint: Color, diameter: float) -> void:
-	var drops := CPUParticles2D.new()
-	drops.name = "drops"
-	drops.texture = load(DROP)
-	drops.position = center
-	drops.amount = 7
-	drops.lifetime = DROP_LIFETIME
-	drops.one_shot = true
-	drops.explosiveness = 0.95
-	drops.direction = Vector2(0.0, -1.0)
-	drops.spread = 180.0
-	drops.initial_velocity_min = 60.0 * diameter / 44.0
-	drops.initial_velocity_max = 190.0 * diameter / 44.0
-	drops.gravity = Vector2(0.0, 560.0)
-	drops.damping_min = 30.0
-	drops.damping_max = 80.0
-	drops.scale_amount_min = 0.32
-	drops.scale_amount_max = 0.72
-	drops.color = tint
-	drops.emitting = true
-	parent.add_child(drops)
-	drops.finished.connect(drops.queue_free)
 
 ## The fan's whirlwind: the painted tornado spins up over the board and blows itself out.
 static func whirlwind(parent: Node, center: Vector2, diameter: float = 96.0,

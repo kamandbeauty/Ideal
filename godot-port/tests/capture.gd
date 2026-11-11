@@ -83,9 +83,9 @@ func _ready() -> void:
 	var fx_view = live_board.get("_board")
 	Engine.time_scale = 0.45
 	Fx.splash(fx_view, fx_view.cell_center(Vector2i(3, 4)),
-		Fx.piece_tint(GameTypes.PieceKind.AQIQ), fx_view.cell_size * 1.15)
+		Fx.piece_tint(GameTypes.PieceKind.AQIQ), fx_view.cell_size)
 	Fx.splash(fx_view, fx_view.cell_center(Vector2i(5, 4)),
-		Fx.piece_tint(GameTypes.PieceKind.LAJVARD), fx_view.cell_size * 1.15)
+		Fx.piece_tint(GameTypes.PieceKind.LAJVARD), fx_view.cell_size)
 	await _frames(16)
 	await _shot("13-burst")
 	Engine.time_scale = 1.0
