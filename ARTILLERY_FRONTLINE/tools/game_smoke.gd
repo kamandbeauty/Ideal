@@ -204,40 +204,8 @@ func _run() -> void:
 		await get_tree().physics_frame
 		waited_frames += 1
 	await shot("13-grenade-aftermath")
-
-	# LAB (temporary): which kind of ground mark this renderer shows.
-	var lab: Array[MeshInstance3D] = []
-	var source: StandardMaterial3D = level.explosions.scorches[0].material_override
-	var multiply := StandardMaterial3D.new()
-	multiply.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	multiply.blend_mode = BaseMaterial3D.BLEND_MODE_MUL
-	multiply.cull_mode = BaseMaterial3D.CULL_DISABLED
-	multiply.disable_fog = true
-	multiply.disable_receive_shadows = true
-	multiply.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
-	multiply.albedo_texture = Explosions._radial([[0.0, Color(0.1, 0.09, 0.08, 1.0)], [0.5, Color(0.4, 0.38, 0.36, 1.0)], [1.0, Color(1, 1, 1, 1)]])
-	var plain := StandardMaterial3D.new()
-	plain.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	plain.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	plain.albedo_color = Color(0.0, 0.0, 0.0, 0.6)
-	plain.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var variants: Array = [[source, 0.03], [source, 0.09], [multiply, 0.03], [multiply, 0.09], [plain, 0.03], [plain, 0.09]]
-	for index: int in variants.size():
-		var bearing: float = deg_to_rad(-6.0 - 8.0 * float(index))
-		var mark := MeshInstance3D.new()
-		var plane := PlaneMesh.new()
-		plane.size = Vector2(2.6, 2.6)
-		mark.mesh = plane
-		mark.material_override = variants[index][0]
-		mark.position = Vector3(23.0 * sin(bearing), variants[index][1], -1.35 - 23.0 * cos(bearing))
-		level.add_child(mark)
-		lab.append(mark)
-	level.defender.aim.set_aim(-26.0, -11.5)
-	await frames(6)
-	await shot("99-lab")
-	for mark: MeshInstance3D in lab:
-		mark.queue_free()
 	await frames(2)
+
 
 	# The patched breach on the left arm.
 	level.defender.aim.set_aim(-33.0, -7.0)

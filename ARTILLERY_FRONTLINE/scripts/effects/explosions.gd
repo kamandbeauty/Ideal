@@ -43,7 +43,9 @@ func _ready() -> void:
 	scorch_ages.resize(SCORCHES)
 	var ring_texture: Texture2D = _radial([[0.0, Color(1, 1, 1, 0)], [0.66, Color(1, 1, 1, 0)], [0.86, Color(1, 1, 1, 0.9)],
 		[1.0, Color(1, 1, 1, 0)]])
-	var scorch_texture: Texture2D = _radial([[0.0, Color(0, 0, 0, 0.82)], [0.45, Color(0.02, 0.02, 0.02, 0.6)], [1.0, Color(0, 0, 0, 0)]])
+	# Blending happens in linear light, where a half-transparent black barely darkens: the core has to be nearly opaque to read as soot.
+	var scorch_texture: Texture2D = _radial([[0.0, Color(0.01, 0.01, 0.01, 0.97)], [0.5, Color(0.02, 0.015, 0.01, 0.93)],
+		[0.78, Color(0.03, 0.025, 0.02, 0.6)], [1.0, Color(0, 0, 0, 0)]])
 	for index: int in BLASTS:
 		ages[index] = 100.0
 		var light := OmniLight3D.new()

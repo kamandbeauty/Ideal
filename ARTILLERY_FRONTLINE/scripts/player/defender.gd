@@ -209,6 +209,8 @@ func throw_grenade() -> bool:
 		return false
 	grenade_count -= 1
 	grenade_cooldown = grenade_data.cooldown
+	# The swing of the arm is felt in the view.
+	shake += Vector3(-0.5, 0.25, 0.3)
 	Sound.play("grenade_throw", -4.0, rng.randf_range(0.95, 1.05))
 	Events.grenades_changed.emit(grenade_count, grenade_data.capacity)
 	Events.grenade_thrown.emit(target)

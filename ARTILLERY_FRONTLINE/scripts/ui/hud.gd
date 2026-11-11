@@ -285,7 +285,7 @@ func _layout() -> void:
 	grenade_button.position = grenade_center - grenade_button.size * 0.5
 	grenade_label.position = grenade_center + Vector2(grenade_button.radius * 0.55 - 22.0, -grenade_button.radius - 14.0)
 	grenade_label.size = Vector2(44.0, 34.0)
-	reload_label.position = Vector2(view.x * 0.5 - 200.0, view.y * 0.5 + 48.0)
+	reload_label.position = Vector2(view.x * 0.5 - 200.0, view.y * 0.5 + 88.0)
 	reload_label.size = Vector2(400.0, 30.0)
 	# The other hand: the weapon cards along the bottom, the round count above them.
 	var count: int = weapon_slots.size()

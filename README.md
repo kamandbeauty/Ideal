@@ -2,11 +2,12 @@
 
 A first-person wall-defence shooter for Android, built with Godot 4.7.2.
 You are the gunner of a twin heavy machine gun on top of a fortified city
-wall. The horde comes through the ruined streets for the gate. Hold it.
+wall, with an RPG launcher and hand grenades at your side. The horde comes
+through the ruined streets for the gate. Hold it.
 
 بازی تیراندازی اول‌شخص دفاع از دیوار شهر برای اندروید. شما تیربارچیِ مسلسل
-سنگین دولول روی دیوار هستید و موج‌های زامبی از خیابان‌های ویران به سمت دروازه
-می‌آیند.
+سنگین دولول روی دیوار هستید، آرپی‌جی و نارنجک دستی هم دارید، و موج‌های زامبی
+از خیابان‌های ویران به سمت دروازه می‌آیند.
 
 | What | Where |
 | --- | --- |
@@ -16,9 +17,11 @@ wall. The horde comes through the ruined streets for the gate. Hold it.
 | Screenshots of the latest CI play-through | [`ARTILLERY_FRONTLINE/documentation/qa/`](ARTILLERY_FRONTLINE/documentation/qa/) |
 | Phase reports | [`ARTILLERY_FRONTLINE/documentation/`](ARTILLERY_FRONTLINE/documentation/) |
 
-The project is being built in phases. Phase 1 (this state) is the playable
-core: the wall, the gun, one zombie type, the gate and wall health, and
-data-driven waves. See the project README for details and the roadmap.
+The project is being built in phases. Phase 1 made the playable core: the
+wall, the gun, one zombie type, the gate and wall health, and data-driven
+waves. Phase 2 (this state) adds the RPG launcher, hand grenades, weapon
+selection and area damage. See the project README for details and the
+roadmap.
 
 The image files and the `.max`/`.dds` files in this folder are reference
 material supplied for the project; the game does not use them.

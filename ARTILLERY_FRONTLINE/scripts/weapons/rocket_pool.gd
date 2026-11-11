@@ -9,7 +9,7 @@ const MODEL_PATH: String = "res://assets/models/weapons/rocket.glb"
 ## The round is drawn larger than life so it can be followed down the street.
 const MODEL_SCALE: float = 1.5
 ## The smoke trail starts this far from the tube, so the launch does not blind the gunner.
-const TRAIL_START: float = 3.0
+const TRAIL_START: float = 7.0
 
 var explosions: Explosions
 var nodes: Array[Node3D] = []
@@ -97,7 +97,8 @@ func _trail(material: StandardMaterial3D) -> CPUParticles3D:
 	var mesh := QuadMesh.new()
 	mesh.material = material
 	var fade := Gradient.new()
-	fade.set_color(0, Color(0.9, 0.87, 0.82, 0.6))
+	# Seen from behind, the whole trail stacks up along the sight line, so each puff is faint.
+	fade.set_color(0, Color(0.9, 0.87, 0.82, 0.3))
 	fade.set_color(1, Color(0.62, 0.62, 0.62, 0.0))
 	var growth := Curve.new()
 	growth.add_point(Vector2(0.0, 0.5))
@@ -106,16 +107,16 @@ func _trail(material: StandardMaterial3D) -> CPUParticles3D:
 	trail.mesh = mesh
 	trail.emitting = false
 	# Many small puffs close together read as one thin line of smoke behind the round.
-	trail.amount = 110
-	trail.lifetime = 0.9
+	trail.amount = 90
+	trail.lifetime = 0.8
 	trail.local_coords = false
 	trail.direction = Vector3.UP
 	trail.spread = 180.0
 	trail.gravity = Vector3(0.0, 0.35, 0.0)
 	trail.initial_velocity_min = 0.05
 	trail.initial_velocity_max = 0.4
-	trail.scale_amount_min = 0.3
-	trail.scale_amount_max = 0.55
+	trail.scale_amount_min = 0.22
+	trail.scale_amount_max = 0.42
 	trail.scale_amount_curve = growth
 	trail.color_ramp = fade
 	trail.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

@@ -18,9 +18,9 @@ const KINDS: Dictionary = {
 	"fireball": {"count": 5, "amount": 14, "life": 0.6, "speed": Vector2(1.5, 6.0), "spread": 180.0, "gravity": 2.0,
 		"size": Vector2(1.1, 2.3), "color": Color(1.0, 0.6, 0.2, 0.85), "end": Color(0.5, 0.09, 0.02, 0.0), "grow": 2.0,
 		"additive": true},
-	"blast_smoke": {"count": 5, "amount": 16, "life": 3.0, "speed": Vector2(0.8, 3.8), "spread": 70.0, "gravity": 0.9,
-		"size": Vector2(1.6, 3.2), "color": Color(0.1, 0.095, 0.09, 0.8), "end": Color(0.3, 0.29, 0.28, 0.0), "grow": 2.4,
-		"additive": false},
+	"blast_smoke": {"count": 5, "amount": 16, "life": 3.2, "speed": Vector2(0.5, 2.4), "spread": 60.0, "gravity": 0.5,
+		"size": Vector2(2.0, 3.6), "color": Color(0.07, 0.065, 0.06, 0.92), "mid": [0.55, Color(0.16, 0.15, 0.14, 0.8)],
+		"end": Color(0.3, 0.29, 0.28, 0.0), "grow": 2.2, "additive": false},
 	"debris": {"count": 5, "amount": 18, "life": 1.15, "speed": Vector2(6.0, 17.0), "spread": 62.0, "gravity": -15.0,
 		"size": Vector2(0.09, 0.22), "color": Color(0.1, 0.09, 0.08, 1.0), "end": Color(0.1, 0.09, 0.08, 0.6), "grow": 1.0,
 		"additive": false},
@@ -53,6 +53,9 @@ func _ready() -> void:
 		var fade := Gradient.new()
 		fade.set_color(0, spec.color)
 		fade.set_color(1, spec.get("end", Color(spec.color.r, spec.color.g, spec.color.b, 0.0)))
+		if spec.has("mid"):
+			# Holds the colour for a while instead of thinning from the first moment.
+			fade.add_point(spec.mid[0], spec.mid[1])
 		var growth := Curve.new()
 		growth.add_point(Vector2(0.0, 1.0 / maxf(spec.grow, 1.0)))
 		growth.add_point(Vector2(1.0, minf(1.0, spec.grow)))

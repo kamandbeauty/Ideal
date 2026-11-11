@@ -10,13 +10,11 @@ the two font families. Nothing is downloaded at build time or at run time.
 | `assets/models/zombies/zombie_walker.glb` | `tools/build_zombies.py` | Sculpted as a signed-distance field, meshed, unwrapped, skinned to an 18-bone skeleton; six procedural animation clips |
 | `assets/textures/zombies/zombie_walker_{a,b,c}.png` | `tools/build_zombies.py` | Three painted skins baked from the sculpt |
 | `assets/models/environment/city_siege.glb` | `tools/build_city.py` | Fortress, gate court, ruined city blocks, wrecks and props |
+| `assets/models/weapons/rpg_launcher.glb`, `rocket.glb`, `frag_grenade.glb` | `tools/build_weapons.py` | The shoulder launcher with its loaded round, the round in flight and the hand grenade, built from lathed and boxed primitives |
 | `resources/levels/city_siege_layout.tres` | `tools/build_city.py` | Routes and attack places, from the same numbers as the mesh |
 | `assets/textures/world/*.jpg`, `*_n.png`, `sky_dusk.jpg` | `tools/build_textures.py` | Tiling surfaces with normal maps, and the sky panorama |
-| `assets/audio/*.wav` | `tools/build_audio.py` | Synthesized from oscillators and filtered noise |
+| `assets/audio/*.wav` | `tools/build_audio.py` | Synthesized from oscillators and filtered noise, including the rocket launch and both explosions |
 | `assets/textures/icon.png` | `tools/build_icon.py` | App icon |
-
-`assets/audio/rocket.wav` was synthesized the same way during the earlier
-project and is kept for the rocket launcher of Phase 2.
 
 ## Carried over from the earlier project
 
