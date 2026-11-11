@@ -55,6 +55,27 @@ func _ready() -> void:
 	_report(app, "board")
 	await _shot("05-board")
 
+	# The special pieces, on the real board. A picture of a rocket on cream says nothing about how it
+	# reads at 44 dp next to a pear, so the three of them are dropped into cells and photographed in
+	# place — the only shot that answers "does a player recognise this as a rocket mid-game".
+	var live_board = app.get("board")
+	var model = live_board.run.board
+	var marks = [
+		[Vector2i(2, 2), GameTypes.PowerUpKind.ROCKET_HORIZONTAL],
+		[Vector2i(4, 2), GameTypes.PowerUpKind.FAN],
+		[Vector2i(6, 2), GameTypes.PowerUpKind.KITE],
+		[Vector2i(4, 3), GameTypes.PowerUpKind.ROCKET_VERTICAL],
+	]
+	for mark in marks:
+		model.at_pos(mark[0]).power_up = mark[1]
+	live_board.get("_board").rebuild()
+	await _frames(3)
+	await _shot("12-power-ups")
+	for mark in marks:
+		model.at_pos(mark[0]).power_up = GameTypes.PowerUpKind.NONE
+	live_board.get("_board").rebuild()
+	await _frames(2)
+
 	# Motion cannot be judged from a still. The swap is played in slow motion and photographed as it
 	# runs, and the crops are laid out in a strip: this is the only evidence that the stones travel,
 	# lift and land rather than teleporting, and the animation work has to show itself.
@@ -107,7 +128,8 @@ func _ready() -> void:
 	await _frames(6)
 	await _shot("07-home-phone-landscape")
 
-	_make_contact_sheet(["01-home", "02-settings", "03-shop", "04-districts", "05-board"])
+	_make_contact_sheet(["01-home", "02-settings", "03-shop", "04-districts", "05-board",
+		"12-power-ups"])
 	_save_report()
 	print("[capture] wrote the whole set to %s" % SHOTS)
 	get_tree().quit()
