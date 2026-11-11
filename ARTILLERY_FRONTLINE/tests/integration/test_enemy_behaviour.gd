@@ -300,15 +300,25 @@ func _check_jeep_strafes(t: TestContext) -> void:
 	var low: float = INF
 	var high: float = 0.0
 	var previous: Vector3 = jeep.global_position
+	var sense: float = 0.0
+	var reversed: bool = false
 	for index in range(300):
 		jeep._physics_process(STEP)
 		path += Vector2(jeep.global_position.x - previous.x, jeep.global_position.z - previous.z).length()
+		# Bearing around the target (the origin): the sign of the step's cross product must never flip.
+		var turn: float = previous.x * jeep.global_position.z - previous.z * jeep.global_position.x
+		if absf(turn) > 0.01:
+			if sense == 0.0:
+				sense = signf(turn)
+			elif signf(turn) != sense:
+				reversed = true
 		previous = jeep.global_position
 		var radius: float = Vector2(jeep.global_position.x, jeep.global_position.z).length()
 		low = minf(low, radius)
 		high = maxf(high, radius)
 	t.check(path > 15.0, "The jeep strafes across the target's front, covering over 15 m in five seconds")
 	t.check(low > 36.0 and high < 44.0, "The jeep holds its stand-off distance while it circles")
+	t.check(not reversed and sense != 0.0, "The jeep circles one way round the target instead of shuttling left and right")
 	jeep.queue_free()
 
 ## Damage shows on the hull: a hit rocks it, and smoke then fire build on the wreck as health falls.

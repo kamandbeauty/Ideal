@@ -35,7 +35,7 @@ const REPOSITION_ANGLES := [12.0, -12.0, 24.0, -24.0, 36.0, -36.0, 48.0, -48.0]
 ## Seconds between the first and later cook-off bursts of a destroyed carrier.
 const BURST_SPACING: float = 1.3
 ## Lateral speed (m/s) of a jeep circling its target.
-const STRAFE_SPEED: float = 5.0
+const STRAFE_SPEED: float = 3.5
 ## A circling jeep keeps strafing anywhere inside this band; the approach only runs outside it.
 ## Without a band, the tangential step pushes it just past the stand-off, and the approach
 ## branch then pulls it straight back in each frame, so it never actually circles.
@@ -77,9 +77,8 @@ var built_procedurally: bool = false
 var stage: int = 0
 ## Angle (rad) between the turret and the bearing to the target. The gun only fires inside aim_tolerance.
 var aim_error: float = 0.0
-## Direction of a jeep's circling, flipped every few seconds.
+## Direction of a jeep's circling. Fixed for the whole run: a steady arc round the target, not a shuttle.
 var strafe_sign: float = 1.0
-var strafe_timer: float = 2.0
 ## Hull pitch kick from the last hit, decaying over time.
 var hit_jolt: float = 0.0
 var hit_jolt_phase: float = 0.0
@@ -146,7 +145,6 @@ func configure(spawn: Vector3, target: Vector3, vehicle_kind: String = "tank") -
 	suspension_phase = randf() * TAU
 	hit_jolt = 0.0
 	aim_error = 0.0
-	strafe_timer = randf_range(1.0, 2.0)
 	strafe_sign = 1.0 if randf() < 0.5 else -1.0
 	if smoke_plume != null:
 		smoke_plume.queue_free()
@@ -481,10 +479,6 @@ func _drive_to_firing_point(delta: float) -> float:
 
 ## Circling for a jeep: a tangential run with a radial correction back to the stand-off distance.
 func _strafe(delta: float, direction: Vector3, distance: float, desired_yaw: float) -> float:
-	strafe_timer -= delta
-	if strafe_timer <= 0.0:
-		strafe_sign = -strafe_sign
-		strafe_timer = randf_range(2.5, 3.5)
 	var tangent: Vector3 = Vector3(-direction.z, 0.0, direction.x) * strafe_sign * STRAFE_SPEED
 	var radial: Vector3 = direction * clampf((distance - stop_distance) * 0.8, -3.0, 3.0)
 	var velocity: Vector3 = tangent + radial
