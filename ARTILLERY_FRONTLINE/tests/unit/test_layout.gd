@@ -51,8 +51,10 @@ func run(t: TestContext) -> void:
 	var mouth_gap: float = (layout.mouths.right.position as Vector3).x - float(layout.mouths.right.width)
 	t.check(mouth_gap >= 3.0, "the walking lanes leave the middle of the court free for wrecks")
 
-	# Every standing place can be hit with the shipped aim limits.
+	# Every standing place can be hit with the shipped aim limits. The gun turns
+	# about its trunnion, 1.15 m above the mount, and the sight is eye_offset.y above the bore.
 	var eye: Vector3 = layout.eye_position
+	var pivot: Vector3 = layout.mount_position + Vector3(0.0, 1.15, 0.0)
 	var lines := AttackLines.new()
 	lines.setup(layout)
 	var worst_pitch: float = 0.0
@@ -60,12 +62,11 @@ func run(t: TestContext) -> void:
 	var nearest: float = INF
 	for line_name: String in lines.lines:
 		for slot: AttackLines.Slot in lines.lines[line_name].slots:
-			var chest: Vector3 = slot.position + Vector3(0.0, 1.2, 0.0) - eye
-			var yaw: float = rad_to_deg(atan2(chest.x, -chest.z))
-			var pitch: float = rad_to_deg(atan2(chest.y, Vector2(chest.x, chest.z).length()))
-			worst_pitch = minf(worst_pitch, pitch)
-			worst_yaw = maxf(worst_yaw, absf(yaw))
-			nearest = minf(nearest, Vector2(chest.x, chest.z).length())
+			var chest: Vector3 = slot.position + Vector3(0.0, 1.2, 0.0)
+			var wanted: Vector2 = AimController.solve(pivot, aim.eye_offset.y, chest)
+			worst_pitch = minf(worst_pitch, wanted.y)
+			worst_yaw = maxf(worst_yaw, absf(wanted.x))
+			nearest = minf(nearest, Vector2(chest.x - pivot.x, chest.z - pivot.z).length())
 	t.check(worst_pitch >= aim.pitch_min_degrees, "every attacker's chest is within the depression limit (worst %.1f°)" % worst_pitch)
 	t.check(worst_yaw <= aim.yaw_max_degrees, "every attack place is within the yaw limit (worst %.1f°)" % worst_yaw)
 	t.check(nearest >= 17.0, "no attack place sits in the dead ground under the gun (nearest %.1f m)" % nearest)

@@ -96,3 +96,15 @@ func jolt(degrees: float) -> void:
 
 func view_direction() -> Vector3:
 	return -camera.global_basis.z
+
+
+## Yaw and pitch (degrees) that would put the crosshair on a world point.
+func aim_for(target: Vector3) -> Vector2:
+	return AimController.solve(weapon.pivot.global_position, aim_settings.eye_offset.y, target)
+
+
+## Whether the crosshair can be laid on a world point inside the aim limits.
+func can_aim_at(target: Vector3) -> bool:
+	var wanted: Vector2 = aim_for(target)
+	return wanted.x >= aim_settings.yaw_min_degrees and wanted.x <= aim_settings.yaw_max_degrees \
+		and wanted.y >= aim_settings.pitch_min_degrees and wanted.y <= aim_settings.pitch_max_degrees

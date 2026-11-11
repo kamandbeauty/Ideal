@@ -5,13 +5,13 @@ extends Node3D
 
 const KINDS: Dictionary = {
 	"blood": {"count": 12, "amount": 10, "life": 0.45, "speed": Vector2(1.8, 5.0), "spread": 38.0, "gravity": -9.0,
-		"size": Vector2(0.05, 0.13), "color": Color(0.34, 0.02, 0.02, 0.95), "grow": 1.6, "additive": false},
+		"size": Vector2(0.1, 0.24), "color": Color(0.36, 0.02, 0.02, 0.95), "grow": 1.6, "additive": false},
 	"gore": {"count": 6, "amount": 18, "life": 0.6, "speed": Vector2(2.5, 6.5), "spread": 60.0, "gravity": -9.0,
-		"size": Vector2(0.07, 0.18), "color": Color(0.4, 0.03, 0.02, 0.95), "grow": 1.8, "additive": false},
+		"size": Vector2(0.14, 0.34), "color": Color(0.42, 0.03, 0.02, 0.95), "grow": 1.8, "additive": false},
 	"dust": {"count": 12, "amount": 8, "life": 0.75, "speed": Vector2(0.8, 2.6), "spread": 45.0, "gravity": -0.8,
-		"size": Vector2(0.22, 0.5), "color": Color(0.56, 0.53, 0.48, 0.55), "grow": 2.6, "additive": false},
+		"size": Vector2(0.3, 0.65), "color": Color(0.56, 0.53, 0.48, 0.55), "grow": 2.6, "additive": false},
 	"spark": {"count": 8, "amount": 9, "life": 0.28, "speed": Vector2(5.0, 12.0), "spread": 50.0, "gravity": -9.8,
-		"size": Vector2(0.03, 0.07), "color": Color(1.0, 0.72, 0.3, 1.0), "grow": 0.4, "additive": true},
+		"size": Vector2(0.07, 0.16), "color": Color(1.0, 0.72, 0.3, 1.0), "grow": 0.4, "additive": true},
 	"smoke": {"count": 4, "amount": 26, "life": 2.6, "speed": Vector2(1.0, 4.5), "spread": 80.0, "gravity": 0.5,
 		"size": Vector2(1.2, 2.8), "color": Color(0.42, 0.4, 0.37, 0.6), "grow": 2.4, "additive": false},
 }
@@ -31,6 +31,8 @@ func _ready() -> void:
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		# Without this the billboard discards each particle's scale and draws every quad at full size.
+		material.billboard_keep_scale = true
 		material.vertex_color_use_as_albedo = true
 		material.albedo_texture = soft_dot()
 		material.disable_receive_shadows = true

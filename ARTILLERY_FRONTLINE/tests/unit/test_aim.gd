@@ -21,6 +21,21 @@ func run(t: TestContext) -> void:
 	t.check(AimController.direction_of(0.0, 45.0).y > 0.7, "positive pitch looks up")
 	t.check(AimController.direction_of(0.0, -15.0).y < -0.25, "negative pitch looks down")
 
+	# Laying the sight on a point: the sight line is parallel to the bore and above it.
+	var pivot := Vector3(0.0, 5.15, -1.35)
+	for target: Vector3 in [Vector3(15.6, 1.2, -19.0), Vector3(-15.9, 1.2, -11.0), Vector3(0.0, 1.0, -90.0), Vector3(3.0, 9.0, -30.0)]:
+		var solved: Vector2 = AimController.solve(pivot, 0.43, target)
+		var bore: Vector3 = AimController.direction_of(solved.x, solved.y)
+		var up: Vector3 = AimController.direction_of(solved.x, solved.y + 90.0)
+		var sight_origin: Vector3 = pivot + up * 0.43
+		var along: float = (target - sight_origin).dot(bore)
+		var miss: float = (sight_origin + bore * along).distance_to(target)
+		t.check(miss < 0.001 and along > 0.0, "the solved aim puts the sight line through the target (miss %.4f m)" % miss)
+	var level_shot: Vector2 = AimController.solve(pivot, 0.0, pivot + Vector3(10.0, 0.0, -10.0))
+	t.near(level_shot.x, 45.0, 0.0001, "solve gives the bearing as yaw")
+	t.near(level_shot.y, 0.0, 0.0001, "with no sight offset a level target needs no pitch")
+	t.check(AimController.solve(pivot, 0.43, pivot + Vector3(0.0, 0.0, -20.0)).y < 0.0, "a sight above the bore needs a little depression on a level target")
+
 	# Drag directions and scale.
 	aim.set_aim(0.0, 0.0)
 	aim.drag(Vector2(100.0, 0.0))

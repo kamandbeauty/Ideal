@@ -64,6 +64,30 @@ func run(t: TestContext) -> void:
 	var muzzle: Vector3 = defender.weapon.muzzles[0].global_position
 	t.check(muzzle.y > layout.mount_position.y + 0.45, "at full depression the muzzles stay above the kerb")
 	t.equal(defender.weapon.muzzles.size(), 2, "the gun has two muzzles")
+	# With the real rig: the crosshair can be laid on the chest of every attacker, and it lands there.
+	var unreachable: int = 0
+	var worst_miss: float = 0.0
+	var checked: int = 0
+	for line_name: String in level.horde.lines.lines:
+		var slots: Array = level.horde.lines.lines[line_name].slots
+		for index: int in slots.size():
+			var chest: Vector3 = slots[index].position + Vector3(0.0, 1.2, 0.0)
+			if not defender.can_aim_at(chest):
+				unreachable += 1
+				continue
+			if index % 3 != 0:
+				continue
+			var wanted: Vector2 = defender.aim_for(chest)
+			defender.aim.set_aim(wanted.x, wanted.y)
+			defender.shake = Vector3.ZERO
+			defender._apply_aim()
+			var origin: Vector3 = defender.camera.global_position
+			var along: float = (chest - origin).dot(defender.view_direction())
+			worst_miss = maxf(worst_miss, (origin + defender.view_direction() * along).distance_to(chest))
+			checked += 1
+	t.equal(unreachable, 0, "the crosshair can reach the chest of every attack place within the aim limits")
+	t.check(checked >= 15 and worst_miss < 0.02, "the solved aim puts the crosshair on the target (worst miss %.3f m over %d places)" % [worst_miss, checked])
+	t.check(not defender.can_aim_at(Vector3(0.0, 0.0, -6.0)), "the dead ground under the bastion is out of reach, as designed")
 	t.check(defender.weapon.data != null and defender.weapon.bullets == level.bullets, "the gun is wired to its data and the bullet pool")
 
 	# Zombies.

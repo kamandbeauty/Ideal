@@ -74,6 +74,22 @@ func aim_pitch() -> float:
 	return clampf(pitch + recoil_pitch, settings.pitch_min_degrees, settings.pitch_max_degrees)
 
 
+## Yaw and pitch (x, y in degrees) that lay the sight on `target`. The gun
+## turns about `pivot`; the sight line runs parallel to the bore,
+## `sight_height` above it, so the answer is not simply "the direction from
+## the eye": the eye itself swings around the pivot as the gun turns.
+static func solve(pivot: Vector3, sight_height: float, target: Vector3) -> Vector2:
+	var offset: Vector3 = target - pivot
+	var reach: float = Vector2(offset.x, offset.z).length()
+	var distance: float = Vector2(reach, offset.y).length()
+	var yaw: float = rad_to_deg(atan2(offset.x, -offset.z))
+	if distance <= absf(sight_height) + 0.001:
+		return Vector2(yaw, 0.0)
+	# In the vertical plane through pivot and target: offset.y * cos(p) - reach * sin(p) = sight_height.
+	var pitch: float = rad_to_deg(acos(clampf(sight_height / distance, -1.0, 1.0)) - atan2(reach, offset.y))
+	return Vector2(yaw, pitch)
+
+
 static func direction_of(yaw_degrees: float, pitch_degrees: float) -> Vector3:
 	var yaw_rad: float = deg_to_rad(yaw_degrees)
 	var pitch_rad: float = deg_to_rad(pitch_degrees)

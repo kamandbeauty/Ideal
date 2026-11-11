@@ -1,50 +1,24 @@
-# Ideal — ARTILLERY FRONTLINE
+# LAST WALL: Zombie Siege — آخرین دیوار
 
-نسخهٔ فارسی و گرافیکیِ برش عمودیِ آفلاینِ توپخانه/دفاع ساحلی با Godot 4.7.2.
+A first-person wall-defence shooter for Android, built with Godot 4.7.2.
+You are the gunner of a twin heavy machine gun on top of a fortified city
+wall. The horde comes through the ruined streets for the gate. Hold it.
 
-## دانلود بستهٔ اندرویدِ تأییدشده
+بازی تیراندازی اول‌شخص دفاع از دیوار شهر برای اندروید. شما تیربارچیِ مسلسل
+سنگین دولول روی دیوار هستید و موج‌های زامبی از خیابان‌های ویران به سمت دروازه
+می‌آیند.
 
-منبع ساخت: `0ed3f189f16570476eae0b5e79a9504f166c3431`
-انتشار بسته‌ها توسط CI: `5988df5103fe12d3db2ee5687d85d95bd0084c2a`
-اجرای موفق CI: [42593105670](https://github.com/kamandbeauty/Ideal/actions/runs/42593105670)
+| What | Where |
+| --- | --- |
+| Godot project | [`ARTILLERY_FRONTLINE/`](ARTILLERY_FRONTLINE/) (folder name kept from the earlier project; it can be renamed freely) |
+| Installable APK (ARM64) | [`delivery/LastWall-arm64.apk`](delivery/LastWall-arm64.apk), rebuilt by CI on every push |
+| Build status and checksums | [`delivery/BUILD-STATUS.txt`](delivery/BUILD-STATUS.txt), [`delivery/SHA256SUMS.txt`](delivery/SHA256SUMS.txt) |
+| Screenshots of the latest CI play-through | [`ARTILLERY_FRONTLINE/documentation/qa/`](ARTILLERY_FRONTLINE/documentation/qa/) |
+| Phase reports | [`ARTILLERY_FRONTLINE/documentation/`](ARTILLERY_FRONTLINE/documentation/) |
 
-| بسته | کاربرد | لینک |
-|---|---|---|
-| APK اصلی ARM64 | نصب آزمایشی روی گوشی/تبلت ARM64، اندروید ۷٫۰/API 24 به بالا | [دانلود APK](https://github.com/kamandbeauty/Ideal/raw/5988df5103fe12d3db2ee5687d85d95bd0084c2a/delivery/Artillery-Frontline-arm64.apk) |
-| AAB ARM64 | خروجی Gradle برای انتشار/Bundletool؛ نصب مستقیم نیست | [دانلود AAB](https://github.com/kamandbeauty/Ideal/raw/5988df5103fe12d3db2ee5687d85d95bd0084c2a/delivery/Artillery-Frontline-arm64.aab) |
-| APK سازگاری OpenGL | فقط به‌صورت artifact در CI، برای دستگاه‌های بدون شروع موفق Vulkan | [artifact سازگاری](https://github.com/kamandbeauty/Ideal/actions/runs/42593105670) |
+The project is being built in phases. Phase 1 (this state) is the playable
+core: the wall, the gun, one zombie type, the gate and wall health, and
+data-driven waves. See the project README for details and the roadmap.
 
-هشدار امضا: بسته‌ها با کلید موقت توسعه امضا شده‌اند، نه کلید انتشار فروشگاه. اگر نسخهٔ آزمایشی قبلی با کلید موقت دیگری نصب است، به‌روزرسانی مستقیم ممکن است شکست بخورد و حذف نصب قبلی لازم شود؛ حذف نصب می‌تواند ذخیرهٔ محلی را پاک کند.
-
-## چه چیزی تغییر کرد
-
-### اصلاحات این نسخه
-
-- منوها روی لایهٔ مستقل تمام‌صفحه با پس‌زمینهٔ مات نمایش داده می‌شوند؛ صحنهٔ سه‌بعدی قدیمی هنگام نمایش منو پنهان است و فقط محتوای قابل تعامل از حاشیهٔ بریدگی نمایشگر فاصله می‌گیرد.
-- دکمه‌های شلیک/پرکردن توپخانه و ستون شلیک/سلاح دفاع ساحلی در سمت راست فیزیکی صفحه قرار دارند؛ متن فارسی و ریشه‌های RTL حفظ شده‌اند.
-- سرباز دشمن با یک اصابت بدنی مسلسل سنگین از پا درمی‌آید؛ تانک با دو اصابت توپ و نفربر با یک اصابت توپ از کار می‌افتد.
-- سربازان، تانک‌ها و نفربرها داخل شناورهای برجای‌گذاری می‌مانند و یکی‌یکی از رمپ در آب پیاده می‌شوند؛ سربازان در آب به ساحل می‌روند و تانک‌ها پس از ورود به ساحل تا نیمهٔ فاصله پیش می‌آیند و همان‌جا شلیک می‌کنند.
-- حرکت سربازان واقعی‌تر شد: شتاب و توقف تدریجی، کمی انحراف جانبی، توقف‌های کوتاه برای نگاه‌کردن، پرهیز از هم‌پوشانی و کندشدن در آب.
-- انفجارها روی زمین یا سطح آب قرار می‌گیرند و دود کوتاه‌تر و نزدیک زمین محو می‌شود.
-- کیفیت خودکار گرافیک فقط وضوح رندر را تنظیم می‌کند؛ تغییر سایه و MSAA در میانهٔ نبرد دیگر افت ناگهانی فریم ایجاد نمی‌کند.
-- جان جایگاه کاربر از ۳۰۰۰ به ۶۰۰۰ رسید، آسیب ورودی ضریب ۰٫۵۵ می‌گیرد، تعمیر ۱۵۰۰ و بستهٔ هوایی ۱۰۰۰ جان بازمی‌گرداند.
-
-### قابلیت‌های موجود
-
-- صفحهٔ خانه و منوها با تصویرهای کلیدی، نشان فرماندهی، پلاک‌های بافت‌دار و چیدمان راست‌به‌چپ بازطراحی شدند.
-- متن‌های نمایشیِ منوها، HUD، کارزار، شرح مأموریت، جنگ‌افزار، ارتقا، تنظیمات، توقف و نتایج فارسی شدند؛ اعداد نمایشی فارسی و نسبت‌ها با «از» نوشته می‌شوند.
-- فونت وزیرمتن با پوشش نویسه‌های فارسی اضافه شد.
-- کارت‌های توقف/نتیجهٔ دفاع ساحلی وسط‌چین شدند و عرض پنل شرح مأموریت اصلاح شد.
-- مدل پیاده‌نظام ارسالی حفظ شد؛ اجازهٔ استفاده طبق اعلام مالک در `ARTILLERY_FRONTLINE/documentation/uploaded-infantry-provenance.md` ثبت شده است. این ثبت، حسابرسی مستقل مجوز نیست.
-
-## نتیجهٔ بررسی
-
-- آزمون‌های headless: **۹۶۱ بررسی، ۰ شکست**.
-- smoke gameplay نرم‌افزاری: **۳۶ بررسی، ۰ شکست**.
-- smoke ساحلی نرم‌افزاری: **۴۶ بررسی، ۰ شکست**.
-- بسته‌ها در CI از نظر امضا، ARM64، CRC، افقی بودن و نبود مجوز INTERNET بررسی شدند.
-- **اجرای واقعی روی دستگاه/شبیه‌ساز اندروید انجام نشده است.** کارایی موبایل ادعا نمی‌شود.
-
-جزئیات: [`ARTILLERY_FRONTLINE/documentation/QA_REPORT.md`](ARTILLERY_FRONTLINE/documentation/QA_REPORT.md) · [`MILESTONE_REPORT.md`](MILESTONE_REPORT.md) · [`راهنمای ساخت اندروید`](ARTILLERY_FRONTLINE/documentation/BUILD_ANDROID.md)
-
-کد و دارایی‌ها: [`ARTILLERY_FRONTLINE/`](ARTILLERY_FRONTLINE/README.md)
+The image files and the `.max`/`.dds` files in this folder are reference
+material supplied for the project; the game does not use them.

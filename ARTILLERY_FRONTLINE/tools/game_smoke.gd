@@ -60,6 +60,20 @@ func simulate(seconds: float, step: float = 1.0 / 30.0) -> void:
 		left -= delta
 
 
+func _nearest_attacker() -> Zombie:
+	var best: Zombie = null
+	for zombie: Zombie in level.horde.active:
+		if zombie.alive and zombie.state == Zombie.State.ATTACK:
+			if best == null or zombie.position.length() < best.position.length():
+				best = zombie
+	return best
+
+
+func _aim_at(point: Vector3) -> void:
+	var wanted: Vector2 = level.defender.aim_for(point)
+	level.defender.aim.set_aim(wanted.x, wanted.y)
+
+
 func _run() -> void:
 	await frames(8)
 	check(game.menus.screen == "main", "the game opens on the main menu")
@@ -96,18 +110,27 @@ func _run() -> void:
 	await frames(6)
 	notes["gate_attackers"] = level.horde.attackers("gate")
 	await shot("07-gate-under-attack")
+	# Lay the sight on one of the attackers and hold FIRE: the whole chain from
+	# thumb to kill (touch router, gun, convergence, pooled round, hit volume).
+	var victim: Zombie = _nearest_attacker()
+	if victim != null:
+		_aim_at(victim.position + Vector3(0.0, 1.15, 0.0))
+	await frames(3)
 	var fired_before: int = level.stats.shots
 	game.hud.touch_down(0, game.hud.fire_button.center())
 	for index: int in 14:
 		await get_tree().physics_frame
 	await shot("08-gate-firing")
-	for index: int in 30:
+	for index: int in 40:
 		await get_tree().physics_frame
 	game.hud.touch_up(0)
 	notes["shots"] = level.stats.shots - fired_before
 	notes["hits"] = level.stats.hits
 	notes["kills"] = level.stats.kills
 	check(level.stats.shots > fired_before, "holding FIRE shoots")
+	check(victim != null, "a zombie reached the gate to be shot at")
+	check(level.stats.hits > 0, "rounds aimed at a zombie hit it")
+	check(level.stats.kills > 0, "sustained fire on a zombie kills it")
 	await frames(4)
 
 	# The patched breach on the left arm.

@@ -192,6 +192,7 @@ func _particle_material(additive: bool) -> StandardMaterial3D:
 	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	material.billboard_keep_scale = true
 	material.vertex_color_use_as_albedo = true
 	material.albedo_texture = EffectPool.soft_dot()
 	material.disable_receive_shadows = true
@@ -417,7 +418,6 @@ func _finish(victory: bool) -> void:
 	Events.match_finished.emit(victory, stats.to_dict())
 
 
-## Direction to a point as yaw in degrees (positive to the right), for HUD threat arrows.
+## Yaw in degrees (positive to the right) at which the gun faces a point; used by the HUD's threat arrows.
 func yaw_to(point: Vector3) -> float:
-	var offset: Vector3 = point - layout.eye_position
-	return rad_to_deg(atan2(offset.x, -offset.z))
+	return defender.aim_for(point).x
