@@ -8,6 +8,7 @@ script = ExtResource("1")
 id = &"rpg_launcher"
 name_key = "weapon_rpg"
 kind = "rocket"
+icon = "launcher"
 damage = 260.0
 headshot_multiplier = 1.0
 penetration = 0

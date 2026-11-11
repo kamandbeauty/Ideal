@@ -34,3 +34,14 @@ extends Resource
 @export_range(25.0, 90.0, 0.5) var fov_degrees: float = 43.0
 ## Eye position relative to the trunnion: x right, y up, z behind the breech.
 @export var eye_offset: Vector3 = Vector3(0.0, 0.43, 1.35)
+
+@export_group("Zoom")
+## How many times closer the street looks with the sight drawn in.
+@export_range(1.0, 6.0, 0.1) var zoom_factor: float = 2.5
+## Seconds the sight takes to draw in or out.
+@export_range(0.0, 1.0, 0.01) var zoom_time: float = 0.14
+
+
+## The field of view, in degrees, that shows the street `magnification` times closer.
+func fov_at(magnification: float) -> float:
+	return rad_to_deg(2.0 * atan(tan(deg_to_rad(fov_degrees) * 0.5) / maxf(magnification, 1.0)))

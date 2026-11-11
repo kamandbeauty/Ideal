@@ -5,7 +5,7 @@ extends Node3D
 
 enum State { POOLED, ADVANCE, WAIT, ATTACK, BREACH, DYING, CORPSE }
 
-const LOOPING: Array[String] = ["walk", "idle", "attack"]
+const LOOPING: Array[String] = ["idle", "attack"]
 ## A blast throws a body over this long.
 const KNOCK_TIME: float = 0.38
 ## The most a hit can tip the figure, in degrees.
@@ -42,6 +42,10 @@ var knock_left: float = 0.0
 var retry_left: float = 0.0
 var facing_goal: float = 0.0
 var current_clip: String = ""
+## Every walk the model brings (lame in one leg, lame in the other, and whatever variations its kind has),
+## and the one this zombie has for this life.
+var walk_clips: Array[String] = []
+var walk_clip: String = "walk"
 ## The figure itself, under this node; a hit tips it for a moment without moving the zombie.
 var model: Node3D
 ## Degrees the figure is tipped right now: (backwards, sideways).
@@ -62,7 +66,11 @@ func _ready() -> void:
 		body_mesh = node
 		break
 	if anim:
-		for clip: String in LOOPING:
+		for clip: String in anim.get_animation_list():
+			if clip.begins_with("walk"):
+				walk_clips.append(clip)
+		walk_clips.sort()
+		for clip: String in LOOPING + walk_clips:
 			if anim.has_animation(clip):
 				anim.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
 		anim.playback_default_blend_time = 0.18
@@ -174,9 +182,11 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 		body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % data.skins)
 	visible = true
 	_set_hittable(true)
-	_play("walk", speed / data.stride_speed, 0.0)
-	if anim and anim.has_animation("walk"):
-		anim.seek(rng.randf() * anim.get_animation("walk").length, true)
+	# No two in a crowd need limp alike: each takes one of the walks its model has, at its own point in the stride.
+	walk_clip = walk_clips[rng.randi() % walk_clips.size()] if not walk_clips.is_empty() else "walk"
+	_play(walk_clip, speed / data.stride_speed, 0.0)
+	if anim and anim.has_animation(walk_clip):
+		anim.seek(rng.randf() * anim.get_animation(walk_clip).length, true)
 
 
 func _play(clip: String, rate: float = 1.0, blend: float = -1.0) -> void:
@@ -205,7 +215,7 @@ func fall_back(point: Vector3) -> void:
 	court_index = 0
 	state = State.ADVANCE
 	retry_left = 0.3
-	_play("walk", speed / data.stride_speed)
+	_play(walk_clip, speed / data.stride_speed)
 
 
 ## Sends the zombie to a (new) standing place.
@@ -218,7 +228,7 @@ func assign_slot(claimed: AttackLines.Slot) -> void:
 		path_index = 1
 		court_index = 0
 		state = State.ADVANCE
-		_play("walk", speed / data.stride_speed)
+		_play(walk_clip, speed / data.stride_speed)
 	elif path.size() > 0:
 		path[path.size() - 1] = claimed.position
 
@@ -238,7 +248,7 @@ func enter_breach(route: PackedVector3Array) -> void:
 	path_index = 1
 	court_index = 0
 	state = State.BREACH
-	_play("walk", speed * 1.25 / data.stride_speed)
+	_play(walk_clip, speed * 1.25 / data.stride_speed)
 
 
 func tick(delta: float) -> void:
@@ -362,9 +372,9 @@ func _swing(delta: float) -> void:
 func _resume_clip() -> void:
 	match state:
 		State.ADVANCE:
-			_play("walk", speed / data.stride_speed)
+			_play(walk_clip, speed / data.stride_speed)
 		State.BREACH:
-			_play("walk", speed * 1.25 / data.stride_speed)
+			_play(walk_clip, speed * 1.25 / data.stride_speed)
 		State.ATTACK:
 			_play_attack()
 		State.WAIT:

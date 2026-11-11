@@ -11,6 +11,10 @@ var level: CityLevel
 var hud: Hud
 var menus: Menus
 var last_stats: Dictionary = {}
+## The stage that PLAY starts, counted from 0: the newest one open unless the player picks an earlier one.
+var stage: int = 0
+## The match just finished was won and there is a stage after it.
+var won_onward: bool = false
 
 
 func _ready() -> void:
@@ -27,6 +31,11 @@ func _ready() -> void:
 	menus.resume_requested.connect(resume)
 	menus.restart_requested.connect(start_match)
 	menus.menu_requested.connect(to_menu)
+	menus.stage_chosen.connect(select_stage)
+	menus.next_requested.connect(next_stage)
+	menus.gun_chosen.connect(choose_gun)
+	stage = Campaign.open_stages(int(Profile.data.stats.stages_cleared)) - 1
+	menus.stage = stage
 	Events.match_finished.connect(_on_match_finished)
 	# The wind is part of the place, not of the score: it follows the effects volume, so turning the music off leaves it.
 	Sound.start_loop("wind", "Effects", -19.0)
@@ -48,13 +57,41 @@ func _load_level() -> void:
 		hud.bind(null)
 		level.queue_free()
 	level = (load(LEVEL_SCENE) as PackedScene).instantiate()
+	level.stage = stage
+	level.wave_set = Campaign.waves(stage)
 	level.process_mode = Node.PROCESS_MODE_PAUSABLE
 	add_child(level)
 	move_child(level, 0)
 	hud.bind(level)
 
 
+## Picks the stage PLAY will start. A stage that is still locked is refused.
+func select_stage(index: int) -> bool:
+	if index < 0 or index >= Campaign.open_stages(int(Profile.data.stats.stages_cleared)):
+		return false
+	stage = index
+	menus.stage = stage
+	return true
+
+
+## From the result screen of a stage that was won: straight on to the next one.
+func next_stage() -> void:
+	if select_stage(stage + 1):
+		start_match()
+
+
+## Puts another gun on the mount. It is the player's for every match from now on, and the title
+## screen, which looks out over the gun, shows it at once.
+func choose_gun(id: String) -> void:
+	if not Profile.GUNS.has(id):
+		return
+	Profile.set_setting("gun", id)
+	if mode == Mode.MENU and level != null and is_instance_valid(level):
+		level.defender.mount_gun(id)
+
+
 func start_match() -> void:
+	won_onward = false
 	get_tree().paused = false
 	Engine.time_scale = 1.0
 	_load_level()
@@ -78,7 +115,7 @@ func match_status() -> Dictionary:
 	if level == null or not is_instance_valid(level):
 		return {}
 	return {"wave": level.stats.wave, "waves": level.stats.waves_total, "wall": level.defense.wall_fraction(),
-		"gate": level.defense.gate_fraction()}
+		"gate": level.defense.gate_fraction(), "stage": stage + 1}
 
 
 func resume() -> void:
@@ -91,6 +128,10 @@ func resume() -> void:
 
 
 func to_menu() -> void:
+	# Back from a stage that was won, the title screen offers the next one.
+	if won_onward:
+		select_stage(stage + 1)
+	won_onward = false
 	get_tree().paused = false
 	Engine.time_scale = 1.0
 	mode = Mode.MENU
@@ -107,9 +148,10 @@ func _on_match_finished(victory: bool, stats: Dictionary) -> void:
 	get_tree().paused = false
 	hud.set_active(false)
 	# A first match always beats "nothing"; only a later one can be called a record.
-	var record: bool = int(Profile.data.stats.matches) > 0 and int(stats.get("wave", 0)) > int(Profile.data.stats.best_wave)
+	var record: bool = int(Profile.data.stats.matches) > 0 and int(stats.get("wave_overall", 0)) > int(Profile.data.stats.best_wave)
 	Profile.record_match(stats)
-	menus.show_result(victory, stats, record)
+	won_onward = victory and stage + 1 < Campaign.count()
+	menus.show_result(victory, stats, record, won_onward)
 	Sound.play("victory" if victory else "defeat", -5.0)
 
 

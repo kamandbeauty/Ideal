@@ -7,7 +7,7 @@ extends Resource
 @export var name_key: String = "zombie_walker"
 @export var scene: PackedScene
 ## How many painted skins exist for this type (assets/textures/zombies/zombie_<id>_a..).
-@export_range(1, 3) var skins: int = 3
+@export_range(1, 8) var skins: int = 3
 ## Nodes built before the match so the first ones do not hitch.
 @export_range(0, 80) var prewarm: int = 0
 ## A boss is announced, gets a health bar on the HUD, and its fall is celebrated.

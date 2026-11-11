@@ -14,7 +14,10 @@ var bosses: int = 0
 var kills: int = 0
 var headshots: int = 0
 var time: float = 0.0
-## Highest wave reached, counted from 1.
+## Which stage of the siege this was (counted from 0), and how many waves of the siege came before it.
+var stage: int = 0
+var waves_before: int = 0
+## Highest wave reached in this stage, counted from 1.
 var wave: int = 0
 var waves_total: int = 0
 var waves_cleared: int = 0
@@ -32,4 +35,5 @@ func to_dict() -> Dictionary:
 		"shots": shots, "hits": hits, "kills": kills, "headshots": headshots, "time": time, "wave": wave, "waves_total": waves_total,
 		"waves_cleared": waves_cleared, "victory": victory, "wall_left": wall_left, "gate_left": gate_left, "accuracy": accuracy(),
 		"rockets": rockets, "grenades": grenades, "blast_kills": blast_kills, "special_kills": special_kills, "bosses": bosses,
+		"stage": stage, "wave_overall": waves_before + wave if wave > 0 else 0,
 	}

@@ -6,6 +6,8 @@ extends Resource
 @export var name_key: String = "weapon_twin_hmg"
 ## "bullet" rounds are swept rays; a "rocket" is a flying round that detonates.
 @export_enum("bullet", "rocket") var kind: String = "bullet"
+## The outline drawn on the weapon's card and in the menu.
+@export_enum("gun", "rotary", "launcher") var icon: String = "gun"
 
 @export_group("Damage")
 ## Damage of one round to what it strikes (for a rocket: on top of its blast).
@@ -27,6 +29,8 @@ extends Resource
 @export_range(1, 10) var tracer_every: int = 2
 ## Rounds converge on the crosshair no closer than this.
 @export_range(1.0, 100.0, 0.5) var min_convergence: float = 12.0
+## Seconds a motor-driven gun takes to run up from rest before its first round; 0 for a gun that fires at once.
+@export_range(0.0, 2.0, 0.01) var spin_up_time: float = 0.0
 
 @export_group("Ammunition")
 @export_range(1, 1000) var magazine_size: int = 160

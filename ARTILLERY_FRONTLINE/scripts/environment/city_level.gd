@@ -5,7 +5,10 @@ extends Node3D
 ## the defender, the horde, the wall and the wave director together.
 
 @export var layout: LevelLayout
+## The waves of the stage being played; the scene carries the first stage, the game hands over the others.
 @export var wave_set: WaveSet
+## Which stage of the siege that is, counted from 0.
+var stage: int = 0
 @export var defense_data: DefenseData
 ## Every zombie type the waves may ask for. Each brings its own pool size.
 @export var zombie_types: Array[ZombieData] = []
@@ -365,6 +368,8 @@ func begin_match() -> void:
 	idle_view = false
 	stats = MatchStats.new()
 	stats.waves_total = director.wave_count()
+	stats.stage = stage
+	stats.waves_before = wave_set.waves_before if wave_set else 0
 	defender.aim.reset()
 	defender.set_input_enabled(true)
 	Events.weapon_changed.emit(defender.weapon_index, defender.weapon)

@@ -92,14 +92,14 @@ static func bind(root: Node) -> int:
 	return bound
 
 
-## One of the three painted skins of a zombie type.
+## One of the painted skins of a zombie type (zombie_<type>_a.png, _b, ...).
 static func zombie_skin(type_id: String, variant: int) -> Material:
 	var key: String = "zombie_%s_%d" % [type_id, variant]
 	if cache.has(key):
 		return cache[key]
 	var material := StandardMaterial3D.new()
 	material.resource_name = key
-	material.albedo_texture = load("res://assets/textures/zombies/zombie_%s_%s.png" % [type_id, ["a", "b", "c"][variant % 3]])
+	material.albedo_texture = load("res://assets/textures/zombies/zombie_%s_%s.png" % [type_id, "abcdefgh"[variant % 8]])
 	material.roughness = 0.86
 	material.metallic_specular = 0.25
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS

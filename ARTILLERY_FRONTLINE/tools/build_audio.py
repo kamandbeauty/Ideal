@@ -124,6 +124,34 @@ def hmg_tail():
     write("hmg_tail", roll + low + slaps, 0.6)
 
 
+def rotary_gun():
+    """The six-barrel gun. At twenty-five rounds a second single shots run together, so the clip the game
+    repeats holds two reports, 40 ms apart, over the whine of the drive. Its spin-up and its run-down are
+    clips of their own."""
+    seconds = 0.26
+    shots = np.zeros(int(RATE * seconds))
+    for index, at in enumerate((0.0, 0.04)):
+        length = 0.2
+        crack = highpass(noise(length, 501 + index), 1300) * decay(length, 70)
+        body = bandpass(noise(length, 503 + index), 250, 1800) * decay(length, 34)
+        thump = sweep(length, 190, 70) * decay(length, 30)
+        place(shots, crack * 0.9 + body * 1.1 + thump, at)
+    whine = lowpass(sweep(seconds, 612, 600, "saw"), 2600) * envelope(seconds, 0.004, 0.12) * 0.1
+    tail = lowpass(noise(seconds, 507), 700) * decay(seconds, 9) * 0.3
+    write("rotary_shot", np.tanh((shots + whine + tail) * 1.7))
+    # The motor climbing to speed before the first round goes.
+    seconds = 0.42
+    climb = lowpass(sweep(seconds, 90, 620, "saw", 0.7), 2400) * envelope(seconds, 0.03, 0.08)
+    gear = bandpass(noise(seconds, 508), 900, 3200) * envelope(seconds, 0.05, 0.1) * (t(seconds) / seconds) * 0.25
+    write("rotary_spin", climb * 0.6 + gear, 0.45)
+    # The barrels coasting to a stop while the report rolls off the house fronts.
+    seconds = 1.2
+    fall = lowpass(sweep(seconds, 600, 70, "saw", 0.6), 2000) * decay(seconds, 2.6, 0.01) * 0.5
+    roll = lowpass(noise(seconds, 509), 1000) * decay(seconds, 4.5, 0.012)
+    low = lowpass(noise(seconds, 510), 300) * decay(seconds, 3.2, 0.03)
+    write("rotary_tail", fall + roll * 0.9 + low, 0.6)
+
+
 def dry_fire():
     seconds = 0.09
     write("dry_fire", bandpass(noise(seconds, 5), 1800, 6000) * decay(seconds, 80) + sweep(seconds, 2600, 2300) * decay(seconds, 110) * 0.5, 0.6)
@@ -472,6 +500,7 @@ def base_set():
 
 GROUPS = {
     "hmg": lambda: (hmg_shot(), hmg_tail()),
+    "rotary": rotary_gun,
     "dry_fire": dry_fire,
     "headshot": headshot,
     "zombies": zombies,

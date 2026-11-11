@@ -1,10 +1,16 @@
 extends SceneTree
-## Writes the default siege (resources/waves/city_siege_waves.tres).
+## Writes the shipped siege: eight waves, cut into the three stages the player
+## meets them in (resources/waves/stage_1_waves.tres, stage_2, stage_3).
 ##
 ##     godot --headless --path . --script res://tools/make_waves.gd
 ##
 ## Run it to restore the shipped waves. Day-to-day balance is done by editing
 ## the .tres in the inspector: every group and number is an exported property.
+## A stage is a match of its own (fresh wall, fresh ammunition), but the horde
+## keeps hardening through the whole siege: stage 2 opens as hard as wave 4.
+
+## How many of the eight waves each stage takes, in order.
+const CUTS: Array[int] = [3, 3, 2]
 
 const NEAR_RIGHT: Array = ["ring_right", "alley_right"]
 const NEAR_LEFT: Array = ["ring_left", "alley_left"]
@@ -103,7 +109,25 @@ func _init() -> void:
 			group(&"runner", 10, 44.0, 0.5, AVENUE, "gate", 2),
 		], 1, 1, "wave_hint_boss"),
 	]
-	siege.waves = waves
-	var error: int = ResourceSaver.save(siege, "res://resources/waves/city_siege_waves.tres")
-	print("city_siege_waves.tres: ", error_string(error), ", ", siege.total_zombies(), " zombies in ", siege.waves.size(), " waves")
-	quit(0 if error == OK else 1)
+	var first: int = 0
+	var zombies: int = 0
+	for stage: int in CUTS.size():
+		var part := WaveSet.new()
+		part.opening_delay = siege.opening_delay
+		part.health_growth = siege.health_growth
+		part.speed_growth = siege.speed_growth
+		part.waves_before = first
+		var slice: Array[WaveData] = []
+		for index: int in CUTS[stage]:
+			slice.append(waves[first + index])
+		part.waves = slice
+		first += CUTS[stage]
+		zombies += part.total_zombies()
+		var path: String = "res://resources/waves/stage_%d_waves.tres" % (stage + 1)
+		var error: int = ResourceSaver.save(part, path)
+		print(path.get_file(), ": ", error_string(error), ", ", part.total_zombies(), " zombies in ", part.waves.size(), " waves")
+		if error != OK:
+			quit(1)
+			return
+	print("the siege: ", zombies, " zombies in ", first, " waves")
+	quit(0)

@@ -62,6 +62,7 @@ class Builder:
         self.collision = Part()
         self.rng = np.random.default_rng(seed)
         self.pivots = {}
+        self.parents = {}
 
     # -- bookkeeping ------------------------------------------------------
     def material(self, name, color=(1, 1, 1, 1), metallic=0.0, roughness=0.9, tile=2.0, emissive=None, double_sided=False):
@@ -80,8 +81,13 @@ class Builder:
         """Give a node its own origin so it can be animated in the engine."""
         self.pivots[node] = np.asarray(position, np.float64)
 
-    def marker(self, name, position):
-        self.markers.append((name, tuple(float(v) for v in position)))
+    def attach(self, node, parent):
+        """Hang a node under another one (both need a pivot), so that it moves with it in the engine."""
+        self.parents[node] = parent
+
+    def marker(self, name, position, parent=None):
+        """An empty node at a position; under `parent` it rides along with that node."""
+        self.markers.append((name, tuple(float(v) for v in position), parent))
 
     # -- primitives -------------------------------------------------------
     def _uv(self, positions, normal, tile, frame=None, origin=None):
@@ -360,7 +366,12 @@ class Builder:
             material_index[name] = glb.material(name, spec["color"], spec["metallic"], spec["roughness"], emissive=spec["emissive"],
                                                 double_sided=spec["double_sided"])
         report = []
-        for node in self.order:
+        made = {}
+
+        def depth(name):
+            return 0 if name not in self.parents else 1 + depth(self.parents[name])
+
+        for node in sorted(self.order, key=depth):
             primitives = []
             pivot = self.pivots.get(node, np.zeros(3))
             triangles = 0
@@ -374,17 +385,25 @@ class Builder:
             if not primitives:
                 continue
             mesh = glb.mesh(node + "_mesh", primitives)
-            glb.node(node, mesh=mesh, parent=root, translation=pivot if node in self.pivots else None)
+            above = self.parents.get(node)
+            if above is not None:
+                made[node] = glb.node(node, mesh=mesh, parent=made[above], translation=pivot - self.pivots.get(above, np.zeros(3)))
+            else:
+                made[node] = glb.node(node, mesh=mesh, parent=root, translation=pivot if node in self.pivots else None)
             report.append((node, triangles, len(primitives)))
         if self.collision.count:
             positions, _n, _u, _c, indices = self.collision.arrays()
             mesh = glb.mesh("Collision_mesh", [{"positions": positions, "indices": indices}])
             # Godot's importer turns the -colonly suffix into a StaticBody3D with a trimesh shape.
             glb.node("World-colonly", mesh=mesh, parent=root)
-        if self.markers:
+        loose = [marker for marker in self.markers if marker[2] is None]
+        if loose:
             holder = glb.node("Markers", parent=root)
-            for name, position in self.markers:
+            for name, position, _parent in loose:
                 glb.node(name, translation=position, parent=holder)
+        for name, position, above in self.markers:
+            if above is not None:
+                glb.node(name, translation=np.asarray(position) - self.pivots.get(above, np.zeros(3)), parent=made[above])
         size = glb.write(path)
         return size, report
 

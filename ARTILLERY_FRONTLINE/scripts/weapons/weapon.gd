@@ -61,6 +61,17 @@ func _animate(_delta: float) -> void:
 	pass
 
 
+## Per-tick logic of the concrete weapon, run before any round is released.
+func _tick(_delta: float) -> void:
+	pass
+
+
+## Whether a round may leave now that the trigger is held and the weapon is up.
+## A gun that has to run up to speed says no until it has.
+func _may_fire() -> bool:
+	return true
+
+
 ## Yaw is positive to the right, pitch positive upward, both in degrees.
 func set_aim(_yaw_degrees: float, _pitch_degrees: float) -> void:
 	pass
@@ -146,9 +157,10 @@ func _physics_process(delta: float) -> void:
 			readiness = minf(1.0, readiness + delta / data.raise_time)
 	else:
 		readiness = maxf(0.0, readiness - delta / data.lower_time)
+	_tick(delta)
 	if not trigger or not is_ready():
 		return
-	var guard: int = 4
+	var guard: int = 4 if _may_fire() else 0
 	while guard > 0 and state.try_fire():
 		guard -= 1
 		since_shot = 0.0
