@@ -187,8 +187,10 @@ def build_tray() -> Image.Image:
     cell_radius = int(pitch * 0.26)
     tile_side = int(pitch - gap)
 
+    # Bright at the top and only a shade warmer at the bottom: a tile that goes brown by its lower edge
+    # is what made the last board look dusty under a full grid of fruit.
     face = _plate((tile_side, tile_side), cell_radius,
-                  [(0.0, IVORY_BRIGHT), (0.52, IVORY), (1.0, _mix(IVORY, IVORY_SHADE, 0.62))])
+                  [(0.0, (255, 253, 246)), (0.55, IVORY_BRIGHT), (1.0, _mix(IVORY_BRIGHT, IVORY, 0.55))])
     # A bright bevel along the top edge: the one line that makes a flat square read as a socket.
     bevel = Image.new("RGBA", (tile_side, tile_side), (0, 0, 0, 0))
     ImageDraw.Draw(bevel).rounded_rectangle((2, 2, tile_side - 3, tile_side - 3),

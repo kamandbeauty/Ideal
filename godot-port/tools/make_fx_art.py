@@ -24,6 +24,7 @@ import math
 import os
 import random
 
+import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -95,7 +96,16 @@ def build_splat(seed: int) -> Image.Image:
     picture = picture.resize((SPLAT_SIZE, SPLAT_SIZE), Image.LANCZOS)
     # A single soft pass: a hard white edge on a tinted splat reads as a sticker.
     alpha = picture.getchannel("A").filter(ImageFilter.GaussianBlur(1.1))
-    picture.putalpha(alpha)
+    # Juice thins out as it spreads. A flat silhouette of one opacity is a paint blob; the same shape
+    # with the middle dense and the rim nearly clear reads as liquid on a tile.
+    falloff = Image.new("L", (SPLAT_SIZE, SPLAT_SIZE), 0)
+    ImageDraw.Draw(falloff).ellipse((SPLAT_SIZE * 0.16, SPLAT_SIZE * 0.16,
+                                     SPLAT_SIZE * 0.84, SPLAT_SIZE * 0.84), fill=255)
+    falloff = falloff.filter(ImageFilter.GaussianBlur(SPLAT_SIZE * 0.16))
+    solid = np.asarray(alpha).astype(np.float32) / 255.0
+    centre = np.asarray(falloff).astype(np.float32) / 255.0
+    picture.putalpha(Image.fromarray(
+        np.clip(solid * (0.52 + 0.48 * centre) * 255.0, 0, 255).astype(np.uint8), "L"))
     return picture
 
 

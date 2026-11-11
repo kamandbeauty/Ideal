@@ -62,8 +62,8 @@ static func spark(parent: Node, center: Vector2, tint: Color, amount: int = 10, 
 ## fruit's own colour. Nothing here is a circle the engine drew, because a piece in this game squashes,
 ## and what sells a squash is the juice underneath it.
 static func splash(parent: Node, center: Vector2, tint: Color, diameter: float = 44.0) -> void:
-	_splat(parent, center, tint, diameter, 1.0, SPLASH_SECONDS)
-	_splat(parent, center, tint.lightened(0.22), diameter * 0.62, 0.0, SPLASH_SECONDS * 0.72)
+	_splat(parent, center, tint, diameter * 0.86, 1.0, SPLASH_SECONDS)
+	_splat(parent, center, tint.lightened(0.22), diameter * 0.54, 0.0, SPLASH_SECONDS * 0.72)
 	_droplets(parent, center, tint, diameter)
 
 	var drips := CPUParticles2D.new()
@@ -95,7 +95,7 @@ static func _splat(parent: Node, center: Vector2, tint: Color, diameter: float, 
 	splat.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	splat.stretch_mode = TextureRect.STRETCH_SCALE
 	splat.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	splat.modulate = Color(tint.r, tint.g, tint.b, tint.a * 0.92)
+	splat.modulate = Color(tint.r, tint.g, tint.b, tint.a * 0.86)
 	splat.size = Vector2(diameter, diameter)
 	splat.position = center - Vector2(diameter, diameter) * 0.5
 	splat.pivot_offset = Vector2(diameter, diameter) * 0.5
@@ -176,11 +176,11 @@ static func whirlwind(parent: Node, center: Vector2, diameter: float = 96.0,
 	swirl.size = Vector2(diameter, diameter)
 	swirl.position = center - Vector2(diameter, diameter) * 0.5
 	swirl.pivot_offset = Vector2(diameter, diameter) * 0.5
-	swirl.scale = Vector2(0.35, 0.35)
+	swirl.scale = Vector2(0.5, 0.5)
 	parent.add_child(swirl)
 	var tween := swirl.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(swirl, "scale", Vector2(1.35, 1.35), WHIRLWIND_SECONDS) \
+	tween.tween_property(swirl, "scale", Vector2(1.25, 1.25), WHIRLWIND_SECONDS) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	tween.tween_property(swirl, "rotation", TAU * 1.6, WHIRLWIND_SECONDS)
 	tween.tween_property(swirl, "modulate", Color(tint.r, tint.g, tint.b, 0.0), WHIRLWIND_SECONDS) \

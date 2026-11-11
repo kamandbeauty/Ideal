@@ -39,7 +39,7 @@ const TILE_INSET := 1.0
 # read as a prototype: the art is 128 px with a gold rim, so at 36 dp the rim IS the border.
 # The fruit overhangs its cell by a dp on every side: the painted plate has a margin of its own, and a
 # piece that stops short of the cell reads as a sticker on a board instead of fruit on a table.
-const PIECE_INSET := 2.0
+const PIECE_INSET := 0.0
 
 var run: LevelRun
 var cell_size := 44.0
@@ -206,6 +206,18 @@ func _build_cell(pos: Vector2i, cell) -> Control:
 			var obstacle := TextureRect.new()
 			obstacle.name = "obstacle"
 			obstacle.texture = obstacle_art
+			# The crates and the vials are the Unity project's own pictures and stay untouched, so the
+			# contrast against a bright ivory tile is given to them by a shadow underneath.
+			var crate_pool := TextureRect.new()
+			crate_pool.name = "obstacle_shadow"
+			crate_pool.texture = UiKit.ui_texture("ui_piece_shadow")
+			crate_pool.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			crate_pool.stretch_mode = TextureRect.STRETCH_SCALE
+			crate_pool.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			crate_pool.modulate = Color(1, 1, 1, 0.75)
+			tile.add_child(crate_pool)
+			crate_pool.position = Vector2(cell_size * 0.06, cell_size * 0.22)
+			crate_pool.size = Vector2(cell_size * 0.88, cell_size * 0.62)
 			obstacle.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			obstacle.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			obstacle.stretch_mode = TextureRect.STRETCH_SCALE
