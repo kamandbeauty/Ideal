@@ -97,6 +97,7 @@ func _ready() -> void:
 	await _shot("14-whirlwind")
 	Engine.time_scale = 1.0
 	await _frames(30)
+	await _burst_strip(live_board)
 
 	# Motion cannot be judged from a still. The swap is played in slow motion and photographed as it
 	# runs, and the crops are laid out in a strip: this is the only evidence that the stones travel,
@@ -205,6 +206,35 @@ func _swap_strip(board_screen) -> void:
 	Engine.time_scale = 1.0
 	await _frames(4)
 	_save_strip(frames, "11-swap-strip", 5, 3)
+
+## One cell's worth of board, photographed through a whole burst: the spray is a quarter of a second
+## long, so a single still can never show both the droplets in the air and the splat they leave. This
+## is the evidence that they go left and right, and that they stay inside the cell.
+func _burst_strip(board_screen) -> void:
+	var view = board_screen.get("_board")
+	if view == null:
+		_log("BURST skipped :: no board view")
+		return
+	var cell := Vector2i(3, 4)
+	var centre: Vector2 = view.position + view.cell_center(cell)
+	var span := int(maxf(float(view.cell_size) * 2.2, 64.0))
+	var window := Rect2i(Vector2i(int(centre.x) - span / 2, int(centre.y) - span / 2),
+		Vector2i(span, span))
+	var frames: Array = []
+	var before: Image = await _grab_rect(window)
+	if before != null:
+		frames.append(before)
+	Engine.time_scale = 0.18
+	Fx.splash(view, view.cell_center(cell), Fx.piece_tint(GameTypes.PieceKind.AQIQ),
+		view.cell_size)
+	for index in range(9):
+		await get_tree().create_timer(0.02 + 0.02 * float(index)).timeout
+		var grabbed: Image = await _grab_rect(window)
+		if grabbed != null:
+			frames.append(grabbed)
+	Engine.time_scale = 1.0
+	await _frames(20)
+	_save_strip(frames, "15-burst-strip", 5, 4)
 
 ## A horizontal filmstrip of already-cropped frames, doubled so the stones are big enough to judge.
 ## A grid of already-cropped frames, enlarged, laid out left to right and top to bottom. A strip in one
