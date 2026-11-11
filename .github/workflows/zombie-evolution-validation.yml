@@ -81,7 +81,7 @@ jobs:
           set -o pipefail
           export LIBGL_ALWAYS_SOFTWARE=1
           export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
-          timeout 1200 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_gameplay.gd 2>&1 | tee ci-artifacts/rendered/capture.log
+          timeout 1200 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --audio-driver Dummy --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_gameplay.gd 2>&1 | tee ci-artifacts/rendered/capture.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/capture.log; then exit 1; fi
       - name: Publish renderer capture diagnostics
         if: always()
@@ -161,7 +161,7 @@ jobs:
       - name: Configure temporary debug signing and export
         run: |
           set -euo pipefail
-          keytool -genkeypair -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000 >/dev/null 2>&1
+          keytool -genkeypair -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000 2>&1 | tee ci-artifacts/android/keytool.log
           mkdir -p "$HOME/.config/godot"
           python3 - <<'PY'
           import json, os
@@ -214,11 +214,11 @@ jobs:
           python3 - <<'PYCODE'
           from pathlib import Path
           lines = []
-          for name in ('setup.log', 'sdk-install.log', 'install.log', 'templates-checksum.log', 'import.log', 'export.log', 'badging.log', 'sha256.log'):
+          for name in ('keytool.log', 'import.log', 'export.log', 'templates-checksum.log', 'badging.log', 'sha256.log'):
               p = Path('ci-artifacts/android') / name
               if p.exists():
-                  lines.extend(f'{name}: {line}' for line in p.read_text(errors='replace').splitlines()[-12:])
-          text = '\n'.join(lines[-70:]).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+                  lines.extend(f'{name}: {line[:500]}' for line in p.read_text(errors='replace').splitlines()[-12:])
+          text = '\n'.join(lines[-40:]).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::notice::' + (text or 'No Android diagnostics available'))
           PYCODE
       - name: Upload Android logs
