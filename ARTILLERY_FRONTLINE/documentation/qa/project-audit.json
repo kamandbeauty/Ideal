@@ -1,10 +1,8 @@
 {
-  "passed": false,
-  "problems": [
-    "tests/run_tests.gd names res://documentation/qa/test-results.json, which does not exist"
-  ],
+  "passed": true,
+  "problems": [],
   "counted": {
-    "paths_checked": 117,
+    "paths_checked": 116,
     "scripts": 47,
     "scenes": 9,
     "resources": 14,
