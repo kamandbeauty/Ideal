@@ -240,7 +240,7 @@ func _other_screens() -> void:
 
 	# A 20:9 phone held in landscape with its camera cut-out on the left.
 	var phone: bool = await _resize(Vector2i(base.x, int(round(float(base.x) * 9.0 / 20.0))), Vector2(1800.0, 810.0))
-	notes["phone_20x9_laid_out"] = phone
+	check(phone, "the window takes the shape of a 20:9 phone and the canvas becomes 1800 x 810")
 	if phone:
 		var cutouts := Vector2(CUTOUT, 0.0)
 		game.hud.inset_override = cutouts
@@ -300,7 +300,7 @@ func _other_screens() -> void:
 
 	# A 4:3 tablet: the canvas grows upward instead of sideways.
 	var tablet: bool = await _resize(Vector2i(int(round(float(base.y) * 4.0 / 3.0)), base.y), Vector2(1440.0, 1080.0))
-	notes["tablet_4x3_laid_out"] = tablet
+	check(tablet, "the window takes the shape of a 4:3 tablet and the canvas becomes 1440 x 1080")
 	if tablet:
 		if game.mode != 1:
 			game.start_match()

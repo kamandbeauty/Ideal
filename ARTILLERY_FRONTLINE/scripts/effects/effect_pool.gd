@@ -147,11 +147,12 @@ static func flare(rays: int = 6) -> Texture2D:
 			var offset := Vector2((float(x) + 0.5) / float(size) * 2.0 - 1.0, (float(y) + 0.5) / float(size) * 2.0 - 1.0)
 			var distance: float = offset.length()
 			var angle: float = offset.angle()
-			var core: float = clampf(1.0 - distance / 0.46, 0.0, 1.0)
+			# A fat, hot heart: seen small on a phone, thin rays alone read as a sparkle, not as a gun going off.
+			var core: float = clampf(1.0 - distance / 0.55, 0.0, 1.0)
 			# Every other ray is shorter, so the flash is a burst and not a neat star.
 			var reach: float = 0.72 + 0.28 * sin(angle * float(rays) * 0.5 + 0.9)
-			var ray: float = pow(absf(cos(angle * float(rays) * 0.5)), 9.0) * clampf(1.0 - distance / reach, 0.0, 1.0)
-			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, clampf(core * core * 1.3 + ray * 0.85, 0.0, 1.0)))
+			var ray: float = pow(absf(cos(angle * float(rays) * 0.5)), 6.0) * clampf(1.0 - distance / reach, 0.0, 1.0)
+			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, clampf(core * core * 1.6 + ray * 0.85, 0.0, 1.0)))
 	image.generate_mipmaps()
 	var texture: ImageTexture = ImageTexture.create_from_image(image)
 	flare_textures[rays] = texture

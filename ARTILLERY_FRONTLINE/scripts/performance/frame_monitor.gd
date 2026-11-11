@@ -10,13 +10,24 @@ var fast_time: float = 0.0
 var cooldown: float = 0.0
 
 
+## A frame that missed the target by more than a fifth.
+func is_slow(frame_ms: float) -> bool:
+	return frame_ms > 1000.0 / target_fps * 1.22
+
+
+func reset() -> void:
+	slow_time = 0.0
+	fast_time = 0.0
+	cooldown = 0.0
+
+
 ## Returns -1 to lower the render scale, +1 to raise it, 0 to hold.
 func tick(frame_ms: float, delta: float) -> int:
 	if cooldown > 0.0:
 		cooldown -= delta
 		return 0
 	var budget: float = 1000.0 / target_fps
-	if frame_ms > budget * 1.22:
+	if is_slow(frame_ms):
 		slow_time += delta
 		fast_time = 0.0
 	elif frame_ms < budget * 1.05:

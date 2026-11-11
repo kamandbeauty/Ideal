@@ -8,6 +8,8 @@ extends Weapon
 const STOW_DROP: float = 1.05
 ## How long a muzzle flash stays after the frame that first shows it: one more frame at 60 a second, none at 30.
 const FLASH_TIME: float = 0.03
+## Energy of the light a round throws on the gun and the parapet; a flicker by day, not a floodlight.
+const FLASH_LIGHT: float = 1.4
 
 var model: Node3D
 ## The cradle turns on the pedestal; the barrel group tips inside the cradle.
@@ -64,9 +66,11 @@ func _build() -> void:
 	light.name = "MuzzleLight"
 	light.light_color = Color(1.0, 0.72, 0.4)
 	light.light_energy = 0.0
-	light.omni_range = 9.0
+	light.omni_range = 7.0
 	light.shadow_enabled = false
-	light.position = Vector3(0.0, 0.1, 2.0)
+	# Well ahead of the muzzles and above the bores: a light a hand's breadth from the barrels
+	# turned both of them gold with every round, in broad daylight.
+	light.position = Vector3(0.0, 0.45, 3.4)
 	light.visible = lights_on
 	pivot.add_child(light)
 
@@ -130,7 +134,7 @@ func _fire_round() -> void:
 	# Never the same flash twice: a new size and a new turn about the bore for every round.
 	flash.scale = Vector3.ONE * rng.randf_range(0.7, 1.25)
 	flash.rotation.z = rng.randf() * TAU
-	light.light_energy = 2.6
+	light.light_energy = FLASH_LIGHT
 	_eject(barrel)
 	burst += 1
 	smoke_due += 1

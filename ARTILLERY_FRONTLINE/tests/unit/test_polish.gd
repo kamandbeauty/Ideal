@@ -43,6 +43,65 @@ func _tiers(t: TestContext) -> void:
 	t.check(low.corpses < medium.corpses and medium.corpses < high.corpses, "and keeps more bodies on the ground")
 	t.equal(Graphics.resolve_tier("low"), "low", "a chosen tier is used as it is")
 	t.check(Graphics.TIERS.has(Graphics.resolve_tier("auto")), "\"auto\" resolves to a real tier")
+	_governor(t)
+
+
+## With quality on "auto": resolution first, then one tier, and never back up within a session.
+func _governor(t: TestContext) -> void:
+	var tier_before: String = Graphics.tier
+	var auto_before: String = Graphics.auto_tier
+	Graphics.auto_tier = ""
+	Graphics.apply_tier("medium")
+	Graphics.monitor.reset()
+	Graphics.floor_time = 0.0
+	var medium: float = Graphics.PROFILES["medium"].scale
+	var low: float = Graphics.PROFILES["low"].scale
+	Graphics.observe(250.0, 0.25)
+	t.near(Graphics.render_scale, medium, 0.0001, "one slow frame changes nothing")
+	var elapsed: float = 0.25
+	while Graphics.render_scale > medium - 0.001 and elapsed < 30.0:
+		Graphics.observe(40.0, 0.04)
+		elapsed += 0.04
+	t.check(elapsed >= 1.9 and elapsed < 3.0, "two seconds of slow frames lower the render resolution a step (%.1f s)" % elapsed)
+	t.near(Graphics.render_scale, medium - 0.06, 0.0001, "by six hundredths")
+	while Graphics.render_scale > Graphics.SCALE_FLOOR + 0.001 and elapsed < 120.0:
+		Graphics.observe(40.0, 0.04)
+		elapsed += 0.04
+	t.near(Graphics.render_scale, Graphics.SCALE_FLOOR, 0.0001, "if they stay slow it goes down to its floor (after %.0f s)" % elapsed)
+	t.equal(Graphics.tier, "medium", "and the tier has still not moved")
+	var at_floor: float = 0.0
+	while Graphics.tier == "medium" and at_floor < 60.0:
+		Graphics.observe(40.0, 0.04)
+		at_floor += 0.04
+	t.equal(Graphics.tier, "low", "still slow at the floor, the governor gives up one tier")
+	t.check(at_floor >= Graphics.FLOOR_PATIENCE - 0.1 and at_floor < Graphics.FLOOR_PATIENCE + 1.0, "after %.0f more seconds (%.1f)" % [Graphics.FLOOR_PATIENCE, at_floor])
+	t.near(Graphics.render_scale, low, 0.0001, "the new tier starts from its own resolution")
+	t.equal(Graphics.resolve_tier("auto"), "low", "and \"auto\" means that tier for the rest of the session")
+	t.equal(Graphics.resolve_tier("high"), "high", "a tier the player chooses is still the player's to choose")
+	for step: int in 2500:
+		Graphics.observe(40.0, 0.04)
+	t.equal(Graphics.tier, "low", "on the lowest tier there is nothing left to give up")
+	t.near(Graphics.render_scale, Graphics.SCALE_FLOOR, 0.0001, "only the resolution is at its floor")
+	for step: int in 9000:
+		Graphics.observe(12.0, 0.012)
+	t.near(Graphics.render_scale, low, 0.0001, "fast frames bring the resolution back")
+	t.equal(Graphics.tier, "low", "but not the tier: a phone that struggled once will again")
+	# Changing some other setting must not undo what the governor has learnt.
+	Profile.persist = false
+	Profile.set_setting("quality", "auto")
+	Graphics.apply_preference()
+	Graphics.render_scale = 0.61
+	Profile.set_setting("show_fps", not bool(Profile.setting("show_fps")))
+	t.near(Graphics.render_scale, 0.61, 0.0001, "changing another setting leaves the render resolution alone")
+	t.equal(Graphics.tier, "low", "and the tier")
+	Profile.set_setting("quality", "high")
+	t.equal(Graphics.tier, "high", "choosing a tier applies it at once")
+	t.near(Graphics.render_scale, float(Graphics.PROFILES["high"].scale), 0.0001, "at its full resolution")
+	Graphics.auto_tier = auto_before
+	Profile.reset()
+	Graphics.apply_preference()
+	if Graphics.tier != tier_before:
+		Graphics.apply_tier(tier_before)
 
 
 ## Every sound the scripts ask for by name must exist: a missing clip is silent, not an error.
@@ -274,6 +333,7 @@ func _flare(t: TestContext) -> void:
 	for step: int in 64:
 		var angle: float = TAU * float(step) / 64.0
 		var at := Vector2(0.5, 0.5) + Vector2(cos(angle), sin(angle)) * 0.3
+		# (0.3 of the texture is 0.6 of the way from its heart to its edge: outside the heart, among the rays.)
 		rim += 1
 		if image.get_pixel(int(at.x * float(size)), int(at.y * float(size))).a > 0.12:
 			lit += 1

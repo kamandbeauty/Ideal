@@ -1,6 +1,8 @@
 extends Node
-## Autoload Graphics: quality tiers for phones, plus a render-scale governor
-## that only reacts to sustained frame-time trouble.
+## Autoload Graphics: quality tiers for phones, plus a governor that only
+## reacts to sustained frame-time trouble. With quality on "auto" it first
+## lowers the render resolution; if the frames are still slow with the
+## resolution at its floor, it gives up one tier, once, and stays there.
 
 signal quality_changed(tier: String)
 
@@ -17,7 +19,18 @@ const PROFILES: Dictionary = {
 		"corpses": 28, "fires": 8, "ash": true, "lights": true, "detail": true},
 }
 
+## The lowest render scale the governor goes to, and how many seconds of slow frames it then
+## waits before giving up a tier: lowering the resolution does not help a phone held back by its processor.
+const SCALE_FLOOR: float = 0.55
+const FLOOR_PATIENCE: float = 8.0
+
 var tier: String = "medium"
+## The tier "auto" has settled on in this session; empty until the governor has had to give one up. It only moves down.
+var auto_tier: String = ""
+var floor_time: float = 0.0
+## The quality setting the current tier was applied for.
+var applied_preference: String = ""
+var applied: bool = false
 var render_scale: float = 1.0
 var monitor := FrameMonitor.new()
 var fps: float = 60.0
@@ -37,16 +50,24 @@ func _ready() -> void:
 func resolve_tier(preference: String) -> String:
 	if TIERS.has(preference):
 		return preference
+	if auto_tier != "":
+		return auto_tier
 	return "medium" if OS.has_feature("mobile") else "high"
 
 
+## Called whenever a setting changes. Only a change of the quality setting does anything: moving a
+## volume slider must not rebuild every particle emitter or throw away what the governor has learnt.
 func apply_preference() -> void:
-	var wanted: String = resolve_tier(Profile.data.settings.quality)
+	var preference: String = Profile.data.settings.quality
+	var wanted: String = resolve_tier(preference)
+	if applied and preference == applied_preference and wanted == tier:
+		return
+	applied = true
+	applied_preference = preference
 	warmup = 4.0
-	if wanted != tier or render_scale <= 0.0:
-		apply_tier(wanted)
-	else:
-		apply_tier(tier)
+	floor_time = 0.0
+	monitor.reset()
+	apply_tier(wanted)
 
 
 func profile() -> Dictionary:
@@ -79,15 +100,38 @@ func _process(delta: float) -> void:
 		return
 	if get_tree().paused or Profile.data.settings.quality != "auto":
 		return
-	# Only the render resolution moves mid-fight: switching tiers would toggle
-	# shadows and recompile shaders, which costs more frames than it saves.
+	observe(frame_ms, delta)
+
+
+## Feeds one frame to the governor. Only called with quality on "auto".
+func observe(frame_ms: float, delta: float) -> void:
+	# The render resolution moves first: it costs nothing to change. Switching tiers toggles
+	# shadows and recompiles shaders, a hitch worth paying only once everything cheaper has failed.
 	var adjustment: int = monitor.tick(frame_ms, delta)
 	if adjustment != 0:
 		var base: float = profile().scale
-		render_scale = clampf(render_scale + float(adjustment) * 0.06, 0.55, base)
+		render_scale = clampf(render_scale + float(adjustment) * 0.06, minf(SCALE_FLOOR, base), base)
 		var viewport: Viewport = get_viewport()
 		if viewport:
 			viewport.scaling_3d_scale = render_scale
+	if render_scale <= SCALE_FLOOR + 0.001 and monitor.is_slow(frame_ms):
+		floor_time += delta
+	else:
+		floor_time = maxf(0.0, floor_time - delta * 0.5)
+	if floor_time >= FLOOR_PATIENCE:
+		floor_time = 0.0
+		_give_up_tier()
+
+
+func _give_up_tier() -> void:
+	var index: int = TIERS.find(tier)
+	if index <= 0:
+		return
+	auto_tier = TIERS[index - 1]
+	apply_tier(auto_tier)
+	monitor.reset()
+	# The switch itself costs a few slow frames; they say nothing about the new tier.
+	warmup = 4.0
 
 
 func snapshot() -> Dictionary:
