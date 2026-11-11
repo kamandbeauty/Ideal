@@ -3,11 +3,13 @@
 A first-person wall-defence shooter for Android, built with Godot 4.7.2.
 You are the gunner of a twin heavy machine gun on top of a fortified city
 wall, with an RPG launcher and hand grenades at your side. The horde comes
-through the ruined streets for the gate. Hold it.
+through the ruined streets for the gate: walkers, runners, brutes, and in
+the eighth and last wave the Behemoth. Hold it.
 
 بازی تیراندازی اول‌شخص دفاع از دیوار شهر برای اندروید. شما تیربارچیِ مسلسل
-سنگین دولول روی دیوار هستید، آرپی‌جی و نارنجک دستی هم دارید، و موج‌های زامبی
-از خیابان‌های ویران به سمت دروازه می‌آیند.
+سنگین دولول روی دیوار هستید، آرپی‌جی و نارنجک دستی هم دارید، و هشت موج زامبی
+(عادی، دونده، سنگین‌وزن و در موج آخر غول‌پیکر) از خیابان‌های ویران به سمت
+دروازه می‌آیند.
 
 | What | Where |
 | --- | --- |
@@ -19,9 +21,11 @@ through the ruined streets for the gate. Hold it.
 
 The project is being built in phases. Phase 1 made the playable core: the
 wall, the gun, one zombie type, the gate and wall health, and data-driven
-waves. Phase 2 (this state) adds the RPG launcher, hand grenades, weapon
-selection and area damage. See the project README for details and the
-roadmap.
+waves. Phase 2 added the RPG launcher, hand grenades, weapon selection and
+area damage. Phase 3 (this state) adds the runner, the brute and the boss,
+and the full eight-wave siege. Still to come: interface, sound and visual
+polish, then optimisation. The game has not yet been run on a phone. See the
+project README for details and the roadmap.
 
 The image files and the `.max`/`.dds` files in this folder are reference
 material supplied for the project; the game does not use them.
