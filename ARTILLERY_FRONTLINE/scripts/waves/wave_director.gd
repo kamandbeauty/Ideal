@@ -32,6 +32,7 @@ func begin() -> void:
 	index = -1
 	phase = Phase.OPENING
 	clock = wave_set.opening_delay
+	horde.prepare_for(wave_set.waves[0])
 	Events.intermission_started.emit(clock, 0)
 
 
@@ -95,4 +96,5 @@ func _wave_cleared() -> void:
 		return
 	phase = Phase.INTERMISSION
 	clock = wave_set.waves[index].intermission
+	horde.prepare_for(wave_set.waves[index + 1])
 	Events.intermission_started.emit(clock, index + 1)

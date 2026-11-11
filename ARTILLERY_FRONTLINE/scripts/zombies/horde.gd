@@ -21,6 +21,12 @@ var killed_total: int = 0
 var entered_total: int = 0
 var created: int = 0
 var reused: int = 0
+## Zombies built so far, by type, wherever they are now.
+var built: Dictionary = {}
+## Types still to be built ahead of the coming wave, one per tick.
+var pending: Array[StringName] = []
+## Zombies that had to be built at the moment they were needed, because the pool was empty.
+var built_on_demand: int = 0
 var health_scale: float = 1.0
 var speed_scale: float = 1.0
 var corpse_limit: int = 18
@@ -70,8 +76,21 @@ func _create(data: ZombieData) -> Zombie:
 	zombie.horde = self
 	zombie.name = "%s%03d" % [String(data.id).capitalize(), created]
 	created += 1
+	built[data.id] = int(built.get(data.id, 0)) + 1
 	add_child(zombie)
 	return zombie
+
+
+## Sees to it that there are as many zombies of each type as `wave` can field at once. The missing
+## ones are built one per tick while the street is quiet, not at the moment they are needed in a fight.
+func prepare_for(wave: WaveData) -> void:
+	pending.clear()
+	if wave == null:
+		return
+	for type_id: StringName in types:
+		var missing: int = mini(wave.count_of(type_id), wave.max_alive) - int(built.get(type_id, 0))
+		for index: int in maxi(missing, 0):
+			pending.append(type_id)
 
 
 func has_type(type_id: StringName) -> bool:
@@ -88,6 +107,7 @@ func spawn(type_id: StringName, route: String, target: String = "gate") -> Zombi
 	var stock: Array = pooled[type_id]
 	if stock.is_empty():
 		zombie = _create(data)
+		built_on_demand += 1
 	else:
 		zombie = stock.pop_back()
 		reused += 1
@@ -166,6 +186,9 @@ func _physics_process(delta: float) -> void:
 			zombie.recycle()
 			pooled[zombie.data.id].append(zombie)
 		retired.clear()
+	if not pending.is_empty():
+		var type_id: StringName = pending.pop_back()
+		pooled[type_id].append(_create(types[type_id]))
 	groan_left -= delta
 	if groan_left <= 0.0:
 		groan_left = rng.randf_range(1.2, 3.6)
@@ -330,6 +353,7 @@ func clear() -> void:
 	active.clear()
 	retired.clear()
 	corpses.clear()
+	pending.clear()
 	living = 0
 	boss = null
 	fallen.clear()

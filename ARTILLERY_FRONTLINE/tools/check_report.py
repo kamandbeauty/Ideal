@@ -4,7 +4,7 @@ import json
 import pathlib
 import sys
 
-MINIMUM_CHECKS = 1450
+MINIMUM_CHECKS = 1600
 
 report = json.loads(pathlib.Path(sys.argv[1]).read_text())
 assert report["passed"] and not report["failures"], report["failures"]

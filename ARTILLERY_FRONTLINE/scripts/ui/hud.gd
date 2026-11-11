@@ -96,6 +96,9 @@ var wave_index: int = -1
 var wave_total: int = 0
 var waves_cleared: int = 0
 var hostiles_shown: int = -1
+var fps_shown: int = -1
+## How often a label has actually been recoloured; tests read it.
+var inkings: int = 0
 var ammo: int = 0
 var magazine: int = 0
 ## Spare rounds of the weapon in hand; negative when its supply never runs out.
@@ -496,6 +499,7 @@ func refresh_text() -> void:
 	gate_arrow_label.text = Loc.t("gate")
 	wall_arrow_label.text = Loc.t("wall")
 	hostiles_shown = -1
+	fps_shown = -1
 	_refresh_values()
 	_layout()
 
@@ -506,9 +510,9 @@ func _refresh_values() -> void:
 	ammo_label.text = Loc.number(ammo)
 	# A belt-fed gun shows the belt; a launcher shows the rounds still on the gunner's back.
 	magazine_label.text = "/ " + Loc.number(magazine if reserve < 0 else reserve)
-	ammo_label.add_theme_color_override("font_color", UITheme.RED if _ammo_low() else UITheme.TEXT)
+	_ink(ammo_label, UITheme.RED if _ammo_low() else UITheme.TEXT)
 	grenade_label.text = Loc.number(maxi(grenade_total, 0))
-	grenade_label.add_theme_color_override("font_color", UITheme.RED if grenade_total <= 0 else UITheme.TEXT)
+	_ink(grenade_label, UITheme.RED if grenade_total <= 0 else UITheme.TEXT)
 	grenade_badge.set_tint(UITheme.RED if grenade_total <= 0 else UITheme.AMBER)
 	kills_label.text = Loc.number(kills)
 	if wave_index >= 0:
@@ -516,6 +520,16 @@ func _refresh_values() -> void:
 	else:
 		wave_label.text = Loc.t("get_ready")
 	wave_pips.set_state(wave_total, wave_index if intermission_left < 0.0 else -1, waves_cleared, Loc.is_rtl())
+
+
+## Colours a label only when the colour is new. Setting an override again, even to the same colour,
+## makes the label shape its text again, and this is called with every round the gun fires.
+func _ink(label: Label, color: Color) -> void:
+	if label.has_meta("ink") and label.get_meta("ink") == color:
+		return
+	label.set_meta("ink", color)
+	label.add_theme_color_override("font_color", color)
+	inkings += 1
 
 
 func _ammo_low() -> bool:
@@ -619,7 +633,10 @@ func _process(delta: float) -> void:
 	var show_fps: bool = Profile.setting("show_fps")
 	fps_label.visible = show_fps
 	if show_fps:
-		fps_label.text = Loc.t("fps", [int(round(Graphics.fps))])
+		var rate: int = int(round(Graphics.fps))
+		if rate != fps_shown:
+			fps_shown = rate
+			fps_label.text = Loc.t("fps", [rate])
 
 
 func _update_weapons() -> void:

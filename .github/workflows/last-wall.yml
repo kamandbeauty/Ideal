@@ -49,6 +49,8 @@ jobs:
           godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1 || { tail -160 /tmp/import.log; cp /tmp/import.log "$PROJECT/documentation/qa/import.log"; exit 1; }
           cp /tmp/import.log "$PROJECT/documentation/qa/import.log"
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' /tmp/import.log; then exit 1; fi
+      - name: Audit the project tree
+        run: python3 "$PROJECT/tools/audit_project.py" "$PROJECT" "$PROJECT/documentation/qa/project-audit.json"
       - name: Run unit and integration suites
         run: |
           rc=0
@@ -142,20 +144,51 @@ jobs:
           else
             PASSWORD=$(openssl rand -hex 32)
             keytool -genkeypair -keystore "$RUNNER_TEMP/development.keystore" -storepass "$PASSWORD" -keypass "$PASSWORD" -alias lastwall -keyalg RSA -keysize 2048 -validity 30 -dname 'CN=Last Wall Development,O=Frontline,C=NL' >/dev/null 2>&1
+            # The throw-away key signs a release export: the optimised engine, not debuggable. That is
+            # the build whose frame rate is worth measuring on a phone. If the release export does not
+            # go through, the debug export is used instead and BUILD-STATUS.txt says so.
             {
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$RUNNER_TEMP/development.keystore"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=lastwall"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$PASSWORD"
               echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$RUNNER_TEMP/development.keystore"
               echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=lastwall"
               echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=$PASSWORD"
-              echo "EXPORT_MODE=--export-debug"
+              echo "EXPORT_MODE=--export-release"
+              echo "FALLBACK_MODE=--export-debug"
               echo "SIGNING_SCOPE=ephemeral development key; installable for testing, not a store release"
             } >> "$GITHUB_ENV"
           fi
       - name: Export ARM64 APKs
         run: |
           set -euo pipefail
+          # The APK committed to the branch is only replaced by the publish step, after the checks below
+          # have passed; this folder is the runner's working copy.
           rm -rf delivery && mkdir -p delivery
-          godot --headless --path "$PROJECT" "$EXPORT_MODE" 'Android APK' res://../delivery/LastWall-arm64.apk > /tmp/apk.log 2>&1 || { tail -100 /tmp/apk.log; exit 1; }
-          godot --headless --path "$PROJECT" "$EXPORT_MODE" 'Android Compatibility' res://../delivery/LastWall-compatibility.apk > /tmp/compat.log 2>&1 || { tail -70 /tmp/compat.log; exit 1; }
+          export_one() {
+            if godot --headless --path "$PROJECT" "$EXPORT_MODE" "$1" "res://../delivery/$2" > "$3" 2>&1 && [ -s "delivery/$2" ]; then
+              echo "$EXPORT_MODE" > "$RUNNER_TEMP/mode-$2"
+              return 0
+            fi
+            if [ -n "${FALLBACK_MODE:-}" ]; then
+              echo "::warning title=Android export::$2 did not export with $EXPORT_MODE, trying $FALLBACK_MODE"
+              grep -E 'ERROR|Error|failed|Failed|keystore' "$3" | tail -15 | while IFS= read -r line; do echo "::warning title=Release export::${line}"; done
+              rm -f "delivery/$2"
+              if godot --headless --path "$PROJECT" "$FALLBACK_MODE" "$1" "res://../delivery/$2" > "$3" 2>&1 && [ -s "delivery/$2" ]; then
+                echo "$FALLBACK_MODE" > "$RUNNER_TEMP/mode-$2"
+                return 0
+              fi
+            fi
+            tail -100 "$3"
+            return 1
+          }
+          export_one 'Android APK' LastWall-arm64.apk /tmp/apk.log
+          export_one 'Android Compatibility' LastWall-compatibility.apk /tmp/compat.log
+          if [ "$(cat "$RUNNER_TEMP/mode-LastWall-arm64.apk")" = "--export-release" ]; then
+            echo "BUILD_KIND=release export template (optimised engine, not debuggable)" >> "$GITHUB_ENV"
+          else
+            echo "BUILD_KIND=debug export template (debuggable, slower than a release build)" >> "$GITHUB_ENV"
+          fi
           ls -la delivery
       - name: Verify signatures, architecture and manifest
         run: |
@@ -178,8 +211,9 @@ jobs:
             printf 'Game: LAST WALL: Zombie Siege\n'
             printf 'Source commit: %s\n' "$GITHUB_SHA"
             printf 'Engine: Godot %s\n' "$GODOT_VERSION"
+            printf 'Build: %s\n' "$BUILD_KIND"
             printf 'Signing: %s\n' "$SIGNING_SCOPE"
-            printf 'Checked in CI: signature, ARM64 library, ZIP CRC, landscape manifest, no network permission\n'
+            printf 'Checked in CI: signature, ARM64 library only, ZIP CRC, landscape manifest, no permissions at all, declared as a game, version, every project file packed\n'
             printf 'Not checked in CI: running on an Android device or emulator\n'
           } > delivery/BUILD-STATUS.txt
           cat delivery/BUILD-STATUS.txt

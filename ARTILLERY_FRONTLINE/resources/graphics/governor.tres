@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="GovernorSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/graphics/governor_settings.gd" id="1_rules"]
+
+[resource]
+script = ExtResource("1_rules")
+enabled = true
+target_fps = 60.0
+slow_ratio = 1.22
+fast_ratio = 1.05
+slow_window = 2.0
+fast_window = 8.0
+cooldown_after_lowering = 1.5
+cooldown_after_raising = 3.0
+scale_step = 0.06
+scale_floor = 0.55
+regret_window = 10.0
+min_gain = 0.1
+floor_patience = 8.0
+tier_judge_window = 6.0
+warmup = 4.0
+lowest_tier = "low"

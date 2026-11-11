@@ -10,6 +10,8 @@ const LOOPING: Array[String] = ["walk", "idle", "attack"]
 const KNOCK_TIME: float = 0.38
 ## The most a hit can tip the figure, in degrees.
 const ROCK_LIMIT: float = 7.0
+## A heading this close to the goal (in radians, a thirtieth of a degree) counts as reached.
+const FACING_SLACK: float = 0.0006
 
 var data: ZombieData
 var horde: Horde
@@ -315,6 +317,10 @@ func _walk(delta: float, pace: float) -> bool:
 
 
 func _turn(delta: float) -> void:
+	# One that already faces its goal is left alone: writing the same heading every tick re-sends the
+	# transform of the figure and of both its hit volumes for nothing, and a full line at the wall stands still.
+	if absf(angle_difference(rotation.y, facing_goal)) < FACING_SLACK:
+		return
 	rotation.y = lerp_angle(rotation.y, facing_goal, 1.0 - exp(-data.turn_speed * delta))
 
 

@@ -388,6 +388,8 @@ func _process(delta: float) -> void:
 			var wobble: float = sin(clock * 68.0 + float(index) * 1.7) * deg_to_rad(gate_shake)
 			gate_leaves[index].rotation.y = gate_rest[index] + wobble
 	for index: int in fire_lights.size():
+		if not fire_nodes[index].visible:
+			continue
 		var light: OmniLight3D = fire_lights[index]
 		var base: float = light.omni_range * 0.25
 		light.light_energy = base * (0.78 + 0.22 * sin(clock * (9.0 + float(index) * 1.3)) * sin(clock * 3.7 + float(index)))

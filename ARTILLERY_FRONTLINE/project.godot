@@ -5,7 +5,7 @@ config_version=5
 
 config/name="LAST WALL: Zombie Siege"
 config/description="Hold the last wall. A first-person heavy-weapon stand against the horde."
-config/version="0.2.0"
+config/version="0.5.0"
 run/main_scene="res://scenes/main.tscn"
 config/quit_on_go_back=false
 config/use_custom_user_dir=true

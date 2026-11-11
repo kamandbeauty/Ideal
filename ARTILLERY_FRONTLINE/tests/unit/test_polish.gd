@@ -47,48 +47,123 @@ func _tiers(t: TestContext) -> void:
 	_governor(t)
 
 
-## With quality on "auto": resolution first, then one tier, and never back up within a session.
+## Runs the governor against a pretend phone for `seconds`; `cost` gives the frame time in ms for (tier, render scale).
+func _play(seconds: float, cost: Callable) -> void:
+	var left: float = seconds
+	while left > 0.0:
+		var frame_ms: float = cost.call(Graphics.tier, Graphics.render_scale)
+		var delta: float = minf(frame_ms / 1000.0, 0.1)
+		Graphics.observe(frame_ms, delta)
+		left -= delta
+
+
+func _fresh(tier: String) -> void:
+	Graphics.auto_tier = ""
+	Graphics.forget()
+	Graphics.apply_tier(tier)
+
+
+## With quality on "auto": the cheapest thing first, nothing that buys no frames, and no swinging back and forth.
 func _governor(t: TestContext) -> void:
+	var shipped: GovernorSettings = Graphics.rules
 	var tier_before: String = Graphics.tier
 	var auto_before: String = Graphics.auto_tier
-	Graphics.auto_tier = ""
-	Graphics.apply_tier("medium")
-	Graphics.monitor.reset()
-	Graphics.floor_time = 0.0
+	var target_before: float = Graphics.monitor.target_fps
+	t.check(shipped != null and ResourceLoader.exists(Graphics.RULES_PATH) and load(Graphics.RULES_PATH) is GovernorSettings,
+		"the governor's numbers come from a resource file")
+	t.check(shipped.scale_floor < float(Graphics.PROFILES["low"].scale) and shipped.scale_step > 0.0 and shipped.slow_ratio > shipped.fast_ratio
+		and shipped.fast_window >= shipped.slow_window and shipped.min_gain > 0.0 and Graphics.TIERS.has(shipped.lowest_tier),
+		"and the shipped numbers make sense together")
+	# Everything below runs on the numbers written in the script, so tuning the file after a device test cannot break it.
+	var rules := GovernorSettings.new()
+	Graphics.rules = rules
+	Graphics.monitor.rules = rules
+	Graphics.monitor.target_fps = 60.0
+	t.near(Graphics.monitor.slow_below_fps(), 49.2, 0.1, "with a 60 fps target a frame is slow below 49 fps")
+	t.near(FrameMonitor.effective_target(60.0, 50.0), 50.0, 0.001, "a 50 Hz display lowers the target to 50")
+	t.near(FrameMonitor.effective_target(60.0, 120.0), 60.0, 0.001, "a 120 Hz display does not raise it")
+	t.near(FrameMonitor.effective_target(60.0, -1.0), 60.0, 0.001, "an unknown refresh rate leaves it alone")
 	var medium: float = Graphics.PROFILES["medium"].scale
 	var low: float = Graphics.PROFILES["low"].scale
-	Graphics.observe(250.0, 0.25)
-	t.near(Graphics.render_scale, medium, 0.0001, "one slow frame changes nothing")
-	var elapsed: float = 0.25
-	while Graphics.render_scale > medium - 0.001 and elapsed < 30.0:
-		Graphics.observe(40.0, 0.04)
-		elapsed += 0.04
-	t.check(elapsed >= 1.9 and elapsed < 3.0, "two seconds of slow frames lower the render resolution a step (%.1f s)" % elapsed)
-	t.near(Graphics.render_scale, medium - 0.06, 0.0001, "by six hundredths")
-	while Graphics.render_scale > Graphics.SCALE_FLOOR + 0.001 and elapsed < 120.0:
-		Graphics.observe(40.0, 0.04)
-		elapsed += 0.04
-	t.near(Graphics.render_scale, Graphics.SCALE_FLOOR, 0.0001, "if they stay slow it goes down to its floor (after %.0f s)" % elapsed)
+
+	# 1. A healthy phone, with one bad frame.
+	_fresh("medium")
+	Graphics.observe(250.0, 0.1)
+	_play(60.0, func(_tier: String, _scale: float) -> float: return 16.6)
+	t.check(Graphics.scale_changes == 0 and Graphics.tier_changes == 0 and is_equal_approx(Graphics.render_scale, medium),
+		"one slow frame and a minute of good ones change nothing")
+
+	# 2. A phone short of fill rate: the frame gets shorter with the resolution.
+	_fresh("medium")
+	var fill := func(_tier: String, scale: float) -> float: return 8.0 + 22.0 * scale * scale
+	_play(2.6, fill)
+	t.near(Graphics.render_scale, medium - rules.scale_step, 0.0001, "two seconds of slow frames lower the render resolution one step")
+	_play(120.0, fill)
+	var rest: float = Graphics.render_scale
+	t.check(rest < medium and rest > rules.scale_floor and not Graphics.monitor.is_slow(fill.call("medium", rest)),
+		"it stops at the first resolution that is no longer slow (%.2f)" % rest)
+	t.equal(Graphics.tier, "medium", "and the tier has not moved")
+	var changes: int = Graphics.scale_changes
+	_play(600.0, fill)
+	t.check(Graphics.scale_changes == changes and is_equal_approx(Graphics.render_scale, rest), "ten more minutes change nothing")
+
+	# 3. A phone on the edge: one step down is fast, the step back up is slow again.
+	_fresh("medium")
+	var edge := func(_tier: String, scale: float) -> float: return 24.0 if scale > 0.8 else 16.0
+	_play(600.0, edge)
+	t.near(Graphics.render_scale, medium - rules.scale_step, 0.0001, "a phone on the edge settles one step down")
+	t.equal(Graphics.scale_changes, 3, "down, one try at coming back, down again: three changes in ten minutes, not a swing every few seconds")
+	t.near(Graphics.scale_ceiling, medium - rules.scale_step, 0.0001, "the step up that was regretted has set the ceiling")
+
+	# 4. A phone held back by its processor: nothing the governor can do shortens a frame.
+	_fresh("medium")
+	var stuck := func(_tier: String, _scale: float) -> float: return 25.0
+	_play(17.0, stuck)
+	t.near(Graphics.render_scale, rules.scale_floor, 0.0001, "frames stay slow, so the resolution goes down to its floor")
 	t.equal(Graphics.tier, "medium", "and the tier has still not moved")
-	var at_floor: float = 0.0
-	while Graphics.tier == "medium" and at_floor < 60.0:
-		Graphics.observe(40.0, 0.04)
-		at_floor += 0.04
-	t.equal(Graphics.tier, "low", "still slow at the floor, the governor gives up one tier")
-	t.check(at_floor >= Graphics.FLOOR_PATIENCE - 0.1 and at_floor < Graphics.FLOOR_PATIENCE + 1.0, "after %.0f more seconds (%.1f)" % [Graphics.FLOOR_PATIENCE, at_floor])
-	t.near(Graphics.render_scale, low, 0.0001, "the new tier starts from its own resolution")
+	_play(2.0, stuck)
+	t.check(Graphics.scale_useless and is_equal_approx(Graphics.render_scale, medium), "all the way down bought nothing, so the resolution is given back")
+	_play(7.0, stuck)
+	t.equal(Graphics.tier, "low", "still slow with nothing left to try, one tier is given up")
+	t.near(Graphics.render_scale, low, 0.0001, "at its own resolution")
+	_play(7.0, stuck)
+	t.equal(Graphics.tier, "medium", "that bought nothing either, so the tier is taken back")
+	t.check(Graphics.tier_locked and Graphics.tier_changes == 2, "and tiers are settled for the session")
+	t.equal(Graphics.resolve_tier("auto"), "medium", "\"auto\" means that tier again")
+	var settled: Array = [Graphics.scale_changes, Graphics.tier_changes]
+	_play(600.0, stuck)
+	t.check([Graphics.scale_changes, Graphics.tier_changes] == settled and is_equal_approx(Graphics.render_scale, medium),
+		"ten more slow minutes change nothing: the picture is not made worse for no gain")
+
+	# 5. A phone the lower tier does help.
+	_fresh("medium")
+	var helped := func(tier: String, _scale: float) -> float: return 25.0 if tier == "medium" else 15.0
+	_play(60.0, helped)
+	t.equal(Graphics.tier, "low", "where giving up a tier does shorten the frames, the lower tier is kept")
+	t.check(Graphics.tier_changes == 1 and not Graphics.tier_locked, "with a single change")
 	t.equal(Graphics.resolve_tier("auto"), "low", "and \"auto\" means that tier for the rest of the session")
 	t.equal(Graphics.resolve_tier("high"), "high", "a tier the player chooses is still the player's to choose")
-	for step: int in 2500:
-		Graphics.observe(40.0, 0.04)
-	t.equal(Graphics.tier, "low", "on the lowest tier there is nothing left to give up")
-	t.near(Graphics.render_scale, Graphics.SCALE_FLOOR, 0.0001, "only the resolution is at its floor")
-	for step: int in 9000:
-		Graphics.observe(12.0, 0.012)
-	t.near(Graphics.render_scale, low, 0.0001, "fast frames bring the resolution back")
-	t.equal(Graphics.tier, "low", "but not the tier: a phone that struggled once will again")
+	_play(600.0, helped)
+	t.check(Graphics.tier == "low" and Graphics.tier_changes == 1, "it does not come back up: a phone that struggled once will again")
+
+	# 6. The file can forbid the lowest tier.
+	_fresh("medium")
+	rules.lowest_tier = "medium"
+	_play(120.0, stuck)
+	t.check(Graphics.tier == "medium" and Graphics.tier_changes == 0 and Graphics.tier_locked, "with the lowest tier set to medium, medium is never given up")
+	rules.lowest_tier = "low"
+
+	# 7. Fast frames bring the resolution back.
+	_fresh("medium")
+	Graphics.render_scale = rules.scale_floor
+	_play(120.0, func(_tier: String, _scale: float) -> float: return 12.0)
+	t.near(Graphics.render_scale, medium, 0.0001, "fast frames bring the resolution back up to the tier's own")
+	t.equal(Graphics.tier, "medium", "without touching the tier")
+
 	# Changing some other setting must not undo what the governor has learnt.
 	Profile.persist = false
+	_fresh("medium")
+	_play(60.0, helped)
 	Profile.set_setting("quality", "auto")
 	Graphics.apply_preference()
 	Graphics.render_scale = 0.61
@@ -101,12 +176,19 @@ func _governor(t: TestContext) -> void:
 	t.check(not Graphics.governing(), "and the governor leaves a tier the player chose alone")
 	Profile.set_setting("quality", "auto")
 	t.check(Graphics.governing(), "on \"auto\" it is at work")
+	rules.enabled = false
+	t.check(not Graphics.governing(), "unless the file switches it off")
+	rules.enabled = true
 	Graphics.governor = false
-	t.check(not Graphics.governing(), "unless it has been switched off, as the screenshot run does")
+	t.check(not Graphics.governing(), "or the screenshot run does")
 	Graphics.governor = true
+	Graphics.rules = shipped
+	Graphics.monitor.rules = shipped
+	Graphics.monitor.target_fps = target_before
 	Graphics.auto_tier = auto_before
 	Profile.reset()
 	Graphics.apply_preference()
+	Graphics.forget()
 	if Graphics.tier != tier_before:
 		Graphics.apply_tier(tier_before)
 
