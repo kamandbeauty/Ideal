@@ -62,8 +62,8 @@ static func spark(parent: Node, center: Vector2, tint: Color, amount: int = 10, 
 ## fruit's own colour. Nothing here is a circle the engine drew, because a piece in this game squashes,
 ## and what sells a squash is the juice underneath it.
 static func splash(parent: Node, center: Vector2, tint: Color, diameter: float = 44.0) -> void:
-	_splat(parent, center, tint, diameter * 0.86, 1.0, SPLASH_SECONDS)
-	_splat(parent, center, tint.lightened(0.22), diameter * 0.54, 0.0, SPLASH_SECONDS * 0.72)
+	_splat(parent, center, tint, diameter * 1.05, 1.0, SPLASH_SECONDS)
+	_splat(parent, center, tint.lightened(0.22), diameter * 0.62, 0.0, SPLASH_SECONDS * 0.72)
 	_droplets(parent, center, tint, diameter)
 
 	var drips := CPUParticles2D.new()
@@ -95,7 +95,7 @@ static func _splat(parent: Node, center: Vector2, tint: Color, diameter: float, 
 	splat.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	splat.stretch_mode = TextureRect.STRETCH_SCALE
 	splat.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	splat.modulate = Color(tint.r, tint.g, tint.b, tint.a * 0.86)
+	splat.modulate = Color(tint.r, tint.g, tint.b, tint.a * 0.92)
 	# The node is laid out at the picture's own size and scaled to the cell: a TextureRect's rect is
 	# clamped to its texture, so asking for a 44 dp rect gave a 512 px one and the splat came out three
 	# cells wide.
@@ -109,7 +109,7 @@ static func _splat(parent: Node, center: Vector2, tint: Color, diameter: float, 
 	parent.add_child(splat)
 	var tween := splat.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(splat, "scale", Vector2(full * 1.22, full * 1.22), lifetime) \
+	tween.tween_property(splat, "scale", Vector2(full * 1.15, full * 1.15), lifetime) \
 		.set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(splat, "modulate", Color(tint.r, tint.g, tint.b, 0.0), lifetime) \
 		.set_delay(delay + lifetime * 0.35)

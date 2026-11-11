@@ -404,7 +404,7 @@ func play_result(before: BoardModel, events: Array) -> void:
 		var centre := cell_center(fired)
 		match int(event.get("kind", 0)):
 			GameTypes.PowerUpKind.FAN:
-				Fx.whirlwind(self, centre, cell_size * 3.0)
+				Fx.whirlwind(self, centre, cell_size * 3.6)
 				_shake(cell_size * 0.10)
 			GameTypes.PowerUpKind.ROCKET_HORIZONTAL:
 				Fx.streak(self, centre, cell_size * float(run.board.width), true)
