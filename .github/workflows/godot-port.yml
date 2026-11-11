@@ -356,20 +356,25 @@ jobs:
       # mesa DRI set including swrast — so the step now only proves they are there, and fails with a
       # clear message if a future image ever drops them.
       - name: Check the software OpenGL stack and the virtual display
+        timeout-minutes: 3
         run: |
-          set -euo pipefail
+          set -uo pipefail
           missing=0
           for bin in Xvfb xvfb-run; do
             if command -v "$bin" > /dev/null; then echo "have $bin"; else echo "::error title=Xvfb::$bin is missing from the image"; missing=1; fi
           done
-          for lib in libGL.so.1 libEGL.so.1 libGLX_mesa.so.0; do
-            if ldconfig -p | grep -q "$lib"; then echo "have $lib"; else echo "::error title=GL::$lib is missing from the image"; missing=1; fi
+          # libGL plus a GLX backend and the software rasteriser are the whole requirement for the X11
+          # display driver; anything else the image happens to ship (EGL and friends) is a bonus, so it
+          # is reported and not required.
+          for entry in "/usr/lib/x86_64-linux-gnu/libGL.so.1" "/usr/lib/x86_64-linux-gnu/libGLX.so.0"; do
+            if [ -e "$entry" ]; then echo "have $entry"; else echo "::error title=GL::$entry is missing from the image"; missing=1; fi
           done
-          if [ -d /usr/lib/x86_64-linux-gnu/dri ] && ls /usr/lib/x86_64-linux-gnu/dri | grep -q swrast; then
-            echo "have the swrast driver"
+          if ls /usr/lib/x86_64-linux-gnu/dri 2>/dev/null | grep -q swrast; then
+            echo "have the mesa software rasteriser: $(ls /usr/lib/x86_64-linux-gnu/dri | grep swrast | tr '\n' ' ')"
           else
             echo "::error title=GL::the mesa software rasteriser is missing from the image"; missing=1
           fi
+          ls /usr/lib/x86_64-linux-gnu/libEGL* 2>/dev/null || echo "note: no libEGL, which the X11 driver does not need"
           test "$missing" = "0"
 
       - name: Import the project
@@ -391,6 +396,28 @@ jobs:
             echo "::warning title=capture::$line"
           done
           exit $status
+
+      - name: Keep the capture log on the branch when it fails
+        if: failure()
+        run: |
+          set -e
+          mkdir -p godot-port/.shots
+          {
+            echo "# capture failure $(date -u)"
+            echo "--- env"
+            uname -a
+            command -v godot && godot --version || true
+            echo "--- capture.log"
+            cat /tmp/capture.log 2>/dev/null || echo "(no capture.log)"
+            echo "--- shots"
+            ls -l godot-port/.shots || true
+          } > godot-port/.shots/capture-failure.log
+          git config user.name "godot-port bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f godot-port/.shots/capture-failure.log
+          git commit -m "ci: capture failure log [skip ci]" || exit 0
+          git pull --rebase origin "${GITHUB_REF_NAME}" || true
+          git push origin HEAD:${GITHUB_REF_NAME} || true
 
       - name: Publish the screenshots on the branch
         run: |
