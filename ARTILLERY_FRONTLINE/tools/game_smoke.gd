@@ -336,6 +336,56 @@ func _other_screens() -> void:
 	_check_menu("back_on_16x9_menu", Vector2.ZERO)
 
 
+## The heaviest the game gets, measured: as many zombies alive as the last wave allows at once, most of
+## them at the gate and the wall, with the gun firing into them. The figures belong to the machine that
+## ran this, not to a phone; under a software renderer the frame time is the renderer's, not the game's.
+func _peak_load() -> void:
+	game.start_match()
+	await frames(4)
+	level = game.level
+	level.director.stop()
+	var cap: int = level.wave_set.waves[level.wave_set.waves.size() - 1].max_alive
+	var mix: Array[StringName] = [&"walker", &"runner", &"walker", &"walker", &"runner", &"walker", &"walker", &"brute"]
+	var routes: Array[String] = ["avenue_left", "avenue_right", "ring_left", "ring_right"]
+	level.horde.spawn(&"boss", "avenue_left", "gate")
+	var sent: int = 0
+	while level.horde.alive_count() < cap and sent < 200:
+		level.horde.spawn(mix[sent % mix.size()], routes[sent % routes.size()], "any")
+		sent += 1
+	var waited: float = 0.0
+	while waited < 160.0 and level.horde.attackers() < 30:
+		level.defense.gate_health = level.defense.data.gate_max_health
+		level.defense.wall_health = level.defense.data.wall_max_health
+		simulate(0.5)
+		waited += 0.5
+	check(level.horde.alive_count() == cap, "the field holds as many zombies as the last wave allows at once (%d of %d)" % [level.horde.alive_count(), cap])
+	check(level.horde.attackers() >= 30, "and most of them have reached the gate and the wall (%d striking)" % level.horde.attackers())
+	_aim_at(level.layout.gate_center + Vector3(0.0, 1.2, 0.0))
+	await frames(6)
+	game.hud.touch_down(40, game.hud.fire_button.center())
+	# The engine's timers report the worst frame and the worst physics tick of the last full second, so
+	# the crowd is left fighting for a good two seconds before they are read.
+	var started: int = Time.get_ticks_msec()
+	while Time.get_ticks_msec() - started < 2400:
+		level.defense.gate_health = level.defense.data.gate_max_health
+		level.defense.wall_health = level.defense.data.wall_max_health
+		await frames(1)
+	var sample: Dictionary = Graphics.snapshot()
+	sample["worst_frame_ms_in_a_second"] = snappedf(Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, 0.01)
+	sample["worst_physics_tick_ms_in_a_second"] = snappedf(Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0, 0.01)
+	sample["alive"] = level.horde.alive_count()
+	sample["striking"] = level.horde.attackers()
+	sample["zombie_nodes"] = level.horde.created
+	sample["what"] = "the last wave's cap alive at once, gun firing; measured on the machine that ran this, not on a phone"
+	notes["peak_load"] = sample
+	await shot("29-peak-crowd", "staged")
+	game.hud.touch_up(40)
+	check(int(sample.orphan_nodes) == 0, "no node has been left outside the scene tree (%d)" % int(sample.orphan_nodes))
+	game.to_menu()
+	await frames(4)
+	level = game.level
+
+
 func _aim_at(point: Vector3) -> void:
 	var wanted: Vector2 = level.defender.aim_for(point)
 	level.defender.aim.set_aim(wanted.x, wanted.y)
@@ -643,6 +693,7 @@ func _run() -> void:
 	check(game.menus.screen == "main", "MAIN MENU returns to the title")
 
 	await _other_screens()
+	await _peak_load()
 
 	var render: Dictionary = Graphics.snapshot()
 	check(String(render.tier) == PICTURE_TIER and is_equal_approx(float(render.scale), float(Graphics.PROFILES[PICTURE_TIER].scale)),
@@ -663,6 +714,19 @@ func _run() -> void:
 			"slowed": "the real game with the clock slowed for the capture",
 			"staged": "zombies or damage placed by the driver; what follows is the game's own doing",
 			"preview": "a screen shown with figures the driver made up",
+		},
+		# The same pictures under the four headings a reader asks about. A staged scene shows that something
+		# can happen and how it looks; it is not proof that a whole match was played to that point.
+		"evidence": {
+			"actual_captures_of_the_running_game": by_kind["screen"] + by_kind["play"] + by_kind["slowed"],
+			"manually_staged_scenes": by_kind["staged"],
+			"static_previews_with_made_up_figures": by_kind["preview"],
+			"simulated_conditions": {
+				"screen_shape_and_camera_cutout": shots.filter(func(file_name: String) -> bool: return file_name.contains("phone") or file_name.contains("tablet")),
+				"clock_slowed_for_the_capture": by_kind["slowed"],
+				"between_pictures": "the siege is advanced by calling the game's own update functions, without drawing",
+			},
+			"not_shown_anywhere": "a whole eight-wave match played to victory under rendering; an Android device",
 		},
 		"renderer": RenderingServer.get_current_rendering_method(), "engine": Engine.get_version_info().string,
 		"scope": "Software-rendered desktop run of the real game; not an Android device run",

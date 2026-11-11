@@ -99,6 +99,10 @@ func add_drag(pixels: Vector2) -> void:
 
 func set_fire(pressed: bool) -> void:
 	touch_fire = pressed and input_enabled
+	if not touch_fire and weapon != null:
+		# Let go at once. Left to the next frame, a trigger held when the game is paused stays
+		# held through the pause, and the gun fires by itself in the first tick after it.
+		weapon.set_trigger(false)
 
 
 func reload() -> void:
