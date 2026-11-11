@@ -1,0 +1,168 @@
+name: Zombie Evolution validation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'zombie-evolution-rebuild/**'
+      - '.github/workflows/zombie-evolution-validation.yml'
+  pull_request:
+    paths:
+      - 'zombie-evolution-rebuild/**'
+      - '.github/workflows/zombie-evolution-validation.yml'
+
+permissions:
+  contents: read
+
+env:
+  GODOT: Godot_v4.4.1-stable_linux.x86_64
+
+jobs:
+  headless:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare artifact directory
+        run: mkdir -p ci-artifacts/headless
+      - name: Install official Godot 4.4.1
+        run: |
+          set -o pipefail
+          bash zombie-evolution-rebuild/ci/install_godot.sh 2>&1 | tee ci-artifacts/headless/install.log
+      - name: Run all headless checks
+        run: |
+          set -o pipefail
+          bash zombie-evolution-rebuild/ci/run_headless.sh 2>&1 | tee ci-artifacts/headless/run.log
+      - name: Upload headless logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-headless-logs
+          path: ci-artifacts/headless/
+          if-no-files-found: warn
+
+  rendered:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare artifact directory
+        run: mkdir -p ci-artifacts/rendered/screenshots
+      - name: Install official Godot 4.4.1
+        run: |
+          set -o pipefail
+          bash zombie-evolution-rebuild/ci/install_godot.sh 2>&1 | tee ci-artifacts/rendered/install.log
+      - name: Install virtual display and software rendering
+        run: |
+          set -o pipefail
+          sudo apt-get update 2>&1 | tee ci-artifacts/rendered/apt-update.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-utils 2>&1 | tee ci-artifacts/rendered/apt-install.log
+      - name: Verify software OpenGL and import assets
+        run: |
+          set -o pipefail
+          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a glxinfo -B 2>&1 | tee ci-artifacts/rendered/glxinfo.log
+          "$GODOT" --headless --editor --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/rendered/import.log
+          if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/rendered/import.log; then exit 1; fi
+      - name: Capture actual automated gameplay
+        run: |
+          set -o pipefail
+          export LIBGL_ALWAYS_SOFTWARE=1
+          export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
+          timeout 1200 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_gameplay.gd 2>&1 | tee ci-artifacts/rendered/capture.log
+          if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/capture.log; then exit 1; fi
+      - name: Upload screenshots and renderer logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-rendered-evidence
+          path: ci-artifacts/rendered/
+          if-no-files-found: warn
+
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare artifact directory
+        run: mkdir -p ci-artifacts/android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - name: Install Android SDK components
+        run: |
+          set -o pipefail
+          sdkmanager 'platform-tools' 'platforms;android-34' 'build-tools;34.0.0' 2>&1 | tee ci-artifacts/android/sdk-install.log
+          java -version 2>&1 | tee ci-artifacts/android/java.log
+          sdkmanager --list_installed 2>&1 | tee ci-artifacts/android/sdk-list.log
+      - name: Install official Godot and matching export templates
+        run: |
+          set -euo pipefail
+          bash zombie-evolution-rebuild/ci/install_godot.sh 2>&1 | tee ci-artifacts/android/install.log
+          dir="$RUNNER_TEMP/godot-4.4.1"
+          base='https://github.com/godotengine/godot-builds/releases/download/4.4.1-stable'
+          asset='Godot_v4.4.1-stable_export_templates.tpz'
+          curl -fL --retry 3 -o "$dir/$asset" "$base/$asset"
+          cd "$dir"
+          awk -v name="$asset" '$2 == name || $2 == "*" name {print $1 "  " name; found++} END {if (found != 1) exit 1}' SHA512-SUMS.txt > templates.sha512
+          sha512sum --check templates.sha512 2>&1 | tee "$GITHUB_WORKSPACE/ci-artifacts/android/templates-checksum.log"
+          mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          unzip -j "$asset" 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/version.txt' -d "$HOME/.local/share/godot/export_templates/4.4.1.stable" >/dev/null
+      - name: Configure temporary debug signing and export
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000 >/dev/null 2>&1
+          mkdir -p "$HOME/.config/godot"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path.home() / '.config/godot/editor_settings-4.tres'
+          props = {
+              'export/android/java_sdk_path': os.environ['JAVA_HOME'],
+              'export/android/android_sdk_path': os.environ['ANDROID_HOME'],
+              'export/android/debug_keystore': os.environ['RUNNER_TEMP'] + '/debug.keystore',
+              'export/android/debug_keystore_user': 'androiddebugkey',
+              'export/android/debug_keystore_pass': 'android',
+          }
+          p.write_text('[gd_resource type="EditorSettings" format=3]\n\n[resource]\n' + ''.join(f'{k} = {json.dumps(v)}\n' for k, v in props.items()))
+          PY
+          "$GODOT" --headless --editor --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/android/import.log
+          if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/import.log; then exit 1; fi
+          mkdir -p zombie-evolution-rebuild/exports
+          "$GODOT" --headless --path zombie-evolution-rebuild --export-debug 'Android ARM64' exports/zombie-debug.apk 2>&1 | tee ci-artifacts/android/export.log
+          if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/export.log; then exit 1; fi
+      - name: Inspect debug APK
+        run: |
+          set -euo pipefail
+          apk=zombie-evolution-rebuild/exports/zombie-debug.apk
+          test -s "$apk"
+          aapt="$ANDROID_HOME/build-tools/34.0.0/aapt"
+          "$aapt" dump badging "$apk" | tee ci-artifacts/android/badging.log
+          "$aapt" dump permissions "$apk" | tee ci-artifacts/android/permissions.log
+          "$aapt" dump xmltree "$apk" AndroidManifest.xml | tee ci-artifacts/android/manifest.log
+          unzip -Z1 "$apk" | tee ci-artifacts/android/apk-files.log >/dev/null
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose "$apk" | tee ci-artifacts/android/signature.log
+          grep -F "package: name='org.example.zombieevolution'" ci-artifacts/android/badging.log
+          grep -E '^sdkVersion:' ci-artifacts/android/badging.log
+          grep -E '^targetSdkVersion:' ci-artifacts/android/badging.log
+          grep -E '^lib/arm64-v8a/.*\.so$' ci-artifacts/android/apk-files.log
+          if grep -Eq '^lib/(armeabi-v7a|x86|x86_64)/' ci-artifacts/android/apk-files.log; then echo "Unexpected ABI in APK"; exit 1; fi
+          grep -qE '^assets/' ci-artifacts/android/apk-files.log
+          grep -E 'screenOrientation.*0x0*1([^0-9a-fA-F]|$)' ci-artifacts/android/manifest.log
+          stat -c 'size_bytes=%s' "$apk" | tee ci-artifacts/android/size.log
+          sha256sum "$apk" | tee ci-artifacts/android/sha256.log
+      - name: Upload verified APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zombie-evolution-arm64-debug
+          path: zombie-evolution-rebuild/exports/zombie-debug.apk
+          if-no-files-found: error
+      - name: Upload Android logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-android-logs
+          path: ci-artifacts/android/
+          if-no-files-found: warn
