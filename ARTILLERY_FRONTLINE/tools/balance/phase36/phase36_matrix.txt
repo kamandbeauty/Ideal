@@ -1,0 +1,85 @@
+Phase 3.6 weapon matrix (combat_sim.py; ranking and assumptions only, not a game measurement)
+Cells: time-to-kill (mean over samples, flight time included) / hit rate / shots fired (mean).
+
+## direct | aim error 0.0 deg | aircraft lead off | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      0.10s hit1.00 sh1.0     0.16s hit1.00 sh1.0     0.36s hit1.00 sh1.0     0.30s hit1.00 sh1.0     0.12s hit1.00 sh1.0   
+heavy      0.21s hit1.00 sh2.8     0.10s hit1.00 sh1.0     0.20s hit1.00 sh1.0     0.16s hit1.00 sh1.0     0.21s hit1.00 sh1.9   
+rpg        0.10s hit1.00 sh1.0     0.16s hit1.00 sh1.0     0.36s hit1.00 sh1.0     0.30s hit1.00 sh1.0     0.12s hit1.00 sh1.0   
+jeep       1.71s hit1.00 sh19.9    0.16s hit1.00 sh1.0     0.34s hit1.00 sh1.0     0.28s hit1.00 sh1.0     0.12s hit1.00 sh1.0   
+apc        4.09s hit1.00 sh48.1    0.12s hit1.00 sh1.0     0.26s hit1.00 sh1.0     0.22s hit1.00 sh1.0     0.40s hit1.00 sh3.0   
+tank       4.83s hit1.00 sh56.9    0.12s hit1.00 sh1.0     0.26s hit1.00 sh1.0     0.20s hit1.00 sh1.0     0.56s hit1.00 sh4.0   
+boss       18.87s hit1.00 sh195.5  3.51s hit1.00 sh4.0     2.17s hit1.00 sh3.8     2.23s hit1.00 sh3.0     3.12s hit1.00 sh20.1  
+heli       1.51s hit1.00 sh16.0    2.68s hit1.00 sh3.0     1.58s hit1.00 sh2.0     1.75s hit1.00 sh2.0     1.38s hit1.00 sh8.0   
+fighter    1.31s hit1.00 sh12.0    1.77s hit1.00 sh2.0     2.10s hit1.00 sh2.0     1.12s hit1.00 sh1.0     1.22s hit1.00 sh6.0   
+craft      7.46s hit1.00 sh86.0    3.83s hit1.00 sh4.0     2.28s hit1.00 sh3.0     2.78s hit1.00 sh3.0     2.82s hit1.00 sh17.0  
+
+## splash | aim error 0.0 deg | aircraft lead off | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf 
+heavy      no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf 
+rpg        no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf 
+jeep       no kill hit0.00 shinf   0.14s hit0.00 sh1.0     3.12s hit0.00 sh5.0     no kill hit0.00 shinf   0.42s hit0.00 sh3.0   
+apc        no kill hit0.00 shinf   no kill hit0.00 shinf   81.38s hit0.00 sh68.0   no kill hit0.00 shinf   no kill hit0.00 shinf 
+tank       no kill hit0.00 shinf   no kill hit0.00 shinf   96.02s hit0.00 sh80.0   no kill hit0.00 shinf   no kill hit0.00 shinf 
+boss       18.87s hit1.00 sh195.5  3.51s hit1.00 sh4.0     2.17s hit1.00 sh3.8     2.23s hit1.00 sh3.0     2.65s hit1.00 sh17.2  
+heli       no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf 
+fighter    no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf 
+craft      7.46s hit1.00 sh86.0    3.83s hit1.00 sh4.0     119.32s hit0.00 sh99.0  31.31s hit0.00 sh18.0   2.82s hit1.00 sh17.0  
+
+## realistic | aim error 0.3 deg | aircraft lead off | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      0.13s hit0.86 sh1.2     0.19s hit0.99 sh1.0     0.41s hit0.99 sh1.0     0.34s hit0.99 sh1.0     0.13s hit0.94 sh1.1   
+heavy      0.20s hit1.00 sh2.5     0.11s hit1.00 sh1.0     0.23s hit1.00 sh1.0     0.19s hit1.00 sh1.0     0.21s hit1.00 sh1.9   
+rpg        0.13s hit0.87 sh1.1     0.19s hit1.00 sh1.0     0.43s hit0.99 sh1.0     0.35s hit1.00 sh1.0     0.15s hit0.96 sh1.0   
+jeep       1.71s hit1.00 sh19.9    0.16s hit1.00 sh1.0     21.94s hit0.05 sh19.6   2.18s hit0.42 sh2.4     0.12s hit1.00 sh1.0   
+apc        4.07s hit1.00 sh48.2    0.10s hit1.00 sh1.0     0.21s hit1.00 sh1.0     0.17s hit1.00 sh1.0     0.38s hit1.00 sh3.0   
+tank       4.82s hit1.00 sh57.0    0.10s hit1.00 sh1.0     0.20s hit1.00 sh1.0     0.16s hit1.00 sh1.0     0.54s hit1.00 sh4.0   
+boss       18.91s hit1.00 sh195.8  3.53s hit1.00 sh4.0     2.17s hit1.00 sh3.8     2.23s hit1.00 sh3.0     3.18s hit1.00 sh20.6  
+heli       1.79s hit0.81 sh19.7    14.09s hit0.26 sh11.5   no kill hit0.00 shinf   no kill hit0.00 shinf   1.81s hit0.74 sh10.8  
+fighter    no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf 
+craft      7.40s hit1.00 sh86.1    3.71s hit1.00 sh4.0     2.39s hit1.00 sh3.5     2.58s hit1.00 sh3.0     2.74s hit1.00 sh17.0  
+
+## realistic | aim error 1.0 deg | aircraft lead off | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      0.20s hit0.51 sh2.0     1.06s hit0.57 sh1.8     0.94s hit0.59 sh1.7     1.33s hit0.57 sh1.8     0.26s hit0.53 sh1.9   
+heavy      0.22s hit0.87 sh2.8     0.18s hit0.94 sh1.1     0.27s hit0.95 sh1.1     0.23s hit0.96 sh1.0     0.22s hit0.91 sh1.9   
+rpg        0.21s hit0.48 sh2.1     1.01s hit0.58 sh1.7     0.92s hit0.59 sh1.7     1.18s hit0.59 sh1.7     0.29s hit0.51 sh2.0   
+jeep       1.77s hit0.96 sh20.7    0.24s hit0.94 sh1.1     3.44s hit0.24 sh4.2     2.19s hit0.42 sh2.4     0.12s hit0.98 sh1.0   
+apc        4.07s hit1.00 sh48.2    0.10s hit1.00 sh1.0     0.21s hit1.00 sh1.0     0.17s hit1.00 sh1.0     0.38s hit1.00 sh3.0   
+tank       4.82s hit1.00 sh57.0    0.10s hit1.00 sh1.0     0.21s hit1.00 sh1.0     0.16s hit1.00 sh1.0     0.54s hit1.00 sh4.0   
+boss       18.91s hit1.00 sh195.8  3.53s hit1.00 sh4.0     2.17s hit1.00 sh3.8     2.23s hit1.00 sh3.0     3.19s hit1.00 sh20.6  
+heli       2.09s hit0.69 sh23.2    11.22s hit0.32 sh9.4    no kill hit0.00 shinf   no kill hit0.00 shinf   2.16s hit0.61 sh13.1  
+fighter    no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf   no kill hit0.00 shinf 
+craft      7.41s hit1.00 sh86.3    3.71s hit1.00 sh4.0     2.39s hit1.00 sh3.5     2.61s hit0.99 sh3.0     2.74s hit1.00 sh17.0  
+
+## realistic | aim error 0.3 deg | aircraft lead on | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      0.13s hit0.86 sh1.2     0.19s hit0.99 sh1.0     0.41s hit0.99 sh1.0     0.34s hit0.99 sh1.0     0.13s hit0.94 sh1.1   
+heavy      0.20s hit1.00 sh2.5     0.11s hit1.00 sh1.0     0.23s hit1.00 sh1.0     0.19s hit1.00 sh1.0     0.21s hit1.00 sh1.9   
+rpg        0.13s hit0.87 sh1.1     0.19s hit1.00 sh1.0     0.43s hit0.99 sh1.0     0.35s hit1.00 sh1.0     0.15s hit0.96 sh1.0   
+jeep       1.71s hit1.00 sh19.9    0.16s hit1.00 sh1.0     21.94s hit0.05 sh19.6   2.18s hit0.42 sh2.4     0.12s hit1.00 sh1.0   
+apc        4.07s hit1.00 sh48.2    0.10s hit1.00 sh1.0     0.21s hit1.00 sh1.0     0.17s hit1.00 sh1.0     0.38s hit1.00 sh3.0   
+tank       4.82s hit1.00 sh57.0    0.10s hit1.00 sh1.0     0.20s hit1.00 sh1.0     0.16s hit1.00 sh1.0     0.54s hit1.00 sh4.0   
+boss       18.91s hit1.00 sh195.8  3.53s hit1.00 sh4.0     2.17s hit1.00 sh3.8     2.23s hit1.00 sh3.0     3.18s hit1.00 sh20.6  
+heli       1.48s hit1.00 sh16.0    2.65s hit0.99 sh3.0     1.46s hit0.99 sh2.0     1.69s hit0.98 sh2.0     1.36s hit0.99 sh8.1   
+fighter    1.27s hit0.99 sh12.1    1.71s hit0.99 sh2.0     2.01s hit0.94 sh2.1     1.03s hit0.95 sh1.1     1.17s hit0.99 sh6.0   
+craft      7.40s hit1.00 sh86.1    3.71s hit1.00 sh4.0     2.39s hit1.00 sh3.5     2.58s hit1.00 sh3.0     2.74s hit1.00 sh17.0  
+
+## realistic | aim error 1.0 deg | aircraft lead on | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      0.20s hit0.51 sh2.0     1.06s hit0.57 sh1.8     0.94s hit0.59 sh1.7     1.33s hit0.57 sh1.8     0.26s hit0.53 sh1.9   
+heavy      0.22s hit0.87 sh2.8     0.18s hit0.94 sh1.1     0.27s hit0.95 sh1.1     0.23s hit0.96 sh1.0     0.22s hit0.91 sh1.9   
+rpg        0.21s hit0.48 sh2.1     1.01s hit0.58 sh1.7     0.92s hit0.59 sh1.7     1.18s hit0.59 sh1.7     0.29s hit0.51 sh2.0   
+jeep       1.77s hit0.96 sh20.7    0.24s hit0.94 sh1.1     3.44s hit0.24 sh4.2     2.19s hit0.42 sh2.4     0.12s hit0.98 sh1.0   
+apc        4.07s hit1.00 sh48.2    0.10s hit1.00 sh1.0     0.21s hit1.00 sh1.0     0.17s hit1.00 sh1.0     0.38s hit1.00 sh3.0   
+tank       4.82s hit1.00 sh57.0    0.10s hit1.00 sh1.0     0.21s hit1.00 sh1.0     0.16s hit1.00 sh1.0     0.54s hit1.00 sh4.0   
+boss       18.91s hit1.00 sh195.8  3.53s hit1.00 sh4.0     2.17s hit1.00 sh3.8     2.23s hit1.00 sh3.0     3.19s hit1.00 sh20.6  
+heli       1.51s hit0.97 sh16.4    2.68s hit0.99 sh3.0     1.47s hit0.99 sh2.0     1.69s hit0.98 sh2.0     1.36s hit0.99 sh8.1   
+fighter    1.36s hit0.91 sh13.2    1.78s hit0.96 sh2.1     2.10s hit0.89 sh2.2     1.04s hit0.95 sh1.1     1.21s hit0.96 sh6.2   
+craft      7.41s hit1.00 sh86.3    3.71s hit1.00 sh4.0     2.39s hit1.00 sh3.5     2.61s hit0.99 sh3.0     2.74s hit1.00 sh17.0  
+
+## Aircraft orbit speed sweep (realistic, aim 0.5 deg, no lead)
+fighter w=0.28 rad/s: twin_hmg kill 0.00; cannon kill 0.00; rocket kill 0.00; bazooka kill 0.00; autocannon kill 0.00
+fighter w=0.14 rad/s: twin_hmg kill 0.92; cannon kill 0.00; rocket kill 0.00; bazooka kill 0.00; autocannon kill 0.12
+fighter w=0.07 rad/s: twin_hmg kill 1.00; cannon kill 1.00; rocket kill 0.00; bazooka kill 0.00; autocannon kill 1.00

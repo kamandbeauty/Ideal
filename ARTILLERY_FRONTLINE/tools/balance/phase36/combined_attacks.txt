@@ -1,0 +1,22 @@
+Phase 3.6 combined attacks (model). Player best weapon per type, realistic aim 0.5 deg, lead on.
+Time to kill (best weapon, realistic): rifle 0.14s (twin_hmg), heavy 0.11s (cannon), rpg 0.15s (twin_hmg), jeep 0.12s (autocannon), apc 0.09s (cannon), tank 0.09s (cannon), boss 2.18s (rocket), heli 1.36s (autocannon), fighter 1.03s (bazooka)
+
+P_HIT = 0.3  (emplacement HP 6000)
+Scenario                                                 damage       % HP    clear s  start dps
+Heavy + riflemen (2 heavy, 8 riflemen)                       75         1%       11.3       12.9
+RPG + infantry (2 RPG, 8 riflemen)                           75         1%       11.4       12.6
+Tank + APC                                                   10         0%        2.2        7.4
+Boss + tank                                                  47         1%        4.3       14.9
+Aircraft + ground (2 heli, 2 fighter, 8 riflemen)           191         3%       17.9       21.0
+Armour + infantry (tank, APC, jeep, 8 riflemen)              93         2%       12.4       17.9
+Wave 3 (all types, craft excluded)                          846        14%       36.9       55.8
+
+P_HIT = 1.0  (emplacement HP 6000)
+Scenario                                                 damage       % HP    clear s  start dps
+Heavy + riflemen (2 heavy, 8 riflemen)                      249         4%       11.3       43.0
+RPG + infantry (2 RPG, 8 riflemen)                          251         4%       11.4       42.2
+Tank + APC                                                   35         1%        2.2       24.8
+Boss + tank                                                 156         3%        4.3       49.8
+Aircraft + ground (2 heli, 2 fighter, 8 riflemen)           638        11%       17.9       69.9
+Armour + infantry (tank, APC, jeep, 8 riflemen)             310         5%       12.4       59.8
+Wave 3 (all types, craft excluded)                         2819        47%       36.9      186.1
