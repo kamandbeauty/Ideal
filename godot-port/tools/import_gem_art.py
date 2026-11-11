@@ -160,42 +160,53 @@ def _outlined(picture: Image.Image) -> Image.Image:
 
 
 def _enamel(picture: Image.Image) -> Image.Image:
-    """Give the fruit one specular and one rim light, so the board reads as enamel, not paper.
+    """Give the fruit the volume the reference has: a shading gradient, a specular and a rim light.
 
-    The paints are flat on purpose — they have to read at 42 dp — but a board of flat fruit is a board
-    of stickers. The highlight is derived from the fruit's own silhouette: it is the piece's alpha
-    clipped to a soft blob in the upper left, which means it lands on the fruit whatever shape it is,
-    instead of floating in the corner of the plate.
+    Three layers, in this order:
+      1. shading   the lower right of the fruit is multiplied down, so it turns away from the light
+      2. specular  one bright, crisp highlight on the upper left, clipped to the fruit's silhouette
+      3. rim       a thin light line on the lower right edge, the light bouncing off the table
+
+    All three are derived from the fruit's own alpha, so they land on the fruit whatever its shape is.
     """
     size = picture.width
     alpha = picture.getchannel("A")
     solid = np.asarray(alpha).astype(np.float32) / 255.0
-
-    spec_mask = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(spec_mask).ellipse((size * 0.24, size * 0.12, size * 0.58, size * 0.34), fill=255)
-    spec_mask = spec_mask.filter(ImageFilter.GaussianBlur(size * 0.05))
-    spec = np.asarray(spec_mask).astype(np.float32) / 255.0
-
-    # The rim: the inside of the silhouette, minus a copy of the silhouette shrunk by three pixels.
-    inner = np.asarray(alpha.filter(ImageFilter.MinFilter(5))).astype(np.float32) / 255.0
-    rim = np.clip(solid - inner, 0.0, 1.0)
-    rim = np.asarray(Image.fromarray((rim * 255).astype(np.uint8), "L")
-                     .filter(ImageFilter.GaussianBlur(1.2))).astype(np.float32) / 255.0
-    # Only the lower right of that rim catches the light.
     coords = np.linspace(0.0, 1.0, size, dtype=np.float32)
-    lower_right = np.clip((coords[None, :] + coords[:, None]) * 0.5 - 0.35, 0.0, 1.0)
+    across = coords[None, :]
+    down = coords[:, None]
 
-    shine = np.clip(solid * spec * 0.55 + rim * lower_right * 0.30, 0.0, 1.0)
-    white = Image.new("RGBA", (size, size), (255, 255, 255, 0))
-    white.putalpha(Image.fromarray((shine * 255.0).astype(np.uint8), "L"))
-    out = Image.alpha_composite(picture, white)
+    # 1. Shading: a diagonal falloff, strongest at the bottom right corner of the fruit.
+    shade = np.clip((across * 0.45 + down * 0.75) - 0.35, 0.0, 1.0) ** 1.3
+    shading = Image.new("RGBA", (size, size), (46, 22, 8, 0))
+    shading.putalpha(Image.fromarray((shade * solid * 72.0).astype(np.uint8), "L"))
+    shading = shading.filter(ImageFilter.GaussianBlur(size * 0.045))
+    out = Image.alpha_composite(picture, shading)
 
-    # A touch more colour and contrast: the reference's fruit is saturated, and a flat paint next to a
-    # painted board reads as washed out.
+    # 2. Specular: brighter and larger than a soft smudge, with a hard-ish core.
+    spec_mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(spec_mask).ellipse((size * 0.24, size * 0.14, size * 0.46, size * 0.30), fill=255)
+    spec_mask = spec_mask.filter(ImageFilter.GaussianBlur(size * 0.028))
+    spec = np.asarray(spec_mask).astype(np.float32) / 255.0
+    shine = Image.new("RGBA", (size, size), (255, 255, 255, 0))
+    shine.putalpha(Image.fromarray((np.clip(solid * spec, 0, 1) * 120.0).astype(np.uint8), "L"))
+    out = Image.alpha_composite(out, shine)
+
+    # 3. Rim light: the inside of the silhouette on its lower right, where the table bounces back.
+    from scipy import ndimage
+    inner = ndimage.binary_erosion(np.asarray(alpha) > 128, iterations=3)
+    band = np.clip(solid - inner.astype(np.float32), 0.0, 1.0)
+    lower_right = np.clip((across + down) * 0.5 - 0.42, 0.0, 1.0) * 2.2
+    rim = Image.new("RGBA", (size, size), (255, 246, 214, 0))
+    rim.putalpha(Image.fromarray((np.clip(band * lower_right, 0, 1) * 80.0).astype(np.uint8), "L"))
+    out = Image.alpha_composite(out, rim.filter(ImageFilter.GaussianBlur(0.8)))
+
+    # Saturation and contrast: the reference's fruit is vivid, and a flat paint on a painted board
+    # reads as washed out next to it.
     from PIL import ImageEnhance
     rgb = out.convert("RGB")
     rgb = ImageEnhance.Color(rgb).enhance(1.10)
-    rgb = ImageEnhance.Contrast(rgb).enhance(1.04)
+    rgb = ImageEnhance.Contrast(rgb).enhance(1.05)
     rgb = rgb.convert("RGBA")
     rgb.putalpha(out.getchannel("A"))
     return rgb

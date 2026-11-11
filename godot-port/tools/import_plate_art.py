@@ -176,14 +176,17 @@ def build_tray() -> Image.Image:
     # screen, and a blue frame round it made the grid look like a panel on a dashboard.
     picture = _plate((size, size), radius, [(0.0, (255, 250, 234)), (0.42, IVORY),
                                             (1.0, _mix(IVORY, (243, 220, 176), 0.5))])
+    # Three lines, the way the reference's frame is built: a dark outer edge, the gold, and a warm
+    # inner keyline that separates the gold from the cream.
     picture = _rim(picture, radius, _mix(GOLD_DARK, (168, 124, 52), 0.4), width=3)
-    picture = _rim(picture, radius, GOLD, width=2, inset=int(size * 0.009))
+    picture = _rim(picture, radius, GOLD, width=3, inset=int(size * 0.010))
+    picture = _rim(picture, radius, _mix(GOLD_LIGHT, IVORY, 0.45), width=2, inset=int(size * 0.019))
 
     # The bed the tiles sit in: a shade darker than the tiles, so the gaps read as gaps. It stops at the
     # grid (which starts 15 dp in), so the royal frame keeps a band of its own all the way round.
-    inner = int(size * 0.022)
+    inner = int(size * 0.030)
     bed = _plate((size - inner * 2, size - inner * 2), int(size * 0.050),
-                 [(0.0, (232, 210, 172)), (1.0, (246, 231, 200))])
+                 [(0.0, (226, 202, 160)), (1.0, (244, 228, 194))])
     bed = _rim(bed, int(size * 0.050), _mix(GOLD, IVORY_SHADE, 0.35), width=2)
     picture.alpha_composite(bed, (inner, inner))
 
