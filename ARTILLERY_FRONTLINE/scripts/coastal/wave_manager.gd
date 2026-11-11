@@ -41,10 +41,19 @@ func _next_round() -> void:
 	remaining_changed.emit(remaining)
 	round_started.emit(round_index + 1, setup)
 
+## A target the player destroyed.
 func register_kill() -> void:
-	if not active or intermission > 0.0:
+	_remove_targets(1)
+
+## Targets that leave the field without the player killing them (cargo lost with a sunk craft).
+## They leave the enemy count, so the wave can end, but they are not kills.
+func lose_targets(count: int) -> void:
+	_remove_targets(count)
+
+func _remove_targets(count: int) -> void:
+	if not active or intermission > 0.0 or count <= 0:
 		return
-	remaining = maxi(0, remaining - 1)
+	remaining = maxi(0, remaining - count)
 	remaining_changed.emit(remaining)
 	if remaining <= 0:
 		intermission = INTERMISSION

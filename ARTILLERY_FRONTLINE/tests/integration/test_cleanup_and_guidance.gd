@@ -196,11 +196,22 @@ func _check_sunk_in_deep_water(t: TestContext) -> void:
 	t.equal(scene.soldiers.size() + scene.vehicles.size(), 0, "A craft sunk at sea lands no soldier or vehicle")
 	t.check(scene.disembark_queue.is_empty(), "A craft sunk at sea leaves no queued cargo")
 	t.check(boat.cargo.is_empty(), "A craft sunk at sea holds no cargo afterwards")
-	t.equal(scene.kills - kills_before, 1 + cargo, "The craft and every unit aboard count as kills")
+	t.equal(scene.kills - kills_before, 1, "Only the craft itself is a player kill; its cargo is not")
+	t.equal(scene.lost_cargo, cargo, "The cargo lost with the craft is counted separately")
 	t.equal(scene.waves.remaining, remaining_before - 1 - cargo, "The wave count drops by the craft and its cargo")
 	t.check(_count_matches(scene), "After the sinking, remaining still equals living hostiles plus cargo aboard")
+	t.check(scene.active and scene.waves.round_index == 0, "Sinking the craft does not end the mission or the wave early")
 	boat.receive_damage(100000.0)
-	t.equal(scene.kills - kills_before, 1 + cargo, "A second hit on the wreck counts nothing again")
+	t.equal(scene.kills - kills_before, 1, "A second hit on the wreck counts nothing again")
+	t.equal(scene.lost_cargo, cargo, "A second hit on the wreck loses no cargo again")
+	# The last hostile falls to the player: the wave clears through the normal path and the next wave starts.
+	var planes: int = scene.aircraft.size()
+	for plane in scene.aircraft.duplicate():
+		plane.receive_damage(100000.0)
+	t.equal(scene.waves.remaining, 0, "The wave is clear once its last living hostile falls")
+	t.equal(scene.kills - kills_before, 1 + planes, "Kills count only what the player destroyed")
+	scene.waves.tick(WaveManager.INTERMISSION + 0.1)
+	t.check(scene.active and scene.waves.round_index == 1, "The next wave starts after a clear wave, not before")
 	scene._tick_removals(6.0)
 	t.check(not scene.crafts.has(boat), "The wreck leaves the field after its delay")
 	scene.queue_free()
@@ -221,8 +232,11 @@ func _check_sunk_mid_unload(t: TestContext) -> void:
 	t.equal(ashore, 1, "Mid-unload case: one unit has already come ashore")
 	var queued: int = scene.disembark_queue.size()
 	var remaining_before: int = scene.waves.remaining
+	var kills_before: int = scene.kills
 	boat.receive_damage(100000.0)
 	t.equal(scene.disembark_queue.size(), 0, "Sinking drops the queued cargo that had not come ashore")
+	t.equal(scene.kills - kills_before, 1, "Mid-unload: only the craft is a player kill")
+	t.equal(scene.lost_cargo, queued, "Mid-unload: the queued units are counted as lost cargo")
 	t.equal(scene.soldiers.size() + scene.vehicles.size(), ashore, "Units already ashore stay in the fight")
 	var alive_ashore: bool = true
 	for unit in scene.soldiers:
@@ -252,5 +266,6 @@ func _check_landed_healthy(t: TestContext) -> void:
 	t.check(scene.disembark_queue.is_empty() and boat.cargo.is_empty(), "Nothing is left aboard after landing")
 	t.equal(scene.waves.remaining, remaining_before, "Landing kills nothing and changes no wave count")
 	t.equal(scene.kills, kills_before, "Landing adds no kills")
+	t.equal(scene.lost_cargo, 0, "A landed craft loses no cargo")
 	scene.queue_free()
 	await t.tree.process_frame

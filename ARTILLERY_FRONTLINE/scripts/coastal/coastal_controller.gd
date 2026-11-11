@@ -40,6 +40,8 @@ var zoomed: bool = false
 var player_health: float = MAX_HEALTH
 var elapsed: float = 0.0
 var kills: int = 0
+## Units lost with a sunk craft (never landed). They leave the enemy count but are not player kills.
+var lost_cargo: int = 0
 var yaw_target: float = 0.0
 var pitch_target: float = -4.0
 var yaw_current: float = 0.0
@@ -138,6 +140,7 @@ func start() -> void:
 	player_health = MAX_HEALTH
 	elapsed = 0.0
 	kills = 0
+	lost_cargo = 0
 	camera_shake = 0.0
 	support_charges = {"repair": 3, "airstrike": 2, "helicopter": 1, "airdrop": 2}
 	for id in support_timers:
@@ -500,7 +503,7 @@ func _spawn_entry(entry: Dictionary) -> void:
 		var landing = entry.craft
 		if not is_instance_valid(landing):
 			# Cannot happen while the craft is queued (removal waits for its cargo); counted so no wave hangs.
-			_register_kill()
+			_lose_cargo(1)
 			return
 		var hull: LandingCraft = landing as LandingCraft
 		point = hull.disembark_point() + hull.global_transform.basis.x * randf_range(-DISEMBARK_SPREAD, DISEMBARK_SPREAD)
@@ -606,8 +609,9 @@ func _on_craft_destroyed(landing: LandingCraft) -> void:
 	# A sunk craft takes its cargo down with it: nothing is landed from a wreck.
 	_scuttle_cargo(landing)
 
-## Destroys the cargo still aboard a sunk craft, and anything queued to come off it. Each lost unit is
-## registered as a kill so the wave's remaining count stays exact. Units already ashore are not affected.
+## Destroys the cargo still aboard a sunk craft, and anything queued to come off it. Lost units leave the
+## enemy count (so the wave can end) but are NOT player kills: they add to lost_cargo, not kills.
+## Units already ashore are not affected.
 func _scuttle_cargo(landing: LandingCraft) -> int:
 	var lost: int = landing.cargo.size()
 	landing.cargo.clear()
@@ -618,9 +622,12 @@ func _scuttle_cargo(landing: LandingCraft) -> int:
 			lost += 1
 		else:
 			index += 1
-	for _unit in range(lost):
-		_register_kill()
+	_lose_cargo(lost)
 	return lost
+
+func _lose_cargo(count: int) -> void:
+	lost_cargo += count
+	waves.lose_targets(count)
 
 func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	if not active or soldier.is_dead():
