@@ -359,7 +359,8 @@ func _on_wave_cleared(index: int, total: int) -> void:
 
 
 func _on_weapon_fired(weapon: Node) -> void:
-	if (weapon as Weapon).data.counts_for_accuracy():
+	var source := weapon as Weapon
+	if source == null or source.data.counts_for_accuracy():
 		stats.shots += 1
 	else:
 		stats.rockets += 1
