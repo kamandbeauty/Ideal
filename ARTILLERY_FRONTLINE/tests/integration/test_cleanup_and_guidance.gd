@@ -15,6 +15,7 @@ func run(t: TestContext) -> void:
 	_check_no_scar_for_air_blast(t)
 	await _check_guide_picks_nearest_living(t)
 	await _check_dead_units_removed_after_delay(t)
+	await _check_sunk_craft_lands_in_surf(t)
 
 func _check_guided_missile_reaches_off_axis_target(t: TestContext) -> void:
 	var goal := Vector3(60.0, 1.0, -40.0)
@@ -145,4 +146,35 @@ func _check_dead_units_removed_after_delay(t: TestContext) -> void:
 	fresh._tick_removals(0.6)
 	t.check(not fresh.crafts.has(boat), "A sunk craft is removed once its cargo has left")
 	fresh.queue_free()
+	await t.tree.process_frame
+
+## A craft sunk in open water still lands every soldier and vehicle in its cargo, and they come out in the surf:
+## deep water sits at -1.35 m here, under the ocean surface, and that is where they were hidden before.
+func _check_sunk_craft_lands_in_surf(t: TestContext) -> void:
+	var scene: CoastalController = load("res://scenes/coastal/coastal_milestone.tscn").instantiate()
+	t.tree.root.add_child(scene)
+	await t.tree.process_frame
+	await t.tree.process_frame
+	var boat: LandingCraft = scene.crafts[0]
+	boat.global_position = Vector3(boat.start.x, 0.0, -90.0)
+	t.check(not boat.has_arrived, "The craft is still afloat when it is sunk")
+	t.check(CoastalTerrain.height_at(boat.global_position.x, boat.global_position.z) < -0.6, "The craft is sunk in deep water")
+	var expected: int = boat.cargo.size()
+	t.check(expected >= 9, "The craft carries soldiers and vehicles")
+	var before: int = scene.soldiers.size() + scene.vehicles.size()
+	boat.receive_damage(100000.0)
+	scene._tick_disembark(30.0)
+	var landed: Array[Node3D] = []
+	for unit in scene.soldiers:
+		landed.append(unit)
+	for unit in scene.vehicles:
+		landed.append(unit)
+	t.equal(before, 0, "Nothing has landed before the craft sinks")
+	t.equal(landed.size(), expected, "A sunk craft lands every soldier and vehicle in its cargo")
+	var in_surf: int = 0
+	for unit in landed:
+		if CoastalTerrain.height_at(unit.global_position.x, unit.global_position.z) > -0.6:
+			in_surf += 1
+	t.equal(in_surf, expected, "Every unit from a sunk craft stands in the surf, not in deep water")
+	scene.queue_free()
 	await t.tree.process_frame
