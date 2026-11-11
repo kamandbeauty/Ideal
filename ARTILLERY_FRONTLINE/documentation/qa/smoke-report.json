@@ -4,15 +4,15 @@
   "failures": [],
   "notes": {
     "alive_at_24s": 16,
-    "gate_attackers": 1,
-    "gate_fell_after_s": 31.0,
+    "gate_attackers": 2,
+    "gate_fell_after_s": 28.0,
     "hits": 0,
     "kills": 0,
     "render": {
-      "draw_calls": 256,
+      "draw_calls": 255,
       "fps": 7.9,
       "nodes": 525,
-      "primitives": 225889,
+      "primitives": 225887,
       "renderer": "Compatibility",
       "scale": 1.0,
       "tier": "high"
