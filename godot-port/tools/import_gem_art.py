@@ -177,9 +177,9 @@ def _enamel(picture: Image.Image) -> Image.Image:
     down = coords[:, None]
 
     # 1. Shading: a diagonal falloff, strongest at the bottom right corner of the fruit.
-    shade = np.clip((across * 0.45 + down * 0.75) - 0.35, 0.0, 1.0) ** 1.3
+    shade = np.clip((across * 0.45 + down * 0.78) - 0.30, 0.0, 1.0) ** 1.15
     shading = Image.new("RGBA", (size, size), (46, 22, 8, 0))
-    shading.putalpha(Image.fromarray((shade * solid * 72.0).astype(np.uint8), "L"))
+    shading.putalpha(Image.fromarray((shade * solid * 92.0).astype(np.uint8), "L"))
     shading = shading.filter(ImageFilter.GaussianBlur(size * 0.045))
     out = Image.alpha_composite(picture, shading)
 
@@ -193,11 +193,11 @@ def _enamel(picture: Image.Image) -> Image.Image:
 
     # 2. Specular: brighter and larger than a soft smudge, with a hard-ish core.
     spec_mask = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(spec_mask).ellipse((size * 0.24, size * 0.14, size * 0.46, size * 0.30), fill=255)
+    ImageDraw.Draw(spec_mask).ellipse((size * 0.22, size * 0.13, size * 0.48, size * 0.31), fill=255)
     spec_mask = spec_mask.filter(ImageFilter.GaussianBlur(size * 0.028))
     spec = np.asarray(spec_mask).astype(np.float32) / 255.0
     shine = Image.new("RGBA", (size, size), (255, 255, 255, 0))
-    shine.putalpha(Image.fromarray((np.clip(solid * spec, 0, 1) * 120.0).astype(np.uint8), "L"))
+    shine.putalpha(Image.fromarray((np.clip(solid * spec, 0, 1) * 142.0).astype(np.uint8), "L"))
     out = Image.alpha_composite(out, shine)
 
     # 3. Rim light: the inside of the silhouette on its lower right, where the table bounces back.
@@ -213,8 +213,8 @@ def _enamel(picture: Image.Image) -> Image.Image:
     # reads as washed out next to it.
     from PIL import ImageEnhance
     rgb = out.convert("RGB")
-    rgb = ImageEnhance.Color(rgb).enhance(1.20)
-    rgb = ImageEnhance.Contrast(rgb).enhance(1.07)
+    rgb = ImageEnhance.Color(rgb).enhance(1.26)
+    rgb = ImageEnhance.Contrast(rgb).enhance(1.10)
     rgb = rgb.convert("RGBA")
     rgb.putalpha(out.getchannel("A"))
     return rgb
