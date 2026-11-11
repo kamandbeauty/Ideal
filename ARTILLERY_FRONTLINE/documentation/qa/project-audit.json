@@ -1,0 +1,17 @@
+{
+  "passed": false,
+  "problems": [
+    "tests/run_tests.gd names res://documentation/qa/test-results.json, which does not exist"
+  ],
+  "counted": {
+    "paths_checked": 117,
+    "scripts": 47,
+    "scenes": 9,
+    "resources": 14,
+    "assets": 82,
+    "asset_megabytes": 18.2,
+    "sounds": 43,
+    "text_keys": 90
+  },
+  "scope": "static reading of the project tree; nothing is loaded or run"
+}
