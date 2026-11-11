@@ -7,6 +7,9 @@ extends Resource
 @export_range(1, 200) var max_alive: int = 40
 ## Pause after the wave is cleared, before the next one.
 @export_range(0.0, 120.0, 0.5) var intermission: float = 7.0
+## Handed to the gunner when this wave is cleared (as far as there is room to carry it).
+@export_range(0, 20) var resupply_rockets: int = 1
+@export_range(0, 20) var resupply_grenades: int = 1
 
 
 func total() -> int:

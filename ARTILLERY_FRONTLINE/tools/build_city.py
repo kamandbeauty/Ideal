@@ -947,6 +947,7 @@ def write_layout(layout, path):
              '[ext_resource type="Script" path="res://scripts/environment/level_layout.gd" id="1"]', "", "[resource]", 'script = ExtResource("1")']
     lines.append("mount_position = %s" % vec(layout["mount"]))
     lines.append("eye_position = %s" % vec(layout["eye"]))
+    lines.append("court_half_width = %s" % fmt(ARM_X))
     routes = []
     for name, entries in layout["routes"].items():
         routes.append('"%s": {"points": %s, "widths": %s}' % (name, points(entries), widths(entries)))

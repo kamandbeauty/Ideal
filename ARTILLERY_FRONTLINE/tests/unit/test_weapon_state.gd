@@ -75,3 +75,54 @@ func run(t: TestContext) -> void:
 	state = WeaponState.new(data)
 	_fire_for(state, 0.5, 60.0)
 	t.check(not state.reloading and state.ammo == 0, "auto_reload off leaves the weapon empty")
+
+	# A limited supply: the launcher's one round and the rockets on the gunner's back.
+	var launcher: WeaponData = (load("res://resources/weapons/rpg_launcher.tres") as WeaponData).duplicate()
+	launcher.reserve = 2
+	launcher.reserve_max = 4
+	launcher.reload_time = 1.0
+	var tube := WeaponState.new(launcher)
+	t.equal(tube.ammo, 1, "the launcher starts loaded")
+	t.equal(tube.rounds_left(), 3, "loaded and spare rounds are counted together")
+	t.check(not tube.is_spent(), "a loaded launcher is not spent")
+	t.check(tube.try_fire(), "the loaded round fires")
+	t.check(tube.reloading, "an empty launcher reloads itself while rounds remain")
+	t.check(not tube.try_fire(), "nothing fires during the reload")
+	for index: int in 61:
+		tube.step(1.0 / 60.0)
+	t.check(not tube.reloading and tube.ammo == 1, "the reload seats one round")
+	t.equal(tube.reserve, 1, "the round came out of the reserve")
+	tube.step(1.0)
+	t.check(tube.try_fire(), "the second round fires")
+	for index: int in 61:
+		tube.step(1.0 / 60.0)
+	tube.step(1.0)
+	t.check(tube.try_fire(), "the last round fires")
+	t.check(tube.is_spent(), "with nothing loaded and nothing spare the launcher is spent")
+	t.check(not tube.reloading and not tube.start_reload(), "there is nothing to reload from")
+	t.equal(tube.rounds_left(), 0, "no rounds are left")
+	t.equal(tube.add_reserve(3), 3, "resupply adds spare rounds")
+	t.check(tube.reloading, "a resupplied empty launcher starts loading at once")
+	t.equal(tube.add_reserve(5), 1, "resupply stops at the carrying limit")
+	t.equal(tube.reserve, 4, "the reserve is at its limit")
+	t.equal(tube.add_reserve(0), 0, "adding nothing adds nothing")
+	# A partial reload takes only what the magazine needs and what the reserve has.
+	var clip: WeaponData = shipped.duplicate()
+	clip.magazine_size = 10
+	clip.reserve = 4
+	clip.reserve_max = 20
+	clip.reload_time = 0.5
+	var limited := WeaponState.new(clip)
+	for index: int in 7:
+		limited.step(1.0)
+		limited.try_fire()
+	t.equal(limited.ammo, 3, "seven rounds are gone")
+	limited.start_reload()
+	limited.step(1.0)
+	t.equal(limited.ammo, 7, "the reload adds only the four spare rounds")
+	t.equal(limited.reserve, 0, "and empties the reserve")
+	# The belt-fed gun never runs out.
+	var belt := WeaponState.new(shipped)
+	t.equal(belt.rounds_left(), -1, "an unlimited supply reports no count")
+	t.equal(belt.add_reserve(10), 0, "an unlimited supply takes no resupply")
+	t.check(not belt.is_spent(), "an unlimited supply is never spent")

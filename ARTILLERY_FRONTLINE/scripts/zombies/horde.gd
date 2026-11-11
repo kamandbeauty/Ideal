@@ -244,6 +244,18 @@ func open_breach(target: String) -> void:
 			zombie.enter_breach(layout.breach_path(target, zombie.lateral * 0.7))
 
 
+## Shortens a blast's throw so a body is never pushed into the wall it stood
+## against or over the kerb of the court.
+func clamp_throw(from: Vector3, push: Vector3) -> Vector3:
+	if layout == null:
+		return push
+	var reach: float = layout.court_half_width - 0.9
+	var landing: Vector3 = from + push
+	if absf(from.x) <= reach and absf(landing.x) > reach:
+		landing.x = signf(landing.x) * reach
+	return landing - from
+
+
 func alive_count() -> int:
 	return living
 

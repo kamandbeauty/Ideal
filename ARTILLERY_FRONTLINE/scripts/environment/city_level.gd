@@ -23,6 +23,9 @@ var horde: Horde
 var defense: Defense
 var director: WaveDirector
 var bullets: BulletPool
+var rockets: RocketPool
+var grenades: GrenadePool
+var explosions: Explosions
 var effects: EffectPool
 var environment: Environment
 var sun: DirectionalLight3D
@@ -56,9 +59,21 @@ func _ready() -> void:
 	bullets.name = "Bullets"
 	bullets.effects = effects
 	add_child(bullets)
+	explosions = Explosions.new()
+	explosions.name = "Explosions"
+	add_child(explosions)
+	rockets = RocketPool.new()
+	rockets.name = "Rockets"
+	rockets.explosions = explosions
+	add_child(rockets)
+	grenades = GrenadePool.new()
+	grenades.name = "Grenades"
+	grenades.explosions = explosions
+	add_child(grenades)
 	defender = get_node("Defender")
 	defender.position = layout.mount_position
-	defender.weapon.bullets = bullets
+	defender.ground_height = global_position.y
+	defender.equip(bullets, rockets, grenades, effects)
 	defense = Defense.new()
 	defense.name = "Defense"
 	defense.data = defense_data
@@ -67,6 +82,7 @@ func _ready() -> void:
 	horde.name = "Horde"
 	add_child(horde)
 	horde.setup(layout, defense, effects, zombie_types)
+	explosions.setup(horde, defense, effects, defender, layout)
 	for data: ZombieData in zombie_types:
 		horde.prewarm(data.id, prewarm_count)
 	director = WaveDirector.new()
@@ -87,6 +103,8 @@ func _ready() -> void:
 	Events.zombie_killed.connect(_on_zombie_killed)
 	Events.wave_started.connect(_on_wave_started)
 	Events.wave_cleared.connect(_on_wave_cleared)
+	Events.grenade_thrown.connect(_on_grenade_thrown)
+	Events.explosion.connect(_on_explosion)
 	stats.waves_total = director.wave_count()
 	apply_quality(Graphics.tier, Graphics.profile())
 
@@ -293,7 +311,9 @@ func begin_match() -> void:
 	stats.waves_total = director.wave_count()
 	defender.aim.reset()
 	defender.set_input_enabled(true)
+	Events.weapon_changed.emit(defender.weapon_index, defender.weapon)
 	Events.ammo_changed.emit(defender.weapon.state.ammo, defender.weapon.data.magazine_size)
+	Events.grenades_changed.emit(defender.grenade_count, defender.grenade_data.capacity)
 	director.begin()
 	Events.match_started.emit()
 
@@ -326,12 +346,31 @@ func _on_wave_started(index: int, _total: int) -> void:
 	Sound.play("wave_horn", -4.0)
 
 
-func _on_wave_cleared(index: int, _total: int) -> void:
+func _on_wave_cleared(index: int, total: int) -> void:
 	stats.waves_cleared = index + 1
+	# Nothing is handed out after the last wave: there is nobody left to use it on.
+	if index + 1 >= total or over or wave_set == null or index >= wave_set.waves.size():
+		return
+	var wave: WaveData = wave_set.waves[index]
+	var taken: Dictionary = defender.resupply(wave.resupply_rockets, wave.resupply_grenades)
+	if taken.rockets > 0 or taken.grenades > 0:
+		Sound.play("resupply", -5.0)
+		Events.resupplied.emit(taken.rockets, taken.grenades)
 
 
-func _on_weapon_fired(_weapon: Node) -> void:
-	stats.shots += 1
+func _on_weapon_fired(weapon: Node) -> void:
+	if (weapon as Weapon).data.counts_for_accuracy():
+		stats.shots += 1
+	else:
+		stats.rockets += 1
+
+
+func _on_grenade_thrown(_target: Vector3) -> void:
+	stats.grenades += 1
+
+
+func _on_explosion(_at: Vector3, _radius: float, kills: int) -> void:
+	stats.blast_kills += kills
 
 
 func _on_zombie_hit(_at: Vector3, _headshot: bool, _lethal: bool) -> void:

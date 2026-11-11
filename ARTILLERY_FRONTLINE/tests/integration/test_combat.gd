@@ -132,7 +132,7 @@ func run(t: TestContext) -> void:
 	t.equal(level.stats.shots, shots, "match statistics count the shots")
 	t.check(level.defender.aim.recoil_pitch > 0.0, "firing kicks the aim upward")
 	# Convergence: with no spread, a round from either muzzle heads for the crosshair point.
-	var sight: Vector3 = weapon._sight_point()
+	var sight: Vector3 = weapon.sight_point()
 	var view: Vector3 = level.defender.view_direction()
 	var eye: Vector3 = level.defender.camera.global_position
 	t.check((sight - eye).normalized().dot(view) > 0.9999, "the convergence point lies on the sight line")

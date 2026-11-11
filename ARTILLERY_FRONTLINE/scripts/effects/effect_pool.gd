@@ -1,7 +1,7 @@
 class_name EffectPool
 extends Node3D
-## Pooled one-shot particle bursts (blood, dust, sparks, breach smoke). Nothing
-## is allocated during play: a burst re-arms the next emitter of its kind.
+## Pooled one-shot particle bursts (blood, dust, sparks, smoke, explosions).
+## Nothing is allocated during play: a burst re-arms the next emitter of its kind.
 
 const KINDS: Dictionary = {
 	"blood": {"count": 12, "amount": 10, "life": 0.45, "speed": Vector2(1.8, 5.0), "spread": 38.0, "gravity": -9.0,
@@ -14,6 +14,16 @@ const KINDS: Dictionary = {
 		"size": Vector2(0.07, 0.16), "color": Color(1.0, 0.72, 0.3, 1.0), "grow": 0.4, "additive": true},
 	"smoke": {"count": 4, "amount": 26, "life": 2.6, "speed": Vector2(1.0, 4.5), "spread": 80.0, "gravity": 0.5,
 		"size": Vector2(1.2, 2.8), "color": Color(0.42, 0.4, 0.37, 0.6), "grow": 2.4, "additive": false},
+	# The three layers of an explosion: a fireball that burns out, the smoke it leaves and what it throws.
+	"fireball": {"count": 5, "amount": 16, "life": 0.55, "speed": Vector2(1.5, 6.5), "spread": 180.0, "gravity": 2.0,
+		"size": Vector2(1.3, 2.6), "color": Color(1.0, 0.78, 0.36, 0.95), "end": Color(0.55, 0.1, 0.02, 0.0), "grow": 2.0,
+		"additive": true},
+	"blast_smoke": {"count": 5, "amount": 14, "life": 2.6, "speed": Vector2(0.8, 3.6), "spread": 75.0, "gravity": 0.9,
+		"size": Vector2(1.6, 3.2), "color": Color(0.13, 0.12, 0.115, 0.72), "end": Color(0.3, 0.29, 0.28, 0.0), "grow": 2.4,
+		"additive": false},
+	"debris": {"count": 5, "amount": 18, "life": 1.15, "speed": Vector2(6.0, 17.0), "spread": 62.0, "gravity": -15.0,
+		"size": Vector2(0.09, 0.22), "color": Color(0.1, 0.09, 0.08, 1.0), "end": Color(0.1, 0.09, 0.08, 0.6), "grow": 1.0,
+		"additive": false},
 }
 
 var emitters: Dictionary = {}
@@ -42,7 +52,7 @@ func _ready() -> void:
 		mesh.material = material
 		var fade := Gradient.new()
 		fade.set_color(0, spec.color)
-		fade.set_color(1, Color(spec.color.r, spec.color.g, spec.color.b, 0.0))
+		fade.set_color(1, spec.get("end", Color(spec.color.r, spec.color.g, spec.color.b, 0.0)))
 		var growth := Curve.new()
 		growth.add_point(Vector2(0.0, 1.0 / maxf(spec.grow, 1.0)))
 		growth.add_point(Vector2(1.0, minf(1.0, spec.grow)))

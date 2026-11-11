@@ -18,6 +18,7 @@ func run(t: TestContext) -> void:
 			growing = false
 		previous = wave.total()
 		t.check(wave.max_alive >= 10 and wave.intermission >= 0.0, "wave %d has sane limits" % (index + 1))
+		t.check(wave.resupply_rockets >= 0 and wave.resupply_grenades >= 0, "wave %d hands out no negative supplies" % (index + 1))
 		var valid: bool = true
 		for group: SpawnGroup in wave.groups:
 			if not known.has(String(group.zombie)):

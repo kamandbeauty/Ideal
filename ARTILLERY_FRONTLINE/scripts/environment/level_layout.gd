@@ -6,6 +6,8 @@ extends Resource
 
 @export var mount_position: Vector3 = Vector3.ZERO
 @export var eye_position: Vector3 = Vector3(0.0, 1.6, 0.0)
+## Distance from the centre line of the court to the inner face of either wall arm.
+@export var court_half_width: float = 17.0
 ## name -> {"points": PackedVector3Array, "widths": PackedFloat32Array}; the first point is the spawn.
 @export var routes: Dictionary = {}
 ## side -> {"position": Vector3, "width": float}: where a route enters the court.

@@ -114,6 +114,8 @@ script = ExtResource("2_3m85i")
 groups = Array[ExtResource("3_ct8fd")]([SubResource("Resource_62ict"), SubResource("Resource_llf87"), SubResource("Resource_5kcmj"), SubResource("Resource_0x2ej")])
 max_alive = 48
 intermission = 8.0
+resupply_rockets = 2
+resupply_grenades = 2
 
 [sub_resource type="Resource" id="Resource_woqc6"]
 script = ExtResource("3_ct8fd")

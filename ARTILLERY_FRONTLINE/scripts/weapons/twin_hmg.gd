@@ -1,17 +1,15 @@
 class_name TwinHmg
-extends Node3D
-## The mounted twin heavy machine gun: aims the barrel group of the model,
-## alternates barrels, and feeds rounds to the bullet pool. Cadence, ammunition
-## and reload live in WeaponState; this node is the visible half.
+extends Weapon
+## The mounted twin heavy machine gun: turns the cradle and tips the barrel
+## group of the model, alternates barrels, and feeds rounds to the bullet
+## pool. Cadence, ammunition and reload live in WeaponState.
 
-signal shot_fired(barrel: int)
+## How far the gun sinks below the parapet while another weapon is in hand.
+const STOW_DROP: float = 1.05
 
-@export var data: WeaponData
-
-var state: WeaponState
-var bullets: BulletPool
-## Sight line for convergence. Without it the rounds fly parallel to the bores.
-var camera: Camera3D
+var model: Node3D
+## The cradle turns on the pedestal; the barrel group tips inside the cradle.
+var mount: Node3D
 var pivot: Node3D
 var recoilers: Array[Node3D] = []
 var rest_z: Array[float] = []
@@ -23,22 +21,13 @@ var casings: Array[CPUParticles3D] = []
 var ammo_cans: Array[Node3D] = []
 var can_rest: Array[Vector3] = []
 var light: OmniLight3D
-var trigger: bool = false
 var barrel: int = 0
-var since_shot: float = 10.0
-var dry_cooldown: float = 0.0
-var rng := RandomNumberGenerator.new()
-var sight_query := PhysicsRayQueryParameters3D.new()
 
 
-func _ready() -> void:
-	if data == null:
-		data = WeaponData.new()
-	state = WeaponState.new(data)
-	state.reload_started.connect(_on_reload_started)
-	state.reload_finished.connect(_on_reload_finished)
-	rng.randomize()
+func _build() -> void:
+	model = get_node("Model")
 	pivot = find_child("BarrelPivot", true, false)
+	mount = pivot.get_parent()
 	for side: String in ["L", "R"]:
 		var slide: Node3D = pivot.get_node("Recoil" + side)
 		recoilers.append(slide)
@@ -58,8 +47,6 @@ func _ready() -> void:
 	light.shadow_enabled = false
 	light.position = Vector3(0.0, 0.1, 2.0)
 	pivot.add_child(light)
-	sight_query.collision_mask = Layers.BULLET_MASK
-	sight_query.collide_with_areas = true
 
 
 func _build_flash(muzzle: Node3D) -> void:
@@ -118,18 +105,10 @@ func _build_casings(port: Node3D, side: float) -> void:
 	casings.append(emitter)
 
 
-## Yaw is positive to the right, pitch positive upward, both in degrees.
 func set_aim(yaw_degrees: float, pitch_degrees: float) -> void:
-	# The model faces +Z and sits under a half-turn, which flips both signs.
-	pivot.rotation = Vector3(-deg_to_rad(pitch_degrees), -deg_to_rad(yaw_degrees), 0.0)
-
-
-func set_trigger(pressed: bool) -> void:
-	trigger = pressed
-
-
-func request_reload() -> bool:
-	return state.start_reload()
+	# The model faces +Z and sits under a half-turn, which flips the sign of the tilt.
+	mount.rotation.y = -deg_to_rad(yaw_degrees)
+	pivot.rotation = Vector3(-deg_to_rad(pitch_degrees), 0.0, 0.0)
 
 
 ## Unit vector along the bores, in world space.
@@ -137,25 +116,10 @@ func bore_direction() -> Vector3:
 	return pivot.global_basis.z.normalized()
 
 
-func _physics_process(delta: float) -> void:
-	state.step(delta)
-	since_shot += delta
-	dry_cooldown = maxf(0.0, dry_cooldown - delta)
-	if not trigger:
-		return
-	var guard: int = 4
-	while guard > 0 and state.try_fire():
-		guard -= 1
-		_shoot()
-	if state.reloading and since_shot > 0.2 and dry_cooldown <= 0.0:
-		dry_cooldown = 0.45
-		Sound.play("dry_fire", -8.0)
-
-
-func _shoot() -> void:
+func _fire_round() -> void:
 	var muzzle: Node3D = muzzles[barrel]
 	var origin: Vector3 = muzzle.global_position
-	var direction: Vector3 = _scatter((_sight_point() - origin).normalized())
+	var direction: Vector3 = scatter((sight_point() - origin).normalized())
 	if bullets:
 		bullets.fire(origin, direction * data.muzzle_velocity, data.damage, data.max_range, state.shots % data.tracer_every == 0,
 			data.penetration, data.penetration_damage_scale, data.headshot_multiplier)
@@ -165,43 +129,12 @@ func _shoot() -> void:
 	flash.visible = true
 	flash.scale = Vector3.ONE * rng.randf_range(0.75, 1.3)
 	light.light_energy = 2.6
-	since_shot = 0.0
 	Sound.play("hmg_shot", -5.0, rng.randf_range(0.95, 1.05))
 	shot_fired.emit(barrel)
-	Events.weapon_fired.emit(self)
-	Events.ammo_changed.emit(state.ammo, data.magazine_size)
 	barrel = 1 - barrel
 
 
-## The point the crosshair rests on, so both barrels converge on what the player sees.
-func _sight_point() -> Vector3:
-	var forward: Vector3 = bore_direction()
-	if camera == null or not is_inside_tree():
-		return muzzles[barrel].global_position + forward * 200.0
-	var from: Vector3 = camera.global_position
-	sight_query.from = from
-	sight_query.to = from + forward * data.max_range
-	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(sight_query)
-	var distance: float = 200.0
-	if not hit.is_empty():
-		distance = from.distance_to(hit.position)
-	return from + forward * maxf(distance, data.min_convergence)
-
-
-func _scatter(direction: Vector3) -> Vector3:
-	if data.spread_degrees <= 0.0:
-		return direction
-	var side: Vector3 = direction.cross(Vector3.UP)
-	if side.length_squared() < 0.0001:
-		side = Vector3.RIGHT
-	side = side.normalized()
-	var up: Vector3 = side.cross(direction)
-	var radius: float = tan(deg_to_rad(data.spread_degrees)) * sqrt(rng.randf())
-	var angle: float = rng.randf() * TAU
-	return (direction + (side * cos(angle) + up * sin(angle)) * radius).normalized()
-
-
-func _process(delta: float) -> void:
+func _animate(delta: float) -> void:
 	for index: int in recoilers.size():
 		kick[index] = move_toward(kick[index], 0.0, delta * 0.55)
 		recoilers[index].position.z = rest_z[index] - kick[index]
@@ -220,11 +153,10 @@ func _process(delta: float) -> void:
 		ammo_cans[index].position = can_rest[index] + Vector3(0.0, -dip, 0.0)
 
 
-func _on_reload_started(duration: float) -> void:
-	Sound.play("reload", -3.0)
-	Events.reload_started.emit(duration)
-
-
-func _on_reload_finished() -> void:
-	Events.reload_finished.emit()
-	Events.ammo_changed.emit(state.ammo, data.magazine_size)
+func _pose() -> void:
+	if model == null:
+		return
+	# Put away, the gun drops below the parapet: the gunner has stepped up to shoulder something else.
+	var up: float = smoothstep(0.0, 1.0, readiness)
+	model.position.y = -STOW_DROP * (1.0 - up)
+	model.visible = readiness > 0.001

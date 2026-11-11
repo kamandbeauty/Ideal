@@ -101,18 +101,31 @@ func _on_match_finished(victory: bool, stats: Dictionary) -> void:
 	menus.show_result(victory, stats)
 
 
+## Android's back button (and Escape in the menus): one step back from
+## wherever the player is. False when there is nowhere left to go back to.
+func go_back() -> bool:
+	if mode == Mode.PLAYING:
+		pause()
+	elif mode == Mode.PAUSED:
+		if menus.screen == "settings":
+			menus.show_pause()
+		else:
+			resume()
+	elif menus.screen == "settings":
+		menus.show_main()
+	elif mode == Mode.RESULT:
+		to_menu()
+	else:
+		return false
+	return true
+
+
 func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_GO_BACK_REQUEST:
-			if mode == Mode.PLAYING:
-				pause()
-			elif mode == Mode.PAUSED:
-				if menus.screen == "settings":
-					menus.show_pause()
-				else:
-					resume()
-			elif menus.screen == "settings":
-				menus.show_main()
+			# Back on the title screen leaves the game, as Android users expect.
+			if not go_back():
+				get_tree().quit()
 		NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_FOCUS_OUT:
 			if mode == Mode.PLAYING:
 				pause()

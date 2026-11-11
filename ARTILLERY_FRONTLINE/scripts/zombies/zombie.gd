@@ -6,6 +6,8 @@ extends Node3D
 enum State { POOLED, ADVANCE, WAIT, ATTACK, BREACH, DYING, CORPSE }
 
 const LOOPING: Array[String] = ["walk", "idle", "attack"]
+## A blast throws a body over this long.
+const KNOCK_TIME: float = 0.38
 
 var data: ZombieData
 var horde: Horde
@@ -26,6 +28,11 @@ var attack_clock: float = 0.0
 var attack_landed: bool = false
 var flinch_left: float = 0.0
 var stagger_left: float = 0.0
+## Time left reeling from a blast: neither walking nor striking.
+var reel_left: float = 0.0
+## What a blast still has to push this body, and for how long.
+var knock := Vector3.ZERO
+var knock_left: float = 0.0
 var retry_left: float = 0.0
 var facing_goal: float = 0.0
 var current_clip: String = ""
@@ -137,6 +144,8 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	timer = 0.0
 	flinch_left = 0.0
 	stagger_left = 0.0
+	reel_left = 0.0
+	knock_left = 0.0
 	retry_left = rng.randf_range(0.2, 0.8)
 	blows = 0
 	scale = Vector3.ONE * rng.randf_range(data.scale_min, data.scale_max)
@@ -199,6 +208,17 @@ func enter_breach(route: PackedVector3Array) -> void:
 
 
 func tick(delta: float) -> void:
+	if knock_left > 0.0:
+		# Thrown by a blast: the push fades out as the body goes down.
+		var share: float = minf(delta, knock_left) / KNOCK_TIME
+		position += knock * share
+		knock_left -= delta
+	if reel_left > 0.0:
+		reel_left -= delta
+		if alive:
+			if reel_left <= 0.0:
+				_resume_clip()
+			return
 	match state:
 		State.ADVANCE:
 			if _walk(delta, 1.0):
@@ -321,6 +341,32 @@ func take_hit(amount: float, headshot: bool, _at: Vector3, direction: Vector3) -
 	return false
 
 
+## Area damage. `share` is 1 at the heart of the blast and falls toward its
+## edge; it scales how long a survivor reels and how far a body is thrown.
+## Returns true when the blast kills.
+func take_blast(amount: float, origin: Vector3, share: float, blast: ExplosionData) -> bool:
+	if not alive:
+		return false
+	health -= amount
+	var away := Vector3(position.x - origin.x, 0.0, position.z - origin.z)
+	if away.length_squared() < 0.0004:
+		away = -Vector3(sin(rotation.y), 0.0, cos(rotation.y))
+	away = away.normalized()
+	if health <= 0.0:
+		knock = horde.clamp_throw(position, away * blast.knockback * share) if horde else away * blast.knockback * share
+		knock_left = KNOCK_TIME
+		_die(false, away)
+		return true
+	reel_left = maxf(reel_left, maxf(0.25, blast.stagger_time * share))
+	flinch_left = reel_left + 0.3
+	stagger_left = 0.0
+	if anim and anim.has_animation("hit"):
+		current_clip = "hit"
+		anim.play("hit", 0.06, 1.0)
+		anim.speed_scale = clampf(anim.get_animation("hit").length / reel_left, 0.35, 1.4)
+	return false
+
+
 func kill(headshot: bool = false, direction: Vector3 = Vector3.BACK) -> void:
 	if alive:
 		_die(headshot, direction)
@@ -331,6 +377,7 @@ func _die(headshot: bool, direction: Vector3) -> void:
 	state = State.DYING
 	_set_hittable(false)
 	stagger_left = 0.0
+	reel_left = 0.0
 	horde.release_place(self)
 	# Shot from the front it goes over backwards; caught from behind or the side it pitches forward.
 	var forward := Vector3(sin(rotation.y), 0.0, cos(rotation.y))

@@ -2,7 +2,7 @@
 """Synthesize the game's sound effects. Every clip is generated from
 oscillators and filtered noise; nothing is sampled or downloaded.
 
-    python3 tools/build_audio.py            the zombie-siege clips
+    python3 tools/build_audio.py            the siege clips: guns, explosives, zombies, wall, signals
     python3 tools/build_audio.py --base     also re-render the base set (slow: pure Python)
 
 Requires numpy and scipy. Output: assets/audio/*.wav (24 kHz, mono, 16-bit).
@@ -210,9 +210,66 @@ def signals():
     write("wave_clear", chime, 0.7)
 
 
+def blast(seconds, seed, weight=1.0, crack_rate=22.0):
+    """An explosion: the crack of the charge, a falling boom, rolling rumble and the patter of debris."""
+    crack = highpass(noise(seconds, seed), 1100) * decay(seconds, crack_rate, 0.001)
+    body = lowpass(noise(seconds, seed + 1), 1500) * decay(seconds, 7.0 / weight, 0.002)
+    boom = sweep(seconds, 96.0 / weight, 30.0, curve=0.6) * decay(seconds, 3.4 / weight, 0.004)
+    rumble = lowpass(noise(seconds, seed + 2), 260) * decay(seconds, 2.2 / weight, 0.02) * (0.6 + np.abs(lowpass(noise(seconds, seed + 3), 14)) * 5.0)
+    patter = highpass(noise(seconds, seed + 4), 2800) * np.clip(lowpass(noise(seconds, seed + 5), 30) * 9.0, 0.0, 1.0) \
+        * envelope(seconds, 0.12, seconds * 0.8) * 0.22
+    return np.tanh((crack * 1.3 + body * 1.5 + boom * 2.4 * weight + rumble * 1.6 + patter) * 1.5)
+
+
+def explosives():
+    write("explosion", blast(2.6, 201, 1.0), 0.97)
+    write("explosion_small", blast(1.7, 211, 0.72, 30.0), 0.95)
+    # Rocket leaving the tube: the pop of the booster, then the motor tearing away down the street.
+    seconds = 1.2
+    x = t(seconds)
+    pop = lowpass(noise(seconds, 221), 2200) * decay(seconds, 38, 0.001) * 1.6 + sweep(seconds, 170, 55) * decay(seconds, 16) * 1.2
+    centre = 2600.0 * np.exp(-x * 2.4) + 420.0
+    roar = np.zeros_like(x)
+    hiss = noise(seconds, 222)
+    for low, high, gain in ((300, 900, 1.0), (900, 2400, 0.8), (2400, 6000, 0.5)):
+        band = bandpass(hiss, low, high)
+        roar += band * gain * np.exp(-((np.log(centre) - np.log((low * high) ** 0.5)) ** 2) * 1.4)
+    roar *= np.minimum(x / 0.03, 1.0) * np.exp(-x * 3.1) * (1.0 + 0.25 * np.sin(2 * np.pi * 47 * x))
+    write("rocket", np.tanh((pop + roar * 2.6) * 1.4), 0.9)
+    # Grenade leaving the hand: a sleeve of air and the ping of the lever flying off.
+    seconds = 0.34
+    x = t(seconds)
+    air = bandpass(noise(seconds, 231), 500, 2600) * np.sin(np.pi * np.clip(x / 0.26, 0.0, 1.0)) ** 2
+    ping = np.sin(2 * np.pi * 3150 * x) * np.exp(-np.clip(x - 0.04, 0.0, None) * 60.0) * (x >= 0.04) * 0.35
+    write("grenade_throw", air + ping, 0.6)
+    # Cast iron on paving.
+    seconds = 0.22
+    x = t(seconds)
+    clink = sum(np.sin(2 * np.pi * freq * x + index) * np.exp(-x * (38.0 + index * 9.0)) / (1.0 + index * 0.5)
+                for index, freq in enumerate((1740, 2890, 4370, 5960)))
+    knock = sweep(seconds, 210, 90) * decay(seconds, 45) * 0.9 + bandpass(noise(seconds, 241), 900, 4200) * decay(seconds, 95) * 0.6
+    write("grenade_bounce", clink * 0.7 + knock, 0.7)
+    # One weapon put away and another brought up: webbing, then metal seating.
+    seconds = 0.36
+    swap = np.zeros(int(RATE * seconds))
+    place(swap, bandpass(noise(0.12, 251), 300, 1800) * envelope(0.12, 0.03, 0.08) * 0.7, 0.0)
+    place(swap, bandpass(noise(0.07, 252), 1500, 5200) * decay(0.07, 70) + sweep(0.07, 380, 180) * decay(0.07, 50) * 0.8, 0.17)
+    place(swap, bandpass(noise(0.05, 253), 2200, 6000) * decay(0.05, 110) * 0.6, 0.26)
+    write("weapon_switch", swap, 0.6)
+    # Ammunition handed up: two crate latches and a bright confirmation.
+    seconds = 0.75
+    crate = np.zeros(int(RATE * seconds))
+    for index, at in enumerate((0.0, 0.13)):
+        place(crate, clang(0.3, (420 + index * 60, 990, 1730 + index * 110), 261 + index, 22.0) * 0.6, at)
+    for index, freq in enumerate((659.3, 987.8)):
+        note = (np.sin(2 * np.pi * freq * t(0.42)) + 0.3 * np.sin(2 * np.pi * freq * 2.0 * t(0.42))) * decay(0.42, 8.0, 0.004)
+        place(crate, note * 0.55, 0.28 + index * 0.1)
+    write("resupply", crate, 0.65)
+
+
 def base_set():
     """The simple per-sample clips carried over from the first sound pass:
-    interface click, impacts, explosion, reload, wind bed and the music loop."""
+    interface click, impacts, reload, wind bed and the music loop."""
     import math
     import random
     import struct
@@ -238,7 +295,6 @@ def base_set():
         print("audio %-18s %.2fs" % (name, duration))
 
     sin, exp, pi = math.sin, math.exp, math.pi
-    render("explosion", 2.8, lambda x, n, l, l2: (l2 * 5 + l * 0.8) * exp(-x * 1.8) + sin(2 * pi * 38 * x) * 0.4 * exp(-x * 3) + n * 0.22 * exp(-x * 12))
     render("reload", 0.8, lambda x, n, l, l2: sum(exp(-max(0, x - a) * 35) * (sin(2 * pi * f * x) * 0.3 + n * 0.2)
                                                  for a, f in [(0, 430), (0.24, 720), (0.53, 240)] if x >= a))
     render("click", 0.09, lambda x, n, l, l2: sin(2 * pi * 880 * x) * exp(-x * 55) * 0.4)
@@ -272,6 +328,7 @@ def main():
     zombies()
     defenses()
     signals()
+    explosives()
 
 
 if __name__ == "__main__":

@@ -59,6 +59,8 @@ class RoundButton:
 	var held: bool = false
 	var progress: float = 1.0
 	var tint: Color = UITheme.AMBER
+	## Drawn faint: the button has nothing to give right now.
+	var dim: bool = false
 
 	func _init(button_kind: String = "fire", button_radius: float = 60.0) -> void:
 		kind = button_kind
@@ -83,18 +85,34 @@ class RoundButton:
 			progress = value
 			queue_redraw()
 
+	func set_dim(value: bool) -> void:
+		if dim != value:
+			dim = value
+			queue_redraw()
+
 	func _draw() -> void:
 		var middle: Vector2 = size * 0.5
 		var fill := Color(0.05, 0.05, 0.055, 0.5)
 		if held:
 			fill = Color(tint.r, tint.g, tint.b, 0.42)
+		var strength: float = 0.4 if dim else 1.0
 		draw_circle(middle, radius, fill)
-		draw_arc(middle, radius, 0.0, TAU, 64, Color(tint.r, tint.g, tint.b, 0.95 if held else 0.7), 3.0, true)
+		draw_arc(middle, radius, 0.0, TAU, 64, Color(tint.r, tint.g, tint.b, (0.95 if held else 0.7) * strength), 3.0, true)
 		draw_arc(middle, radius - 7.0, 0.0, TAU, 64, Color(1.0, 1.0, 1.0, 0.12), 1.5, true)
 		if progress < 1.0:
 			draw_arc(middle, radius - 3.0, -PI * 0.5, -PI * 0.5 + TAU * progress, 48, Color(1.0, 1.0, 1.0, 0.9), 5.0, true)
-		var ink := Color(1.0, 0.97, 0.9, 0.95)
+		var ink := Color(1.0, 0.97, 0.9, 0.95 * strength)
 		match kind:
+			"grenade":
+				# Egg body, fuze cap, lever and the ring of the pin.
+				var body := PackedVector2Array()
+				for step: int in 20:
+					var angle: float = TAU * float(step) / 20.0
+					body.append(middle + Vector2(cos(angle) * radius * 0.3, sin(angle) * radius * 0.37 + radius * 0.1))
+				draw_colored_polygon(body, ink)
+				draw_rect(Rect2(middle.x - radius * 0.13, middle.y - radius * 0.46, radius * 0.26, radius * 0.22), ink)
+				draw_line(middle + Vector2(radius * 0.1, -radius * 0.42), middle + Vector2(radius * 0.42, -radius * 0.12), ink, 3.0, true)
+				draw_arc(middle + Vector2(-radius * 0.26, -radius * 0.4), radius * 0.11, 0.0, TAU, 16, ink, 2.5, true)
 			"fire":
 				var r: float = radius * 0.4
 				draw_arc(middle, r, 0.0, TAU, 40, ink, 3.0, true)
@@ -120,9 +138,16 @@ class Crosshair:
 	var kill: bool = false
 	var head: bool = false
 	var spread: float = 0.0
+	## "cross" for the machine gun, "rocket" for the launcher's ring sight.
+	var style: String = "cross"
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func set_style(value: String) -> void:
+		if style != value:
+			style = value
+			queue_redraw()
 
 	func mark(lethal: bool, headshot: bool) -> void:
 		hit_left = 0.22 if lethal else 0.14
@@ -146,9 +171,18 @@ class Crosshair:
 		var gap: float = 9.0 + spread
 		var ink := Color(1.0, 0.98, 0.92, 0.9)
 		var shade := Color(0.0, 0.0, 0.0, 0.55)
-		for direction: Vector2 in [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN]:
-			draw_line(middle + direction * gap, middle + direction * (gap + 12.0), shade, 4.5)
-			draw_line(middle + direction * gap, middle + direction * (gap + 12.0), ink, 2.0)
+		if style == "rocket":
+			# Ring sight with a drop mark below it.
+			var ring: float = 20.0 + spread
+			draw_arc(middle, ring, 0.0, TAU, 40, shade, 4.5, true)
+			draw_arc(middle, ring, 0.0, TAU, 40, ink, 2.0, true)
+			for direction: Vector2 in [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN]:
+				draw_line(middle + direction * ring, middle + direction * (ring + 9.0), shade, 4.5)
+				draw_line(middle + direction * ring, middle + direction * (ring + 9.0), ink, 2.0)
+		else:
+			for direction: Vector2 in [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN]:
+				draw_line(middle + direction * gap, middle + direction * (gap + 12.0), shade, 4.5)
+				draw_line(middle + direction * gap, middle + direction * (gap + 12.0), ink, 2.0)
 		draw_circle(middle, 2.6, shade)
 		draw_circle(middle, 1.5, ink)
 		if hit_left > 0.0:
@@ -189,3 +223,78 @@ class ThreatArrow:
 			middle + Vector2(-side * 2.0 + shift, 0.0), middle + Vector2(-side * 12.0 + shift, 30.0)])
 		draw_colored_polygon(points, tone)
 		draw_polyline(PackedVector2Array([points[0], points[1], points[2], points[3], points[0]]), Color(0, 0, 0, 0.6), 2.0, true)
+
+
+class WeaponSlot:
+	extends Control
+	## One weapon of the gunner: a card with its outline. The HUD's router
+	## hit-tests it with `contains` and writes the round count on a label above it.
+	var kind: String = "bullet"
+	var active: bool = false
+	var spent: bool = false
+	var progress: float = 1.0
+	var refused: float = 0.0
+
+	func _init(weapon_kind: String = "bullet") -> void:
+		kind = weapon_kind
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		custom_minimum_size = Vector2(132, 58)
+		size = custom_minimum_size
+
+	func contains(point: Vector2, slack: float = 6.0) -> bool:
+		return visible and Rect2(global_position, size).grow(slack).has_point(point)
+
+	func center() -> Vector2:
+		return global_position + size * 0.5
+
+	func set_state(is_active: bool, is_spent: bool, reload_progress: float) -> void:
+		if active != is_active or spent != is_spent or not is_equal_approx(progress, reload_progress):
+			active = is_active
+			spent = is_spent
+			progress = reload_progress
+			queue_redraw()
+
+	## Flashes red: the player asked for a weapon that has nothing left.
+	func refuse() -> void:
+		refused = 0.5
+		queue_redraw()
+
+	func _process(delta: float) -> void:
+		if refused > 0.0:
+			refused = maxf(0.0, refused - delta)
+			queue_redraw()
+
+	func _draw() -> void:
+		var area := Rect2(Vector2.ZERO, size)
+		var edge: Color = UITheme.AMBER if active else Color(0.9, 0.86, 0.76, 0.45)
+		if refused > 0.0:
+			edge = UITheme.RED
+		var fill := Color(0.05, 0.05, 0.055, 0.62 if active else 0.42)
+		if active:
+			fill = Color(UITheme.AMBER.r * 0.22, UITheme.AMBER.g * 0.2, UITheme.AMBER.b * 0.12, 0.66)
+		draw_rect(area, fill)
+		draw_rect(area, edge, false, 3.0 if active else 1.5)
+		var ink := Color(1.0, 0.97, 0.9, 0.95 if active else 0.7)
+		if spent:
+			ink.a = 0.28
+		var base := Vector2(12.0, size.y * 0.5)
+		if kind == "rocket":
+			# Tube, flared venturi, grips and the warhead.
+			draw_line(base + Vector2(14.0, 0.0), base + Vector2(66.0, 0.0), ink, 6.0)
+			draw_colored_polygon(PackedVector2Array([base + Vector2(0.0, -8.0), base + Vector2(16.0, -3.0), base + Vector2(16.0, 3.0),
+				base + Vector2(0.0, 8.0)]), ink)
+			draw_line(base + Vector2(34.0, 3.0), base + Vector2(31.0, 16.0), ink, 4.0)
+			draw_line(base + Vector2(48.0, 3.0), base + Vector2(45.0, 16.0), ink, 4.0)
+			draw_colored_polygon(PackedVector2Array([base + Vector2(66.0, -2.5), base + Vector2(74.0, -8.5), base + Vector2(84.0, -7.0),
+				base + Vector2(100.0, 0.0), base + Vector2(84.0, 7.0), base + Vector2(74.0, 8.5), base + Vector2(66.0, 2.5)]), ink)
+		else:
+			# Twin barrels on a cradle with its pedestal.
+			for offset: float in [-7.0, 7.0]:
+				draw_line(base + Vector2(30.0, offset), base + Vector2(100.0, offset), ink, 3.0)
+				draw_rect(Rect2(base.x + 6.0, base.y + offset - 4.5, 34.0, 9.0), ink)
+				draw_rect(Rect2(base.x + 92.0, base.y + offset - 3.0, 8.0, 6.0), ink)
+			draw_rect(Rect2(base.x + 0.0, base.y - 3.0, 10.0, 6.0), ink)
+			draw_colored_polygon(PackedVector2Array([base + Vector2(18.0, 12.0), base + Vector2(30.0, 12.0), base + Vector2(34.0, 22.0),
+				base + Vector2(14.0, 22.0)]), ink)
+		if progress < 1.0:
+			draw_rect(Rect2(0.0, size.y - 5.0, size.x * progress, 5.0), Color(1.0, 1.0, 1.0, 0.85))

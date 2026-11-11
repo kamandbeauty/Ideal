@@ -24,10 +24,12 @@ func group(zombie: StringName, count: int, start: float, interval: float, routes
 	return entry
 
 
-func wave(max_alive: int, intermission: float, groups: Array) -> WaveData:
+func wave(max_alive: int, intermission: float, groups: Array, rockets: int = 1, grenades: int = 1) -> WaveData:
 	var data := WaveData.new()
 	data.max_alive = max_alive
 	data.intermission = intermission
+	data.resupply_rockets = rockets
+	data.resupply_grenades = grenades
 	var typed: Array[SpawnGroup] = []
 	for entry: SpawnGroup in groups:
 		typed.append(entry)
@@ -61,7 +63,7 @@ func _init() -> void:
 			group(&"walker", 12, 3.0, 1.1, NEAR_LEFT, "wall"),
 			group(&"walker", 12, 10.0, 0.9, NEAR_RIGHT, "gate", 2),
 			group(&"walker", 12, 22.0, 0.8, [], "any"),
-		]),
+		], 2, 2),
 		wave(54, 8.0, [
 			group(&"walker", 20, 0.0, 0.7, AVENUE, "gate", 2),
 			group(&"walker", 16, 2.0, 0.9, NEAR_LEFT + ["cross_left"], "wall"),

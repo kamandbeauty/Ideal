@@ -39,9 +39,21 @@ func _run() -> void:
 			only = argument.trim_prefix("--only=")
 		elif argument.begins_with("--report="):
 			report_path = argument.trim_prefix("--report=")
+	var residents: Array[Node] = root.get_children()
 	for path: String in _suites():
 		if only != "" and not path.contains(only):
 			continue
+		# A suite that stopped on an error may have left its level behind; it must not leak into the next one.
+		var leftovers: int = 0
+		for node: Node in root.get_children():
+			if not residents.has(node):
+				node.queue_free()
+				leftovers += 1
+		if leftovers > 0:
+			paused = false
+			Engine.time_scale = 1.0
+			await process_frame
+			await process_frame
 		context.suite = path.get_file().get_basename()
 		var script: Script = load(path)
 		if script == null or not script.can_instantiate():

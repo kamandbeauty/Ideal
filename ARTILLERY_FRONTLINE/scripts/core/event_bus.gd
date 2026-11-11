@@ -16,6 +16,15 @@ signal wall_breached
 ## kind: gate_attack, wall_attack, gate_half, gate_critical, wall_half, wall_critical
 signal defense_warning(kind: String)
 signal weapon_fired(weapon: Node)
+## The gunner took another weapon in hand.
+signal weapon_changed(index: int, weapon: Node)
+## The player asked for a weapon with nothing left to fire.
+signal weapon_refused(index: int)
+signal grenades_changed(count: int, capacity: int)
+signal grenade_thrown(target: Vector3)
+signal explosion(position: Vector3, radius: float, kills: int)
+## Rockets and grenades handed over after a wave; only what actually fitted.
+signal resupplied(rockets: int, grenades: int)
 signal ammo_changed(ammo: int, magazine: int)
 signal reload_started(duration: float)
 signal reload_finished
