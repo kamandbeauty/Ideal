@@ -59,6 +59,9 @@ for path, text in texts.items():
     for found in re.findall(r"res://[A-Za-z0-9_./\-]+", text):
         if "%" in found or found.endswith("/") or found in ("res://", "res://..") or found.startswith("res://.."):
             continue
+        if found.startswith("res://documentation/"):
+            # Reports and pictures the tools write there; they do not exist before a run.
+            continue
         # A path that is completed in code ("res://assets/audio/" + name) ends on a separator and was skipped above.
         target = root / found[len("res://"):]
         named += 1
