@@ -1,5 +1,5 @@
 {
-  "checks": 551,
+  "checks": 841,
   "engine": "4.7.2-stable (official)",
   "failures": [],
   "game": "LAST WALL: Zombie Siege",
@@ -8,8 +8,11 @@
   "suites": {
     "test_aim": 46,
     "test_attack_lines": 28,
+    "test_ballistics": 21,
     "test_combat": 37,
     "test_defense": 30,
+    "test_explosion": 47,
+    "test_explosives": 193,
     "test_horde": 50,
     "test_hud": 57,
     "test_layout": 68,
@@ -18,8 +21,8 @@
     "test_save": 28,
     "test_scenes": 59,
     "test_siege": 21,
-    "test_waves": 40,
-    "test_weapon_state": 24
+    "test_waves": 45,
+    "test_weapon_state": 48
   },
   "version": "0.2.0"
 }
