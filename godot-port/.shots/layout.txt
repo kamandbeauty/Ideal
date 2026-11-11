@@ -38,7 +38,7 @@ STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(738.0, 415.
 LAYOUT board :: 0 control(s) escape their parent
 STRIP 15-burst-strip 1900x766 frames=10
 STRIP start :: screen=BoardScreen:<Control#54140077654>
-STRIP move :: [(7, 0), (8, 0)]
+STRIP move :: [(0, 0), (1, 0)]
 STRIP board :: board:<Control#61723379452>
 STRIP frame 0 :: (142, 110)
 STRIP frame 1 :: (142, 110)
