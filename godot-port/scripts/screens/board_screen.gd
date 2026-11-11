@@ -119,7 +119,7 @@ func build() -> void:
 	# The moves counter is the one figure a player checks every second, so it is the biggest thing on
 	# the rail, with the icon the port already ships beside it.
 	UiKit.icon(goals_rail, "moves_icon", "icon_moves", rail_x + 2.0, 52.0, 22.0, 22.0)
-	_moves_label = UiKit.label(goals_rail, "moves", "", UiTokens.TYPE_LG, UiTokens.INK,
+	_moves_label = UiKit.label(goals_rail, "moves", "", UiTokens.TYPE_XL, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(_moves_label, rail_x + 24.0, 46.0, rail_w - 24.0, 34.0)
 
@@ -134,8 +134,8 @@ func build() -> void:
 		goals_rail.add_child(chip)
 		UiKit.place(chip, rail_x, y, rail_w, GOAL_ROW_PITCH - 2.0)
 		_goal_chips.append(chip)
-		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", 1.0, 2.0, 26.0, 26.0))
-		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_XS, UiTokens.INK,
+		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", 0.0, 1.0, 28.0, 28.0))
+		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_SM, UiTokens.INK,
 			HORIZONTAL_ALIGNMENT_CENTER, true)
 		UiKit.place(label, 30.0, 0.0, rail_w - 32.0, GOAL_ROW_PITCH - 2.0)
 		_goal_labels.append(label)
@@ -144,25 +144,30 @@ func build() -> void:
 	var score_caption := UiKit.label(goals_rail, "score_caption", "امتیاز", UiTokens.TYPE_XS,
 		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER)
 	UiKit.place(score_caption, rail_x, 150.0, rail_w, 14.0)
-	_score_label = UiKit.label(goals_rail, "score", "", UiTokens.TYPE_LG, UiTokens.INK,
+	_score_label = UiKit.label(goals_rail, "score", "", UiTokens.TYPE_XL, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_score_label, rail_x, 164.0, rail_w, 26.0)
+	UiKit.place(_score_label, rail_x, 162.0, rail_w, 28.0)
+
+	# Two gold hairlines, the way the reference separates the counters from the sentence and the
+	# sentence from the purse. They are pictures (ui_rule), not a line the engine draws at run time.
+	UiKit.rule(goals_rail, rail_x + 4.0, 190.0, rail_w - 8.0, UiTokens.GOLD, 2.0)
+	UiKit.rule(goals_rail, rail_x + 4.0, 268.0, rail_w - 8.0, UiTokens.GOLD, 2.0)
 
 	# The sentence sits on the rail like a note on the panel: no plate behind it, because a plate on
 	# cream reads as a sticker, and the line is short enough to fit the rail in three lines.
 	_hint = UiKit.label(goals_rail, "hint", "", UiTokens.TYPE_XS, UiTokens.INK_SOFT,
 		HORIZONTAL_ALIGNMENT_CENTER)
-	UiKit.place(_hint, rail_x, 200.0, rail_w, 56.0)
+	UiKit.place(_hint, rail_x, 202.0, rail_w, 58.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 276.0, 22.0, 22.0)
+	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 280.0, 24.0, 24.0)
 	_coin_label = UiKit.label(goals_rail, "coin_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_coin_label, rail_x + 24.0, 276.0, rail_w - 24.0, 22.0)
-	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 310.0, 22.0, 22.0)
+	UiKit.place(_coin_label, rail_x + 26.0, 280.0, rail_w - 26.0, 24.0)
+	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 314.0, 24.0, 24.0)
 	_life_label = UiKit.label(goals_rail, "life_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_life_label, rail_x + 24.0, 310.0, rail_w - 24.0, 22.0)
+	UiKit.place(_life_label, rail_x + 26.0, 314.0, rail_w - 26.0, 24.0)
 
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
 	# The tools rail carries the same shield, so the two rails read as a pair.

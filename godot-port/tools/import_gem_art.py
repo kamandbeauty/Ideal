@@ -33,7 +33,7 @@ SIZE = 160          # the plate every screen scales from
 # How much of the plate a fruit is allowed to fill. The fruit sits inside a board cell with room around
 # it, so it is deliberately smaller than the cell: a piece that touches its neighbours reads as a wall
 # of colour instead of a board of pieces.
-PIECE_BOX = 132
+PIECE_BOX = 142
 KEY_TOLERANCE = 26  # how near the field colour a pixel has to be to get filled
 
 # The eight fruits, by the id the game asks for. The first five kept their stone names when the pieces
