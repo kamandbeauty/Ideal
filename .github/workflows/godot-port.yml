@@ -61,7 +61,8 @@ jobs:
       - name: Core tests (rules, determinism, save, content)
         run: |
           set +e
-          godot --headless --path godot-port --script res://tests/test_core.gd 2>&1 | tee /tmp/core.log
+          godot --headless --path godot-port --script res://tests/test_core.gd 2>&1 \
+            | tee /tmp/core.log godot-port/.shots/test_core.log
           status=${PIPESTATUS[0]}
           grep -E "FAIL" /tmp/core.log | head -20 | while IFS= read -r line; do
             echo "::error title=test_core::$line"
