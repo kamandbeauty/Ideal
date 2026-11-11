@@ -154,8 +154,8 @@ func _run() -> void:
 	# The stones are re-cut pictures in their own folder, on top of the Unity ones that still ship, so
 	# counting `assets/art` alone would not notice if they went missing.
 	var gem_files := _list_pngs("res://assets/gems")
-	failures += _check(gem_files.size() == 5,
-		"all 5 re-cut gems are present (%d found)" % gem_files.size())
+	failures += _check(gem_files.size() == 8,
+		"all 8 re-cut fruits are present (%d found)" % gem_files.size())
 	var weak_gems: Array[String] = []
 	for path in gem_files:
 		var gem := load(path) as Texture2D
