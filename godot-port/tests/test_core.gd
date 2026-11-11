@@ -34,7 +34,8 @@ func _run() -> void:
 	failures += _check(Finder.find_runs(board)[0].length == 3, "horizontal run length")
 	failures += _check(not Finder.has_match(Board.from_ascii(PackedStringArray(["F....", ".F...", "..F..", "...F.", "....F"]))), "diagonal is not a match")
 	var square_board = Board.from_ascii(PackedStringArray(["....", ".FF.", ".FF.", "...."]))
-	failures += _check(Finder.find_squares(square_board).size() == 1, "detect 2x2 square")
+	failures += _check(Finder.find_squares(square_board).size() == 1, "find the 2x2 block (as a shape, not a match)")
+	failures += _check(not Finder.has_match(square_board), "a 2x2 block is not a match")
 	var clone = board.duplicate_board()
 	clone.at(0, 2).clear_piece()
 	failures += _check(board.at(0, 2).has_piece and not clone.at(0, 2).has_piece, "board clone is independent")
@@ -137,6 +138,64 @@ func _run() -> void:
 	failures += _check(accepted_move.pieces_cleared >= 3, "clear matched pieces during accepted move")
 	failures += _check(accepted_tracker.progress(0) >= 3, "apply piece-goal progress during accepted move")
 	failures += _check(accepted_move.obstacles_destroyed == 1 and accepted_tracker.progress(1) == 1, "clear obstacle layer and advance obstacle goal")
+
+
+	# The bug the player reported: match three and fruit that has nothing to do with the match bursts
+	# too. A 2 x 2 block of one colour was counted as a match, and because a dealt board is settled of
+	# lines but not of squares, most levels opened with one somewhere and the first move cleared it.
+	print("TEST STAGE 5B: a match clears its own line and nothing else")
+	var bystander_rows := PackedStringArray(["LMAZA", "AFLFL", "ZLALZ", "MMFZA", "MMZLZ"])
+	var bystander_board = Board.from_ascii(bystander_rows)
+	failures += _check(not Finder.has_match(bystander_board), "the bystander board opens settled")
+	var bystander_squares := Finder.find_squares(bystander_board)
+	failures += _check(bystander_squares.size() == 1 and bystander_squares[0] == Vector2i(0, 0),
+		"the bystander board carries one 2x2 block, at its bottom left")
+	var bystander_level = Level.new()
+	bystander_level.width = 5
+	bystander_level.height = 5
+	bystander_level.pieces = move_pieces
+	var bystander_goals: Array[Dictionary] = [{"kind": GameTypes.GoalKind.CLEAR_PIECES,
+		"piece": GameTypes.PieceKind.FIROUZEH, "target": 99}]
+	bystander_level.goals = bystander_goals
+	var bystander_resolver = Resolver.new(bystander_level, bystander_board, Rng.new(0, 41),
+		Goals.new(bystander_level.goals))
+	var bystander_move = bystander_resolver.swap(Vector2i(3, 2), Vector2i(3, 3))
+	failures += _check(bystander_move.accepted, "the three-piece swap is accepted")
+	# Only the first cascade is judged: a later one may legitimately build a new line, and that line
+	# is allowed to take whatever it lands on.
+	var first_clear: Array[Vector2i] = []
+	var cascades_seen := 0
+	for event in bystander_move.events:
+		if not event is Dictionary:
+			continue
+		var event_type := str(event.get("type", ""))
+		if event_type == "cascade":
+			cascades_seen += 1
+			continue
+		if event_type == "piece_cleared" and cascades_seen <= 1:
+			first_clear.append(event.get("position", Vector2i(-1, -1)))
+	var expected := [Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3)]
+	var only_the_line := first_clear.size() == 3
+	for pos in expected:
+		if not first_clear.has(pos):
+			only_the_line = false
+	failures += _check(only_the_line, "the first clear is the three matching pieces and nothing else (%d cleared)" % first_clear.size())
+	var square_intact := true
+	for pos in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 1)]:
+		if not bystander_board.at_pos(pos).has_piece or bystander_board.at_pos(pos).piece != GameTypes.PieceKind.MORVARID:
+			square_intact = false
+	failures += _check(square_intact, "the 2x2 block of fruit beside the match is still on the board")
+
+	var square_only_board = Board.from_ascii(PackedStringArray(["MZLMA", "ZMLMM", "LLFZA", "FLMFM", "LMAFZ"]))
+	failures += _check(not Finder.has_match(square_only_board) and Finder.find_squares(square_only_board).is_empty(),
+		"the square-only board opens with neither a line nor a square")
+	var square_only_resolver = Resolver.new(bystander_level, square_only_board, Rng.new(0, 43),
+		Goals.new(bystander_level.goals))
+	var before_square_swap := square_only_board.to_ascii()
+	var square_only_move = square_only_resolver.swap(Vector2i(0, 0), Vector2i(0, 1))
+	failures += _check(not square_only_move.accepted and square_only_move.reject_reason == "no match",
+		"a swap that only builds a 2x2 block is not a move")
+	failures += _check(square_only_board.to_ascii() == before_square_swap, "the refused square swap is put back")
 
 
 	print("TEST STAGE 6: power-up creation and chained activation")
@@ -498,7 +557,7 @@ func _find_legal_swap(board) -> Array[int]:
 				a.power_up = b.power_up
 				b.piece = piece
 				b.power_up = power_up
-				var creates_match := Finder.has_match(board) or not Finder.find_squares(board).is_empty()
+				var creates_match := Finder.has_match(board)
 				piece = a.piece
 				power_up = a.power_up
 				a.piece = b.piece

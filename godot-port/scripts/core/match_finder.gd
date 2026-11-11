@@ -48,6 +48,13 @@ static func find_runs(board: BoardModel) -> Array[Dictionary]:
 static func has_match(board: BoardModel) -> bool:
 	return not find_runs(board).is_empty()
 
+## A 2 x 2 block of one colour. It is **not** a match and never clears anything: four of the same fruit
+## sitting in a square is what a settled board looks like, and the port inherited a rule that treated
+## the shape as a match and swept the board for every square it could find. With five colours a fresh
+## board carries one about thirty per cent of the time, so the first move the player made cleared four
+## pieces that had nothing to do with it — the bug the player reported as "other fruit burst too".
+##
+## The function stays because the tests use it to prove those squares survive a move.
 static func find_squares(board: BoardModel) -> Array[Vector2i]:
 	var squares: Array[Vector2i] = []
 	for y in range(board.height - 1):
@@ -87,7 +94,7 @@ static func build_clusters(runs: Array[Dictionary]) -> Array[Dictionary]:
 				target_index = cluster_index
 				break
 		if target_index < 0:
-			clusters.append({"runs": [], "cells": [], "max_length": 0, "has_horizontal": false, "has_vertical": false, "has_square": false})
+			clusters.append({"runs": [], "cells": [], "max_length": 0, "has_horizontal": false, "has_vertical": false})
 			target_index = clusters.size() - 1
 		var target: Dictionary = clusters[target_index]
 		target.runs.append(run)
@@ -109,8 +116,6 @@ static func power_up_for(cluster: Dictionary) -> int:
 	if cluster.has_horizontal and cluster.has_vertical:
 		return GameTypes.PowerUpKind.KITE
 	if cluster.max_length >= 5:
-		return GameTypes.PowerUpKind.FAN
-	if cluster.has_square:
 		return GameTypes.PowerUpKind.FAN
 	if cluster.max_length == 4:
 		for run in cluster.runs:

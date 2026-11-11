@@ -36,6 +36,20 @@ Two rules that keep this honest:
 When `_run.Status` leaves `Playing`, the result overlay is *deferred* until the last cascade has
 finished (`SettleTurn` → `AfterMove`), because a modal on top of a half-played cascade reads as a bug.
 
+### What clears, and what does not
+
+A move is accepted only when it builds a **line of three or more** of one colour — a row, a column, or
+the crossing of the two. That is the whole rule; `MatchFinder.find_runs` is the only thing the resolver
+asks when it decides what to take.
+
+A **2 x 2 block is not a match.** The Unity prototype treated one as a match and swept every square on
+the board whenever a move resolved, and because a dealt board is settled of lines but not of squares,
+five-colour levels opened with a block about thirty per cent of the time: the player matched three
+fruit and four unrelated pieces elsewhere burst with them. The rule is gone (`move_resolver.gd`,
+`_resolve_cascades`), the shape survives in `MatchFinder.find_squares` only so the tests can prove those
+blocks are still standing after a move, and a swap that builds nothing but a square is rejected as
+"no match" (`TEST STAGE 5B`).
+
 ## 2. Input
 
 Both gestures exist, deliberately:

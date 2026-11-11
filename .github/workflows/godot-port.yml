@@ -79,18 +79,19 @@ jobs:
           done
           exit $status
 
-      # A failing assertion is a line in a log behind a login. The log is committed to the branch on
+      # A failing assertion is a line in a log behind a login. Both logs are committed to the branch on
       # failure so the reason can be read from the repository itself.
-      - name: Keep the UI test log on the branch
+      - name: Keep the test logs on the branch
         if: failure()
         run: |
           set -e
           mkdir -p godot-port/.shots
+          test -s /tmp/core.log && cp /tmp/core.log godot-port/.shots/test_core.log || true
           test -s /tmp/ui.log && cp /tmp/ui.log godot-port/.shots/test_ui.log || true
           git config user.name "godot-port bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f godot-port/.shots/test_ui.log
-          git commit -m "ci: the UI test log [skip ci]" || exit 0
+          git add -f godot-port/.shots/test_core.log godot-port/.shots/test_ui.log || true
+          git commit -m "ci: the test logs [skip ci]" || exit 0
           git pull --rebase origin "${GITHUB_REF_NAME}" || true
           git push origin HEAD:${GITHUB_REF_NAME}
 

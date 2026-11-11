@@ -37,7 +37,10 @@ func swap(from_pos: Vector2i, to_pos: Vector2i) -> Dictionary:
 	_swap_cells(a, b)
 
 	if not both_power_ups and not fan_swap:
-		if not MatchFinder.has_match(_board) and MatchFinder.find_squares(_board).is_empty():
+		# Only a line of three clears. A 2 x 2 block used to count here as well, and because the board
+		# is dealt without lines but with squares, the first move of most levels took four unrelated
+		# pieces with it. The rule was inherited from the Unity prototype and it was a bug.
+		if not MatchFinder.has_match(_board):
 			_swap_cells(a, b)
 			return _rejected(GameTypes.MoveKind.SWAP, "no match")
 
@@ -113,8 +116,7 @@ func _resolve_cascades(result: Dictionary, preferred: Vector2i, has_preferred: b
 	var cascade := 0
 	while cascade < MAX_CASCADES:
 		var runs := MatchFinder.find_runs(_board)
-		var squares := MatchFinder.find_squares(_board)
-		if runs.is_empty() and squares.is_empty():
+		if runs.is_empty():
 			break
 
 		cascade += 1
@@ -134,24 +136,6 @@ func _resolve_cascades(result: Dictionary, preferred: Vector2i, has_preferred: b
 			var spawn_cell = _board.at_pos(spawn_pos)
 			var spawn_piece: int = spawn_cell.piece if spawn_cell != null else int(cluster.runs[0].piece)
 			spawns.append({"position": spawn_pos, "kind": power_kind, "piece": spawn_piece})
-
-		for origin in squares:
-			var block: Array[Vector2i] = [origin, Vector2i(origin.x + 1, origin.y), Vector2i(origin.x, origin.y + 1), Vector2i(origin.x + 1, origin.y + 1)]
-			var covered := false
-			for pos in block:
-				if clear_set.has(pos):
-					covered = true
-					break
-			if covered:
-				continue
-			for pos in block:
-				_add_unique(clear_set, pos)
-			var spawn_pos := origin
-			if has_preferred and cascade == 1 and block.has(preferred):
-				spawn_pos = preferred
-			var spawn_cell = _board.at_pos(spawn_pos)
-			var spawn_piece: int = spawn_cell.piece if spawn_cell != null else GameTypes.PieceKind.NONE
-			spawns.append({"position": spawn_pos, "kind": GameTypes.PowerUpKind.FAN, "piece": spawn_piece})
 
 		_expand_triggers(clear_set, result)
 		for spawn in spawns:
