@@ -1,0 +1,36 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+UI STAGE 1: Persian numerals and formatting
+UI STAGE 2: the screen kit
+WARNING: [art] missing res://assets/art/no_such_art.png
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] texture (res://scripts/ui/kit.gd:55)
+         [1] _run (res://tests/test_ui.gd:101)
+UI STAGE 2b: every shipped picture loads
+ERROR: FAILED: all 5 re-cut gems are present (8 found)
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _check (res://tests/test_ui.gd:75)
+       [1] _run (res://tests/test_ui.gd:157)
+UI STAGE 3: the session contract
+UI STAGE 4: the board view's meaning of a touch
+UI STAGE 4b: the animations end with the board exact
+UI STAGE 5: every level boots and plays through the screen
+UI STAGE 6: sound assets and the director
+UI STAGE 7: particles and the tutorial hand
+UI STAGE 9: haptics obey the save and never crash off-device
+UI STAGE 8: the real AppRoot composes one screen at a time
+WARNING: [boot] no save found, starting a new one
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _boot (res://scripts/app_root.gd:42)
+         [1] _ready (res://scripts/app_root.gd:33)
+         [2] _run (res://tests/test_ui.gd:569)
+[boot] save at user://shazdeh-save.json — level 1, 0 potions, 5 lives
+test_ui: 1 failure(s)
+::error title=test_ui (1 failures)::all 5 re-cut gems are present (8 found)
+WARNING: 2 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
