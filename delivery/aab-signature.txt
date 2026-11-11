@@ -1,6 +1,6 @@
 
-s      78796 Wed Nov 11 08:02:40 UTC 2026 META-INF/MANIFEST.MF
-       78958 Wed Nov 11 08:02:42 UTC 2026 META-INF/ARTILLER.SF (and 1 more)
+s      78796 Wed Nov 11 08:09:22 UTC 2026 META-INF/MANIFEST.MF
+       78958 Wed Nov 11 08:09:22 UTC 2026 META-INF/ARTILLER.SF (and 1 more)
 sm       628 Thu Jan 01 00:00:00 UTC 1970 BundleConfig.pb (and 548 more)
 
   s = signature was verified 
