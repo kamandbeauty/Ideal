@@ -36,13 +36,16 @@ jobs:
       - name: Publish headless check summary
         if: always()
         run: |
-          for log in ci-artifacts/headless/godot_version.log ci-artifacts/headless/summary.txt ci-artifacts/headless/autoplay_test.log ci-artifacts/headless/level_test.log; do
-            if [ -f "$log" ]; then
-              while IFS= read -r line; do
-                case "$line" in *PASS:*|*FAIL:*|*Autoplay\ frames=*|*Checks\ passed=*|4.4.1*) echo "::notice::$line" ;; esac
-              done < "$log"
-            fi
-          done
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          lines = []
+          for name in ('godot_version.log', 'summary.txt', 'autoplay_test.log', 'level_test.log', 'launcher_and_controls_test.log', 'persian_ui_test.log', 'preferences_test.log'):
+              p = Path('ci-artifacts/headless') / name
+              if p.exists():
+                  lines.extend(f'{name}: {line}' for line in p.read_text(errors='replace').splitlines() if line.startswith(('4.4.1', 'PASS:', 'FAIL:', 'Checks passed=', 'Autoplay frames=', 'Preferences', 'Persian UI', 'Level integration', 'Launcher/control')))
+          text = '\n'.join(lines).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          print('::notice::' + (text or 'No headless summary available'))
+          PYCODE
       - name: Upload headless logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,13 +86,16 @@ jobs:
       - name: Publish renderer capture diagnostics
         if: always()
         run: |
-          for log in ci-artifacts/rendered/glxinfo.log ci-artifacts/rendered/capture.log; do
-            if [ -f "$log" ]; then
-              while IFS= read -r line; do
-                case "$line" in *OpenGL\ renderer*|*OpenGL\ version*|*CAPTURE*|*ATTEMPT*|*Captured*|*FAIL:*|*ERROR:*) echo "::notice::$line" ;; esac
-              done < "$log"
-            fi
-          done
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          lines = []
+          for name in ('glxinfo.log', 'capture.log'):
+              p = Path('ci-artifacts/rendered') / name
+              if p.exists():
+                  lines.extend(f'{name}: {line}' for line in p.read_text(errors='replace').splitlines() if any(word in line for word in ('OpenGL renderer string', 'OpenGL version string', 'CAPTURE', 'ATTEMPT', 'Captured', 'FAIL:', 'ERROR:', ' at:')))
+          text = '\n'.join(lines[-50:]).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          print('::notice::' + (text or 'No renderer diagnostics available'))
+          PYCODE
       - name: Upload screenshots and renderer logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -109,19 +115,30 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-        id: setup_android
-      - name: Publish Android setup diagnostics
-        if: always()
-        env:
-          SETUP_OUTCOME: ${{ steps.setup_android.outcome }}
+      - name: Set up Android command-line tools
         run: |
-          echo "::notice::Android setup action outcome: $SETUP_OUTCOME"
-          if command -v sdkmanager >/dev/null 2>&1; then
-            echo "::notice::sdkmanager found at $(command -v sdkmanager)"
-          else
-            echo "::notice::sdkmanager not found on PATH after setup step"
-          fi
+          set -euo pipefail
+          {
+            sdk="${ANDROID_HOME:-$RUNNER_TEMP/android-sdk}"
+            echo "Using Android SDK directory: $sdk"
+            mkdir -p "$sdk/cmdline-tools"
+            if [ ! -x "$sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
+              url='https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip'
+              curl -fL --retry 3 -o "$RUNNER_TEMP/android-commandline.zip" "$url"
+              unzip -q "$RUNNER_TEMP/android-commandline.zip" -d "$RUNNER_TEMP/android-tools"
+              mv "$RUNNER_TEMP/android-tools/cmdline-tools" "$sdk/cmdline-tools/latest"
+            fi
+            echo "ANDROID_HOME=$sdk" >> "$GITHUB_ENV"
+            echo "$sdk/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+            "$sdk/cmdline-tools/latest/bin/sdkmanager" --version
+            set +e
+            set +o pipefail
+            yes | "$sdk/cmdline-tools/latest/bin/sdkmanager" --licenses
+            code=${PIPESTATUS[1]}
+            set -o pipefail
+            set -e
+            exit "$code"
+          } 2>&1 | tee ci-artifacts/android/setup.log
       - name: Install Android SDK components
         run: |
           set -o pipefail
@@ -191,6 +208,19 @@ jobs:
           name: zombie-evolution-arm64-debug
           path: zombie-evolution-rebuild/exports/zombie-debug.apk
           if-no-files-found: error
+      - name: Publish Android diagnostics
+        if: always()
+        run: |
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          lines = []
+          for name in ('setup.log', 'sdk-install.log', 'install.log', 'templates-checksum.log', 'import.log', 'export.log', 'badging.log', 'sha256.log'):
+              p = Path('ci-artifacts/android') / name
+              if p.exists():
+                  lines.extend(f'{name}: {line}' for line in p.read_text(errors='replace').splitlines()[-12:])
+          text = '\n'.join(lines[-70:]).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+          print('::notice::' + (text or 'No Android diagnostics available'))
+          PYCODE
       - name: Upload Android logs
         if: always()
         uses: actions/upload-artifact@v4
