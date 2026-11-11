@@ -249,6 +249,28 @@ def build_rail() -> Image.Image:
     return shell.filter(ImageFilter.UnsharpMask(radius=1.4, percent=45, threshold=2))
 
 
+def build_piece_shadow(size: int = 128) -> Image.Image:
+    """The soft pool of shadow a fruit sits in, so the board has depth and not twelve flat stickers."""
+    picture = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    painter = ImageDraw.Draw(picture)
+    painter.ellipse((size * 0.16, size * 0.30, size * 0.84, size * 0.86), fill=(6, 48, 96, 120))
+    picture = picture.filter(ImageFilter.GaussianBlur(size * 0.055))
+    return picture
+
+
+def build_booster_disc(size: int = 128) -> Image.Image:
+    """The ivory disc the tool's glyph sits on, inside the turquoise orb.
+
+    The tools' own pictures are dark line art: on a turquoise sphere they read as smudges at 26 dp. A
+    light disc under each gives the glyph a ground, which is what makes five tools recognisable at a
+    glance rather than five dark marks.
+    """
+    disc = _plate((size, size), size // 2, [(0.0, IVORY_BRIGHT), (0.62, IVORY),
+                                            (1.0, _mix(IVORY, IVORY_SHADE, 0.55))])
+    disc = _rim(disc, size // 2, _mix(GOLD_LIGHT, IVORY, 0.55), width=2, inset=2)
+    return disc
+
+
 def build_round_plate(name: str, size: int) -> Image.Image:
     """The two round plates: the tool button and the cell frame, both drawn and both real circles."""
     if name == "orb":
@@ -321,10 +343,19 @@ def _nine_slice(cut: Image.Image, size: tuple, margins: tuple) -> Image.Image:
 def build_card(source_name: str, size: tuple) -> Image.Image:
     cut = _field_keyed(_load(source_name))
     plate = _nine_slice(cut, size, CARD_MARGINS[source_name])
-    # The frame is painted cream; keep its alpha, grade only the colour, or the keyed field would be
-    # multiplied back into a black card.
+    # The painted card is parchment, and parchment is brown: the palette replaced brown with warm
+    # ivory everywhere else, so the texture is kept and the colour is graded into the same ivory the
+    # rest of the plates use. The alpha is left alone — the keyed field must stay keyed.
     pixels = np.asarray(plate).astype(np.float32)
-    pixels[..., :3] = pixels[..., :3] * np.array([0.97, 0.96, 0.93], dtype=np.float32)
+    rgb = pixels[..., :3]
+    luminance = rgb.mean(axis=2, keepdims=True) / 255.0
+    ivory = np.array(IVORY, dtype=np.float32)[None, None, :] / 255.0
+    graded_rgb = np.clip(ivory * (0.70 + 0.38 * luminance) * 255.0, 0, 255)
+    # The frame is turquoise and the field is parchment, and only the field may be graded: a pixel with
+    # more blue than red is part of the frame and keeps its colour.
+    frame = (rgb[..., 2] > rgb[..., 0] + 12)[..., None]
+    pixels[..., :3] = np.where(frame, rgb, rgb * 0.30 + graded_rgb * 0.70)
+    plate = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGBA")
     card = Image.fromarray(np.clip(pixels, 0, 255).astype(np.uint8), "RGBA")
     card = card.filter(ImageFilter.UnsharpMask(radius=1.4, percent=45, threshold=2))
     graded = np.asarray(card).astype(np.float32)
@@ -334,6 +365,8 @@ def build_card(source_name: str, size: tuple) -> Image.Image:
 
 def main() -> None:
     plates = [("ui_board_tray.png", build_tray()),
+              ("ui_booster_disc.png", build_booster_disc()),
+              ("ui_piece_shadow.png", build_piece_shadow()),
               ("ui_rail.png", build_rail()),
               ("ui_orb.png", build_round_plate("orb", ORB_SIZE)),
               ("ui_tile_frame.png", build_round_plate("tile", TILE_SIZE))]

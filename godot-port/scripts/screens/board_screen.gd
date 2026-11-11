@@ -178,8 +178,12 @@ func build() -> void:
 		# the orb: two rims at the same size fight, one inside the other reads as a setting.
 		# The orb is a dome inside a rose ring now, so the tool's own picture is smaller and sits
 		# inside the dome rather than over the ring.
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 12.0, 12.0,
-			BOOSTER_SIZE - 24.0, BOOSTER_SIZE - 24.0))
+		# The glyph needs a ground: the tools are dark line art, and on the turquoise sphere they read
+		# as smudges. An ivory disc inside the orb gives each one a face to be read against.
+		UiKit.icon(button, "disc", "ui_booster_disc", 7.0, 7.0, BOOSTER_SIZE - 14.0,
+			BOOSTER_SIZE - 14.0)
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 11.0, 11.0,
+			BOOSTER_SIZE - 22.0, BOOSTER_SIZE - 22.0))
 		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
 		# stacked at 62 dp pitch and there is no room for a caption under each.
 		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0,
@@ -193,11 +197,12 @@ func build() -> void:
 	# bottom curve, and a button that touches the paint looks clipped.
 	var out_width := (rail_w - 5.0) * 0.5
 	# Off the capsule's bottom curve: at 330 the two exits sat on the painted rim.
-	# Turquoise for the way out to the map, royal blue for pause: two exits that look like two choices.
-	UiKit.button(tools_rail, "home", "خانه", rail_x, 322.0, out_width, 26.0, UiTokens.ACCENT,
-		UiTokens.ON_ACCENT, _on_home, UiTokens.RADIUS_MD)
+	# Royal for the way out to the map, gold for pause: two exits that look like two choices, and
+	# neither of them the turquoise the play button owns.
+	UiKit.button(tools_rail, "home", "خانه", rail_x, 322.0, out_width, 26.0, UiTokens.ROYAL,
+		UiTokens.IVORY, _on_home, UiTokens.RADIUS_MD)
 	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 322.0, out_width,
-		26.0, UiTokens.ROYAL, UiTokens.IVORY, _on_pause, UiTokens.RADIUS_MD)
+		26.0, UiTokens.GOLD, UiTokens.ON_GOLD, _on_pause, UiTokens.RADIUS_MD)
 
 	# ---- playfield: the carpet, then the board on top of it ---------------------------------------
 	UiKit.art_panel(self, "board_tray", PLATE_LEFT, PLATE_TOP, PLATE_SIZE, PLATE_SIZE,

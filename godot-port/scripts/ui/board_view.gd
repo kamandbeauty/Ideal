@@ -161,6 +161,17 @@ func _build_cell(pos: Vector2i, cell) -> Control:
 	if cell.has_piece:
 		var piece_art := AssetCatalog.piece_texture(cell.piece)
 		if piece_art != null:
+			# The pool of shadow the fruit sits in: without it the board is twelve flat stickers on
+			# tiles, and the depth the tiles gained in the plate is spent again by the pieces.
+			var pool := TextureRect.new()
+			pool.name = "piece_shadow"
+			pool.texture = UiKit.ui_texture("ui_piece_shadow")
+			pool.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			pool.stretch_mode = TextureRect.STRETCH_SCALE
+			pool.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			tile.add_child(pool)
+			pool.position = Vector2(cell_size * 0.08, cell_size * 0.20)
+			pool.size = Vector2(cell_size * 0.84, cell_size * 0.64)
 			var piece := TextureRect.new()
 			piece.name = "piece"
 			piece.texture = piece_art

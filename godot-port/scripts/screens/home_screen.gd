@@ -78,8 +78,10 @@ func build() -> void:
 	UiKit.place(_hint, card_x, 254.0, CARD_W, 22.0)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
+	# Turquoise, not gold: the play button is the one control on the screen that has to be found before
+	# anything else is read, and gold is already the colour of every rim and every plate.
 	_play_button = UiKit.button(self, "play", "بازی", (UiTokens.CANVAS_WIDTH - 240.0) * 0.5, 280.0,
-		240.0, 52.0, UiTokens.GOLD, UiTokens.ON_GOLD, _on_play, UiTokens.RADIUS_LG, true)
+		240.0, 52.0, UiTokens.ACCENT, UiTokens.ON_ACCENT, _on_play, UiTokens.RADIUS_LG, true)
 	_play_button.add_theme_font_size_override("font_size", UiTokens.TYPE_LG)
 
 	var width := 116.0
