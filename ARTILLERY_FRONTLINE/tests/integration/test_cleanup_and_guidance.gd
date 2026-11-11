@@ -80,6 +80,11 @@ func _check_guide_picks_nearest_living(t: TestContext) -> void:
 	t.check(first.distance_to(expected) < 0.01, "The missile homes on the nearest living hostile")
 	var nearest = _nearest_node(scene, from)
 	if nearest != null:
+		# A unit that cannot be hit is not chased: the missile moves on to the next hittable hostile.
+		nearest.collision_layer = 0
+		var unhittable: Vector3 = scene._guide_point(from)
+		t.check(unhittable.distance_to(first) > 0.01, "The missile does not home on a unit it cannot hit")
+		nearest.collision_layer = 2
 		nearest.receive_damage(100000.0)
 		var next_target: Vector3 = scene._guide_point(from)
 		t.check(next_target.distance_to(first) > 0.01, "After its target is destroyed the missile picks another hostile")
@@ -95,7 +100,7 @@ static func _nearest_node(scene: CoastalController, from: Vector3) -> Node3D:
 	var best_distance: float = INF
 	for group in [scene.soldiers, scene.vehicles, scene.aircraft, scene.crafts]:
 		for node in group:
-			if is_instance_valid(node) and not node.is_dead():
+			if is_instance_valid(node) and not node.is_dead() and node.collision_layer != 0:
 				var distance: float = _centre_of(node).distance_to(from)
 				if distance < best_distance:
 					best_distance = distance

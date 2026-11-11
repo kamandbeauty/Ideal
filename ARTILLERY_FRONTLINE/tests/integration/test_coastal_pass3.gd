@@ -52,6 +52,9 @@ func run(t: TestContext) -> void:
 	soldier.receive_damage(500.0, soldier.global_position + Vector3.UP * 1.2, Vector3.BACK)
 	t.check(soldier.is_dead(), "Directed lethal hit kills the soldier")
 	t.check(soldier.collision_layer == 0, "Dead soldier stops blocking live-target queries")
+	# The corpse is checked for settling over several seconds. Its 5 s removal is checked in test_cleanup_and_guidance,
+	# so the pending removal is dropped here to keep the corpse for these checks.
+	scene.removals.clear()
 	var has_physics: bool = soldier.ragdoll != null or soldier.fallback_body != null
 	t.check(has_physics, "Death creates a physical ragdoll/corpse body instead of a sink tween")
 	for index in range(150):

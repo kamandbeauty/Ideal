@@ -692,7 +692,8 @@ func _guide_point(from: Vector3) -> Vector3:
 	var best_distance: float = INF
 	for group in [soldiers, vehicles, aircraft, crafts]:
 		for node in group:
-			if not is_instance_valid(node) or node.is_dead():
+			# A unit with no collision layer cannot be hit (dead, or blocked), so the missile does not chase it.
+			if not is_instance_valid(node) or node.is_dead() or node.collision_layer == 0:
 				continue
 			var lift: float = 1.2 if node is EnemyAircraft else 1.0
 			var centre: Vector3 = node.global_position + Vector3.UP * lift
