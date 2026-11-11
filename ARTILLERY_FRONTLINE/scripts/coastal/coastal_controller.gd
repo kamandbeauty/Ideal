@@ -614,6 +614,10 @@ func _on_weapon_fired(origin: Vector3, _direction: Vector3, weapon_id: String) -
 	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	if not hit.is_empty():
 		target = hit.position
+	var plane: EnemyAircraft = _aircraft_under_aim(hit)
+	if plane != null:
+		# Bullets fly straight, so an aircraft is led to where it will be when the round arrives.
+		target = plane.intercept_point(origin, float(data.speed))
 	var direction: Vector3 = (target - origin).normalized()
 	# Apply the weapon's cone once, around the camera's own axes, so vertical
 	# aim does not turn horizontal spread into a world-Y corkscrew.
@@ -666,6 +670,18 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 	var surface: Dictionary = ImpactSurface.profile(ImpactSurface.kind_for(collider))
 	effects.explode(point, normal, float(surface.radius), point.y, true)
 	Sound.play_at(String(surface.sound), point, float(surface.volume_db))
+
+## The living aircraft a shot is aimed at: the one the crosshair ray struck, else the aim-assist target.
+## Null for ground targets, so only aircraft shots are led.
+func _aircraft_under_aim(hit: Dictionary) -> EnemyAircraft:
+	var plane: EnemyAircraft = null
+	if not hit.is_empty() and hit.collider is EnemyAircraft:
+		plane = hit.collider as EnemyAircraft
+	elif aim_assist_target is EnemyAircraft:
+		plane = aim_assist_target as EnemyAircraft
+	if plane == null or not is_instance_valid(plane) or plane.is_dead():
+		return null
+	return plane
 
 ## Damage-rule category of a unit for the critical-hit roll; "" means no critical spot.
 static func _unit_kind(collider: Object) -> String:

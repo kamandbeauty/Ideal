@@ -122,12 +122,20 @@ func _build_model() -> void:
 func is_dead() -> bool:
 	return dead
 
+## Formal armour rating (0 = unarmoured, 1 = full plate). Airframes are unarmoured on purpose: with armour,
+## the 20-42 damage ground weapons would lose most of their damage to aircraft (see the Phase 3.6 audit).
+var armor: float = 0.0
+
+## Fraction of a hit of `amount` that this aircraft removes (0 for every aircraft; see DamageModel).
+func damage_resistance(amount: float) -> float:
+	return DamageModel.damage_resistance(amount, armor)
+
 ## Returns the health actually removed, for damage readouts.
 func receive_damage(amount: float) -> float:
 	if dead:
 		return 0.0
 	var before: float = health
-	health = maxf(0.0, health - amount)
+	health = maxf(0.0, health - DamageModel.taken(amount, armor))
 	var removed: float = before - health
 	if removed > 0.0:
 		hit_lurch = maxf(hit_lurch, clampf(removed / max_health * 8.0, 0.5, 4.0))
@@ -167,11 +175,30 @@ func _die() -> void:
 	crash_spin = randf_range(0.8, 1.8) * (1.0 if randf() > 0.5 else -1.0)
 	died.emit(self)
 
+## Position of the orbit at a given flight clock (the value `clock` takes), with the current lurch.
+func orbit_point(at_clock: float) -> Vector3:
+	var angle: float = phase + at_clock * angular_speed
+	return Vector3(objective.x + cos(angle) * orbit_radius, altitude + sin(at_clock * 0.7) * 2.0 - hit_lurch, objective.z + sin(angle) * orbit_radius * 0.7 - 20.0)
+
+## Where the aircraft will be in `seconds`, following the same orbit. Used to lead shots.
+func predicted_position(seconds: float) -> Vector3:
+	return orbit_point(clock + seconds)
+
+## Aim point (the aircraft's centre plus 1.2 m, as the aim assist uses) that a bullet of `speed` must be
+## sent to so that it meets the aircraft. Bullets fly straight, so the flight time depends on the aim point;
+## two refinements converge for every orbit used here.
+func intercept_point(origin: Vector3, speed: float) -> Vector3:
+	var aim: Vector3 = global_position + Vector3.UP * 1.2
+	for _pass in range(2):
+		var flight: float = (aim - origin).length() / maxf(speed, 1.0)
+		aim = predicted_position(flight) + Vector3.UP * 1.2
+	return aim
+
 func _update_position(delta: float) -> void:
 	clock += delta
-	var angle: float = phase + clock * angular_speed
 	hit_lurch = maxf(0.0, hit_lurch - delta * 3.0)
-	var point := Vector3(objective.x + cos(angle) * orbit_radius, altitude + sin(clock * 0.7) * 2.0 - hit_lurch, objective.z + sin(angle) * orbit_radius * 0.7 - 20.0)
+	var angle: float = phase + clock * angular_speed
+	var point: Vector3 = orbit_point(clock)
 	var forward: Vector3 = point - global_position
 	global_position = point
 	if forward.length_squared() > 0.001:
