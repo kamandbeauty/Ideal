@@ -232,7 +232,7 @@ func _match_strip(board_screen) -> void:
 	# The strip before this one plays a move of its own, and a cascade in it leaves the combo bubble over
 	# the middle of the board. The strip is about which cells a move takes, so the screen is cleared
 	# first; any bubble this move earns still appears, because it would appear for a player too.
-	var stale_toast := board_screen.get_node_or_null("combo_toast")
+	var stale_toast = board_screen.get_node_or_null("combo_toast")
 	if stale_toast != null:
 		stale_toast.queue_free()
 	await _frames(3)
