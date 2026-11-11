@@ -1,0 +1,26 @@
+{
+  "LastWall-arm64.apk": {
+    "bytes": 37401387,
+    "sha256": "ad133e2198dc475747bcee4795287f060f4fc4d9001b6fa6fb8d44fee8144e8b",
+    "package": "com.frontline.lastwall",
+    "arm64": true,
+    "min_sdk": "24",
+    "target_sdk": "36",
+    "landscape": true,
+    "screen_orientation": 11,
+    "no_internet_permission": true
+  },
+  "LastWall-compatibility.apk": {
+    "bytes": 37401387,
+    "sha256": "94e05ab97fc56458aa6d5e084c959342fc2cc121d9cef480b2e470aadae2cec2",
+    "package": "com.frontline.lastwall.compatibility",
+    "arm64": true,
+    "min_sdk": "24",
+    "target_sdk": "36",
+    "landscape": true,
+    "screen_orientation": 11,
+    "no_internet_permission": true
+  },
+  "problems": [],
+  "scope": "CI export, signature and package inspection; no Android device or emulator run"
+}
