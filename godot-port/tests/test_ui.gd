@@ -116,7 +116,7 @@ func _run() -> void:
 	var required_plates := ["ui_panel", "ui_panel_sm", "ui_panel_raised", "ui_panel_raised_sm",
 		"ui_button", "ui_button_sm", "ui_button_gold", "ui_button_gold_sm", "ui_button_accent",
 		"ui_button_accent_sm", "ui_button_danger", "ui_button_danger_sm", "ui_button_royal",
-		"ui_button_royal_sm", "ui_pill", "ui_chip", "ui_slot", "ui_row", "ui_rail", "ui_orb",
+		"ui_button_royal_sm", "ui_button_green", "ui_button_green_sm", "ui_header_tab", "ui_pill", "ui_chip", "ui_slot", "ui_row", "ui_rail", "ui_orb",
 		"ui_board_tray", "ui_tile_frame", "ui_booster_disc", "ui_piece_shadow", "ui_card_frame",
 		"ui_card_tall", "ui_switch_off", "ui_switch_on", "ui_knob", "ui_veil", "ui_rule",
 		"ui_scrollbar", "ui_scrollgrabber", "ui_scrim_top", "ui_scrim_bottom", "ui_shadow"]

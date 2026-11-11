@@ -38,9 +38,12 @@ const GOAL_ROW_PITCH := 32.0
 # under it — the first render of this layout had one goal at the top and 70 dp of nothing below.
 const GOAL_BAND_Y := 88.0
 const GOAL_BAND_H := 96.0
+# The royal shield both rails' headings ride on: drawn whole at 104 x 38 dp, hanging over the rail.
+const TAB_WIDTH := 104.0
+const TAB_HEIGHT := 38.0
 const BOOSTER_SIZE := 48.0
 const BOOSTER_PITCH := 54.0
-const BOOSTER_ROWS_Y := 46.0
+const BOOSTER_ROWS_Y := 48.0
 const OVERLAY_CARD_WIDTH := 440.0
 const OVERLAY_CARD_HEIGHT := 330.0
 const PAUSE_CARD_WIDTH := 380.0
@@ -103,20 +106,22 @@ func build() -> void:
 	# ---- left rail, top to bottom -----------------------------------------------------------------
 	# The rail is 92 dp of usable width. The game's name is not on it: the home screen carries that,
 	# and the reference puts nothing above the level tab.
-	# A royal blue header band, not a gold one: the palette puts royal blue on every header and gold on
-	# every edge, and the level tab is the header of this rail.
-	var level_chip := UiKit.art_panel(goals_rail, "level_chip", rail_x, 14.0, rail_w, 24.0,
-		"ui_button_royal_sm", UiTokens.BORDER_PLATE_SMALL, UiTokens.ROYAL, UiTokens.RADIUS_MD)
-	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_XS, UiTokens.IVORY,
+	# The heading is a royal blue shield that hangs over the top of the rail, the way the reference
+	# hangs its level tab: the plate is drawn whole (a nine-slice would flatten the peak) and it is
+	# placed so its lower half sits on the rail's cap.
+	var level_chip := UiKit.art_panel(self, "level_chip", RAIL_LEFT_X + 7.0, 0.0, TAB_WIDTH,
+		TAB_HEIGHT, "ui_header_tab", 0, UiTokens.ROYAL)
+	level_chip.z_index = 5
+	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_SM, UiTokens.IVORY,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_level_label, 2.0, 0.0, rail_w - 4.0, 24.0)
+	UiKit.place(_level_label, 0.0, TAB_HEIGHT * 0.34, TAB_WIDTH, TAB_HEIGHT * 0.58)
 
 	# The moves counter is the one figure a player checks every second, so it is the biggest thing on
 	# the rail, with the icon the port already ships beside it.
-	UiKit.icon(goals_rail, "moves_icon", "icon_moves", rail_x + 2.0, 48.0, 20.0, 20.0)
+	UiKit.icon(goals_rail, "moves_icon", "icon_moves", rail_x + 2.0, 52.0, 22.0, 22.0)
 	_moves_label = UiKit.label(goals_rail, "moves", "", UiTokens.TYPE_LG, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
-	UiKit.place(_moves_label, rail_x + 24.0, 42.0, rail_w - 24.0, 32.0)
+	UiKit.place(_moves_label, rail_x + 24.0, 46.0, rail_w - 24.0, 34.0)
 
 	# ---- the goals, one compact row each ----------------------------------------------------------
 	for index in range(3):
@@ -160,13 +165,13 @@ func build() -> void:
 	UiKit.place(_life_label, rail_x + 24.0, 310.0, rail_w - 24.0, 22.0)
 
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
-	# The heading gets the same royal band as the level tab, so the two rails read as a pair.
-	UiKit.art_panel(tools_rail, "boosters_band", rail_x, 22.0, rail_w, 22.0, "ui_button_royal_sm",
-		UiTokens.BORDER_PLATE_SMALL, UiTokens.ROYAL, UiTokens.RADIUS_MD)
-	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,
+	# The tools rail carries the same shield, so the two rails read as a pair.
+	var tools_tab := UiKit.art_panel(self, "boosters_tab", RAIL_RIGHT_X + 7.0, 0.0, TAB_WIDTH,
+		TAB_HEIGHT, "ui_header_tab", 0, UiTokens.ROYAL)
+	tools_tab.z_index = 5
+	_boosters_heading = UiKit.label(tools_tab, "boosters_heading", "ابزارها", UiTokens.TYPE_SM,
 		UiTokens.IVORY, HORIZONTAL_ALIGNMENT_CENTER, true)
-	# On the band, not on the capsule's cap: dark ink on the gold rim vanishes.
-	UiKit.place(_boosters_heading, rail_x, 25.0, rail_w, 16.0)
+	UiKit.place(_boosters_heading, 0.0, TAB_HEIGHT * 0.34, TAB_WIDTH, TAB_HEIGHT * 0.58)
 	for kind in range(BoosterBag.SLOTS):
 		var y := BOOSTER_ROWS_Y + float(kind) * BOOSTER_PITCH
 		var handler := _on_booster_pressed.bind(kind)
@@ -180,10 +185,10 @@ func build() -> void:
 		# inside the dome rather than over the ring.
 		# The glyph needs a ground: the tools are dark line art, and on the turquoise sphere they read
 		# as smudges. An ivory disc inside the orb gives each one a face to be read against.
-		UiKit.icon(button, "disc", "ui_booster_disc", 7.0, 7.0, BOOSTER_SIZE - 14.0,
-			BOOSTER_SIZE - 14.0)
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 11.0, 11.0,
-			BOOSTER_SIZE - 22.0, BOOSTER_SIZE - 22.0))
+		UiKit.icon(button, "disc", "ui_booster_disc", 9.0, 9.0, BOOSTER_SIZE - 18.0,
+			BOOSTER_SIZE - 18.0)
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 12.0, 12.0,
+			BOOSTER_SIZE - 24.0, BOOSTER_SIZE - 24.0))
 		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
 		# stacked at 62 dp pitch and there is no room for a caption under each.
 		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0,
@@ -197,12 +202,12 @@ func build() -> void:
 	# bottom curve, and a button that touches the paint looks clipped.
 	var out_width := (rail_w - 5.0) * 0.5
 	# Off the capsule's bottom curve: at 330 the two exits sat on the painted rim.
-	# Royal for the way out to the map, gold for pause: two exits that look like two choices, and
-	# neither of them the turquoise the play button owns.
-	UiKit.button(tools_rail, "home", "خانه", rail_x, 322.0, out_width, 26.0, UiTokens.ROYAL,
-		UiTokens.IVORY, _on_home, UiTokens.RADIUS_MD)
-	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 322.0, out_width,
-		26.0, UiTokens.GOLD, UiTokens.ON_GOLD, _on_pause, UiTokens.RADIUS_MD)
+	# Blue for the way out to the map, green for pause: the reference's two exits, and neither is the
+	# turquoise the play button owns.
+	UiKit.button(tools_rail, "home", "خانه", rail_x, 320.0, out_width, 30.0, UiTokens.ROYAL,
+		UiTokens.IVORY, _on_home, UiTokens.RADIUS_MD, true)
+	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 320.0, out_width,
+		30.0, UiTokens.SUCCESS, Color(1, 1, 1, 1), _on_pause, UiTokens.RADIUS_MD, true)
 
 	# ---- playfield: the carpet, then the board on top of it ---------------------------------------
 	UiKit.art_panel(self, "board_tray", PLATE_LEFT, PLATE_TOP, PLATE_SIZE, PLATE_SIZE,

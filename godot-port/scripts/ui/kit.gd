@@ -129,6 +129,8 @@ static func plate_art(color: Color, height: float = 999.0) -> String:
 		return "ui_button_danger" + small
 	if _near(color, UiTokens.ROYAL):
 		return "ui_button_royal" + small
+	if _near(color, UiTokens.SUCCESS):
+		return "ui_button_green" + small
 	if _near(color, UiTokens.SURFACE_RAISED):
 		return "ui_panel_raised" + small
 	return "ui_panel" + small

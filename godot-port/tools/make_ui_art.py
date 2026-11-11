@@ -45,6 +45,8 @@ ROYAL_DARK = (7, 60, 120)
 ROYAL_LIGHT = (58, 148, 226)
 ACCENT = (32, 198, 196)
 ACCENT_DARK = (14, 142, 140)
+GREEN = (72, 176, 84)
+GREEN_DARK = (32, 122, 48)
 DANGER = (243, 77, 82)
 DANGER_DARK = (182, 44, 49)
 WHITE = (255, 255, 255)
@@ -286,6 +288,8 @@ def main():
           marks=WHITE)
     plate("ui_button_royal_sm", (48, 48), 12, ROYAL, ROYAL_DARK, rim_colour=GOLD, gloss=0.6,
           marks=GOLD_LIGHT)
+    plate("ui_button_green_sm", (48, 48), 12, GREEN, GREEN_DARK, rim_colour=GOLD_LIGHT, gloss=0.65,
+          marks=WHITE)
 
     # Panels and cards: 96 dp with a 20 dp border, so a nine-slice at any size keeps its corners.
     plate("ui_panel", (96, 96), 22, SURFACE, BORDER, rim_colour=GOLD, gloss=0.4, marks=GOLD,
@@ -301,6 +305,8 @@ def main():
           marks=WHITE, studs=True)
     plate("ui_button_royal", (96, 64), 20, ROYAL, ROYAL_DARK, rim_colour=GOLD, gloss=0.6,
           marks=GOLD_LIGHT, inlay=ACCENT, studs=True)
+    plate("ui_button_green", (96, 64), 20, GREEN, GREEN_DARK, rim_colour=GOLD_LIGHT, gloss=0.65,
+          marks=WHITE, studs=True)
     # A pill and a chip are used at 24-30 dp, where their nine-slice border is 6: anything drawn
     # deeper than that lands in the stretched strip and smears, so they stay plain and rely on
     # the gold rim. (Tried a turquoise inlay here; it never survived the scaling.)
