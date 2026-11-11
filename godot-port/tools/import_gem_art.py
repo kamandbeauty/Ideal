@@ -149,13 +149,13 @@ def _outlined(picture: Image.Image) -> Image.Image:
     # Out, not in: the dots sit on the very edge of the paint, so a line drawn inside would only
     # thicken them. The silhouette is grown by six pixels and the ring is the band that growth added,
     # which puts a clean contour over the dotted edge and leaves the fruit itself untouched.
-    grown = ndimage.binary_dilation(solid, iterations=5)
+    grown = ndimage.binary_dilation(solid, iterations=4)
     ring = np.clip(grown.astype(np.float32) - solid.astype(np.float32), 0.0, 1.0)
     ring = ring + np.clip(solid.astype(np.float32) - ndimage.binary_erosion(solid, iterations=1)
                           .astype(np.float32), 0.0, 1.0)
-    line = Image.fromarray((ring * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(0.9))
-    paint = Image.new("RGBA", (size, size), (62, 38, 24, 0))
-    paint.putalpha(line.point(lambda value: int(value * 0.82)))
+    line = Image.fromarray((ring * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(1.3))
+    paint = Image.new("RGBA", (size, size), (54, 32, 22, 0))
+    paint.putalpha(line.point(lambda value: int(value * 0.72)))
     return Image.alpha_composite(picture, paint)
 
 

@@ -218,7 +218,10 @@ def build_tray() -> Image.Image:
                                           outline=(*_mix(IVORY_SHADE, GOLD_DARK, 0.35), 52), width=3)
     lip = lip.filter(ImageFilter.GaussianBlur(2.0))
     face.alpha_composite(lip)
-    face = _rim(face, cell_radius, _mix(GOLD, GOLD_LIGHT, 0.45), width=2)
+    # No gold round the cell. The reference's tiles are plain white trays with a warm edge and a
+    # shadow under them — the gold belongs to the board's frame, one line for the whole grid — and a
+    # gold rim on each of eighty-one cells turned the playfield into a jewellery box.
+    face = _rim(face, cell_radius, _mix(IVORY_SHADE, WHITE, 0.55), width=2)
 
     shadow = Image.new("RGBA", (tile_side + 12, tile_side + 12), (0, 0, 0, 0))
     ImageDraw.Draw(shadow).rounded_rectangle((6, 7, tile_side + 5, tile_side + 6), radius=cell_radius,
