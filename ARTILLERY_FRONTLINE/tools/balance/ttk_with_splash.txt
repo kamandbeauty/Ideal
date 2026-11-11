@@ -1,0 +1,22 @@
+target              twin_hmg          cannon          rocket         bazooka      autocannon
+rifle                 1/0.1s          1/1.1s          1/0.7s          1/1.1s          1/0.2s
+heavy                 3/0.3s          1/1.1s          1/0.7s          1/1.1s          2/0.3s
+rpg                   1/0.1s          1/1.1s          1/0.7s          1/1.1s          1/0.2s
+jeep                 21/1.8s          1/1.1s          1/0.7s          1/1.1s          1/0.2s
+apc                  50/4.2s          1/1.1s          1/0.7s          1/1.1s          2/0.3s
+tank                 60/5.1s          1/1.1s          1/0.7s          1/1.1s          3/0.5s
+boss               205/19.7s          4/4.6s          3/2.2s          3/3.2s          7/1.1s
+helicopter           16/1.4s          2/2.3s          2/1.4s          1/1.1s          3/0.5s
+fighter              12/1.0s          1/1.1s          1/0.7s          1/1.1s          3/0.5s
+craft                86/7.3s          3/3.4s          3/2.2s          2/2.1s          6/1.0s
+
+rifle       best twin_hmg     0.1  worst cannon       1.1
+heavy       best twin_hmg     0.3  worst cannon       1.1
+rpg         best twin_hmg     0.1  worst cannon       1.1
+jeep        best autocannon   0.2  worst twin_hmg     1.8
+apc         best autocannon   0.3  worst twin_hmg     4.2
+tank        best autocannon   0.5  worst twin_hmg     5.1
+boss        best autocannon   1.1  worst twin_hmg    19.7
+helicopter  best autocannon   0.5  worst cannon       2.3
+fighter     best autocannon   0.5  worst cannon       1.1
+craft       best autocannon   1.0  worst twin_hmg     7.3

@@ -636,7 +636,9 @@ func _on_bullet_impact(point: Vector3, normal: Vector3, collider: Object, damage
 		# blast still splashes nearby hostiles without painting the screen.
 		_damage_player(damage)
 		if blast > 0.0:
-			_explode_damage(point, blast)
+			# The emplacement already took this shell's direct damage; the blast only reacts nearby units.
+			# hurt_player stays false, or the same shell would hurt the emplacement twice.
+			_explode_damage(point, blast, false)
 			camera_shake = maxf(camera_shake, 0.7)
 			Sound.play_at("explosion", point, -6.0)
 		else:
