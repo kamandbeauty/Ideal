@@ -1,18 +1,30 @@
 class_name UITheme
 extends RefCounted
-## Look of the interface: scorched steel panels, amber for the player's own
+## Look of the interface: scorched steel plates, amber for the player's own
 ## systems, red for anything that is going wrong.
+##
+## Sizes are in canvas units. The canvas is 810 units high on every screen, so
+## on a 6.5-inch phone one unit is about 0.085 mm: an 88-unit control is a
+## 7.5 mm touch target (Android's 48 dp) and 26-unit text is about 14 sp.
 
-const INK := Color(0.045, 0.05, 0.055, 0.94)
-const PANEL := Color(0.07, 0.075, 0.08, 0.88)
-const PLATE := Color(0.13, 0.135, 0.14, 0.92)
-const LINE := Color(0.6, 0.56, 0.47, 0.55)
-const TEXT := Color(0.95, 0.93, 0.87)
-const MUTED := Color(0.7, 0.68, 0.62)
-const AMBER := Color(0.97, 0.69, 0.2)
-const RED := Color(0.92, 0.23, 0.16)
-const GREEN := Color(0.55, 0.8, 0.45)
+const INK := Color(0.035, 0.04, 0.045, 0.95)
+const PANEL := Color(0.055, 0.06, 0.065, 0.92)
+const PLATE := Color(0.13, 0.135, 0.14, 0.95)
+## Backing of HUD read-outs: dark enough to carry text over a sunlit wall, thin enough to see through.
+const HUD_PLATE := Color(0.025, 0.03, 0.035, 0.6)
+const LINE := Color(0.62, 0.58, 0.49, 0.55)
+const TEXT := Color(0.96, 0.94, 0.88)
+const MUTED := Color(0.76, 0.74, 0.68)
+const AMBER := Color(0.98, 0.7, 0.2)
+const RED := Color(0.94, 0.25, 0.18)
+const GREEN := Color(0.56, 0.82, 0.46)
 const FONT_DIR: String = "res://assets/fonts/"
+## Smallest side of anything meant to be touched in a menu.
+const TOUCH: float = 88.0
+const BODY: int = 26
+const SMALL: int = 22
+## Rajdhani is drawn small on its body; this brings Latin text up to the weight of the Persian beside it.
+const LATIN_SCALE: float = 1.12
 
 static var fonts: Dictionary = {}
 static var shared: Theme
@@ -36,6 +48,11 @@ static func font(heavy: bool = false) -> Font:
 	return variation
 
 
+## Font size for text designed at `size` units, in the language now shown.
+static func font_size(size: int) -> int:
+	return int(round(float(size) * (1.0 if Loc.language == "fa" else LATIN_SCALE)))
+
+
 static func box(background: Color, border: Color = LINE, radius: int = 8, width: int = 1, padding: int = 16) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = background
@@ -46,6 +63,7 @@ static func box(background: Color, border: Color = LINE, radius: int = 8, width:
 	style.content_margin_right = padding
 	style.content_margin_top = padding * 0.6
 	style.content_margin_bottom = padding * 0.6
+	style.anti_aliasing = true
 	return style
 
 
@@ -58,24 +76,15 @@ static func theme() -> Theme:
 	shared.set_color("font_shadow_color", "Label", Color(0, 0, 0, 0.75))
 	shared.set_constant("shadow_offset_x", "Label", 1)
 	shared.set_constant("shadow_offset_y", "Label", 2)
-	shared.set_stylebox("normal", "Button", box(PLATE, LINE, 8, 1, 22))
-	shared.set_stylebox("hover", "Button", box(PLATE.lightened(0.08), AMBER, 8, 1, 22))
-	shared.set_stylebox("pressed", "Button", box(PLATE.darkened(0.25), AMBER, 8, 2, 22))
-	shared.set_stylebox("disabled", "Button", box(Color(0.1, 0.1, 0.1, 0.6), Color(0.3, 0.3, 0.3, 0.4), 8, 1, 22))
-	shared.set_stylebox("focus", "Button", box(Color(0, 0, 0, 0), AMBER, 8, 2, 22))
+	shared.set_stylebox("normal", "Button", box(PLATE, LINE, 6, 1, 24))
+	shared.set_stylebox("hover", "Button", box(PLATE.lightened(0.06), AMBER, 6, 1, 24))
+	shared.set_stylebox("pressed", "Button", box(PLATE.darkened(0.3), AMBER, 6, 2, 24))
+	shared.set_stylebox("disabled", "Button", box(Color(0.1, 0.1, 0.1, 0.6), Color(0.3, 0.3, 0.3, 0.4), 6, 1, 24))
+	shared.set_stylebox("focus", "Button", StyleBoxEmpty.new())
 	for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		shared.set_color(key, "Button", TEXT)
-	shared.set_stylebox("panel", "PanelContainer", box(PANEL, LINE, 12, 1, 26))
-	shared.set_stylebox("panel", "Panel", box(PANEL, LINE, 12, 1, 26))
-	shared.set_stylebox("slider", "HSlider", box(Color(0.02, 0.02, 0.02, 0.9), LINE, 4, 1, 3))
-	shared.set_stylebox("grabber_area", "HSlider", box(AMBER.darkened(0.2), AMBER, 4, 0, 3))
-	shared.set_stylebox("grabber_area_highlight", "HSlider", box(AMBER, AMBER, 4, 0, 3))
-	for key: String in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
-		shared.set_stylebox(key, "CheckButton", StyleBoxEmpty.new())
-	shared.set_color("font_color", "CheckButton", TEXT)
-	shared.set_color("font_pressed_color", "CheckButton", AMBER)
-	shared.set_color("font_hover_color", "CheckButton", TEXT)
-	shared.set_color("font_hover_pressed_color", "CheckButton", AMBER)
+	shared.set_stylebox("panel", "PanelContainer", box(PANEL, LINE, 10, 1, 28))
+	shared.set_stylebox("panel", "Panel", box(PANEL, LINE, 10, 1, 28))
 	return shared
 
 
@@ -84,39 +93,65 @@ static func refresh_fonts() -> void:
 	if shared == null:
 		return
 	shared.default_font = font(false)
-	shared.default_font_size = 22
+	shared.default_font_size = font_size(BODY)
 	shared.set_font("font", "Button", font(true))
-	shared.set_font_size("font_size", "Button", 26)
-	shared.set_font("font", "CheckButton", font(false))
-	shared.set_font_size("font_size", "CheckButton", 22)
+	shared.set_font_size("font_size", "Button", font_size(30))
 
 
-static func label(text: String, size: int = 22, color: Color = TEXT, heavy: bool = false) -> Label:
+## A label that remembers how it was meant to look, so `restyle` can redo it in another language.
+static func label(text: String, size: int = BODY, color: Color = TEXT, heavy: bool = false) -> Label:
 	var node := Label.new()
 	node.text = text
-	node.add_theme_font_override("font", font(heavy))
-	node.add_theme_font_size_override("font_size", size)
+	node.set_meta("heavy", heavy)
+	node.set_meta("base_size", size)
 	node.add_theme_color_override("font_color", color)
 	node.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 	node.add_theme_constant_override("shadow_offset_x", 1)
 	node.add_theme_constant_override("shadow_offset_y", 2)
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	restyle(node)
 	return node
 
 
-static func button(text: String, action: Callable, accent: bool = false) -> Button:
+static func restyle(node: Label) -> void:
+	node.add_theme_font_override("font", font(node.get_meta("heavy", false)))
+	node.add_theme_font_size_override("font_size", font_size(int(node.get_meta("base_size", BODY))))
+
+
+## Dark rim around the glyphs, for text that sits straight on the picture with no plate behind it.
+static func outline(node: Label, width: int = 6) -> Label:
+	node.add_theme_constant_override("outline_size", width)
+	node.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.6))
+	return node
+
+
+## `style`: "plain", "accent" (the one thing this screen is for) or "danger" (asks to be confirmed).
+static func button(text: String, action: Callable, style: Variant = "plain", sound: String = "click") -> Button:
 	var node := Button.new()
 	node.text = text
-	node.custom_minimum_size = Vector2(0, 62)
+	node.custom_minimum_size = Vector2(0, TOUCH)
 	node.focus_mode = Control.FOCUS_NONE
 	node.add_theme_font_override("font", font(true))
-	if accent:
-		node.add_theme_stylebox_override("normal", box(AMBER.darkened(0.12), AMBER.lightened(0.2), 8, 1, 22))
-		node.add_theme_stylebox_override("hover", box(AMBER, Color.WHITE, 8, 1, 22))
-		node.add_theme_stylebox_override("pressed", box(AMBER.darkened(0.35), AMBER, 8, 2, 22))
-		for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-			node.add_theme_color_override(key, Color(0.08, 0.06, 0.03))
+	node.add_theme_font_size_override("font_size", font_size(30))
+	# Older callers passed `true` for the accent look.
+	var look: String = ("accent" if style else "plain") if style is bool else String(style)
+	paint_button(node, look)
 	node.pressed.connect(func() -> void:
-		Sound.play("click", -8.0)
+		Sound.play(sound, -8.0)
 		action.call())
 	return node
+
+
+static func paint_button(node: Button, look: String) -> void:
+	for key: String in ["normal", "hover", "pressed"]:
+		node.remove_theme_stylebox_override(key)
+	for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		node.remove_theme_color_override(key)
+	var tone: Color = AMBER if look == "accent" else RED
+	if look == "accent" or look == "danger":
+		node.add_theme_stylebox_override("normal", box(tone.darkened(0.12), tone.lightened(0.25), 6, 1, 24))
+		node.add_theme_stylebox_override("hover", box(tone, Color.WHITE, 6, 1, 24))
+		node.add_theme_stylebox_override("pressed", box(tone.darkened(0.35), tone, 6, 2, 24))
+		var ink: Color = Color(0.08, 0.06, 0.03) if look == "accent" else Color(1.0, 0.97, 0.94)
+		for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			node.add_theme_color_override(key, ink)
