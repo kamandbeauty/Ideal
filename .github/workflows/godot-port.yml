@@ -350,10 +350,23 @@ jobs:
           version: 4.7.2
           use-dotnet: false
 
+      # The runner's apt mirror answers with a transient error often enough that this step has already
+      # taken two good commits down with it. Retrying with a cleared index costs nothing when it works
+      # and saves the run when it does not.
       - name: Install a software OpenGL stack and a virtual display
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 mesa-utils
+          for attempt in 1 2 3; do
+            if sudo apt-get update -qq \
+              && sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 mesa-utils; then
+              echo "apt stack installed on attempt $attempt"
+              exit 0
+            fi
+            echo "::warning title=apt::attempt $attempt failed; clearing the index and retrying"
+            sudo rm -rf /var/lib/apt/lists/* || true
+            sleep 15
+          done
+          echo "::error title=apt::the software OpenGL stack could not be installed"
+          exit 1
 
       - name: Import the project
         run: godot --headless --editor --path godot-port --quit
