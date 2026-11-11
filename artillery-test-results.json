@@ -1,7 +1,9 @@
 {
-  "checks": 1197,
+  "checks": 1208,
   "engine": "4.7.2-stable (official)",
-  "failures": [],
-  "passed": true,
+  "failures": [
+    "test_ui: Home screen exposes image-led command cards"
+  ],
+  "passed": false,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }
