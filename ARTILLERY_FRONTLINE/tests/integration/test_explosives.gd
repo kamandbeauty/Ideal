@@ -135,17 +135,37 @@ func _switching_and_launch(t: TestContext) -> void:
 	t.equal(level.rockets.detonated, 1, "the pool retired the round")
 	await t.frames(2)
 	t.check(level.explosions.burning() >= 1, "a pooled flash is burning")
+	# What the blast leaves to look at: fire, smoke and debris from the pool, a ring and a scorch mark on the ground.
+	var mark: MeshInstance3D = level.explosions.scorches[0]
+	t.check(mark.visible and absf(mark.position.y) < 0.1, "a scorch mark lies on the ground")
+	t.check(Vector2(mark.position.x - ground.x, mark.position.z - ground.z).length() < 0.8, "under the blast")
+	t.check(mark.scale.x >= launcher.data.explosion.radius * 0.75, "about as wide as the blast")
+	t.check(level.explosions.rings[0].visible and level.explosions.flashes[0].visible, "a shock ring and a flash are showing")
+	var bursts_before: int = level.effects.bursts
+	var high := Vector3(0.0, 40.0, -60.0)
+	level.explosions.detonate(high, launcher.data.explosion)
+	t.check(level.effects.bursts - bursts_before >= 4, "every blast draws its fire, smoke, debris and sparks from the effect pool")
+	t.check(not level.explosions.scorches[1].visible and not level.explosions.rings[1].visible, "a burst high in the air marks no ground")
+	for kind: String in ["fireball", "blast_smoke", "debris"]:
+		t.check(level.effects.emitters.has(kind) and level.effects.emitters[kind].size() >= Explosions.BLASTS,
+			"the effect pool holds %s for as many blasts as can burn at once" % kind)
+	bursts.clear()
 
 	# A rocket that meets nothing bursts at the end of its range.
-	bursts.clear()
 	var start := Vector3(0.0, 30.0, 0.0)
 	var slot: int = level.rockets.launch(start, Vector3.UP, launcher.data)
 	t.check(slot >= 0, "a round is free in the pool")
 	var guard: int = 0
+	var trailing_at: float = -1.0
 	while level.rockets.active_count > 0 and guard < 2000:
-		level.rockets._physics_process(0.05)
+		level.rockets._physics_process(0.02)
+		if trailing_at < 0.0 and level.rockets.trails[slot].emitting:
+			trailing_at = level.rockets.travelled[slot]
 		guard += 1
 	t.check(bursts.size() == 1 and absf((bursts[0] as Vector3).y - start.y - launcher.data.max_range) < 0.5, "it bursts at its maximum range")
+	t.check(trailing_at >= RocketPool.TRAIL_START and trailing_at < RocketPool.TRAIL_START + 3.0,
+		"the smoke trail starts clear of the gunner (%.1f m out)" % trailing_at)
+	t.check(not level.rockets.trails[slot].emitting and not level.rockets.nodes[slot].visible, "the round and its trail stop at the burst")
 	# The pool never grows.
 	var nodes: int = level.rockets.get_child_count()
 	for index: int in RocketPool.CAPACITY + 3:

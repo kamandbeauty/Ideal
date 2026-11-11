@@ -19,7 +19,7 @@ const KINDS: Dictionary = {
 		"size": Vector2(1.1, 2.3), "color": Color(1.0, 0.6, 0.2, 0.85), "end": Color(0.5, 0.09, 0.02, 0.0), "grow": 2.0,
 		"additive": true},
 	"blast_smoke": {"count": 5, "amount": 16, "life": 3.2, "speed": Vector2(0.5, 2.4), "spread": 60.0, "gravity": 0.5,
-		"size": Vector2(2.0, 3.6), "color": Color(0.07, 0.065, 0.06, 0.92), "mid": [0.55, Color(0.16, 0.15, 0.14, 0.8)],
+		"size": Vector2(2.0, 3.6), "color": Color(0.07, 0.065, 0.06, 0.9), "rise": 0.09, "mid": [0.55, Color(0.16, 0.15, 0.14, 0.8)],
 		"end": Color(0.3, 0.29, 0.28, 0.0), "grow": 2.2, "additive": false},
 	"debris": {"count": 5, "amount": 18, "life": 1.15, "speed": Vector2(6.0, 17.0), "spread": 62.0, "gravity": -15.0,
 		"size": Vector2(0.09, 0.22), "color": Color(0.1, 0.09, 0.08, 1.0), "end": Color(0.1, 0.09, 0.08, 0.6), "grow": 1.0,
@@ -53,6 +53,10 @@ func _ready() -> void:
 		var fade := Gradient.new()
 		fade.set_color(0, spec.color)
 		fade.set_color(1, spec.get("end", Color(spec.color.r, spec.color.g, spec.color.b, 0.0)))
+		if spec.has("rise"):
+			# Comes up out of nothing, so the fire is seen first and the smoke closes over it.
+			fade.set_color(0, Color(spec.color.r, spec.color.g, spec.color.b, 0.0))
+			fade.add_point(spec.rise, spec.color)
 		if spec.has("mid"):
 			# Holds the colour for a while instead of thinning from the first moment.
 			fade.add_point(spec.mid[0], spec.mid[1])

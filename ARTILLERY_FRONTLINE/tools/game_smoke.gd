@@ -165,8 +165,12 @@ func _run() -> void:
 		waited_frames += 1
 	game.hud.touch_up(0)
 	check(level.rockets.launched == 1, "FIRE launches one rocket")
-	await _physics_frames(4)
+	# The flight lasts a third of a second; slow the clock so the software renderer can catch the round in the air.
+	Engine.time_scale = 0.1
+	await _physics_frames(9)
+	check(level.rockets.active_count == 1, "the rocket is in flight")
 	await shot("10-rocket-away")
+	Engine.time_scale = 1.0
 	waited_frames = 0
 	while level.explosions.detonations < 1 and waited_frames < 600:
 		await get_tree().physics_frame
