@@ -271,7 +271,9 @@ def build_rail() -> Image.Image:
     # are planted in the middle of it.
     foot_size = width
     foot = _ornament((foot_size, foot_size), (foot_size // 2, foot_size // 2), int(width * 0.12))
-    band.alpha_composite(foot, (0, height - foot_size + 26))
+    # 82 px from the bottom of the plate is the very foot of the rail: any higher and the two exit
+    # buttons are planted in the middle of the flower.
+    band.alpha_composite(foot, (0, height - foot_size + 82))
     return band.filter(ImageFilter.UnsharpMask(radius=1.2, percent=40, threshold=2))
 
 
