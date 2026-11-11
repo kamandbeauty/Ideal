@@ -36,17 +36,17 @@ DUMP     chest_icon [P: (35.0, 336.0), S: (22.0, 22.0)]
 DUMP     chest_label [P: (58.0, 334.0), S: (62.0, 26.0)] text=باز کن
 STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(738.0, 415.0)
 LAYOUT board :: 0 control(s) escape their parent
-STRIP start :: screen=BoardScreen:<Control#53519320662>
-STRIP move :: [(5, 0), (5, 1)]
-STRIP board :: board:<Control#60582528766>
-STRIP frame 0 :: (142, 131)
-STRIP frame 1 :: (142, 131)
-STRIP frame 2 :: (142, 131)
-STRIP frame 3 :: (142, 131)
-STRIP frame 4 :: (142, 131)
-STRIP frame 5 :: (142, 131)
-STRIP frame 6 :: (142, 131)
-STRIP frame 7 :: (142, 131)
-STRIP frame 8 :: (142, 131)
-STRIP 11-swap-strip 2190x816 frames=10
+STRIP start :: screen=BoardScreen:<Control#53770978902>
+STRIP move :: [(1, 0), (2, 0)]
+STRIP board :: board:<Control#60834187006>
+STRIP frame 0 :: (142, 110)
+STRIP frame 1 :: (142, 110)
+STRIP frame 2 :: (142, 110)
+STRIP frame 3 :: (142, 110)
+STRIP frame 4 :: (142, 110)
+STRIP frame 5 :: (142, 110)
+STRIP frame 6 :: (142, 110)
+STRIP frame 7 :: (142, 110)
+STRIP frame 8 :: (142, 110)
+STRIP 11-swap-strip 2190x690 frames=10
 CONTACT 4540x447
