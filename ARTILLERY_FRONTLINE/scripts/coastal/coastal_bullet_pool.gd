@@ -12,10 +12,10 @@ func _ready() -> void:
 		bullet.impacted.connect(_on_impact)
 		bullets.append(bullet)
 
-func launch(origin: Vector3, velocity: Vector3, damage: float, blast: float, collision_mask: int = 7, exclude: Array[RID] = []) -> bool:
+func launch(origin: Vector3, velocity: Vector3, damage: float, blast: float, collision_mask: int = 7, exclude: Array[RID] = [], guide: Callable = Callable(), guided_turn_rate: float = 0.0) -> bool:
 	for bullet in bullets:
 		if not bullet.active:
-			bullet.launch(origin, velocity, damage, blast, collision_mask, exclude)
+			bullet.launch(origin, velocity, damage, blast, collision_mask, exclude, guide, guided_turn_rate)
 			return true
 	return false
 

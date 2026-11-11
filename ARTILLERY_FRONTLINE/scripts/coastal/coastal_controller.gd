@@ -162,6 +162,7 @@ func restart() -> void:
 	support_flights.clear()
 	airstrike_queue.clear()
 	disembark_queue.clear()
+	removals.clear()
 	bullets.clear()
 	effects.clear()
 	weapon.resupply()
@@ -329,6 +330,11 @@ func _spawn_zones(round_number: int) -> Array[Vector3]:
 		zones.append_array([Vector3(-40, 0, 104), Vector3(42, 0, 108)])
 	return zones
 
+## Destroyed soldiers, vehicles, aircraft and craft stay on the field this long, then they are removed.
+const DEAD_UNIT_REMOVE_DELAY: float = 5.0
+## Pending removals: {node, group, time}. `group` is the controller array the unit belongs to.
+var removals: Array[Dictionary] = []
+
 ## Seconds between one landing craft's departure and the next one's (craft speed is progress-based, so this is also the arrival gap).
 const CRAFT_LAUNCH_GAP: float = 6.0
 
@@ -347,6 +353,7 @@ func _on_round_started(round_number: int, setup: Dictionary) -> void:
 		# Each later craft sails CRAFT_LAUNCH_GAP seconds after the one before it, so its troops land later.
 		landing.launch_delay = float(index) * CRAFT_LAUNCH_GAP
 		landing.died.connect(_on_craft_destroyed)
+		landing.died.connect(func(_l): _schedule_removal(landing, crafts))
 		landing.arrived.connect(_unload)
 		crafts.append(landing)
 		new_crafts.append(landing)
@@ -439,6 +446,40 @@ func _unload(landing: LandingCraft) -> void:
 func _queue_entry(kind: String, landing: LandingCraft, point: Vector3, time: float) -> void:
 	disembark_queue.append({"kind": kind, "craft": landing, "from_craft": landing != null, "point": point, "time": time})
 
+func _schedule_removal(node: Node3D, group: Array) -> void:
+	removals.append({"node": node, "group": group, "time": DEAD_UNIT_REMOVE_DELAY})
+
+## Removes destroyed units once their delay has run out. A landing craft waits while cargo is still queued
+## to come off it, so no troops are lost with the hull.
+func _tick_removals(delta: float) -> void:
+	var index: int = 0
+	while index < removals.size():
+		var entry: Dictionary = removals[index]
+		entry.time = float(entry.time) - delta
+		if float(entry.time) > 0.0:
+			index += 1
+			continue
+		var node: Object = entry.node
+		if not is_instance_valid(node):
+			removals.remove_at(index)
+			continue
+		if node is LandingCraft and _queue_holds(node as LandingCraft):
+			entry.time = 0.5
+			index += 1
+			continue
+		removals.remove_at(index)
+		var body := node as Node3D
+		(entry.group as Array).erase(node)
+		if craft == body:
+			craft = null
+		body.queue_free()
+
+func _queue_holds(landing: LandingCraft) -> bool:
+	for entry in disembark_queue:
+		if entry.craft == landing:
+			return true
+	return false
+
 func _tick_disembark(delta: float) -> void:
 	var index: int = 0
 	while index < disembark_queue.size():
@@ -481,6 +522,7 @@ func _spawn_soldier(point: Vector3, role: String = "soldier") -> void:
 	soldier.configure(spawn, emplacement + Vector3(randf_range(-6, 6), 0, randf_range(-4, 4)), battlefield.random_cover())
 	soldier.speed = (2.4 + current_wave * 0.3) * InfantryRole.speed_factor(soldier.role_kind)
 	soldier.died.connect(func(_s): _register_kill())
+	soldier.died.connect(func(_s): _schedule_removal(soldier, soldiers))
 	soldier.died.connect(_on_soldier_down)
 	soldier.suppressed.connect(_on_soldier_suppressed)
 	soldier.shoot_requested.connect(_on_enemy_shoot)
@@ -495,6 +537,7 @@ func _spawn_vehicle(spawn: Vector3, kind: String) -> void:
 		vehicle.damaged.connect(_on_boss_damaged)
 		hud.show_boss()
 	vehicle.died.connect(_on_vehicle_destroyed)
+	vehicle.died.connect(func(_v): _schedule_removal(vehicle, vehicles))
 	vehicle.cook_off.connect(_on_vehicle_cook_off)
 	vehicle.shoot_requested.connect(_on_enemy_heavy_shoot.bind(vehicle))
 	vehicles.append(vehicle)
@@ -504,6 +547,7 @@ func _spawn_aircraft(kind: String, phase: float) -> void:
 	add_child(plane)
 	plane.configure(emplacement, kind, phase)
 	plane.died.connect(_on_aircraft_destroyed)
+	plane.died.connect(func(_p): _schedule_removal(plane, aircraft))
 	plane.shoot_requested.connect(_on_enemy_heavy_shoot.bind(plane))
 	aircraft.append(plane)
 
@@ -547,7 +591,8 @@ func _on_boss_stage(vehicle: EnemyVehicle, stage: int) -> void:
 
 func _on_aircraft_destroyed(plane: EnemyAircraft) -> void:
 	_register_kill()
-	effects.explode(plane.global_position, Vector3.UP, 8.0, CoastalTerrain.height_at(plane.global_position.x, plane.global_position.z))
+	# In the air: no ground scar here, or the crater decal would hang in the sky where the aircraft died.
+	effects.explode(plane.global_position, Vector3.UP, 8.0, CoastalTerrain.height_at(plane.global_position.x, plane.global_position.z), false, false)
 	Sound.play_at("explosion", plane.global_position, -4.0)
 
 func _on_craft_destroyed(landing: LandingCraft) -> void:
@@ -630,9 +675,32 @@ func _on_weapon_fired(origin: Vector3, _direction: Vector3, weapon_id: String) -
 	var basis: Basis = camera.global_transform.basis
 	direction = direction.rotated(basis.y.normalized(), randf_range(-spread, spread))
 	direction = direction.rotated(basis.x.normalized(), randf_range(-spread, spread)).normalized()
-	bullets.launch(origin, direction * float(data.speed), float(data.damage), float(data.blast), 7)
+	var turn_rate: float = float(GUIDED_TURN_RATE.get(weapon_id, 0.0))
+	var guide: Callable = Callable(self, "_guide_point") if turn_rate > 0.0 else Callable()
+	bullets.launch(origin, direction * float(data.speed), float(data.damage), float(data.blast), 7, [], guide, turn_rate)
 	if float(data.blast) > 0.0:
 		effects.explode(origin, direction, 1.4, origin.y, true)
+
+## Guided weapons and their turn rate in radians per second. The intercept missile (rocket launcher) homes
+## on the nearest living hostile; the bazooka stays unguided.
+const GUIDED_TURN_RATE: Dictionary = {"rocket": 3.0}
+
+## Point a guided missile at `from` steers toward: the nearest living hostile, aimed at its centre.
+## Vector3.INF when no hostile is left, so the missile flies straight.
+func _guide_point(from: Vector3) -> Vector3:
+	var best: Vector3 = Vector3.INF
+	var best_distance: float = INF
+	for group in [soldiers, vehicles, aircraft, crafts]:
+		for node in group:
+			if not is_instance_valid(node) or node.is_dead():
+				continue
+			var lift: float = 1.2 if node is EnemyAircraft else 1.0
+			var centre: Vector3 = node.global_position + Vector3.UP * lift
+			var distance: float = centre.distance_squared_to(from)
+			if distance < best_distance:
+				best_distance = distance
+				best = centre
+	return best
 
 func _on_barrel_exploded(point: Vector3, radius: float) -> void:
 	_explode(point, Vector3.UP, radius)
@@ -813,6 +881,7 @@ func _process(delta: float) -> void:
 			landing.tick(delta)
 	weapon.tick(delta)
 	_tick_disembark(delta)
+	_tick_removals(delta)
 	for id in support_timers:
 		support_timers[id] = maxf(0.0, float(support_timers[id]) - delta)
 	_tick_airstrikes(delta)

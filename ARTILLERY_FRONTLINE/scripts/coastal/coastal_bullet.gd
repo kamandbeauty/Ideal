@@ -18,6 +18,10 @@ var rocket_root: Node3D
 var trail_material: StandardMaterial3D
 var hit_mask: int = 7
 var excluded_rids: Array[RID] = []
+## Guided projectiles: `seeker` returns the point to steer toward (Vector3.INF when there is none),
+## and `turn_rate` caps the steering in radians per second. turn_rate 0 means a straight, unguided flight.
+var seeker: Callable = Callable()
+var turn_rate: float = 0.0
 
 func _ready() -> void:
 	visual = MeshInstance3D.new()
@@ -75,9 +79,11 @@ func _ready() -> void:
 	add_child(trail_instance)
 	deactivate()
 
-func launch(origin: Vector3, initial_velocity: Vector3, hit_damage: float, blast_radius: float, collision_mask: int = 7, exclude: Array[RID] = []) -> void:
+func launch(origin: Vector3, initial_velocity: Vector3, hit_damage: float, blast_radius: float, collision_mask: int = 7, exclude: Array[RID] = [], guide: Callable = Callable(), guided_turn_rate: float = 0.0) -> void:
 	hit_mask = collision_mask
 	excluded_rids = exclude
+	seeker = guide
+	turn_rate = guided_turn_rate
 	global_position = origin
 	velocity = initial_velocity
 	damage = hit_damage
@@ -98,6 +104,24 @@ func launch(origin: Vector3, initial_velocity: Vector3, hit_damage: float, blast
 		trail_material.albedo_color = Color(1.0, 0.78, 0.4, 0.55)
 	set_physics_process(true)
 
+## Turns the velocity toward the seeker's point, by at most turn_rate * delta radians this frame.
+func _steer(delta: float) -> void:
+	var speed: float = velocity.length()
+	var target: Vector3 = seeker.call(global_position)
+	if speed < 0.01 or is_inf(target.x) or is_nan(target.x):
+		return
+	var to_target: Vector3 = target - global_position
+	if to_target.length_squared() < 0.0001:
+		return
+	var current: Vector3 = velocity / speed
+	var desired: Vector3 = to_target.normalized()
+	var angle: float = current.angle_to(desired)
+	var step: float = turn_rate * delta
+	if angle <= step:
+		velocity = desired * speed
+	else:
+		velocity = current.slerp(desired, step / angle) * speed
+
 func deactivate() -> void:
 	active = false
 	visible = false
@@ -110,6 +134,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if blast > 0.0:
 		velocity.y -= 2.2 * delta
+	if turn_rate > 0.0 and seeker.is_valid():
+		_steer(delta)
 	var next: Vector3 = global_position + velocity * delta
 	var query := PhysicsRayQueryParameters3D.create(global_position, next, hit_mask)
 	query.collide_with_areas = false

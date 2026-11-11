@@ -9,7 +9,7 @@ signal ammo_changed(current: int, magazine: int)
 const WEAPONS: Dictionary = {
 	"twin_hmg": {"display": "مسلسل سنگین دوتایی ۱۲٫۷", "model": "res://assets/models/mounted_twin_hmg.glb", "interval": 0.085, "damage": 20.0, "magazine": 140, "reload": 2.3, "speed": 430.0, "spread": 0.65, "blast": 0.0, "automatic": true},
 	"cannon": {"display": "توپ ۱۰۵ میلی‌متری", "model": "res://assets/models/mounted_cannon.glb", "interval": 1.15, "damage": 150.0, "magazine": 12, "reload": 3.4, "speed": 260.0, "spread": 0.18, "blast": 5.5, "automatic": false},
-	"rocket": {"display": "لانچر راکت", "model": "res://assets/models/mounted_rocket.glb", "interval": 0.72, "damage": 170.0, "magazine": 6, "reload": 3.0, "speed": 115.0, "spread": 0.35, "blast": 9.0, "automatic": false},
+	"rocket": {"display": "موشک رهگیر", "model": "res://assets/models/mounted_rocket.glb", "interval": 0.72, "damage": 170.0, "magazine": 6, "reload": 3.0, "speed": 115.0, "spread": 0.35, "blast": 9.0, "automatic": false},
 	"bazooka": {"display": "بازوکا ام-۹", "model": "res://assets/models/bazooka.glb", "interval": 1.05, "damage": 240.0, "magazine": 4, "reload": 3.2, "speed": 140.0, "spread": 0.25, "blast": 6.5, "automatic": false},
 	"autocannon": {"display": "توپ خودکار ۳۰ میلی‌متری", "model": "res://assets/models/mounted_autocannon.glb", "interval": 0.16, "damage": 42.0, "magazine": 70, "reload": 2.7, "speed": 380.0, "spread": 0.45, "blast": 2.2, "automatic": true}
 }

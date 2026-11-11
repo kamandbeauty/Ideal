@@ -37,7 +37,8 @@ func apply_quality(tier: String, settings: Dictionary) -> void:
 		if index >= active_limit and effects[index].active:
 			effects[index].deactivate()
 
-func explode(point: Vector3, normal: Vector3, radius: float, ground_y: float, muzzle_flash: bool = false) -> void:
+## `scar` puts a ground crater decal at `point`. Pass false for blasts in the air (aircraft), or the scar floats in the sky.
+func explode(point: Vector3, normal: Vector3, radius: float, ground_y: float, muzzle_flash: bool = false, scar: bool = true) -> void:
 	var selected: ExplosionEffect = null
 	for index in range(active_limit):
 		if not effects[index].active:
@@ -49,7 +50,7 @@ func explode(point: Vector3, normal: Vector3, radius: float, ground_y: float, mu
 			if effects[index].age > selected.age:
 				selected = effects[index]
 	selected.activate(point, radius, ground_y, particle_ratio, muzzle_flash)
-	if not muzzle_flash:
+	if not muzzle_flash and scar:
 		var crater: MeshInstance3D = craters[crater_index]
 		crater_index = (crater_index + 1) % craters.size()
 		crater.global_position = point + normal * 0.09

@@ -230,7 +230,6 @@ func _build_main() -> void:
 	actions.size_flags_vertical = Control.SIZE_SHRINK_END
 	actions.add_child(UITheme.label(Loc.t("home_directory"), 15, UITheme.MUTED))
 	actions.add_child(_art_button(Loc.t("home_deploy"), Loc.t("home_deploy_hint"), "hero_beach.jpg", func(): coastal_requested.emit(), true))
-	actions.add_child(_art_button(Loc.t("home_campaign"), Loc.t("home_campaign_hint"), "hero_ridge.jpg", func(): deploy_requested.emit(Profile.next_mission()), false, true))
 	actions.add_child(_art_button(Loc.t("home_map"), Loc.t("home_map_hint"), "hero_ridge.jpg", func(): navigation_requested.emit("campaign"), false, true))
 	actions.add_child(_art_button(Loc.t("home_arsenal"), Loc.t("home_arsenal_hint"), "hero_gun.jpg", func(): navigation_requested.emit("arsenal"), false, true))
 	actions.add_child(_art_button(Loc.t("home_settings"), Loc.t("home_settings_hint"), "emblem.png", func(): settings_return = "main"; navigation_requested.emit("settings"), false, true))
