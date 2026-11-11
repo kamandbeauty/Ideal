@@ -3,9 +3,11 @@ extends RefCounted
 ## Look of the interface: scorched steel plates, amber for the player's own
 ## systems, red for anything that is going wrong.
 ##
-## Sizes are in canvas units. The canvas is 810 units high on every screen, so
-## on a 6.5-inch phone one unit is about 0.085 mm: an 88-unit control is a
-## 7.5 mm touch target (Android's 48 dp) and 26-unit text is about 14 sp.
+## Sizes are in canvas units. The canvas is 810 units high on 16:9 and wider
+## screens (a narrower one, such as a 4:3 tablet, keeps the 1440 width and
+## grows taller). On a 6.5-inch 20:9 phone one unit is about 0.084 mm: an
+## 88-unit control is 7.4 mm, just under Android's 48 dp (7.6 mm), and 26-unit
+## text is 2.2 mm, about 14 sp.
 
 const INK := Color(0.035, 0.04, 0.045, 0.95)
 const PANEL := Color(0.055, 0.06, 0.065, 0.92)

@@ -5,9 +5,11 @@ extends CanvasLayer
 ## or the grenade does that, and one anywhere else aims, so both thumbs work
 ## at once. Mouse and keyboard reach the same code.
 ##
-## Layout, in canvas units (810 high on every screen): the wall and the gate
-## top left, the wave top centre with the boss under it, kills and PAUSE top
-## right; the firing hand in one bottom corner, the weapons in the other.
+## Layout, in canvas units (810 high on 16:9 and wider screens, taller on
+## narrower ones; everything is placed from the edges it belongs to): the wall
+## and the gate top left, the wave top centre with the boss under it, kills
+## and PAUSE top right; the firing hand in one bottom corner, the weapons in
+## the other.
 
 signal pause_pressed
 
@@ -330,6 +332,7 @@ func _build_slots() -> void:
 func set_active(enabled: bool) -> void:
 	if enabled and not active:
 		fade_in = 0.0
+		root.modulate.a = 0.0
 	active = enabled
 	root.visible = enabled
 	if not enabled:

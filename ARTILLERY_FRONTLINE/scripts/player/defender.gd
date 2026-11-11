@@ -251,7 +251,11 @@ func _apply_aim() -> void:
 	var pitch: float = aim.aim_pitch()
 	frame.rotation.y = -deg_to_rad(yaw)
 	cradle.rotation.x = deg_to_rad(pitch)
-	camera.rotation = Vector3(deg_to_rad(shake.x), deg_to_rad(shake.y), deg_to_rad(shake.z))
+	# The shake is only in the picture: the weapons follow the cradle, so switching it off changes nothing about where rounds go.
+	if bool(Profile.setting("screen_shake")):
+		camera.rotation = Vector3(deg_to_rad(shake.x), deg_to_rad(shake.y), deg_to_rad(shake.z))
+	else:
+		camera.rotation = Vector3.ZERO
 	for item: Weapon in weapons:
 		item.set_aim(yaw, pitch)
 

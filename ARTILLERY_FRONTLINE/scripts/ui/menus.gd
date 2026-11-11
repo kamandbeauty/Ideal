@@ -2,8 +2,9 @@ class_name Menus
 extends CanvasLayer
 ## Title, settings, pause and result screens. Ordinary Controls: these are the
 ## only places where taps go through Godot's GUI instead of the touch router.
-## Every screen is laid out for the reading direction of the language in use,
-## and nothing meant to be touched is under 60 canvas units high.
+## Every screen is laid out for the reading direction of the language in use.
+## Buttons are 88 canvas units high, the rows of the settings screen 76 and
+## its choice buttons 68 (7.4, 6.4 and 5.7 mm on a 6.5-inch phone).
 
 signal play_requested
 signal resume_requested
@@ -231,7 +232,7 @@ func _build_main() -> void:
 		var record: String = Loc.t("best_wave", [int(totals.best_wave)]) if int(totals.best_wave) > 0 else ""
 		var career: String = Loc.t("career", [int(totals.matches), int(totals.victories), int(totals.kills)])
 		column.add_child(_text(record + ("\n" if record != "" else "") + career, 22, UITheme.TEXT, false))
-	column.add_child(_text(Loc.t("version", [String(ProjectSettings.get_setting("application/config/version", ""))]), 20, UITheme.MUTED, false))
+	column.add_child(_text(Loc.t("version", [Loc.number(String(ProjectSettings.get_setting("application/config/version", "")))]), 20, UITheme.MUTED, false))
 
 
 # -- Pause -----------------------------------------------------------------------------
@@ -327,7 +328,6 @@ func _build_settings() -> void:
 	controls.add_child(_check_row("invert_y"))
 	controls.add_child(_check_row("left_handed"))
 	controls.add_child(_check_row("screen_shake"))
-	controls.add_child(_check_row("vibration"))
 	controls.add_child(_choice_row("language", ["فارسی", "English"], Profile.LANGUAGES.find(Loc.language),
 		func(index: int) -> void: Profile.set_setting("language", Profile.LANGUAGES[index])))
 	var sound: VBoxContainer = _group("group_sound")
@@ -381,7 +381,7 @@ func _readout(key: String, value: float) -> String:
 func _slider_row(key: String, low: float, high: float, step: float) -> MenuWidgets.Row:
 	var row: MenuWidgets.Row = _row(key)
 	var slider := MenuWidgets.SlideBar.new(low, high, step, Profile.setting(key))
-	slider.custom_minimum_size = Vector2(250.0, 60.0)
+	slider.custom_minimum_size = Vector2(250.0, 72.0)
 	var readout: Label = UITheme.label(_readout(key, slider.value), 24, UITheme.AMBER, true)
 	readout.custom_minimum_size = Vector2(76.0, 0.0)
 	readout.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT

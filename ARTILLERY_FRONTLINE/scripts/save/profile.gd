@@ -16,7 +16,6 @@ const DEFAULTS: Dictionary = {
 		"quality": "auto",
 		"show_fps": false,
 		"screen_shake": true,
-		"vibration": true,
 	},
 	"stats": {
 		"matches": 0,

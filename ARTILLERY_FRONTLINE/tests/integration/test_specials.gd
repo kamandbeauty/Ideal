@@ -187,7 +187,8 @@ func _wide_places(t: TestContext) -> void:
 	t.equal(placed, columns, "every walker it pushed aside is still in the fight")
 	t.check(not crowding, "none of them stands inside the brute")
 	t.equal(horde.attackers("gate"), columns - 2 + 1, "the gate is now struck by the brute and the walkers beside it")
-	# Its blow is its own.
+	# Its blow is its own (measured on a whole gate, whatever the walkers have done to it meanwhile).
+	level.defense.gate_health = level.defense.data.gate_max_health
 	var gate_before: float = level.defense.gate_health
 	var blows: int = brute.blows
 	_until(t, level, 6.0, func() -> bool: return brute.blows > blows)
@@ -330,10 +331,15 @@ func _boss(t: TestContext) -> void:
 	while elapsed < 240.0 and boss.state != Zombie.State.ATTACK:
 		t.simulate(level, 0.25)
 		elapsed += 0.25
+		# The walkers get there half a minute before the boss and would have the gate nearly down
+		# (55 to 220 points left, by the luck of their walking speeds). What is measured below is
+		# the boss's blow, so the gate is kept whole until it arrives.
+		level.defense.gate_health = level.defense.data.gate_max_health
 	t.equal(boss.state, Zombie.State.ATTACK, "the boss reaches the gate (%.0f s)" % elapsed)
 	t.check(boss.slot != null and boss.slot.line == "gate" and boss.slot.members.size() == 3, "and takes three places at it")
 	t.check(absf(boss.position.z - level.layout.gate_center.z) < 1.1 and absf(boss.position.x - level.layout.gate_center.x) < 2.0,
 		"it stands in front of the middle of the gate")
+	level.defense.gate_health = level.defense.data.gate_max_health
 	var gate_before: float = level.defense.gate_health
 	var blows: int = boss.blows
 	level.gate_shake = 0.0
