@@ -235,7 +235,17 @@ func _match_strip(board_screen) -> void:
 	var stale_toast = board_screen.get_node_or_null("combo_toast")
 	if stale_toast != null:
 		stale_toast.queue_free()
-	await _frames(3)
+	# And the splashes. The strip before this one plays its own move, and in slow motion a burst that
+	# lasts 0.44 s of game time is still on screen two seconds later: without this the frames carry
+	# splats from the previous move and the strip accuses the new one of clearing cells it never took.
+	for child in view.get_children():
+		var child_name := str(child.name)
+		if child_name.begins_with("splash") or child_name.begins_with("spray") \
+			or child_name.begins_with("sag") or child_name.begins_with("spark") \
+			or child_name.begins_with("ring") or child_name.begins_with("streak") \
+			or child_name.begins_with("whirlwind"):
+			child.queue_free()
+	await _frames(4)
 	var origin: Vector2 = view.position + view.grid_origin
 	var side := int(view.cell_size * float(view.run.board.width)) + 8
 	var window := Rect2i(Vector2i(int(origin.x) - 4, int(origin.y) - 4), Vector2i(side, side))
