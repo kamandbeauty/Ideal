@@ -1,0 +1,6 @@
+.godot/
+exports/
+*.apk
+*.aab
+*.keystore
+*.jks
