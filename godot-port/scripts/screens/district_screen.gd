@@ -14,9 +14,9 @@ const CARD_HEIGHT := 286.0
 const EDGE := 18.0
 # The painted plaque has an arch ornament across its top third, so the title starts below it and the five
 # rows and the two action buttons are packed tighter to make the room back.
-const TITLE_Y := 64.0
-const ROW_Y := 88.0
-const ROW_PITCH := 27.0
+const TITLE_Y := 74.0
+const ROW_Y := 96.0
+const ROW_PITCH := 25.0
 const ACTION_Y := 228.0
 const CARD_WIDTH := 232.0
 const CARD_GAP := 8.0
@@ -78,14 +78,14 @@ func _build_card(index: int) -> void:
 		row.name = "task_%d" % task_index
 		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(row)
-		UiKit.place(row, EDGE, y, CARD_WIDTH - EDGE * 2.0, 25.0)
+		UiKit.place(row, EDGE, y, CARD_WIDTH - EDGE * 2.0, 24.0)
 
 		var label := UiKit.label(row, "title", "", UiTokens.TYPE_XS, UiTokens.TEXT,
 			HORIZONTAL_ALIGNMENT_RIGHT)
-		UiKit.place(label, 46.0, 0.0, CARD_WIDTH - EDGE * 2.0 - 46.0, 25.0)
+		UiKit.place(label, 46.0, 0.0, CARD_WIDTH - EDGE * 2.0 - 46.0, 24.0)
 		_row_titles.append(label)
 
-		var button := UiKit.button(row, "build", "", 0.0, 0.0, 42.0, 25.0, UiTokens.ACCENT,
+		var button := UiKit.button(row, "build", "", 0.0, 0.0, 42.0, 24.0, UiTokens.ACCENT,
 			UiTokens.ON_ACCENT, Callable(self, "_on_task_pressed").bind(index, task_index),
 			UiTokens.RADIUS_SM)
 		button.add_theme_font_size_override("font_size", UiTokens.TYPE_XS)
