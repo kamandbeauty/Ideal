@@ -329,6 +329,9 @@ func _spawn_zones(round_number: int) -> Array[Vector3]:
 		zones.append_array([Vector3(-40, 0, 104), Vector3(42, 0, 108)])
 	return zones
 
+## Seconds between one landing craft's departure and the next one's (craft speed is progress-based, so this is also the arrival gap).
+const CRAFT_LAUNCH_GAP: float = 6.0
+
 func _on_round_started(round_number: int, setup: Dictionary) -> void:
 	current_wave = round_number
 	contact_called = false
@@ -341,6 +344,8 @@ func _on_round_started(round_number: int, setup: Dictionary) -> void:
 		var landing := LandingCraft.new()
 		add_child(landing)
 		landing.configure(Vector3(x, 0, -190.0 - index * 20.0), Vector3(x, 0, -12.0))
+		# Each later craft sails CRAFT_LAUNCH_GAP seconds after the one before it, so its troops land later.
+		landing.launch_delay = float(index) * CRAFT_LAUNCH_GAP
 		landing.died.connect(_on_craft_destroyed)
 		landing.arrived.connect(_unload)
 		crafts.append(landing)

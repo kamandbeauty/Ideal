@@ -186,7 +186,7 @@ func predicted_position(seconds: float) -> Vector3:
 
 ## Aim point (the aircraft's centre plus 1.2 m, as the aim assist uses) that a bullet of `speed` must be
 ## sent to so that it meets the aircraft. Bullets fly straight, so the flight time depends on the aim point;
-## two refinements converge for every orbit used here.
+## two refinement passes. Convergence is not proven for every orbit; the aircraft hit rates in the Phase 3.6 audit are the check.
 func intercept_point(origin: Vector3, speed: float) -> Vector3:
 	var aim: Vector3 = global_position + Vector3.UP * 1.2
 	for _pass in range(2):

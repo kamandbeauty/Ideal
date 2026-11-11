@@ -4,9 +4,9 @@ extends RefCounted
 
 ## Bullet flight simulated in small steps when checking the closest approach to the aircraft.
 const STEP: float = 0.001
-## Twin HMG bullet speed (coastal_weapon.gd); the fastest of the five weapons after the autocannon.
+## Twin HMG bullet speed (coastal_weapon.gd): the fastest player bullet (autocannon 380, cannon 260, bazooka 140, rocket 115).
 const FAST_BULLET_SPEED: float = 430.0
-## Camera height over the emplacement (emplacement pad 4.1 m + 1.65 m eye height).
+## Camera height used for the sight line: about the emplacement ground plus the 1.65 m aim pivot (coastal_controller.gd).
 const CAMERA_POSITION: Vector3 = Vector3(0.0, 5.7, 58.0)
 
 func run(t: TestContext) -> void:

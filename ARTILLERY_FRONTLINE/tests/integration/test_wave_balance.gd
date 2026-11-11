@@ -10,6 +10,7 @@ func run(t: TestContext) -> void:
 	_check_monotonic(t)
 	_check_completable(t)
 	await _check_spawn_pacing_and_damage(t)
+	await _check_craft_stagger(t)
 
 func _check_composition(t: TestContext) -> void:
 	t.equal(WaveManager.ROUNDS.size(), 3, "Campaign has three landing waves")
@@ -86,6 +87,33 @@ func _check_spawn_pacing_and_damage(t: TestContext) -> void:
 	scene.player_health = full
 	scene.queue_free()
 	await t.tree.process_frame
+
+## Phase 3.6: a second landing craft sails CRAFT_LAUNCH_GAP seconds after the first, so the two arrive that far apart.
+func _check_craft_stagger(t: TestContext) -> void:
+	t.equal(CoastalController.CRAFT_LAUNCH_GAP, 6.0, "Craft arrive six seconds apart")
+	var arrivals: Array[float] = []
+	var boats: Array[LandingCraft] = []
+	for index in range(2):
+		var boat := LandingCraft.new()
+		t.tree.root.add_child(boat)
+		boat.configure(Vector3(0, 0, -190.0 - index * 20.0), Vector3(0, 0, -12.0))
+		boat.launch_delay = float(index) * CoastalController.CRAFT_LAUNCH_GAP
+		boats.append(boat)
+	var clock: float = 0.0
+	var done: Array[bool] = [false, false]
+	while clock < 60.0 and (not done[0] or not done[1]):
+		for index in range(2):
+			if not done[index]:
+				boats[index].tick(0.02)
+				if boats[index].has_arrived:
+					done[index] = true
+					arrivals.append(clock)
+		clock += 0.02
+	t.check(arrivals.size() == 2, "Both craft reach the beach")
+	if arrivals.size() == 2:
+		t.check(absf((arrivals[1] - arrivals[0]) - CoastalController.CRAFT_LAUNCH_GAP) <= 0.05, "The second craft grounds %.1f s after the first" % CoastalController.CRAFT_LAUNCH_GAP)
+	for boat in boats:
+		boat.queue_free()
 
 static func _armour_count(setup: Dictionary) -> int:
 	return int(setup.get("tanks", 0)) + int(setup.get("apcs", 0)) + int(setup.get("bosses", 0))

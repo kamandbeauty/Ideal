@@ -8,6 +8,8 @@ var start: Vector3 = Vector3.ZERO
 var destination: Vector3 = Vector3.ZERO
 var progress: float = 0.0
 var speed: float = 0.07
+## Seconds the craft waits at its start point before it sails. Crafts of one wave are staggered by this.
+var launch_delay: float = 0.0
 ## Troops and vehicles carried inside the hull. They leave through the ramp when
 ## the craft grounds, or spill out of the wreck if it is sunk on the way in.
 var cargo: Array[String] = []
@@ -148,7 +150,10 @@ func tick(delta: float) -> void:
 	if radar:
 		radar.rotation.y += delta * 1.2
 	if not has_arrived:
-		progress = minf(1.0, progress + speed * delta)
+		if launch_delay > 0.0:
+			launch_delay = maxf(0.0, launch_delay - delta)
+		else:
+			progress = minf(1.0, progress + speed * delta)
 		var point: Vector3 = start.lerp(destination, progress)
 		point.y = maxf(0.08, CoastalTerrain.height_at(point.x, point.z) + 0.15) + sin(bob_clock * 1.4) * 0.08
 		global_position = point
