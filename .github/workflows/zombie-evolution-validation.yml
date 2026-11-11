@@ -33,6 +33,16 @@ jobs:
         run: |
           set -o pipefail
           bash zombie-evolution-rebuild/ci/run_headless.sh 2>&1 | tee ci-artifacts/headless/run.log
+      - name: Publish headless check summary
+        if: always()
+        run: |
+          for log in ci-artifacts/headless/godot_version.log ci-artifacts/headless/summary.txt ci-artifacts/headless/autoplay_test.log ci-artifacts/headless/level_test.log; do
+            if [ -f "$log" ]; then
+              while IFS= read -r line; do
+                case "$line" in *PASS:*|*FAIL:*|*Autoplay\ frames=*|*Checks\ passed=*|4.4.1*) echo "::notice::$line" ;; esac
+              done < "$log"
+            fi
+          done
       - name: Upload headless logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -70,6 +80,16 @@ jobs:
           export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
           timeout 1200 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_gameplay.gd 2>&1 | tee ci-artifacts/rendered/capture.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/capture.log; then exit 1; fi
+      - name: Publish renderer capture diagnostics
+        if: always()
+        run: |
+          for log in ci-artifacts/rendered/glxinfo.log ci-artifacts/rendered/capture.log; do
+            if [ -f "$log" ]; then
+              while IFS= read -r line; do
+                case "$line" in *OpenGL\ renderer*|*OpenGL\ version*|*CAPTURE*|*ATTEMPT*|*Captured*|*FAIL:*|*ERROR:*) echo "::notice::$line" ;; esac
+              done < "$log"
+            fi
+          done
       - name: Upload screenshots and renderer logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -90,6 +110,18 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        id: setup_android
+      - name: Publish Android setup diagnostics
+        if: always()
+        env:
+          SETUP_OUTCOME: ${{ steps.setup_android.outcome }}
+        run: |
+          echo "::notice::Android setup action outcome: $SETUP_OUTCOME"
+          if command -v sdkmanager >/dev/null 2>&1; then
+            echo "::notice::sdkmanager found at $(command -v sdkmanager)"
+          else
+            echo "::notice::sdkmanager not found on PATH after setup step"
+          fi
       - name: Install Android SDK components
         run: |
           set -o pipefail
