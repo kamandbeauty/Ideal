@@ -117,14 +117,6 @@
       "passed": true
     },
     {
-      "name": "fire control t03",
-      "passed": true
-    },
-    {
-      "name": "fire t03",
-      "passed": true
-    },
-    {
       "name": "target destroyed t03",
       "passed": true
     },
@@ -159,58 +151,51 @@
       "direct": true,
       "shot": 1,
       "target": "t01",
-      "time": 7.6
+      "time": 7.3
     },
     {
       "amount": 8.1,
       "direct": false,
       "shot": 1,
       "target": "crate01",
-      "time": 7.6
+      "time": 7.3
     },
     {
-      "amount": 77.9,
-      "direct": false,
+      "amount": 110.0,
+      "direct": true,
       "shot": 2,
       "target": "t03",
       "time": 13.5
-    },
-    {
-      "amount": 32.1,
-      "direct": false,
-      "shot": 3,
-      "target": "t03",
-      "time": 20.1
     }
   ],
   "engagements": {
     "t01": 1,
-    "t03": 2
+    "t03": 1
   },
   "failures": 0,
   "mission": {
     "accuracy": 100.0,
-    "coins": 526,
-    "hits": 3,
+    "coins": 534,
+    "hits": 2,
     "mission_id": "sr01",
     "objectives": 2,
     "optional": false,
     "points": 2,
     "reason": "reason_success",
     "required": 2,
-    "shots": 3,
+    "shots": 2,
     "star_gain": 3,
     "stars": 3,
     "success": true,
-    "time": 20.2052454444444
+    "time": 13.5606746666667
   },
   "passed": true,
   "performance": {
-    "draw_calls": 29,
-    "fps": 15.1,
-    "frame_ms": 66.29,
+    "draw_calls": 54,
+    "fps": 25.3,
+    "frame_ms": 39.57,
     "objects": 1598,
-    "primitives": 736,
+    "primitives": 1894,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
