@@ -61,6 +61,44 @@ func run(t: TestContext) -> void:
 	t.equal(Profile.data.stats.kills, 35, "kills accumulate")
 	Profile.changed.disconnect(on_changed)
 
+	# Stages: winning the newest open one opens the next, and nothing else does.
+	Profile.reset()
+	t.equal(int(Profile.data.stats.stages_cleared), 0, "a new player has won no stage")
+	Profile.record_match({"victory": false, "stage": 0, "wave": 2, "wave_overall": 2, "kills": 20})
+	t.equal(int(Profile.data.stats.stages_cleared), 0, "a defeat opens nothing")
+	Profile.record_match({"victory": true, "stage": 0, "wave": 3, "wave_overall": 3, "kills": 74})
+	t.equal(int(Profile.data.stats.stages_cleared), 1, "winning the first stage opens the second")
+	Profile.record_match({"victory": true, "stage": 0, "wave": 3, "wave_overall": 3, "kills": 74})
+	t.equal(int(Profile.data.stats.stages_cleared), 1, "winning it again opens nothing more")
+	Profile.record_match({"victory": false, "stage": 1, "wave": 2, "wave_overall": 5, "kills": 60})
+	t.equal(int(Profile.data.stats.best_wave), 5, "the record is kept in waves of the whole siege: wave 2 of stage 2 is the fifth")
+	Profile.record_match({"victory": true, "stage": 0, "wave": 3, "wave_overall": 3, "kills": 74})
+	t.equal(int(Profile.data.stats.best_wave), 5, "and an earlier stage won again does not lower it")
+	Profile.record_match({"victory": true, "stage": 1, "wave": 3, "wave_overall": 6, "kills": 136})
+	Profile.record_match({"victory": true, "stage": 2, "wave": 2, "wave_overall": 8, "kills": 115})
+	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "the stages open one after another")
+	Profile.record_match({"victory": true, "stage": 2, "wave": 2, "wave_overall": 8, "kills": 115})
+	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "and there is nothing past the last")
+
+	# A save written before there were stages: the waves its player already got through are not asked for again.
+	Profile.adopt({"stats": {"matches": 6, "victories": 0, "best_wave": 5, "kills": 400, "headshots": 31}})
+	t.equal(int(Profile.data.stats.stages_cleared), 1, "an old save that reached wave 5 of the siege has the first stage behind it")
+	t.equal(int(Profile.data.stats.kills), 400, "and keeps its career")
+	Profile.adopt({"stats": {"matches": 2, "victories": 0, "best_wave": 3, "kills": 50, "headshots": 2}})
+	t.equal(int(Profile.data.stats.stages_cleared), 0, "one that fell in wave 3 has not")
+	Profile.adopt({"stats": {"matches": 9, "victories": 0, "best_wave": 7, "kills": 900, "headshots": 80}})
+	t.equal(int(Profile.data.stats.stages_cleared), 2, "one that reached wave 7 has two stages behind it")
+	Profile.adopt({"stats": {"matches": 9, "victories": 1, "best_wave": 8, "kills": 900, "headshots": 80}})
+	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "one that had won the siege has every stage open")
+	Profile.adopt({"stats": {"matches": 9, "victories": 4, "best_wave": 3, "kills": 300, "headshots": 20, "stages_cleared": 1}})
+	t.equal(int(Profile.data.stats.stages_cleared), 1, "a save that already counts stages is taken at its word")
+	Profile.adopt({"stats": {"stages_cleared": 99}, "settings": {"gun": "pea_shooter"}})
+	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "a nonsense count of stages is brought into range")
+	t.equal(String(Profile.setting("gun")), "twin_hmg", "and a gun that does not exist becomes the twin gun")
+	Profile.adopt({})
+	t.equal(int(Profile.data.stats.stages_cleared), 0, "no save at all is a new player")
+	Profile.reset()
+
 	# Real persistence through the profile, on a scratch file.
 	var profile_path: String = "user://test_lastwall_profile.json"
 	SaveManager.remove(profile_path)
@@ -70,8 +108,12 @@ func run(t: TestContext) -> void:
 	Profile.reset()
 	Profile.set_setting("left_handed", true)
 	Profile.set_setting("music_volume", 0.25)
+	Profile.set_setting("gun", "rotary_gun")
+	Profile.record_match({"victory": true, "stage": 0, "wave": 3, "wave_overall": 3, "kills": 74})
 	Profile.data = {}
 	Profile.load_profile()
+	t.equal(String(Profile.setting("gun")), "rotary_gun", "the chosen gun is restored")
+	t.equal(int(Profile.data.stats.stages_cleared), 1, "and so are the stages won")
 	t.equal(Profile.setting("left_handed"), true, "a saved setting is restored")
 	t.near(Profile.setting("music_volume"), 0.25, 0.0001, "a saved volume is restored")
 	Profile.persist = false

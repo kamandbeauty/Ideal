@@ -22,6 +22,9 @@ const WIDE_BONUS: float = 40.0
 const BANNER_TIME: float = 2.6
 const SLOT_SIZE := Vector2(160.0, 80.0)
 const SLOT_GAP: float = 12.0
+## How far down the screen the two threat arrows stand, as a share of its height.
+const GATE_ARROW_HEIGHT: float = 0.42
+const WALL_ARROW_HEIGHT: float = 0.56
 ## The hint line walks through these keys once per match: [key, seconds shown].
 const HINTS: Array = [["hint_aim", 4.5], ["hint_fire", 4.5], ["hint_zoom", 4.5], ["hint_cards", 4.5], ["hint_grenade", 4.5]]
 ## A threat arrow stays up this long after the last blow.
@@ -721,8 +724,8 @@ func _update_arrows() -> void:
 	var gate_on: bool = gate_struck < THREAT_TIME and absf(gate_yaw - yaw) > half_view
 	var wall_on: bool = wall_struck < THREAT_TIME and absf(wall_yaw - yaw) > half_view
 	var view: Vector2 = get_viewport().get_visible_rect().size
-	_place_arrow(gate_arrow, gate_arrow_label, gate_on, signf(gate_yaw - yaw), view, 0.42)
-	_place_arrow(wall_arrow, wall_arrow_label, wall_on, signf(wall_yaw - yaw), view, 0.56)
+	_place_arrow(gate_arrow, gate_arrow_label, gate_on, signf(gate_yaw - yaw), view, GATE_ARROW_HEIGHT)
+	_place_arrow(wall_arrow, wall_arrow_label, wall_on, signf(wall_yaw - yaw), view, WALL_ARROW_HEIGHT)
 
 
 func _place_arrow(arrow: HudWidgets.ThreatArrow, caption: Label, on: bool, side: float, view: Vector2, height: float) -> void:

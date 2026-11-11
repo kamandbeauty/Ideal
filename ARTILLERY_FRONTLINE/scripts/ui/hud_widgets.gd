@@ -21,6 +21,10 @@ static func draw_plate(canvas: CanvasItem, area: Rect2, fill: Color, edge: Color
 	canvas.draw_polyline(points, edge, width, true)
 
 
+## Every pictogram `draw_icon` knows.
+const ICONS: Array[String] = ["wall", "gate", "skull", "grenade", "fire", "reload", "pause", "endless", "gun", "rotary", "launcher", "zoom", "lock"]
+
+
 ## Pictograms shared by the HUD and the menus. `size` is the side of the box the picture fills.
 static func draw_icon(canvas: CanvasItem, kind: String, at: Vector2, size: float, ink: Color) -> void:
 	var s: float = size

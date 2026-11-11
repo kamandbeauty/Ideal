@@ -387,7 +387,8 @@ func _apply_aim() -> void:
 
 func _on_shot(_barrel: int, source: Weapon) -> void:
 	aim.kick(source.data.recoil_scale, rng.randf_range(-1.0, 1.0))
-	var amount: float = aim_settings.camera_shake_degrees * maxf(1.0, sqrt(source.data.recoil_scale))
+	# A light round shakes the picture less, so a gun that fires twice as fast does not shake it more.
+	var amount: float = aim_settings.camera_shake_degrees * maxf(0.5, sqrt(source.data.recoil_scale))
 	shake += Vector3(rng.randf_range(-amount, amount), rng.randf_range(-amount, amount), rng.randf_range(-amount, amount) * 1.5)
 	if source.data.kind == "rocket":
 		punch = minf(punch + 1.8, 3.0)

@@ -43,9 +43,28 @@ func _enter_tree() -> void:
 
 
 func load_profile() -> void:
-	data = SaveManager.merge_defaults(DEFAULTS, SaveManager.load_dict(save_path) if persist else {})
+	adopt(SaveManager.load_dict(save_path) if persist else {})
+
+
+## Takes a stored profile as the player's own: unknown keys dropped, missing ones filled in, every value made sane.
+func adopt(stored: Dictionary) -> void:
+	data = SaveManager.merge_defaults(DEFAULTS, stored)
+	_credit_old_career(stored)
 	_sanitize()
 	Loc.language = data.settings.language
+
+
+## A save from before the siege was cut into stages only knows how far its player got through the
+## eight waves in one go. Nobody is sent back to the start for that: every stage that lay wholly
+## behind the best wave reached is open, and all of them for a player who had already won.
+func _credit_old_career(stored: Dictionary) -> void:
+	var old: Variant = stored.get("stats")
+	if not (old is Dictionary) or (old as Dictionary).is_empty() or (old as Dictionary).has("stages_cleared"):
+		return
+	var cleared: int = Campaign.place_of(int(data.stats.best_wave)).x - 1
+	if int(data.stats.victories) > 0:
+		cleared = Campaign.count()
+	data.stats.stages_cleared = clampi(cleared, 0, Campaign.count())
 
 
 func _sanitize() -> void:
