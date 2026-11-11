@@ -198,24 +198,63 @@ func _run() -> void:
 	notes["grenade_kills"] = level.stats.kills - kills_before
 	notes["blast_kills"] = level.stats.blast_kills
 	check(level.defender.weapon_index == 0, "the machine gun is back in hand")
-	await frames(3)
+	# Half a second on: the fire is out, the smoke is rising and the ground is marked.
+	waited_frames = 0
+	while level.explosions.burning() > 0 and waited_frames < 300:
+		await get_tree().physics_frame
+		waited_frames += 1
+	await shot("13-grenade-aftermath")
+
+	# LAB (temporary): which kind of ground mark this renderer shows.
+	var lab: Array[MeshInstance3D] = []
+	var source: StandardMaterial3D = level.explosions.scorches[0].material_override
+	var multiply := StandardMaterial3D.new()
+	multiply.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	multiply.blend_mode = BaseMaterial3D.BLEND_MODE_MUL
+	multiply.cull_mode = BaseMaterial3D.CULL_DISABLED
+	multiply.disable_fog = true
+	multiply.disable_receive_shadows = true
+	multiply.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	multiply.albedo_texture = Explosions._radial([[0.0, Color(0.1, 0.09, 0.08, 1.0)], [0.5, Color(0.4, 0.38, 0.36, 1.0)], [1.0, Color(1, 1, 1, 1)]])
+	var plain := StandardMaterial3D.new()
+	plain.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	plain.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	plain.albedo_color = Color(0.0, 0.0, 0.0, 0.6)
+	plain.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var variants: Array = [[source, 0.03], [source, 0.09], [multiply, 0.03], [multiply, 0.09], [plain, 0.03], [plain, 0.09]]
+	for index: int in variants.size():
+		var bearing: float = deg_to_rad(-6.0 - 8.0 * float(index))
+		var mark := MeshInstance3D.new()
+		var plane := PlaneMesh.new()
+		plane.size = Vector2(2.6, 2.6)
+		mark.mesh = plane
+		mark.material_override = variants[index][0]
+		mark.position = Vector3(23.0 * sin(bearing), variants[index][1], -1.35 - 23.0 * cos(bearing))
+		level.add_child(mark)
+		lab.append(mark)
+	level.defender.aim.set_aim(-26.0, -11.5)
+	await frames(6)
+	await shot("99-lab")
+	for mark: MeshInstance3D in lab:
+		mark.queue_free()
+	await frames(2)
 
 	# The patched breach on the left arm.
 	level.defender.aim.set_aim(-33.0, -7.0)
 	simulate(8.0)
 	await frames(8)
-	await shot("13-wall-patch")
+	await shot("14-wall-patch")
 	notes["render"] = Graphics.snapshot()
 
 	# Looking down the avenue.
 	level.defender.aim.set_aim(0.0, -2.5)
 	await frames(6)
-	await shot("14-avenue")
+	await shot("15-avenue")
 
 	game.pause()
 	await frames(3)
 	check(get_tree().paused, "pause stops the tree")
-	await shot("15-pause")
+	await shot("16-pause")
 	game.resume()
 	await frames(2)
 
@@ -228,7 +267,7 @@ func _run() -> void:
 	check(level.defense.gate_destroyed, "the gate falls when left alone")
 	notes["gate_fell_after_s"] = waited
 	await frames(40)
-	await shot("16-gate-down")
+	await shot("17-gate-down")
 	waited = 0.0
 	while not level.over and waited < 400.0:
 		simulate(1.0)
@@ -236,18 +275,18 @@ func _run() -> void:
 	check(level.defense.breached, "the wall is breached when left alone")
 	level.defender.aim.set_aim(-33.0, -7.0)
 	await frames(30)
-	await shot("17-wall-breached")
+	await shot("18-wall-breached")
 	var guard: int = 0
 	while game.mode != 3 and guard < 1500:
 		await frames(1)
 		guard += 1
 	check(game.mode == 3, "the result screen follows the breach")
 	await frames(4)
-	await shot("18-defeat")
+	await shot("19-defeat")
 	game.menus.show_result(true, {"waves_cleared": 5, "waves_total": 5, "kills": 202, "headshots": 61, "accuracy": 0.47, "time": 412.0,
 		"wall_left": 0.82})
 	await frames(3)
-	await shot("19-victory-preview")
+	await shot("20-victory-preview")
 	game.to_menu()
 	await frames(6)
 	check(game.menus.screen == "main", "MAIN MENU returns to the title")

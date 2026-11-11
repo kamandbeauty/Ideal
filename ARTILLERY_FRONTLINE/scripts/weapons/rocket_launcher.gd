@@ -41,7 +41,7 @@ func _fire_round() -> void:
 		rockets.launch(origin, direction, data)
 	kick = 1.0
 	if effects:
-		effects.burst("dust", origin + direction * 0.4, direction, 0.7)
+		effects.burst("dust", origin + direction * 0.9, direction, 0.3)
 	Sound.play("rocket", -1.0, rng.randf_range(0.96, 1.04))
 	shot_fired.emit(0)
 
