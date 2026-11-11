@@ -174,9 +174,9 @@ func _run() -> void:
 			continue
 		if event_type == "piece_cleared" and cascades_seen <= 1:
 			first_clear.append(event.get("position", Vector2i(-1, -1)))
-	var expected := [Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3)]
+	var expected_cells := [Vector2i(2, 3), Vector2i(3, 3), Vector2i(4, 3)]
 	var only_the_line := first_clear.size() == 3
-	for pos in expected:
+	for pos in expected_cells:
 		if not first_clear.has(pos):
 			only_the_line = false
 	failures += _check(only_the_line, "the first clear is the three matching pieces and nothing else (%d cleared)" % first_clear.size())
