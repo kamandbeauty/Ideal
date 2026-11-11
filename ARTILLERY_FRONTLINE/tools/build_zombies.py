@@ -113,8 +113,10 @@ RUNNER = {
     "texture": 512,
     "gait": {"period": 0.5, "stride": 0.85, "limp": 0.0, "lean": 31.0, "reach": 0.9, "lift": 0.17, "stance": 0.42, "arms": "flail"},
     "palettes": [
-        {"skin": (0.66, 0.66, 0.62), "shirt": (0.2, 0.2, 0.2), "pants": (0.36, 0.08, 0.07), "shoes": (0.07, 0.06, 0.05), "hair": (0.06, 0.05, 0.05), "plaid": 0.0, "blood": 1.6},
-        {"skin": (0.62, 0.68, 0.66), "shirt": (0.2, 0.2, 0.2), "pants": (0.10, 0.13, 0.22), "shoes": (0.07, 0.06, 0.05), "hair": (0.30, 0.12, 0.06), "plaid": 0.0, "blood": 1.2},
+        {"skin": (0.58, 0.58, 0.54), "shirt": (0.2, 0.2, 0.2), "pants": (0.36, 0.08, 0.07), "shoes": (0.07, 0.06, 0.05), "hair": (0.06, 0.05, 0.05), "plaid": 0.0, "blood": 1.6,
+         "bib": 0.7, "soil": 0.8},
+        {"skin": (0.54, 0.60, 0.58), "shirt": (0.2, 0.2, 0.2), "pants": (0.10, 0.13, 0.22), "shoes": (0.07, 0.06, 0.05), "hair": (0.30, 0.12, 0.06), "plaid": 0.0, "blood": 1.2,
+         "bib": 0.4, "soil": 0.8},
     ],
 }
 
@@ -147,7 +149,8 @@ BOSS = {
     "gait": {"period": 1.3, "stride": 0.5, "limp": 0.0, "lean": 8.0, "reach": 1.0, "arms": "hang"},
     "attack": "slam",
     "palettes": [
-        {"skin": (0.74, 0.72, 0.66), "shirt": (0.2, 0.2, 0.2), "pants": (0.11, 0.1, 0.1), "shoes": (0.07, 0.06, 0.05), "hair": (0.05, 0.04, 0.04), "plaid": 0.0, "blood": 2.3},
+        {"skin": (0.63, 0.63, 0.60), "shirt": (0.2, 0.2, 0.2), "pants": (0.11, 0.1, 0.1), "shoes": (0.07, 0.06, 0.05), "hair": (0.05, 0.04, 0.04), "plaid": 0.0, "blood": 2.3,
+         "bib": 1.0, "soil": 1.0, "livid": 0.7},
     ],
 }
 
@@ -480,7 +483,10 @@ def paint(sculpt, points, palette):
     skin = np.asarray(palette["skin"], np.float32)
     # Skin: mottled pallor, livid patches, dark veins, bruised extremities.
     base = np.tile(skin, (points.shape[0], 1))
-    base = mix(base, skin * np.array([0.72, 0.78, 0.86], np.float32), smooth(0.45, 0.7, n_low))
+    # "livid" deepens the bruise-coloured patches (the pale kinds need them to keep their shape in full sun).
+    livid = float(palette.get("livid", 0.0))
+    bruise = np.array([0.72, 0.78, 0.86], np.float32) * (1.0 - livid) + np.array([0.5, 0.54, 0.68], np.float32) * livid
+    base = mix(base, skin * bruise, smooth(0.45 - 0.07 * livid, 0.7, n_low))
     base = mix(base, skin * np.array([1.12, 1.02, 0.86], np.float32), smooth(0.55, 0.8, n_mid) * 0.6)
     base = mix(base, (0.23, 0.2, 0.3), (1.0 - smooth(0.02, 0.085, veins)) * 0.55)
     base *= (0.9 + 0.2 * n_high)[:, None]
@@ -489,6 +495,23 @@ def paint(sculpt, points, palette):
     wound = smooth(0.71, 0.76, splat) * blood_amount
     base = mix(base, blood_wet, wound)
     base = mix(base, (0.09, 0.01, 0.01), smooth(0.79, 0.84, splat) * blood_amount)
+    # Bare-chested kinds: "bib" runs blood from the jaw down the chest and belly,
+    # "soil" cakes the feet and shins with street dirt.
+    bib = float(palette.get("bib", 0.0))
+    if bib > 0.0:
+        chest = smooth(-0.02, 0.05, points[:, 2]) * smooth(0.9, 1.02, points[:, 1]) * smooth(1.62, 1.5, points[:, 1])
+        middle = smooth(0.27, 0.04, np.abs(points[:, 0]))
+        # Soaked under the jaw, breaking up into runs and drips toward the belly.
+        down = smooth(1.5, 0.98, points[:, 1])
+        streak = splat * 0.45 + drip * 0.75 + middle * 0.16
+        soaked = smooth(0.25 + 0.56 * down, 0.4 + 0.56 * down, streak)
+        base = mix(base, blood_dark, np.clip(chest * (0.35 + 0.65 * middle) * soaked * 0.93 * bib, 0.0, 0.95))
+        fresh = smooth(0.5 + 0.42 * down, 0.6 + 0.42 * down, streak)
+        base = mix(base, blood_wet, np.clip(chest * middle * fresh * 0.55 * bib, 0.0, 0.6))
+    soil = float(palette.get("soil", 0.0))
+    if soil > 0.0:
+        low = smooth(0.5, 0.03, points[:, 1])
+        base = mix(base, (0.21, 0.18, 0.14), np.clip(low * (0.35 + 0.5 * n_mid + 0.25 * n_low) * soil, 0.0, 0.85))
     # Face: sunken sockets, a dark mouth with teeth, blood around the jaw.
     in_head = points[:, 1] > 1.53
     socket = np.minimum(sculpt.sockets[0].fn(points), sculpt.sockets[1].fn(points))
