@@ -86,7 +86,7 @@ func _ready() -> void:
 		Fx.piece_tint(GameTypes.PieceKind.AQIQ), fx_view.cell_size)
 	Fx.splash(fx_view, fx_view.cell_center(Vector2i(5, 4)),
 		Fx.piece_tint(GameTypes.PieceKind.LAJVARD), fx_view.cell_size)
-	await _frames(16)
+	await _frames(11)
 	await _shot("13-burst")
 	Engine.time_scale = 1.0
 	await _frames(20)
