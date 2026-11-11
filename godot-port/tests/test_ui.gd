@@ -111,10 +111,21 @@ func _run() -> void:
 	var ui_files := _list_pngs("res://assets/ui")
 	failures += _check(art_files.size() == 85,
 		"all 85 game plates are present (%d found)" % art_files.size())
-	# 34: the chrome plates, the two rail/tray plates the board hangs on, the orb its five tools are cut
-	# from, and the royal blue pair the headers are set in.
-	failures += _check(ui_files.size() == 34,
-		"all 34 picture-chrome plates are present (%d found)" % ui_files.size())
+	# The set by name, not by count: a count drifts every time the chrome grows, and asserting it only
+	# ever taught the suite to be edited. What matters is that no plate a screen asks for is missing.
+	var required_plates := ["ui_panel", "ui_panel_sm", "ui_panel_raised", "ui_panel_raised_sm",
+		"ui_button", "ui_button_sm", "ui_button_gold", "ui_button_gold_sm", "ui_button_accent",
+		"ui_button_accent_sm", "ui_button_danger", "ui_button_danger_sm", "ui_button_royal",
+		"ui_button_royal_sm", "ui_pill", "ui_chip", "ui_slot", "ui_row", "ui_rail", "ui_orb",
+		"ui_board_tray", "ui_tile_frame", "ui_booster_disc", "ui_piece_shadow", "ui_card_frame",
+		"ui_card_tall", "ui_switch_off", "ui_switch_on", "ui_knob", "ui_veil", "ui_rule",
+		"ui_scrollbar", "ui_scrollgrabber", "ui_scrim_top", "ui_scrim_bottom", "ui_shadow"]
+	var missing_plates: Array[String] = []
+	for plate_name in required_plates:
+		if not ui_files.has("res://assets/ui/%s.png" % plate_name):
+			missing_plates.append(plate_name)
+	failures += _check(missing_plates.is_empty(),
+		"every picture-chrome plate a screen asks for ships (%s)" % ", ".join(missing_plates))
 	# The backdrops are their own pictures at their own size. A square Unity plate scaled to cover a
 	# landscape window is a crop, not a backdrop, and the first device screenshot showed exactly that.
 	var backdrop_files := _list_pngs("res://assets/backdrops")

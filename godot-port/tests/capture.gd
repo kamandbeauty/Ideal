@@ -76,6 +76,28 @@ func _ready() -> void:
 	live_board.get("_board").rebuild()
 	await _frames(2)
 
+	# The juice and the whirlwind, photographed inside themselves. Both effects are half a second long
+	# and a still of either would otherwise catch the board after they have finished, so the clock is
+	# slowed and the shot is taken a third of the way in — the only evidence that the burst has drips
+	# and the fan has a tornado, rather than the art existing in a folder.
+	var fx_view = live_board.get("_board")
+	Engine.time_scale = 0.45
+	Fx.splash(fx_view, fx_view.cell_center(Vector2i(3, 4)),
+		Fx.piece_tint(GameTypes.PieceKind.AQIQ), fx_view.cell_size * 1.15)
+	Fx.splash(fx_view, fx_view.cell_center(Vector2i(5, 4)),
+		Fx.piece_tint(GameTypes.PieceKind.LAJVARD), fx_view.cell_size * 1.15)
+	await _frames(16)
+	await _shot("13-burst")
+	Engine.time_scale = 1.0
+	await _frames(20)
+
+	Engine.time_scale = 0.45
+	Fx.whirlwind(fx_view, fx_view.cell_center(Vector2i(4, 4)), fx_view.cell_size * 3.0)
+	await _frames(12)
+	await _shot("14-whirlwind")
+	Engine.time_scale = 1.0
+	await _frames(30)
+
 	# Motion cannot be judged from a still. The swap is played in slow motion and photographed as it
 	# runs, and the crops are laid out in a strip: this is the only evidence that the stones travel,
 	# lift and land rather than teleporting, and the animation work has to show itself.
