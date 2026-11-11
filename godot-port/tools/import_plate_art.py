@@ -209,13 +209,13 @@ def build_tray() -> Image.Image:
     face.alpha_composite(bevel.filter(ImageFilter.GaussianBlur(0.5)))
     warm = Image.new("RGBA", (tile_side, tile_side), (0, 0, 0, 0))
     ImageDraw.Draw(warm).rounded_rectangle((2, int(tile_side * 0.72), tile_side - 3, tile_side - 3),
-                                           radius=cell_radius, fill=(*_mix(GOLD_DARK, IVORY_SHADE, 0.5), 40))
+                                           radius=cell_radius, fill=(*_mix((196, 178, 148), IVORY_SHADE, 0.55), 30))
     face.alpha_composite(warm.filter(ImageFilter.GaussianBlur(1.6)))
     # A shadow along the top inside edge: the reference's cells are shallow trays, and a tray has a
     # darker lip where the light cannot reach.
     lip = Image.new("RGBA", (tile_side, tile_side), (0, 0, 0, 0))
     ImageDraw.Draw(lip).rounded_rectangle((2, 2, tile_side - 3, tile_side - 3), radius=cell_radius,
-                                          outline=(*_mix(IVORY_SHADE, GOLD_DARK, 0.35), 52), width=3)
+                                          outline=(*_mix((186, 172, 150), WHITE, 0.25), 46), width=3)
     lip = lip.filter(ImageFilter.GaussianBlur(2.0))
     face.alpha_composite(lip)
     # No gold round the cell. The reference's tiles are plain white trays with a warm edge and a
