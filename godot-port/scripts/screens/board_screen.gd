@@ -83,9 +83,10 @@ var _hint_move: Array[Vector2i] = []
 
 func build() -> void:
 	shows_top_bar = false
-	# The hall is dimmed harder than the other screens: the board is a lit carpet in a dark room, and
-	# nothing behind it should compete with the stones.
-	set_backdrop("hall_night", 0.16, 0.5, 0.5, 0.62, 0.70)
+	# The courtyard, not the hall: a bright Persian garden under a blue sky. It is washed with the deep
+	# blue at a tenth of its strength — enough to settle the painting behind the board, not enough to
+	# turn the garden into a night scene, which is what the old hall plate did.
+	set_backdrop("courtyard", 0.10, 0.5, 0.55, 0.55, 0.62)
 
 	# ---- the two rails: painted cream capsules, one per side --------------------------------------
 	# Both are the same painting drawn at its own size, never nine-sliced: a painted moulding stretched
@@ -102,9 +103,11 @@ func build() -> void:
 	# ---- left rail, top to bottom -----------------------------------------------------------------
 	# The rail is 92 dp of usable width. The game's name is not on it: the home screen carries that,
 	# and the reference puts nothing above the level tab.
+	# A royal blue header band, not a gold one: the palette puts royal blue on every header and gold on
+	# every edge, and the level tab is the header of this rail.
 	var level_chip := UiKit.art_panel(goals_rail, "level_chip", rail_x, 14.0, rail_w, 24.0,
-		"ui_button_gold_sm", UiTokens.BORDER_PLATE_SMALL, UiTokens.GOLD, UiTokens.RADIUS_MD)
-	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_XS, UiTokens.ON_GOLD,
+		"ui_button_royal_sm", UiTokens.BORDER_PLATE_SMALL, UiTokens.ROYAL, UiTokens.RADIUS_MD)
+	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_XS, UiTokens.IVORY,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
 	UiKit.place(_level_label, 2.0, 0.0, rail_w - 4.0, 24.0)
 
@@ -157,10 +160,13 @@ func build() -> void:
 	UiKit.place(_life_label, rail_x + 24.0, 310.0, rail_w - 24.0, 22.0)
 
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
+	# The heading gets the same royal band as the level tab, so the two rails read as a pair.
+	UiKit.art_panel(tools_rail, "boosters_band", rail_x, 22.0, rail_w, 22.0, "ui_button_royal_sm",
+		UiTokens.BORDER_PLATE_SMALL, UiTokens.ROYAL, UiTokens.RADIUS_MD)
 	_boosters_heading = UiKit.label(tools_rail, "boosters_heading", "ابزارها", UiTokens.TYPE_XS,
-		UiTokens.INK_SOFT, HORIZONTAL_ALIGNMENT_CENTER, true)
-	# Below the capsule's cap: at 14 the heading sat on the amber rim, and dark ink on the rim vanishes.
-	UiKit.place(_boosters_heading, rail_x, 30.0, rail_w, 14.0)
+		UiTokens.IVORY, HORIZONTAL_ALIGNMENT_CENTER, true)
+	# On the band, not on the capsule's cap: dark ink on the gold rim vanishes.
+	UiKit.place(_boosters_heading, rail_x, 25.0, rail_w, 16.0)
 	for kind in range(BoosterBag.SLOTS):
 		var y := BOOSTER_ROWS_Y + float(kind) * BOOSTER_PITCH
 		var handler := _on_booster_pressed.bind(kind)
@@ -187,10 +193,11 @@ func build() -> void:
 	# bottom curve, and a button that touches the paint looks clipped.
 	var out_width := (rail_w - 5.0) * 0.5
 	# Off the capsule's bottom curve: at 330 the two exits sat on the painted rim.
-	UiKit.button(tools_rail, "home", "خانه", rail_x, 322.0, out_width, 26.0, UiTokens.GOLD,
-		UiTokens.ON_GOLD, _on_home, UiTokens.RADIUS_MD)
+	# Turquoise for the way out to the map, royal blue for pause: two exits that look like two choices.
+	UiKit.button(tools_rail, "home", "خانه", rail_x, 322.0, out_width, 26.0, UiTokens.ACCENT,
+		UiTokens.ON_ACCENT, _on_home, UiTokens.RADIUS_MD)
 	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 322.0, out_width,
-		26.0, UiTokens.GOLD, UiTokens.ON_GOLD, _on_pause, UiTokens.RADIUS_MD)
+		26.0, UiTokens.ROYAL, UiTokens.IVORY, _on_pause, UiTokens.RADIUS_MD)
 
 	# ---- playfield: the carpet, then the board on top of it ---------------------------------------
 	UiKit.art_panel(self, "board_tray", PLATE_LEFT, PLATE_TOP, PLATE_SIZE, PLATE_SIZE,
@@ -414,15 +421,30 @@ func _play_result_cues(result: Dictionary) -> void:
 	var created := 0
 	var triggered := 0
 	var cascades := 0
+	var fired_kinds: Array[int] = []
 	for event in result.get("events", []):
 		match str(event.get("type", "")):
 			"piece_cleared": cleared += 1
 			"obstacle_hit": obstacles += 1
 			"power_up_created": created += 1
-			"power_up_triggered": triggered += 1
+			"power_up_triggered":
+				triggered += 1
+				fired_kinds.append(int(event.get("kind", GameTypes.PowerUpKind.NONE)))
 			"cascade": cascades += 1
+	# The fan, the rocket and the kite each have their own voice; a move that fires two of them plays
+	# the stronger one rather than both on top of each other.
+	for kind in fired_kinds:
+		match kind:
+			GameTypes.PowerUpKind.FAN:
+				SoundDirector.play("whirlwind", 1.0)
+			GameTypes.PowerUpKind.ROCKET_HORIZONTAL, GameTypes.PowerUpKind.ROCKET_VERTICAL:
+				SoundDirector.play("rocket", 1.0)
+			GameTypes.PowerUpKind.KITE:
+				SoundDirector.play("kite", 1.0)
 	if cleared > 0:
-		SoundDirector.play("clear", 0.94 + minf(float(cleared), 12.0) * 0.018)
+		# The fruit goes with a wet burst, and the chime rides on top of it at the pitch of the chain.
+		SoundDirector.play("burst", 0.94 + minf(float(cleared), 12.0) * 0.012)
+		SoundDirector.play("clear", 1.02 + minf(float(cleared), 12.0) * 0.018)
 	if obstacles > 0:
 		SoundDirector.play("obstacle", 0.96 + minf(float(obstacles), 5.0) * 0.045)
 	if created > 0:
@@ -517,7 +539,7 @@ func _build_overlay() -> void:
 	add_child(_overlay)
 	UiKit.stretch(_overlay, 0.0, 0.0)
 
-	var dim := UiKit.veil(_overlay, "dim", Color(0.09, 0.06, 0.04, 0.72))
+	var dim := UiKit.veil(_overlay, "dim", Color(UiTokens.DEEP.r, UiTokens.DEEP.g, UiTokens.DEEP.b, 0.66))
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	_overlay_card = UiKit.art_panel(_overlay, "card", (UiTokens.CANVAS_WIDTH - OVERLAY_CARD_WIDTH) * 0.5,
@@ -671,7 +693,7 @@ func _build_pause() -> void:
 	add_child(_pause)
 	UiKit.stretch(_pause, 0.0, 0.0)
 
-	var dim := UiKit.veil(_pause, "dim", Color(0.09, 0.06, 0.04, 0.76))
+	var dim := UiKit.veil(_pause, "dim", Color(UiTokens.DEEP.r, UiTokens.DEEP.g, UiTokens.DEEP.b, 0.72))
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 
 	var card := UiKit.art_panel(_pause, "card", (UiTokens.CANVAS_WIDTH - PAUSE_CARD_WIDTH) * 0.5,

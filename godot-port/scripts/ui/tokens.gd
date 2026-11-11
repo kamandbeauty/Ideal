@@ -8,47 +8,60 @@ extends RefCounted
 
 # ---- colour -------------------------------------------------------------------------------------
 
-# The game is painted now: cream parchment, amber rims and warm shadows, with ink for text. The
-# palette changed in one place and every screen followed, because a screen only ever names a token.
-const BG := Color(0.1412, 0.1020, 0.0706, 1.0)              # #241A12
-const SURFACE := Color(0.9647, 0.9059, 0.7843, 1.0)         # #F6E7C8
-const SURFACE_RAISED := Color(0.9882, 0.9490, 0.8588, 1.0)  # #FCF2DB
-const BORDER := Color(0.7843, 0.6039, 0.3216, 1.0)          # #C89A52
-const BORDER_INPUT := Color(0.6588, 0.4980, 0.2706, 1.0)    # #A87F45
-const TEXT := Color(0.2314, 0.1647, 0.0941, 1.0)            # #3B2A18
-const TEXT_MUTED := Color(0.4784, 0.3725, 0.2392, 1.0)      # #7A5F3D
-# The board's two side rails are painted cream parchment, not a dark plate, so the ink on them is dark
-# and warm rather than the light text the rest of the game uses: light text on cream is invisible.
-const INK := Color(0.2784, 0.1922, 0.1059, 1.0)             # #47311B
-const INK_SOFT := Color(0.4784, 0.3725, 0.2392, 1.0)        # #7A5F3D
-const ACCENT := Color(0.1373, 0.7098, 0.6902, 1.0)          # #23B5B0
-const ACCENT_STRONG := Color(0.0706, 0.5216, 0.4980, 1.0)   # #12857F
-const ON_ACCENT := Color(0.0157, 0.1294, 0.1216, 1.0)       # #04211F
-const GOLD := Color(0.8784, 0.6627, 0.2471, 1.0)            # #E0A93F
-const ON_GOLD := Color(0.1647, 0.1059, 0.0078, 1.0)         # #2A1B02
-const DANGER := Color(0.9412, 0.4510, 0.3529, 1.0)          # #F0735A
-const ON_DANGER := Color(1.0, 0.9647, 0.9529, 1.0)          # #FFF6F3
-const SUCCESS := Color(0.3451, 0.7882, 0.5412, 1.0)         # #58C98A
-const WARNING := Color(0.9412, 0.7059, 0.1608, 1.0)         # #F0B429
-const DANGER_STRONG := Color(0.7020, 0.2275, 0.1412, 1.0)   # #B33A24
+# The palette is the royal garden one: royal blue for structure, gold for every edge, turquoise for the
+# second line a Persian frame always carries, warm ivory for the face a player reads on, and one bright
+# colour per fruit. Nothing here is brown or grey — a warm shadow under a warm plate is the one thing
+# that turns cartoon chrome into a photograph of brass.
+const BG := Color(0.0275, 0.2353, 0.4706, 1.0)              # #073C78  deep blue
+const SURFACE := Color(1.0, 0.9451, 0.8314, 1.0)            # #FFF1D4  warm ivory
+const SURFACE_RAISED := Color(1.0, 0.9765, 0.9176, 1.0)     # #FFF9EA
+const BORDER := Color(0.9608, 0.7451, 0.2627, 1.0)          # #F5BE43  gold
+const BORDER_INPUT := Color(0.7216, 0.5176, 0.1647, 1.0)    # #B8842A
+const TEXT := Color(0.0706, 0.2235, 0.3882, 1.0)            # #123963  deep blue ink
+const TEXT_MUTED := Color(0.2902, 0.4314, 0.5882, 1.0)      # #4A6E96
+# The board's two side rails are painted ivory, so the ink on them is deep blue rather than the light
+# text the dark plates use: light text on ivory is invisible.
+const INK := Color(0.0706, 0.2235, 0.3882, 1.0)             # #123963
+const INK_SOFT := Color(0.2902, 0.4314, 0.5882, 1.0)        # #4A6E96
+const ACCENT := Color(0.1255, 0.7765, 0.7686, 1.0)          # #20C6C4  turquoise
+const ACCENT_STRONG := Color(0.0549, 0.5569, 0.5529, 1.0)   # #0E8E8D
+const ON_ACCENT := Color(0.0157, 0.1882, 0.1843, 1.0)       # #04302F
+const GOLD := Color(0.9608, 0.7451, 0.2627, 1.0)            # #F5BE43
+const ON_GOLD := Color(0.2902, 0.1804, 0.0, 1.0)            # #4A2E00
+const DANGER := Color(0.9529, 0.3020, 0.3216, 1.0)          # #F34D52  coral red
+const ON_DANGER := Color(1.0, 0.9765, 0.9608, 1.0)          # #FFF9F5
+const SUCCESS := Color(0.3333, 0.7255, 0.3412, 1.0)         # #55B957  garden green
+const WARNING := Color(0.9608, 0.7451, 0.2627, 1.0)         # #F5BE43
+const DANGER_STRONG := Color(0.7137, 0.1725, 0.1922, 1.0)   # #B62C31
+
+# Structure colours: the royal blue the plates are graded from, and the sky the backdrops are painted
+# under. They exist as tokens so a screen never writes a hex value of its own.
+const ROYAL := Color(0.0706, 0.3882, 0.7098, 1.0)           # #1263B5
+const DEEP := Color(0.0275, 0.2353, 0.4706, 1.0)            # #073C78
+const TURQUOISE := Color(0.1255, 0.7765, 0.7686, 1.0)       # #20C6C4
+const SKY := Color(0.4000, 0.7882, 0.9608, 1.0)             # #66C9F5
+const GARDEN := Color(0.3333, 0.7255, 0.3412, 1.0)          # #55B957
+const CORAL := Color(0.9529, 0.3020, 0.3216, 1.0)           # #F34D52
+const PURPLE := Color(0.5686, 0.2314, 0.8078, 1.0)          # #913BCE
+const IVORY := Color(1.0, 0.9451, 0.8314, 1.0)              # #FFF1D4
 
 # Text flavours of the accents. GOLD, SUCCESS and DANGER are *plate* colours: they carry their meaning
-# as a button face, and on the cream ground they are far too pale to write with. Anything that puts an
-# accent straight on a cream panel or a chip writes in these instead.
-const GOLD_TEXT := Color(0.5961, 0.3765, 0.0471, 1.0)       # #98600C
-const SUCCESS_TEXT := Color(0.0902, 0.4157, 0.2275, 1.0)    # #176A3A
-const DANGER_TEXT := Color(0.7020, 0.2275, 0.1412, 1.0)     # #B33A24
-const SHADOW := Color(0.1294, 0.0863, 0.0471, 0.30)
+# as a button face, and on the ivory ground they are far too pale to write with. Anything that puts an
+# accent straight on a panel or a chip writes in these instead.
+const GOLD_TEXT := Color(0.6353, 0.4157, 0.0549, 1.0)       # #A26A0E
+const SUCCESS_TEXT := Color(0.1216, 0.4784, 0.2039, 1.0)    # #1F7A34
+const DANGER_TEXT := Color(0.7529, 0.1882, 0.2039, 1.0)     # #C03034
+const SHADOW := Color(0.0275, 0.1569, 0.2980, 0.30)
 const TRANSPARENT := Color(1.0, 1.0, 1.0, 0.0)
 
-const PIECE_FIROUZEH := Color(0.1804, 0.7686, 0.7137, 1.0)  # #2EC4B6
-const PIECE_LAJVARD := Color(0.1843, 0.3725, 0.8157, 1.0)   # #2F5FD0
-const PIECE_AQIQ := Color(0.8235, 0.3333, 0.2471, 1.0)      # #D2553F
-const PIECE_ZOMORROD := Color(0.1804, 0.6196, 0.3569, 1.0)  # #2E9E5B
-const PIECE_MORVARID := Color(0.9373, 0.8902, 0.7843, 1.0)  # #EFE3C8
-const PIECE_ANANAS := Color(0.9490, 0.6980, 0.1098, 1.0)   # #F2B21C
-const PIECE_PORTEQAL := Color(0.9490, 0.4745, 0.1686, 1.0) # #F2792B
-const PIECE_MOZ := Color(0.9608, 0.8353, 0.2784, 1.0)      # #F5D547
+const PIECE_FIROUZEH := Color(0.4980, 0.7490, 0.2471, 1.0)  # #7FBF3F  pear
+const PIECE_LAJVARD := Color(0.5686, 0.2314, 0.8078, 1.0)   # #913BCE  grapes
+const PIECE_AQIQ := Color(0.9412, 0.4471, 0.3059, 1.0)      # #F0724E  peach
+const PIECE_ZOMORROD := Color(0.2431, 0.6196, 0.3098, 1.0)  # #3E9E4F  watermelon
+const PIECE_MORVARID := Color(0.9490, 0.8314, 0.3608, 1.0)  # #F2D45C  lemon
+const PIECE_ANANAS := Color(0.9490, 0.6980, 0.1098, 1.0)    # #F2B21C
+const PIECE_PORTEQAL := Color(0.9490, 0.4745, 0.1686, 1.0)  # #F2792B
+const PIECE_MOZ := Color(0.9608, 0.8353, 0.2784, 1.0)       # #F5D547
 
 # ---- type scale (px = dp) -----------------------------------------------------------------------
 

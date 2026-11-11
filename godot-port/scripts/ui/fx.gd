@@ -19,14 +19,17 @@ const SPLATS := [
 	"res://assets/fx/splash_3.png",
 ]
 const DROP := "res://assets/fx/splash_drop.png"
+const DRIP := "res://assets/fx/splash_drip.png"
+const STREAK := "res://assets/fx/fx_streak.png"
 const WHIRLWIND := "res://assets/fx/whirlwind.png"
 
 const SPARK_LIFETIME := 0.42
 const COIN_LIFETIME := 0.7
-const SPLASH_SECONDS := 0.36
-const DROP_LIFETIME := 0.34
-const DRIP_LIFETIME := 0.72
-const WHIRLWIND_SECONDS := 0.62
+const SPLASH_SECONDS := 0.44
+const DROP_LIFETIME := 0.40
+const DRIP_LIFETIME := 0.90
+const STREAK_SECONDS := 0.48
+const WHIRLWIND_SECONDS := 0.58
 
 ## A short burst of sparks at a board cell.
 static func spark(parent: Node, center: Vector2, tint: Color, amount: int = 10, scale: float = 1.0) -> void:
@@ -67,18 +70,19 @@ static func splash(parent: Node, center: Vector2, tint: Color, diameter: float =
 	drips.name = "drips"
 	drips.texture = load(DROP)
 	drips.position = center + Vector2(0.0, diameter * 0.16)
-	drips.amount = 5
+	drips.texture = load(DRIP)
+	drips.amount = 4
 	drips.lifetime = DRIP_LIFETIME
 	drips.one_shot = true
-	drips.explosiveness = 0.55
+	drips.explosiveness = 0.35
 	drips.direction = Vector2(0.0, 1.0)
-	drips.spread = 40.0
-	drips.initial_velocity_min = 10.0
-	drips.initial_velocity_max = 40.0
-	drips.gravity = Vector2(0.0, 520.0)
-	drips.scale_amount_min = 0.30
-	drips.scale_amount_max = 0.60
-	drips.color = Color(tint.r, tint.g, tint.b, 0.9)
+	drips.spread = 26.0
+	drips.initial_velocity_min = 4.0
+	drips.initial_velocity_max = 22.0
+	drips.gravity = Vector2(0.0, 300.0)
+	drips.scale_amount_min = 0.28
+	drips.scale_amount_max = 0.52
+	drips.color = Color(tint.r, tint.g, tint.b, 0.92)
 	drips.emitting = true
 	parent.add_child(drips)
 	drips.finished.connect(drips.queue_free)
@@ -105,6 +109,36 @@ static func _splat(parent: Node, center: Vector2, tint: Color, diameter: float, 
 	tween.tween_property(splat, "modulate", Color(tint.r, tint.g, tint.b, 0.0), lifetime) \
 		.set_delay(delay + lifetime * 0.35)
 	tween.chain().tween_callback(splat.queue_free)
+
+## The rocket's beam: a light bar laid along the row or column it is about to clear, opening from the
+## cell the rocket fired from outwards. `horizontal` is the axis of the clear, not of the picture.
+static func streak(parent: Node, center: Vector2, length: float, horizontal: bool,
+		tint: Color = Color(1, 1, 1, 0.85)) -> void:
+	var bar := TextureRect.new()
+	bar.name = "streak"
+	bar.texture = load(STREAK)
+	bar.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	bar.stretch_mode = TextureRect.STRETCH_SCALE
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.modulate = Color(tint.r, tint.g, tint.b, 0.0)
+	# One picture, one size, turned a quarter turn for a column: rotating about the centre keeps the
+	# bar on the row it is clearing without a second set of offsets.
+	var thickness := maxf(12.0, length * 0.12)
+	bar.size = Vector2(length, thickness)
+	bar.pivot_offset = bar.size * 0.5
+	bar.position = center - bar.size * 0.5
+	if not horizontal:
+		bar.rotation = PI * 0.5
+	parent.add_child(bar)
+	var tween := bar.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(bar, "modulate:a", tint.a, STREAK_SECONDS * 0.25)
+	tween.tween_property(bar, "modulate:a", 0.0, STREAK_SECONDS * 0.75) \
+		.set_delay(STREAK_SECONDS * 0.25)
+	tween.tween_property(bar, "scale", Vector2(1.0, 1.6) if horizontal else Vector2(1.6, 1.0),
+		STREAK_SECONDS).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_callback(bar.queue_free)
+
 
 static func _droplets(parent: Node, center: Vector2, tint: Color, diameter: float) -> void:
 	var drops := CPUParticles2D.new()

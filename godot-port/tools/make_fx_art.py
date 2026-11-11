@@ -12,6 +12,8 @@ colours.
 
   splash_1..3.png   the splat: an irregular juicy blob with flung droplets    512 x 512
   splash_drop.png   one droplet, for the streak that flies out of the splat     64 x 64
+  splash_drip.png   one hanging drip, for juice that runs down after the burst  64 x 96
+  fx_streak.png     the rocket's beam: a long soft light bar, tapered at both ends  512 x 64
 
 Run: python3 godot-port/tools/make_fx_art.py
 """
@@ -109,12 +111,48 @@ def build_drop() -> Image.Image:
     return picture
 
 
+def build_drip() -> Image.Image:
+    """A drip: round at the top where it is still attached, drawn to a point at the bottom."""
+    width, height = 64, 96
+    scale = SUPERSAMPLE
+    picture = Image.new("RGBA", (width * scale, height * scale), (255, 255, 255, 0))
+    draw = ImageDraw.Draw(picture)
+    head = width * scale * 0.40
+    centre_x = width * scale * 0.5
+    draw.ellipse((centre_x - head, height * scale * 0.06, centre_x + head, height * scale * 0.06 + head * 2),
+                 fill=(255, 255, 255, 245))
+    draw.polygon([(centre_x - head * 0.92, height * scale * 0.30),
+                  (centre_x + head * 0.92, height * scale * 0.30),
+                  (centre_x, height * scale * 0.97)], fill=(255, 255, 255, 245))
+    picture = picture.resize((width, height), Image.LANCZOS)
+    picture.putalpha(picture.getchannel("A").filter(ImageFilter.GaussianBlur(0.7)))
+    return picture
+
+
+def build_streak() -> Image.Image:
+    """The rocket's beam: bright in the middle, feathered to nothing at both ends and both edges."""
+    width, height = 512, 64
+    picture = Image.new("RGBA", (width, height), (255, 255, 255, 0))
+    pixels = picture.load()
+    for x in range(width):
+        across = 1.0 - abs(x - width / 2.0) / (width / 2.0)
+        taper = across ** 0.55
+        for y in range(height):
+            down = 1.0 - abs(y - height / 2.0) / (height / 2.0)
+            alpha = int(255 * taper * (down ** 1.6))
+            if alpha > 0:
+                pixels[x, y] = (255, 255, 255, alpha)
+    return picture.filter(ImageFilter.GaussianBlur(1.2))
+
+
 def main() -> None:
     os.makedirs(OUT, exist_ok=True)
     written = []
     for index in range(VARIANTS):
         written.append(("splash_%d.png" % (index + 1), build_splat(index + 1)))
     written.append(("splash_drop.png", build_drop()))
+    written.append(("splash_drip.png", build_drip()))
+    written.append(("fx_streak.png", build_streak()))
     for name, picture in written:
         path = os.path.join(OUT, name)
         picture.save(path, optimize=True)

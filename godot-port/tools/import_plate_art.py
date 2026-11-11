@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
-"""Grade the painted plates the board sits on, and write the files the game ships.
+"""Paint the plates the board sits on, and write the files the game ships.
 
-Everything else on the board screen is a picture already; the tray and the two cards were the last
-surfaces drawn by code. They are painted once by an image model and graded here:
+Everything on the board screen is a picture. The four board plates are drawn here, offline, in the
+palette the rest of the game uses — royal blue, gold, turquoise and warm ivory — so they can be
+re-tuned by editing a constant rather than by repainting a plate:
 
-  ui_board_tray    the Persian carpet the stones lie on, painted whole and shipped whole: the board is
-                   the playfield, and the carpet's own border is the only frame it gets.
-  ui_rail          the capsule panel down each side of the board — goals and the purse on the left,
-                   the tools on the right. Both rails are the same painted panel.
-  ui_orb           the round tool button: a turquoise sphere in a gold ring, keyed out of its plate.
-  ui_tile_frame    the cell a stone rests in: a soft cream square with an amber rim.
-  ui_card_frame    the wide plaque on the home screen.
-  ui_card_tall     the portrait plaque on the districts screen.
+  ui_board_tray    the table the stones lie on: a royal blue frame with a gold rim, and one bright
+                   ivory tile per playfield cell, each with its own depth and shadow.
+  ui_rail          the capsule panel down each side of the board — a royal blue shell with a gold rim,
+                   a turquoise inlay and a warm ivory face. Both rails are the same plate.
+  ui_orb           the round tool button: a turquoise-to-royal sphere in a gold metallic ring.
+  ui_tile_frame    the cell a stone rests in: a bright ivory square with a gold rim.
 
-The ungraded paintings live in `assets/ui/source/` (committed, with a .gdignore so the export does not
-ship them twice), so this script reproduces both PNGs exactly.
+The two card plaques on the home and district screens are still the painted source image, graded here
+into the same ivory.
 
 Run: python3 godot-port/tools/import_plate_art.py
 """
@@ -39,6 +38,23 @@ ORB_SIZE = 128
 TILE_SIZE = 128
 # How near-black a plate's field has to be before the key fills it.
 KEY_TOLERANCE = 26
+
+# ---- palette ------------------------------------------------------------------------------------
+# One palette for every plate in the game, and it is the one the design tokens name: royal blue for
+# structure, gold for every edge, turquoise for the second line a Persian frame always carries, warm
+# ivory for the face a player reads on. No brown: a warm shadow under a warm plate is the one thing
+# that turns cartoon chrome into a photograph of brass.
+ROYAL = (18, 99, 181)
+ROYAL_DARK = (7, 60, 120)
+ROYAL_LIGHT = (58, 148, 226)
+TURQUOISE = (32, 198, 196)
+TURQUOISE_DARK = (14, 130, 130)
+GOLD = (245, 190, 67)
+GOLD_DARK = (176, 120, 28)
+GOLD_LIGHT = (255, 226, 150)
+IVORY = (255, 241, 212)
+IVORY_BRIGHT = (255, 249, 235)
+IVORY_SHADE = (233, 217, 183)
 
 # The two card plaques are painted 16:9-ish and the cards are 2.6:1 and 0.81:1, so a plain stretch would
 # turn the painted corner medallions into ellipses. They are nine-sliced here, in the tool, at the size
@@ -93,63 +109,182 @@ def _field_keyed(source: Image.Image) -> Image.Image:
     return cut.crop(box) if box is not None else cut
 
 
-def build_tray() -> Image.Image:
-    """The board floor: a soft grey table with one rounded cell per playfield square."""
-    # The board is a soft grey table, not a carpet: the fruits are the only saturated thing on the
-    # screen, and a painted rug under them fought every one of the five colours. It is still a picture —
-    # drawn here, offline, at exactly the geometry the board uses, so the cells line up to the pixel.
-    scale = 4
-    size = TRAY_SIZE * scale
-    picture = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(picture)
-    radius = int(size * 0.075)
-    draw.rounded_rectangle((0, 0, size - 1, size - 1), radius=radius, fill=(224, 220, 212, 255))
+def _mix(a, b, t):
+    return tuple(int(round(a[i] + (b[i] - a[i]) * t)) for i in range(3))
 
-    # The cells: one soft rounded square per playfield cell, lifted out of the field by a lighter face.
-    # 15 dp of margin and a 42 dp pitch are the same numbers BoardScreen places the grid with.
-    inset = int(size * BOARD_INSET)
+
+def _column(stops, height):
+    """A one-pixel-wide vertical gradient, `stops` being [(position, colour)]."""
+    column = Image.new("RGBA", (1, height))
+    stops = sorted(stops, key=lambda pair: pair[0])
+    for y in range(height):
+        t = y / max(1, height - 1)
+        low, high = stops[0], stops[-1]
+        for index in range(len(stops) - 1):
+            if stops[index][0] <= t <= stops[index + 1][0]:
+                low, high = stops[index], stops[index + 1]
+                break
+        span = max(1e-6, high[0] - low[0])
+        column.putpixel((0, y), _mix(low[1], high[1], (t - low[0]) / span) + (255,))
+    return column
+
+
+def _plate(size, radius, stops, ss=3):
+    """A rounded plate filled with a smooth vertical gradient, drawn big and resampled."""
+    width, height = size
+    body = _column(stops, height * ss).resize((width * ss, height * ss), Image.NEAREST)
+    mask = Image.new("L", (width * ss, height * ss), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, width * ss - 1, height * ss - 1),
+                                           radius=radius * ss, fill=255)
+    body.putalpha(mask)
+    return body.resize((width, height), Image.LANCZOS)
+
+
+def _rim(picture, radius, colour, width=2, inset=0):
+    """A crisp line just inside the edge of the picture's own shape."""
+    ss = 3
+    w, h = picture.size
+    layer = Image.new("RGBA", (w * ss, h * ss), (0, 0, 0, 0))
+    ImageDraw.Draw(layer).rounded_rectangle(
+        (inset * ss, inset * ss, w * ss - 1 - inset * ss, h * ss - 1 - inset * ss),
+        radius=max(0, radius - inset) * ss, outline=colour + (255,), width=width * ss)
+    layer = layer.resize((w, h), Image.LANCZOS)
+    out = picture.copy()
+    out.alpha_composite(layer)
+    return out
+
+
+def build_tray() -> Image.Image:
+    """The board's table: a royal frame, and one bright ivory tile per playfield cell.
+
+    A cell has to read as a socket at 42 dp, which is where the last version failed: the face and the
+    field were four values apart and the fruits floated. Here every tile carries its own drop shadow,
+    a bright top edge and a warmer bottom edge, so the grid is legible even under a full board, and the
+    gold rim round the frame is the only ornament that competes with the fruit.
+
+    Every measurement below is in the plate's own pixels: TRAY_SIZE is 2x the 408 dp the board draws it
+    at, so `size * 0.03` is 12 dp of painting.
+    """
+    size = TRAY_SIZE
+    radius = int(size * 0.075)
+    picture = _plate((size, size), radius, [(0.0, _mix(ROYAL_LIGHT, ROYAL, 0.35)),
+                                            (0.45, ROYAL), (1.0, ROYAL_DARK)])
+    picture = _rim(picture, radius, GOLD_DARK, width=3)
+    picture = _rim(picture, radius, GOLD, width=max(3, int(size * 0.008)), inset=int(size * 0.008))
+    picture = _rim(picture, radius, TURQUOISE, width=2, inset=int(size * 0.024))
+
+    # The bed the tiles sit in: a shade darker than the tiles, so the gaps read as gaps. It stops at the
+    # grid (which starts 15 dp in), so the royal frame keeps a band of its own all the way round.
+    inner = int(size * 0.030)
+    bed = _plate((size - inner * 2, size - inner * 2), int(size * 0.055),
+                 [(0.0, _mix(IVORY_SHADE, ROYAL, 0.16)), (1.0, _mix(IVORY_SHADE, ROYAL, 0.03))])
+    bed = _rim(bed, int(size * 0.055), _mix(GOLD, IVORY_SHADE, 0.45), width=2)
+    picture.alpha_composite(bed, (inner, inner))
+
+    inset = size * BOARD_INSET
     pitch = (size - inset * 2) / 9.0
-    gap = max(2, int(pitch * 0.035))
-    cell_radius = int(pitch * 0.30)
+    gap = max(3.0, pitch * 0.075)
+    cell_radius = int(pitch * 0.26)
+    tile_side = int(pitch - gap)
+
+    face = _plate((tile_side, tile_side), cell_radius,
+                  [(0.0, IVORY_BRIGHT), (0.52, IVORY), (1.0, _mix(IVORY, IVORY_SHADE, 0.62))])
+    # A bright bevel along the top edge: the one line that makes a flat square read as a socket.
+    bevel = Image.new("RGBA", (tile_side, tile_side), (0, 0, 0, 0))
+    ImageDraw.Draw(bevel).rounded_rectangle((2, 2, tile_side - 3, tile_side - 3),
+                                            radius=cell_radius, outline=(255, 255, 255, 165), width=2)
+    face.alpha_composite(bevel.filter(ImageFilter.GaussianBlur(0.5)))
+    warm = Image.new("RGBA", (tile_side, tile_side), (0, 0, 0, 0))
+    ImageDraw.Draw(warm).rounded_rectangle((2, int(tile_side * 0.72), tile_side - 3, tile_side - 3),
+                                           radius=cell_radius, fill=(*_mix(GOLD_DARK, IVORY_SHADE, 0.5), 40))
+    face.alpha_composite(warm.filter(ImageFilter.GaussianBlur(1.6)))
+    face = _rim(face, cell_radius, _mix(GOLD, GOLD_LIGHT, 0.45), width=2)
+
+    shadow = Image.new("RGBA", (tile_side + 12, tile_side + 12), (0, 0, 0, 0))
+    ImageDraw.Draw(shadow).rounded_rectangle((6, 7, tile_side + 5, tile_side + 6), radius=cell_radius,
+                                             fill=(*ROYAL_DARK, 120))
+    shadow = shadow.filter(ImageFilter.GaussianBlur(2.4))
+
     for row in range(9):
         for column in range(9):
-            x = inset + column * pitch + gap * 0.5
-            y = inset + row * pitch + gap * 0.5
-            draw.rounded_rectangle((x, y, x + pitch - gap, y + pitch - gap),
-                                   radius=cell_radius, fill=(236, 233, 226, 255))
+            x = int(round(inset + column * pitch + gap * 0.5))
+            y = int(round(inset + row * pitch + gap * 0.5))
+            picture.alpha_composite(shadow, (x - 6, y - 6))
+            picture.alpha_composite(face, (x, y))
 
-    picture = picture.resize((TRAY_SIZE, TRAY_SIZE), Image.LANCZOS)
-
-    # Light from above: a soft white band across the top and a soft shadow under the bottom rim, so the
-    # table has an edge without a drawn outline.
-    shade = Image.new("RGBA", (TRAY_SIZE, TRAY_SIZE), (0, 0, 0, 0))
-    painter = ImageDraw.Draw(shade)
-    painter.rectangle((0, 0, TRAY_SIZE, int(TRAY_SIZE * 0.06)), fill=(255, 255, 255, 42))
-    painter.rectangle((0, TRAY_SIZE - int(TRAY_SIZE * 0.05), TRAY_SIZE, TRAY_SIZE),
-                      fill=(120, 110, 96, 18))
-    shade = shade.filter(ImageFilter.GaussianBlur(TRAY_SIZE * 0.02))
-    picture = Image.alpha_composite(picture, shade)
-    # The cells are drawn edge to edge, so the table's own rounded shape is stamped back on last.
-    mask = Image.new("L", (TRAY_SIZE, TRAY_SIZE), 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, TRAY_SIZE - 1, TRAY_SIZE - 1),
-                                           radius=int(TRAY_SIZE * 0.075), fill=255)
+    mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, size - 1, size - 1), radius=radius, fill=255)
     picture.putalpha(mask)
-    return _grain(picture.convert("RGB"), 1.4, 11)
+    return _grain(picture.convert("RGB"), 2.0, 11)
 
 
 def build_rail() -> Image.Image:
-    """The capsule panel both rails use, cut off its field and set to the size the rails are drawn."""
-    cut = _field_keyed(_load("rail"))
-    plate = cut.resize(RAIL_SIZE, Image.LANCZOS)
-    plate = plate.filter(ImageFilter.UnsharpMask(radius=1.4, percent=45, threshold=2))
-    return plate
+    """The capsule panel both rails use: royal blue shell, gold rim, turquoise inlay, warm ivory face.
+
+    RAIL_SIZE is twice the 118 x 388 dp the screens draw it at, so the shell is 18 px — 9 dp — wide.
+    """
+    width, height = RAIL_SIZE
+    radius = width // 2
+    shell = _plate((width, height), radius, [(0.0, ROYAL_LIGHT), (0.16, ROYAL), (0.80, ROYAL),
+                                             (1.0, ROYAL_DARK)])
+    shell = _rim(shell, radius, GOLD_DARK, width=2)
+    shell = _rim(shell, radius, GOLD, width=3, inset=2)
+    shell = _rim(shell, radius, TURQUOISE, width=2, inset=11)
+
+    margin = 18
+    face_radius = radius - margin
+    face = _plate((width - margin * 2, height - margin * 2), face_radius,
+                  [(0.0, IVORY_BRIGHT), (0.35, IVORY), (1.0, _mix(IVORY, IVORY_SHADE, 0.5))])
+    face = _rim(face, face_radius, GOLD, width=2)
+    face = _rim(face, face_radius, TURQUOISE, width=1, inset=5)
+    shell.alpha_composite(face, (margin, margin))
+
+    # A turquoise lozenge on the cap: the only ornament on the plate, and it lives in the shell band
+    # where nothing is ever drawn.
+    draw = ImageDraw.Draw(shell)
+    cx, cy = width // 2, margin // 2 + 1
+    lozenge = [(cx, cy - 6), (cx + 6, cy), (cx, cy + 6), (cx - 6, cy)]
+    draw.polygon(lozenge, fill=TURQUOISE + (255,), outline=GOLD_LIGHT + (255,))
+
+    return shell.filter(ImageFilter.UnsharpMask(radius=1.4, percent=45, threshold=2))
 
 
 def build_round_plate(name: str, size: int) -> Image.Image:
-    """A plate that is keyed out and drawn at its own size: the orb and the cell."""
-    cut = _field_keyed(_load(name))
-    plate = cut.resize((size, size), Image.LANCZOS)
-    return plate.filter(ImageFilter.UnsharpMask(radius=1.2, percent=50, threshold=2))
+    """The two round plates: the tool button and the cell frame, both drawn and both real circles."""
+    if name == "orb":
+        picture = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        radius = size / 2.0
+        ring = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(ring)
+        # A metallic band, bright at the top left and deep at the bottom right: that falloff is the only
+        # cue that says gold rather than yellow.
+        for step in range(int(radius)):
+            t = step / radius
+            colour = _mix(GOLD_LIGHT, GOLD_DARK, min(1.0, t * 1.4))
+            draw.ellipse((step, step, size - 1 - step, size - 1 - step), outline=colour + (255,))
+        picture.alpha_composite(ring)
+        sphere_size = int(size * 0.78)
+        sphere = Image.new("RGBA", (sphere_size, sphere_size), (0, 0, 0, 0))
+        paint = ImageDraw.Draw(sphere)
+        half = sphere_size / 2.0
+        for step in range(int(half), 0, -1):
+            t = 1.0 - step / half  # 0 at the rim, 1 at the centre
+            paint.ellipse((half - step, half - step, half + step, half + step),
+                          fill=_mix(TURQUOISE_DARK, _mix(TURQUOISE, ROYAL_LIGHT, 0.30), t) + (255,))
+        shine = Image.new("RGBA", (sphere_size, sphere_size), (0, 0, 0, 0))
+        ImageDraw.Draw(shine).ellipse((sphere_size * 0.18, sphere_size * 0.12,
+                                      sphere_size * 0.60, sphere_size * 0.42),
+                                     fill=(255, 255, 255, 130))
+        sphere.alpha_composite(shine.filter(ImageFilter.GaussianBlur(sphere_size * 0.05)))
+        picture.alpha_composite(sphere, (int((size - sphere_size) / 2), int((size - sphere_size) / 2)))
+        return _rim(picture, int(radius), GOLD_LIGHT, width=2, inset=int(size * 0.09))
+
+    plate = _plate((size, size), int(size * 0.22), [(0.0, IVORY_BRIGHT), (0.6, IVORY),
+                                                    (1.0, _mix(IVORY, IVORY_SHADE, 0.5))])
+    plate = _rim(plate, int(size * 0.22), GOLD, width=3, inset=1)
+    plate = _rim(plate, int(size * 0.22), _mix(GOLD_LIGHT, IVORY, 0.35), width=1,
+                 inset=int(size * 0.07))
+    return plate
 
 
 def _nine_slice(cut: Image.Image, size: tuple, margins: tuple) -> Image.Image:

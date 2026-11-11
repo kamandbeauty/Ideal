@@ -84,6 +84,34 @@ def sweep(f_start: float, f_end: float, seconds: float) -> np.ndarray:
     return signal / (np.max(np.abs(signal)) + 1e-9)
 
 
+def noise(seconds: float) -> np.ndarray:
+    return rng.normal(0.0, 1.0, int(RATE * seconds))
+
+
+def lowpass(signal: np.ndarray, cutoff: float) -> np.ndarray:
+    """A one-pole low pass: the cheapest way to turn white noise into water rather than hiss."""
+    alpha = min(1.0, 2.0 * math.pi * cutoff / RATE)
+    out = np.zeros_like(signal)
+    state = 0.0
+    for index in range(signal.size):
+        state += alpha * (signal[index] - state)
+        out[index] = state
+    return out
+
+
+def band(signal: np.ndarray, low: float, high: float) -> np.ndarray:
+    return lowpass(signal, high) - lowpass(signal, low)
+
+
+def swell(signal: np.ndarray, peak_at: float = 0.35, curve: float = 1.6) -> np.ndarray:
+    """An amplitude shape that opens and closes: the outline of a gust, not of a drum."""
+    count = signal.size
+    position = np.linspace(0.0, 1.0, count)
+    rise = np.clip(position / max(peak_at, 1e-6), 0.0, 1.0) ** curve
+    fall = np.clip((1.0 - position) / max(1.0 - peak_at, 1e-6), 0.0, 1.0) ** (curve * 0.8)
+    return signal * np.minimum(rise, fall)
+
+
 def mix(*parts: np.ndarray) -> np.ndarray:
     length = max(part.size for part in parts)
     out = np.zeros(length)
@@ -175,6 +203,34 @@ def main() -> int:
     write("combo.wav", pad(combo, tail=0.04), 0.7)
     make_power = mix(sweep(700.0, 1800.0, 0.34) * 0.8, pluck(SCALE["f6"], 0.36, 0.35, 0.4) * 0.5)
     write("powerup_create.wav", pad(make_power, tail=0.03), 0.6)
+
+    # ---- the juice and the special pieces ------------------------------------------------------
+    # A fruit bursting is wet, not bright: a short low-noise splash with a plop under it. The chime
+    # above it stays, but it is the fruit's colour rather than its body.
+    splash = lowpass(noise(0.26), 2600.0) * np.linspace(1.0, 0.0, int(RATE * 0.26)) ** 2.0
+    plop = sweep(420.0, 120.0, 0.20) * 0.55
+    write("burst.wav", pad(mix(splash * 0.9, plop, pluck(SCALE["c6"], 0.16, 0.25, 0.25) * 0.25),
+                          tail=0.03), 0.62)
+
+    # The fan: a gust that opens and closes, with the whistle of air over the blades on top of it.
+    gust = band(noise(0.62), 320.0, 2100.0)
+    tremolo = 1.0 + 0.35 * np.sin(2.0 * math.pi * 7.5 * t_axis(0.62))
+    gust = swell(gust * tremolo, 0.30, 1.4)
+    blade = np.sin(2.0 * math.pi * np.cumsum(np.linspace(520.0, 980.0, int(RATE * 0.62))) / RATE)
+    write("whirlwind.wav", pad(mix(gust, blade * swell(np.ones(int(RATE * 0.62)), 0.35) * 0.18),
+                              tail=0.03), 0.55)
+
+    # The rocket: air rushing past for half a second, then the crack of the row going.
+    rush = band(noise(0.42), 600.0, 5200.0)
+    rush = swell(rush, 0.72, 2.2)
+    crack = lowpass(noise(0.16), 900.0) * np.linspace(1.0, 0.0, int(RATE * 0.16)) ** 1.4
+    write("rocket.wav", pad(mix(rush, crack * 0.9, pluck(SCALE["d4"] / 2.0, 0.24, 0.2, 0.3) * 0.4),
+                            tail=0.04), 0.62)
+
+    # The kite: a light rising whistle with a flutter, and nothing underneath it.
+    flight = sweep(700.0, 1500.0, 0.34)
+    flutter = 1.0 + 0.25 * np.sin(2.0 * math.pi * 11.0 * t_axis(0.34))
+    write("kite.wav", pad(flight * flutter * 0.8, tail=0.03), 0.5)
 
     win = np.concatenate([pluck(SCALE[name], 0.9, 0.35, 0.7) for name in ("d5", "f5", "a5", "d6")])
     write("win.wav", pad(win, tail=0.05), 0.75)

@@ -31,19 +31,22 @@ OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
 # warm dark shadow, so a drawn button sits beside a painted rail without looking borrowed from another
 # game. Shadow edges are a deep brown rather than navy — a cool shadow under a warm plate is the one
 # thing that makes cartoon chrome look like a photograph of chrome.
-BG = (36, 26, 18)
-SURFACE = (246, 231, 200)
-RAISED = (252, 242, 219)
-BORDER = (200, 154, 82)
-TEXT = (255, 248, 232)
-MUTED = (150, 120, 86)
-GOLD = (224, 169, 63)
-GOLD_DARK = (154, 106, 26)
-GOLD_LIGHT = (247, 214, 140)
-ACCENT = (35, 181, 176)
-ACCENT_DARK = (18, 133, 127)
-DANGER = (240, 115, 90)
-DANGER_DARK = (179, 58, 36)
+BG = (7, 60, 120)            # deep blue: the colour of every shadow in the set
+SURFACE = (255, 241, 212)    # warm ivory
+RAISED = (255, 249, 234)
+BORDER = (245, 190, 67)      # gold rim
+TEXT = (255, 248, 236)
+MUTED = (74, 110, 150)
+GOLD = (245, 190, 67)
+GOLD_DARK = (176, 120, 28)
+GOLD_LIGHT = (255, 226, 150)
+ROYAL = (18, 99, 181)
+ROYAL_DARK = (7, 60, 120)
+ROYAL_LIGHT = (58, 148, 226)
+ACCENT = (32, 198, 196)
+ACCENT_DARK = (14, 142, 140)
+DANGER = (243, 77, 82)
+DANGER_DARK = (182, 44, 49)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
@@ -281,6 +284,8 @@ def main():
           marks=WHITE)
     plate("ui_button_danger_sm", (48, 48), 12, DANGER, DANGER_DARK, rim_colour=GOLD_LIGHT, gloss=0.7,
           marks=WHITE)
+    plate("ui_button_royal_sm", (48, 48), 12, ROYAL, ROYAL_DARK, rim_colour=GOLD, gloss=0.6,
+          marks=GOLD_LIGHT)
 
     # Panels and cards: 96 dp with a 20 dp border, so a nine-slice at any size keeps its corners.
     plate("ui_panel", (96, 96), 22, SURFACE, BORDER, rim_colour=GOLD, gloss=0.4, marks=GOLD,
@@ -294,6 +299,8 @@ def main():
           marks=WHITE, studs=True)
     plate("ui_button_danger", (96, 64), 20, DANGER, DANGER_DARK, rim_colour=GOLD_LIGHT, gloss=0.65,
           marks=WHITE, studs=True)
+    plate("ui_button_royal", (96, 64), 20, ROYAL, ROYAL_DARK, rim_colour=GOLD, gloss=0.6,
+          marks=GOLD_LIGHT, inlay=ACCENT, studs=True)
     # A pill and a chip are used at 24-30 dp, where their nine-slice border is 6: anything drawn
     # deeper than that lands in the stretched strip and smears, so they stay plain and rely on
     # the gold rim. (Tried a turquoise inlay here; it never survived the scaling.)

@@ -26,6 +26,12 @@ const CUE_PATHS := {
 	"obstacle": "res://assets/audio/obstacle.wav",
 	"combo": "res://assets/audio/combo.wav",
 	"power_create": "res://assets/audio/powerup_create.wav",
+	# The juice and the special pieces: a wet burst for a fruit going, and one cue per special piece so
+	# the fan, the rocket and the kite are told apart with the ears before the eyes catch up.
+	"burst": "res://assets/audio/burst.wav",
+	"whirlwind": "res://assets/audio/whirlwind.wav",
+	"rocket": "res://assets/audio/rocket.wav",
+	"kite": "res://assets/audio/kite.wav",
 }
 
 const POOL_SIZE := 6

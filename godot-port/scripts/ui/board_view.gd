@@ -17,9 +17,13 @@ signal swipe_requested(from: Vector2i, to: Vector2i)
 const SWIPE_CELLS := 0.42
 ## A drag shorter than this many cells is never a swipe, however far across a boundary it ended up.
 const SWIPE_MIN_DP := 8.0
-const CLEAR_SECONDS := 0.14
-const SQUASH_SECONDS := 0.18
-const FALL_SECONDS := 0.22
+const CLEAR_SECONDS := 0.18
+const SQUASH_SECONDS := 0.20
+const FALL_SECONDS := 0.24
+## A special piece takes its time: the whirlwind or the beam plays for about half a second and the
+## pieces it takes start bursting a beat after it, so the player sees the cause before the effect.
+const POWER_LEAD := 0.24
+const SHAKE_SECONDS := 0.34
 const SWAP_SECONDS := 0.18
 const REJECT_SECONDS := 0.20
 ## How much a stone grows as it is lifted off the tray for a swap. Small on purpose: past 1.1 the
@@ -364,6 +368,7 @@ func play_result(before: BoardModel, events: Array) -> void:
 	_busy = true
 	# A special piece that fired gets its own effect before the pieces it took start to burst: the fan
 	# spins up a whirlwind, the rocket a ring where it went off, the kite a ring where it landed.
+	var fired_any := false
 	for event in events:
 		if not event is Dictionary:
 			continue
@@ -372,11 +377,23 @@ func play_result(before: BoardModel, events: Array) -> void:
 		var fired = event.get("position", Vector2i(-1, -1))
 		if not fired is Vector2i:
 			continue
+		fired_any = true
+		var centre := cell_center(fired)
 		match int(event.get("kind", 0)):
 			GameTypes.PowerUpKind.FAN:
-				Fx.whirlwind(self, cell_center(fired), cell_size * 2.6)
+				Fx.whirlwind(self, centre, cell_size * 3.0)
+				_shake(cell_size * 0.10)
+			GameTypes.PowerUpKind.ROCKET_HORIZONTAL:
+				Fx.streak(self, centre, cell_size * float(run.board.width), true)
+				_shake(cell_size * 0.16)
+			GameTypes.PowerUpKind.ROCKET_VERTICAL:
+				Fx.streak(self, centre, cell_size * float(run.board.height), false)
+				_shake(cell_size * 0.16)
 			_:
-				Fx.ring(self, cell_center(fired), cell_size * 2.2, Color("#23B5B0"))
+				Fx.ring(self, centre, cell_size * 2.2, UiTokens.ACCENT)
+				_shake(cell_size * 0.08)
+	if fired_any:
+		await get_tree().create_timer(POWER_LEAD).timeout
 
 	var cleared := {}
 	for event in events:
@@ -409,6 +426,18 @@ func play_result(before: BoardModel, events: Array) -> void:
 	await _settle(before, cleared)
 	_busy = false
 
+## The board takes the hit: three short steps out and a longer one back, on the board's own position
+## rather than on each tile, so a firing rocket moves everything it is about to clear and nothing has
+## to be put back afterwards except the board itself.
+func _shake(amount: float) -> void:
+	var home := position
+	var tween := create_tween()
+	for step in [1.0, -0.78, 0.5, -0.24]:
+		tween.tween_property(self, "position", home + Vector2(amount * float(step),
+			amount * float(step) * 0.55), SHAKE_SECONDS * 0.18).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(self, "position", home, SHAKE_SECONDS * 0.28) \
+		.set_trans(Tween.TRANS_SINE)
+
 ## A piece that lands is a piece with weight. One short, staggered squash per landed tile — the
 ## cheapest thing that makes a fall read as a fall rather than a teleport.
 func _squash_all(landed: Array) -> void:
@@ -420,7 +449,7 @@ func _squash_all(landed: Array) -> void:
 		any = true
 		tile.pivot_offset = Vector2(cell_size, cell_size) * 0.5
 		var tween := create_tween()
-		tween.tween_property(tile, "scale", Vector2(1.10, 0.88), SQUASH_SECONDS * 0.4) \
+		tween.tween_property(tile, "scale", Vector2(1.06, 0.92), SQUASH_SECONDS * 0.4) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tween.tween_property(tile, "scale", Vector2(1.0, 1.0), SQUASH_SECONDS * 0.6) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -473,15 +502,20 @@ func _settle(before: BoardModel, cleared: Dictionary) -> void:
 		var target: Vector2 = tile.position
 		tile.position = target + Vector2(0.0, float(offsets[pos]) * cell_size)
 		tile.modulate = Color(1, 1, 1, 0.9)
-		tween.tween_property(tile, "position", target, FALL_SECONDS) \
-			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tween.tween_property(tile, "modulate", Color(1, 1, 1, 1), FALL_SECONDS)
+		# A stone travels further the higher its row was, so the fall lasts as long as the distance it
+		# has to cover: every column lands together instead of the top rows snapping down in one frame.
+		var drop := absf(float(offsets[pos]))
+		var travel := clampf(FALL_SECONDS * 0.62 + FALL_SECONDS * 0.24 * drop,
+			FALL_SECONDS * 0.62, FALL_SECONDS * 2.0)
+		tween.tween_property(tile, "position", target, travel) \
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tween.tween_property(tile, "modulate", Color(1, 1, 1, 1), travel)
 		# A gem that comes in from beyond the tray is new, so it arrives small and swells to its size
 		# while it falls. Without this the refilled column is a teleport: five stones appear already
 		# in place, which is the one thing on the board that a real tray of stones would never do.
 		if spawned_cells.has(pos):
 			tile.scale = Vector2(SPAWN_SCALE, SPAWN_SCALE)
-			tween.tween_property(tile, "scale", Vector2.ONE, FALL_SECONDS) \
+			tween.tween_property(tile, "scale", Vector2.ONE, travel) \
 				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	await tween.finished
 	await _squash_all(offsets.keys())
