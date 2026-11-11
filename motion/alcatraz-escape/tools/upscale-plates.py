@@ -69,7 +69,10 @@ def main(names):
 
         # دو مرحله بزرگ‌نمایی: هاله‌ها و پله‌های لبه کمتر می‌شود
         mid = im.resize((im.width * 3 // 2, im.height * 3 // 2), Image.LANCZOS)
-        big = cover(mid)
+        # ۳٪ داخل‌تر ببر تا لبهٔ کاغذ/حاشیهٔ تصویرِ تولیدشده دیده نشود (قابِ تمام‌قاب)
+        big = cover(mid, round(W * 1.06), round(H * 1.06))
+        big = big.crop(((big.width - W) // 2, (big.height - H) // 2,
+                        (big.width - W) // 2 + W, (big.height - H) // 2 + H))
 
         big = big.filter(ImageFilter.UnsharpMask(radius=2.0, percent=78, threshold=3))
         big = clarity(big, radius=24, percent=18)
