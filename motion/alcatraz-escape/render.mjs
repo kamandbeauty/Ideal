@@ -119,7 +119,7 @@ await b.close();
 
 const audio = join(HERE, 'audio', 'mix.wav');
 const tag = from === 0 && last === meta.frames ? '1080x1920' : `slice-${from}-${last}`;
-const out = join(HERE, 'exports', `rowling-potter-${tag}.mp4`);
+const out = join(HERE, 'exports', `alcatraz-escape-${tag}.mp4`);
 mkdirSync(dirname(out), { recursive: true });
 const useAudio = !silent && existsSync(audio);
 const args = [
