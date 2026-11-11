@@ -134,17 +134,16 @@ func _check_dead_units_removed_after_delay(t: TestContext) -> void:
 	await t.tree.process_frame
 	await t.tree.process_frame
 	var boat: LandingCraft = fresh.crafts[0]
-	# Grounded and unloaded, but the queue is not drained: the troops are still coming off the hull.
+	# Grounded and unloaded, but the queue is not drained: the troops are still waiting to come off the hull.
 	boat.ground_now()
 	fresh._unload(boat)
 	t.check(not fresh.disembark_queue.is_empty(), "A grounded craft has its troops queued to come ashore")
 	boat.receive_damage(100000.0)
-	t.check(not fresh.disembark_queue.is_empty(), "A sunk craft still has its troops queued to come ashore")
-	fresh._tick_removals(6.0)
-	t.check(fresh.crafts.has(boat), "A sunk craft keeps its hull while its troops are still queued")
-	fresh.disembark_queue.clear()
-	fresh._tick_removals(0.6)
-	t.check(not fresh.crafts.has(boat), "A sunk craft is removed once its cargo has left")
+	t.check(fresh.disembark_queue.is_empty(), "A sunk craft drops the troops still queued to come ashore")
+	fresh._tick_removals(4.0)
+	t.check(fresh.crafts.has(boat), "A sunk craft stays on the field for its 5 s delay")
+	fresh._tick_removals(1.5)
+	t.check(not fresh.crafts.has(boat), "A sunk craft is removed once its delay has run out")
 	fresh.queue_free()
 	await t.tree.process_frame
 
