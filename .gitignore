@@ -17,11 +17,11 @@ local.properties
 .env.*
 __pycache__/
 *.pyc
-# Release packages are retained in explicit delivery/ on this milestone branch.
+# CI commits the installable APK to delivery/ on the session branch.
 
 # Blender editor backups
 *.blend1
 
-# Compatibility APK is a CI artifact, not a tracked deliverable (snapshot size budget).
-delivery/Artillery-Frontline-compatibility.apk
-delivery/Artillery-Frontline-compatibility.apk.idsig
+# The compatibility APK is a CI artifact, not a tracked deliverable.
+delivery/LastWall-compatibility.apk
+delivery/*.idsig

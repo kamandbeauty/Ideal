@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="ZombieData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/zombies/zombie_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/zombies/zombie_walker.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"walker"
+scene = ExtResource("2")
+skins = 3
+max_health = 80.0
+scale_min = 0.95
+scale_max = 1.06
+speed = 1.9
+speed_variance = 0.14
+stride_speed = 1.3
+turn_speed = 6.0
+flinch_slow = 0.45
+attack_damage = 3.0
+attack_interval = 1.1
+attack_hit_point = 0.55
+breach_damage = 25.0
+body_radius = 0.3
+body_height = 1.45
+head_radius = 0.2
+corpse_time = 6.0

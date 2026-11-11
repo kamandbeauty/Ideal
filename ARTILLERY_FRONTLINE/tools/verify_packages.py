@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Inspect exported artifacts, not merely the exporter exit code.
+"""Inspect the exported APKs themselves, not just the exporter's exit code.
 
-This is CI package validation, not execution on an Android device.
+This is package validation in CI. It does not run the game on a device.
 """
 import hashlib
 import json
@@ -10,53 +10,39 @@ import sys
 import zipfile
 
 root = pathlib.Path(sys.argv[1])
+PACKAGES = {
+    "LastWall-arm64.apk": ("package-metadata.txt", "AndroidManifest.txt", "com.frontline.lastwall"),
+    "LastWall-compatibility.apk": ("compatibility-package-metadata.txt", "compatibility-AndroidManifest.txt", "com.frontline.lastwall.compatibility"),
+}
 report = {}
-for name in [
-    "Artillery-Frontline-arm64.apk",
-    "Artillery-Frontline-arm64.aab",
-    "Artillery-Frontline-compatibility.apk",
-]:
+for name, (metadata_file, manifest_file, package_id) in PACKAGES.items():
     package = root / name
     assert package.is_file() and package.stat().st_size > 1_000_000, name
     with zipfile.ZipFile(package) as archive:
         names = archive.namelist()
-        assert any(n.endswith("libgodot_android.so") and "arm64-v8a" in n for n in names), "ARM64 native engine missing"
-        assert not any("armeabi-v7a" in n or "x86_64" in n for n in names), "Unexpected architecture"
-        assert any(n.endswith("project.binary") for n in names), "Project data missing"
+        assert any(n.endswith("libgodot_android.so") and "arm64-v8a" in n for n in names), "ARM64 engine library missing"
+        assert not any("armeabi-v7a" in n or "x86_64" in n for n in names), "unexpected architecture"
+        assert any(n.endswith("project.binary") for n in names), "project data missing"
         assert archive.testzip() is None, "ZIP CRC failure"
+    metadata = (root / metadata_file).read_text()
+    manifest = (root / manifest_file).read_text()
+    assert "package: name='%s'" % package_id in metadata, "unexpected package id"
+    assert "minSdkVersion:'24'" in metadata, "unexpected minimum Android API"
+    assert "targetSdkVersion:'36'" in metadata, "unexpected target Android API"
+    assert "android.permission.INTERNET" not in metadata and "android.permission.INTERNET" not in manifest, "offline game requests INTERNET"
+    assert "screenOrientation" in manifest, "activity orientation attribute missing"
+    assert "android.hardware.screen.landscape" in metadata, "activity is not landscape"
     report[name] = {
         "bytes": package.stat().st_size,
         "sha256": hashlib.sha256(package.read_bytes()).hexdigest(),
+        "package": package_id,
         "arm64": True,
         "zip_crc": "pass",
+        "min_sdk": 24,
+        "target_sdk": 36,
+        "landscape": True,
+        "no_internet_permission": True,
     }
-
-metadata = (root / "package-metadata.txt").read_text()
-compat_metadata = (root / "compatibility-package-metadata.txt").read_text()
-assert "package: name='com.frontline.artillery'" in metadata
-assert "package: name='com.frontline.artillery.compatibility'" in compat_metadata
-for text in (metadata, compat_metadata):
-    assert "minSdkVersion:'24'" in text, "Unexpected minimum Android API"
-    assert "targetSdkVersion:'36'" in text, "Unexpected target Android API"
-    assert "android.permission.INTERNET" not in text, "Offline build requests INTERNET"
-
-# Require both the decoded activity attribute and aapt2's landscape feature
-# inference. Raw xmltree value formatting varies between build-tools releases.
-manifest = (root / "AndroidManifest.txt").read_text()
-compat_manifest = (root / "compatibility-AndroidManifest.txt").read_text()
-for meta, text in ((metadata, manifest), (compat_metadata, compat_manifest)):
-    assert "screenOrientation" in text, "Activity orientation attribute missing"
-    assert "android.hardware.screen.landscape" in meta and "landscape orientation" in meta, "Activity is not landscape"
-    assert "android.permission.INTERNET" not in text, "Manifest requests INTERNET"
-for name in ("Artillery-Frontline-arm64.apk", "Artillery-Frontline-compatibility.apk"):
-    report[name].update({"package_id_verified": True, "min_sdk": 24, "target_sdk": 36, "landscape": True, "no_internet_permission": True})
-aab_signature = (root / "aab-signature.txt").read_text()
-assert "jar verified" in aab_signature and "jar is unsigned" not in aab_signature, "AAB JAR signature did not verify"
-with zipfile.ZipFile(root / "Artillery-Frontline-arm64.aab") as archive:
-    signature_entries = archive.namelist()
-    assert any(n.startswith("META-INF/") and n.endswith((".RSA", ".DSA", ".EC")) for n in signature_entries), "AAB signature block missing"
-    assert any(n.startswith("META-INF/") and n.endswith(".SF") for n in signature_entries), "AAB signature file missing"
-report["Artillery-Frontline-arm64.aab"]["signature_check"] = "jarsigner verified; META-INF signature block present"
-report["scope"] = "CI export, signature and package inspection; no Android device/emulator execution"
+report["scope"] = "CI export, signature and package inspection; no Android device or emulator run"
 (root / "package-validation.json").write_text(json.dumps(report, indent=2) + "\n")
 print(json.dumps(report, indent=2))

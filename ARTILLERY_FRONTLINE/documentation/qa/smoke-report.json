@@ -1,0 +1,26 @@
+{
+  "checks": 10,
+  "engine": "4.7.2-stable (custom_build)",
+  "failures": [],
+  "notes": {
+    "alive_at_24s": 15,
+    "gate_attackers": 1,
+    "gate_fell_after_s": 38.0,
+    "hits": 0,
+    "kills": 0,
+    "render": {
+      "draw_calls": 0,
+      "fps": 201.5,
+      "nodes": 525,
+      "primitives": 0,
+      "renderer": "Mobile",
+      "scale": 1.0,
+      "tier": "high"
+    },
+    "shots": 9
+  },
+  "passed": true,
+  "renderer": "mobile",
+  "scope": "Software-rendered desktop run of the real game; not an Android device run",
+  "screenshots": []
+}

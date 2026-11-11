@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
+# Commits CI outputs (test evidence, screenshots, the APK) back to the session
+# branch so they can be reviewed without downloading workflow artifacts.
 set -euo pipefail
 MESSAGE="$1"; shift
-BRANCH="${GITHUB_REF_NAME:-arena/40ad7d87-ideal}"
-if [ "$BRANCH" != "arena/40ad7d87-ideal" ]; then echo 'Refusing to publish outside the active Arena session branch'; exit 1; fi
+SESSION_BRANCH="${SESSION_BRANCH:-arena/93ab6e29-ideal}"
+BRANCH="${GITHUB_REF_NAME:-$SESSION_BRANCH}"
+if [ "$BRANCH" != "$SESSION_BRANCH" ]; then echo 'Refusing to publish outside the session branch'; exit 1; fi
 git config user.name 'github-actions[bot]'
 git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-git add -f -- "$@"
+git add -A -f -- "$@"
 if git diff --cached --quiet; then exit 0; fi
 git commit -m "$MESSAGE"
 for attempt in 1 2 3 4 5; do
