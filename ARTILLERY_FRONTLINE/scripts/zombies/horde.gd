@@ -185,25 +185,27 @@ func find_place(zombie: Zombie) -> void:
 	if fallen.has(zombie.target):
 		zombie.enter_breach(layout.breach_path(zombie.target, zombie.lateral * 0.7))
 		return
+	_settle(zombie, null)
+
+
+## Claims a place for `zombie`; whoever that pushes aside looks for another
+## place in turn. The chain is short: each one only moves something narrower
+## than itself (the boss moves brutes, brutes move the rest).
+func _settle(zombie: Zombie, lost: AttackLines.Slot) -> void:
 	var wide: bool = zombie.data.footprint > 1
-	var slot: AttackLines.Slot = lines.claim(zombie, zombie.target, zombie.side, rng.randf_range(-0.6, 0.6), zombie.data.footprint, wide)
-	# Whoever it pushed aside steps back and looks for another place.
+	# The wider it is, the straighter it goes for the middle.
+	var drift: float = rng.randf_range(-0.6, 0.6) / float(zombie.data.footprint)
+	var slot: AttackLines.Slot = lines.claim(zombie, zombie.target, zombie.side, drift, zombie.data.footprint, wide)
 	var pushed: Array = lines.displaced.duplicate()
 	if slot != null:
 		zombie.assign_slot(slot)
+	elif lost != null:
+		# Nowhere to stand: step back from the place it lost and ask again shortly.
+		zombie.fall_back(lines.waiting_point(lost.line, rng))
 	for other: Zombie in pushed:
-		_make_room(other, slot)
-
-
-func _make_room(zombie: Zombie, taken: AttackLines.Slot) -> void:
-	zombie.slot = null
-	if not zombie.alive:
-		return
-	var place: AttackLines.Slot = lines.claim(zombie, zombie.target, zombie.side, rng.randf_range(-0.6, 0.6))
-	if place != null:
-		zombie.assign_slot(place)
-	elif taken != null:
-		zombie.fall_back(lines.waiting_point(taken.line, rng))
+		other.slot = null
+		if other.alive:
+			_settle(other, slot)
 
 
 func release_place(zombie: Zombie) -> void:

@@ -106,7 +106,9 @@ func preference(target: String, side: String = "") -> Array[String]:
 ## Reserves a place for `who`. Front row of the preferred line first, then the
 ## rows behind it, then the next line. Null when every place is taken.
 ## `width` > 1 asks for that many places side by side in a front row; with
-## `shove` whoever stands there is pushed off (see `displaced`).
+## `shove` whoever stands there is pushed off (see `displaced`), as long as
+## it is narrower than the newcomer: a brute moves walkers, the boss moves
+## brutes, and nothing moves its own size.
 func claim(who: Object, target: String, side: String = "", jitter: float = 0.0, width: int = 1, shove: bool = false) -> Slot:
 	displaced.clear()
 	if width > 1:
@@ -157,8 +159,8 @@ func _claim_wide(who: Object, target: String, side: String, jitter: float, width
 				if holder == null or holder == who:
 					continue
 				taken += 1
-				# Never push aside something that is itself holding several places.
-				if not shove or _is_wide(row[first + offset]):
+				# Only something narrower gives way.
+				if not shove or width_of(row[first + offset]) >= width:
 					blocked = true
 			if blocked:
 				continue
@@ -180,8 +182,14 @@ func _claim_wide(who: Object, target: String, side: String, jitter: float, width
 		var sum := Vector3.ZERO
 		for offset: int in width:
 			var member: Slot = row[best + offset]
-			if member.occupant != null and member.occupant != who and not displaced.has(member.occupant):
-				displaced.append(member.occupant)
+			var holder: Object = member.occupant
+			if holder != null and holder != who:
+				if not displaced.has(holder):
+					displaced.append(holder)
+				# A wide holder loses all of its places, not only the ones taken from it.
+				for other: Slot in row:
+					if other.occupant == holder:
+						other.occupant = null
 			member.occupant = who
 			group.members.append(member)
 			sum += member.position
@@ -190,15 +198,15 @@ func _claim_wide(who: Object, target: String, side: String, jitter: float, width
 	return null
 
 
-## True when the place is one of several held together by a wide occupant.
-func _is_wide(slot: Slot) -> bool:
+## How many places of its line the occupant of `slot` holds (0 for an empty place).
+func width_of(slot: Slot) -> int:
 	if slot.occupant == null:
-		return false
-	var line: Dictionary = lines[slot.line]
-	for other: Slot in line.slots:
-		if other != slot and other.occupant == slot.occupant:
-			return true
-	return false
+		return 0
+	var held: int = 0
+	for other: Slot in lines[slot.line].slots:
+		if other.occupant == slot.occupant:
+			held += 1
+	return held
 
 
 func release(slot: Slot) -> void:

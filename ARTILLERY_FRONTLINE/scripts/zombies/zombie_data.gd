@@ -12,6 +12,8 @@ extends Resource
 @export_range(0, 80) var prewarm: int = 0
 ## A boss is announced, gets a health bar on the HUD, and its fall is celebrated.
 @export var is_boss: bool = false
+## Text key of the line shown under the warning when a boss appears.
+@export var advice_key: String = ""
 
 @export_group("Body")
 @export_range(1.0, 100000.0, 1.0) var max_health: float = 80.0

@@ -558,7 +558,8 @@ func _on_wave_started(index: int, total: int) -> void:
 
 
 func _on_boss_appeared(zombie: Node3D) -> void:
-	show_banner(Loc.t("warn_boss"), UITheme.RED, Loc.t((zombie as Zombie).data.name_key))
+	var advice: String = (zombie as Zombie).data.advice_key
+	show_banner(Loc.t("warn_boss"), UITheme.RED, Loc.t(advice) if advice != "" else "")
 
 
 func _on_boss_fell(_zombie: Node3D) -> void:

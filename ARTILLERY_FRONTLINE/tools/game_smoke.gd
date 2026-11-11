@@ -80,6 +80,39 @@ func _aim_at(point: Vector3) -> void:
 	level.defender.aim.set_aim(wanted.x, wanted.y)
 
 
+## One of each kind side by side on the court, seen through a long lens, with
+## the gun and the HUD out of the picture. Not a view the player gets: it is
+## here so the four models can be compared in the real renderer.
+func _line_up() -> void:
+	var eye: Vector3 = level.defender.eye_position()
+	var places: Dictionary = {&"runner": 3.9, &"walker": 5.3, &"brute": 7.0, &"boss": 9.5}
+	var row: Array[Zombie] = []
+	level.horde.set_physics_process(false)
+	for type_id: StringName in places:
+		var zombie: Zombie = level.horde.spawn(type_id, "ring_right", "gate")
+		zombie.position = Vector3(places[type_id], 0.0, -26.0)
+		zombie.rotation.y = atan2(eye.x - zombie.position.x, eye.z - zombie.position.z)
+		row.append(zombie)
+	check(row.size() == 4 and level.horde.alive_count() == 4, "one of each kind stands on the court")
+	var camera: Camera3D = level.defender.camera
+	var lens: float = camera.fov
+	_aim_at(Vector3(6.9, 1.75, -26.0))
+	camera.fov = 12.5
+	level.defender.weapon.visible = false
+	game.hud.visible = false
+	await frames(10)
+	await shot("17-the-four-kinds")
+	camera.fov = lens
+	level.defender.weapon.visible = true
+	game.hud.visible = true
+	for zombie: Zombie in row:
+		zombie.kill()
+	level.horde.set_physics_process(true)
+	# Long enough for the bodies to be cleared away.
+	simulate(16.0)
+	check(level.horde.alive_count() == 0 and level.horde.boss == null, "the court is empty again")
+
+
 func _run() -> void:
 	await frames(8)
 	check(game.menus.screen == "main", "the game opens on the main menu")
@@ -231,36 +264,42 @@ func _run() -> void:
 	await frames(2)
 
 	# The tougher kinds. Staged, so the pictures do not depend on playing eight
-	# waves under a software renderer: the waves stop, whoever is left is put
-	# down, and a boss, two brutes and a pack of runners are sent at the gate.
+	# waves under a software renderer: the waves stop and whoever is left is put down.
 	level.director.stop()
 	for zombie: Zombie in level.horde.active.duplicate():
 		if zombie.alive:
 			zombie.kill()
-	simulate(2.0)
+	simulate(8.0)
+	await _line_up()
+
+	# Then the boss is sent at the gate with two brutes and a pack of runners.
 	# The gate is put back to full strength, so the scene does not depend on how the first wave went.
 	check(not level.defense.gate_destroyed, "the gate has stood through the first wave")
 	level.defense.gate_health = level.defense.data.gate_max_health
 	Events.gate_damaged.emit(0.0, level.defense.gate_health, level.defense.data.gate_max_health)
 	var boss: Zombie = level.horde.spawn(&"boss", "ring_right", "gate")
-	level.horde.spawn(&"brute", "ring_right", "gate")
 	check(boss != null and level.horde.boss == boss, "the boss takes the field")
-	var set_out: Vector3 = boss.position
-	var second_brute: bool = false
+	# Brutes walk faster than the boss: they set out late enough to reach the gate just behind it.
+	var brute_speed: float = (level.horde.types[&"brute"] as ZombieData).speed
+	var way: float = 0.0
+	for index: int in range(1, boss.path.size()):
+		way += boss.path[index - 1].distance_to(boss.path[index])
+	var head_start: float = way * (1.0 - boss.speed / brute_speed) + 4.0
+	var brutes: Array[Zombie] = []
 	var waited: float = 0.0
 	while waited < 200.0 and boss.position.z < -41.0 and not level.defense.gate_destroyed:
 		simulate(0.5)
 		waited += 0.5
-		# The second brute is faster than the boss; it sets out late so the two arrive together.
-		if not second_brute and boss.position.distance_to(set_out) > 9.0:
-			second_brute = true
-			level.horde.spawn(&"brute", "ring_right", "gate")
+		if brutes.is_empty() and waited * boss.speed >= head_start:
+			brutes.append(level.horde.spawn(&"brute", "ring_right", "gate"))
+			brutes.append(level.horde.spawn(&"brute", "ring_right", "gate"))
 	_aim_at(boss.position + Vector3(0.0, 1.8, 0.0))
 	await frames(8)
 	check(game.hud.boss_meter.visible, "the HUD shows the boss's health")
-	await shot("17-boss-in-the-court")
+	await shot("18-boss-in-the-court")
 	var pack: bool = false
-	while waited < 300.0 and boss.state != Zombie.State.ATTACK and not level.defense.gate_destroyed:
+	var gathered: bool = false
+	while waited < 320.0 and not gathered and not level.defense.gate_destroyed:
 		simulate(0.5)
 		waited += 0.5
 		# Runners cover the same ground in a quarter of the time: they are let loose when the boss is nearly there.
@@ -268,14 +307,24 @@ func _run() -> void:
 			pack = true
 			for index: int in 5:
 				level.horde.spawn(&"runner", "ring_right", "gate")
-	check(boss.state == Zombie.State.ATTACK, "the boss reaches the gate and strikes it")
-	check(boss.slot != null and boss.slot.members.size() == 3, "it takes three places at the gate")
+		gathered = boss.state == Zombie.State.ATTACK and brutes.size() == 2 \
+			and brutes[0].state == Zombie.State.ATTACK and brutes[1].state == Zombie.State.ATTACK
+	check(boss.state == Zombie.State.ATTACK and boss.slot != null and boss.slot.line == "gate", "the boss reaches the gate and strikes it")
+	check(boss.slot != null and boss.slot.members.size() == 3 and absf(boss.position.z - level.layout.gate_center.z) < 1.1,
+		"it holds the three middle places of the gate")
+	var flanking: int = 0
+	for brute: Zombie in brutes:
+		if brute.state == Zombie.State.ATTACK and brute.slot != null and brute.slot.line == "gate" and brute.slot.members.size() == 2:
+			flanking += 1
+	check(flanking == 2, "a brute strikes the gate on either side of it")
+	check(not level.defense.gate_destroyed, "the gate is still standing when they have gathered")
 	notes["boss_reached_gate_after_s"] = waited
 	notes["attackers_with_boss"] = level.horde.attackers("gate")
-	simulate(1.5)
+	notes["gate_left_with_boss"] = snappedf(level.defense.gate_fraction(), 0.01)
+	simulate(1.0)
 	_aim_at(boss.position + Vector3(0.0, 1.6, 0.0))
 	await frames(8)
-	await shot("18-boss-at-the-gate")
+	await shot("19-boss-at-the-gate")
 
 	# Let them through: the gate falls, then the wall.
 	level.defender.aim.set_aim(40.0, -8.5)
@@ -286,26 +335,31 @@ func _run() -> void:
 	check(level.defense.gate_destroyed, "the gate falls when left alone")
 	notes["gate_fell_after_s"] = waited
 	await frames(40)
-	await shot("19-gate-down")
+	await shot("20-gate-down")
 	waited = 0.0
 	while not level.over and waited < 400.0:
 		simulate(1.0)
 		waited += 1.0
+		# Everyone who was at the gate is through and the wall still stands: the next lot comes down the street.
+		if level.horde.alive_count() == 0 and not level.over:
+			for index: int in 6:
+				level.horde.spawn(&"brute" if index < 2 else &"walker", "ring_right", "gate")
 	check(level.defense.breached, "the wall is breached when left alone")
+	notes["wall_fell_after_s"] = waited
 	level.defender.aim.set_aim(-33.0, -7.0)
 	await frames(30)
-	await shot("20-wall-breached")
+	await shot("21-wall-breached")
 	var guard: int = 0
 	while game.mode != 3 and guard < 1500:
 		await frames(1)
 		guard += 1
 	check(game.mode == 3, "the result screen follows the breach")
 	await frames(4)
-	await shot("21-defeat")
+	await shot("22-defeat")
 	game.menus.show_result(true, {"waves_cleared": 8, "waves_total": 8, "kills": 325, "headshots": 88, "accuracy": 0.47, "time": 486.0,
 		"wall_left": 0.82})
 	await frames(3)
-	await shot("22-victory-preview")
+	await shot("23-victory-preview")
 	game.to_menu()
 	await frames(6)
 	check(game.menus.screen == "main", "MAIN MENU returns to the title")

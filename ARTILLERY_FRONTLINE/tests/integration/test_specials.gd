@@ -9,6 +9,7 @@ func run(t: TestContext) -> void:
 	await _pools_and_volumes(t)
 	await _movement_and_damage(t)
 	await _wide_places(t)
+	await _pecking_order(t)
 	await _boss(t)
 
 
@@ -206,6 +207,84 @@ func _wide_places(t: TestContext) -> void:
 	await t.discard(level)
 
 
+## Brutes are already at the gate when the boss arrives: it takes the middle and they move over.
+func _pecking_order(t: TestContext) -> void:
+	var level: CityLevel = await _level(t)
+	var horde: Horde = level.horde
+	# A gate that outlasts the test, so everyone is still at it when the boss gets there.
+	var sturdy: DefenseData = level.defense.data.duplicate()
+	sturdy.gate_max_health = 1000000.0
+	level.defense.data = sturdy
+	level.defense.reset()
+	var columns: int = horde.lines.lines.gate.columns
+	var middle: float = float(columns - 1) * 0.5
+	var brutes: Array[Zombie] = [horde.spawn(&"brute", "ring_right", "gate"), horde.spawn(&"brute", "ring_right", "gate")]
+	var walkers: Array[Zombie] = []
+	for index: int in columns:
+		walkers.append(horde.spawn(&"walker", "ring_right", "gate"))
+	_until(t, level, 240.0, func() -> bool: return brutes[0].state == Zombie.State.ATTACK and brutes[1].state == Zombie.State.ATTACK)
+	t.check(brutes[0].slot != null and brutes[0].slot.line == "gate" and brutes[1].slot != null and brutes[1].slot.line == "gate",
+		"two brutes hold the gate, side by side")
+	var shared: bool = false
+	for member: AttackLines.Slot in brutes[0].slot.members:
+		if brutes[1].slot.members.has(member):
+			shared = true
+	t.check(not shared, "each on its own two places: one brute does not move another")
+	var third: Zombie = horde.spawn(&"brute", "ring_right", "gate")
+	var boss: Zombie = horde.spawn(&"boss", "ring_right", "gate")
+	var took: float = _until(t, level, 240.0, func() -> bool: return boss.state == Zombie.State.ATTACK)
+	t.equal(boss.state, Zombie.State.ATTACK, "the boss arrives and strikes (%.0f s)" % took)
+	t.check(boss.slot != null and boss.slot.line == "gate" and boss.slot.members.size() == 3, "at the gate itself, three places wide")
+	t.check(boss.slot != null and absf(float(boss.slot.members[1].column) - middle) < 0.6, "in the middle of it")
+	t.check(boss.position.distance_to(boss.slot.position) < 0.05 and absf(boss.position.z - level.layout.gate_center.z) < 0.6,
+		"standing in front of the middle of the gate")
+	# Give those it pushed aside time to walk to their new places.
+	t.simulate(level, 14.0)
+	var at_gate: int = 0
+	var striking: int = 0
+	for brute: Zombie in [brutes[0], brutes[1], third]:
+		if brute.slot != null and brute.slot.line == "gate":
+			at_gate += 1
+		if brute.alive and brute.state == Zombie.State.ATTACK and brute.slot != null and brute.slot.members.size() == 2:
+			striking += 1
+	t.equal(at_gate, 2, "two brutes found room on either side of the boss")
+	t.equal(striking, 3, "and the third pounds the wall beside the gate; all three are still striking")
+	# Nobody stands inside anybody else, and every place has one holder.
+	var big: Array[Zombie] = [boss, brutes[0], brutes[1], third]
+	var apart: bool = true
+	for index: int in big.size():
+		for other: int in range(index + 1, big.size()):
+			var gap: float = big[index].position.distance_to(big[other].position)
+			if gap < big[index].data.body_radius + big[other].data.body_radius:
+				apart = false
+	t.check(apart, "the big ones stand clear of each other")
+	var owners: Dictionary = {}
+	for line_name: String in horde.lines.lines:
+		for slot: AttackLines.Slot in horde.lines.lines[line_name].slots:
+			if slot.occupant != null:
+				owners[slot.occupant] = int(owners.get(slot.occupant, 0)) + 1
+	var consistent: bool = true
+	for holder: Zombie in owners:
+		if owners[holder] != holder.data.footprint or holder.slot == null:
+			consistent = false
+	t.check(consistent, "everyone holds exactly as many places as it is wide")
+	var lost: int = 0
+	for walker: Zombie in walkers:
+		if not walker.alive or (walker.slot == null and walker.state != Zombie.State.WAIT and walker.state != Zombie.State.ADVANCE):
+			lost += 1
+	t.equal(lost, 0, "every walker pushed aside is still in the fight")
+	t.equal(horde.attackers("gate"), 3, "the gate is struck by the boss and the two brutes; the walkers wait behind them")
+	# When the boss falls, its three places are taken from behind.
+	boss.kill()
+	t.simulate(level, 4.0)
+	var stepped: int = 0
+	for walker: Zombie in walkers:
+		if walker.slot != null and walker.slot.line == "gate" and walker.slot.row == 0:
+			stepped += 1
+	t.equal(stepped, 3, "when the boss falls, three walkers step up into its places")
+	await t.discard(level)
+
+
 func _boss(t: TestContext) -> void:
 	t.tree.root.get_node("Profile").persist = false
 	var game: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
@@ -230,7 +309,9 @@ func _boss(t: TestContext) -> void:
 	t.check(seen == [boss] and horde.boss == boss, "the boss is announced when it appears")
 	t.check(Sound.started > started, "with its roar")
 	t.equal(hud.banner.text, Loc.t("warn_boss"), "the HUD raises the boss warning")
-	t.equal(hud.sub_banner.text, Loc.t("zombie_boss"), "and names it")
+	t.check(boss.data.advice_key != "" and Loc.t(boss.data.advice_key) != boss.data.advice_key, "the boss has a line of advice in the text table")
+	t.equal(hud.sub_banner.text, Loc.t(boss.data.advice_key), "shown under the warning")
+	t.check(hud.sub_banner.text != Loc.t("zombie_boss") and hud.sub_banner.text != hud.banner.text, "rather than repeating its name")
 	await t.frames(2)
 	t.check(hud.boss_meter.visible and hud.boss_title.visible, "the boss bar appears")
 	t.equal(hud.boss_title.text, Loc.t("zombie_boss"), "under its name")
@@ -250,7 +331,9 @@ func _boss(t: TestContext) -> void:
 		t.simulate(level, 0.25)
 		elapsed += 0.25
 	t.equal(boss.state, Zombie.State.ATTACK, "the boss reaches the gate (%.0f s)" % elapsed)
-	t.check(boss.slot != null and boss.slot.members.size() == 3, "and takes three places at it")
+	t.check(boss.slot != null and boss.slot.line == "gate" and boss.slot.members.size() == 3, "and takes three places at it")
+	t.check(absf(boss.position.z - level.layout.gate_center.z) < 1.1 and absf(boss.position.x - level.layout.gate_center.x) < 2.0,
+		"it stands in front of the middle of the gate")
 	var gate_before: float = level.defense.gate_health
 	var blows: int = boss.blows
 	level.gate_shake = 0.0

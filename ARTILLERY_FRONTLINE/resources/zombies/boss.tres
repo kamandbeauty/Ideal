@@ -11,6 +11,7 @@ scene = ExtResource("2")
 skins = 1
 prewarm = 1
 is_boss = true
+advice_key = "boss_advice"
 max_health = 7000.0
 scale_min = 1.0
 scale_max = 1.0

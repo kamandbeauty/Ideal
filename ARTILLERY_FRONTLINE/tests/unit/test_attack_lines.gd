@@ -119,20 +119,60 @@ func run(t: TestContext) -> void:
 	t.check(group.position.is_equal_approx((group.members[0].position + group.members[1].position) * 0.5), "it stands between the two")
 	t.check(absf(float(group.members[0].column + group.members[1].column) * 0.5 - float(columns - 1) * 0.5) <= 1.0, "near the middle of the gate")
 	t.check(group.facing.is_equal_approx(first.facing) and group.target == "gate", "facing the gate like everyone else")
-	# A second wide one takes other places and cannot push the first aside.
+	# The boss is wider still: it takes the middle, and the brute gives way.
+	t.equal(columns, 7, "the gate is seven places across: room for a boss with a brute on either side")
+	t.equal(wide.width_of(group.members[0]), 2, "width_of counts the places an occupant holds")
 	var boss := RefCounted.new()
 	var boss_group: AttackLines.Slot = wide.claim(boss, "gate", "", 0.0, 3, true)
-	t.check(boss_group != null and boss_group.members.size() == 3, "a three-wide claim finds three more places")
+	var pushed_off: Array = wide.displaced.duplicate()
+	t.check(boss_group != null and boss_group.line == "gate" and boss_group.members.size() == 3, "a three-wide claim takes three places at the gate")
+	t.equal(boss_group.members[1].column, (columns - 1) / 2, "the middle three")
+	t.check(pushed_off.has(brute), "the narrower brute is pushed aside")
+	var kept: int = 0
+	for slot: AttackLines.Slot in wide.lines.gate.slots:
+		if slot.occupant == brute:
+			kept += 1
+	t.equal(kept, 0, "and holds nothing at the gate any more")
+	t.equal(wide.occupied("gate"), columns, "the front row is still full")
+	t.equal(wide.width_of(boss_group.members[2]), 3, "the boss holds three")
+	# The brute takes two other places; it cannot move the boss.
+	var again: AttackLines.Slot = wide.claim(brute, "gate", "", 0.0, 2, true)
+	pushed_off.append_array(wide.displaced)
+	t.check(again != null and again.line == "gate" and again.members.size() == 2, "the brute finds two places beside the boss")
 	var overlap: bool = false
-	for member: AttackLines.Slot in boss_group.members:
-		if group.members.has(member):
+	for member: AttackLines.Slot in again.members:
+		if boss_group.members.has(member):
 			overlap = true
-	t.check(not overlap and not wide.displaced.has(brute), "without taking the places of the other wide one")
-	t.check(group.members[0].occupant == brute, "which still holds its own")
-	# The displaced find places behind.
-	for pushed: Object in wide.displaced.duplicate():
+	t.check(not overlap and boss_group.members[0].occupant == boss and boss_group.members[2].occupant == boss, "without touching the boss's three")
+	# Its own size does not give way either.
+	var rival := RefCounted.new()
+	var rival_group: AttackLines.Slot = wide.claim(rival, "gate", "", 0.0, 2, true)
+	pushed_off.append_array(wide.displaced)
+	t.check(rival_group != null and rival_group.line == "gate" and rival_group.members.size() == 2, "a second brute takes the pair on the other side")
+	t.check(again.members[0].occupant == brute and again.members[1].occupant == brute, "and leaves the first brute alone")
+	t.equal(wide.occupied("gate"), columns, "boss and brutes now hold the whole front row")
+	var late := RefCounted.new()
+	var late_group: AttackLines.Slot = wide.claim(late, "gate", "", 0.0, 2, true)
+	t.check(late_group != null and late_group.line != "gate", "a third brute cannot move its equals and goes to the wall beside the gate")
+	t.check(wide.displaced.is_empty(), "pushing nobody there")
+	var second_boss := RefCounted.new()
+	var second_group: AttackLines.Slot = wide.claim(second_boss, "gate", "", 0.0, 3, true)
+	t.check(second_group != null and second_group.line != "gate" and boss_group.members[1].occupant == boss, "one boss does not move another")
+	t.equal(second_group.line, late_group.line, "it goes to the same stretch of wall as the third brute")
+	t.check(wide.displaced.is_empty() or wide.displaced == [late], "where the only one it may push is that brute")
+	wide.release(second_group)
+	wide.release(late_group)
+	wide.release(rival_group)
+	# The walkers that were displaced find places behind.
+	var behind_boss: int = 0
+	for pushed: Object in pushed_off:
+		if pushed == brute:
+			continue
 		var place: AttackLines.Slot = wide.claim(pushed, "gate")
-		t.check(place != null and place.members.is_empty() and (place.row == 1 or place.line != "gate"), "someone pushed aside finds a place behind or beside")
+		behind_boss += 1
+		t.check(place != null and place.members.is_empty() and (place.row == 1 or place.line != "gate" or rival_group.members.has(place)),
+			"a walker pushed aside finds a place behind, beside, or where a brute has left")
+	t.check(behind_boss >= 3, "the boss and the brutes pushed several walkers off between them (%d)" % behind_boss)
 	# Releasing a wide place frees every member, and the row behind steps up into them.
 	var behind: int = 0
 	for slot: AttackLines.Slot in wide.lines.gate.slots:
@@ -152,6 +192,20 @@ func run(t: TestContext) -> void:
 		if (move[1] as AttackLines.Slot).row != 0 or (move[1] as AttackLines.Slot).occupant != move[0]:
 			stepped_forward = false
 	t.check(stepped_forward, "each into a front place of its own")
+	# A brute standing half inside the boss's three places loses both of its own.
+	var partial := AttackLines.new()
+	partial.setup(layout)
+	var edge_brute := RefCounted.new()
+	var edge: AttackLines.Slot = partial.claim(edge_brute, "gate", "", -1.5, 2, true)
+	t.check(edge.members[0].column == 1 and edge.members[1].column == 2, "a brute off to one side holds the second and third places")
+	var big := RefCounted.new()
+	var big_group: AttackLines.Slot = partial.claim(big, "gate", "", 0.0, 3, true)
+	t.check(big_group.members[0].column == 2 and big_group.members[2].column == 4, "the boss takes the middle three, one of them the brute's")
+	t.equal(partial.displaced, [edge_brute], "the brute is named as pushed aside, once")
+	t.check(edge.members[0].occupant == null and edge.members[1].occupant == big, "and gives up its other place too, not only the one that was taken")
+	t.equal(partial.occupied("gate"), 3, "so only the boss's three places are held")
+	partial.release(edge)
+	t.equal(partial.occupied("gate"), 3, "releasing the brute's old claim afterwards frees nothing of the boss's")
 	# A line too short for the width is passed over; nothing free at all gives null.
 	var none := AttackLines.new()
 	none.setup(layout)
