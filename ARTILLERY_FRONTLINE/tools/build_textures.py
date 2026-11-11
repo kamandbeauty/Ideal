@@ -52,12 +52,13 @@ def smooth(lo, hi, x):
     return t * t * (3.0 - 2.0 * t)
 
 
-def cracks(size, freq, seed, width=0.012):
+def cracks(size, freq, seed, width=0.012, cover=0.5):
     """1 on a crack, 0 elsewhere: jagged cell boundaries, kept only in patches so
-    the network reads as separate fractures instead of a tiling."""
+    the network reads as separate fractures instead of a tiling. A higher
+    `cover` threshold leaves fewer patches."""
     _distance, _ids, edge = voronoi(size, max(4, freq * freq), seed, warp=0.035)
     line = 1.0 - smooth(0.0, width * 0.55, edge)
-    gate = smooth(0.5, 0.62, pfbm(size, max(2, freq), 3, seed + 7))
+    gate = smooth(cover, cover + 0.12, pfbm(size, max(2, freq), 3, seed + 7))
     return line * gate
 
 
@@ -126,9 +127,9 @@ def concrete(size=512):
     color *= (1.0 - 0.22 * smooth(0.55, 0.9, streak) * fade)[..., None]
     stain = smooth(0.58, 0.8, pfbm(size, 3, 4, 14))
     color = lerp(color, (0.33, 0.31, 0.27), stain * 0.45)
-    crack = np.maximum(cracks(size, 3, 15), cracks(size, 5, 16, 0.008))
-    color *= (1.0 - 0.6 * crack)[..., None]
-    height -= crack * 0.7
+    crack = np.maximum(cracks(size, 3, 15, 0.01, 0.6), cracks(size, 5, 16, 0.007, 0.66))
+    color *= (1.0 - 0.42 * crack)[..., None]
+    height -= crack * 0.5
     pores = smooth(0.78, 0.86, pfbm(size, 128, 1, 17))
     color *= (1.0 - 0.25 * pores)[..., None]
     height -= pores * 0.2
@@ -172,9 +173,9 @@ def paving(size=512):
     height -= joint * 0.8
     stain = smooth(0.55, 0.8, pfbm(size, 4, 4, 34))
     color = lerp(color, (0.2, 0.185, 0.16), stain * 0.5)
-    crack = np.maximum(cracks(size, 4, 35, 0.012), cracks(size, 7, 36, 0.008))
-    color *= (1.0 - 0.7 * crack)[..., None]
-    height -= crack * 0.8
+    crack = np.maximum(cracks(size, 4, 35, 0.011, 0.6), cracks(size, 7, 36, 0.007, 0.66))
+    color *= (1.0 - 0.5 * crack)[..., None]
+    height -= crack * 0.6
     save("paving", color, height, 5.0)
 
 
@@ -194,9 +195,9 @@ def plaster(size=512):
     height -= spall * 0.6
     soot = smooth(0.55, 0.85, pfbm(size, 3, 3, 46))
     color = lerp(color, (0.2, 0.19, 0.18), soot * 0.4)
-    crack = np.maximum(cracks(size, 4, 47, 0.01), cracks(size, 8, 48, 0.007))
-    color *= (1.0 - 0.6 * crack)[..., None]
-    height -= crack * 0.6
+    crack = np.maximum(cracks(size, 4, 47, 0.01, 0.58), cracks(size, 8, 48, 0.007, 0.64))
+    color *= (1.0 - 0.5 * crack)[..., None]
+    height -= crack * 0.5
     save("plaster", color, height, 4.0)
 
 
@@ -307,14 +308,17 @@ def sky(width=2048, height=1024):
     direction = np.stack([sin_t * np.sin(phi)[None, :], np.broadcast_to(cos_t, (height, width)), -sin_t * np.cos(phi)[None, :]], axis=-1)
     flat = direction.reshape(-1, 3)
     up = np.clip(flat[:, 1], 0.0, 1.0)
-    sun = np.array([-0.45, 0.5, 0.74])
+    sun = np.array([0.0, 0.62, 0.78])
     sun /= np.linalg.norm(sun)
     toward_sun = np.clip(flat @ sun, -1.0, 1.0)
-    zenith = np.array([0.17, 0.2, 0.27])
-    middle = np.array([0.40, 0.38, 0.41])
-    horizon = np.array([0.74, 0.56, 0.42])
+    zenith = np.array([0.15, 0.19, 0.28])
+    middle = np.array([0.36, 0.38, 0.45])
+    warm = np.array([0.78, 0.58, 0.42])
+    cool = np.array([0.5, 0.48, 0.52])
+    side = (np.clip(flat[:, 2] / np.maximum(np.linalg.norm(flat[:, [0, 2]], axis=1), 1e-6), -1.0, 1.0) * 0.5 + 0.5)[:, None]
+    horizon = cool[None, :] * (1 - side) + warm[None, :] * side
     t = up ** 0.55
-    color = horizon[None, :] * (1 - t)[:, None] + middle[None, :] * t[:, None]
+    color = horizon * (1 - t)[:, None] + middle[None, :] * t[:, None]
     t2 = np.clip((up - 0.35) / 0.65, 0.0, 1.0)
     color = color * (1 - t2)[:, None] + zenith[None, :] * t2[:, None]
     # Warm glow around the sun, cooler and dimmer on the far side.
@@ -332,8 +336,8 @@ def sky(width=2048, height=1024):
     cloud = smooth(0.46, 0.72, cover) * smooth(0.0, 0.12, flat[:, 1])
     detail = noise.fbm(points * 3.1 + 4.0, 1.0, 3, 33)
     lit = np.clip(0.45 + 0.75 * (detail - 0.5) + 0.35 * (toward_sun * 0.5 + 0.5), 0.0, 1.0)
-    cloud_dark = np.array([0.2, 0.2, 0.24])
-    cloud_lit = np.array([0.86, 0.6, 0.43])
+    cloud_dark = np.array([0.17, 0.18, 0.23])
+    cloud_lit = np.array([0.9, 0.66, 0.5])
     cloud_color = cloud_dark[None, :] * (1 - lit)[:, None] + cloud_lit[None, :] * lit[:, None]
     color = color * (1 - cloud * 0.88)[:, None] + cloud_color * (cloud * 0.88)[:, None]
     # Smoke rising from the city in front of the wall.
@@ -351,9 +355,9 @@ def sky(width=2048, height=1024):
     smoke_color = np.array([0.13, 0.12, 0.12])
     color = color * (1 - smoke * 0.82)[:, None] + smoke_color[None, :] * (smoke * 0.82)[:, None]
     # Haze band and the ground half, matched to the scene fog.
-    fog = np.array([0.5, 0.42, 0.36])
-    band = np.exp(-np.clip(flat[:, 1], 0.0, 1.0) * 16.0)
-    color = color * (1 - band * 0.75)[:, None] + fog[None, :] * (band * 0.75)[:, None]
+    fog = np.array([0.47, 0.45, 0.47])
+    band = np.exp(-np.clip(flat[:, 1], 0.0, 1.0) * 22.0)
+    color = color * (1 - band * 0.8)[:, None] + fog[None, :] * (band * 0.8)[:, None]
     below = flat[:, 1] < 0.0
     depth = np.clip(-flat[:, 1] * 3.0, 0.0, 1.0)
     ground = fog[None, :] * (1 - depth)[:, None] + np.array([0.2, 0.18, 0.17])[None, :] * depth[:, None]

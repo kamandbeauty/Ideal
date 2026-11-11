@@ -156,6 +156,8 @@ jobs:
       - name: Verify signatures, architecture and manifest
         run: |
           set -euo pipefail
+          # Job logs cannot always be fetched afterwards; report the failing command as an annotation.
+          trap 'echo "::error title=Package verification::line $LINENO failed: $BASH_COMMAND"' ERR
           BT="$ANDROID_HOME/build-tools/36.1.0"
           "$BT/apksigner" verify --verbose --print-certs delivery/LastWall-arm64.apk > delivery/apk-signature.txt
           "$BT/apksigner" verify --verbose --print-certs delivery/LastWall-compatibility.apk > delivery/compatibility-signature.txt

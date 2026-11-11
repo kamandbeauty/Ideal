@@ -1,0 +1,91 @@
+extends RefCounted
+## Wall and gate health, the hand-over from gate to wall, and warnings.
+
+
+func run(t: TestContext) -> void:
+	var data: DefenseData = load("res://resources/defense/city_wall.tres")
+	t.check(data != null and data.wall_max_health > 0.0 and data.gate_max_health > 0.0, "city_wall.tres loads with positive health")
+	var defense := Defense.new()
+	defense.data = data.duplicate()
+	defense.data.wall_max_health = 1000.0
+	defense.data.gate_max_health = 400.0
+	defense.data.attack_warning_cooldown = 8.0
+	t.tree.root.add_child(defense)
+	var log: Array = []
+	var on_gate := func(amount: float, health: float, _max: float) -> void: log.append(["gate", amount, health])
+	var on_wall := func(amount: float, health: float, _max: float) -> void: log.append(["wall", amount, health])
+	var on_destroyed := func() -> void: log.append(["gate_destroyed"])
+	var on_breached := func() -> void: log.append(["wall_breached"])
+	var warnings: Array[String] = []
+	var on_warning := func(kind: String) -> void: warnings.append(kind)
+	var strikes: Array = []
+	defense.struck.connect(func(target: String, _at: Vector3, _amount: float) -> void: strikes.append(target))
+	Events.gate_damaged.connect(on_gate)
+	Events.wall_damaged.connect(on_wall)
+	Events.gate_destroyed.connect(on_destroyed)
+	Events.wall_breached.connect(on_breached)
+	Events.defense_warning.connect(on_warning)
+
+	t.near(defense.wall_fraction(), 1.0, 0.0001, "the wall starts intact")
+	t.near(defense.gate_fraction(), 1.0, 0.0001, "the gate starts intact")
+	defense.apply_damage("gate", 100.0)
+	t.near(defense.gate_health, 300.0, 0.0001, "gate damage lowers gate health")
+	t.near(defense.wall_health, 1000.0, 0.0001, "gate damage leaves the wall alone")
+	t.equal(warnings, ["gate_attack"], "the first blow announces the attack")
+	defense.apply_damage("gate", 10.0)
+	t.equal(warnings.size(), 1, "further blows of the same assault are not announced again")
+	defense.apply_damage("gate", 0.0)
+	defense.apply_damage("gate", -5.0)
+	t.near(defense.gate_health, 290.0, 0.0001, "zero and negative damage are ignored")
+	defense.apply_damage("gate", 100.0)
+	t.check(warnings.has("gate_half"), "half health raises a gate warning")
+	defense.apply_damage("gate", 100.0)
+	t.check(warnings.has("gate_critical"), "quarter health raises a critical gate warning")
+	t.equal(warnings.count("gate_half"), 1, "the half warning fires once")
+	t.check(not defense.gate_destroyed, "the gate still stands at 90 health")
+	defense.apply_damage("gate", 500.0)
+	t.near(defense.gate_health, 0.0, 0.0001, "gate health stops at zero")
+	t.check(defense.gate_destroyed, "the gate is destroyed at zero")
+	t.equal(log.count(["gate_destroyed"]), 1, "gate_destroyed is emitted once")
+	t.near(defense.wall_health, 1000.0, 0.0001, "overkill on the gate does not leak into the wall")
+
+	# Blows aimed at a fallen gate land on the wall.
+	defense.apply_damage("gate", 50.0)
+	t.near(defense.wall_health, 950.0, 0.0001, "attacks on a fallen gate damage the wall")
+	t.equal(strikes[strikes.size() - 1], "wall", "the strike is reported against the wall")
+	defense.apply_breach(150.0)
+	t.near(defense.wall_health, 800.0, 0.0001, "a zombie through the gate damages the wall")
+	defense.apply_damage("wall", 400.0)
+	t.check(warnings.has("wall_half"), "half wall health raises a warning")
+	defense.apply_damage("wall", 200.0)
+	t.check(warnings.has("wall_critical"), "quarter wall health raises a critical warning")
+	t.check(not defense.breached, "the wall stands at 200 health")
+	defense.apply_damage("wall", 5000.0)
+	t.near(defense.wall_health, 0.0, 0.0001, "wall health stops at zero")
+	t.check(defense.breached, "the wall is breached at zero")
+	t.equal(log.count(["wall_breached"]), 1, "wall_breached is emitted once")
+	var entries: int = log.size()
+	defense.apply_damage("wall", 100.0)
+	defense.apply_breach(100.0)
+	t.equal(log.size(), entries, "nothing more is reported after the breach")
+
+	# A new assault after a quiet spell is announced again.
+	defense.reset()
+	warnings.clear()
+	t.near(defense.wall_fraction(), 1.0, 0.0001, "reset restores the wall")
+	t.check(not defense.gate_destroyed and not defense.breached, "reset clears the fallen flags")
+	defense.apply_damage("wall", 1.0)
+	defense._physics_process(3.0)
+	defense.apply_damage("wall", 1.0)
+	t.equal(warnings.count("wall_attack"), 1, "blows three seconds apart are one assault")
+	defense._physics_process(9.0)
+	defense.apply_damage("wall", 1.0)
+	t.equal(warnings.count("wall_attack"), 2, "an attack after a quiet spell is announced again")
+
+	Events.gate_damaged.disconnect(on_gate)
+	Events.wall_damaged.disconnect(on_wall)
+	Events.gate_destroyed.disconnect(on_destroyed)
+	Events.wall_breached.disconnect(on_breached)
+	Events.defense_warning.disconnect(on_warning)
+	defense.queue_free()
+	await t.frames(1)

@@ -2,10 +2,13 @@
 """Inspect the exported APKs themselves, not just the exporter's exit code.
 
 This is package validation in CI. It does not run the game on a device.
+Problems are printed as workflow error annotations so they can be read
+without downloading the job log.
 """
 import hashlib
 import json
 import pathlib
+import re
 import sys
 import zipfile
 
@@ -14,35 +17,60 @@ PACKAGES = {
     "LastWall-arm64.apk": ("package-metadata.txt", "AndroidManifest.txt", "com.frontline.lastwall"),
     "LastWall-compatibility.apk": ("compatibility-package-metadata.txt", "compatibility-AndroidManifest.txt", "com.frontline.lastwall.compatibility"),
 }
+problems = []
 report = {}
+
+
+def expect(condition, message):
+    if not condition:
+        problems.append(message)
+
+
+def field(text, name):
+    match = re.search(name + r":?'([^']*)'", text)
+    return match.group(1) if match else ""
+
+
 for name, (metadata_file, manifest_file, package_id) in PACKAGES.items():
     package = root / name
-    assert package.is_file() and package.stat().st_size > 1_000_000, name
+    if not package.is_file():
+        problems.append("%s is missing" % name)
+        continue
+    expect(package.stat().st_size > 1_000_000, "%s is suspiciously small (%d bytes)" % (name, package.stat().st_size))
     with zipfile.ZipFile(package) as archive:
         names = archive.namelist()
-        assert any(n.endswith("libgodot_android.so") and "arm64-v8a" in n for n in names), "ARM64 engine library missing"
-        assert not any("armeabi-v7a" in n or "x86_64" in n for n in names), "unexpected architecture"
-        assert any(n.endswith("project.binary") for n in names), "project data missing"
-        assert archive.testzip() is None, "ZIP CRC failure"
+        expect(any(n.endswith("libgodot_android.so") and "arm64-v8a" in n for n in names), "%s: ARM64 engine library missing" % name)
+        expect(not any("armeabi-v7a" in n or "x86_64" in n for n in names), "%s: unexpected architecture" % name)
+        expect(any(n.endswith("project.binary") for n in names), "%s: project data missing" % name)
+        expect(archive.testzip() is None, "%s: ZIP CRC failure" % name)
+        packed = [n for n in names if n.startswith("assets/") and (n.endswith(".gd") or n.endswith(".gdc") or n.endswith(".remap"))]
+        expect(not any("/tests/" in n or "/tools/" in n for n in packed), "%s: tests or tools were exported" % name)
     metadata = (root / metadata_file).read_text()
     manifest = (root / manifest_file).read_text()
-    assert "package: name='%s'" % package_id in metadata, "unexpected package id"
-    assert "minSdkVersion:'24'" in metadata, "unexpected minimum Android API"
-    assert "targetSdkVersion:'36'" in metadata, "unexpected target Android API"
-    assert "android.permission.INTERNET" not in metadata and "android.permission.INTERNET" not in manifest, "offline game requests INTERNET"
-    assert "screenOrientation" in manifest, "activity orientation attribute missing"
-    assert "android.hardware.screen.landscape" in metadata, "activity is not landscape"
+    found_id = field(metadata, "package: name=")
+    min_sdk = field(metadata, "minSdkVersion") or field(metadata, "sdkVersion")
+    target_sdk = field(metadata, "targetSdkVersion")
+    landscape = "android.hardware.screen.landscape" in metadata
+    expect(found_id == package_id, "%s: package id is '%s', expected '%s'" % (name, found_id, package_id))
+    expect(min_sdk == "24", "%s: minimum Android API is '%s', expected 24" % (name, min_sdk))
+    expect(target_sdk == "36", "%s: target Android API is '%s', expected 36" % (name, target_sdk))
+    expect("android.permission.INTERNET" not in metadata and "android.permission.INTERNET" not in manifest, "%s: offline game requests INTERNET" % name)
+    expect("screenOrientation" in manifest, "%s: activity orientation attribute missing" % name)
+    expect(landscape, "%s: the activity is not declared landscape" % name)
     report[name] = {
         "bytes": package.stat().st_size,
         "sha256": hashlib.sha256(package.read_bytes()).hexdigest(),
-        "package": package_id,
+        "package": found_id,
         "arm64": True,
-        "zip_crc": "pass",
-        "min_sdk": 24,
-        "target_sdk": 36,
-        "landscape": True,
-        "no_internet_permission": True,
+        "min_sdk": min_sdk,
+        "target_sdk": target_sdk,
+        "landscape": landscape,
+        "no_internet_permission": "android.permission.INTERNET" not in metadata,
     }
+report["problems"] = problems
 report["scope"] = "CI export, signature and package inspection; no Android device or emulator run"
 (root / "package-validation.json").write_text(json.dumps(report, indent=2) + "\n")
 print(json.dumps(report, indent=2))
+for problem in problems:
+    print("::error title=Package check::%s" % problem)
+sys.exit(1 if problems else 0)

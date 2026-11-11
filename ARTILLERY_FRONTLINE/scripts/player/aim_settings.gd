@@ -31,6 +31,6 @@ extends Resource
 @export_range(0.0, 2.0, 0.01) var camera_shake_degrees: float = 0.16
 
 @export_group("Camera")
-@export_range(25.0, 90.0, 0.5) var fov_degrees: float = 46.0
+@export_range(25.0, 90.0, 0.5) var fov_degrees: float = 43.0
 ## Eye position relative to the trunnion: x right, y up, z behind the breech.
 @export var eye_offset: Vector3 = Vector3(0.0, 0.43, 1.35)

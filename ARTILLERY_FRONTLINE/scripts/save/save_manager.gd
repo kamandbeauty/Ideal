@@ -8,9 +8,10 @@ static func load_dict(path: String) -> Dictionary:
 	for candidate: String in [path, path + ".bak"]:
 		if not FileAccess.file_exists(candidate):
 			continue
-		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(candidate))
-		if parsed is Dictionary:
-			return parsed
+		# The instance parser reports failure by return code instead of logging an engine error.
+		var json := JSON.new()
+		if json.parse(FileAccess.get_file_as_string(candidate)) == OK and json.data is Dictionary:
+			return json.data
 	return {}
 
 

@@ -11,7 +11,9 @@ extends Node3D
 ## Zombies built up front so the first wave does not hitch.
 @export_range(0, 80) var prewarm_count: int = 26
 
-const SUN_TRAVEL := Vector3(0.45, -0.5, -0.74)
+## The low sun is straight behind the gunner: whatever he looks at is lit from
+## his side, and neither wall arm throws its shadow over the attackers.
+const SUN_TRAVEL := Vector3(0.0, -0.62, -0.78)
 const DEFEAT_DELAY: float = 3.4
 const VICTORY_DELAY: float = 2.2
 
@@ -104,15 +106,15 @@ func _build_environment() -> void:
 	environment.background_mode = Environment.BG_SKY
 	environment.sky = sky
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.58, 0.54, 0.58)
-	environment.ambient_light_energy = 0.9
+	environment.ambient_light_color = Color(0.55, 0.6, 0.72)
+	environment.ambient_light_energy = 1.0
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	environment.tonemap_exposure = 1.05
 	environment.tonemap_white = 6.0
 	# The haze matches the horizon band painted into the sky, so far blocks melt into it.
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.5, 0.42, 0.36)
-	environment.fog_density = 0.0085
+	environment.fog_light_color = Color(0.47, 0.45, 0.47)
+	environment.fog_density = 0.006
 	environment.fog_sky_affect = 0.0
 	environment.fog_aerial_perspective = 0.0
 	environment.fog_sun_scatter = 0.08
@@ -131,8 +133,8 @@ func _build_environment() -> void:
 func _build_sun() -> void:
 	sun = DirectionalLight3D.new()
 	sun.name = "Sun"
-	sun.light_color = Color(1.0, 0.83, 0.64)
-	sun.light_energy = 1.55
+	sun.light_color = Color(1.0, 0.86, 0.7)
+	sun.light_energy = 1.5
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_max_distance = 85.0
