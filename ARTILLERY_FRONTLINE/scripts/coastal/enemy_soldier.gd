@@ -70,6 +70,8 @@ var arm_r_rest: Vector3 = Vector3.ZERO
 var elbow_l_rest: Vector3 = Vector3.ZERO
 var elbow_r_rest: Vector3 = Vector3.ZERO
 var fire_kick: float = 0.0
+## Upper-body flinch from the last non-lethal hit, decaying over time (role-dependent, see InfantryRole.flinch).
+var hit_flinch: float = 0.0
 var muzzle_flash: MeshInstance3D
 var muzzle_light: OmniLight3D
 var collision: CollisionShape3D
@@ -260,6 +262,9 @@ func receive_damage(amount: float, hit_point: Vector3 = Vector3.INF, hit_directi
 		_die()
 	else:
 		stagger_time = maxf(stagger_time, InfantryRole.stagger_time(role_kind))
+		hit_flinch = maxf(hit_flinch, InfantryRole.flinch(role_kind) * clampf(amount / 20.0, 0.4, 1.0))
+		if InfantryRole.interrupts_setup(role_kind):
+			setup_timer = 0.0
 		suppressed.emit(self)
 		if state != State.COVER and health < max_health * 0.45:
 			state = State.COVER
@@ -272,7 +277,9 @@ func react_to_explosion(point: Vector3, radius: float) -> void:
 	var distance: float = offset.length()
 	if distance < radius * 1.8:
 		stagger_time = maxf(stagger_time, 0.9)
-		state = State.STAGGER
+		# A blast flinches a unit out of its stagger, but never takes an RPG soldier out of cover to reload.
+		if state != State.COVER:
+			state = State.STAGGER
 		last_hit_point = point
 		last_hit_direction = offset.normalized() if distance > 0.01 else Vector3.UP
 		suppressed.emit(self)
@@ -292,7 +299,7 @@ func _die() -> void:
 		muzzle_flash.visible = false
 	if muzzle_light:
 		muzzle_light.light_energy = 0.0
-	var impulse: Vector3 = last_hit_direction * clampf(last_hit_damage * 1.6, 24.0, 95.0)
+	var impulse: Vector3 = last_hit_direction * clampf(last_hit_damage * 1.6, 24.0, 95.0) * InfantryRole.death_impulse_scale(role_kind)
 	impulse.y += 12.0
 	var hit_point: Vector3 = last_hit_point if last_hit_point != Vector3.INF else global_position + Vector3.UP * 1.2
 	if skeleton:
@@ -565,6 +572,7 @@ func _animate(delta: float, move_speed: float) -> void:
 	gait_phase += delta * (5.4 + move_speed * 1.15)
 	var phase: float = gait_phase
 	fire_kick = maxf(0.0, fire_kick - delta * 7.0)
+	hit_flinch = maxf(0.0, hit_flinch - delta * 2.5)
 	if muzzle_flash and fire_kick < 0.72:
 		muzzle_flash.visible = false
 	if muzzle_light:
@@ -596,7 +604,7 @@ func _animate_skeleton(delta: float, amplitude: float, phase: float) -> void:
 	var pelvic_roll: float = sin(phase) * 0.045 * amplitude
 	var pelvic_yaw: float = sin(phase) * 0.07 * amplitude
 	var spine_counter: float = -sin(phase) * 0.05 * amplitude
-	var lean: float = 0.05 * amplitude + aim_blend * 0.03 - fire_kick * 0.045
+	var lean: float = 0.05 * amplitude + aim_blend * 0.03 - fire_kick * 0.045 - hit_flinch * 0.1
 	_set_bone_position("Hips", Vector3(0, bounce, 0))
 	_set_bone_rotation("Hips", Quaternion(Vector3.RIGHT, lean * 0.35) * Quaternion(Vector3.UP, pelvic_yaw) * Quaternion(Vector3.FORWARD, pelvic_roll))
 	_set_bone_rotation("Torso", Quaternion(Vector3.RIGHT, lean) * Quaternion(Vector3.UP, spine_counter) * Quaternion(Vector3.FORWARD, -pelvic_roll * 0.6))

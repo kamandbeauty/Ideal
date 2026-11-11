@@ -491,7 +491,7 @@ func _spawn_vehicle(spawn: Vector3, kind: String) -> void:
 		hud.show_boss()
 	vehicle.died.connect(_on_vehicle_destroyed)
 	vehicle.cook_off.connect(_on_vehicle_cook_off)
-	vehicle.shoot_requested.connect(_on_enemy_heavy_shoot)
+	vehicle.shoot_requested.connect(_on_enemy_heavy_shoot.bind(vehicle))
 	vehicles.append(vehicle)
 
 func _spawn_aircraft(kind: String, phase: float) -> void:
@@ -499,7 +499,7 @@ func _spawn_aircraft(kind: String, phase: float) -> void:
 	add_child(plane)
 	plane.configure(emplacement, kind, phase)
 	plane.died.connect(_on_aircraft_destroyed)
-	plane.shoot_requested.connect(_on_enemy_heavy_shoot)
+	plane.shoot_requested.connect(_on_enemy_heavy_shoot.bind(plane))
 	aircraft.append(plane)
 
 ## Radio lines for infantry: a man going down is called out, sometimes with a medic request.
@@ -585,14 +585,26 @@ func _fire_rocket(soldier: EnemySoldier, origin: Vector3, direction: Vector3) ->
 	bullets.launch(origin, direction * 120.0, randf_range(damage_bounds.x, damage_bounds.y), InfantryRole.blast_radius(soldier.role_kind), 13, [soldier.get_rid()])
 	effects.explode(origin, direction, 1.6, origin.y, true)
 
-func _on_enemy_heavy_shoot(origin: Vector3, target: Vector3, damage: float, blast: float) -> void:
-	if not active:
+## Heavy vehicle and aircraft shots. The source is bound at connection, so a destroyed gun never fires,
+## even if a shot was requested on the frame it died.
+func _on_enemy_heavy_shoot(origin: Vector3, target: Vector3, damage: float, blast: float, source: Object = null) -> void:
+	if not active or not _source_can_fire(source):
 		return
 	var direction: Vector3 = (target + Vector3.UP * 1.2 - origin).normalized()
 	Sound.play_at("cannon", origin, -12.0, 0.8)
 	Sound.play_voice("incoming")
 	bullets.launch(origin, direction * 160.0, damage * randf_range(0.85, 1.15), blast, 13)
 	effects.explode(origin, direction, 1.2, origin.y, true)
+
+## True when the shooter is still alive (or no source was given, as in direct test calls).
+func _source_can_fire(source: Object) -> bool:
+	if source == null:
+		return true
+	if not is_instance_valid(source):
+		return false
+	if source.has_method("is_dead") and source.call("is_dead"):
+		return false
+	return true
 
 func _on_weapon_fired(origin: Vector3, _direction: Vector3, weapon_id: String) -> void:
 	var data: Dictionary = CoastalWeapon.WEAPONS[weapon_id]

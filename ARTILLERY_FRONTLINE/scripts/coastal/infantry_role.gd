@@ -112,3 +112,24 @@ static func blast_radius(kind: int) -> float:
 	if kind == Kind.RPG:
 		return 2.5
 	return 0.0
+
+## Multiplier on the ragdoll impulse when this role dies: heavy plate collapses straight down,
+## a light RPG soldier is thrown further back.
+static func death_impulse_scale(kind: int) -> float:
+	if kind == Kind.HEAVY:
+		return 0.7
+	if kind == Kind.RPG:
+		return 1.2
+	return 1.0
+
+## How far a non-lethal hit throws the upper body. Heavy plate barely moves; the light RPG soldier stumbles.
+static func flinch(kind: int) -> float:
+	if kind == Kind.HEAVY:
+		return 0.35
+	if kind == Kind.RPG:
+		return 1.3
+	return 1.0
+
+## A hit breaks the RPG soldier's set-up: it has to take aim again. A heavy on its bipod keeps its set-up.
+static func interrupts_setup(kind: int) -> bool:
+	return kind == Kind.RPG

@@ -29,6 +29,13 @@ var crash_velocity: float = 0.0
 var crash_spin: float = 0.0
 var wrecked: bool = false
 var rotor_speed: float = 24.0
+## Smoke from the engine at 60% health and fire at 30%; both are built once and kept for the wreck.
+const SMOKE_THRESHOLD: float = 0.6
+const FIRE_THRESHOLD: float = 0.3
+var smoke_plume: CPUParticles3D
+var fire_plume: CPUParticles3D
+## Metres the airframe drops after a hit; it eases back up as the aircraft recovers.
+var hit_lurch: float = 0.0
 
 func _ready() -> void:
 	collision_layer = 2
@@ -59,6 +66,7 @@ func configure(target: Vector3, aircraft_kind: String = "helicopter", start_phas
 		angular_speed = 0.14
 	max_health = health
 	shoot_cooldown = randf_range(2.0, 4.0)
+	hit_lurch = 0.0
 	if changed and is_inside_tree():
 		if model_root:
 			model_root.queue_free()
@@ -120,10 +128,22 @@ func receive_damage(amount: float) -> float:
 		return 0.0
 	var before: float = health
 	health = maxf(0.0, health - amount)
+	var removed: float = before - health
+	if removed > 0.0:
+		hit_lurch = maxf(hit_lurch, clampf(removed / max_health * 8.0, 0.5, 4.0))
 	damaged.emit(self, health / max_health)
+	_update_damage_state()
 	if health <= 0.0:
 		_die()
-	return before - health
+	return removed
+
+## Smoke below 60% health, fire below 30%. Each plume is built once.
+func _update_damage_state() -> void:
+	var ratio: float = health / max_health
+	if smoke_plume == null and ratio <= SMOKE_THRESHOLD:
+		smoke_plume = DamagePlume.make(self, Vector3(0.0, 1.2, -1.0), false, 1.0)
+	if fire_plume == null and ratio <= FIRE_THRESHOLD:
+		fire_plume = DamagePlume.make(self, Vector3(0.0, 0.9, -1.0), true, 1.0)
 
 func react_to_explosion(point: Vector3, radius: float) -> void:
 	if dead:
@@ -133,9 +153,16 @@ func react_to_explosion(point: Vector3, radius: float) -> void:
 		receive_damage(140.0 * (1.0 - distance / (radius * 1.5)))
 
 func _die() -> void:
+	if dead:
+		return
 	dead = true
 	collision_layer = 0
 	collision.set_deferred("disabled", true)
+	# The wreck keeps burning and smoking on its way down.
+	if smoke_plume == null:
+		smoke_plume = DamagePlume.make(self, Vector3(0.0, 1.2, -1.0), false, 1.0)
+	if fire_plume == null:
+		fire_plume = DamagePlume.make(self, Vector3(0.0, 0.9, -1.0), true, 1.0)
 	crash_velocity = -6.0
 	crash_spin = randf_range(0.8, 1.8) * (1.0 if randf() > 0.5 else -1.0)
 	died.emit(self)
@@ -143,7 +170,8 @@ func _die() -> void:
 func _update_position(delta: float) -> void:
 	clock += delta
 	var angle: float = phase + clock * angular_speed
-	var point := Vector3(objective.x + cos(angle) * orbit_radius, altitude + sin(clock * 0.7) * 2.0, objective.z + sin(angle) * orbit_radius * 0.7 - 20.0)
+	hit_lurch = maxf(0.0, hit_lurch - delta * 3.0)
+	var point := Vector3(objective.x + cos(angle) * orbit_radius, altitude + sin(clock * 0.7) * 2.0 - hit_lurch, objective.z + sin(angle) * orbit_radius * 0.7 - 20.0)
 	var forward: Vector3 = point - global_position
 	global_position = point
 	if forward.length_squared() > 0.001:

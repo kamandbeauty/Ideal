@@ -34,6 +34,13 @@ func run(t: TestContext) -> void:
 	await _check_jeep_strafes(t)
 	await _check_vehicle_damage_states(t)
 	await _check_cook_off(t)
+	await _check_vehicle_line_of_fire(t)
+	await _check_infantry_cover_and_death(t, scene)
+	_check_infantry_hit_reactions(t, scene)
+	await _check_destroyed_enemies_cannot_attack(t, scene)
+	_check_destruction_profiles(t)
+	await _check_vehicle_destruction(t)
+	await _check_aircraft_damage_and_destruction(t)
 	scene.queue_free()
 	await t.tree.process_frame
 
@@ -338,3 +345,202 @@ func _check_cook_off(t: TestContext) -> void:
 	t.equal(jeep_cooked.size(), 0, "A destroyed jeep does not cook off")
 	tank.queue_free()
 	jeep.queue_free()
+
+## Adds a solid cover body on physics layer 1, the layer the line of fire is tested against.
+func _add_cover(t: TestContext, centre: Vector3, size: Vector3) -> StaticBody3D:
+	var blocker := StaticBody3D.new()
+	blocker.collision_layer = 1
+	blocker.collision_mask = 0
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = size
+	shape.shape = box
+	blocker.add_child(shape)
+	blocker.position = centre
+	t.tree.root.add_child(blocker)
+	return blocker
+
+func _remove_cover(t: TestContext, blocker: StaticBody3D) -> void:
+	t.tree.root.remove_child(blocker)
+	blocker.free()
+
+## A tank holding 20 m from the emplacement, turret not yet on the bearing.
+func _siege_tank(t: TestContext, spawn: Vector3) -> EnemyVehicle:
+	var tank: EnemyVehicle = _vehicle(t, "tank", spawn, Vector3(0, 0, 0))
+	tank.stop_distance = 20.0
+	tank.shoot_cooldown = 0.0
+	return tank
+
+## Vehicle line of fire. A wall between a gun and the emplacement stops every shot; the gun turns to a
+## clear spot instead of firing uselessly; fire resumes when the line is clear.
+func _check_vehicle_line_of_fire(t: TestContext) -> void:
+	await t.tree.physics_frame
+	var wall: StaticBody3D = _add_cover(t, Vector3(0, 3, 10), Vector3(6, 6, 2))
+	await t.tree.physics_frame
+	await t.tree.physics_frame
+	var tank: EnemyVehicle = _siege_tank(t, Vector3(0, 0, 20))
+	tank.can_reposition = false
+	var shots: Array = [0]
+	tank.shoot_requested.connect(func(_muzzle, _aim, _damage, _blast): shots[0] += 1)
+	t.check(not tank.line_of_fire_clear(), "Cover between a tank and its target blocks the line of fire")
+	for index in range(600):
+		tank._physics_process(STEP)
+	t.check(tank.aim_error <= EnemyVehicle.aim_tolerance("tank"), "The turret traverses onto the target behind the cover")
+	t.equal(shots[0], 0, "A tank never fires through cover")
+	tank.queue_free()
+	_remove_cover(t, wall)
+	await t.tree.physics_frame
+	await t.tree.physics_frame
+
+	wall = _add_cover(t, Vector3(0, 3, 10), Vector3(6, 6, 2))
+	await t.tree.physics_frame
+	await t.tree.physics_frame
+	tank = _siege_tank(t, Vector3(0, 0, 20))
+	var start: Vector3 = tank.global_position
+	var clear_shots: Array = [0]
+	var blocked_shots: Array = [0]
+	tank.shoot_requested.connect(func(_muzzle, _aim, _damage, _blast):
+		if tank.line_of_fire_clear():
+			clear_shots[0] += 1
+		else:
+			blocked_shots[0] += 1)
+	for index in range(1500):
+		tank._physics_process(STEP)
+	t.check(start.distance_to(tank.global_position) > 2.0, "A blocked tank drives to a spot with a clear line of fire")
+	t.equal(blocked_shots[0], 0, "No shell leaves a tank whose line is blocked")
+	t.check(clear_shots[0] >= 1, "The tank fires once it has a clear line from its new spot")
+	t.equal(tank.reposition_point, Vector3.INF, "The tank has arrived at its firing spot")
+	tank.queue_free()
+	_remove_cover(t, wall)
+	await t.tree.physics_frame
+	await t.tree.physics_frame
+
+	wall = _add_cover(t, Vector3(0, 3, 10), Vector3(6, 6, 2))
+	await t.tree.physics_frame
+	await t.tree.physics_frame
+	tank = _siege_tank(t, Vector3(0, 0, 20))
+	tank.can_reposition = false
+	var held: Array = [0]
+	tank.shoot_requested.connect(func(_muzzle, _aim, _damage, _blast): held[0] += 1)
+	for index in range(600):
+		tank._physics_process(STEP)
+	t.equal(held[0], 0, "A tank held by cover stays silent while the line is blocked")
+	_remove_cover(t, wall)
+	await t.tree.physics_frame
+	await t.tree.physics_frame
+	for index in range(300):
+		tank._physics_process(STEP)
+	t.check(held[0] >= 1, "The tank fires again once the cover is gone")
+	tank.queue_free()
+	await t.tree.physics_frame
+
+## Infantry: a blast does not pull a unit out of cover; a killed unit takes no more damage and stops shooting.
+func _check_infantry_cover_and_death(t: TestContext, scene: CoastalController) -> void:
+	var sheltered: EnemySoldier = _spawn(scene, 30.0, "soldier", 0)
+	sheltered.state = EnemySoldier.State.COVER
+	sheltered.react_to_explosion(sheltered.global_position + Vector3(0, 0, -5), 6.0)
+	t.equal(sheltered.state, EnemySoldier.State.COVER, "A nearby blast does not pull a soldier out of cover")
+	t.check(sheltered.stagger_time > 0.0, "A soldier in cover still reacts to a blast")
+	var exposed: EnemySoldier = _spawn(scene, 31.0, "soldier", 0)
+	exposed.state = EnemySoldier.State.ADVANCE
+	exposed.react_to_explosion(exposed.global_position + Vector3(0, 0, -5), 6.0)
+	t.equal(exposed.state, EnemySoldier.State.STAGGER, "A soldier in the open staggers from a nearby blast")
+	var doomed: EnemySoldier = _spawn(scene, 32.0, "rpg", 0)
+	var deaths: Array = [0]
+	doomed.died.connect(func(_unit): deaths[0] += 1)
+	doomed.receive_damage(999.0)
+	t.check(doomed.is_dead(), "A lethal hit kills an RPG soldier")
+	t.equal(deaths[0], 1, "An infantry death is announced once")
+	t.equal(doomed.receive_damage(10.0), 0.0, "A corpse takes no further damage")
+	t.equal(deaths[0], 1, "A corpse does not announce its death again")
+	t.equal(doomed.collision_layer, 0, "A corpse has no collision on the unit layer, so it cannot block movement")
+	t.equal(doomed.state, EnemySoldier.State.DEAD, "The dead RPG soldier is in the dead state")
+
+## Hit reactions and death differ by role: heavy plate barely flinches and collapses straight down,
+## the RPG soldier stumbles back and breaks its set-up, a heavy on its bipod keeps the set-up.
+func _check_infantry_hit_reactions(t: TestContext, scene: CoastalController) -> void:
+	t.check(InfantryRole.flinch(InfantryRole.Kind.HEAVY) < InfantryRole.flinch(InfantryRole.Kind.RIFLE), "A heavy soldier flinches less than a rifleman")
+	t.check(InfantryRole.flinch(InfantryRole.Kind.RPG) > InfantryRole.flinch(InfantryRole.Kind.RIFLE), "An RPG soldier flinches more than a rifleman")
+	t.check(InfantryRole.death_impulse_scale(InfantryRole.Kind.HEAVY) < 1.0, "A heavy soldier collapses under less impulse")
+	t.check(InfantryRole.death_impulse_scale(InfantryRole.Kind.RPG) > 1.0, "An RPG soldier is thrown further on death")
+	var rpg: EnemySoldier = _spawn(scene, 34.0, "rpg", 0)
+	rpg.setup_timer = 1.0
+	rpg.receive_damage(5.0, rpg.global_position + Vector3.UP * 0.9, Vector3.FORWARD)
+	t.equal(rpg.setup_timer, 0.0, "A hit breaks an RPG soldier's set-up")
+	t.check(rpg.hit_flinch > 0.0, "An RPG soldier flinches when hit")
+	var heavy: EnemySoldier = _spawn(scene, 36.0, "heavy", 0)
+	heavy.setup_timer = 1.0
+	heavy.receive_damage(5.0, heavy.global_position + Vector3.UP * 0.9, Vector3.FORWARD)
+	t.check(heavy.setup_timer > 0.5, "A heavy soldier keeps its bipod set-up through a graze")
+	t.check(heavy.hit_flinch > 0.0 and heavy.hit_flinch < rpg.hit_flinch, "A heavy soldier's flinch is smaller than an RPG soldier's")
+
+## A destroyed enemy cannot attack: the controller refuses shots from dead sources, and a dead vehicle is silent.
+func _check_destroyed_enemies_cannot_attack(t: TestContext, scene: CoastalController) -> void:
+	var tank: EnemyVehicle = _siege_tank(t, Vector3(0, 0, 20))
+	t.check(scene._source_can_fire(tank), "A living tank may fire")
+	var shots: Array = [0]
+	tank.shoot_requested.connect(func(_muzzle, _aim, _damage, _blast): shots[0] += 1)
+	tank._die()
+	t.check(not scene._source_can_fire(tank), "The controller refuses shots from a destroyed tank")
+	for index in range(120):
+		tank._physics_process(STEP)
+	t.equal(shots[0], 0, "A destroyed tank does not fire")
+	t.equal(tank.receive_damage(500.0), 0.0, "A destroyed tank takes no further damage")
+	tank.queue_free()
+	var soldier: EnemySoldier = _spawn(scene, 38.0, "soldier", 0)
+	soldier.receive_damage(999.0)
+	t.check(not scene._source_can_fire(soldier), "A dead soldier is not a valid shooter")
+	t.check(scene._source_can_fire(null), "A shot with no recorded source keeps its old behaviour")
+
+## Wreck profiles: each vehicle type has its own tilt, cook-off bursts and plume size.
+func _check_destruction_profiles(t: TestContext) -> void:
+	t.check(EnemyVehicle.wreck_profile("jeep").tilt > EnemyVehicle.wreck_profile("tank").tilt, "A jeep rolls over further than a tank")
+	t.check(EnemyVehicle.wreck_profile("apc").tilt > EnemyVehicle.wreck_profile("tank").tilt, "An APC lists further than a tank")
+	t.equal(int(EnemyVehicle.wreck_profile("boss").bursts), 2, "The boss cooks off in two bursts")
+	t.equal(int(EnemyVehicle.wreck_profile("tank").bursts), 1, "A tank cooks off once")
+	t.equal(int(EnemyVehicle.wreck_profile("jeep").bursts), 0, "A jeep does not cook off")
+	t.check(EnemyVehicle.wreck_profile("boss").smoke > EnemyVehicle.wreck_profile("tank").smoke, "The boss wreck throws bigger smoke than a tank")
+
+## A destroyed vehicle announces its destruction once, builds its wreck plumes, stops firing and cooks off once per burst.
+func _check_vehicle_destruction(t: TestContext) -> void:
+	var boss: EnemyVehicle = _vehicle(t, "boss", Vector3(0, 0, 0), Vector3(0, 0, -5))
+	var deaths: Array = [0]
+	boss.died.connect(func(_unit): deaths[0] += 1)
+	var bursts: Array = [0]
+	boss.cook_off.connect(func(_source, _radius): bursts[0] += 1)
+	boss.receive_damage(99999.0)
+	t.check(boss.is_dead(), "A lethal hit destroys the boss")
+	boss._die()
+	boss.receive_damage(500.0)
+	t.equal(deaths[0], 1, "A destroyed vehicle announces its destruction once")
+	t.check(boss.smoke_plume != null and boss.fire_plume != null, "A wreck keeps its smoke and fire")
+	await boss.get_tree().create_timer(EnemyVehicle.COOK_OFF_DELAY + EnemyVehicle.BURST_SPACING * 2.0 + 0.4).timeout
+	t.equal(bursts[0], 2, "A destroyed boss cooks off once per burst, not repeatedly")
+	boss.queue_free()
+
+## Aircraft: a hit lurches the airframe, smoke then fire build on the wreck, and destruction is announced once.
+func _check_aircraft_damage_and_destruction(t: TestContext) -> void:
+	var plane := EnemyAircraft.new()
+	t.tree.root.add_child(plane)
+	plane.configure(Vector3(0, 0, 0), "helicopter", 0.0)
+	plane.set_physics_process(false)
+	plane.receive_damage(20.0)
+	t.check(plane.hit_lurch > 0.0, "A hit lurches the airframe")
+	plane.health = plane.max_health * 0.55
+	plane.receive_damage(1.0)
+	t.check(plane.smoke_plume != null and plane.fire_plume == null, "Below 60% health the aircraft smokes")
+	plane.health = plane.max_health * 0.25
+	plane.receive_damage(1.0)
+	t.check(plane.fire_plume != null, "Below 30% health the aircraft burns")
+	var deaths: Array = [0]
+	plane.died.connect(func(_unit): deaths[0] += 1)
+	plane.receive_damage(9999.0)
+	plane.receive_damage(10.0)
+	t.equal(deaths[0], 1, "An aircraft announces its destruction once")
+	var fired: Array = [0]
+	plane.shoot_requested.connect(func(_origin, _target, _damage, _blast): fired[0] += 1)
+	plane.shoot_cooldown = 0.0
+	plane._physics_process(STEP)
+	t.equal(fired[0], 0, "A destroyed aircraft does not fire")
+	plane.queue_free()
+	await t.tree.process_frame
