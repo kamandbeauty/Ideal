@@ -12,11 +12,6 @@ const DAMAGE_SCALE: float = 0.55
 const AUTO_FIRE_CONE_DEG: float = 3.0
 ## Half-width (m) along the craft's beam where cargo steps off, so units do not share one pixel.
 const DISEMBARK_SPREAD: float = 6.0
-## Ground height that counts as the surf line (the same value enemy_soldier.gd uses for "ashore").
-const SURF_LINE: float = -0.25
-## Search for the surf line from a sunk craft: steps of SURF_SEARCH_STEP metres, up to SURF_SEARCH_STEPS steps.
-const SURF_SEARCH_STEP: float = 1.0
-const SURF_SEARCH_STEPS: int = 230
 const REPAIR_AMOUNT: float = 1500.0
 const AIRDROP_REPAIR: float = 1000.0
 var battlefield: CoastalBattlefield
@@ -434,6 +429,9 @@ static func is_infantry(kind: String) -> bool:
 func _unload(landing: LandingCraft) -> void:
 	if not is_instance_valid(landing):
 		return
+	# A sunk craft never unloads; its cargo was destroyed with it.
+	if landing.is_dead():
+		return
 	var kinds: Array[String] = landing.unload()
 	var carries_infantry: bool = false
 	for kind in kinds:
@@ -496,29 +494,16 @@ func _tick_disembark(delta: float) -> void:
 		disembark_queue.remove_at(index)
 		_spawn_entry(entry)
 
-## The first point along `heading` from `from` where the ground is above the surf line (the line
-## enemy_soldier.gd treats as ashore). Falls back to `from` if the course never reaches the surf.
-func _surf_point(from: Vector3, heading: Vector3) -> Vector3:
-	var course := Vector3(heading.x, 0.0, heading.z).normalized()
-	for index in range(SURF_SEARCH_STEPS):
-		var point: Vector3 = from + course * float(index) * SURF_SEARCH_STEP
-		if CoastalTerrain.height_at(point.x, point.z) > SURF_LINE:
-			return Vector3(point.x, 0.0, point.z)
-	return Vector3(from.x, 0.0, from.z)
-
 func _spawn_entry(entry: Dictionary) -> void:
 	var point: Vector3 = entry.point
 	if bool(entry.from_craft):
 		var landing = entry.craft
 		if not is_instance_valid(landing):
+			# Cannot happen while the craft is queued (removal waits for its cargo); counted so no wave hangs.
+			_register_kill()
 			return
 		var hull: LandingCraft = landing as LandingCraft
-		var origin: Vector3 = hull.disembark_point()
-		if not hull.has_arrived:
-			# Sunk before it grounded: the cargo comes out at the surf line on its course. At the ramp it would be
-			# in deep water under the ocean surface, where the troops and vehicles are hidden.
-			origin = _surf_point(hull.global_position, hull.destination - hull.start)
-		point = origin + hull.global_transform.basis.x * randf_range(-DISEMBARK_SPREAD, DISEMBARK_SPREAD)
+		point = hull.disembark_point() + hull.global_transform.basis.x * randf_range(-DISEMBARK_SPREAD, DISEMBARK_SPREAD)
 		point.y = 0.0
 		Sound.play_at("splash", point, -10.0)
 	if is_infantry(String(entry.kind)):
@@ -618,8 +603,24 @@ func _on_aircraft_destroyed(plane: EnemyAircraft) -> void:
 func _on_craft_destroyed(landing: LandingCraft) -> void:
 	_register_kill()
 	_explode(landing.global_position + Vector3.UP, Vector3.UP, 8.0)
-	# A craft sunk on the way in still lands its troops and vehicles in the surf.
-	_unload(landing)
+	# A sunk craft takes its cargo down with it: nothing is landed from a wreck.
+	_scuttle_cargo(landing)
+
+## Destroys the cargo still aboard a sunk craft, and anything queued to come off it. Each lost unit is
+## registered as a kill so the wave's remaining count stays exact. Units already ashore are not affected.
+func _scuttle_cargo(landing: LandingCraft) -> int:
+	var lost: int = landing.cargo.size()
+	landing.cargo.clear()
+	var index: int = 0
+	while index < disembark_queue.size():
+		if disembark_queue[index].craft == landing:
+			disembark_queue.remove_at(index)
+			lost += 1
+		else:
+			index += 1
+	for _unit in range(lost):
+		_register_kill()
+	return lost
 
 func _on_enemy_shoot(soldier: EnemySoldier, target: Vector3) -> void:
 	if not active or soldier.is_dead():
