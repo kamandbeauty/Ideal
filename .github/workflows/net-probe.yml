@@ -7,16 +7,34 @@ on:
 jobs:
   probe:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: arena/d42cf39b-ideal
       - name: Probe hosts and the preinstalled GL bits
         run: |
-          for h in azure.archive.ubuntu.com archive.ubuntu.com security.ubuntu.com dl.google.com conda.anaconda.org pypi.org; do
-            code=$(curl -sS -m 12 -o /dev/null -w '%{http_code}' "http://$h/" 2>&1 || true)
-            echo "$h -> $code"
-          done
-          echo "--- preinstalled"
-          which Xvfb xvfb-run || true
-          ls /usr/lib/x86_64-linux-gnu/ | grep -E '^libGL|^libEGL|^libgallium|swrast' || true
-          ls /usr/lib/x86_64-linux-gnu/dri 2>/dev/null | head || echo "no dri dir"
-          echo "--- apt sources"
-          cat /etc/apt/sources.list.d/*.sources 2>/dev/null | head -20 || cat /etc/apt/sources.list | head -20
+          {
+            echo "# network probe $(date -u)"
+            for h in azure.archive.ubuntu.com archive.ubuntu.com security.ubuntu.com ports.ubuntu.com dl.google.com pypi.org files.pythonhosted.org registry.npmjs.org objects.githubusercontent.com; do
+              code=$(curl -sS -m 12 -o /dev/null -w '%{http_code}' "https://$h/" 2>&1 | tr '\n' ' ' || true)
+              echo "$h -> $code"
+            done
+            echo "--- preinstalled"
+            (which Xvfb xvfb-run || true) 2>&1
+            (ls /usr/lib/x86_64-linux-gnu/ | grep -E '^libGL|^libEGL|swrast' || echo "no libGL") 2>&1
+            (ls /usr/lib/x86_64-linux-gnu/dri || echo "no dri dir") 2>&1
+            echo "--- apt sources"
+            (cat /etc/apt/sources.list.d/*.sources 2>/dev/null || cat /etc/apt/sources.list 2>/dev/null) 2>&1
+            echo "--- apt update, 60 second cap"
+            sudo timeout 60 apt-get -o Acquire::http::Timeout=10 -o Acquire::Retries=0 update 2>&1 | tail -12 || echo "apt update exited $?"
+          } > .github/net-probe.txt
+          cat .github/net-probe.txt
+      - name: Commit the result so it can be read back
+        run: |
+          git config user.name "probe"
+          git config user.email "probe@example.invalid"
+          git add .github/net-probe.txt
+          git diff --cached --quiet || git commit -m "ci: network probe result"
+          git push origin HEAD:arena/d42cf39b-ideal || echo "push failed"
