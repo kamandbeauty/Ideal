@@ -19,6 +19,7 @@ const SWITCH_WIDTH := 56.0
 
 static var _medium: Font = null
 static var _bold: Font = null
+static var _black: Font = null
 static var _textures: Dictionary = {}
 
 # ---- fonts --------------------------------------------------------------------------------------
@@ -32,6 +33,14 @@ static func bold_font() -> Font:
 	if _bold == null:
 		_bold = load("res://assets/fonts/Vazir-Bold.ttf") as Font
 	return _bold
+
+## The heaviest weight, for the figures a player reads across the room: the moves counter, the score
+## and a goal's fraction. The reference sets them considerably heavier than its body text, and Vazir's
+## Bold next to a painted rail still read as body text.
+static func heavy_font() -> Font:
+	if _black == null:
+		_black = load("res://assets/fonts/Vazir-Black.ttf") as Font
+	return _black
 
 # ---- textures -----------------------------------------------------------------------------------
 

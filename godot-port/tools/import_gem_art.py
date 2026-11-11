@@ -33,7 +33,7 @@ SIZE = 160          # the plate every screen scales from
 # How much of the plate a fruit is allowed to fill. The fruit sits inside a board cell with room around
 # it, so it is deliberately smaller than the cell: a piece that touches its neighbours reads as a wall
 # of colour instead of a board of pieces.
-PIECE_BOX = 142
+PIECE_BOX = 148
 KEY_TOLERANCE = 26  # how near the field colour a pixel has to be to get filled
 
 # The eight fruits, by the id the game asks for. The first five kept their stone names when the pieces
@@ -134,6 +134,31 @@ def _centred(cut: Image.Image) -> Image.Image:
     return plate
 
 
+def _outlined(picture: Image.Image) -> Image.Image:
+    """A continuous dark line around the fruit, drawn just inside its own silhouette.
+
+    The paints came back with a dotted outline — a sketch line the model left in — and at 42 dp a dotted
+    edge reads as a sticker's cut line, which is the one thing the art is not supposed to look like. The
+    silhouette already exists, so the fix is to lay a solid line on the inside of it rather than to
+    repaint eight fruits.
+    """
+    size = picture.width
+    alpha = np.asarray(picture.getchannel("A")).astype(np.float32) / 255.0
+    solid = alpha > 0.5
+    from scipy import ndimage
+    # Out, not in: the dots sit on the very edge of the paint, so a line drawn inside would only
+    # thicken them. The silhouette is grown by six pixels and the ring is the band that growth added,
+    # which puts a clean contour over the dotted edge and leaves the fruit itself untouched.
+    grown = ndimage.binary_dilation(solid, iterations=6)
+    ring = np.clip(grown.astype(np.float32) - solid.astype(np.float32), 0.0, 1.0)
+    ring = ring + np.clip(solid.astype(np.float32) - ndimage.binary_erosion(solid, iterations=2)
+                          .astype(np.float32), 0.0, 1.0)
+    line = Image.fromarray((ring * 255).astype(np.uint8), "L").filter(ImageFilter.GaussianBlur(0.6))
+    paint = Image.new("RGBA", (size, size), (62, 38, 24, 0))
+    paint.putalpha(line.point(lambda value: int(value * 0.92)))
+    return Image.alpha_composite(picture, paint)
+
+
 def _enamel(picture: Image.Image) -> Image.Image:
     """Give the fruit one specular and one rim light, so the board reads as enamel, not paper.
 
@@ -179,7 +204,7 @@ def _enamel(picture: Image.Image) -> Image.Image:
 def main() -> None:
     for name in PIECES:
         source = os.path.join(SOURCE, name + ".png")
-        piece = _enamel(_centred(_keyed(source)))
+        piece = _enamel(_outlined(_centred(_keyed(source))))
         path = os.path.join(OUT, "piece_%s.png" % name)
         piece.save(path, optimize=True)
         print("piece_%-10s %dx%d  %5.1f kB" % (name, piece.width, piece.height,

@@ -114,6 +114,7 @@ func build() -> void:
 	level_chip.z_index = 5
 	_level_label = UiKit.label(level_chip, "level", "", UiTokens.TYPE_SM, UiTokens.IVORY,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
+	_level_label.add_theme_font_override("font", UiKit.heavy_font())
 	UiKit.place(_level_label, 0.0, TAB_HEIGHT * 0.34, TAB_WIDTH, TAB_HEIGHT * 0.58)
 
 	# The moves counter is the one figure a player checks every second, so it is the biggest thing on
@@ -121,6 +122,7 @@ func build() -> void:
 	UiKit.icon(goals_rail, "moves_icon", "icon_moves", rail_x + 2.0, 52.0, 22.0, 22.0)
 	_moves_label = UiKit.label(goals_rail, "moves", "", UiTokens.TYPE_XL, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
+	_moves_label.add_theme_font_override("font", UiKit.heavy_font())
 	UiKit.place(_moves_label, rail_x + 24.0, 46.0, rail_w - 24.0, 34.0)
 
 	# ---- the goals, one compact row each ----------------------------------------------------------
@@ -137,6 +139,7 @@ func build() -> void:
 		_goal_icons.append(UiKit.icon(chip, "icon", "piece_firouzeh", 0.0, 1.0, 28.0, 28.0))
 		var label := UiKit.label(chip, "value", "", UiTokens.TYPE_SM, UiTokens.INK,
 			HORIZONTAL_ALIGNMENT_CENTER, true)
+		label.add_theme_font_override("font", UiKit.heavy_font())
 		UiKit.place(label, 30.0, 0.0, rail_w - 32.0, GOAL_ROW_PITCH - 2.0)
 		_goal_labels.append(label)
 
@@ -146,6 +149,7 @@ func build() -> void:
 	UiKit.place(score_caption, rail_x, 150.0, rail_w, 14.0)
 	_score_label = UiKit.label(goals_rail, "score", "", UiTokens.TYPE_XL, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
+	_score_label.add_theme_font_override("font", UiKit.heavy_font())
 	UiKit.place(_score_label, rail_x, 162.0, rail_w, 28.0)
 
 	# Two gold hairlines, the way the reference separates the counters from the sentence and the
@@ -163,10 +167,12 @@ func build() -> void:
 	UiKit.icon(goals_rail, "coin_icon", "icon_coin", rail_x + 2.0, 280.0, 24.0, 24.0)
 	_coin_label = UiKit.label(goals_rail, "coin_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
+	_coin_label.add_theme_font_override("font", UiKit.heavy_font())
 	UiKit.place(_coin_label, rail_x + 26.0, 280.0, rail_w - 26.0, 24.0)
 	UiKit.icon(goals_rail, "life_icon", "icon_life", rail_x + 2.0, 314.0, 24.0, 24.0)
 	_life_label = UiKit.label(goals_rail, "life_value", "", UiTokens.TYPE_SM, UiTokens.INK,
 		HORIZONTAL_ALIGNMENT_CENTER, true)
+	_life_label.add_theme_font_override("font", UiKit.heavy_font())
 	UiKit.place(_life_label, rail_x + 26.0, 314.0, rail_w - 26.0, 24.0)
 
 	# ---- right rail: the tools, then the two ways out of the level --------------------------------
@@ -176,6 +182,7 @@ func build() -> void:
 	tools_tab.z_index = 5
 	_boosters_heading = UiKit.label(tools_tab, "boosters_heading", "ابزارها", UiTokens.TYPE_SM,
 		UiTokens.IVORY, HORIZONTAL_ALIGNMENT_CENTER, true)
+	_boosters_heading.add_theme_font_override("font", UiKit.heavy_font())
 	UiKit.place(_boosters_heading, 0.0, TAB_HEIGHT * 0.34, TAB_WIDTH, TAB_HEIGHT * 0.58)
 	for kind in range(BoosterBag.SLOTS):
 		var y := BOOSTER_ROWS_Y + float(kind) * BOOSTER_PITCH
@@ -192,8 +199,8 @@ func build() -> void:
 		# as smudges. An ivory disc inside the orb gives each one a face to be read against.
 		# The tool's own picture already carries a dark disc, so it is the button's face: no second
 		# plate under it, and large enough that the glyph is read at a glance.
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 9.0, 9.0,
-			BOOSTER_SIZE - 18.0, BOOSTER_SIZE - 18.0))
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 6.0, 6.0,
+			BOOSTER_SIZE - 12.0, BOOSTER_SIZE - 12.0))
 		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
 		# stacked at 62 dp pitch and there is no room for a caption under each.
 		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0,

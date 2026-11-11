@@ -208,6 +208,13 @@ def build_tray() -> Image.Image:
     ImageDraw.Draw(warm).rounded_rectangle((2, int(tile_side * 0.72), tile_side - 3, tile_side - 3),
                                            radius=cell_radius, fill=(*_mix(GOLD_DARK, IVORY_SHADE, 0.5), 40))
     face.alpha_composite(warm.filter(ImageFilter.GaussianBlur(1.6)))
+    # A shadow along the top inside edge: the reference's cells are shallow trays, and a tray has a
+    # darker lip where the light cannot reach.
+    lip = Image.new("RGBA", (tile_side, tile_side), (0, 0, 0, 0))
+    ImageDraw.Draw(lip).rounded_rectangle((2, 2, tile_side - 3, tile_side - 3), radius=cell_radius,
+                                          outline=(*_mix(IVORY_SHADE, GOLD_DARK, 0.35), 70), width=3)
+    lip = lip.filter(ImageFilter.GaussianBlur(2.0))
+    face.alpha_composite(lip)
     face = _rim(face, cell_radius, _mix(GOLD, GOLD_LIGHT, 0.45), width=2)
 
     shadow = Image.new("RGBA", (tile_side + 12, tile_side + 12), (0, 0, 0, 0))
