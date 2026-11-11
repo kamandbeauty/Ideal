@@ -35,12 +35,16 @@ func physics_frames(count: int = 1) -> void:
 		await tree.physics_frame
 
 
-## A fresh siege level under the scene root. Free it with `discard`.
+## A fresh siege level under the scene root, carrying the waves of `stage`
+## (counted from 0; the scene itself carries the first). Free it with `discard`.
 ## (No game class is named in this file: the runner compiles it before the
 ## autoloads exist, and the game scripts need those to compile.)
-func make_level() -> Node:
+func make_level(stage: int = 0) -> Node:
 	tree.root.get_node("Profile").persist = false
 	var level: Node = (load("res://scenes/levels/city_siege.tscn") as PackedScene).instantiate()
+	if stage > 0:
+		level.set("stage", stage)
+		level.set("wave_set", load("res://resources/waves/stage_%d_waves.tres" % (stage + 1)))
 	tree.root.add_child(level)
 	return level
 

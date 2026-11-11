@@ -34,6 +34,22 @@ static func place_of(overall: int) -> Vector2i:
 	return Vector2i(1, 1)
 
 
+## The whole siege as one set: every wave of every stage, in order. For the balance record and the tests;
+## the game itself plays one stage at a time.
+static func whole() -> WaveSet:
+	var siege := WaveSet.new()
+	var all: Array[WaveData] = []
+	for stage: int in STAGES.size():
+		var part: WaveSet = waves(stage)
+		if stage == 0:
+			siege.opening_delay = part.opening_delay
+			siege.health_growth = part.health_growth
+			siege.speed_growth = part.speed_growth
+		all.append_array(part.waves)
+	siege.waves = all
+	return siege
+
+
 static func total_waves() -> int:
 	var sum: int = 0
 	for stage: int in STAGES.size():

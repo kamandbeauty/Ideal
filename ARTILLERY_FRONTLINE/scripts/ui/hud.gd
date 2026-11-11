@@ -23,7 +23,7 @@ const BANNER_TIME: float = 2.6
 const SLOT_SIZE := Vector2(160.0, 80.0)
 const SLOT_GAP: float = 12.0
 ## The hint line walks through these keys once per match: [key, seconds shown].
-const HINTS: Array = [["hint_aim", 4.5], ["hint_fire", 4.5], ["hint_cards", 4.5], ["hint_grenade", 4.5]]
+const HINTS: Array = [["hint_aim", 4.5], ["hint_fire", 4.5], ["hint_zoom", 4.5], ["hint_cards", 4.5], ["hint_grenade", 4.5]]
 ## A threat arrow stays up this long after the last blow.
 const THREAT_TIME: float = 1.6
 
@@ -63,6 +63,8 @@ var fire_button: HudWidgets.RoundButton
 var reload_button: HudWidgets.RoundButton
 var pause_button: HudWidgets.RoundButton
 var grenade_button: HudWidgets.RoundButton
+## Draws the sight in and lets it out again; lit while it is in.
+var zoom_button: HudWidgets.RoundButton
 var grenade_badge: HudWidgets.Badge
 var grenade_label: Label
 var boss_plate: HudWidgets.Plate
@@ -77,6 +79,8 @@ var wall_arrow: HudWidgets.ThreatArrow
 var gate_arrow_label: Label
 var wall_arrow_label: Label
 var vignette: TextureRect
+## The dark surround of the drawn-in sight.
+var scope: TextureRect
 var banner_left: float = 0.0
 var banner_hold: bool = false
 var banner_pop: float = 0.0
@@ -169,6 +173,26 @@ func _build() -> void:
 	vignette.texture = texture
 	vignette.modulate.a = 0.0
 	root.add_child(vignette)
+	scope = TextureRect.new()
+	scope.set_anchors_preset(Control.PRESET_FULL_RECT)
+	scope.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	scope.stretch_mode = TextureRect.STRETCH_SCALE
+	scope.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	var surround := Gradient.new()
+	surround.set_color(0, Color(0.0, 0.0, 0.0, 0.0))
+	surround.set_color(1, Color(0.0, 0.0, 0.0, 0.86))
+	surround.add_point(0.56, Color(0.0, 0.0, 0.0, 0.0))
+	var shade := GradientTexture2D.new()
+	shade.gradient = surround
+	shade.fill = GradientTexture2D.FILL_RADIAL
+	shade.fill_from = Vector2(0.5, 0.5)
+	shade.fill_to = Vector2(1.0, 1.0)
+	shade.width = 128
+	shade.height = 128
+	scope.texture = shade
+	scope.modulate.a = 0.0
+	scope.visible = false
+	root.add_child(scope)
 	crosshair = HudWidgets.Crosshair.new()
 	crosshair.size = Vector2(96, 96)
 	root.add_child(crosshair)
@@ -244,7 +268,8 @@ func _build() -> void:
 	pause_button = HudWidgets.RoundButton.new("pause", 34.0)
 	pause_button.tint = UITheme.TEXT
 	grenade_button = HudWidgets.RoundButton.new("grenade", 54.0)
-	for button: Control in [fire_button, reload_button, pause_button, grenade_button]:
+	zoom_button = HudWidgets.RoundButton.new("zoom", 46.0)
+	for button: Control in [fire_button, reload_button, pause_button, grenade_button, zoom_button]:
 		root.add_child(button)
 	grenade_badge = HudWidgets.Badge.new()
 	grenade_badge.size = Vector2(40, 40)
@@ -285,6 +310,8 @@ func bind(siege: CityLevel) -> void:
 	defender = siege.defender if siege else null
 	fingers.clear()
 	_build_slots()
+	if defender != null and not defender.loadout_changed.is_connected(_on_loadout_changed):
+		defender.loadout_changed.connect(_on_loadout_changed)
 	if level:
 		wall_meter.set_fraction(level.defense.wall_fraction(), true)
 		gate_meter.set_fraction(level.defense.gate_fraction(), true)
@@ -324,7 +351,7 @@ func _build_slots() -> void:
 	if defender == null:
 		return
 	for item: Weapon in defender.weapons:
-		var slot := HudWidgets.WeaponSlot.new(item.data.kind)
+		var slot := HudWidgets.WeaponSlot.new(item.data.kind, item.data.icon)
 		slot.endless = not item.data.limited_supply()
 		root.add_child(slot)
 		weapon_slots.append(slot)
@@ -420,6 +447,9 @@ func _layout() -> void:
 	fire_button.position = fire_center - fire_button.size * 0.5
 	reload_button.position = reload_center - reload_button.size * 0.5
 	grenade_button.position = grenade_center - grenade_button.size * 0.5
+	# The sight button stands over FIRE: the thumb that fires reaches it by straightening.
+	var zoom_center := fire_center + Vector2(-8.0 * side, -160.0)
+	zoom_button.position = zoom_center - zoom_button.size * 0.5
 	grenade_badge.position = grenade_center + Vector2(40.0 * side, -40.0) - grenade_badge.size * 0.5
 	_fit(grenade_label, Rect2(grenade_badge.position, grenade_badge.size))
 	_fit(reload_label, Rect2(middle - 220.0, view.y * 0.5 + 52.0, 440.0, 34.0))
@@ -630,6 +660,11 @@ func _process(delta: float) -> void:
 	_update_weapons()
 	_update_boss()
 	_update_arrows()
+	# The drawn-in sight: its button stays lit, the edges of the picture darken, the hairs grow long.
+	zoom_button.set_lit(defender.zoomed)
+	crosshair.set_zoom(defender.zoom)
+	scope.visible = defender.zoom > 0.01
+	scope.modulate.a = defender.zoom
 	var show_fps: bool = Profile.setting("show_fps")
 	fps_label.visible = show_fps
 	if show_fps:
@@ -679,7 +714,7 @@ func _update_boss() -> void:
 
 func _update_arrows() -> void:
 	var yaw: float = defender.aim.aim_yaw()
-	var half_view: float = defender.aim_settings.fov_degrees * 0.7
+	var half_view: float = defender.view_fov() * 0.7
 	var gate_yaw: float = level.yaw_to(level.layout.gate_center)
 	# The wall is hurt in more than one place: point at wherever the last blow fell.
 	var wall_yaw: float = level.yaw_to(wall_threat)
@@ -713,6 +748,12 @@ func _show_hint() -> void:
 
 
 # -- Events ------------------------------------------------------------------------
+## Another gun was stood on the mount: the cards are drawn again for the weapons there are now.
+func _on_loadout_changed() -> void:
+	_build_slots()
+	refresh_text()
+
+
 func _on_match_started() -> void:
 	kills = 0
 	wave_index = -1
@@ -783,7 +824,11 @@ func _on_wave_started(index: int, total: int) -> void:
 		var key: String = level.wave_set.waves[index].hint_key
 		if key != "":
 			hint = Loc.t(key)
-	show_banner(Loc.t("wave_incoming", [index + 1]), UITheme.TEXT, hint)
+	# The first wave of a match also says which stage of the siege this is.
+	var title: String = Loc.t("wave_incoming", [index + 1])
+	if index == 0 and level != null and is_instance_valid(level):
+		title = Loc.t("stage_wave", [level.stage + 1, index + 1])
+	show_banner(title, UITheme.TEXT, hint)
 	_refresh_values()
 
 
@@ -903,6 +948,10 @@ func _input(event: InputEvent) -> void:
 				defender.cycle_weapon()
 			KEY_G:
 				defender.throw_grenade()
+			KEY_Z:
+				defender.toggle_zoom()
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		defender.toggle_zoom()
 
 
 ## Role of a finger that has just landed at `point` (canvas coordinates).
@@ -915,6 +964,8 @@ func role_at(point: Vector2) -> String:
 		return "reload"
 	if grenade_button.contains(point, 1.2):
 		return "grenade"
+	if zoom_button.contains(point, 1.2):
+		return "zoom"
 	for index: int in weapon_slots.size():
 		if weapon_slots[index].contains(point):
 			return "weapon_%d" % index
@@ -938,6 +989,8 @@ func touch_down(index: int, point: Vector2) -> void:
 			defender.throw_grenade()
 		"pause":
 			pause_pressed.emit()
+		"zoom":
+			defender.toggle_zoom()
 		_:
 			if role.begins_with("weapon_"):
 				defender.select_weapon(int(role.trim_prefix("weapon_")))

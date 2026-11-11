@@ -11,14 +11,14 @@ const CLIPS: Array[String] = [
 	"headshot", "zombie_groan_1", "zombie_groan_2", "zombie_groan_3", "zombie_death_1", "zombie_death_2", "zombie_attack_1",
 	"zombie_attack_2", "gate_hit_1", "gate_hit_2", "wall_hit_1", "wall_hit_2", "gate_break", "wall_break", "alarm", "wave_horn",
 	"wave_clear", "wind", "music_theme", "explosion_small", "grenade_throw", "grenade_bounce", "weapon_switch", "resupply", "boss_roar",
-	"boss_death", "body_fall", "ui_toggle", "ui_start", "ui_back", "victory", "defeat",
+	"boss_death", "body_fall", "ui_toggle", "ui_start", "ui_back", "victory", "defeat", "rotary_shot", "rotary_spin", "rotary_tail",
 ]
 ## Shortest gap between two starts of the same clip, in milliseconds.
 const MIN_GAP_MS: Dictionary = {
 	"impact_flesh": 45, "impact": 60, "impact_metal": 60, "headshot": 70, "zombie_groan_1": 500, "zombie_groan_2": 500,
 	"zombie_groan_3": 500, "zombie_death_1": 120, "zombie_death_2": 120, "zombie_attack_1": 180, "zombie_attack_2": 180,
 	"gate_hit_1": 160, "gate_hit_2": 160, "wall_hit_1": 160, "wall_hit_2": 160, "explosion": 70, "explosion_small": 70,
-	"grenade_bounce": 50, "body_fall": 150, "hmg_tail": 250, "ui_toggle": 40,
+	"grenade_bounce": 50, "body_fall": 150, "hmg_tail": 250, "ui_toggle": 40, "rotary_tail": 250, "rotary_spin": 200,
 }
 ## How much a clip matters when every voice is busy. A new sound may take the
 ## voice of one that matters no more than itself, never of one that matters
@@ -26,7 +26,7 @@ const MIN_GAP_MS: Dictionary = {
 ## a blast or the giant. Clips not listed rank 1.
 const RANK: Dictionary = {
 	"impact": 0, "impact_flesh": 0, "impact_metal": 0, "grenade_bounce": 0, "zombie_groan_1": 0, "zombie_groan_2": 0,
-	"zombie_groan_3": 0, "body_fall": 0, "hmg_tail": 0,
+	"zombie_groan_3": 0, "body_fall": 0, "hmg_tail": 0, "rotary_tail": 0, "rotary_spin": 0,
 	"explosion": 2, "explosion_small": 2, "rocket": 2, "critical": 2, "resupply": 2, "ui_start": 2,
 	"gate_break": 3, "wall_break": 3, "boss_roar": 3, "boss_death": 3, "alarm": 3, "wave_horn": 3, "wave_clear": 3,
 	"victory": 3, "defeat": 3,

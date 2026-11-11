@@ -40,9 +40,25 @@ func _approved_play(t: TestContext) -> void:
 	t.check(grenade.carried == 3 and grenade.capacity == 5 and is_equal_approx(grenade.max_range, 46.0), "grenades: three carried, five at most, 46 m of reach")
 	var wall: DefenseData = load("res://resources/defense/city_wall.tres")
 	t.check(is_equal_approx(wall.wall_max_health, 1000.0) and is_equal_approx(wall.gate_max_health, 700.0), "the wall holds 1000 and the gate 700")
-	var waves: WaveSet = load("res://resources/waves/city_siege_waves.tres")
+	# The second gun the player may choose, and the sight both guns and the launcher share.
+	var rotary: WeaponData = load("res://resources/weapons/rotary_gun.tres")
+	t.check(is_equal_approx(rotary.damage, 17.0) and is_equal_approx(rotary.headshot_multiplier, 2.0) and is_equal_approx(rotary.fire_interval, 0.04)
+		and rotary.magazine_size == 500 and is_equal_approx(rotary.reload_time, 3.6) and rotary.reserve < 0 and rotary.penetration == 0
+		and is_equal_approx(rotary.spin_up_time, 0.3),
+		"the six-barrel gun: 17 a round, twice to the head, a round every 0.04 s, 500 to a belt, 3.6 s to reload, 0.3 s to spin up, no round passes through")
+	t.check(rotary.damage / rotary.fire_interval < gun.damage / gun.fire_interval * 1.1 and rotary.damage / rotary.fire_interval > gun.damage / gun.fire_interval * 0.9,
+		"held on a body the two guns do the same work to within a tenth (%.0f against %.0f a second)" % [
+			rotary.damage / rotary.fire_interval, gun.damage / gun.fire_interval])
+	t.check(Profile.GUNS == ["twin_hmg", "rotary_gun"] and Profile.DEFAULTS.settings.gun == "twin_hmg", "the twin gun is the one a new player starts with")
+	t.check(is_equal_approx(aim.fov_degrees, 43.0) and is_equal_approx(aim.zoom_factor, 2.5), "the eye sees 43 degrees; the drawn-in sight brings the street 2.5 times closer")
+	var waves: WaveSet = Campaign.whole()
 	t.equal(waves.waves.size(), 8, "the siege is eight waves")
 	t.equal(waves.total_zombies(), 325, "of 325 zombies")
+	var sizes: Array = []
+	for stage: int in Campaign.count():
+		sizes.append(Campaign.waves(stage).waves.size())
+	t.equal(sizes, [3, 3, 2], "played in three stages: the first of three waves, then three, then the last two")
+	t.equal(Campaign.waves(0).total_zombies(), 74, "the first stage fields 74 zombies")
 	for id: StringName in ZOMBIES:
 		var wanted: Dictionary = ZOMBIES[id]
 		var data: ZombieData = load("res://resources/zombies/%s.tres" % String(id))

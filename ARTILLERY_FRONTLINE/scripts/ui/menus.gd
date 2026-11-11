@@ -10,10 +10,19 @@ signal play_requested
 signal resume_requested
 signal restart_requested
 signal menu_requested
+## The player picked the stage PLAY will start (counted from 0).
+signal stage_chosen(index: int)
+## From the result of a stage that was won: go straight on to the one after it.
+signal next_requested
+## The player picked the gun that stands on the mount (an id from Profile.GUNS).
+signal gun_chosen(id: String)
 
 const FADE_TIME: float = 0.16
 ## A button that asks to be pressed twice stays armed this long.
 const CONFIRM_TIME: float = 3.0
+## Widths of the two blocks of the title screen: the title itself, and the card of the coming battle.
+const TITLE_WIDTH: float = 560.0
+const PLAN_WIDTH: float = 500.0
 
 var screen: String = ""
 var came_from: String = "main"
@@ -23,6 +32,14 @@ var result_victory: bool = false
 var result_stats: Dictionary = {}
 ## The match just finished went further than any before it.
 var result_record: bool = false
+## The stage just won has one after it: the result screen offers to go on.
+var result_onward: bool = false
+## The stage the title screen shows as chosen, counted from 0. Game keeps it in step with its own.
+var stage: int = 0
+var stage_brief: Label
+var stage_choices: MenuWidgets.Choices
+var gun_choices: MenuWidgets.Choices
+var gun_note: Label
 ## What the pause screen says about the match in progress: wave, waves, wall, gate.
 var pause_status: Dictionary = {}
 var fade: Tween
@@ -94,6 +111,9 @@ func is_open() -> bool:
 
 func _clear() -> void:
 	armed = null
+	stage_choices = null
+	gun_choices = null
+	gun_note = null
 	for child: Node in holder.get_children():
 		holder.remove_child(child)
 		child.queue_free()
@@ -147,10 +167,11 @@ func show_settings(from: String) -> void:
 	_show("settings")
 
 
-func show_result(victory: bool, stats: Dictionary, record: bool = false) -> void:
+func show_result(victory: bool, stats: Dictionary, record: bool = false, onward: bool = false) -> void:
 	result_victory = victory
 	result_stats = stats
 	result_record = record
+	result_onward = victory and onward
 	_show("result")
 
 
@@ -236,13 +257,15 @@ func _disarm() -> void:
 
 
 # -- Title -----------------------------------------------------------------------------
+## The title stands at the reading edge of the screen and the coming battle on a card at the far one:
+## which stage, which gun, and the button that starts it. The gun itself shows below, between the two.
 func _build_main() -> void:
 	var shade := MenuWidgets.Shade.new()
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(shade)
 	var frame: MarginContainer = _frame(26.0)
 	var column := VBoxContainer.new()
-	column.custom_minimum_size = Vector2(560.0, 0.0)
+	column.custom_minimum_size = Vector2(TITLE_WIDTH, 0.0)
 	column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	column.add_theme_constant_override("separation", 10)
@@ -252,16 +275,94 @@ func _build_main() -> void:
 	column.add_child(_heading(Loc.t("subtitle"), 32, UITheme.TEXT, false))
 	column.add_child(_text(Loc.t("tagline"), 24, UITheme.MUTED, false))
 	column.add_child(_spacer(10))
-	column.add_child(UITheme.button(Loc.t("play"), func() -> void: play_requested.emit(), "accent", "ui_start"))
-	column.add_child(UITheme.button(Loc.t("settings"), func() -> void: show_settings("main")))
-	column.add_child(UITheme.button("English" if Loc.language == "fa" else "فارسی", _toggle_language))
-	column.add_child(_spacer(4))
+	var pair := HBoxContainer.new()
+	pair.add_theme_constant_override("separation", 10)
+	var settings_button: Button = UITheme.button(Loc.t("settings"), func() -> void: show_settings("main"))
+	settings_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var language_button: Button = UITheme.button("English" if Loc.language == "fa" else "فارسی", _toggle_language)
+	language_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	pair.add_child(settings_button)
+	pair.add_child(language_button)
+	column.add_child(pair)
 	var totals: Dictionary = Profile.data.stats
 	if int(totals.matches) > 0:
-		var record: String = Loc.t("best_wave", [int(totals.best_wave)]) if int(totals.best_wave) > 0 else ""
+		var record: String = ""
+		if int(totals.best_wave) > 0:
+			var place: Vector2i = Campaign.place_of(int(totals.best_wave))
+			record = Loc.t("best_run", [place.x, place.y])
 		var career: String = Loc.t("career", [int(totals.matches), int(totals.victories), int(totals.kills)])
-		column.add_child(_text(record + ("\n" if record != "" else "") + career, 22, UITheme.TEXT, false))
+		column.add_child(_text(record + ("\n" if record != "" else "") + career, 20, UITheme.TEXT, false))
 	column.add_child(_text(Loc.t("version", [Loc.number(String(ProjectSettings.get_setting("application/config/version", "")))]), 20, UITheme.MUTED, false))
+
+	# The card stands a third of the way down its side, clear of the gun in the lower part of the picture.
+	var rail := VBoxContainer.new()
+	rail.size_flags_horizontal = Control.SIZE_SHRINK_END
+	rail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rail.add_theme_constant_override("separation", 0)
+	frame.add_child(rail)
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(PLAN_WIDTH, 0.0)
+	card.add_theme_stylebox_override("panel", UITheme.box(Color(0.03, 0.032, 0.038, 0.8), UITheme.LINE, 10, 1, 16))
+	for share: float in [1.0, 2.0]:
+		var gap := Control.new()
+		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		gap.size_flags_stretch_ratio = share
+		rail.add_child(gap)
+	rail.add_child(card)
+	rail.move_child(card, 1)
+	var plan := VBoxContainer.new()
+	plan.add_theme_constant_override("separation", 10)
+	card.add_child(plan)
+	# Which stage PLAY starts: every stage already won and the one after; the rest wait under a padlock.
+	var open: int = Campaign.open_stages(int(totals.stages_cleared))
+	var stages: Array = []
+	for index: int in Campaign.count():
+		stages.append(Loc.t("stage_n", [index + 1]))
+	stage = clampi(stage, 0, open - 1)
+	stage_brief = _text(stage_brief_for(stage), 22, UITheme.TEXT, false)
+	plan.add_child(stage_brief)
+	stage_choices = MenuWidgets.Choices.new(stages, stage)
+	for index: int in range(open, Campaign.count()):
+		stage_choices.lock(index)
+	stage_choices.chosen.connect(func(index: int) -> void:
+		stage = index
+		stage_brief.text = stage_brief_for(index)
+		stage_chosen.emit(index))
+	plan.add_child(stage_choices)
+	# Which gun stands on the mount. The street behind the menu shows it at once.
+	var names: Array = []
+	var outlines: Array = []
+	for id: String in Profile.GUNS:
+		var gun: WeaponData = gun_data(id)
+		names.append(Loc.t(gun.name_key))
+		outlines.append(gun.icon)
+	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines)
+	gun_choices.chosen.connect(func(index: int) -> void:
+		gun_note.text = gun_note_for(Profile.GUNS[index])
+		gun_chosen.emit(Profile.GUNS[index]))
+	plan.add_child(gun_choices)
+	gun_note = _text(gun_note_for(String(Profile.setting("gun"))), 20, UITheme.MUTED, false)
+	# Room for two lines whichever gun is chosen, so the card does not jump when the choice changes.
+	gun_note.custom_minimum_size = Vector2(0.0, gun_note.get_line_height() * 2.0 + 4.0)
+	plan.add_child(gun_note)
+	plan.add_child(UITheme.button(Loc.t("play"), func() -> void: play_requested.emit(), "accent", "ui_start"))
+
+
+## What a stage holds, in a line: its number, its waves and how many zombies it fields.
+static func stage_brief_for(index: int) -> String:
+	var waves: WaveSet = Campaign.waves(index)
+	return Loc.t("stage_brief", [index + 1, waves.waves.size(), waves.total_zombies()])
+
+
+static func gun_data(id: String) -> WeaponData:
+	return load("res://resources/weapons/%s.tres" % id) as WeaponData
+
+
+## One line on what a gun is good for, with its rate of fire and the length of its belt taken from its numbers.
+static func gun_note_for(id: String) -> String:
+	var gun: WeaponData = gun_data(id)
+	return Loc.t("gun_note_" + id, [int(round(1.0 / gun.fire_interval)), gun.magazine_size])
 
 
 # -- Pause -----------------------------------------------------------------------------
@@ -272,6 +373,8 @@ func _build_pause() -> void:
 	if not pause_status.is_empty():
 		# Where the match stands, so RESTART and MAIN MENU are weighed against what would be lost.
 		var parts: PackedStringArray = []
+		if int(pause_status.get("stage", 0)) > 0:
+			parts.append(Loc.t("stage_n", [int(pause_status.stage)]))
 		if int(pause_status.get("wave", 0)) > 0:
 			parts.append(Loc.t("wave", [int(pause_status.wave), int(pause_status.get("waves", 0))]))
 		parts.append("%s %s" % [Loc.t("wall"), Loc.percent(float(pause_status.get("wall", 1.0)))])
@@ -289,8 +392,13 @@ func _build_result() -> void:
 	var column: VBoxContainer = _panel(1080.0)
 	var color: Color = UITheme.GREEN if result_victory else UITheme.RED
 	column.add_child(MenuWidgets.Stripes.new())
-	column.add_child(_heading(Loc.t("victory_title" if result_victory else "defeat_title"), 60, color))
+	var title: String = Loc.t("victory_title" if result_victory else "defeat_title")
 	var story: String = Loc.t("victory_text" if result_victory else "defeat_text")
+	if result_onward:
+		# A stage was held and the siege goes on: the last word is kept for the last stage.
+		title = Loc.t("stage_won_title", [int(result_stats.get("stage", 0)) + 1])
+		story = Loc.t("stage_won_text")
+	column.add_child(_heading(title, 60, color))
 	if not result_victory and int(result_stats.get("wave", 0)) > 0:
 		story += "  " + Loc.t("fell_in_wave", [int(result_stats.wave)])
 	column.add_child(_text(story, 24, UITheme.TEXT))
@@ -319,7 +427,12 @@ func _build_result() -> void:
 	column.add_child(MenuWidgets.Rule.new(8.0))
 	var buttons := HBoxContainer.new()
 	buttons.add_theme_constant_override("separation", 16)
-	var again: Button = UITheme.button(Loc.t("restart"), func() -> void: restart_requested.emit(), "accent", "ui_start")
+	if result_onward:
+		var onward: Button = UITheme.button(Loc.t("next_stage"), func() -> void: next_requested.emit(), "accent", "ui_start")
+		onward.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		buttons.add_child(onward)
+	var again: Button = UITheme.button(Loc.t("restart"), func() -> void: restart_requested.emit(), "plain" if result_onward else "accent",
+		"ui_start")
 	again.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var leave: Button = UITheme.button(Loc.t("main_menu"), func() -> void: menu_requested.emit())
 	leave.size_flags_horizontal = Control.SIZE_EXPAND_FILL

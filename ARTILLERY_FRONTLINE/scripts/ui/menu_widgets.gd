@@ -126,15 +126,46 @@ class SlideBar:
 		draw_arc(Vector2(at, y), 22.0 if dragging else 18.0, 0.0, TAU, 32, UITheme.AMBER, 3.0, true)
 
 
+class Glyph:
+	extends Control
+	## An outline from the HUD's icon set, drawn in the middle of its box.
+	var kind: String = "gun"
+	var length: float = 80.0
+	var ink: Color = UITheme.TEXT
+
+	func _init(icon: String = "gun", icon_length: float = 80.0) -> void:
+		kind = icon
+		length = icon_length
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func set_ink(color: Color) -> void:
+		if ink != color:
+			ink = color
+			queue_redraw()
+
+	func _notification(what: int) -> void:
+		if what == NOTIFICATION_RESIZED:
+			queue_redraw()
+
+	func _draw() -> void:
+		HudWidgets.draw_icon(self, kind, size * 0.5, length, ink)
+
+
 class Choices:
 	extends HBoxContainer
-	## A row of choices of which exactly one is lit.
+	## A row of choices of which exactly one is lit. A choice may carry an outline over its
+	## name, and may be locked: drawn dim under a padlock, and deaf to the thumb.
 	signal chosen(index: int)
 
+	## Height of the strip an outline is drawn in, above the name of its choice.
+	const GLYPH_STRIP: float = 40.0
+
 	var buttons: Array[Button] = []
+	var glyphs: Array[Glyph] = []
+	var locked: Array[int] = []
 	var selected: int = -1
 
-	func _init(labels: Array = [], start: int = 0) -> void:
+	func _init(labels: Array = [], start: int = 0, icons: Array = []) -> void:
 		add_theme_constant_override("separation", 6)
 		for index: int in labels.size():
 			var button := Button.new()
@@ -143,10 +174,18 @@ class Choices:
 			button.custom_minimum_size = Vector2(0.0, 84.0)
 			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			button.add_theme_font_override("font", UITheme.font(true))
-			button.add_theme_font_size_override("font_size", UITheme.font_size(24))
+			button.add_theme_font_size_override("font_size", UITheme.font_size(24 if icons.is_empty() else 21))
 			button.pressed.connect(_choose.bind(index))
 			add_child(button)
 			buttons.append(button)
+			var glyph: Glyph = null
+			if index < icons.size() and String(icons[index]) != "":
+				glyph = Glyph.new(String(icons[index]), 84.0)
+				glyph.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+				glyph.offset_top = 4.0
+				glyph.offset_bottom = GLYPH_STRIP
+				button.add_child(glyph)
+			glyphs.append(glyph)
 		select(start)
 
 	func select(index: int) -> void:
@@ -157,13 +196,43 @@ class Choices:
 			var back: Color = UITheme.AMBER.darkened(0.1) if lit else UITheme.PLATE
 			var rim: Color = UITheme.AMBER.lightened(0.25) if lit else UITheme.LINE
 			var ink: Color = Color(0.08, 0.06, 0.03) if lit else UITheme.TEXT
-			for key: String in ["normal", "hover", "pressed"]:
-				button.add_theme_stylebox_override(key, UITheme.box(back, rim, 6, 1, 12))
-			for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			if locked.has(place):
+				back = Color(0.085, 0.088, 0.092, 0.8)
+				rim = Color(0.34, 0.33, 0.3, 0.5)
+				ink = Color(UITheme.MUTED, 0.55)
+			for key: String in ["normal", "hover", "pressed", "disabled"]:
+				var style: StyleBoxFlat = UITheme.box(back, rim, 6, 1, 12)
+				if glyphs[place] != null:
+					# The name sits under its outline.
+					style.content_margin_top = GLYPH_STRIP
+					style.content_margin_bottom = 4.0
+				button.add_theme_stylebox_override(key, style)
+			for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color"]:
 				button.add_theme_color_override(key, ink)
+			if glyphs[place] != null:
+				glyphs[place].set_ink(ink)
+
+	## Closes a choice: it cannot be taken until whatever opens it has happened.
+	func lock(index: int) -> void:
+		if index < 0 or index >= buttons.size() or locked.has(index):
+			return
+		locked.append(index)
+		buttons[index].disabled = true
+		var padlock := Glyph.new("lock", 22.0)
+		padlock.ink = Color(UITheme.MUTED, 0.8)
+		padlock.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		padlock.offset_left = -34.0
+		padlock.offset_top = 6.0
+		padlock.offset_right = -6.0
+		padlock.offset_bottom = 34.0
+		buttons[index].add_child(padlock)
+		select(selected)
+
+	func is_locked(index: int) -> bool:
+		return locked.has(index)
 
 	func _choose(index: int) -> void:
-		if index == selected:
+		if index == selected or locked.has(index):
 			return
 		select(index)
 		Sound.play("ui_toggle", -9.0)

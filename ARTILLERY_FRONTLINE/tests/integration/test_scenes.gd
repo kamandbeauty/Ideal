@@ -96,9 +96,11 @@ func run(t: TestContext) -> void:
 	t.check(not zombie.visible and zombie.state == Zombie.State.POOLED, "pooled zombies are hidden and idle")
 	t.check(zombie.skeleton != null and zombie.skeleton.get_bone_count() == 18, "the zombie has its 18-bone skeleton")
 	t.check(zombie.body_mesh != null and zombie.body_mesh.skin != null, "the zombie mesh is skinned")
-	for clip: String in ["walk", "idle", "attack", "hit", "death_back", "death_front"]:
+	for clip: String in ["walk", "walk_m", "walk_b", "walk_b_m", "idle", "attack", "hit", "death_back", "death_front"]:
 		t.check(zombie.anim.has_animation(clip), "the zombie has the %s clip" % clip)
-	t.equal(zombie.anim.get_animation("walk").loop_mode, Animation.LOOP_LINEAR, "walk loops")
+	t.equal(zombie.walk_clips.size(), 4, "a walker has four ways of limping to choose from")
+	for clip: String in zombie.walk_clips:
+		t.equal(zombie.anim.get_animation(clip).loop_mode, Animation.LOOP_LINEAR, "%s loops" % clip)
 	t.equal(zombie.anim.get_animation("death_back").loop_mode, Animation.LOOP_NONE, "death does not loop")
 	t.check(zombie.head_area.get_parent() is BoneAttachment3D, "the head volume rides the head bone")
 	t.equal(zombie.body_area.collision_layer, 0, "a pooled zombie cannot be hit")

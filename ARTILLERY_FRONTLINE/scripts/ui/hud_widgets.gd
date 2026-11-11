@@ -82,8 +82,24 @@ static func draw_icon(canvas: CanvasItem, kind: String, at: Vector2, size: float
 			canvas.draw_arc(at + Vector2(s * 0.23, 0.0), s * 0.2, 0.0, TAU, 24, ink, maxf(2.0, s * 0.09), true)
 		"gun":
 			_draw_gun(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
+		"rotary":
+			_draw_rotary(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
 		"launcher":
 			_draw_launcher(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
+		"zoom":
+			# A magnifying glass with a plus in it: the sight that brings the street closer.
+			var lens: Vector2 = at + Vector2(-s * 0.08, -s * 0.08)
+			var glass: float = s * 0.3
+			var stroke: float = maxf(2.5, s * 0.075)
+			canvas.draw_arc(lens, glass, 0.0, TAU, 36, ink, stroke, true)
+			canvas.draw_line(lens + Vector2(glass, glass) * 0.76, lens + Vector2(glass, glass) * 1.75, ink, stroke * 1.5, true)
+			canvas.draw_line(lens + Vector2(-glass * 0.5, 0.0), lens + Vector2(glass * 0.5, 0.0), ink, stroke * 0.8, true)
+			canvas.draw_line(lens + Vector2(0.0, -glass * 0.5), lens + Vector2(0.0, glass * 0.5), ink, stroke * 0.8, true)
+		"lock":
+			# A padlock: the body and its shackle.
+			canvas.draw_rect(Rect2(at.x - s * 0.34, at.y - s * 0.06, s * 0.68, s * 0.52), ink)
+			canvas.draw_arc(at + Vector2(0.0, -s * 0.08), s * 0.21, PI, TAU, 16, ink, maxf(2.0, s * 0.12), true)
+			canvas.draw_circle(at + Vector2(0.0, s * 0.18), s * 0.07, hollow)
 
 
 ## Twin barrels on a cradle with its pedestal; 100 units long at scale 1, drawn from `base` to the right.
@@ -93,6 +109,18 @@ static func _draw_gun(canvas: CanvasItem, base: Vector2, k: float, ink: Color) -
 		canvas.draw_rect(Rect2(base + Vector2(6.0, offset - 4.5) * k, Vector2(34.0, 9.0) * k), ink)
 		canvas.draw_rect(Rect2(base + Vector2(92.0, offset - 3.0) * k, Vector2(8.0, 6.0) * k), ink)
 	canvas.draw_rect(Rect2(base + Vector2(0.0, -3.0) * k, Vector2(10.0, 6.0) * k), ink)
+	canvas.draw_colored_polygon(PackedVector2Array([base + Vector2(18.0, 12.0) * k, base + Vector2(30.0, 12.0) * k,
+		base + Vector2(34.0, 22.0) * k, base + Vector2(14.0, 22.0) * k]), ink)
+
+
+## Six barrels in a cluster (three show from the side) with their clamps, the housing and its yoke; 100 units long.
+static func _draw_rotary(canvas: CanvasItem, base: Vector2, k: float, ink: Color) -> void:
+	for offset: float in [-5.5, 0.0, 5.5]:
+		canvas.draw_line(base + Vector2(36.0, offset) * k, base + Vector2(100.0, offset) * k, ink, 2.6 * k)
+	for clamp_at: float in [60.0, 93.0]:
+		canvas.draw_rect(Rect2(base + Vector2(clamp_at, -8.5) * k, Vector2(4.5, 17.0) * k), ink)
+	canvas.draw_rect(Rect2(base + Vector2(8.0, -10.0) * k, Vector2(31.0, 20.0) * k), ink)
+	canvas.draw_rect(Rect2(base + Vector2(0.0, -4.0) * k, Vector2(10.0, 8.0) * k), ink)
 	canvas.draw_colored_polygon(PackedVector2Array([base + Vector2(18.0, 12.0) * k, base + Vector2(30.0, 12.0) * k,
 		base + Vector2(34.0, 22.0) * k, base + Vector2(14.0, 22.0) * k]), ink)
 
@@ -229,6 +257,8 @@ class RoundButton:
 	var tint: Color = UITheme.AMBER
 	## Drawn faint: the button has nothing to give right now.
 	var dim: bool = false
+	## A switch that is on: the disc stays filled after the thumb has gone.
+	var lit: bool = false
 
 	func _init(button_kind: String = "fire", button_radius: float = 60.0) -> void:
 		kind = button_kind
@@ -258,17 +288,22 @@ class RoundButton:
 			dim = value
 			queue_redraw()
 
+	func set_lit(value: bool) -> void:
+		if lit != value:
+			lit = value
+			queue_redraw()
+
 	func _draw() -> void:
 		var middle: Vector2 = size * 0.5
 		var strength: float = 0.4 if dim else 1.0
 		# The disc gives a little under the thumb.
 		var r: float = radius * (0.95 if held else 1.0)
 		draw_circle(middle, r, Color(0.02, 0.025, 0.03, 0.5), true, -1.0, true)
-		if held:
+		if held or lit:
 			draw_circle(middle, r, Color(tint.r, tint.g, tint.b, 0.4), true, -1.0, true)
 		elif kind == "fire":
 			draw_circle(middle, r - 9.0, Color(tint.r, tint.g, tint.b, 0.22), true, -1.0, true)
-		draw_arc(middle, r, 0.0, TAU, 72, Color(tint.r, tint.g, tint.b, (1.0 if held else 0.8) * strength), 4.0, true)
+		draw_arc(middle, r, 0.0, TAU, 72, Color(tint.r, tint.g, tint.b, (1.0 if (held or lit) else 0.8) * strength), 4.0, true)
 		draw_arc(middle, r - 8.0, 0.0, TAU, 72, Color(1.0, 1.0, 1.0, 0.13), 1.5, true)
 		if progress < 1.0:
 			draw_arc(middle, r - 3.5, -PI * 0.5, -PI * 0.5 + TAU * progress, 48, Color(1.0, 1.0, 1.0, 0.92), 5.0, true)
@@ -305,9 +340,16 @@ class Crosshair:
 	var style: String = "cross"
 	## 0..1 while the weapon in hand reloads, drawn as a ring closing round the sight; negative otherwise.
 	var reload: float = -1.0
+	## 0 with the naked eye, 1 with the sight drawn in: the hairs of the sight grow long.
+	var zoom: float = 0.0
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func set_zoom(value: float) -> void:
+		if not is_equal_approx(zoom, value):
+			zoom = value
+			queue_redraw()
 
 	func set_style(value: String) -> void:
 		if style != value:
@@ -355,6 +397,19 @@ class Crosshair:
 				draw_line(middle + direction * gap, middle + direction * (gap + 12.0), ink, 2.0)
 		draw_circle(middle, 2.6, shade)
 		draw_circle(middle, 1.5, ink)
+		if zoom > 0.01:
+			# The hairs of a telescopic sight: thin, long, and stepped with range marks below the centre.
+			var hair := Color(ink.r, ink.g, ink.b, 0.62 * zoom)
+			var dark := Color(0.0, 0.0, 0.0, 0.4 * zoom)
+			var from: float = (30.0 if style == "rocket" else gap + 12.0) + 8.0
+			var reach: float = from + 120.0 * zoom
+			for direction: Vector2 in [Vector2.RIGHT, Vector2.LEFT, Vector2.DOWN]:
+				draw_line(middle + direction * from, middle + direction * reach, dark, 3.0)
+				draw_line(middle + direction * from, middle + direction * reach, hair, 1.2)
+			for step: int in 3:
+				var drop: float = from + 26.0 * float(step + 1)
+				var half: float = 10.0 - 2.5 * float(step)
+				draw_line(middle + Vector2(-half, drop), middle + Vector2(half, drop), hair, 1.2)
 		if reload >= 0.0 and reload < 1.0:
 			var around: float = 40.0
 			draw_arc(middle, around, 0.0, TAU, 48, Color(0.0, 0.0, 0.0, 0.4), 5.0, true)
@@ -405,6 +460,8 @@ class WeaponSlot:
 	## One weapon of the gunner: a card with its outline. The HUD's router
 	## hit-tests it with `contains` and writes the round count on a label inside it.
 	var kind: String = "bullet"
+	## Which outline the card carries: "gun", "rotary" or "launcher".
+	var icon: String = "gun"
 	var active: bool = false
 	var spent: bool = false
 	var progress: float = 1.0
@@ -412,8 +469,9 @@ class WeaponSlot:
 	## The supply never runs out: the card shows a lying eight instead of a count.
 	var endless: bool = false
 
-	func _init(weapon_kind: String = "bullet") -> void:
+	func _init(weapon_kind: String = "bullet", weapon_icon: String = "") -> void:
 		kind = weapon_kind
+		icon = weapon_icon if weapon_icon != "" else ("launcher" if weapon_kind == "rocket" else "gun")
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 		custom_minimum_size = Vector2(160, 80)
 		size = custom_minimum_size
@@ -457,10 +515,13 @@ class WeaponSlot:
 			ink.a = 0.26
 		var k: float = size.x / 140.0
 		var base := Vector2(14.0, size.y * 0.4)
-		if kind == "rocket":
-			HudWidgets._draw_launcher(self, base, k, ink)
-		else:
-			HudWidgets._draw_gun(self, base, k, ink)
+		match icon:
+			"launcher":
+				HudWidgets._draw_launcher(self, base, k, ink)
+			"rotary":
+				HudWidgets._draw_rotary(self, base, k, ink)
+			_:
+				HudWidgets._draw_gun(self, base, k, ink)
 		if endless:
 			HudWidgets.draw_icon(self, "endless", Vector2(size.x - 30.0, size.y - 21.0), 30.0, Color(ink, ink.a * 0.9))
 		if spent:

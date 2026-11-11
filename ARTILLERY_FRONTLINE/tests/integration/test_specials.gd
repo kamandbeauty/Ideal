@@ -72,7 +72,9 @@ func _movement_and_damage(t: TestContext) -> void:
 	var covered: Dictionary = {}
 	for zombie: Zombie in [walker, runner, brute, boss]:
 		covered[zombie] = (zombie.position - (starts[zombie] as Vector3)).length()
-	t.check(covered[runner] > covered[walker] * 1.8, "a runner covers about twice a walker's ground (%.1f m against %.1f m in 6 s)" % [covered[runner], covered[walker]])
+	# Each zombie has its own pace (a walker up to 14 % either way, a runner 10 %) and the avenue bends,
+	# so the slowest runner beside the quickest walker is still well ahead, but by less than twice.
+	t.check(covered[runner] > covered[walker] * 1.6, "a runner covers about twice a walker's ground (%.1f m against %.1f m in 6 s)" % [covered[runner], covered[walker]])
 	t.check(covered[brute] < covered[walker] and covered[boss] < covered[walker], "the brute and the boss are slower than a walker")
 	t.near(covered[runner], runner.speed * 6.0, runner.speed * 1.2, "a runner moves at its own speed")
 

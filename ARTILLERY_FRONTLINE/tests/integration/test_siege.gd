@@ -1,5 +1,6 @@
 extends RefCounted
 ## Whole-match simulations: the systems wired together as in the real game.
+## The siege is played a stage at a time, each on a sound wall with full pouches.
 
 
 func run(t: TestContext) -> void:
@@ -7,7 +8,7 @@ func run(t: TestContext) -> void:
 	await _sieges(t)
 
 
-## Nobody shoots: the horde must reach the gate, break it and breach the wall.
+## Nobody shoots: the horde of the first stage must reach the gate, break it and breach the wall.
 func _undefended_wall_falls(t: TestContext) -> void:
 	var level: CityLevel = t.make_level()
 	await t.frames(2)
@@ -53,8 +54,8 @@ func _undefended_wall_falls(t: TestContext) -> void:
 ## striking first, then the nearest), and with `explosives` it spends rockets
 ## on the big ones and on crowds, and grenades on crowds, as they come to hand.
 ## The level, the waves, the resupply and the blasts are the real ones.
-func _play(t: TestContext, dps: float, explosives: bool, label: String) -> Dictionary:
-	var level: CityLevel = t.make_level()
+func _play(t: TestContext, stage: int, dps: float, explosives: bool, label: String) -> Dictionary:
+	var level: CityLevel = t.make_level(stage)
 	await t.frames(2)
 	var finished: Array = []
 	var on_finished := func(victory: bool, stats: Dictionary) -> void: finished.append([victory, stats])
@@ -185,42 +186,84 @@ func _crowd(targets: Array[Zombie], reach: float, least: int) -> Zombie:
 	return best
 
 
-## The whole siege at four levels of skill. Damage per second is what lands on
+## One stage after another for a gunner of the given skill, stopping at the first stage that is lost.
+func _campaign(t: TestContext, dps: float, explosives: bool, label: String) -> Array:
+	var runs: Array = []
+	for stage: int in Campaign.count():
+		var result: Dictionary = await _play(t, stage, dps, explosives, "stage %d, %s" % [stage + 1, label])
+		runs.append(result)
+		if result.breached or not result.over:
+			break
+	return runs
+
+
+## The whole siege at five levels of skill. Damage per second is what lands on
 ## bodies after every miss, reload and change of target: the machine gun's
 ## ceiling is 400.
 func _sieges(t: TestContext) -> void:
-	var strong: Dictionary = await _play(t, 240.0, true, "strong gunner (240 dps, explosives)")
-	var count: int = strong.wave_count
-	t.check(count >= 8, "the shipped siege has at least eight waves (%d)" % count)
-	t.equal(strong.waves, range(count), "every wave starts, in order")
-	t.check(strong.over and not strong.breached, "a strong gunner holds the wall to the end")
-	t.equal(strong.killed + strong.entered, strong.total, "every zombie of the siege was spawned and accounted for")
-	t.check(strong.wall > 0.5, "with most of the wall left (%.0f%%)" % (strong.wall * 100.0))
-	t.check(strong.boss_seen_at > 0.0 and strong.boss_down_at > strong.boss_seen_at, "the boss walks on in the last wave and is brought down")
-	t.check(strong.boss_seen_at >= strong.wave_times[count - 1], "not before the last wave")
-	t.check(strong.rockets >= 4, "rockets are resupplied and used (%d)" % strong.rockets)
-	t.check(strong.reused > 0, "zombie nodes are reused from the pools")
-	t.check(strong.created <= strong.prewarmed + 40, "the pools stay bounded (created %d, prewarmed %d)" % [strong.created, strong.prewarmed])
-	t.check(strong.time > 300.0 and strong.time < 900.0, "the siege lasts 5 to 15 minutes (%.0f s)" % strong.time)
-	t.check(not strong.finished.is_empty(), "match_finished is emitted after the last wave")
-	if not strong.finished.is_empty():
-		var stats: Dictionary = strong.finished[0][1]
-		t.equal(strong.finished[0][0], true, "the result is a victory")
-		t.equal(int(stats.waves_cleared), count, "victory stats count every cleared wave")
-		t.equal(int(stats.kills), strong.killed, "victory stats count every kill")
-		t.equal(int(stats.bosses), 1, "and the boss among them")
-		t.equal(int(stats.special_kills), strong.killed - int(strong.by_type.get(&"walker", 0)), "and everything tougher than a walker")
+	var stages: int = Campaign.count()
+	var strong: Array = await _campaign(t, 240.0, true, "strong gunner (240 dps, explosives)")
+	t.equal(strong.size(), stages, "a strong gunner plays every stage")
+	var waves: int = 0
+	var killed: int = 0
+	var entered: int = 0
+	var total: int = 0
+	var rockets: int = 0
+	var time: float = 0.0
+	var by_type: Dictionary = {}
+	for stage: int in strong.size():
+		var result: Dictionary = strong[stage]
+		var count: int = result.wave_count
+		t.equal(result.waves, range(count), "stage %d: every wave starts, in order" % (stage + 1))
+		t.check(result.over and not result.breached, "stage %d: a strong gunner holds the wall to the end" % (stage + 1))
+		t.equal(result.killed + result.entered, result.total, "stage %d: every zombie was spawned and accounted for" % (stage + 1))
+		t.check(result.wall > 0.5, "stage %d: with most of the wall left (%.0f%%)" % [stage + 1, result.wall * 100.0])
+		t.check(result.reused > 0 or stage == 0, "stage %d: zombie nodes are reused from the pools" % (stage + 1))
+		t.check(result.created <= result.prewarmed + 40, "stage %d: the pools stay bounded (created %d, prewarmed %d)" % [
+			stage + 1, result.created, result.prewarmed])
+		t.check(not result.finished.is_empty(), "stage %d: match_finished is emitted after its last wave" % (stage + 1))
+		if not result.finished.is_empty():
+			var stats: Dictionary = result.finished[0][1]
+			t.equal(result.finished[0][0], true, "stage %d: the result is a victory" % (stage + 1))
+			t.equal(int(stats.waves_cleared), count, "stage %d: victory stats count every cleared wave" % (stage + 1))
+			t.equal(int(stats.kills), result.killed, "stage %d: and every kill" % (stage + 1))
+			t.equal(int(stats.stage), stage, "stage %d: and say which stage it was" % (stage + 1))
+			t.equal(int(stats.wave_overall), waves + count, "stage %d: its last wave is wave %d of the siege" % [stage + 1, waves + count])
+			t.equal(int(stats.special_kills), result.killed - int(result.by_type.get(&"walker", 0)), "stage %d: and everything tougher than a walker" % (stage + 1))
+			if stage == stages - 1:
+				t.equal(int(stats.bosses), 1, "the boss is among the kills of the last stage")
+		waves += count
+		killed += result.killed
+		entered += result.entered
+		total += result.total
+		rockets += result.rockets
+		time += result.time
+		for id: StringName in result.by_type:
+			by_type[id] = int(by_type.get(id, 0)) + int(result.by_type[id])
+	t.check(waves >= 8, "the shipped siege has at least eight waves (%d)" % waves)
+	t.equal(killed + entered, total, "every zombie of the siege was accounted for")
+	if strong.size() == stages:
+		var first: Dictionary = strong[0]
+		var last: Dictionary = strong[stages - 1]
+		t.equal(first.wave_count, 3, "the first stage is three waves")
+		t.check(first.time > 60.0 and first.time < 240.0, "and lasts one to four minutes (%.0f s)" % first.time)
+		t.check(int(first.by_type.get(&"brute", 0)) == 0 and first.boss_seen_at < 0.0, "with no brute and no boss in it")
+		t.check(last.boss_seen_at > 0.0 and last.boss_down_at > last.boss_seen_at, "the boss walks on in the last wave and is brought down")
+		t.check(last.boss_seen_at >= last.wave_times[last.wave_count - 1], "not before the last wave")
+	t.check(rockets >= 4, "rockets are used and resupplied (%d)" % rockets)
+	t.check(time > 300.0 and time < 900.0, "the siege lasts 5 to 15 minutes in all (%.0f s)" % time)
 	for id: StringName in [&"walker", &"runner", &"brute", &"boss"]:
-		t.check(int(strong.by_type.get(id, 0)) > 0, "the siege fields the %s" % id)
+		t.check(int(by_type.get(id, 0)) > 0, "the siege fields the %s" % id)
 
-	var average: Dictionary = await _play(t, 150.0, true, "average gunner (150 dps, explosives)")
-	t.check(average.over and not average.breached, "an average gunner who uses the explosives wins")
-	# Printed for the balance record; a gunner this weak may win or lose by a hair.
-	await _play(t, 110.0, true, "modest gunner (110 dps, explosives)")
-	await _play(t, 90.0, true, "weak gunner (90 dps, explosives)")
-	var poor: Dictionary = await _play(t, 60.0, false, "poor gunner (60 dps, guns only)")
-	t.check(poor.breached, "the siege is not a walkover: a poor gunner loses the wall")
-	t.check(poor.waves.size() >= 4, "but not in the opening waves (reached wave %d)" % poor.waves.size())
-	if not poor.finished.is_empty():
-		t.equal(poor.finished[0][0], false, "that result is a defeat")
+	var average: Array = await _campaign(t, 150.0, true, "average gunner (150 dps, explosives)")
+	t.check(average.size() == stages and not average[average.size() - 1].breached, "an average gunner who uses the explosives wins every stage")
+	# Printed for the balance record; a gunner this weak may win or lose a stage by a hair.
+	await _campaign(t, 110.0, true, "modest gunner (110 dps, explosives)")
+	await _campaign(t, 90.0, true, "weak gunner (90 dps, explosives)")
+	var poor: Array = await _campaign(t, 60.0, false, "poor gunner (60 dps, guns only)")
+	var fell: Dictionary = poor[poor.size() - 1]
+	t.check(fell.breached, "the siege is not a walkover: a poor gunner loses the wall")
+	t.check(poor.size() >= 2, "but not in the first stage (lost stage %d)" % poor.size())
+	if not fell.finished.is_empty():
+		t.equal(fell.finished[0][0], false, "that result is a defeat")
 	t.near(Engine.time_scale, 1.0, 0.001, "time scale is back to normal after the sieges")

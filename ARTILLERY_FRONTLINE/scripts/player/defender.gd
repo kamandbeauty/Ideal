@@ -2,7 +2,11 @@ class_name Defender
 extends Node3D
 ## The gunner: a fixed firing position on the wall. The eye rides on a frame
 ## that turns and tips with the aim; the weapons follow that frame, and
-## nothing else moves the player.
+## nothing else moves the player. The gun on the mount is the one the player
+## chose in the menu; the sight can be drawn in to bring the street closer.
+
+## The weapons under this node are not the ones the HUD last saw: another gun stands on the mount.
+signal loadout_changed
 
 @export var aim_settings: AimSettings
 @export var grenade_data: GrenadeData
@@ -11,6 +15,11 @@ extends Node3D
 
 ## Where a grenade leaves the hand, relative to the eye: right, up, back.
 const THROW_HAND := Vector3(0.3, -0.25, -0.6)
+## The scene of every gun that can stand on the mount, by the id the player's choice is saved under (Profile.GUNS).
+const GUN_SCENES: Dictionary = {
+	"twin_hmg": "res://scenes/weapons/twin_hmg.tscn",
+	"rotary_gun": "res://scenes/weapons/rotary_gun.tscn",
+}
 
 var aim: AimController
 ## Every weapon under this node, in scene order; the first is the one in hand at the start.
@@ -31,6 +40,14 @@ var touch_fire: bool = false
 var shake: Vector3 = Vector3.ZERO
 ## Degrees the field of view is thrown open by a heavy shot or a close blast; it settles in a fraction of a second.
 var punch: float = 0.0
+## The sight is drawn in: the street looks closer, and the aim turns slower by as much.
+var zoomed: bool = false
+## 0 = the naked eye, 1 = the sight fully drawn in.
+var zoom: float = 0.0
+## The pools the weapons fire into, kept for a gun that is mounted later.
+var bullet_pool: BulletPool
+var rocket_pool: RocketPool
+var effect_pool: EffectPool
 var rng := RandomNumberGenerator.new()
 var aim_query := PhysicsRayQueryParameters3D.new()
 
@@ -57,12 +74,15 @@ func _ready() -> void:
 	camera.position = aim_settings.eye_offset
 	cradle.add_child(camera)
 	camera.make_current()
+	# The scene carries the twin gun; the player may have chosen another.
+	var standing: Weapon = get_node_or_null("Weapon") as Weapon
+	var chosen: String = str(Profile.setting("gun"))
+	if standing != null and GUN_SCENES.has(chosen) and String(standing.data.id) != chosen:
+		_stand_gun(chosen, standing)
 	for child: Node in get_children():
 		if child is Weapon:
 			var item: Weapon = child
-			item.camera = camera
-			item.sight = cradle
-			item.shot_fired.connect(_on_shot.bind(item))
+			_adopt(item)
 			weapons.append(item)
 	weapon = weapons[0]
 	weapon_index = 0
@@ -75,7 +95,10 @@ func _ready() -> void:
 
 
 ## Hands every weapon the pools it fires into.
-func equip(bullet_pool: BulletPool, rocket_pool: RocketPool, grenade_pool: GrenadePool, effect_pool: EffectPool) -> void:
+func equip(bullets: BulletPool, rockets: RocketPool, grenade_pool: GrenadePool, effects: EffectPool) -> void:
+	bullet_pool = bullets
+	rocket_pool = rockets
+	effect_pool = effects
 	grenades = grenade_pool
 	for item: Weapon in weapons:
 		item.bullets = bullet_pool
@@ -87,14 +110,16 @@ func set_input_enabled(enabled: bool) -> void:
 	input_enabled = enabled
 	if not enabled:
 		touch_fire = false
+		set_zoom(false)
 		for item: Weapon in weapons:
 			item.set_trigger(false)
 
 
-## Finger travel on the reference canvas, in pixels.
+## Finger travel on the reference canvas, in pixels. With the sight drawn in the same travel turns the
+## gun less, so the picture moves under the finger as far as it always does.
 func add_drag(pixels: Vector2) -> void:
 	if input_enabled:
-		aim.drag(pixels, Profile.setting("sensitivity"), Profile.setting("invert_y"))
+		aim.drag(pixels, float(Profile.setting("sensitivity")) * aim_scale(), Profile.setting("invert_y"))
 
 
 func set_fire(pressed: bool) -> void:
@@ -110,7 +135,90 @@ func reload() -> void:
 		weapon.request_reload()
 
 
+# -- The sight -----------------------------------------------------------------------
+## Draws the sight in or lets it out. `instant` skips the glide.
+func set_zoom(on: bool, instant: bool = false) -> void:
+	zoomed = on
+	if instant:
+		zoom = 1.0 if on else 0.0
+		if camera != null:
+			_apply_aim()
+
+
+## Changes over between the naked eye and the drawn-in sight. False when the gunner is not at the gun.
+func toggle_zoom() -> bool:
+	if not input_enabled:
+		return false
+	set_zoom(not zoomed)
+	Sound.play("click", -9.0, 1.25 if zoomed else 1.05)
+	return true
+
+
+## How many times closer the street looks right now: 1 with the naked eye.
+func magnification() -> float:
+	return lerpf(1.0, aim_settings.zoom_factor, smoothstep(0.0, 1.0, zoom))
+
+
+## The field of view the eye has right now, in degrees, without the jolt of a shot.
+func view_fov() -> float:
+	return aim_settings.fov_at(magnification())
+
+
+## What a turn of the gun is worth in the picture, against the naked eye: 1 normally, less with the sight drawn in.
+func aim_scale() -> float:
+	return 1.0 / magnification()
+
+
 # -- Weapons -------------------------------------------------------------------------
+## Gives a weapon the gunner's eye and listens for its shots.
+func _adopt(item: Weapon) -> void:
+	item.camera = camera
+	item.sight = cradle
+	item.shot_fired.connect(_on_shot.bind(item))
+
+
+## Takes `old` off the mount and stands the gun called `id` in its place, first among the weapons.
+func _stand_gun(id: String, old: Weapon) -> Weapon:
+	var gun: Weapon = (load(GUN_SCENES[id]) as PackedScene).instantiate()
+	if old != null:
+		remove_child(old)
+		old.queue_free()
+	gun.name = "Weapon"
+	add_child(gun)
+	move_child(gun, 0)
+	return gun
+
+
+## The id of the gun standing on the mount.
+func gun_id() -> String:
+	return String(weapons[0].data.id) if not weapons.is_empty() else ""
+
+
+## Stands another gun on the mount, with a full belt; the other weapons keep what they have.
+## False when there is no such gun or it is the one already there.
+func mount_gun(id: String) -> bool:
+	if not GUN_SCENES.has(id) or weapons.is_empty() or gun_id() == id:
+		return false
+	var old: Weapon = weapons[0]
+	var in_hand: bool = weapon == old
+	var gun: Weapon = _stand_gun(id, old)
+	_adopt(gun)
+	gun.bullets = bullet_pool
+	gun.rockets = rocket_pool
+	gun.effects = effect_pool
+	weapons[0] = gun
+	if in_hand:
+		weapon = gun
+		gun.select(0.0, true)
+	else:
+		gun.deselect(true)
+	_apply_aim()
+	loadout_changed.emit()
+	Events.weapon_changed.emit(weapon_index, weapon)
+	Events.ammo_changed.emit(weapon.state.ammo, weapon.data.magazine_size)
+	return true
+
+
 func weapon_of(id: StringName) -> Weapon:
 	for item: Weapon in weapons:
 		if item.data.id == id:
@@ -237,7 +345,8 @@ func _process(delta: float) -> void:
 		if Input.is_physical_key_pressed(KEY_DOWN) or Input.is_physical_key_pressed(KEY_S):
 			turn.y -= 1.0
 		if turn != Vector2.ZERO:
-			aim.turn(turn.x * aim_settings.key_turn_speed * delta, turn.y * aim_settings.key_turn_speed * delta)
+			var rate: float = aim_settings.key_turn_speed * aim_scale() * delta
+			aim.turn(turn.x * rate, turn.y * rate)
 		weapon.set_trigger(touch_fire or Input.is_physical_key_pressed(KEY_SPACE))
 		if Input.is_physical_key_pressed(KEY_R):
 			weapon.request_reload()
@@ -248,6 +357,9 @@ func _process(delta: float) -> void:
 					_switch_to(index)
 					break
 	aim.step(delta)
+	var goal: float = 1.0 if zoomed else 0.0
+	if zoom != goal:
+		zoom = goal if aim_settings.zoom_time <= 0.0 else move_toward(zoom, goal, delta / aim_settings.zoom_time)
 	shake = shake.lerp(Vector3.ZERO, 1.0 - exp(-18.0 * delta))
 	punch = lerpf(punch, 0.0, 1.0 - exp(-9.0 * delta))
 	if punch < 0.01:
@@ -261,12 +373,14 @@ func _apply_aim() -> void:
 	frame.rotation.y = -deg_to_rad(yaw)
 	cradle.rotation.x = deg_to_rad(pitch)
 	# The shake is only in the picture: the weapons follow the cradle, so switching it off changes nothing about where rounds go.
+	# Through the drawn-in sight it is scaled down, so that it stays the same size on the screen.
+	var scale: float = aim_scale()
 	if bool(Profile.setting("screen_shake")):
-		camera.rotation = Vector3(deg_to_rad(shake.x), deg_to_rad(shake.y), deg_to_rad(shake.z))
-		camera.fov = aim_settings.fov_degrees + punch
+		camera.rotation = Vector3(deg_to_rad(shake.x), deg_to_rad(shake.y), deg_to_rad(shake.z)) * scale
+		camera.fov = view_fov() + punch * scale
 	else:
 		camera.rotation = Vector3.ZERO
-		camera.fov = aim_settings.fov_degrees
+		camera.fov = view_fov()
 	for item: Weapon in weapons:
 		item.set_aim(yaw, pitch)
 

@@ -1,10 +1,12 @@
 extends RefCounted
-## Wave resources: the shipped siege is valid data and schedules correctly.
+## Wave resources: the shipped siege is valid data and schedules correctly,
+## and it is cut into stages without changing a wave.
 
 
 func run(t: TestContext) -> void:
-	var siege: WaveSet = load("res://resources/waves/city_siege_waves.tres")
-	t.check(siege != null, "city_siege_waves.tres loads as WaveSet")
+	_stages(t)
+	var siege: WaveSet = Campaign.whole()
+	t.check(siege != null and not siege.waves.is_empty(), "the stages add up to one siege")
 	var layout: LevelLayout = load("res://resources/levels/city_siege_layout.tres")
 	var known: Dictionary = {}
 	for id: String in ["walker", "runner", "brute", "boss"]:
@@ -94,3 +96,33 @@ func run(t: TestContext) -> void:
 	var weapon: WeaponData = load("res://resources/weapons/twin_hmg.tres")
 	t.check(weapon.damage * weapon.headshot_multiplier >= walker.max_health, "one headshot kills a walker")
 	t.check(weapon.damage < walker.max_health, "a walker survives one body shot")
+
+
+## The siege is played a stage at a time. The first is three waves; each later one opens as hard as the wave it starts with.
+func _stages(t: TestContext) -> void:
+	t.equal(Campaign.count(), 3, "the siege is cut into three stages")
+	var first: WaveSet = Campaign.waves(0)
+	t.equal(first.waves.size(), 3, "the first stage is three waves")
+	t.equal(first.waves_before, 0, "and starts the siege")
+	t.check(first.waves[0].count_of(&"brute") + first.waves[1].count_of(&"brute") + first.waves[2].count_of(&"brute") == 0
+		and first.waves[2].count_of(&"boss") == 0, "it fields no brute and no boss")
+	var before: int = 0
+	var zombies: int = 0
+	var whole: WaveSet = Campaign.whole()
+	for stage: int in Campaign.count():
+		var part: WaveSet = Campaign.waves(stage)
+		t.check(part != null and part.waves.size() >= 2, "stage %d loads with its waves" % (stage + 1))
+		t.equal(part.waves_before, before, "stage %d knows how many waves came before it" % (stage + 1))
+		t.near(part.health_scale(0), whole.health_scale(before), 0.0001, "and opens as hard as that wave of the whole siege")
+		t.near(part.speed_scale(part.waves.size() - 1), whole.speed_scale(before + part.waves.size() - 1), 0.0001, "its last wave as fast")
+		for index: int in part.waves.size():
+			t.check(part.waves[index].total() == whole.waves[before + index].total(), "stage %d wave %d is that wave, unchanged" % [stage + 1, index + 1])
+			t.equal(Campaign.place_of(before + index + 1), Vector2i(stage + 1, index + 1), "wave %d of the siege is found in its stage" % (before + index + 1))
+		before += part.waves.size()
+		zombies += part.total_zombies()
+	t.equal(before, Campaign.total_waves(), "the stages hold every wave")
+	t.equal(zombies, Campaign.total_zombies(), "and every zombie")
+	t.equal(Campaign.open_stages(0), 1, "a new player may start the first stage only")
+	t.equal(Campaign.open_stages(1), 2, "winning it opens the second")
+	t.equal(Campaign.open_stages(Campaign.count()), Campaign.count(), "and nothing opens past the last")
+	t.equal(Campaign.waves(99), Campaign.waves(Campaign.count() - 1), "an impossible stage number falls back to the last")

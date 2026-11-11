@@ -3,7 +3,7 @@ extends RefCounted
 ## between them the ones the design promises.
 
 const IDS: Array[String] = ["walker", "runner", "brute", "boss"]
-const CLIPS: Array[String] = ["walk", "idle", "attack", "hit", "death_back", "death_front"]
+const CLIPS: Array[String] = ["walk", "walk_m", "idle", "attack", "hit", "death_back", "death_front"]
 
 
 func run(t: TestContext) -> void:
@@ -23,7 +23,7 @@ func run(t: TestContext) -> void:
 		t.check(pace > 0.6 and pace < 1.6, "%s walks at a pace its legs can show (clip rate %.2f)" % [id, pace])
 		t.check(data.body_height >= data.body_radius * 2.0 and data.head_radius > 0.0, "%s hit volumes are well formed" % id)
 		for skin: int in data.skins:
-			t.check(ResourceLoader.exists("res://assets/textures/zombies/zombie_%s_%s.png" % [id, ["a", "b", "c"][skin]]),
+			t.check(ResourceLoader.exists("res://assets/textures/zombies/zombie_%s_%s.png" % [id, "abcdefgh"[skin]]),
 				"%s skin %d is painted" % [id, skin + 1])
 		for sound: String in [data.spawn_sound, data.death_sound]:
 			t.check(sound == "" or Sound.has_clip(sound), "%s sound '%s' exists" % [id, sound])
@@ -37,6 +37,16 @@ func run(t: TestContext) -> void:
 			if player == null or not player.has_animation(clip):
 				missing.append(clip)
 		t.check(missing.is_empty(), "%s has every clip (%s)" % [id, str(missing)])
+		if player != null and player.has_animation("walk") and player.has_animation("walk_m"):
+			# Every kind drags a leg, and the mirrored walk drags the other one. (A clip only poses a model that is in the tree.)
+			t.tree.root.add_child(model)
+			var limp: Dictionary = _limp(skeleton, player, "walk")
+			var mirrored: Dictionary = _limp(skeleton, player, "walk_m")
+			t.check(limp.right < limp.left * 0.9, "%s limps: the right foot is lifted less than the left (%.3f m against %.3f m)" % [
+				id, limp.right, limp.left])
+			t.check(mirrored.left < mirrored.right * 0.9, "the mirrored %s walk is lame in the other leg (%.3f m against %.3f m)" % [
+				id, mirrored.left, mirrored.right])
+			t.near(player.get_animation("walk_m").length, player.get_animation("walk").length, 0.001, "and takes as long")
 		var tallest: float = 0.0
 		var triangles: int = 0
 		for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
@@ -45,8 +55,12 @@ func run(t: TestContext) -> void:
 				triangles += (mesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_INDEX] as PackedInt32Array).size() / 3
 		t.check(absf(tallest - data.height()) < data.height() * 0.1, "%s hit volumes match the model's height (%.2f m model, %.2f m volumes)" % [
 			id, tallest, data.height()])
-		t.check(triangles > 1000 and triangles < 4500, "%s stays inside the mobile triangle budget (%d)" % [id, triangles])
+		t.check(triangles > 3000 and triangles < 6500, "%s is detailed, and stays inside the mobile triangle budget (%d)" % [id, triangles])
 		model.free()
+	var walker_model: Node3D = (load("res://assets/models/zombies/zombie_walker.glb") as PackedScene).instantiate()
+	var walker_player: AnimationPlayer = walker_model.find_child("AnimationPlayer", true, false)
+	t.check(walker_player.has_animation("walk_b") and walker_player.has_animation("walk_b_m"), "the walker has a second way of limping, and its mirror")
+	walker_model.free()
 
 	var walker: ZombieData = types.walker
 	var runner: ZombieData = types.runner
@@ -90,3 +104,21 @@ func run(t: TestContext) -> void:
 	t.check(boss.breach_damage >= wall.wall_max_health * 0.5 and boss.breach_damage < wall.wall_max_health,
 		"a boss inside the city costs most of the wall, but not all of it")
 	t.check(wall.gate_max_health / (boss.attack_damage / boss.attack_interval) > 20.0, "a sound gate stands up to the boss for a while")
+
+
+## How high each foot is lifted over one turn of a walk clip: {"left", "right"} in metres.
+func _limp(skeleton: Skeleton3D, player: AnimationPlayer, clip: String) -> Dictionary:
+	var feet: Dictionary = {"left": skeleton.find_bone("Foot_L"), "right": skeleton.find_bone("Foot_R")}
+	var low: Dictionary = {"left": INF, "right": INF}
+	var high: Dictionary = {"left": -INF, "right": -INF}
+	var length: float = player.get_animation(clip).length
+	player.play(clip)
+	for step: int in 24:
+		player.seek(length * float(step) / 24.0, true)
+		player.advance(0.0)
+		for side: String in feet:
+			var height: float = skeleton.get_bone_global_pose(feet[side]).origin.y
+			low[side] = minf(low[side], height)
+			high[side] = maxf(high[side], height)
+	player.stop()
+	return {"left": high.left - low.left, "right": high.right - low.right}

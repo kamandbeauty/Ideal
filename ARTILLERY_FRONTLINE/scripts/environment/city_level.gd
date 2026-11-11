@@ -371,6 +371,7 @@ func begin_match() -> void:
 	stats.stage = stage
 	stats.waves_before = wave_set.waves_before if wave_set else 0
 	defender.aim.reset()
+	defender.set_zoom(false, true)
 	defender.set_input_enabled(true)
 	Events.weapon_changed.emit(defender.weapon_index, defender.weapon)
 	Events.ammo_changed.emit(defender.weapon.state.ammo, defender.weapon.data.magazine_size)
