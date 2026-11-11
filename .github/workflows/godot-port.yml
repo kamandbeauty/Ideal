@@ -353,17 +353,27 @@ jobs:
       # The runner's apt mirror answers with a transient error often enough that this step has already
       # taken two good commits down with it. Retrying with a cleared index costs nothing when it works
       # and saves the run when it does not.
+      # Two things go wrong here on this runner, so both are handled before apt is called:
+      #   1. the azure mirror the image points at stops answering, and every attempt then hangs;
+      #   2. a transient 100 from the index takes the step — and the screenshots — with it.
+      # The sources are repointed at the main archive and the call is retried with a hard timeout, so a
+      # broken mirror costs two minutes instead of eighteen.
       - name: Install a software OpenGL stack and a virtual display
         run: |
-          for attempt in 1 2 3; do
-            if sudo apt-get update -qq \
-              && sudo apt-get install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 mesa-utils; then
+          sudo sed -i -E 's|https?://[a-z0-9.-]*archive\.ubuntu\.com|http://archive.ubuntu.com|g' \
+            /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+          sudo sed -i -E 's|https?://[a-z0-9.-]*security\.ubuntu\.com|http://security.ubuntu.com|g' \
+            /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+          APT_OPTS="-o Acquire::Retries=3 -o Acquire::http::Timeout=25 -o Acquire::https::Timeout=25"
+          for attempt in 1 2; do
+            if sudo apt-get $APT_OPTS update -qq \
+              && sudo apt-get $APT_OPTS install -y -qq xvfb libgl1-mesa-dri libglx-mesa0 mesa-utils; then
               echo "apt stack installed on attempt $attempt"
               exit 0
             fi
             echo "::warning title=apt::attempt $attempt failed; clearing the index and retrying"
             sudo rm -rf /var/lib/apt/lists/* || true
-            sleep 15
+            sleep 10
           done
           echo "::error title=apt::the software OpenGL stack could not be installed"
           exit 1
