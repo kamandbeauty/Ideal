@@ -4,17 +4,17 @@
   "failures": [],
   "notes": {
     "alive_at_24s": 16,
-    "blast_kills": 14,
+    "blast_kills": 13,
     "gate_attackers": 2,
-    "gate_fell_after_s": 213.0,
-    "grenade_kills": 8,
+    "gate_fell_after_s": 210.0,
+    "grenade_kills": 7,
     "hits": 3,
     "kills": 1,
     "render": {
-      "draw_calls": 267,
+      "draw_calls": 269,
       "fps": 4.3,
       "nodes": 642,
-      "primitives": 206198,
+      "primitives": 208794,
       "renderer": "Compatibility",
       "scale": 0.88,
       "tier": "high"
