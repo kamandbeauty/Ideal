@@ -185,10 +185,10 @@ func build() -> void:
 		# inside the dome rather than over the ring.
 		# The glyph needs a ground: the tools are dark line art, and on the turquoise sphere they read
 		# as smudges. An ivory disc inside the orb gives each one a face to be read against.
-		UiKit.icon(button, "disc", "ui_booster_disc", 9.0, 9.0, BOOSTER_SIZE - 18.0,
-			BOOSTER_SIZE - 18.0)
-		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 12.0, 12.0,
-			BOOSTER_SIZE - 24.0, BOOSTER_SIZE - 24.0))
+		# The tool's own picture already carries a dark disc, so it is the button's face: no second
+		# plate under it, and large enough that the glyph is read at a glance.
+		_booster_badges.append(UiKit.icon(button, "badge", _booster_icon(kind), 9.0, 9.0,
+			BOOSTER_SIZE - 18.0, BOOSTER_SIZE - 18.0))
 		# The count rides on the orb's shoulder like a coin on a tray, not under it: the orbs are
 		# stacked at 62 dp pitch and there is no room for a caption under each.
 		UiKit.icon(button, "count_plate", "icon_coin", BOOSTER_SIZE - 21.0, BOOSTER_SIZE - 21.0,
@@ -204,9 +204,9 @@ func build() -> void:
 	# Off the capsule's bottom curve: at 330 the two exits sat on the painted rim.
 	# Blue for the way out to the map, green for pause: the reference's two exits, and neither is the
 	# turquoise the play button owns.
-	UiKit.button(tools_rail, "home", "خانه", rail_x, 320.0, out_width, 30.0, UiTokens.ROYAL,
+	UiKit.button(tools_rail, "home", "خانه", rail_x, 316.0, out_width, 30.0, UiTokens.ROYAL,
 		UiTokens.IVORY, _on_home, UiTokens.RADIUS_MD, true)
-	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 320.0, out_width,
+	UiKit.button(tools_rail, "pause_button", "مکث", rail_x + out_width + 5.0, 316.0, out_width,
 		30.0, UiTokens.SUCCESS, Color(1, 1, 1, 1), _on_pause, UiTokens.RADIUS_MD, true)
 
 	# ---- playfield: the carpet, then the board on top of it ---------------------------------------

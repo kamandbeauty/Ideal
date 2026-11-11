@@ -267,8 +267,11 @@ def build_rail() -> Image.Image:
     band.alpha_composite(face, (margin, margin))
 
     # The foot: a flower that overhangs the band, drawn last so it sits on top of the frame.
-    foot = _ornament((width, width), (width // 2, width // 2), int(width * 0.17))
-    band.alpha_composite(foot, (0, height - width - 6))
+    # The flower sits on the foot of the rail, below the two exit buttons: any higher and the buttons
+    # are planted in the middle of it.
+    foot_size = width
+    foot = _ornament((foot_size, foot_size), (foot_size // 2, foot_size // 2), int(width * 0.12))
+    band.alpha_composite(foot, (0, height - foot_size + 26))
     return band.filter(ImageFilter.UnsharpMask(radius=1.2, percent=40, threshold=2))
 
 
@@ -325,10 +328,10 @@ def build_round_plate(name: str, size: int) -> Image.Image:
         # A metal band, not a pale halo: the ring only occupies the outer eighth of the plate, so the
         # gold lives there and the gradient runs across that band alone.
         ring_outer = radius
-        ring_inner = radius * 0.78
+        ring_inner = radius * 0.70
         for step in range(int(ring_inner), int(ring_outer)):
             t = max(0.0, min(1.0, (step - ring_inner) / max(1.0, ring_outer - ring_inner)))
-            colour = _mix((255, 226, 150), (150, 96, 18), t ** 0.8)
+            colour = _mix((255, 232, 162), (156, 100, 20), t ** 0.55)
             draw.ellipse((step, step, size - 1 - step, size - 1 - step), outline=colour + (255,))
         draw.ellipse((int(ring_inner) - 2, int(ring_inner) - 2, size - 1 - int(ring_inner) + 2,
                       size - 1 - int(ring_inner) + 2), outline=(90, 56, 10, 210), width=2)
@@ -342,8 +345,10 @@ def build_round_plate(name: str, size: int) -> Image.Image:
             t = 1.0 - step / half  # 0 at the rim, 1 at the centre
             # Royal blue with a turquoise rim light: the reference's boosters are blue buttons, and the
             # turquoise belongs to the frame around them.
+            # Light at the top, royal at the bottom: the tools' own pictures are a dark blue disc with
+            # a gold glyph, and dark-on-dark is why five tools read as five smudges.
             paint.ellipse((half - step, half - step, half + step, half + step),
-                          fill=_mix(ROYAL_LIGHT, ROYAL_DARK, t) + (255,))
+                          fill=_mix((126, 190, 246), ROYAL, t ** 1.2) + (255,))
         # One small, sharp highlight and one thin rim light at the bottom: a big soft blob in the
         # middle of the sphere reads as a smudge on a blue marble.
         shine = Image.new("RGBA", (sphere_size, sphere_size), (0, 0, 0, 0))
