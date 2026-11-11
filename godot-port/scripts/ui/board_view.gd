@@ -35,7 +35,7 @@ const TILE_INSET := 1.0
 # read as a prototype: the art is 128 px with a gold rim, so at 36 dp the rim IS the border.
 # The fruit overhangs its cell by a dp on every side: the painted plate has a margin of its own, and a
 # piece that stops short of the cell reads as a sticker on a board instead of fruit on a table.
-const PIECE_INSET := -1.0
+const PIECE_INSET := 2.0
 
 var run: LevelRun
 var cell_size := 44.0
@@ -179,6 +179,11 @@ func _build_cell(pos: Vector2i, cell) -> Control:
 			tile.add_child(power)
 			power.position = Vector2(0.0, 0.0)
 			power.size = Vector2(cell_size, cell_size)
+			# The rocket fireworks sideways as well as up: same picture, turned a quarter turn, so a
+			# horizontal rocket reads as "this row goes" and not as a second picture to learn.
+			if cell.power_up == GameTypes.PowerUpKind.ROCKET_HORIZONTAL:
+				power.pivot_offset = Vector2(cell_size, cell_size) * 0.5
+				power.rotation = PI * 0.5
 
 	if cell.has_obstacle:
 		var obstacle_art := AssetCatalog.obstacle_texture(cell.obstacle)

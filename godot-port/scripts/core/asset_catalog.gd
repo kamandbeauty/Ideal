@@ -27,14 +27,19 @@ static func piece_path(kind: int) -> String:
 		return gem
 	return "res://assets/art/piece_%s.png" % name
 
+## The three power-ups the board draws, from `assets/powerups/` — a rocket, a hand fan and a kite.
+##
+## The Unity plates (`assets/art/powerup_*.png`) still ship untouched; the port simply draws its own
+## pictures now. Six kinds of special piece share three pictures because the player only ever needs to
+## tell three things apart: "clears a line", "clears around here", "flies off and takes things with it".
 static func power_up_path(kind: int) -> String:
 	match kind:
-		GameTypes.PowerUpKind.ROCKET_VERTICAL: return "res://assets/art/powerup_rocket_col.png"
-		GameTypes.PowerUpKind.ROCKET_HORIZONTAL: return "res://assets/art/powerup_rocket_row.png"
-		GameTypes.PowerUpKind.SPINNER: return "res://assets/art/powerup_spinner.png"
-		GameTypes.PowerUpKind.DYNAMITE: return "res://assets/art/powerup_dynamite.png"
-		GameTypes.PowerUpKind.ELECTRO_BALL: return "res://assets/art/powerup_electro.png"
-		GameTypes.PowerUpKind.SUPER_ELECTRO_BALL: return "res://assets/art/powerup_electro_super.png"
+		GameTypes.PowerUpKind.ROCKET_VERTICAL: return "res://assets/powerups/rocket.png"
+		GameTypes.PowerUpKind.ROCKET_HORIZONTAL: return "res://assets/powerups/rocket.png"
+		GameTypes.PowerUpKind.SPINNER: return "res://assets/powerups/fan.png"
+		GameTypes.PowerUpKind.DYNAMITE: return "res://assets/powerups/fan.png"
+		GameTypes.PowerUpKind.ELECTRO_BALL: return "res://assets/powerups/kite.png"
+		GameTypes.PowerUpKind.SUPER_ELECTRO_BALL: return "res://assets/powerups/kite.png"
 		_: return ""
 
 static func obstacle_path(kind: int) -> String:
