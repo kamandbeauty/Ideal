@@ -6,6 +6,8 @@ extends Weapon
 
 ## How far the gun sinks below the parapet while another weapon is in hand.
 const STOW_DROP: float = 1.05
+## How long a muzzle flash stays after the frame that first shows it: one more frame at 60 a second, none at 30.
+const FLASH_TIME: float = 0.03
 
 var model: Node3D
 ## The cradle turns on the pedestal; the barrel group tips inside the cradle.
@@ -17,6 +19,10 @@ var kick: Array[float] = [0.0, 0.0]
 var muzzles: Array[Node3D] = []
 var flashes: Array[MeshInstance3D] = []
 var flash_left: Array[float] = [0.0, 0.0]
+## A flash that has not been drawn yet. Rounds leave in the physics step and the picture is drawn later:
+## on a slow frame a flash timed from the shot would be over before anyone saw it.
+var flash_fresh: Array[bool] = [false, false]
+var light_fresh: bool = false
 ## Where each barrel throws its brass, and which way is outward from there (-1 left, +1 right of the gunner).
 var ports: Array[Node3D] = []
 var port_sides: Array[float] = []
@@ -116,7 +122,9 @@ func _fire_round() -> void:
 		bullets.fire(origin, direction * data.muzzle_velocity, data.damage, data.max_range, state.shots % data.tracer_every == 0,
 			data.penetration, data.penetration_damage_scale, data.headshot_multiplier)
 	kick[barrel] = data.barrel_travel
-	flash_left[barrel] = 0.05
+	flash_left[barrel] = FLASH_TIME
+	flash_fresh[barrel] = true
+	light_fresh = true
 	var flash: MeshInstance3D = flashes[barrel]
 	flash.visible = true
 	# Never the same flash twice: a new size and a new turn about the bore for every round.
@@ -153,11 +161,18 @@ func _animate(delta: float) -> void:
 	for index: int in recoilers.size():
 		kick[index] = move_toward(kick[index], 0.0, delta * 0.55)
 		recoilers[index].position.z = rest_z[index] - kick[index]
-		if flash_left[index] > 0.0:
-			flash_left[index] -= delta
-			if flash_left[index] <= 0.0:
-				flashes[index].visible = false
-	light.light_energy = move_toward(light.light_energy, 0.0, delta * 30.0)
+		if flashes[index].visible:
+			# The frame that first shows a flash is free; its time runs from there.
+			if flash_fresh[index]:
+				flash_fresh[index] = false
+			else:
+				flash_left[index] -= delta
+				if flash_left[index] <= 0.0:
+					flashes[index].visible = false
+	if light_fresh:
+		light_fresh = false
+	else:
+		light.light_energy = move_toward(light.light_energy, 0.0, delta * 30.0)
 	if burst > 0 and since_shot > data.fire_interval * 1.7:
 		if burst >= 3:
 			Sound.play("hmg_tail", -9.0, rng.randf_range(0.94, 1.06))

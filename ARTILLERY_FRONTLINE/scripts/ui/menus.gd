@@ -29,6 +29,12 @@ var fade: Tween
 var armed: Button = null
 var armed_left: float = 0.0
 var armed_text: String = ""
+## Tests and the screenshot run set this to lay the screens out as if the display had cut-outs: (left, right) in canvas units.
+var inset_override := Vector2(-1.0, -1.0)
+## The canvas and the side margins the open screen was built for; when either changes it is built again.
+var built_view := Vector2.ZERO
+var built_margins := Vector2.ZERO
+var layout_check: float = 0.0
 
 
 func _ready() -> void:
@@ -44,6 +50,7 @@ func _ready() -> void:
 	holder.theme = UITheme.theme()
 	add_child(holder)
 	Events.language_changed.connect(_on_language_changed)
+	get_viewport().size_changed.connect(func() -> void: layout_check = 0.0)
 	hide_all()
 
 
@@ -52,6 +59,20 @@ func _process(delta: float) -> void:
 		armed_left -= delta
 		if armed_left <= 0.0:
 			_disarm()
+	if screen == "":
+		return
+	layout_check -= delta
+	if layout_check <= 0.0:
+		# A phone turned over moves its camera cut-out to the other side without resizing anything;
+		# a folding phone or a split screen changes the shape of the canvas itself.
+		layout_check = 1.0
+		if not _is_laid_out():
+			_show(screen, false)
+
+
+## Whether the open screen still fits the canvas and the cut-outs it was built for.
+func _is_laid_out() -> bool:
+	return get_viewport().get_visible_rect().size.is_equal_approx(built_view) and _side_margins().is_equal_approx(built_margins)
 
 
 func _on_language_changed() -> void:
@@ -78,9 +99,12 @@ func _clear() -> void:
 		child.queue_free()
 
 
-func _show(name: String) -> void:
+func _show(name: String, fade_in: bool = true) -> void:
 	screen = name
 	_clear()
+	built_view = get_viewport().get_visible_rect().size
+	built_margins = _side_margins()
+	layout_check = 1.0
 	dim.visible = true
 	holder.visible = true
 	holder.layout_direction = Control.LAYOUT_DIRECTION_RTL if Loc.is_rtl() else Control.LAYOUT_DIRECTION_LTR
@@ -100,6 +124,9 @@ func _show(name: String) -> void:
 			_build_result()
 	if fade != null and fade.is_valid():
 		fade.kill()
+	if not fade_in:
+		holder.modulate.a = 1.0
+		return
 	holder.modulate.a = 0.0
 	fade = create_tween()
 	fade.tween_property(holder, "modulate:a", 1.0, FADE_TIME)
@@ -131,6 +158,8 @@ func show_result(victory: bool, stats: Dictionary, record: bool = false) -> void
 ## Clear space at the (left, right) of the screen: the HUD's margins, so menus clear the same cut-outs.
 func _side_margins() -> Vector2:
 	var view: Vector2 = get_viewport().get_visible_rect().size
+	if inset_override.x >= 0.0:
+		return Hud.margins_for(view, inset_override)
 	var window := Rect2i(DisplayServer.window_get_position(), DisplayServer.window_get_size())
 	return Hud.margins_for(view, Hud.insets_for(view, window, DisplayServer.get_display_safe_area()))
 

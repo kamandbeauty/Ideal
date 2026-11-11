@@ -119,6 +119,25 @@ func run(t: TestContext) -> void:
 		if local.z < 0.0 and absf(local.x / -local.z / (half * 16.0 / 9.0)) < 0.25 and absf(local.y / -local.z / half) < 0.5:
 			crossed += 1
 	t.equal(crossed, 0, "no case flies across the middle of the picture")
+	# A flash is drawn at least once, however slow the frame: rounds leave in the physics step, the picture
+	# comes later, and a flash timed from the shot would be over before a slow frame showed it.
+	gun.flashes[0].visible = false
+	gun.flashes[1].visible = false
+	gun.barrel = 0
+	gun._fire_round()
+	t.check(gun.flashes[0].visible and not gun.flashes[1].visible, "a round lights the flash of its own barrel")
+	gun._animate(0.25)
+	t.check(gun.flashes[0].visible, "after a frame of a quarter of a second the flash is still there to be drawn")
+	t.check(gun.light.light_energy > 2.0, "and so is its light")
+	gun._animate(0.25)
+	t.check(not gun.flashes[0].visible, "the frame after that puts it out")
+	gun._fire_round()
+	gun._animate(1.0 / 60.0)
+	gun._animate(1.0 / 60.0)
+	t.check(gun.flashes[1].visible, "at sixty frames a second a flash lasts two frames")
+	gun._animate(1.0 / 60.0)
+	gun._animate(1.0 / 60.0)
+	t.check(not gun.flashes[1].visible, "and no more than three")
 	Sound.last_start.erase("hmg_tail")
 	defender.set_fire(false)
 	await t.frames(2)
@@ -193,6 +212,13 @@ func run(t: TestContext) -> void:
 	var glare: StandardMaterial3D = level.explosions.flashes[0].material_override
 	t.check(level.explosions.flashes[0].visible and glare.albedo_color.r > 1.5, "its first instant is brighter than white")
 	t.check(level.explosions.lights[0].visible and level.explosions.lights[0].light_energy > 1.0, "and it lights the street")
+	# The same rule as for the muzzle: the frame that first shows a blast does not age it.
+	level.explosions._process(0.3)
+	t.check(level.explosions.flashes[0].visible and glare.albedo_color.a > 0.99, "a slow frame straight after the blast still shows its glare at full strength")
+	level.explosions._process(0.05)
+	t.check(glare.albedo_color.a < 0.95, "from the next frame on it fades")
+	level.explosions._process(1.0)
+	t.check(not level.explosions.flashes[0].visible and not level.explosions.lights[0].visible, "and within a second glare and light are gone")
 	t.check(float(EffectPool.KINDS["fireball"].color.g) > 0.85 and float(EffectPool.KINDS["fireball"].end.r) < 0.4,
 		"the fireball starts white-hot and burns down to a dull red")
 
@@ -211,6 +237,13 @@ func run(t: TestContext) -> void:
 	defender.punch = 0.0
 	defender._on_shot(0, launcher)
 	t.check(defender.punch > 1.0, "a rocket kicks the view")
+	var tube := launcher as RocketLauncher
+	if tube != null and tube.flash != null:
+		tube._fire_round()
+		tube._animate(0.25)
+		t.check(tube.flash.visible, "the launcher's flash is drawn once however slow the frame")
+		tube._animate(0.25)
+		t.check(not tube.flash.visible, "and is out on the next")
 	defender.punch = 0.0
 	defender._on_shot(0, gun)
 	t.near(defender.punch, 0.0, 0.0001, "the machine gun does not: at twelve rounds a second it would only blur")

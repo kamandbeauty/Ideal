@@ -681,7 +681,10 @@ func _place_arrow(arrow: HudWidgets.ThreatArrow, caption: Label, on: bool, side:
 	arrow.side = side if side != 0.0 else 1.0
 	var margins: Vector2 = margins_for(view, insets)
 	arrow.position = Vector2(view.x - margins.y - arrow.size.x if arrow.side > 0.0 else margins.x, view.y * height)
-	_fit(caption, Rect2(clampf(arrow.position.x + arrow.size.x * 0.5 - 90.0, 4.0, view.x - 184.0), arrow.position.y + arrow.size.y - 2.0, 180.0, 30.0))
+	# The caption is as wide as its word, under the arrow, and like everything else stays inside the margins.
+	var width: float = clampf(caption.get_minimum_size().x + 8.0, arrow.size.x, 180.0)
+	var from: float = clampf(arrow.position.x + (arrow.size.x - width) * 0.5, margins.x, maxf(margins.x, view.x - margins.y - width))
+	_fit(caption, Rect2(from, arrow.position.y + arrow.size.y - 2.0, width, 30.0))
 
 
 func _show_hint() -> void:

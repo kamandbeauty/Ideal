@@ -13,6 +13,8 @@ var muzzle: Node3D
 var kick: float = 0.0
 var flash: MeshInstance3D
 var flash_left: float = 0.0
+## Not drawn yet: the frame that first shows the flash does not count against its time.
+var flash_fresh: bool = false
 var rest := Transform3D.IDENTITY
 var warhead_rest := Vector3.ZERO
 
@@ -70,7 +72,8 @@ func _fire_round() -> void:
 	if flash:
 		flash.visible = true
 		flash.scale = Vector3.ONE * rng.randf_range(0.85, 1.2)
-		flash_left = 0.07
+		flash_left = 0.05
+		flash_fresh = true
 	if effects:
 		# Thin gas blown ahead of the tube; it has cleared before the rocket lands.
 		effects.burst("launch", origin + direction * 0.5, direction)
@@ -80,10 +83,13 @@ func _fire_round() -> void:
 
 func _animate(delta: float) -> void:
 	kick = move_toward(kick, 0.0, delta * 3.2)
-	if flash_left > 0.0:
-		flash_left -= delta
-		if flash_left <= 0.0:
-			flash.visible = false
+	if flash and flash.visible:
+		if flash_fresh:
+			flash_fresh = false
+		else:
+			flash_left -= delta
+			if flash_left <= 0.0:
+				flash.visible = false
 
 
 func _pose() -> void:

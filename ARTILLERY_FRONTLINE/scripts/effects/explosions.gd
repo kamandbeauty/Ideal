@@ -24,6 +24,9 @@ var lights: Array[OmniLight3D] = []
 var flashes: Array[MeshInstance3D] = []
 var rings: Array[MeshInstance3D] = []
 var ages := PackedFloat32Array()
+## Blasts whose first instant has not been drawn yet: that frame does not age them, so the glare
+## is seen at its brightest even when the frame that follows the detonation is a slow one.
+var fresh := PackedByteArray()
 var scales := PackedFloat32Array()
 var reaches := PackedFloat32Array()
 var scorches: Array[MeshInstance3D] = []
@@ -38,6 +41,7 @@ func _ready() -> void:
 	add_to_group("quality_listener")
 	ground_query.collision_mask = Layers.WORLD
 	ages.resize(BLASTS)
+	fresh.resize(BLASTS)
 	scales.resize(BLASTS)
 	reaches.resize(BLASTS)
 	scorch_ages.resize(SCORCHES)
@@ -209,6 +213,7 @@ func _show(at: Vector3, data: ExplosionData) -> void:
 	var slot: int = cursor
 	cursor = (cursor + 1) % BLASTS
 	ages[slot] = 0.0
+	fresh[slot] = 1
 	scales[slot] = size
 	reaches[slot] = data.radius
 	var ground: Dictionary = _ground_under(at)
@@ -245,14 +250,18 @@ func _ground_under(at: Vector3) -> Dictionary:
 
 
 func _process(delta: float) -> void:
-	_animate(delta)
+	_animate(delta, true)
 
 
-func _animate(delta: float) -> void:
+## `drawn` is true for the pass that comes before a picture is drawn.
+func _animate(delta: float, drawn: bool = false) -> void:
 	for slot: int in BLASTS:
 		if ages[slot] > RING_TIME:
 			continue
-		ages[slot] += delta
+		if drawn and fresh[slot] == 1:
+			fresh[slot] = 0
+		else:
+			ages[slot] += delta
 		var age: float = ages[slot]
 		var size: float = scales[slot]
 		var burn: float = clampf(1.0 - age / FLASH_TIME, 0.0, 1.0)
