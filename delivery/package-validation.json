@@ -1,7 +1,7 @@
 {
   "LastWall-arm64.apk": {
-    "bytes": 38957665,
-    "sha256": "bea3dc2e21c73f2bf98e949c64a8388da8bde379e9d908a8a299e6bb7ab1634e",
+    "bytes": 39065941,
+    "sha256": "4f885cc238ec35e099e5c361b9215697d0aebb6c2e80157c9514614d3cf611c6",
     "package": "com.frontline.lastwall",
     "arm64": true,
     "min_sdk": "24",
@@ -11,8 +11,8 @@
     "no_internet_permission": true
   },
   "LastWall-compatibility.apk": {
-    "bytes": 38957665,
-    "sha256": "1af871deee33c673cf1678d378c2cc02cb7b946c72bb9c44ebcfa6fc08f11abc",
+    "bytes": 39065941,
+    "sha256": "03a3a5f781056c1aa1b5c550856bf2134eabee5e1e7dc52cc2a9f24910e4baa8",
     "package": "com.frontline.lastwall.compatibility",
     "arm64": true,
     "min_sdk": "24",
