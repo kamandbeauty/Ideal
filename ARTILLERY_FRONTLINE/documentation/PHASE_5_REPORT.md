@@ -75,8 +75,7 @@
 - تست و ابزار: `tests/unit/test_polish.gd` (تست‌های کیفیتِ خودکار از نو)،
   `tools/game_smoke.gd`، `tools/verify_packages.py`، `tools/check_report.py`.
 - `.github/workflows/last-wall.yml`.
-- مستندات: `README.md` (هر دو)، `documentation/BUILD_ANDROID.md`،
-  `ASSET_LICENSES.md`.
+- مستندات: `README.md` (هر دو) و `documentation/BUILD_ANDROID.md`.
 
 **حذف‌شده**
 - `assets/fonts/Vazirmatn-Regular.ttf` و `Vazirmatn-SemiBold.ttf` (با
