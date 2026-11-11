@@ -189,7 +189,7 @@ func _run() -> void:
 		if AssetCatalog.obstacle_texture(kind) == null:
 			unresolved.append("obstacle %d" % kind)
 	for kind in [GameTypes.PowerUpKind.ROCKET_VERTICAL, GameTypes.PowerUpKind.ROCKET_HORIZONTAL,
-			GameTypes.PowerUpKind.SPINNER, GameTypes.PowerUpKind.DYNAMITE,
+			GameTypes.PowerUpKind.FAN, GameTypes.PowerUpKind.KITE,
 			GameTypes.PowerUpKind.ELECTRO_BALL, GameTypes.PowerUpKind.SUPER_ELECTRO_BALL]:
 		if AssetCatalog.power_up_texture(kind) == null:
 			unresolved.append("power-up %d" % kind)

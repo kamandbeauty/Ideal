@@ -362,6 +362,22 @@ func _home_of(tile: Control) -> Vector2:
 ## is an exact picture of the board the resolver produced.
 func play_result(before: BoardModel, events: Array) -> void:
 	_busy = true
+	# A special piece that fired gets its own effect before the pieces it took start to burst: the fan
+	# spins up a whirlwind, the rocket a ring where it went off, the kite a ring where it landed.
+	for event in events:
+		if not event is Dictionary:
+			continue
+		if str(event.get("type", "")) != "power_up_triggered":
+			continue
+		var fired = event.get("position", Vector2i(-1, -1))
+		if not fired is Vector2i:
+			continue
+		match int(event.get("kind", 0)):
+			GameTypes.PowerUpKind.FAN:
+				Fx.whirlwind(self, cell_center(fired), cell_size * 2.6)
+			_:
+				Fx.ring(self, cell_center(fired), cell_size * 2.2, Color("#23B5B0"))
+
 	var cleared := {}
 	for event in events:
 		if not event is Dictionary:

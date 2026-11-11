@@ -100,17 +100,22 @@ static func build_clusters(runs: Array[Dictionary]) -> Array[Dictionary]:
 		clusters[target_index] = target
 	return clusters
 
+## What a match earns, in the order the shapes are worth more.
+##
+## A rocket points the way its line went — a horizontal four gives a horizontal rocket, and it clears
+## that row — because the player who just made a line expects the rocket to run along it, not across it.
+## The crossing shape (an L or a T) earns the kite, and the fan is the reward for the long line.
 static func power_up_for(cluster: Dictionary) -> int:
 	if cluster.has_horizontal and cluster.has_vertical:
-		return GameTypes.PowerUpKind.DYNAMITE
-	if cluster.has_square:
-		return GameTypes.PowerUpKind.SPINNER
+		return GameTypes.PowerUpKind.KITE
 	if cluster.max_length >= 5:
-		return GameTypes.PowerUpKind.ELECTRO_BALL
+		return GameTypes.PowerUpKind.FAN
+	if cluster.has_square:
+		return GameTypes.PowerUpKind.FAN
 	if cluster.max_length == 4:
 		for run in cluster.runs:
 			if run.length == 4:
-				return GameTypes.PowerUpKind.ROCKET_VERTICAL if run.horizontal else GameTypes.PowerUpKind.ROCKET_HORIZONTAL
+				return GameTypes.PowerUpKind.ROCKET_HORIZONTAL if run.horizontal else GameTypes.PowerUpKind.ROCKET_VERTICAL
 	return GameTypes.PowerUpKind.NONE
 
 static func choose_spawn_cell(cluster: Dictionary, preferred: Vector2i, has_preferred: bool) -> Vector2i:

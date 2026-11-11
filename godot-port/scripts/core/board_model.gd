@@ -96,8 +96,8 @@ func _char_for(cell: Cell) -> String:
 	match cell.power_up:
 		GameTypes.PowerUpKind.ROCKET_VERTICAL: return "v"
 		GameTypes.PowerUpKind.ROCKET_HORIZONTAL: return "h"
-		GameTypes.PowerUpKind.SPINNER: return "s"
-		GameTypes.PowerUpKind.DYNAMITE: return "d"
+		GameTypes.PowerUpKind.FAN: return "s"
+		GameTypes.PowerUpKind.KITE: return "d"
 		GameTypes.PowerUpKind.ELECTRO_BALL: return "e"
 		GameTypes.PowerUpKind.SUPER_ELECTRO_BALL: return "E"
 	match cell.piece:
@@ -140,10 +140,10 @@ static func from_ascii(rows: PackedStringArray) -> BoardModel:
 					cell.power_up = GameTypes.PowerUpKind.ROCKET_HORIZONTAL
 				"s":
 					cell.piece = GameTypes.PieceKind.LAJVARD
-					cell.power_up = GameTypes.PowerUpKind.SPINNER
+					cell.power_up = GameTypes.PowerUpKind.FAN
 				"d":
 					cell.piece = GameTypes.PieceKind.LAJVARD
-					cell.power_up = GameTypes.PowerUpKind.DYNAMITE
+					cell.power_up = GameTypes.PowerUpKind.KITE
 				"e":
 					cell.piece = GameTypes.PieceKind.LAJVARD
 					cell.power_up = GameTypes.PowerUpKind.ELECTRO_BALL

@@ -19,11 +19,14 @@ const SPLATS := [
 	"res://assets/fx/splash_3.png",
 ]
 const DROP := "res://assets/fx/splash_drop.png"
+const WHIRLWIND := "res://assets/fx/whirlwind.png"
 
 const SPARK_LIFETIME := 0.42
 const COIN_LIFETIME := 0.7
 const SPLASH_SECONDS := 0.36
 const DROP_LIFETIME := 0.34
+const DRIP_LIFETIME := 0.72
+const WHIRLWIND_SECONDS := 0.62
 
 ## A short burst of sparks at a board cell.
 static func spark(parent: Node, center: Vector2, tint: Color, amount: int = 10, scale: float = 1.0) -> void:
@@ -49,32 +52,61 @@ static func spark(parent: Node, center: Vector2, tint: Color, amount: int = 10, 
 	parent.add_child(particles)
 	particles.finished.connect(particles.queue_free)
 
-## A fruit bursting into juice: the splat that lands on the tile, and the droplets thrown off it.
+## A fruit bursting into juice: a splat on the tile, droplets thrown off it, and drips that keep falling
+## after the splat has gone.
 ##
-## The splat is a picture that pops to full size and fades — never a circle the engine drew — because a
-## cleared piece in this game squashes, and the thing that sells the squash is the splat underneath it.
+## Everything is a painted picture — the splat, the droplet and the offset second splat — tinted with the
+## fruit's own colour. Nothing here is a circle the engine drew, because a piece in this game squashes,
+## and what sells a squash is the juice underneath it.
 static func splash(parent: Node, center: Vector2, tint: Color, diameter: float = 44.0) -> void:
+	_splat(parent, center, tint, diameter, 1.0, SPLASH_SECONDS)
+	_splat(parent, center, tint.lightened(0.22), diameter * 0.62, 0.0, SPLASH_SECONDS * 0.72)
+	_droplets(parent, center, tint, diameter)
+
+	var drips := CPUParticles2D.new()
+	drips.name = "drips"
+	drips.texture = load(DROP)
+	drips.position = center + Vector2(0.0, diameter * 0.16)
+	drips.amount = 5
+	drips.lifetime = DRIP_LIFETIME
+	drips.one_shot = true
+	drips.explosiveness = 0.55
+	drips.direction = Vector2(0.0, 1.0)
+	drips.spread = 40.0
+	drips.initial_velocity_min = 10.0
+	drips.initial_velocity_max = 40.0
+	drips.gravity = Vector2(0.0, 520.0)
+	drips.scale_amount_min = 0.30
+	drips.scale_amount_max = 0.60
+	drips.color = Color(tint.r, tint.g, tint.b, 0.9)
+	drips.emitting = true
+	parent.add_child(drips)
+	drips.finished.connect(drips.queue_free)
+
+static func _splat(parent: Node, center: Vector2, tint: Color, diameter: float, delay: float,
+		lifetime: float) -> void:
 	var splat := TextureRect.new()
 	splat.name = "splash"
 	splat.texture = load(SPLATS[randi() % SPLATS.size()])
 	splat.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	splat.stretch_mode = TextureRect.STRETCH_SCALE
 	splat.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	splat.modulate = tint
+	splat.modulate = Color(tint.r, tint.g, tint.b, tint.a * 0.92)
 	splat.size = Vector2(diameter, diameter)
 	splat.position = center - Vector2(diameter, diameter) * 0.5
 	splat.pivot_offset = Vector2(diameter, diameter) * 0.5
 	splat.rotation = randf_range(-0.45, 0.45)
-	splat.scale = Vector2(0.45, 0.45)
+	splat.scale = Vector2(0.35, 0.35)
 	parent.add_child(splat)
 	var tween := splat.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(splat, "scale", Vector2(1.2, 1.2), SPLASH_SECONDS) \
-		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(splat, "modulate", Color(tint.r, tint.g, tint.b, 0.0), SPLASH_SECONDS) \
-		.set_delay(SPLASH_SECONDS * 0.35)
+	tween.tween_property(splat, "scale", Vector2(1.22, 1.22), lifetime) \
+		.set_delay(delay).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(splat, "modulate", Color(tint.r, tint.g, tint.b, 0.0), lifetime) \
+		.set_delay(delay + lifetime * 0.35)
 	tween.chain().tween_callback(splat.queue_free)
 
+static func _droplets(parent: Node, center: Vector2, tint: Color, diameter: float) -> void:
 	var drops := CPUParticles2D.new()
 	drops.name = "drops"
 	drops.texture = load(DROP)
@@ -85,17 +117,41 @@ static func splash(parent: Node, center: Vector2, tint: Color, diameter: float =
 	drops.explosiveness = 0.95
 	drops.direction = Vector2(0.0, -1.0)
 	drops.spread = 180.0
-	drops.initial_velocity_min = 50.0
-	drops.initial_velocity_max = 150.0
-	drops.gravity = Vector2(0.0, 420.0)
-	drops.damping_min = 40.0
-	drops.damping_max = 90.0
-	drops.scale_amount_min = 0.6
-	drops.scale_amount_max = 1.3
+	drops.initial_velocity_min = 60.0 * diameter / 44.0
+	drops.initial_velocity_max = 190.0 * diameter / 44.0
+	drops.gravity = Vector2(0.0, 560.0)
+	drops.damping_min = 30.0
+	drops.damping_max = 80.0
+	drops.scale_amount_min = 0.55
+	drops.scale_amount_max = 1.25
 	drops.color = tint
 	drops.emitting = true
 	parent.add_child(drops)
 	drops.finished.connect(drops.queue_free)
+
+## The fan's whirlwind: the painted tornado spins up over the board and blows itself out.
+static func whirlwind(parent: Node, center: Vector2, diameter: float = 96.0,
+		tint: Color = Color(1, 1, 1, 0.92)) -> void:
+	var swirl := TextureRect.new()
+	swirl.name = "whirlwind"
+	swirl.texture = load(WHIRLWIND)
+	swirl.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	swirl.stretch_mode = TextureRect.STRETCH_SCALE
+	swirl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	swirl.modulate = tint
+	swirl.size = Vector2(diameter, diameter)
+	swirl.position = center - Vector2(diameter, diameter) * 0.5
+	swirl.pivot_offset = Vector2(diameter, diameter) * 0.5
+	swirl.scale = Vector2(0.35, 0.35)
+	parent.add_child(swirl)
+	var tween := swirl.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(swirl, "scale", Vector2(1.35, 1.35), WHIRLWIND_SECONDS) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(swirl, "rotation", TAU * 1.6, WHIRLWIND_SECONDS)
+	tween.tween_property(swirl, "modulate", Color(tint.r, tint.g, tint.b, 0.0), WHIRLWIND_SECONDS) \
+		.set_delay(WHIRLWIND_SECONDS * 0.45)
+	tween.chain().tween_callback(swirl.queue_free)
 
 ## Coins flying up and fading: the reward moment of a first clear.
 static func coin_burst(parent: Node, center: Vector2, amount: int = 14) -> void:

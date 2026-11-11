@@ -425,13 +425,13 @@ func _run() -> void:
 	]
 	var cross_clusters = Finder.build_clusters(cross_runs)
 	failures += _check(cross_clusters.size() == 1 and cross_clusters[0].cells.size() == 5, "merge crossing runs into one five-cell cluster")
-	failures += _check(Finder.power_up_for(cross_clusters[0]) == GameTypes.PowerUpKind.DYNAMITE, "crossing cluster earns dynamite")
+	failures += _check(Finder.power_up_for(cross_clusters[0]) == GameTypes.PowerUpKind.KITE, "an L-shaped cluster earns a kite")
 	var four_runs: Array[Dictionary] = [{"start": Vector2i(0, 0), "length": 4, "horizontal": true, "piece": 3}]
 	var four_cluster = Finder.build_clusters(four_runs)[0]
-	failures += _check(Finder.power_up_for(four_cluster) == GameTypes.PowerUpKind.ROCKET_VERTICAL, "horizontal four earns vertical rocket")
+	failures += _check(Finder.power_up_for(four_cluster) == GameTypes.PowerUpKind.ROCKET_HORIZONTAL, "a horizontal four earns a rocket that flies along its row")
 	failures += _check(Finder.choose_spawn_cell(four_cluster, Vector2i(3, 0), true) == Vector2i(3, 0), "power-up spawn prefers the player destination")
 	var five_runs: Array[Dictionary] = [{"start": Vector2i(0, 0), "length": 5, "horizontal": true, "piece": 4}]
-	failures += _check(Finder.power_up_for(Finder.build_clusters(five_runs)[0]) == GameTypes.PowerUpKind.ELECTRO_BALL, "five in a line earns electro ball")
+	failures += _check(Finder.power_up_for(Finder.build_clusters(five_runs)[0]) == GameTypes.PowerUpKind.FAN, "five in a line earns a fan")
 
 	print("TEST STAGE 14: edge-clipped power-up targets and obstacle layers")
 	var edge_targets: Array[Vector2i] = []

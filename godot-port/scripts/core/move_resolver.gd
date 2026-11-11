@@ -28,13 +28,39 @@ func swap(from_pos: Vector2i, to_pos: Vector2i) -> Dictionary:
 
 	var power_a: int = a.power_up
 	var power_b: int = b.power_up
+	var kind_a: int = a.piece
+	var kind_b: int = b.piece
 	var both_power_ups := power_a != GameTypes.PowerUpKind.NONE and power_b != GameTypes.PowerUpKind.NONE
+	# A fan is moved into a piece, not matched: the swap itself is the move, and the colour it takes is
+	# the colour of the piece it traded places with. That is the whole promise of the piece.
+	var fan_swap := (power_a == GameTypes.PowerUpKind.FAN) != (power_b == GameTypes.PowerUpKind.FAN)
 	_swap_cells(a, b)
 
-	if not both_power_ups:
+	if not both_power_ups and not fan_swap:
 		if not MatchFinder.has_match(_board) and MatchFinder.find_squares(_board).is_empty():
 			_swap_cells(a, b)
 			return _rejected(GameTypes.MoveKind.SWAP, "no match")
+
+	if fan_swap and not both_power_ups:
+		var fan_result := _new_result(GameTypes.MoveKind.SWAP)
+		var fan_pos := to_pos if power_a == GameTypes.PowerUpKind.FAN else from_pos
+		var wanted: int = kind_b if power_a == GameTypes.PowerUpKind.FAN else kind_a
+		var fan_cell = _board.at_pos(fan_pos)
+		if fan_cell != null:
+			fan_cell.power_up = GameTypes.PowerUpKind.NONE
+		_add_event(fan_result, {"type": "power_up_triggered", "position": fan_pos,
+			"kind": GameTypes.PowerUpKind.FAN})
+		var fan_targets: Array[Vector2i] = []
+		PowerUps.add_kind(_board, wanted, fan_targets)
+		_add_unique(fan_targets, fan_pos)
+		_add_unique(fan_targets, from_pos)
+		_add_unique(fan_targets, to_pos)
+		_expand_triggers(fan_targets, fan_result)
+		_apply_clears(fan_targets, fan_result)
+		_fall_and_refill()
+		_resolve_cascades(fan_result, to_pos, true)
+		_settle(fan_result)
+		return fan_result
 
 	var result := _new_result(GameTypes.MoveKind.SWAP)
 	if both_power_ups:
@@ -125,7 +151,7 @@ func _resolve_cascades(result: Dictionary, preferred: Vector2i, has_preferred: b
 				spawn_pos = preferred
 			var spawn_cell = _board.at_pos(spawn_pos)
 			var spawn_piece: int = spawn_cell.piece if spawn_cell != null else GameTypes.PieceKind.NONE
-			spawns.append({"position": spawn_pos, "kind": GameTypes.PowerUpKind.SPINNER, "piece": spawn_piece})
+			spawns.append({"position": spawn_pos, "kind": GameTypes.PowerUpKind.FAN, "piece": spawn_piece})
 
 		_expand_triggers(clear_set, result)
 		for spawn in spawns:
@@ -163,7 +189,8 @@ func _expand_triggers(clear_set: Array[Vector2i], result: Dictionary) -> void:
 		cell.power_up = GameTypes.PowerUpKind.NONE
 		_add_event(result, {"type": "power_up_triggered", "position": pos, "kind": power_kind})
 		var targets: Array[Vector2i] = []
-		PowerUps.collect_targets(_board, pos, power_kind, _rng, targets)
+		PowerUps.collect_targets(_board, pos, power_kind, _rng, targets,
+			GameTypes.PieceKind.NONE, _goals)
 		for target_pos in targets:
 			if clear_set.has(target_pos):
 				continue

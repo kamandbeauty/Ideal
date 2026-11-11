@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
-"""Cut the three power-up icons out of one painted sheet and write the plates the board ships.
+"""Cut the three power-up icons off their plates and write the files the board ships.
 
 The power-up art in `assets/art/powerup_*.png` is the Unity project's, and it stays exactly as it is:
-the migration has to ship every original pixel. But the board's special pieces are drawn with the new
-look, so they need new pictures — a rocket, a hand fan and a kite.
-
-Painting them on one sheet and splitting it here keeps the three on the same hand, the same outline
-weight and the same light, which is the thing that is hard to get from three separate prompts. The
-splitter finds the three blobs by connected components, sorts them left to right and writes one plate
-each, so the result is reproducible from the committed sheet.
+the migration ships every original pixel. The board's special pieces are drawn with the new look, so
+they get their own pictures — a rocket, a fan and a kite — painted one plate each and keyed here.
 
 Run: python3 godot-port/tools/import_powerup_art.py
 """
@@ -18,56 +13,54 @@ from __future__ import annotations
 import os
 
 import numpy as np
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SHEET = os.path.join(HERE, "assets", "powerups", "source", "powerups.png")
+SOURCE = os.path.join(HERE, "assets", "powerups", "source")
 OUT = os.path.join(HERE, "assets", "powerups")
 
 SIZE = 192           # the plate the board scales from
 BOX = 176            # how much of the plate the icon fills
 KEY_TOLERANCE = 26   # how near the field colour a pixel has to be to get filled
-ORDER = ["rocket", "fan", "kite"]
+ICONS = ("rocket", "fan", "kite")
 
 
-def _keyed(image: Image.Image) -> Image.Image:
-    pixels = np.asarray(image).astype(np.int16)
+def _field_colour(plate: Image.Image) -> tuple:
+    pixels = np.asarray(plate).astype(np.float32)
     border = np.concatenate([pixels[0], pixels[-1], pixels[:, 0], pixels[:, -1]])
-    field = np.median(border, axis=0)
-    distance = np.abs(pixels - field).max(axis=2)
+    return tuple(np.median(border, axis=0))
+
+
+def _keyed(plate: Image.Image) -> Image.Image:
+    pixels = np.asarray(plate).astype(np.int16)
+    distance = np.abs(pixels - np.array(_field_colour(plate), dtype=np.int16)).max(axis=2)
     mask = np.where(distance <= KEY_TOLERANCE, 0, 255).astype(np.uint8)
-
-    # frombytes, not fromarray: an image built on a numpy buffer is read-only in Pillow 13 and a flood
+    # frombytes, not fromarray: an image built on a numpy buffer is read-only in Pillow 13, and a flood
     # fill on it writes nothing at all.
-    binary = Image.frombytes("L", image.size, mask.tobytes())
-    from PIL import ImageDraw
-
-    for seed in ((0, 0), (image.width - 1, 0), (0, image.height - 1),
-                 (image.width - 1, image.height - 1)):
+    binary = Image.frombytes("L", plate.size, mask.tobytes())
+    for seed in ((0, 0), (plate.width - 1, 0), (0, plate.height - 1),
+                 (plate.width - 1, plate.height - 1)):
         ImageDraw.floodfill(binary, seed, 128, thresh=0)
-    cut = image.convert("RGBA")
+    cut = plate.convert("RGBA")
     alpha = Image.fromarray(np.where(np.asarray(binary) == 128, 0, 255).astype(np.uint8), "L")
     cut.putalpha(alpha.filter(ImageFilter.GaussianBlur(0.8)))
-    return cut
+    return _largest(cut)
 
 
-def _blobs(cut: Image.Image) -> list:
-    """The three icons, left to right, each cropped to its own box."""
+def _largest(cut: Image.Image) -> Image.Image:
+    """Keep the icon and drop whatever else the painting picked up."""
     from scipy import ndimage
 
     alpha = np.asarray(cut.getchannel("A")) > 32
     labels, count = ndimage.label(alpha)
-    boxes = []
-    for index in range(1, count + 1):
-        area = int((labels == index).sum())
-        if area < 400:
-            continue
-        ys, xs = np.nonzero(labels == index)
-        boxes.append((int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1, area))
-    # Three icons: take the three biggest, then read them in the order they were painted.
-    boxes.sort(key=lambda box: box[4], reverse=True)
-    boxes = sorted(boxes[:3], key=lambda box: box[0])
-    return [cut.crop(box[:4]) for box in boxes]
+    if count <= 1:
+        return cut
+    sizes = ndimage.sum(alpha, labels, range(1, count + 1))
+    keep = np.zeros(count + 1, dtype=bool)
+    keep[1:] = sizes >= float(sizes.max()) * 0.05
+    alpha = np.where(keep[labels], 255, 0).astype(np.uint8)
+    cut.putalpha(Image.fromarray(alpha, "L"))
+    return cut
 
 
 def _centred(icon: Image.Image) -> Image.Image:
@@ -85,15 +78,12 @@ def _centred(icon: Image.Image) -> Image.Image:
 
 def main() -> None:
     os.makedirs(OUT, exist_ok=True)
-    icons = _blobs(_keyed(Image.open(SHEET).convert("RGB")))
-    if len(icons) != len(ORDER):
-        raise SystemExit("the sheet has %d icons, expected %d" % (len(icons), len(ORDER)))
-    for name, icon in zip(ORDER, icons):
-        plate = _centred(icon)
+    for name in ICONS:
+        plate = _centred(_keyed(Image.open(os.path.join(SOURCE, name + ".png")).convert("RGB")))
         path = os.path.join(OUT, name + ".png")
         plate.save(path, optimize=True)
-        print("%-10s %dx%d  %5.1f kB" % (name, plate.width, plate.height,
-                                         os.path.getsize(path) / 1024.0))
+        print("%-8s %dx%d  %5.1f kB" % (name, plate.width, plate.height,
+                                        os.path.getsize(path) / 1024.0))
 
 
 if __name__ == "__main__":

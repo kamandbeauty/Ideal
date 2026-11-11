@@ -17,12 +17,20 @@ enum PieceKind {
 	MOZ = 8
 }
 
+## Three special pieces, and two legacy ids that old saves may still carry.
+##
+## The rules the player was given, in their words:
+##   * four in a line earns a rocket, pointing the way the line went: it clears that row or column;
+##   * an L-shaped match earns a kite, which flies off and takes the kind the level needs most;
+##   * five in a line earns a fan: swap it with any piece and every piece of that colour goes.
 enum PowerUpKind {
 	NONE = 0,
 	ROCKET_VERTICAL = 1,
 	ROCKET_HORIZONTAL = 2,
-	SPINNER = 3,
-	DYNAMITE = 4,
+	FAN = 3,
+	KITE = 4,
+	# Legacy values: no rule creates them any more, but a board saved before the rule change can still
+	# contain them, and they have to resolve to something sensible rather than to nothing.
 	ELECTRO_BALL = 5,
 	SUPER_ELECTRO_BALL = 6
 }

@@ -40,8 +40,8 @@ static func power_up_path(kind: int) -> String:
 	match kind:
 		GameTypes.PowerUpKind.ROCKET_VERTICAL: return "res://assets/powerups/rocket.png"
 		GameTypes.PowerUpKind.ROCKET_HORIZONTAL: return "res://assets/powerups/rocket.png"
-		GameTypes.PowerUpKind.SPINNER: return "res://assets/powerups/fan.png"
-		GameTypes.PowerUpKind.DYNAMITE: return "res://assets/powerups/fan.png"
+		GameTypes.PowerUpKind.FAN: return "res://assets/powerups/fan.png"
+		GameTypes.PowerUpKind.KITE: return "res://assets/powerups/kite.png"
 		GameTypes.PowerUpKind.ELECTRO_BALL: return "res://assets/powerups/kite.png"
 		GameTypes.PowerUpKind.SUPER_ELECTRO_BALL: return "res://assets/powerups/kite.png"
 		_: return ""
