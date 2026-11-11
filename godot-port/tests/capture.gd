@@ -103,6 +103,7 @@ func _ready() -> void:
 	# runs, and the crops are laid out in a strip: this is the only evidence that the stones travel,
 	# lift and land rather than teleporting, and the animation work has to show itself.
 	await _swap_strip(app.get("board"))
+	await _match_strip(app.get("board"))
 
 	# The combo bubble lives for nine tenths of a second inside a chain, so a camera that waits for one
 	# would photograph an empty board. Ask the real screen to show a real bonus, pin the tween to its
@@ -206,6 +207,48 @@ func _swap_strip(board_screen) -> void:
 	Engine.time_scale = 1.0
 	await _frames(4)
 	_save_strip(frames, "11-swap-strip", 5, 3)
+
+## A whole real move, the whole grid in every frame — the evidence for the clearing rule.
+##
+## The player's report was that matching three burst fruit that had nothing to do with the match. That
+## is a rule about which cells a move takes, and a rule is not visible in a still: the strip opens on
+## the resting board, plays a real accepted swap in slow motion, and shows the burst and the settle, so
+## the three pieces that go and the dozens that stay are both in the picture.
+func _match_strip(board_screen) -> void:
+	_log("MATCH STRIP start :: screen=%s" % str(board_screen))
+	if board_screen == null:
+		_log("MATCH STRIP skipped :: no board screen")
+		return
+	var move: Array = board_screen._find_hint_move()
+	_log("MATCH STRIP move :: %s" % str(move))
+	if move.size() != 2:
+		_log("MATCH STRIP skipped :: no legal move on the board")
+		return
+	var view = board_screen.get_node_or_null("board")
+	if view == null:
+		_log("MATCH STRIP skipped :: the screen has no board view")
+		return
+	board_screen._hide_hand()
+	await _frames(2)
+	var origin: Vector2 = view.position + view.grid_origin
+	var side := int(view.cell_size * float(view.run.board.width)) + 8
+	var window := Rect2i(Vector2i(int(origin.x) - 4, int(origin.y) - 4), Vector2i(side, side))
+	var frames: Array = []
+	var before: Image = await _grab_rect(window)
+	if before != null:
+		frames.append(before)
+	Engine.time_scale = 0.2
+	board_screen._attempt_swap(move[0], move[1])
+	var offsets := [0.02, 0.05, 0.09, 0.14, 0.22, 0.34, 0.50, 0.70]
+	for index in range(offsets.size()):
+		await get_tree().create_timer(float(offsets[index])).timeout
+		var grabbed: Image = await _grab_rect(window)
+		_log("MATCH STRIP frame %d :: %s" % [index, "null" if grabbed == null else str(grabbed.get_size())])
+		if grabbed != null:
+			frames.append(grabbed)
+	Engine.time_scale = 1.0
+	await _frames(30)
+	_save_strip(frames, "16-match-strip", 3, 2)
 
 ## One cell's worth of board, photographed through a whole burst: the spray is a quarter of a second
 ## long, so a single still can never show both the droplets in the air and the splat they leave. This
