@@ -1,2 +1,0 @@
-ecce3625fcf04e8eb68e0b812a28c1331f0eacf6e374857e95643b66bc3c7b4b  delivery/Artillery-Frontline-arm64.apk
-70f73e0a2df4a8e6693dad02fb210f9201b6d94c36b66382ecf50a24c4ad2550  delivery/Artillery-Frontline-arm64.aab
