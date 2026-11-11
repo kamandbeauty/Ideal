@@ -100,6 +100,9 @@ static func _piece_from_name(value: String) -> int:
 		"aqiq": return GameTypes.PieceKind.AQIQ
 		"zomorrod": return GameTypes.PieceKind.ZOMORROD
 		"morvarid": return GameTypes.PieceKind.MORVARID
+		"ananas": return GameTypes.PieceKind.ANANAS
+		"porteqal": return GameTypes.PieceKind.PORTEQAL
+		"moz": return GameTypes.PieceKind.MOZ
 		_: return GameTypes.PieceKind.NONE
 
 static func _obstacle_from_name(value: String) -> int:

@@ -106,6 +106,9 @@ func _char_for(cell: Cell) -> String:
 		GameTypes.PieceKind.AQIQ: return "A"
 		GameTypes.PieceKind.ZOMORROD: return "Z"
 		GameTypes.PieceKind.MORVARID: return "M"
+		GameTypes.PieceKind.ANANAS: return "P"
+		GameTypes.PieceKind.PORTEQAL: return "O"
+		GameTypes.PieceKind.MOZ: return "B"
 		_: return "."
 
 static func from_ascii(rows: PackedStringArray) -> BoardModel:
@@ -126,6 +129,9 @@ static func from_ascii(rows: PackedStringArray) -> BoardModel:
 				"A": cell.piece = GameTypes.PieceKind.AQIQ
 				"Z": cell.piece = GameTypes.PieceKind.ZOMORROD
 				"M": cell.piece = GameTypes.PieceKind.MORVARID
+				"P": cell.piece = GameTypes.PieceKind.ANANAS
+				"O": cell.piece = GameTypes.PieceKind.PORTEQAL
+				"B": cell.piece = GameTypes.PieceKind.MOZ
 				"v":
 					cell.piece = GameTypes.PieceKind.LAJVARD
 					cell.power_up = GameTypes.PowerUpKind.ROCKET_VERTICAL

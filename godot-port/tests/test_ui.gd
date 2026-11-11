@@ -164,7 +164,8 @@ func _run() -> void:
 	failures += _check(weak_gems.is_empty(),
 		"every gem is at least 128 px so a phone never upscales it (%s)" % ", ".join(weak_gems))
 	for kind in [GameTypes.PieceKind.FIROUZEH, GameTypes.PieceKind.LAJVARD, GameTypes.PieceKind.AQIQ,
-			GameTypes.PieceKind.ZOMORROD, GameTypes.PieceKind.MORVARID]:
+			GameTypes.PieceKind.ZOMORROD, GameTypes.PieceKind.MORVARID, GameTypes.PieceKind.ANANAS,
+			GameTypes.PieceKind.PORTEQAL, GameTypes.PieceKind.MOZ]:
 		failures += _check(AssetCatalog.piece_path(kind).begins_with(AssetCatalog.GEM_DIR),
 			"the board draws the re-cut gem for piece %d" % kind)
 	var undecodable: Array[String] = []
@@ -178,7 +179,8 @@ func _run() -> void:
 	# can silently fall back to a drawn shape.
 	var unresolved: Array[String] = []
 	for kind in [GameTypes.PieceKind.FIROUZEH, GameTypes.PieceKind.LAJVARD, GameTypes.PieceKind.AQIQ,
-			GameTypes.PieceKind.ZOMORROD, GameTypes.PieceKind.MORVARID]:
+			GameTypes.PieceKind.ZOMORROD, GameTypes.PieceKind.MORVARID, GameTypes.PieceKind.ANANAS,
+			GameTypes.PieceKind.PORTEQAL, GameTypes.PieceKind.MOZ]:
 		if AssetCatalog.piece_texture(kind) == null:
 			unresolved.append("piece %d" % kind)
 	for kind in [GameTypes.ObstacleKind.CRATE, GameTypes.ObstacleKind.FROST, GameTypes.ObstacleKind.IVY,

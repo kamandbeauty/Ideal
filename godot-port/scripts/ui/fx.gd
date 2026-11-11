@@ -146,4 +146,7 @@ static func piece_tint(kind: int) -> Color:
 		GameTypes.PieceKind.AQIQ: return UiTokens.PIECE_AQIQ
 		GameTypes.PieceKind.ZOMORROD: return UiTokens.PIECE_ZOMORROD
 		GameTypes.PieceKind.MORVARID: return UiTokens.PIECE_MORVARID
+		GameTypes.PieceKind.ANANAS: return UiTokens.PIECE_ANANAS
+		GameTypes.PieceKind.PORTEQAL: return UiTokens.PIECE_PORTEQAL
+		GameTypes.PieceKind.MOZ: return UiTokens.PIECE_MOZ
 		_: return UiTokens.TEXT

@@ -36,6 +36,11 @@ SIZE = 160          # the plate every screen scales from
 PIECE_BOX = 132
 KEY_TOLERANCE = 26  # how near the field colour a pixel has to be to get filled
 
+# The eight fruits, by the id the game asks for. The first five kept their stone names when the pieces
+# turned into fruit — the ids travel in save data and in every level file, and renaming them would mean
+# rewriting the content to gain nothing the player can see.
+PIECES = ("firouzeh", "lajvard", "aqiq", "zomorrod", "morvarid", "ananas", "porteqal", "moz")
+
 
 def _field_colour(plate: Image.Image) -> tuple:
     """The colour the plate was painted on, read off its border.
@@ -130,7 +135,7 @@ def _centred(cut: Image.Image) -> Image.Image:
 
 
 def main() -> None:
-    for name in ("firouzeh", "lajvard", "aqiq", "zomorrod", "morvarid"):
+    for name in PIECES:
         source = os.path.join(SOURCE, name + ".png")
         piece = _centred(_keyed(source))
         path = os.path.join(OUT, "piece_%s.png" % name)

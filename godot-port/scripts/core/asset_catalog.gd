@@ -1,12 +1,13 @@
 class_name AssetCatalog
 extends RefCounted
 
-## The five stones are drawn twice: the Unity project's sprites ship untouched in `assets/art` (the
+## The fruits are drawn twice: the Unity project's sprites ship untouched in `assets/art` (the
 ## port contract keeps all 85 of them byte-identical), and `assets/gems` holds the re-cut versions
 ## that the board actually draws. The re-cut art is a picture like any other — it is generated once by
-## `tools/make_gem_art.py` and never drawn at runtime — and it is what makes a gem read as a stone at
-## 36 dp instead of as a coloured polygon. The fallback keeps the port working from the Unity art
-## alone if the gems folder is ever removed.
+## `tools/import_gem_art.py` and never drawn at runtime — and it is what makes a fruit read as fruit at
+## 36 dp instead of as a coloured polygon. The fallback keeps the port working from the Unity art alone
+## for the five original pieces if the folder is ever removed; the three fruits added later have no
+## Unity counterpart and live only here.
 const GEM_DIR := "res://assets/gems/"
 
 static func piece_name(kind: int) -> String:
@@ -16,6 +17,9 @@ static func piece_name(kind: int) -> String:
 		GameTypes.PieceKind.AQIQ: return "aqiq"
 		GameTypes.PieceKind.ZOMORROD: return "zomorrod"
 		GameTypes.PieceKind.MORVARID: return "morvarid"
+		GameTypes.PieceKind.ANANAS: return "ananas"
+		GameTypes.PieceKind.PORTEQAL: return "porteqal"
+		GameTypes.PieceKind.MOZ: return "moz"
 		_: return ""
 
 static func piece_path(kind: int) -> String:

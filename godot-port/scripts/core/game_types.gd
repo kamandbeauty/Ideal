@@ -8,7 +8,13 @@ enum PieceKind {
 	LAJVARD = 2,
 	AQIQ = 3,
 	ZOMORROD = 4,
-	MORVARID = 5
+	MORVARID = 5,
+	# Three more fruits, added after the first ten levels shipped. The enum values of the original five
+	# are untouched (they travel in save data and in level JSON); these simply extend the set, and a level
+	# opts into one by naming it.
+	ANANAS = 6,
+	PORTEQAL = 7,
+	MOZ = 8
 }
 
 enum PowerUpKind {
