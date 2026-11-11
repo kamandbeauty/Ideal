@@ -1,25 +1,47 @@
 {
   "LastWall-arm64.apk": {
-    "bytes": 39065941,
-    "sha256": "d714a7111f3365c3f484a341a8bafad1dd450f382f30793396e1d10b7c797fcf",
+    "bytes": 37103433,
+    "sha256": "e530c0074c57caaeab1e76c048b529dfb2b4721ccef632769ac9651cb30330e7",
     "package": "com.frontline.lastwall",
     "arm64": true,
     "min_sdk": "24",
     "target_sdk": "36",
     "landscape": true,
     "screen_orientation": 11,
-    "no_internet_permission": true
+    "no_internet_permission": true,
+    "permissions": [],
+    "declared_as_game": true,
+    "build": "release template (not debuggable)",
+    "version_name": "0.5.0",
+    "version_code": "5",
+    "native_libraries": [
+      "lib/arm64-v8a/libc++_shared.so",
+      "lib/arm64-v8a/libgodot_android.so"
+    ],
+    "project_files_packed": 152,
+    "project_files_missing": []
   },
   "LastWall-compatibility.apk": {
-    "bytes": 39065941,
-    "sha256": "6a1016fc582e88872ed573275670f3c0e801a68d60e44986c5bbb8483775a8a0",
+    "bytes": 37103433,
+    "sha256": "0bfdc900b8607b6a645ded44530397c38a473a3b2c860b90e6ed4d39e23f8dfa",
     "package": "com.frontline.lastwall.compatibility",
     "arm64": true,
     "min_sdk": "24",
     "target_sdk": "36",
     "landscape": true,
     "screen_orientation": 11,
-    "no_internet_permission": true
+    "no_internet_permission": true,
+    "permissions": [],
+    "declared_as_game": true,
+    "build": "release template (not debuggable)",
+    "version_name": "0.5.0",
+    "version_code": "5",
+    "native_libraries": [
+      "lib/arm64-v8a/libc++_shared.so",
+      "lib/arm64-v8a/libgodot_android.so"
+    ],
+    "project_files_packed": 152,
+    "project_files_missing": []
   },
   "problems": [],
   "scope": "CI export, signature and package inspection; no Android device or emulator run"
