@@ -212,10 +212,12 @@ jobs:
             printf 'Game: LAST WALL: Zombie Siege\n'
             printf 'Source commit: %s\n' "$GITHUB_SHA"
             printf 'Engine: Godot %s\n' "$GODOT_VERSION"
+            printf 'Version: %s (code %s)\n' "$(sed -n 's/^version\/name="\(.*\)"$/\1/p' "$PROJECT/export_presets.cfg" | head -1)" "$(sed -n 's/^version\/code=\(.*\)$/\1/p' "$PROJECT/export_presets.cfg" | head -1)"
             printf 'Build: %s\n' "$BUILD_KIND"
             printf 'Signing: %s\n' "$SIGNING_SCOPE"
             printf 'Checked in CI: signature, ARM64 library only, ZIP CRC, landscape manifest, no permissions at all, declared as a game, version, every project file packed\n'
             printf 'Not checked in CI: running on an Android device or emulator\n'
+            printf 'Installing: remove any earlier build first; every build is signed with a different throw-away key\n'
           } > delivery/BUILD-STATUS.txt
           cat delivery/BUILD-STATUS.txt
       - uses: actions/upload-artifact@v4
