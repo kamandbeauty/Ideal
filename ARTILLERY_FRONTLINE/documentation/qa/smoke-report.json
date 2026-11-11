@@ -151,21 +151,21 @@
       "direct": true,
       "shot": 1,
       "target": "t01",
-      "time": 7.5
+      "time": 7.6
     },
     {
       "amount": 8.1,
       "direct": false,
       "shot": 1,
       "target": "crate01",
-      "time": 7.5
+      "time": 7.6
     },
     {
       "amount": 110.0,
       "direct": true,
       "shot": 2,
       "target": "t03",
-      "time": 13.8
+      "time": 13.5
     }
   ],
   "engagements": {
@@ -187,13 +187,13 @@
     "star_gain": 3,
     "stars": 3,
     "success": true,
-    "time": 13.8850363333333
+    "time": 13.5099663333333
   },
   "passed": true,
   "performance": {
     "draw_calls": 54,
-    "fps": 22.4,
-    "frame_ms": 44.55,
+    "fps": 23.3,
+    "frame_ms": 42.86,
     "objects": 1590,
     "primitives": 1894,
     "renderer": "Compatibility",

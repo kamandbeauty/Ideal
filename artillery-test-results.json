@@ -1,10 +1,7 @@
 {
   "checks": 1234,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_cleanup_and_guidance: A sunk craft still has its troops queued to come ashore",
-    "test_cleanup_and_guidance: A sunk craft keeps its hull while its troops are still queued"
-  ],
-  "passed": false,
+  "failures": [],
+  "passed": true,
   "scope": "Headless desktop logic and scene integration; NOT Android device validation"
 }

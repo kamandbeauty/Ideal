@@ -186,24 +186,24 @@
     }
   ],
   "failures": 0,
-  "kills": 6,
+  "kills": 7,
   "passed": true,
   "performance": {
-    "draw_calls": 242,
-    "fps": 20.3,
-    "frame_ms": 49.32,
-    "objects": 1853,
-    "primitives": 84309,
+    "draw_calls": 236,
+    "fps": 23.9,
+    "frame_ms": 41.87,
+    "objects": 1836,
+    "primitives": 82150,
     "renderer": "Compatibility",
     "scale": 0.62,
     "tier": "low"
   },
   "scope": "Desktop Godot 4.7.2 Compatibility renderer under Xvfb/llvmpipe; art pass 03 skinned infantry/detailed war machines/weapons; not Android hardware",
-  "soldiers": 3,
+  "soldiers": 2,
   "weapon_screen_bounds": {
-    "h": 1467.73474121094,
-    "w": 857.062805175781,
-    "x": 285.749084472656,
-    "y": 455.543914794922
+    "h": 1467.73461914062,
+    "w": 857.0625,
+    "x": 285.750091552734,
+    "y": 455.544128417969
   }
 }
