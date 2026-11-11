@@ -74,7 +74,8 @@ jobs:
           test -s "$PROJECT/documentation/qa/14-defeat.png"
       - name: Preserve validation evidence
         if: always() && github.ref_name == env.SESSION_BRANCH
-        run: bash "$PROJECT/tools/publish_ci.sh" 'test: record headless suites and software-rendered play-through' "$PROJECT/documentation/qa"
+        run: |
+          bash "$PROJECT/tools/publish_ci.sh" 'test: record headless suites and software-rendered play-through' "$PROJECT/documentation/qa"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -182,7 +183,8 @@ jobs:
           path: ${{ runner.temp }}/compatibility-package/
       - name: Publish the APK to the session branch
         if: github.ref_name == env.SESSION_BRANCH
-        run: bash "$PROJECT/tools/publish_ci.sh" 'build: deliver the verified ARM64 Android APK' delivery
+        run: |
+          bash "$PROJECT/tools/publish_ci.sh" 'build: deliver the verified ARM64 Android APK' delivery
       - name: Surface build diagnostics
         if: failure()
         run: |
