@@ -1,0 +1,61 @@
+Phase 3.6 campaign model (model, not measured). Damage rates assumed; see the module docstring.
+Threshold T: HP at or below which the player notices the need. React: seconds from noticing to using.
+'beginner' = HMG only, overhead 2.0 s (proto.PROFILES). 'min HP' is the lowest point of the mission.
+
+## current supports, craft gap 0 s
+skilled, no support                            survived=True  min HP= 4169 end HP= 4169 repair=0 airdrop=0 damage= 1831
+skilled, T=2500 react=3s                       survived=True  min HP= 4169 end HP= 4169 repair=0 airdrop=0 damage= 1831
+skilled, T=3000 react=3s                       survived=True  min HP= 4169 end HP= 4169 repair=0 airdrop=0 damage= 1831
+skilled, T=4000 react=3s                       survived=True  min HP= 4169 end HP= 4169 repair=0 airdrop=0 damage= 1831
+skilled, T=4500 react=3s                       survived=True  min HP= 4387 end HP= 5669 repair=1 airdrop=0 damage= 1831
+average, no support                            survived=True  min HP= 3462 end HP= 3462 repair=0 airdrop=0 damage= 2538
+average, T=2500 react=3s                       survived=True  min HP= 3462 end HP= 3462 repair=0 airdrop=0 damage= 2538
+average, T=3000 react=3s                       survived=True  min HP= 3462 end HP= 3462 repair=0 airdrop=0 damage= 2538
+average, T=4000 react=3s                       survived=True  min HP= 3870 end HP= 4962 repair=1 airdrop=0 damage= 2538
+average, T=4500 react=3s                       survived=True  min HP= 4250 end HP= 4962 repair=1 airdrop=0 damage= 2538
+beginner, no support                           survived=False min HP=    0 end HP=    0 repair=0 airdrop=0 damage= 6000
+beginner, T=2500 react=3s                      survived=True  min HP= 2152 end HP= 2847 repair=2 airdrop=1 damage= 7153
+beginner, T=3000 react=3s                      survived=True  min HP= 2673 end HP= 4347 repair=3 airdrop=1 damage= 7153
+beginner, T=4000 react=3s                      survived=True  min HP= 3652 end HP= 4347 repair=3 airdrop=1 damage= 7153
+beginner, T=4500 react=3s                      survived=True  min HP= 4173 end HP= 5347 repair=3 airdrop=2 damage= 7153
+poor_ammo, no support                          survived=True  min HP=  825 end HP=  825 repair=0 airdrop=0 damage= 5175
+poor_ammo, T=2500 react=3s                     survived=True  min HP= 2324 end HP= 3825 repair=2 airdrop=0 damage= 5175
+poor_ammo, T=3000 react=3s                     survived=True  min HP= 2783 end HP= 3825 repair=2 airdrop=0 damage= 5175
+poor_ammo, T=4000 react=3s                     survived=True  min HP= 3740 end HP= 5325 repair=3 airdrop=0 damage= 5175
+poor_ammo, T=4500 react=3s                     survived=True  min HP= 4283 end HP= 5325 repair=3 airdrop=0 damage= 5175
+
+## current supports, craft gap 6 s
+skilled, no support                            survived=True  min HP= 4479 end HP= 4479 repair=0 airdrop=0 damage= 1521
+skilled, T=2500 react=3s                       survived=True  min HP= 4479 end HP= 4479 repair=0 airdrop=0 damage= 1521
+skilled, T=3000 react=3s                       survived=True  min HP= 4479 end HP= 4479 repair=0 airdrop=0 damage= 1521
+skilled, T=4000 react=3s                       survived=True  min HP= 4479 end HP= 4479 repair=0 airdrop=0 damage= 1521
+skilled, T=4500 react=3s                       survived=True  min HP= 4481 end HP= 5979 repair=1 airdrop=0 damage= 1521
+average, no support                            survived=True  min HP= 3776 end HP= 3776 repair=0 airdrop=0 damage= 2224
+average, T=2500 react=3s                       survived=True  min HP= 3776 end HP= 3776 repair=0 airdrop=0 damage= 2224
+average, T=3000 react=3s                       survived=True  min HP= 3776 end HP= 3776 repair=0 airdrop=0 damage= 2224
+average, T=4000 react=3s                       survived=True  min HP= 3930 end HP= 5276 repair=1 airdrop=0 damage= 2224
+average, T=4500 react=3s                       survived=True  min HP= 4340 end HP= 5276 repair=1 airdrop=0 damage= 2224
+beginner, no support                           survived=False min HP=    0 end HP=    0 repair=0 airdrop=0 damage= 6004
+beginner, T=2500 react=3s                      survived=True  min HP= 2207 end HP= 3676 repair=3 airdrop=0 damage= 6824
+beginner, T=3000 react=3s                      survived=True  min HP= 2693 end HP= 3176 repair=2 airdrop=1 damage= 6824
+beginner, T=4000 react=3s                      survived=True  min HP= 3707 end HP= 4676 repair=3 airdrop=1 damage= 6824
+beginner, T=4500 react=3s                      survived=True  min HP= 4193 end HP= 4676 repair=3 airdrop=1 damage= 6824
+poor_ammo, no support                          survived=True  min HP= 1154 end HP= 1154 repair=0 airdrop=0 damage= 4846
+poor_ammo, T=2500 react=3s                     survived=True  min HP= 2348 end HP= 2654 repair=1 airdrop=0 damage= 4846
+poor_ammo, T=3000 react=3s                     survived=True  min HP= 2809 end HP= 4154 repair=2 airdrop=0 damage= 4846
+poor_ammo, T=4000 react=3s                     survived=True  min HP= 3779 end HP= 4154 repair=2 airdrop=0 damage= 4846
+poor_ammo, T=4500 react=3s                     survived=True  min HP= 4309 end HP= 5654 repair=3 airdrop=0 damage= 4846
+
+## reaction sensitivity, craft gap 6 s, current supports (beginner and poor_ammo)
+beginner, T=2500 react=3s                      survived=True  min HP= 2207 end HP= 3676 repair=3 airdrop=0 damage= 6824
+beginner, T=2500 react=6s                      survived=True  min HP= 1942 end HP= 3676 repair=3 airdrop=0 damage= 6824
+beginner, T=2500 react=10s                     survived=True  min HP= 1619 end HP= 3676 repair=3 airdrop=0 damage= 6824
+beginner, T=3000 react=3s                      survived=True  min HP= 2693 end HP= 3176 repair=2 airdrop=1 damage= 6824
+beginner, T=3000 react=6s                      survived=True  min HP= 2376 end HP= 3176 repair=2 airdrop=1 damage= 6824
+beginner, T=3000 react=10s                     survived=True  min HP= 2010 end HP= 3176 repair=2 airdrop=1 damage= 6824
+poor_ammo, T=2500 react=3s                     survived=True  min HP= 2348 end HP= 2654 repair=1 airdrop=0 damage= 4846
+poor_ammo, T=2500 react=6s                     survived=True  min HP= 2211 end HP= 2654 repair=1 airdrop=0 damage= 4846
+poor_ammo, T=2500 react=10s                    survived=True  min HP= 2048 end HP= 2654 repair=1 airdrop=0 damage= 4846
+poor_ammo, T=3000 react=3s                     survived=True  min HP= 2809 end HP= 4154 repair=2 airdrop=0 damage= 4846
+poor_ammo, T=3000 react=6s                     survived=True  min HP= 2636 end HP= 4154 repair=2 airdrop=0 damage= 4846
+poor_ammo, T=3000 react=10s                    survived=True  min HP= 2426 end HP= 4154 repair=2 airdrop=0 damage= 4846

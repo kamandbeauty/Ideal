@@ -1,0 +1,41 @@
+Phase 3.6 realistic aim sweep (model; ranking only, not a game measurement)
+Cells: time-to-kill (mean, flight time included) / hit rate / shots fired (mean). Aircraft lead on.
+
+## realistic | aim error 0.5 deg | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      0.14s hit0.75 sh1.3     0.23s hit0.96 sh1.0     0.45s hit0.94 sh1.1     0.37s hit0.97 sh1.0     0.14s hit0.88 sh1.1   
+heavy      0.20s hit0.98 sh2.5     0.11s hit1.00 sh1.0     0.23s hit1.00 sh1.0     0.19s hit1.00 sh1.0     0.21s hit1.00 sh1.8   
+rpg        0.15s hit0.78 sh1.3     0.22s hit0.98 sh1.0     0.45s hit0.97 sh1.0     0.37s hit0.98 sh1.0     0.16s hit0.88 sh1.1   
+jeep       1.71s hit1.00 sh19.9    0.16s hit1.00 sh1.0     9.05s hit0.11 sh9.0     2.02s hit0.44 sh2.3     0.12s hit1.00 sh1.0   
+apc        4.07s hit1.00 sh48.2    0.10s hit1.00 sh1.0     0.21s hit1.00 sh1.0     0.17s hit1.00 sh1.0     0.38s hit1.00 sh3.0   
+tank       4.82s hit1.00 sh57.0    0.10s hit1.00 sh1.0     0.21s hit1.00 sh1.0     0.16s hit1.00 sh1.0     0.54s hit1.00 sh4.0   
+boss       18.91s hit1.00 sh195.8  3.53s hit1.00 sh4.0     2.17s hit1.00 sh3.8     2.23s hit1.00 sh3.0     3.20s hit1.00 sh20.7  
+heli       1.48s hit1.00 sh16.1    2.65s hit0.99 sh3.0     1.48s hit0.98 sh2.0     1.69s hit0.98 sh2.0     1.36s hit0.99 sh8.1   
+fighter    1.28s hit0.99 sh12.2    1.73s hit0.98 sh2.0     2.02s hit0.94 sh2.1     1.03s hit0.95 sh1.1     1.17s hit0.99 sh6.0   
+craft      7.41s hit1.00 sh86.2    3.71s hit1.00 sh4.0     2.39s hit1.00 sh3.5     2.58s hit1.00 sh3.0     2.74s hit1.00 sh17.0  
+
+## realistic | aim error 1.5 deg | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      0.33s hit0.28 sh3.5     3.10s hit0.29 sh3.4     2.60s hit0.30 sh3.4     3.94s hit0.30 sh3.4     0.54s hit0.28 sh3.6   
+heavy      0.30s hit0.66 sh3.7     0.50s hit0.75 sh1.3     0.45s hit0.77 sh1.3     0.52s hit0.76 sh1.3     0.30s hit0.71 sh2.5   
+rpg        0.34s hit0.28 sh3.6     3.35s hit0.27 sh3.7     2.73s hit0.28 sh3.5     4.24s hit0.28 sh3.5     0.56s hit0.28 sh3.6   
+jeep       2.07s hit0.82 sh24.2    0.52s hit0.76 sh1.3     2.64s hit0.27 sh3.5     2.35s hit0.41 sh2.5     0.14s hit0.87 sh1.1   
+apc        4.09s hit1.00 sh48.4    0.10s hit1.00 sh1.0     0.22s hit0.99 sh1.0     0.17s hit1.00 sh1.0     0.38s hit1.00 sh3.0   
+tank       4.84s hit1.00 sh57.2    0.10s hit1.00 sh1.0     0.21s hit0.99 sh1.0     0.16s hit1.00 sh1.0     0.54s hit1.00 sh4.0   
+boss       18.91s hit1.00 sh195.8  3.53s hit1.00 sh4.0     2.17s hit1.00 sh3.8     2.23s hit1.00 sh3.0     3.12s hit1.00 sh20.2  
+heli       1.69s hit0.86 sh18.5    2.97s hit0.91 sh3.3     1.52s hit0.96 sh2.1     1.85s hit0.92 sh2.2     1.51s hit0.89 sh9.0   
+fighter    1.61s hit0.74 sh16.1    2.28s hit0.79 sh2.5     2.42s hit0.75 sh2.7     1.30s hit0.77 sh1.3     1.47s hit0.76 sh7.9   
+craft      7.59s hit0.97 sh88.4    3.73s hit1.00 sh4.0     2.54s hit0.94 sh3.7     2.88s hit0.93 sh3.2     2.77s hit0.99 sh17.2  
+
+## realistic | aim error 3.0 deg | n=200
+target     twin_hmg                cannon                  rocket                  bazooka                 autocannon            
+rifle      1.29s hit0.07 sh14.8    18.91s hit0.07 sh14.9   16.16s hit0.07 sh14.8   24.11s hit0.07 sh14.4   2.56s hit0.06 sh15.8  
+heavy      0.87s hit0.23 sh10.4    4.01s hit0.24 sh4.2     3.27s hit0.24 sh4.2     5.32s hit0.24 sh4.2     1.05s hit0.25 sh7.1   
+rpg        1.32s hit0.07 sh15.1    20.30s hit0.06 sh16.0   15.76s hit0.07 sh14.5   23.58s hit0.07 sh14.1   2.43s hit0.07 sh15.1  
+jeep       4.93s hit0.34 sh57.8    2.36s hit0.34 sh2.9     3.64s hit0.20 sh4.4     4.78s hit0.24 sh3.9     0.48s hit0.34 sh3.3   
+apc        4.70s hit0.87 sh55.6    0.24s hit0.89 sh1.1     0.33s hit0.86 sh1.2     0.33s hit0.87 sh1.1     0.41s hit0.91 sh3.2   
+tank       5.48s hit0.88 sh64.7    0.20s hit0.91 sh1.1     0.31s hit0.88 sh1.1     0.30s hit0.89 sh1.1     0.57s hit0.92 sh4.2   
+boss       19.96s hit0.94 sh208.2  3.76s hit0.95 sh4.2     2.23s hit0.93 sh3.9     2.64s hit0.93 sh3.2     3.13s hit0.97 sh20.3  
+heli       3.36s hit0.42 sh38.1    7.92s hit0.41 sh7.3     4.57s hit0.39 sh5.1     6.91s hit0.40 sh5.0     3.16s hit0.41 sh19.4  
+fighter    4.29s hit0.25 sh47.7    8.36s hit0.27 sh7.5     8.82s hit0.24 sh8.3     5.87s hit0.24 sh4.1     4.03s hit0.25 sh23.9  
+craft      9.67s hit0.76 sh112.9   5.44s hit0.72 sh5.5     3.87s hit0.68 sh5.0     5.30s hit0.68 sh4.4     3.68s hit0.74 sh22.9  
