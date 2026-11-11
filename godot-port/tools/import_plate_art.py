@@ -174,8 +174,8 @@ def build_tray() -> Image.Image:
     radius = int(size * 0.075)
     # A cream frame with one gold line, like the reference: the board is the brightest thing on the
     # screen, and a blue frame round it made the grid look like a panel on a dashboard.
-    picture = _plate((size, size), radius, [(0.0, (255, 250, 234)), (0.42, IVORY),
-                                            (1.0, _mix(IVORY, (243, 220, 176), 0.5))])
+    picture = _plate((size, size), radius, [(0.0, (255, 252, 242)), (0.42, (255, 245, 224)),
+                                            (1.0, _mix(IVORY, (246, 225, 184), 0.5))])
     # Three lines, the way the reference's frame is built: a dark outer edge, the gold, and a warm
     # inner keyline that separates the gold from the cream.
     picture = _rim(picture, radius, _mix(GOLD_DARK, (168, 124, 52), 0.4), width=3)
@@ -186,7 +186,7 @@ def build_tray() -> Image.Image:
     # grid (which starts 15 dp in), so the royal frame keeps a band of its own all the way round.
     inner = int(size * 0.030)
     bed = _plate((size - inner * 2, size - inner * 2), int(size * 0.050),
-                 [(0.0, (226, 202, 160)), (1.0, (244, 228, 194))])
+                 [(0.0, (231, 209, 169)), (1.0, (247, 233, 202))])
     bed = _rim(bed, int(size * 0.050), _mix(GOLD, IVORY_SHADE, 0.35), width=2)
     picture.alpha_composite(bed, (inner, inner))
 
@@ -235,7 +235,12 @@ def build_tray() -> Image.Image:
     mask = Image.new("L", (size, size), 0)
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, size - 1, size - 1), radius=radius, fill=255)
     picture.putalpha(mask)
-    return _grain(picture.convert("RGB"), 2.0, 11)
+    # The grain is added on the colour and the plate's own alpha goes back on afterwards: converting
+    # the plate to RGB to grain it dropped that alpha, and a dropped alpha is black, so every board in
+    # every capture has had four black corners where the tray's rounded corners should be.
+    grained = _grain(picture.convert("RGB"), 2.0, 11).convert("RGBA")
+    grained.putalpha(mask.filter(ImageFilter.GaussianBlur(0.6)))
+    return grained
 
 
 def _ornament(size, centre, radius, petal=(TEAL, GOLD, TEAL_DARK)):
