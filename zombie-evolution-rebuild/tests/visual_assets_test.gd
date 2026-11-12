@@ -16,6 +16,12 @@ func check(condition: bool, description: String) -> void:
 func run_tests() -> void:
 	var background = load("res://assets/ui/sky_bridge_background.png")
 	check(background is Texture2D, "menu background imports as a texture")
+	var road = load("res://assets/environment/road_asphalt_tile.png")
+	check(road is Texture2D and road.get_width() == 512 and road.get_height() == 512, "road tile imports at mobile-conscious resolution")
+	var environment = load("res://scripts/level/environment.gd").new()
+	var road_material = environment.asphalt_material(Color.WHITE)
+	check(road_material.get_shader_parameter("asphalt_texture") == road, "bridge material uses the generated road tile")
+	environment.free()
 	for role in ["hero", "zombie", "runner", "brute"]:
 		var actor = Character.new()
 		root.add_child(actor)

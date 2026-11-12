@@ -33,8 +33,8 @@ func _ready() -> void:
 	sunlight.directional_shadow_max_distance = 60.0
 	add_child(sunlight)
 
-	var concrete := asphalt_material(Color(0.31, 0.33, 0.34))
-	var alternate := asphalt_material(Color(0.29, 0.31, 0.32))
+	var concrete := asphalt_material(Color(1.0, 1.0, 1.0))
+	var alternate := asphalt_material(Color(0.94, 0.95, 0.96))
 	var steel := new_material(Color(0.19, 0.25, 0.29), 0.6)
 	var edge := new_material(Color(0.12, 0.17, 0.20), 0.8)
 	var lane := new_material(Color(0.75, 0.66, 0.40), 0.95)
@@ -86,6 +86,7 @@ func _ready() -> void:
 func asphalt_material(color: Color) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/bridge_asphalt.gdshader")
+	material.set_shader_parameter("asphalt_texture", preload("res://assets/environment/road_asphalt_tile.png"))
 	material.set_shader_parameter("asphalt_color", color)
 	return material
 
