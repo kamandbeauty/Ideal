@@ -29,8 +29,8 @@ func run_tests() -> void:
 		var level = current_scene
 		level.set_physics_process(false)
 		var sound = level.sound
-		var sound_ref := weakref(sound)
-		var level_ref := weakref(level)
+		var sound_ref: WeakRef = weakref(sound)
+		var level_ref: WeakRef = weakref(level)
 		await physics_frame
 		var target = level.enemies[0]
 		target.position = Vector3(0, 0.05, 7)
