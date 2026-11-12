@@ -60,7 +60,7 @@ Each model brings that walk lame in the left leg and lame in the right (the
 walker also a second, more broken gait), and every zombie takes one of them
 for its life, at its own pace and its own point in the stride, so a crowd
 does not move in step. The body rounds in the table are the twin gun's; the
-six-barrel gun needs about twice as many, and fires them in less time.
+six-barrel gun needs nearly twice as many, and fires them in less time.
 
 ### Weapons
 
