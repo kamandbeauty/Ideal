@@ -95,7 +95,7 @@ jobs:
         run: |
           set -o pipefail
           LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a glxinfo -B 2>&1 | tee ci-artifacts/rendered/glxinfo.log
-          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --editor --audio-driver Dummy --rendering-method gl_compatibility --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/rendered/import.log
+          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --import --audio-driver Dummy --rendering-method gl_compatibility --rendering-driver opengl3 --path zombie-evolution-rebuild 2>&1 | tee ci-artifacts/rendered/import.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/rendered/import.log; then exit 1; fi
       - name: Capture actual automated gameplay
         run: |
@@ -216,7 +216,7 @@ jobs:
           }
           p.write_text('[gd_resource type="EditorSettings" format=3]\n\n[resource]\n' + ''.join(f'{k} = {json.dumps(v)}\n' for k, v in props.items()))
           PYCODE
-          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --editor --audio-driver Dummy --rendering-method gl_compatibility --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/android/import.log
+          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --import --audio-driver Dummy --rendering-method gl_compatibility --rendering-driver opengl3 --path zombie-evolution-rebuild 2>&1 | tee ci-artifacts/android/import.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/import.log; then exit 1; fi
           mkdir -p zombie-evolution-rebuild/exports
           echo 'Preset: Android ARM64; destination: zombie-evolution-rebuild/exports/zombie-debug.apk'

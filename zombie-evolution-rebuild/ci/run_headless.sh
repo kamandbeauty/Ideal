@@ -23,9 +23,11 @@ run() {
     if [ "$code" -eq 0 ] && ! grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' "$LOG_DIR/$name.log"; then
         passed=$((passed + 1))
         echo "PASS $name exit=$code warnings=$warning_count"
+        return 0
     else
         failed=$((failed + 1))
         echo "FAIL $name exit=$code warnings=$warning_count"
+        return 1
     fi
 }
 if ! command -v "$GODOT" >/dev/null 2>&1; then
@@ -39,9 +41,9 @@ run manifest bash -c 'echo "91eb09119c7c8b26b5387d9dacf2720aa481de028ef263be4eff
 run export_config python3 "$PROJECT/tests/export_config_test.py"
 if [ "${CI_RENDERED_IMPORT:-0}" = 1 ]; then
     # Godot's dummy renderer cannot read embedded GLB textures during import.
-    run import env LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --editor --audio-driver Dummy --rendering-method gl_compatibility --path "$PROJECT" --quit
+    run import env LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --import --audio-driver Dummy --rendering-method gl_compatibility --rendering-driver opengl3 --path "$PROJECT" || exit 1
 else
-    run import "$GODOT" --headless --editor --path "$PROJECT" --quit
+    run import "$GODOT" --headless --import --path "$PROJECT" || exit 1
 fi
 run launcher "$GODOT" --headless --path "$PROJECT" --quit-after 5
 run level_load "$GODOT" --headless --path "$PROJECT" res://scenes/level/sky_bridge.tscn --fixed-fps 60 --quit-after 240
