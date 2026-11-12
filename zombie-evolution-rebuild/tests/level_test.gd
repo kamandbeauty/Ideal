@@ -27,8 +27,11 @@ func run_test() -> void:
 	var before: float = target.health
 	level.shoot_at(level.hero, target.global_position + Vector3(0, 1.2, 0), 18.0)
 	check(target.health < before, "raycast deals damage to a zombie")
+	check(target.hit_reaction_time > 0, "zombie responds visually to damage")
+	check(level.find_child("ImpactSparks", false, false) is CPUParticles3D, "damage creates impact particles")
 	target.apply_damage(10000)
 	check(level.kills == 1 and level.coins == 5, "enemy death updates counters")
+	check(target.dead and target.collision_layer == 0, "defeated zombie stops colliding while its death motion plays")
 	level.hero.position = Vector3(3, 0.05, 57)
 	await physics_frame
 	level.shoot_at(level.hero, level.gate.global_position + Vector3(3, 2, 0), 18.0)

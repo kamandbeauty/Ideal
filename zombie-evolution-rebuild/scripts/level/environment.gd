@@ -33,8 +33,8 @@ func _ready() -> void:
 	sunlight.directional_shadow_max_distance = 60.0
 	add_child(sunlight)
 
-	var concrete := new_material(Color(0.40, 0.42, 0.40), 0.94)
-	var alternate := new_material(Color(0.36, 0.39, 0.39), 0.94)
+	var concrete := asphalt_material(Color(0.31, 0.33, 0.34))
+	var alternate := asphalt_material(Color(0.29, 0.31, 0.32))
 	var steel := new_material(Color(0.19, 0.25, 0.29), 0.6)
 	var edge := new_material(Color(0.12, 0.17, 0.20), 0.8)
 	var lane := new_material(Color(0.75, 0.66, 0.40), 0.95)
@@ -58,6 +58,7 @@ func _ready() -> void:
 		# A restrained centre marking makes speed and perspective easier to read.
 		add_box(Vector3(0, 0.012, z), Vector3(0.10, 0.02, 3.2), lane)
 		for side in [-1, 1]:
+			add_box(Vector3(side * 5.34, 0.014, z), Vector3(0.08, 0.025, 7.94), lane)
 			add_box(Vector3(side * 5.78, 0.18, z), Vector3(0.38, 0.36, 8), edge)
 			add_box(Vector3(side * 5.78, 1.12, z), Vector3(0.12, 0.12, 8), steel)
 			for offset in [-2.5, 2.5]:
@@ -81,6 +82,12 @@ func _ready() -> void:
 		cloud.position = Vector3(side * random.randf_range(15, 27), random.randf_range(-7, -3.5), float(i / 2) * 6.0 - 8.0)
 		cloud.scale = Vector3(random.randf_range(5, 9), random.randf_range(2, 4), random.randf_range(5, 9))
 		add_child(cloud)
+
+func asphalt_material(color: Color) -> ShaderMaterial:
+	var material := ShaderMaterial.new()
+	material.shader = preload("res://shaders/bridge_asphalt.gdshader")
+	material.set_shader_parameter("asphalt_color", color)
+	return material
 
 func new_material(color: Color, roughness: float) -> StandardMaterial3D:
 	var result := StandardMaterial3D.new()

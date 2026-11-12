@@ -213,7 +213,10 @@ func shoot_at(shooter, destination: Vector3, damage: float) -> void:
 			show_impact(end)
 	shooter.show_shot()
 	sound.play_effect("rifle")
-	show_tracer(origin, end)
+	var tracer_origin := origin
+	if is_instance_valid(shooter.muzzle_flash):
+		tracer_origin = shooter.muzzle_flash.global_position
+	show_tracer(tracer_origin, end)
 
 func show_impact(location: Vector3) -> void:
 	var spark := MeshInstance3D.new()
@@ -230,6 +233,32 @@ func show_impact(location: Vector3) -> void:
 	add_child(spark)
 	spark.global_position = location
 	get_tree().create_timer(0.08).timeout.connect(spark.queue_free)
+	# Short-lived CPU particles avoid creating a per-hit light on mobile.
+	var particles := CPUParticles3D.new()
+	particles.name = "ImpactSparks"
+	particles.amount = 8
+	particles.one_shot = true
+	particles.explosiveness = 1.0
+	particles.lifetime = 0.3
+	particles.direction = Vector3(0, 1, -0.5)
+	particles.spread = 65.0
+	particles.gravity = Vector3(0, -8, 0)
+	particles.initial_velocity_min = 1.0
+	particles.initial_velocity_max = 3.0
+	particles.scale_amount_min = 0.5
+	particles.scale_amount_max = 1.0
+	particles.color = Color(1.0, 0.55, 0.12)
+	var particle_mesh := SphereMesh.new()
+	particle_mesh.radius = 0.045
+	particle_mesh.height = 0.09
+	particle_mesh.radial_segments = 4
+	particle_mesh.rings = 2
+	particle_mesh.material = material
+	particles.mesh = particle_mesh
+	add_child(particles)
+	particles.global_position = location
+	particles.emitting = true
+	get_tree().create_timer(0.65).timeout.connect(particles.queue_free)
 
 func show_tracer(origin: Vector3, end: Vector3) -> void:
 	var length := origin.distance_to(end)

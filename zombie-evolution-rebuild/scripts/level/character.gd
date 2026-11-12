@@ -20,6 +20,8 @@ var rig: Skeleton3D
 var animation_player: AnimationPlayer
 var current_animation := ""
 var gun_recoil := 0.0
+var hit_reaction_time := 0.0
+var hit_direction := 1.0
 
 # Experimental user-provided static meshes; collision and combat stay procedural.
 const MODEL_CONFIG := {
@@ -172,9 +174,14 @@ func add_part(parent: Node3D, pos: Vector3, size: Vector3, color: Color) -> Mesh
 
 func update_animation(delta: float, moving: bool) -> void:
 	run_clock += delta
-	if visual_root and role != "soldier":
-		visual_root.rotation.z = sin(run_clock * 7) * 0.025 if moving else 0.0
-		visual_root.position.y = absf(sin(run_clock * 7)) * 0.035 if moving else 0.0
+	if not dead:
+		hit_reaction_time = maxf(0.0, hit_reaction_time - delta)
+	if visual_root and not dead:
+		var sway := sin(run_clock * 7) * 0.025 if moving and role != "soldier" else 0.0
+		var hit_lean := hit_direction * hit_reaction_time * 0.8
+		visual_root.rotation.z = sway + hit_lean
+		if role != "soldier":
+			visual_root.position.y = absf(sin(run_clock * 7)) * 0.035 if moving else 0.0
 	if rig and role == "hero":
 		var stride := sin(run_clock * 9.0) * 0.55 if moving else 0.0
 		pose_bone("LegRight", Quaternion(Vector3.RIGHT, stride))
@@ -234,7 +241,17 @@ func apply_damage(amount: float) -> void:
 	if dead:
 		return
 	health -= amount
+	hit_direction = -hit_direction
+	hit_reaction_time = 0.18
 	if health <= 0:
 		dead = true
 		defeated.emit(self)
-		queue_free()
+		# Remove collision immediately without delaying the gameplay defeat signal.
+		collision_layer = 0
+		collision_mask = 0
+		if visual_root:
+			var fall := create_tween()
+			fall.tween_property(visual_root, "rotation:x", -1.25, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			fall.tween_callback(queue_free)
+		else:
+			queue_free()
