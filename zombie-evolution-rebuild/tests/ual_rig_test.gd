@@ -35,6 +35,7 @@ func run_tests() -> void:
 			if "hand" in skeleton.get_bone_name(bone).to_lower():
 				hand_exists = true
 		check(hand_exists, "reference rig has hand bones")
+		print("Imported animation names: ", player.get_animation_list())
 		for requested in ["Idle_Loop", "Walk_Loop", "Jog_Fwd_Loop", "Sprint_Loop", "Pistol_Shoot", "Hit_Chest", "Death01"]:
 			var found := ""
 			for clip_name in player.get_animation_list():
