@@ -20,6 +20,7 @@ var rig: Skeleton3D
 var animation_player: AnimationPlayer
 var current_animation := ""
 var gun_recoil := 0.0
+var combat_animation_time := 0.0
 var hit_reaction_time := 0.0
 var hit_direction := 1.0
 
@@ -146,6 +147,7 @@ func create_weapon() -> void:
 
 func show_shot() -> void:
 	gun_recoil = 0.2
+	combat_animation_time = 0.22
 	if muzzle_flash:
 		muzzle_flash.visible = true
 		muzzle_time = 0.07
@@ -199,6 +201,7 @@ func update_animation(delta: float, moving: bool) -> void:
 	attack_timer = maxf(0, attack_timer - delta)
 	fire_timer = maxf(0, fire_timer - delta)
 	gun_recoil = move_toward(gun_recoil, 0.0, delta * 2.0)
+	combat_animation_time = maxf(0.0, combat_animation_time - delta)
 	if role == "soldier" and animation_player:
 		play_soldier_motion(moving)
 	if weapon and rig and role == "hero":
@@ -214,16 +217,16 @@ func update_animation(delta: float, moving: bool) -> void:
 			weapon.position.z -= gun_recoil
 
 func play_soldier_motion(moving: bool) -> void:
-	var wanted := "Walk_Carry" if moving else "Idle"
+	var wanted := "Shoot_OneHanded" if combat_animation_time > 0.0 else ("Walk_Carry" if moving else "Idle")
 	if current_animation != wanted:
 		for name in animation_player.get_animation_list():
 			if String(name).ends_with(wanted):
 				var clip := animation_player.get_animation(name)
-				clip.loop_mode = Animation.LOOP_LINEAR
+				clip.loop_mode = Animation.LOOP_NONE if wanted == "Shoot_OneHanded" else Animation.LOOP_LINEAR
 				animation_player.play(name, 0.15)
 				current_animation = wanted
 				break
-	animation_player.speed_scale = clampf(Vector2(velocity.x, velocity.z).length() / 2.6, 0.6, 2.0) if moving else 1.0
+	animation_player.speed_scale = clampf(Vector2(velocity.x, velocity.z).length() / 2.6, 0.6, 2.0) if moving and wanted == "Walk_Carry" else 1.0
 
 func pose_bone(bone_name: String, rotation: Quaternion) -> void:
 	var bone := rig.find_bone(bone_name)

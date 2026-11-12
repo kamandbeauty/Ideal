@@ -35,11 +35,13 @@ func run_test() -> void:
 	level.hero.position = Vector3(3, 0.05, 57)
 	await physics_frame
 	level.shoot_at(level.hero, level.gate.global_position + Vector3(3, 2, 0), 18.0)
-	check(level.gate.selection == 1, "shooting selects the right gate")
-	level.gate.select(-1)
-	check(level.gate.selection == 1, "gate locks its first selection")
-	level.gate.check_crossing(65)
-	check(level.soldiers.size() == 3, "crossing the gate recruits soldiers")
+	check(level.gate.selection == 0 and level.soldiers.is_empty(), "shooting does not select a gate")
+	level.hero.position.z = 64.99
+	level._physics_process(0.016)
+	check(level.gate.selection == 1 and level.gate.finished, "crossing the red lane selects it")
+	check(level.soldiers.size() == 3, "crossing the red gate recruits three soldiers")
+	level.gate.check_crossing(level.hero.global_position)
+	check(level.soldiers.size() == 3, "crossing cannot recruit twice")
 	level.soldiers[0].apply_damage(1000)
 	check(level.soldiers.size() == 2, "soldier damage removes a soldier")
 	level.soldiers[1].apply_damage(1000)

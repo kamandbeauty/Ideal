@@ -85,8 +85,8 @@ func run_capture() -> void:
 					if is_instance_valid(enemy) and enemy.position.z > level.hero.position.z and enemy.position.distance_to(level.hero.position) < 22:
 						await snapshot("03-zombie-encounter")
 						break
-			if is_instance_valid(level.gate) and level.gate.selection != 0:
-				await snapshot("04-gate-selected")
+			if is_instance_valid(level.gate) and not level.gate.finished and level.hero.position.z > level.gate.position.z - 12.0:
+				await snapshot("04-glass-gate")
 			if level.soldiers.size() > 0:
 				await snapshot("05-recruited-soldiers")
 		Input.action_release("ui_left")
@@ -123,7 +123,7 @@ func run_capture() -> void:
 			quit(1)
 			return
 		await snapshot("07-defeat-test-only")
-	var required := ["01-launcher", "02-initial-bridge", "03-zombie-encounter", "04-gate-selected", "05-recruited-soldiers", "06-victory"]
+	var required := ["01-launcher", "02-initial-bridge", "03-zombie-encounter", "04-glass-gate", "05-recruited-soldiers", "06-victory"]
 	if captured.has("07-defeat"):
 		required.append("07-defeat")
 	else:

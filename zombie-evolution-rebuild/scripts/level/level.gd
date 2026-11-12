@@ -86,7 +86,7 @@ func _physics_process(delta: float) -> void:
 	hero.position.x = clampf(hero.position.x, -4.7, 4.7)
 	hero.update_animation(delta, forward > 0 or horizontal != 0)
 	if is_instance_valid(gate):
-		gate.check_crossing(hero.position.z)
+		gate.check_crossing(hero.global_position)
 	update_squad(delta)
 	update_enemies(delta)
 	if not running:
@@ -107,8 +107,8 @@ func _physics_process(delta: float) -> void:
 	if hero.position.z >= END_Z and enemies.is_empty():
 		finish(true)
 	var instruction := message if message_time > 0 else ""
-	if is_instance_valid(gate) and gate.selection == 0 and hero.position.z > 43 and hero.position.z < 55:
-		instruction = "به سمت دروازه دلخواه حرکت کنید تا به آن شلیک شود."
+	if is_instance_valid(gate) and not gate.finished and hero.position.z > 43 and hero.position.z < 65:
+		instruction = "از دروازه دلخواه عبور کنید."
 	elif reload_time > 0 and instruction == "":
 		instruction = "در حال پر کردن خشاب"
 	hud.update_status(hero.health, soldiers.size(), coins, ammo, instruction)
@@ -180,12 +180,6 @@ func nearest_enemy(origin: Vector3, maximum: float):
 	return result
 
 func hero_fire() -> bool:
-	if is_instance_valid(gate) and gate.selection == 0:
-		var distance: float = gate.position.z - hero.position.z
-		if distance > 1 and distance < 12:
-			var side := -1 if hero.position.x < 0 else 1
-			shoot_at(hero, gate.global_position + Vector3(side * 3, 2, 0), 18)
-			return true
 	var target = nearest_enemy(hero.position, 27.0)
 	if target == null:
 		# Keep firing down the bridge, even between enemy waves. Reloading and
@@ -198,16 +192,14 @@ func hero_fire() -> bool:
 func shoot_at(shooter, destination: Vector3, damage: float) -> void:
 	var origin: Vector3 = shooter.global_position + Vector3(0, 1.25, 0)
 	var query := PhysicsRayQueryParameters3D.create(origin, destination)
-	query.collision_mask = 4 | 8
+	query.collision_mask = 4
 	query.exclude = [shooter.get_rid()]
 	var hit: Dictionary = get_world_3d().direct_space_state.intersect_ray(query)
 	var end := destination
 	if not hit.is_empty():
 		end = hit.position
 		var collider = hit.collider
-		if collider.has_meta("gate_pair"):
-			collider.get_meta("gate_pair").select(int(collider.get_meta("gate_side")))
-		elif collider.has_method("apply_damage"):
+		if collider.has_method("apply_damage"):
 			collider.apply_damage(damage)
 			sound.play_effect("impact")
 			show_impact(end)
@@ -279,7 +271,7 @@ func show_tracer(origin: Vector3, end: Vector3) -> void:
 
 func on_gate_chosen(side: int) -> void:
 	sound.play_effect("gate")
-	message = "دروازه چپ انتخاب شد" if side < 0 else "دروازه راست انتخاب شد"
+	message = "دروازه آبی انتخاب شد" if side < 0 else "دروازه قرمز انتخاب شد"
 	message_time = 2
 
 func on_gate_crossed(effect: String) -> void:

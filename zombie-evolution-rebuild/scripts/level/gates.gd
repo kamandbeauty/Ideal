@@ -6,69 +6,67 @@ signal chosen(side)
 const FONT = preload("res://assets/fonts/DejaVuSans.ttf")
 var selection := 0
 var finished := false
-var bodies: Array[StaticBody3D] = []
+var panels: Array[Node3D] = []
 
 func _ready() -> void:
-	make_gate(-1, "×۲")
-	make_gate(1, "+۳")
+	make_gate(-1, "×۲", Color(0.10, 0.58, 1.0))
+	make_gate(1, "+۳", Color(1.0, 0.18, 0.22))
 
-func make_gate(side: int, caption: String) -> void:
-	var body := StaticBody3D.new()
-	body.collision_layer = 8
-	body.collision_mask = 0
-	body.position = Vector3(side * 3.0, 0, 0)
-	body.set_meta("gate_side", side)
-	body.set_meta("gate_pair", self)
-	var shape := CollisionShape3D.new()
-	var collision := BoxShape3D.new()
-	collision.size = Vector3(5.2, 4.0, 0.25)
-	shape.shape = collision
-	shape.position.y = 2
-	body.add_child(shape)
-	for x in [-2.5, 2.5]:
-		gate_part(body, Vector3(x, 2, 0), Vector3(0.2, 4, 0.25))
-	gate_part(body, Vector3(0, 4, 0), Vector3(5.2, 0.2, 0.25))
+func make_gate(side: int, caption: String, color: Color) -> void:
+	# Floating glass is deliberately visual-only: neither actors nor bullets
+	# collide with it, and selection happens only when the player crosses.
+	var panel := Node3D.new()
+	panel.position = Vector3(side * 2.9, 0, 0)
+	add_child(panel)
+	panels.append(panel)
+	var glass := StandardMaterial3D.new()
+	glass.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	glass.albedo_color = Color(color.r, color.g, color.b, 0.32)
+	glass.metallic = 0.05
+	glass.roughness = 0.18
+	glass.cull_mode = BaseMaterial3D.CULL_DISABLED
+	glass.emission_enabled = true
+	glass.emission = color * 0.14
+	gate_part(panel, Vector3(0, 2.28, 0), Vector3(5.65, 3.45, 0.38), glass)
+	var edge := StandardMaterial3D.new()
+	edge.albedo_color = color.lightened(0.38)
+	edge.metallic = 0.25
+	edge.roughness = 0.25
+	edge.emission_enabled = true
+	edge.emission = color * 0.22
+	for x in [-2.82, 2.82]:
+		gate_part(panel, Vector3(x, 2.28, 0), Vector3(0.10, 3.55, 0.42), edge)
+	for y in [0.53, 4.03]:
+		gate_part(panel, Vector3(0, y, 0), Vector3(5.70, 0.10, 0.42), edge)
 	var text := Label3D.new()
 	text.font = FONT
 	text.text = caption
 	text.font_size = 96
 	text.pixel_size = 0.012
 	text.outline_size = 10
-	text.outline_modulate = Color(0.02, 0.07, 0.10, 0.95)
-	text.position = Vector3(0, 3, -0.2)
+	text.outline_modulate = Color(0.02, 0.03, 0.06, 0.98)
+	text.position = Vector3(0, 2.8, -0.24)
 	text.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	body.add_child(text)
-	add_child(body)
-	bodies.append(body)
+	panel.add_child(text)
 
-func gate_part(parent: Node3D, pos: Vector3, size: Vector3) -> void:
+func gate_part(parent: Node3D, pos: Vector3, size: Vector3, material: Material) -> void:
 	var part := MeshInstance3D.new()
 	var mesh := BoxMesh.new()
 	mesh.size = size
 	part.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(0.18, 0.67, 0.92)
-	mat.emission_enabled = true
-	mat.emission = Color(0.02, 0.14, 0.2)
-	part.material_override = mat
+	part.material_override = material
 	part.position = pos
 	parent.add_child(part)
 
-func select(side: int) -> void:
-	if finished or selection != 0:
+func check_crossing(hero_position: Vector3) -> void:
+	if finished:
 		return
-	selection = side
-	chosen.emit(side)
-	# Hide the other lane immediately to make the locked choice clear.
-	for body in bodies:
-		if int(body.get_meta("gate_side")) != side:
-			body.visible = false
-			body.collision_layer = 0
-
-func check_crossing(hero_z: float) -> void:
-	if finished or hero_z < position.z:
+	var local := to_local(hero_position)
+	if local.z < 0.0:
 		return
+	# The midpoint belongs to the red +۳ lane, deterministically.
+	selection = -1 if local.x < 0.0 else 1
 	finished = true
-	if selection != 0:
-		crossed.emit("double" if selection < 0 else "add3")
+	chosen.emit(selection)
+	crossed.emit("double" if selection < 0 else "add3")
 	queue_free()
