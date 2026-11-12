@@ -56,6 +56,9 @@ func _load_level() -> void:
 	if level != null and is_instance_valid(level):
 		hud.bind(null)
 		level.queue_free()
+	# Whatever happened to the profile meanwhile, a stage that is not open is never laid.
+	stage = clampi(stage, 0, Campaign.open_stages(int(Profile.data.stats.stages_cleared)) - 1)
+	menus.stage = stage
 	level = (load(LEVEL_SCENE) as PackedScene).instantiate()
 	level.stage = stage
 	level.wave_set = Campaign.waves(stage)

@@ -1,7 +1,8 @@
 extends Node
 ## Self-driving run of the real game for CI: plays through menu, combat with
-## every weapon, the gate falling and the defeat screen, then lays the game
-## out on a 20:9 phone with a camera cut-out and on a 4:3 tablet, saving a
+## every weapon and the sight drawn in, the gate falling and the defeat screen,
+## then lays the game out on a 20:9 phone with a camera cut-out and on a 4:3
+## tablet, fights with the other gun and opens the second stage, saving a
 ## screenshot at each step and a JSON report. Started with `-- --smoke`; never
 ## part of an exported build.
 ##
@@ -105,7 +106,7 @@ func _physics_frames(count: int) -> void:
 
 ## Waits for the physics step in which the next round leaves the gun. The picture taken straight
 ## after it shows that round's muzzle flash: a flash is never put out before it has been drawn once.
-func _next_round(gun: TwinHmg) -> void:
+func _next_round(gun: Weapon) -> void:
 	var fired: int = gun.state.shots
 	var waited: int = 0
 	while gun.state.shots == fired and waited < 240:
@@ -113,37 +114,44 @@ func _next_round(gun: TwinHmg) -> void:
 		waited += 1
 
 
-## Figures for the victory screen that agree with each other and with the game's own data: every
-## zombie of every wave is dead, and no more explosives were used than the gunner is ever handed.
-func _victory_figures() -> Dictionary:
-	var waves: WaveSet = level.director.wave_set
+## Figures for the result screen of a stage that was won, which agree with each other and with the game's
+## own data: every zombie of every wave of that stage is dead, and no more explosives were used than the
+## gunner is handed in it.
+func _victory_figures(stage: int) -> Dictionary:
+	var waves: WaveSet = Campaign.waves(stage)
 	var launcher: WeaponData = level.defender.weapons[1].data
 	var stats := MatchStats.new()
 	var rockets_handed: int = launcher.magazine_size + launcher.reserve
 	var grenades_handed: int = level.defender.grenade_data.carried
-	for wave: WaveData in waves.waves:
+	for index: int in waves.waves.size():
+		var wave: WaveData = waves.waves[index]
 		stats.special_kills += wave.total() - wave.count_of(&"walker")
 		stats.bosses += wave.count_of(&"boss")
-		rockets_handed += wave.resupply_rockets
-		grenades_handed += wave.resupply_grenades
+		# Nothing is handed out after the last wave.
+		if index + 1 < waves.waves.size():
+			rockets_handed += wave.resupply_rockets
+			grenades_handed += wave.resupply_grenades
+	stats.stage = stage
+	stats.waves_before = waves.waves_before
 	stats.kills = waves.total_zombies()
 	stats.wave = waves.waves.size()
 	stats.waves_total = waves.waves.size()
 	stats.waves_cleared = waves.waves.size()
 	stats.victory = true
-	stats.rockets = mini(9, rockets_handed)
-	stats.grenades = mini(7, grenades_handed)
+	stats.rockets = mini(2 + stage * 3, rockets_handed)
+	stats.grenades = mini(2 + stage * 2, grenades_handed)
 	# About four kills to an explosive, as in the play-through above; a quarter of the rest by headshot.
 	stats.blast_kills = (stats.rockets + stats.grenades) * 4
 	stats.headshots = (stats.kills - stats.blast_kills) / 4
-	stats.shots = 2600
-	stats.hits = 1222
-	# Inside the band the simulated sieges of the test suite finish in.
-	stats.time = 486.0
+	# The later stages field tougher kinds: more rounds to a kill.
+	stats.shots = stats.kills * (8 + 3 * stage)
+	stats.hits = stats.shots * 47 / 100
+	# Inside the band the simulated sieges of the test suite finish each stage in.
+	stats.time = [110.0, 181.0, 172.0][clampi(stage, 0, 2)]
 	stats.wall_left = 0.82
 	stats.gate_left = 0.37
 	check(stats.blast_kills + stats.headshots <= stats.kills and stats.special_kills <= stats.kills and stats.bosses <= stats.special_kills,
-		"the figures of the victory preview agree with each other")
+		"the figures made up for stage %d agree with each other" % (stage + 1))
 	return stats.to_dict()
 
 
@@ -193,13 +201,13 @@ func _check_hud(label: String, cutouts: Vector2) -> void:
 			under.append("%s %s" % [part[0], str(box)])
 	check(outside.is_empty(), "%s: every part of the HUD is on the screen (%s)" % [label, str(outside)])
 	check(under.is_empty(), "%s: no part of the HUD is under a cut-out or within 20 units of one (%s)" % [label, str(under)])
-	var buttons: Array = [game.hud.fire_button, game.hud.reload_button, game.hud.grenade_button, game.hud.pause_button]
+	var buttons: Array = [game.hud.fire_button, game.hud.reload_button, game.hud.grenade_button, game.hud.pause_button, game.hud.zoom_button]
 	var whole: bool = true
 	for button: HudWidgets.RoundButton in buttons:
 		var at: Vector2 = button.center()
 		if at.x - button.radius < cutouts.x or at.x + button.radius > view.x - cutouts.y or at.y - button.radius < 0.0 or at.y + button.radius > view.y:
 			whole = false
-	check(whole, "%s: FIRE, RELOAD, GRENADE and PAUSE are whole and clear of the cut-outs" % label)
+	check(whole, "%s: FIRE, RELOAD, GRENADE, the sight button and PAUSE are whole and clear of the cut-outs" % label)
 	var apart: bool = true
 	for first: int in buttons.size():
 		for second: int in range(first + 1, buttons.size()):
@@ -336,7 +344,7 @@ func _other_screens() -> void:
 	_check_menu("back_on_16x9_menu", Vector2.ZERO)
 
 
-## The heaviest the game gets, measured: as many zombies alive as the last wave allows at once, most of
+## The heaviest the game gets, measured: as many zombies alive as the last wave of the last stage allows at once, most of
 ## them at the gate and the wall, with the gun firing into them. The figures belong to the machine that
 ## ran this, not to a phone; under a software renderer the frame time is the renderer's, not the game's.
 func _peak_load() -> void:
@@ -344,7 +352,8 @@ func _peak_load() -> void:
 	await frames(4)
 	level = game.level
 	level.director.stop()
-	var cap: int = level.wave_set.waves[level.wave_set.waves.size() - 1].max_alive
+	var last_stage: WaveSet = Campaign.waves(Campaign.count() - 1)
+	var cap: int = last_stage.waves[last_stage.waves.size() - 1].max_alive
 	var mix: Array[StringName] = [&"walker", &"runner", &"walker", &"walker", &"runner", &"walker", &"walker", &"brute"]
 	var routes: Array[String] = ["avenue_left", "avenue_right", "ring_left", "ring_right"]
 	level.horde.spawn(&"boss", "avenue_left", "gate")
@@ -376,7 +385,7 @@ func _peak_load() -> void:
 	sample["alive"] = level.horde.alive_count()
 	sample["striking"] = level.horde.attackers()
 	sample["zombie_nodes"] = level.horde.created
-	sample["what"] = "the last wave's cap alive at once, gun firing; measured on the machine that ran this, not on a phone"
+	sample["what"] = "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone"
 	notes["peak_load"] = sample
 	await shot("29-peak-crowd", "staged")
 	game.hud.touch_up(40)
@@ -384,6 +393,154 @@ func _peak_load() -> void:
 	game.to_menu()
 	await frames(4)
 	level = game.level
+
+
+## The living zombie furthest from the gun that the gunner can see and lay the sight on.
+func _farthest_in_sight() -> Zombie:
+	var eye: Vector3 = level.defender.eye_position()
+	var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
+	var best: Zombie = null
+	for zombie: Zombie in level.horde.active:
+		var chest: Vector3 = zombie.position + Vector3(0.0, 1.2, 0.0)
+		if not zombie.alive or not level.defender.can_aim_at(chest):
+			continue
+		if not space.intersect_ray(PhysicsRayQueryParameters3D.create(eye, chest, Layers.WORLD)).is_empty():
+			continue
+		if best == null or zombie.position.distance_to(eye) > best.position.distance_to(eye):
+			best = zombie
+	return best
+
+
+## The sight drawn in, through its button on the HUD: the furthest zombie in view comes close.
+func _sight() -> void:
+	var defender: Defender = level.defender
+	var far: Zombie = _farthest_in_sight()
+	if far != null:
+		_aim_at(far.position + Vector3(0.0, 1.2, 0.0))
+		notes["sight_target_m"] = snappedf(far.position.distance_to(defender.eye_position()), 0.1)
+	await frames(3)
+	var naked: float = defender.view_fov()
+	game.hud.touch_down(3, game.hud.zoom_button.center())
+	game.hud.touch_up(3)
+	check(defender.zoomed, "the sight button draws the sight in")
+	var glide: int = 0
+	while defender.zoom < 0.999 and glide < 240:
+		await frames(1)
+		glide += 1
+	await frames(3)
+	var drawn: float = defender.view_fov()
+	check(is_equal_approx(defender.zoom, 1.0) and absf(drawn - defender.aim_settings.fov_at(defender.aim_settings.zoom_factor)) < 0.01,
+		"through it the street is %.1f times closer (a field of %.1f degrees instead of %.1f)" % [defender.aim_settings.zoom_factor, drawn, naked])
+	check(game.hud.zoom_button.lit and game.hud.scope.visible, "the HUD shows that the sight is in")
+	notes["sight"] = {"magnification": defender.aim_settings.zoom_factor, "field_of_view": snappedf(drawn, 0.1), "naked_field_of_view": snappedf(naked, 0.1)}
+	await shot("30-sight-drawn-in")
+	game.hud.touch_down(3, game.hud.zoom_button.center())
+	game.hud.touch_up(3)
+	glide = 0
+	while defender.zoom > 0.001 and glide < 240:
+		await frames(1)
+		glide += 1
+	await frames(2)
+	check(not defender.zoomed and absf(defender.view_fov() - naked) < 0.01 and not game.hud.scope.visible, "a second press lets it out again")
+
+
+## The other gun: chosen on the title screen, where the street behind the menu shows it at once, then
+## fired at the gate through the touch path like the first.
+func _six_barrels() -> void:
+	level = game.level
+	check(game.menus.screen == "main" and game.menus.gun_choices != null and game.menus.gun_choices.buttons.size() == Profile.GUNS.size(),
+		"the title screen offers the guns")
+	game.menus.gun_choices.buttons[1].pressed.emit()
+	await frames(4)
+	check(String(Profile.setting("gun")) == "rotary_gun" and level.defender.weapon is RotaryGun, "a tap on the six-barrel gun stands it on the mount behind the menu")
+	_check_menu("title_six_barrel", Vector2.ZERO)
+	await shot("31-title-six-barrel", "screen")
+	game.start_match()
+	await frames(6)
+	level = game.level
+	var gun := level.defender.weapon as RotaryGun
+	check(level.running and gun != null, "the match is fought with it")
+	if gun != null:
+		level.defender.aim.set_aim(40.0, -8.5)
+		simulate(36.0)
+		var extra: int = 0
+		while level.horde.attackers("gate") < 2 and extra < 40:
+			simulate(1.0)
+			extra += 1
+		var victim: Zombie = _nearest_attacker("gate")
+		if victim != null:
+			_aim_at(victim.position + Vector3(0.0, 1.15, 0.0))
+		await frames(4)
+		var fired: int = level.stats.shots
+		var kills: int = level.stats.kills
+		game.hud.touch_down(0, game.hud.fire_button.center())
+		# The barrels run up before the first round; the picture is taken with the gun at speed.
+		await _next_round(gun)
+		await _physics_frames(10)
+		await _next_round(gun)
+		await shot("32-six-barrel-firing")
+		check(gun.spin_fraction() >= 0.999, "the barrels are at speed")
+		check(gun.flash.visible, "a muzzle flame is on screen while it fires")
+		check(gun.casings.ejected > 0, "it throws its brass")
+		await _physics_frames(40)
+		game.hud.touch_up(0)
+		notes["six_barrel_shots"] = level.stats.shots - fired
+		notes["six_barrel_kills"] = level.stats.kills - kills
+		check(level.stats.shots - fired >= 20, "a second of fire is a couple of dozen rounds (%d)" % (level.stats.shots - fired))
+		check(victim != null and level.stats.kills > kills, "and it kills at the gate")
+	game.to_menu()
+	await frames(6)
+	level = game.level
+	# Back to the gun a new player has.
+	game.menus.gun_choices.buttons[0].pressed.emit()
+	await frames(3)
+	check(String(Profile.setting("gun")) == "twin_hmg" and level.defender.weapon is TwinHmg, "the twin gun goes back on the mount")
+
+
+## The stage after the first. The driver has not won the first stage under rendering, so it writes that win
+## into the profile itself; what the title screen and the match then show is the game's own doing.
+func _second_stage() -> void:
+	var career: Dictionary = (Profile.data.stats as Dictionary).duplicate(true)
+	Profile.record_match(_victory_figures(0))
+	game.to_menu()
+	await frames(4)
+	var choices: MenuWidgets.Choices = game.menus.stage_choices
+	check(int(Profile.data.stats.stages_cleared) == 1 and not choices.is_locked(1) and choices.is_locked(2),
+		"with the first stage won the title screen shows the second open and the third still locked")
+	choices.buttons[1].pressed.emit()
+	await frames(4)
+	check(game.stage == 1 and game.menus.stage_choices.selected == 1, "a tap picks the second stage")
+	_check_menu("title_second_stage", Vector2.ZERO)
+	await shot("34-title-second-stage", "preview")
+	game.start_match()
+	await frames(6)
+	level = game.level
+	var waves: WaveSet = Campaign.waves(1)
+	check(level.running and level.stage == 1 and level.director.wave_count() == waves.waves.size(), "PLAY starts the second stage on its own %d waves" % waves.waves.size())
+	check(is_equal_approx(level.defense.wall_fraction(), 1.0) and is_equal_approx(level.defense.gate_fraction(), 1.0), "on a whole wall and gate")
+	# Its first wave coming through the court mouth, the brutes among it.
+	var waited: float = 0.0
+	while level.director.index < 0 and waited < 30.0:
+		simulate(0.5)
+		waited += 0.5
+	simulate(20.0)
+	await frames(4)
+	check(level.director.index == 0 and level.horde.alive_count() > 0, "its first wave is on the field")
+	check(game.hud.banner.text == Loc.t("stage_wave", [2, 1]), "under a banner that names the stage (%s)" % game.hud.banner.text)
+	var brutes: int = 0
+	for zombie: Zombie in level.horde.active:
+		if zombie.alive and zombie.data.id == &"brute":
+			brutes += 1
+	notes["second_stage"] = {"waves": waves.waves.size(), "zombies": waves.total_zombies(), "alive_20s_into_its_first_wave": level.horde.alive_count(),
+		"brutes_among_them": brutes, "opened_by": "a first-stage win the driver wrote into the profile"}
+	await shot("35-second-stage-begins", "staged")
+	# The profile goes back to what the play-through itself earned.
+	Profile.data.stats = career
+	game.to_menu()
+	await frames(4)
+	level = game.level
+	check(game.stage == 0 and level.stage == 0 and game.menus.stage_choices.is_locked(1),
+		"with that win taken back the second stage is locked again and the first is the one laid behind the menu")
 
 
 func _aim_at(point: Vector3) -> void:
@@ -575,6 +732,7 @@ func _run() -> void:
 	level.defender.aim.set_aim(0.0, -2.5)
 	await frames(6)
 	await shot("15-avenue")
+	await _sight()
 
 	game.pause()
 	await frames(3)
@@ -683,17 +841,30 @@ func _run() -> void:
 	check(game.menus.screen == "result" and not game.menus.result_victory, "it reports a defeat")
 	notes["defeat_time_s"] = snappedf(float(game.menus.result_stats.get("time", 0.0)), 0.1)
 	await shot("22-defeat", "staged")
-	var preview: Dictionary = _victory_figures()
+	# The last stage won: the siege is over.
+	var preview: Dictionary = _victory_figures(Campaign.count() - 1)
 	notes["victory_preview"] = preview
 	game.menus.show_result(true, preview, true)
 	await frames(3)
+	check(not game.menus.result_onward, "after the last stage there is nothing to go on to")
+	_check_menu("victory_preview", Vector2.ZERO)
 	await shot("23-victory-preview", "preview")
+	# An earlier stage won: the result screen leads on to the next.
+	var held: Dictionary = _victory_figures(0)
+	notes["stage_held_preview"] = held
+	game.menus.show_result(true, held, true, true)
+	await frames(3)
+	check(game.menus.result_onward, "after an earlier stage the result screen offers the next")
+	_check_menu("stage_held_preview", Vector2.ZERO)
+	await shot("33-stage-held-preview", "preview")
 	game.to_menu()
 	await frames(6)
 	check(game.menus.screen == "main", "MAIN MENU returns to the title")
 
 	await _other_screens()
 	await _peak_load()
+	await _six_barrels()
+	await _second_stage()
 
 	var render: Dictionary = Graphics.snapshot()
 	check(String(render.tier) == PICTURE_TIER and is_equal_approx(float(render.scale), float(Graphics.PROFILES[PICTURE_TIER].scale)),
@@ -726,7 +897,7 @@ func _run() -> void:
 				"clock_slowed_for_the_capture": by_kind["slowed"],
 				"between_pictures": "the siege is advanced by calling the game's own update functions, without drawing",
 			},
-			"not_shown_anywhere": "a whole eight-wave match played to victory under rendering; an Android device",
+			"not_shown_anywhere": "a whole stage played to victory under rendering; an Android device",
 		},
 		"renderer": RenderingServer.get_current_rendering_method(), "engine": Engine.get_version_info().string,
 		"scope": "Software-rendered desktop run of the real game; not an Android device run",

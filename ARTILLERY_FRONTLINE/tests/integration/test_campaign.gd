@@ -204,6 +204,15 @@ func run(t: TestContext) -> void:
 			locked += 1
 	t.check(locked == 0 and menus.stage_choices.selected == 2, "the title shows all three open, the last one lit")
 	t.check(_has_text(menus, Loc.t("best_run", [3, last.waves.size()])), "and the record as the last wave of the last stage")
+	# A profile that loses its progress under a running game (a save wiped from outside) cannot leave a locked stage playable.
+	Profile.reset()
+	Profile.set_setting("language", "en")
+	_button(menus, Loc.t("play")).pressed.emit()
+	await t.frames(3)
+	t.check(game.stage == 0 and game.level.stage == 0 and game.level.wave_set == first, "with the progress gone, PLAY starts the first stage whatever was lit")
+	game.to_menu()
+	await t.frames(3)
+	t.check(menus.stage_choices.selected == 0 and menus.stage_choices.is_locked(1), "and the title shows the stages locked again")
 	game.queue_free()
 	await t.frames(2)
 

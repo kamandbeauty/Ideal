@@ -145,4 +145,25 @@ func run(t: TestContext) -> void:
 	t.equal(horde.active.size(), 0, "clear removes every zombie")
 	t.equal(horde.alive_count(), 0, "clear resets the count")
 	t.check(horde.lines.lines.gate.open and horde.lines.occupied() == 0, "clear reopens and empties the places")
+
+	# No two in a crowd need limp alike: each zombie takes one of its model's walks for this life, at its own point in the stride.
+	for kind: Array in [[&"walker", 24, 4, 3], [&"runner", 16, 2, 2]]:
+		var taken: Dictionary = {}
+		var phases: Dictionary = {}
+		var strangers: int = 0
+		var lame_left: int = 0
+		for index: int in int(kind[1]):
+			var member: Zombie = horde.spawn(kind[0], "avenue_left" if index % 2 == 0 else "ring_right", "any")
+			if not member.walk_clips.has(member.walk_clip) or member.current_clip != member.walk_clip or member.anim.current_animation != member.walk_clip:
+				strangers += 1
+			if member.walk_clip.ends_with("_m"):
+				lame_left += 1
+			taken[member.walk_clip] = true
+			phases[snappedf(member.anim.current_animation_position, 0.01)] = true
+			t.equal(member.walk_clips.size(), int(kind[2]), "a %s has %d walks to choose from" % [kind[0], kind[2]]) if index == 0 else null
+		t.equal(strangers, 0, "every %s sets out on one of the walks its model has" % kind[0])
+		t.check(taken.size() >= int(kind[3]), "%d of them walk in at least %d different ways (%s)" % [kind[1], kind[3], str(taken.keys())])
+		t.check(lame_left > 0 and lame_left < int(kind[1]), "some are lame in the left leg and some in the right (%d of %d in the left)" % [lame_left, kind[1]])
+		t.check(phases.size() >= int(kind[1]) / 2, "and they are out of step with each other (%d different points in the stride)" % phases.size())
+		horde.clear()
 	await t.discard(level)
