@@ -21,6 +21,10 @@ func run_tests() -> void:
 	var environment = load("res://scripts/level/environment.gd").new()
 	var road_material = environment.asphalt_material(Color.WHITE)
 	check(road_material.get_shader_parameter("asphalt_texture") == road, "bridge material uses the generated road tile")
+	var concrete = load("res://assets/environment/city_concrete.png")
+	check(concrete is Texture2D, "city concrete texture imports")
+	var city_material = environment.concrete_material(Color.WHITE)
+	check(city_material.get_shader_parameter("concrete_texture") == concrete, "city material uses concrete texture")
 	environment.free()
 	for role in ["hero", "zombie", "runner", "brute"]:
 		var actor = Character.new()
