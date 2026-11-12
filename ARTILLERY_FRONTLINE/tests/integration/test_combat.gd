@@ -9,6 +9,9 @@ func _still(level: CityLevel, at: Vector3) -> Zombie:
 	zombie.rotation = Vector3.ZERO
 	zombie.speed = 0.0
 	zombie.scale = Vector3.ONE
+	# Combat checks the type's own health, not the tougher extra looks mixed into the horde.
+	zombie.health = zombie.data.max_health
+	zombie.full_health = zombie.health
 	return zombie
 
 
