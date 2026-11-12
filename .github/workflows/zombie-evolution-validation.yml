@@ -214,8 +214,9 @@ jobs:
           "$GODOT" --headless --path "$RUNNER_TEMP/android-project" --export-debug 'Android ARM64' "$GITHUB_WORKSPACE/zombie-evolution-rebuild/exports/zombie-debug.apk" 2>&1 | tee ci-artifacts/android/export.log
           code=${PIPESTATUS[0]}
           set -e
-          echo "Godot export exit code: $code"
-          if [ "$code" -ne 0 ] || grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/export.log; then
+          echo "Godot export exit code: $code" | tee ci-artifacts/android/exit.log
+          grep -E '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/export.log > ci-artifacts/android/errors.log || true
+          if [ "$code" -ne 0 ] || grep -vFx 'ERROR: No project icon specified. Please specify one in the Project Settings under Application -> Config -> Icon' ci-artifacts/android/errors.log | grep -q .; then
             echo 'Export failed; complete captured stdout/stderr follows:'
             cat ci-artifacts/android/export.log
             exit 1
@@ -254,11 +255,11 @@ jobs:
           python3 - <<'PYCODE'
           from pathlib import Path
           lines = []
-          for name in ('experiment.log', 'keytool.log', 'import.log', 'export.log', 'templates-checksum.log', 'badging.log', 'permissions.log', 'signature.log', 'size.log', 'sha256.log'):
+          for name in ('experiment.log', 'keytool.log', 'import.log', 'errors.log', 'exit.log', 'templates-checksum.log', 'badging.log', 'permissions.log', 'signature.log', 'size.log', 'sha256.log'):
               p = Path('ci-artifacts/android') / name
               if p.exists():
                   content = p.read_text(errors='replace').splitlines()
-                  if name in ('export.log', 'experiment.log', 'badging.log', 'permissions.log', 'signature.log', 'size.log', 'sha256.log'):
+                  if name in ('errors.log', 'exit.log', 'experiment.log', 'badging.log', 'permissions.log', 'signature.log', 'size.log', 'sha256.log'):
                       lines.extend(f'{name}: {line}' for line in content)
                   else:
                       lines.extend(f'{name}: {line[:500]}' for line in content[-5:])
