@@ -48,6 +48,18 @@ jobs:
           text = '\n'.join(lines).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::notice::' + (text or 'No headless summary available'))
           PYCODE
+      - name: Publish detailed headless errors
+        if: always()
+        run: |
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          for p in sorted(Path('ci-artifacts/headless').glob('*.log')):
+              lines = p.read_text(errors='replace').splitlines()
+              hits = [line for line in lines if any(token in line for token in ('ERROR:', 'FAIL:', 'WARNING:'))]
+              if hits:
+                  text = (p.name + ': ' + '\n'.join(hits))[:3500].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+                  print('::notice::' + text)
+          PYCODE
       - name: Upload headless logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -93,7 +105,7 @@ jobs:
           python3 - <<'PYCODE'
           from pathlib import Path
           lines = []
-          for name in ('glxinfo.log', 'capture.log'):
+          for name in ('glxinfo.log', 'import.log', 'capture.log'):
               p = Path('ci-artifacts/rendered') / name
               if p.exists():
                   lines.extend(f'{name}: {line}' for line in p.read_text(errors='replace').splitlines() if any(word in line for word in ('OpenGL renderer string', 'OpenGL version string', 'CAPTURE', 'ATTEMPT', 'Captured', 'TEST-ONLY:', 'FAIL:', 'ERROR:', ' at:')))
