@@ -37,7 +37,12 @@ run godot_version "$GODOT" --version
 # project file against the separately maintained post-fix manifest.
 run manifest bash -c 'echo "91eb09119c7c8b26b5387d9dacf2720aa481de028ef263be4eff2e97db971280  $1/SOURCE_MANIFEST.sha256" | sha256sum -c - && sha256sum -c "$1/CURRENT_MANIFEST.sha256"' _ "$PROJECT"
 run export_config python3 "$PROJECT/tests/export_config_test.py"
-run import "$GODOT" --headless --editor --path "$PROJECT" --quit
+if [ "${CI_RENDERED_IMPORT:-0}" = 1 ]; then
+    # Godot's dummy renderer cannot read embedded GLB textures during import.
+    run import env LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --editor --audio-driver Dummy --rendering-method gl_compatibility --path "$PROJECT" --quit
+else
+    run import "$GODOT" --headless --editor --path "$PROJECT" --quit
+fi
 run launcher "$GODOT" --headless --path "$PROJECT" --quit-after 5
 run level_load "$GODOT" --headless --path "$PROJECT" res://scenes/level/sky_bridge.tscn --fixed-fps 60 --quit-after 240
 for test in preferences_test level_test launcher_and_controls_test persian_ui_test autoplay_test imported_gate_edge_test visual_assets_test effects_test; do

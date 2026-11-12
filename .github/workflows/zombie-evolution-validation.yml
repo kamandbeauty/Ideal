@@ -31,10 +31,15 @@ jobs:
         run: |
           set -o pipefail
           bash zombie-evolution-rebuild/ci/install_godot.sh 2>&1 | tee ci-artifacts/headless/install.log
+      - name: Install software display for asset import
+        run: |
+          set -o pipefail
+          sudo apt-get update 2>&1 | tee ci-artifacts/headless/apt-update.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 2>&1 | tee ci-artifacts/headless/apt-install.log
       - name: Run all headless checks
         run: |
           set -o pipefail
-          bash zombie-evolution-rebuild/ci/run_headless.sh 2>&1 | tee ci-artifacts/headless/run.log
+          CI_RENDERED_IMPORT=1 bash zombie-evolution-rebuild/ci/run_headless.sh 2>&1 | tee ci-artifacts/headless/run.log
       - name: Publish headless check summary
         if: always()
         run: |
@@ -90,7 +95,7 @@ jobs:
         run: |
           set -o pipefail
           LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a glxinfo -B 2>&1 | tee ci-artifacts/rendered/glxinfo.log
-          "$GODOT" --headless --editor --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/rendered/import.log
+          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --editor --audio-driver Dummy --rendering-method gl_compatibility --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/rendered/import.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/rendered/import.log; then exit 1; fi
       - name: Capture actual automated gameplay
         run: |
@@ -183,6 +188,11 @@ jobs:
           sha512sum --check templates.sha512 2>&1 | tee "$GITHUB_WORKSPACE/ci-artifacts/android/templates-checksum.log"
           mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           unzip -j "$asset" 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/version.txt' -d "$HOME/.local/share/godot/export_templates/4.4.1.stable" >/dev/null
+      - name: Install software display for asset import
+        run: |
+          set -o pipefail
+          sudo apt-get update 2>&1 | tee ci-artifacts/android/apt-update.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 2>&1 | tee ci-artifacts/android/apt-install.log
       - name: Configure temporary debug signing and export
         run: |
           set -euo pipefail
@@ -206,7 +216,7 @@ jobs:
           }
           p.write_text('[gd_resource type="EditorSettings" format=3]\n\n[resource]\n' + ''.join(f'{k} = {json.dumps(v)}\n' for k, v in props.items()))
           PYCODE
-          "$GODOT" --headless --editor --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/android/import.log
+          LIBGL_ALWAYS_SOFTWARE=1 xvfb-run -a "$GODOT" --editor --audio-driver Dummy --rendering-method gl_compatibility --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/android/import.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/import.log; then exit 1; fi
           mkdir -p zombie-evolution-rebuild/exports
           echo 'Preset: Android ARM64; destination: zombie-evolution-rebuild/exports/zombie-debug.apk'

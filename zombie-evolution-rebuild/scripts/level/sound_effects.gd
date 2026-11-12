@@ -31,3 +31,8 @@ func play_effect(name: String) -> void:
 	player.stop()
 	player.stream = EFFECTS[name]
 	player.play()
+
+func _exit_tree() -> void:
+	for player in voices:
+		player.stop()
+		player.stream = null

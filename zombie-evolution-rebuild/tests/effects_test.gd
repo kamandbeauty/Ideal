@@ -29,12 +29,14 @@ func run_tests() -> void:
 	level.hero.update_animation(0.2, false)
 	check(not level.hero.muzzle_flash.visible, "muzzle flash expires")
 	var bus := AudioServer.get_bus_index("Master")
-	var was_enabled: bool = Preferences.sound_enabled
-	Preferences.sound_enabled = false
-	Preferences.apply_settings()
+	var preferences = root.get_node("Preferences")
+	var was_enabled: bool = preferences.sound_enabled
+	preferences.sound_enabled = false
+	preferences.apply_settings()
 	check(AudioServer.is_bus_mute(bus), "sound preference mutes effects bus")
-	Preferences.sound_enabled = was_enabled
-	Preferences.apply_settings()
+	preferences.sound_enabled = was_enabled
+	preferences.apply_settings()
 	level.queue_free()
+	await process_frame
 	print("Effects test failures: ", failures)
 	quit(1 if failures else 0)
