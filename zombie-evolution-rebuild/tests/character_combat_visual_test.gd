@@ -56,7 +56,10 @@ func run_tests() -> void:
 	var a: Vector3 = level.formation_position(0, 3)
 	var b: Vector3 = level.formation_position(1, 3)
 	var c: Vector3 = level.formation_position(2, 3)
-	check(is_equal_approx(a.x + c.x, 2.0 * b.x) and a.distance_to(b) >= 1.3, "three-soldier formation is symmetric and separated")
+	check(is_equal_approx(a.x + b.x, 2.0 * level.hero.position.x) and a.distance_to(b) >= 2.6, "front formation pair is symmetric and separated")
+	check(absf(c.x - level.hero.position.x) >= 1.3 and c.z < a.z - 1.4, "third soldier stays behind and keeps the hero sightline clear")
+	for i in range(10):
+		check(absf(level.formation_position(i, 10).x) < 5.6, "formation slot stays on the bridge")
 	level.sound.stop_all()
 	level.queue_free()
 	await process_frame

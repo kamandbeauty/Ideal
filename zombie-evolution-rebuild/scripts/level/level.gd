@@ -113,13 +113,13 @@ func _physics_process(delta: float) -> void:
 		instruction = "در حال پر کردن خشاب"
 	hud.update_status(hero.health, soldiers.size(), coins, ammo, instruction)
 
-func formation_position(index: int, total: int) -> Vector3:
-	var column: int = index % 4
-	var row: int = index / 4
-	var count: int = mini(4, total - row * 4)
-	var center := clampf(hero.position.x, -3.0, 3.0)
-	var center_stagger := 1.2 if count % 2 == 1 and column == count / 2 else 0.0
-	return Vector3(center + (float(column) - (count - 1) * 0.5) * 1.35, 0.05, hero.position.z - 2.6 - row * 1.8 - center_stagger)
+func formation_position(index: int, _total: int) -> Vector3:
+	# Paired columns leave the central camera sightline to the hero clear.
+	var column: int = index % 2
+	var row: int = index / 2
+	var center := clampf(hero.position.x, -4.0, 4.0)
+	var side := -1.0 if column == 0 else 1.0
+	return Vector3(center + side * 1.35, 0.05, hero.position.z - 2.6 - row * 1.5)
 
 func update_squad(delta: float) -> void:
 	for i in range(soldiers.size()):
