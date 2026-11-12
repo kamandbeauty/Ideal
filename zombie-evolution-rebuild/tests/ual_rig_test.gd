@@ -38,12 +38,16 @@ func run_tests() -> void:
 		print("Imported animation names: ", player.get_animation_list())
 		for requested in ["Idle_Loop", "Walk_Loop", "Jog_Fwd_Loop", "Sprint_Loop", "Pistol_Shoot", "Hit_Chest", "Death01"]:
 			var found := ""
+			# Godot strips the _Loop suffix and marks those imported clips as looping.
+			var imported_name: String = requested.trim_suffix("_Loop")
 			for clip_name in player.get_animation_list():
-				if String(clip_name).ends_with(requested):
+				if String(clip_name) == imported_name:
 					found = String(clip_name)
 					break
 			check(not found.is_empty(), requested + " authored clip imports")
 			if not found.is_empty():
+				if requested.ends_with("_Loop"):
+					check(player.get_animation(found).loop_mode == Animation.LOOP_LINEAR, requested + " remains looping")
 				player.play(found)
 				player.advance(0.0)
 				var before: Array[Transform3D] = []
