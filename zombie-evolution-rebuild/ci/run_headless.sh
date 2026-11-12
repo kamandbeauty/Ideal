@@ -40,7 +40,7 @@ run export_config python3 "$PROJECT/tests/export_config_test.py"
 run import "$GODOT" --headless --editor --path "$PROJECT" --quit
 run launcher "$GODOT" --headless --path "$PROJECT" --quit-after 5
 run level_load "$GODOT" --headless --path "$PROJECT" res://scenes/level/sky_bridge.tscn --fixed-fps 60 --quit-after 240
-for test in preferences_test level_test launcher_and_controls_test persian_ui_test autoplay_test; do
+for test in preferences_test level_test launcher_and_controls_test persian_ui_test autoplay_test imported_gate_edge_test; do
     run "$test" "$GODOT" --headless --path "$PROJECT" --fixed-fps 60 --script "res://tests/$test.gd"
 done
 printf 'Checks passed=%d failed=%d warnings=%d\n' "$passed" "$failed" "$warnings" | tee "$LOG_DIR/summary.txt"
