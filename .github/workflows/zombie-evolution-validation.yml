@@ -171,6 +171,17 @@ jobs:
           sha512sum --check templates.sha512 2>&1 | tee "$GITHUB_WORKSPACE/ci-artifacts/android/templates-checksum.log"
           mkdir -p "$HOME/.local/share/godot/export_templates/4.4.1.stable"
           unzip -j "$asset" 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/version.txt' -d "$HOME/.local/share/godot/export_templates/4.4.1.stable" >/dev/null
+      - name: Prepare isolated ETC2/ASTC export experiment
+        run: |
+          set -euo pipefail
+          cp -a zombie-evolution-rebuild "$RUNNER_TEMP/android-project"
+          printf '\ntextures/vram_compression/import_etc2_astc=true\n' >> "$RUNNER_TEMP/android-project/project.godot"
+          {
+            echo "Runner architecture: $(uname -m)"
+            echo 'Experiment: isolated copy, rendering/textures/vram_compression/import_etc2_astc=true'
+            echo 'Preset: Android ARM64; no tracked project files changed'
+            find "$RUNNER_TEMP/android-project" -type f \( -name '*.import' -o -iname '*.png' -o -iname '*.jpg' -o -iname '*.webp' -o -iname '*.svg' \) -print
+          } | tee ci-artifacts/android/experiment.log
       - name: Configure temporary debug signing and export
         run: |
           set -euo pipefail
@@ -194,13 +205,13 @@ jobs:
           }
           p.write_text('[gd_resource type="EditorSettings" format=3]\n\n[resource]\n' + ''.join(f'{k} = {json.dumps(v)}\n' for k, v in props.items()))
           PYCODE
-          "$GODOT" --headless --editor --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/android/import.log
+          "$GODOT" --headless --editor --path "$RUNNER_TEMP/android-project" --quit 2>&1 | tee ci-artifacts/android/import.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/import.log; then exit 1; fi
           mkdir -p zombie-evolution-rebuild/exports
           echo 'Preset: Android ARM64; destination: zombie-evolution-rebuild/exports/zombie-debug.apk'
-          echo "Command: $GODOT --headless --path zombie-evolution-rebuild --export-debug 'Android ARM64' exports/zombie-debug.apk"
+          echo "Command: $GODOT --headless --path $RUNNER_TEMP/android-project --export-debug 'Android ARM64' $GITHUB_WORKSPACE/zombie-evolution-rebuild/exports/zombie-debug.apk"
           set +e
-          "$GODOT" --headless --path zombie-evolution-rebuild --export-debug 'Android ARM64' exports/zombie-debug.apk 2>&1 | tee ci-artifacts/android/export.log
+          "$GODOT" --headless --path "$RUNNER_TEMP/android-project" --export-debug 'Android ARM64' "$GITHUB_WORKSPACE/zombie-evolution-rebuild/exports/zombie-debug.apk" 2>&1 | tee ci-artifacts/android/export.log
           code=${PIPESTATUS[0]}
           set -e
           echo "Godot export exit code: $code"
@@ -214,6 +225,7 @@ jobs:
           set -euo pipefail
           apk=zombie-evolution-rebuild/exports/zombie-debug.apk
           test -s "$apk"
+          unzip -t "$apk" > ci-artifacts/android/zip-test.log
           aapt="$ANDROID_HOME/build-tools/34.0.0/aapt"
           "$aapt" dump badging "$apk" | tee ci-artifacts/android/badging.log
           "$aapt" dump permissions "$apk" | tee ci-artifacts/android/permissions.log
@@ -242,11 +254,11 @@ jobs:
           python3 - <<'PYCODE'
           from pathlib import Path
           lines = []
-          for name in ('keytool.log', 'import.log', 'export.log', 'templates-checksum.log', 'badging.log', 'sha256.log'):
+          for name in ('experiment.log', 'keytool.log', 'import.log', 'export.log', 'templates-checksum.log', 'badging.log', 'permissions.log', 'signature.log', 'size.log', 'sha256.log'):
               p = Path('ci-artifacts/android') / name
               if p.exists():
                   content = p.read_text(errors='replace').splitlines()
-                  if name == 'export.log':
+                  if name in ('export.log', 'experiment.log', 'badging.log', 'permissions.log', 'signature.log', 'size.log', 'sha256.log'):
                       lines.extend(f'{name}: {line}' for line in content)
                   else:
                       lines.extend(f'{name}: {line[:500]}' for line in content[-5:])
