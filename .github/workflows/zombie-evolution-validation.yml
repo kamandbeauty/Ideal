@@ -60,7 +60,7 @@ jobs:
           from pathlib import Path
           for p in sorted(Path('ci-artifacts/headless').glob('*.log')):
               lines = p.read_text(errors='replace').splitlines()
-              hits = [line for line in lines if any(token in line for token in ('ERROR:', 'FAIL:', 'WARNING:'))]
+              hits = [line for line in lines if any(token in line for token in ('ERROR:', 'FAIL:', 'WARNING:', 'Leaked instance:', 'Resource still in use:'))]
               if hits:
                   text = (p.name + ': ' + '\n'.join(hits))[:3500].replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
                   print('::notice::' + text)

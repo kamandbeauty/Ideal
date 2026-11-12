@@ -45,10 +45,10 @@ if [ "${CI_RENDERED_IMPORT:-0}" = 1 ]; then
 else
     run import "$GODOT" --headless --import --path "$PROJECT" || exit 1
 fi
-run launcher "$GODOT" --headless --path "$PROJECT" --quit-after 5
-run level_load "$GODOT" --headless --path "$PROJECT" res://scenes/level/sky_bridge.tscn --fixed-fps 60 --quit-after 240
+run launcher "$GODOT" --verbose --headless --path "$PROJECT" --quit-after 5
+run level_load "$GODOT" --verbose --headless --path "$PROJECT" res://scenes/level/sky_bridge.tscn --fixed-fps 60 --quit-after 240
 for test in preferences_test level_test launcher_and_controls_test persian_ui_test autoplay_test imported_gate_edge_test visual_assets_test effects_test; do
-    run "$test" "$GODOT" --headless --path "$PROJECT" --fixed-fps 60 --script "res://tests/$test.gd"
+    run "$test" "$GODOT" --verbose --headless --path "$PROJECT" --fixed-fps 60 --script "res://tests/$test.gd"
 done
 printf 'Checks passed=%d failed=%d warnings=%d\n' "$passed" "$failed" "$warnings" | tee "$LOG_DIR/summary.txt"
 [ "$failed" -eq 0 ]
