@@ -430,7 +430,7 @@ func play_result(before: BoardModel, events: Array) -> void:
 				has_gust = true
 				# A hand's width above the row it was fired on: the wind passes over the fruit, not
 				# through it.
-				Fx.whirlwind(self, centre - Vector2(0.0, cell_size * 0.10), gust_travel, cell_size * 3.2)
+				Fx.whirlwind(self, centre - Vector2(0.0, cell_size * 0.10), gust_travel, cell_size * 2.8)
 				_shake(cell_size * 0.10)
 			GameTypes.PowerUpKind.ROCKET_HORIZONTAL:
 				Fx.streak(self, centre, cell_size * float(run.board.width), true)

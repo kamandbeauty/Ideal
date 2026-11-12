@@ -188,11 +188,11 @@ static func streak(parent: Node, center: Vector2, length: float, horizontal: boo
 ##
 ## It does **not** spin. A tornado turning on the spot is a weather event happening somewhere else;
 ## what the player has to read is "this wind crosses the board and takes the fruit of one colour with
-## it", so the picture is squashed to four tenths of its height — it lies on the grid instead of
+## it", so the picture is squashed to six tenths of its height — it lies on the grid instead of
 ## standing on it — and it travels in a straight line from the piece that fired it along the way the
 ## fruit it is about to take lies. `from` is the centre of the cell that fired, `travel` the straight
 ## line it covers; the sprite is mirrored, never turned, when it blows the other way.
-const WHIRLWIND_FLATTEN := 0.42
+const WHIRLWIND_FLATTEN := 0.62
 
 static func whirlwind(parent: Node, from: Vector2, travel: Vector2, diameter: float = 96.0,
 		tint: Color = Color(1, 1, 1, 0.92)) -> void:
