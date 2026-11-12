@@ -106,6 +106,13 @@ func _ready() -> void:
 	await _swap_strip(app.get("board"))
 	await _match_strip(app.get("board"))
 	await _fan_strip(app.get("board"))
+	# The fan took a whole colour with it and spent a move doing it. Everything after this is
+	# photographed on a board a player could still be playing, so level one is dealt again: a win card
+	# left over from the fan's move would sit under the combo bubble and be blamed on it.
+	app._show_home()
+	await _frames(4)
+	app._play(1)
+	await _frames(30)
 
 	# The combo bubble lives for nine tenths of a second inside a chain, so a camera that waits for one
 	# would photograph an empty board. Ask the real screen to show a real bonus, pin the tween to its
@@ -293,8 +300,9 @@ func _fan_strip(board_screen) -> void:
 	# Put a fan on the board and swap it with a neighbour: that is the move a player makes with it, and
 	# the colour it takes is the colour of the piece it traded places with.
 	var model = view.run.board
-	var fan_cell := Vector2i(1, 4)
-	var neighbour := Vector2i(2, 4)
+	var bottom := int(model.height) - 1
+	var fan_cell := Vector2i(0, bottom)
+	var neighbour := Vector2i(1, bottom)
 	model.at_pos(fan_cell).power_up = GameTypes.PowerUpKind.FAN
 	view.rebuild()
 	await _frames(4)
