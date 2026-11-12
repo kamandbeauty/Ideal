@@ -35,7 +35,7 @@ jobs:
         run: |
           set -o pipefail
           sudo apt-get update 2>&1 | tee ci-artifacts/headless/apt-update.log
-          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 2>&1 | tee ci-artifacts/headless/apt-install.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-vulkan-drivers libvulkan1 2>&1 | tee ci-artifacts/headless/apt-install.log
       - name: Run all headless checks
         run: |
           set -o pipefail
@@ -90,7 +90,7 @@ jobs:
         run: |
           set -o pipefail
           sudo apt-get update 2>&1 | tee ci-artifacts/rendered/apt-update.log
-          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-utils 2>&1 | tee ci-artifacts/rendered/apt-install.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-utils mesa-vulkan-drivers libvulkan1 2>&1 | tee ci-artifacts/rendered/apt-install.log
       - name: Verify software OpenGL and import assets
         run: |
           set -o pipefail
@@ -192,7 +192,7 @@ jobs:
         run: |
           set -o pipefail
           sudo apt-get update 2>&1 | tee ci-artifacts/android/apt-update.log
-          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 2>&1 | tee ci-artifacts/android/apt-install.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-vulkan-drivers libvulkan1 2>&1 | tee ci-artifacts/android/apt-install.log
       - name: Configure temporary debug signing and export
         run: |
           set -euo pipefail
