@@ -24,7 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Prepare artifact directory
-        run: mkdir -p ci-artifacts/headless
+        run: |
+          mkdir -p ci-artifacts/headless
+          echo 'Headless validation started' > ci-artifacts/headless/status.log
       - name: Install official Godot 4.4.1
         run: |
           set -o pipefail
@@ -51,8 +53,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: godot-headless-logs
-          path: ci-artifacts/headless/
-          if-no-files-found: warn
+          path: ci-artifacts/headless/*.log
+          if-no-files-found: error
 
   rendered:
     runs-on: ubuntu-24.04
@@ -60,7 +62,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Prepare artifact directory
-        run: mkdir -p ci-artifacts/rendered/screenshots
+        run: |
+          mkdir -p ci-artifacts/rendered/screenshots
+          echo 'Rendered validation started' > ci-artifacts/rendered/status.log
       - name: Install official Godot 4.4.1
         run: |
           set -o pipefail
@@ -92,17 +96,24 @@ jobs:
           for name in ('glxinfo.log', 'capture.log'):
               p = Path('ci-artifacts/rendered') / name
               if p.exists():
-                  lines.extend(f'{name}: {line}' for line in p.read_text(errors='replace').splitlines() if any(word in line for word in ('OpenGL renderer string', 'OpenGL version string', 'CAPTURE', 'ATTEMPT', 'Captured', 'FAIL:', 'ERROR:', ' at:')))
+                  lines.extend(f'{name}: {line}' for line in p.read_text(errors='replace').splitlines() if any(word in line for word in ('OpenGL renderer string', 'OpenGL version string', 'CAPTURE', 'ATTEMPT', 'Captured', 'TEST-ONLY:', 'FAIL:', 'ERROR:', ' at:')))
           text = '\n'.join(lines[-50:]).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::notice::' + (text or 'No renderer diagnostics available'))
           PYCODE
-      - name: Upload screenshots and renderer logs
+      - name: Upload rendered logs
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: godot-rendered-evidence
-          path: ci-artifacts/rendered/
-          if-no-files-found: warn
+          name: godot-rendered-logs
+          path: ci-artifacts/rendered/*.log
+          if-no-files-found: error
+      - name: Upload gameplay screenshots if present
+        if: always() && hashFiles('ci-artifacts/rendered/screenshots/*.png') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-rendered-screenshots
+          path: ci-artifacts/rendered/screenshots/*.png
+          if-no-files-found: error
 
   android:
     runs-on: ubuntu-24.04
@@ -110,7 +121,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Prepare artifact directory
-        run: mkdir -p ci-artifacts/android
+        run: |
+          mkdir -p ci-artifacts/android
+          echo 'Android validation started' > ci-artifacts/android/status.log
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -161,9 +174,14 @@ jobs:
       - name: Configure temporary debug signing and export
         run: |
           set -euo pipefail
-          keytool -genkeypair -keystore "$RUNNER_TEMP/debug.keystore" -storepass android -alias androiddebugkey -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000 2>&1 | tee ci-artifacts/android/keytool.log
+          export DEBUG_KEY_PASSWORD="$(openssl rand -hex 16)"
+          echo "::add-mask::$DEBUG_KEY_PASSWORD"
+          echo "Generating temporary CI-only debug keystore"
+          keytool -genkeypair -keystore "$RUNNER_TEMP/debug.keystore" -storepass "$DEBUG_KEY_PASSWORD" -alias androiddebugkey -keypass "$DEBUG_KEY_PASSWORD" -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000 2>&1 | tee ci-artifacts/android/keytool.log
+          test -s "$RUNNER_TEMP/debug.keystore"
+          echo "Debug keystore exists; alias: androiddebugkey; passwords are masked"
           mkdir -p "$HOME/.config/godot"
-          python3 - <<'PY'
+          python3 - <<'PYCODE'
           import json, os
           from pathlib import Path
           p = Path.home() / '.config/godot/editor_settings-4.tres'
@@ -172,15 +190,25 @@ jobs:
               'export/android/android_sdk_path': os.environ['ANDROID_HOME'],
               'export/android/debug_keystore': os.environ['RUNNER_TEMP'] + '/debug.keystore',
               'export/android/debug_keystore_user': 'androiddebugkey',
-              'export/android/debug_keystore_pass': 'android',
+              'export/android/debug_keystore_pass': os.environ['DEBUG_KEY_PASSWORD'],
           }
           p.write_text('[gd_resource type="EditorSettings" format=3]\n\n[resource]\n' + ''.join(f'{k} = {json.dumps(v)}\n' for k, v in props.items()))
-          PY
+          PYCODE
           "$GODOT" --headless --editor --path zombie-evolution-rebuild --quit 2>&1 | tee ci-artifacts/android/import.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/import.log; then exit 1; fi
           mkdir -p zombie-evolution-rebuild/exports
+          echo 'Preset: Android ARM64; destination: zombie-evolution-rebuild/exports/zombie-debug.apk'
+          echo "Command: $GODOT --headless --path zombie-evolution-rebuild --export-debug 'Android ARM64' exports/zombie-debug.apk"
+          set +e
           "$GODOT" --headless --path zombie-evolution-rebuild --export-debug 'Android ARM64' exports/zombie-debug.apk 2>&1 | tee ci-artifacts/android/export.log
-          if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/export.log; then exit 1; fi
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "Godot export exit code: $code"
+          if [ "$code" -ne 0 ] || grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR):' ci-artifacts/android/export.log; then
+            echo 'Export failed; complete captured stdout/stderr follows:'
+            cat ci-artifacts/android/export.log
+            exit 1
+          fi
       - name: Inspect debug APK
         run: |
           set -euo pipefail
@@ -217,8 +245,12 @@ jobs:
           for name in ('keytool.log', 'import.log', 'export.log', 'templates-checksum.log', 'badging.log', 'sha256.log'):
               p = Path('ci-artifacts/android') / name
               if p.exists():
-                  lines.extend(f'{name}: {line[:500]}' for line in p.read_text(errors='replace').splitlines()[-12:])
-          text = '\n'.join(lines[-40:]).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+                  content = p.read_text(errors='replace').splitlines()
+                  if name == 'export.log':
+                      lines.extend(f'{name}: {line}' for line in content)
+                  else:
+                      lines.extend(f'{name}: {line[:500]}' for line in content[-5:])
+          text = '\n'.join(lines)[-50000:].replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::notice::' + (text or 'No Android diagnostics available'))
           PYCODE
       - name: Upload Android logs
@@ -226,5 +258,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: godot-android-logs
-          path: ci-artifacts/android/
-          if-no-files-found: warn
+          path: ci-artifacts/android/*.log
+          if-no-files-found: error

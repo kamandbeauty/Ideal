@@ -62,3 +62,48 @@ The earlier run on `9792387c5113c635237f00e1aede914fd9bcd1c7` (<https://github.c
 ## Follow-up run status
 
 At the time of writing, the follow-up run on `53017dc5c1d0a1200738514c7a7fbabed2993843` was still reported `in_progress` by the GitHub run API. The jobs endpoint returned HTTP 502 during attempted monitoring; `gh run watch` exited without establishing a final result. No result, screenshot approval, or APK is claimed for that run. The completed run and its failures above remain the available verified evidence.
+
+---
+
+# Phase 4 — run monitoring (2026-11-11 20:52 UTC)
+
+No gameplay, rendering or CI fixes were made and no additional commit was created while runs remained active. The three requested runs were queried with `gh api repos/kamandbeauty/Ideal/actions/runs/<run_id>` and their job/check-run APIs. Statuses at the time of this entry:
+
+| Run | Tested commit | Overall | Headless | Rendered | Android |
+| --- | --- | --- | --- | --- | --- |
+| [43094813265](https://github.com/kamandbeauty/Ideal/actions/runs/43094813265) | `4920f7713f70fcf206b4491054b338c702171e4c` | completed, failure | success: 11 checks, 0 failures, 0 warnings | failure: `Capture actual automated gameplay`, exit 1 | failure: `Configure temporary debug signing and export`, exit 1 |
+| [43095080416](https://github.com/kamandbeauty/Ideal/actions/runs/43095080416) | `53017dc5c1d0a1200738514c7a7fbabed2993843` | in progress; conclusion unavailable | check-run still in progress; no result | check-run still in progress; no result | check-run still in progress; no result |
+| [43095434424](https://github.com/kamandbeauty/Ideal/actions/runs/43095434424) | `8d1b49491a27f9e7f5537ff351a401a77ddd085b` | queued; conclusion unavailable | not started | not started | not started |
+
+`gh run watch` was used to wait for the queued run; it remained queued for more than 30 minutes. Run 43095080416 remained `in_progress` for more than 35 minutes, with its `updated_at` unchanged since 20:17:30 UTC, and its jobs endpoint repeatedly returned HTTP 502. These are observed GitHub responses, not a diagnosis of the service failure. Neither run was cancelled or marked as passed. Monitoring ended without a final outcome, so no new commit was made; this report update is uncommitted.
+
+## Latest completed run: details and limitations
+
+- Headless: Godot `4.4.1.stable.official.49a5bc7b6`, 11/11 checks; autoplay completed with 13 kills. The two later runs have no completed headless result yet.
+- Rendered: software OpenGL llvmpipe, Mesa 25.2.8, 360×640 captured dimensions. The log reports six gameplay captures and two runs ended; it explicitly reports `FAIL: natural gameplay did not produce 07-defeat`, `Captured 6/7; missing=1`. This indicates the automated attempts did not reach a natural defeat; it is not evidence that the capture script quit early. A real ALSA initialization error (`ERR_CANT_OPEN`) also occurred. The dummy-audio follow-up remains unverified. No deterministic test-only defeat scenario has been implemented while active runs remain unfinished.
+- The [rendered artifact](https://github.com/kamandbeauty/Ideal/actions/runs/43094813265/artifacts/13891030377) exists, but prior `gh run download` and `gh run view --log-failed` attempts failed with EOF on GitHub result-storage hosts unavailable from this environment. Its images were not retrieved or visually inspected. Persian shaping, HUD layout, scene composition and image authenticity cannot be independently approved from annotations alone.
+- Android: `setup-java`, Android command-line tools, SDK components, and Godot plus matching templates were marked successful. The combined `Configure temporary debug signing and export` step failed with exit 1; APK inspection and upload were skipped. The annotation is truncated and the full log artifact cannot be downloaded here, so the particular failing command and error (debug signing, import or export) are **unknown**. The [Android log artifact](https://github.com/kamandbeauty/Ideal/actions/runs/43094813265/artifacts/13891040449) is available in GitHub for inspection by someone with access to the storage host. No verified APK, manifest, minimum API, hash or device test exists.
+
+---
+
+# Phase 5 — evidence collection and export diagnostics
+
+## Observed completed run
+
+[Run 43095080416](https://github.com/kamandbeauty/Ideal/actions/runs/43095080416), commit `53017dc5c1d0a1200738514c7a7fbabed2993843`, completed with overall failure. The `Run all headless checks` step succeeded: Godot `4.4.1.stable.official.49a5bc7b6`, `Checks passed=11 failed=0 warnings=0`; the headless job failed later during artifact upload. The rendered job captured six 360×640 frames under llvmpipe and failed because the two normal attempts did not produce natural defeat. With the dummy audio driver selected in this run, the earlier ALSA initialization error was absent from the published renderer diagnostics.
+
+All three log/artifact uploads in this run failed. GitHub check-run annotations report `Failed to CreateArtifact: Failed to make request after 5 attempts: Unexpected token '<', "<!DOCTYPE "... is not valid JSON` for headless and rendered, and `Failed to CreateArtifact: Received non-retryable error: Failed request: (404) Not Found: workflow run not found` for Android. GitHub reports zero artifacts for this run. The prior run successfully uploaded artifacts under the same job paths/names; this failure is at the artifact service request, not evidence of missing files, name conflict, or insufficient permissions. The exact underlying server-side cause is unknown.
+
+Android's SDK and matching Godot templates steps succeeded, the temporary debug keystore was generated, and the import step ran. The export command reported `ERROR: Cannot export project with preset "Android ARM64" due to configuration errors:` followed by `ERROR: Project export for preset "Android ARM64" failed.` The published annotation omitted the underlying configuration detail; APK inspection and upload were skipped. The exact configuration error and effective Android manifest remain unknown.
+
+[Run 43095434424](https://github.com/kamandbeauty/Ideal/actions/runs/43095434424), commit `8d1b49491a27f9e7f5537ff351a401a77ddd085b`, was still queued at the time of this report; it was not cancelled and no result is claimed.
+
+## Diagnostic changes prepared in Phase 5
+
+- Separate rendered logs from optional screenshot uploads, upload logs after failure, require nonempty log files, and retain failure/diagnostic annotations. The artifact service itself can still fail, so successful uploading is not assumed. Missing optional screenshots cannot suppress the captured gameplay log.
+- Keep the 11 headless checks and unchanged gameplay; add a clearly labeled test-only capture that applies lethal damage via the real hero's `apply_damage` and checks the actual defeat transition only when both natural runs fail to reach defeat. Normal gameplay balance is unchanged, and the resulting `07-defeat-test-only.png` must not be described as a natural defeat.
+- Print export preset, exact command, destination, keystore existence/alias and exit code; preserve complete output with `tee` and reprint it on failure. The temporary debug password is generated and masked on the CI runner; the script does not print it. Expanded CI annotations include the export log to aid diagnosis if artifact storage is unavailable. These diagnostics do not themselves correct the unknown Godot export configuration error.
+
+## Current-run checks and limits
+
+`sha256sum -c zombie-evolution-rebuild/SOURCE_MANIFEST.sha256` passed all 21 recorded baseline files. `python3 zombie-evolution-rebuild/tests/export_config_test.py`, `bash -n zombie-evolution-rebuild/ci/*.sh`, GDScript grammar parsing with gdtoolkit, and a PyYAML workflow structure check passed. Portrait remains unchanged. No local Godot runtime, rendered capture, Android SDK export or device testing was available. The diagnostic changes have not yet been validated on a runner, and artifact service recovery is not guaranteed.
