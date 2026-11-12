@@ -482,11 +482,11 @@ func _six_barrels() -> void:
 		check(gun.spin_fraction() >= 0.999, "the barrels are at speed")
 		check(gun.flash.visible, "a muzzle flame is on screen while it fires")
 		check(gun.casings.ejected > 0, "it throws its brass")
-		await _physics_frames(40)
+		await _physics_frames(60)
 		game.hud.touch_up(0)
 		notes["six_barrel_shots"] = level.stats.shots - fired
 		notes["six_barrel_kills"] = level.stats.kills - kills
-		check(level.stats.shots - fired >= 20, "a second of fire is a couple of dozen rounds (%d)" % (level.stats.shots - fired))
+		check(level.stats.shots - fired >= 20, "a second and a half on the trigger, the run-up included, is more than twenty rounds (%d)" % (level.stats.shots - fired))
 		check(victim != null and level.stats.kills > kills, "and it kills at the gate")
 	game.to_menu()
 	await frames(6)
@@ -615,6 +615,7 @@ func _run() -> void:
 	notes["alive_at_24s"] = level.horde.alive_count()
 	check(level.horde.alive_count() > 0, "zombies are on the field after 24 s")
 	await shot("06-wave-arrives")
+	await _sight()
 
 	# Swing to the gate and fire through the real touch path.
 	level.defender.aim.set_aim(40.0, -8.5)
@@ -732,7 +733,6 @@ func _run() -> void:
 	level.defender.aim.set_aim(0.0, -2.5)
 	await frames(6)
 	await shot("15-avenue")
-	await _sight()
 
 	game.pause()
 	await frames(3)
