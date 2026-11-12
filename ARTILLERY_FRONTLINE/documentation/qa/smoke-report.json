@@ -1,5 +1,5 @@
 {
-  "checks": 131,
+  "checks": 136,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -30,6 +30,8 @@
     ],
     "manually_staged_scenes": [
       "17-the-four-kinds.png",
+      "36-runner-and-walker-close.png",
+      "37-brute-and-behemoth-close.png",
       "18-boss-in-the-court.png",
       "19-boss-at-the-gate.png",
       "20-gate-down.png",
@@ -97,6 +99,8 @@
     ],
     "staged": [
       "17-the-four-kinds.png",
+      "36-runner-and-walker-close.png",
+      "37-brute-and-behemoth-close.png",
       "18-boss-in-the-court.png",
       "19-boss-at-the-gate.png",
       "20-gate-down.png",
@@ -116,32 +120,32 @@
   "notes": {
     "alive_at_24s": 16,
     "attackers_with_boss": 3,
-    "blast_kills": 14,
+    "blast_kills": 11,
     "boss_reached_gate_after_s": 68.0,
-    "defeat_time_s": 186.2,
-    "gate_attackers": 4,
-    "gate_fell_after_s": 8.0,
-    "gate_left_with_boss": 0.51,
+    "defeat_time_s": 187.9,
+    "gate_attackers": 2,
+    "gate_fell_after_s": 9.0,
+    "gate_left_with_boss": 0.54,
     "grenade_kills": 7,
-    "hits": 3,
-    "kills": 1,
+    "hits": 4,
+    "kills": 2,
     "peak_load": {
       "alive": 56,
-      "draw_calls": 422,
-      "fps": 8.3,
+      "draw_calls": 420,
+      "fps": 6.7,
       "nodes": 1041,
       "orphan_nodes": 0,
-      "primitives": 338008,
+      "primitives": 325648,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 87.2,
-      "striking": 31,
+      "striking": 33,
       "texture_memory_mb": 55.2,
       "tier": "medium",
       "video_memory_mb": 72.5,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 123.76,
-      "worst_physics_tick_ms_in_a_second": 0.86,
+      "worst_frame_ms_in_a_second": 156.57,
+      "worst_physics_tick_ms_in_a_second": 0.84,
       "zombie_nodes": 56
     },
     "phone_20x9": {
@@ -182,11 +186,11 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 337,
-      "fps": 8.1,
+      "draw_calls": 350,
+      "fps": 6.6,
       "nodes": 885,
       "orphan_nodes": 0,
-      "primitives": 215496,
+      "primitives": 215608,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 93.4,
@@ -194,7 +198,7 @@
       "tier": "medium",
       "video_memory_mb": 66.8
     },
-    "rocket_kills": 7,
+    "rocket_kills": 4,
     "second_stage": {
       "alive_20s_into_its_first_wave": 28,
       "brutes_among_them": 2,
@@ -202,13 +206,13 @@
       "waves": 3,
       "zombies": 136
     },
-    "shots": 12,
+    "shots": 13,
     "sight": {
       "field_of_view": 17.9,
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 55.8,
+    "sight_target_m": 57.3,
     "six_barrel_kills": 1,
     "six_barrel_shots": 31,
     "stage_held_preview": {
@@ -269,7 +273,7 @@
       "waves_cleared": 2,
       "waves_total": 2
     },
-    "wall_fell_after_s": 6.0,
+    "wall_fell_after_s": 5.0,
     "window": [
       1440,
       810
@@ -297,6 +301,8 @@
     "15-avenue.png",
     "16-pause.png",
     "17-the-four-kinds.png",
+    "36-runner-and-walker-close.png",
+    "37-brute-and-behemoth-close.png",
     "18-boss-in-the-court.png",
     "19-boss-at-the-gate.png",
     "20-gate-down.png",
