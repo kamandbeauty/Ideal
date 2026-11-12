@@ -33,8 +33,8 @@ func _ready() -> void:
 	sunlight.directional_shadow_max_distance = 60.0
 	add_child(sunlight)
 
-	var concrete := asphalt_material(Color(1.0, 1.0, 1.0))
-	var alternate := asphalt_material(Color(0.94, 0.95, 0.96))
+	var concrete := asphalt_material(Color(0.68, 0.71, 0.74))
+	var alternate := asphalt_material(Color(0.64, 0.67, 0.70))
 	var steel := new_material(Color(0.19, 0.25, 0.29), 0.6)
 	var edge := new_material(Color(0.12, 0.17, 0.20), 0.8)
 	var lane := new_material(Color(0.75, 0.66, 0.40), 0.95)
