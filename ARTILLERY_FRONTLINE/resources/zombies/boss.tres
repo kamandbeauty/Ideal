@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="ZombieData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/zombies/zombie_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/zombies/zombie_boss.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"boss"
+name_key = "zombie_boss"
+scene = ExtResource("2")
+skins = 1
+prewarm = 1
+is_boss = true
+advice_key = "boss_advice"
+max_health = 7000.0
+scale_min = 1.0
+scale_max = 1.0
+head_damage_scale = 0.6
+blast_damage_scale = 1.0
+speed = 1.0
+speed_variance = 0.0
+stride_speed = 1.22
+turn_speed = 3.0
+flinch_slow = 1.0
+stagger_health_share = 1.0
+blast_reel_scale = 0.0
+knockback_scale = 0.0
+hit_rock_degrees = 1.0
+attack_damage = 45.0
+attack_interval = 2.2
+attack_hit_point = 0.56
+breach_damage = 600.0
+footprint = 3
+body_radius = 0.72
+body_height = 2.75
+head_radius = 0.34
+body_lean_degrees = 6.0
+voice_pitch = 0.5
+voice_volume_db = 5.0
+spawn_sound = "boss_roar"
+death_sound = "boss_death"
+corpse_time = 12.0

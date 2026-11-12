@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"twin_hmg"
+name_key = "weapon_twin_hmg"
+kind = "bullet"
+icon = "gun"
+damage = 34.0
+headshot_multiplier = 2.5
+penetration = 1
+penetration_damage_scale = 0.6
+fire_interval = 0.085
+muzzle_velocity = 720.0
+spread_degrees = 0.3
+max_range = 420.0
+tracer_every = 2
+min_convergence = 12.0
+spin_up_time = 0.0
+magazine_size = 160
+reload_time = 2.6
+auto_reload = true
+reserve = -1
+reserve_max = -1
+raise_time = 0.3
+lower_time = 0.22
+recoil_scale = 1.0
+barrel_travel = 0.05

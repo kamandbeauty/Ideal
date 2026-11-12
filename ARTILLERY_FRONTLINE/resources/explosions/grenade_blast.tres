@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ExplosionData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/explosion_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+damage = 200.0
+inner_radius = 1.0
+radius = 5.0
+edge_fraction = 0.15
+structure_damage = 0.0
+stagger_time = 0.9
+knockback = 2.2
+visual_scale = 0.85
+shake_degrees = 1.1
+sound = "explosion_small"
+volume_db = 2.0

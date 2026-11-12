@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AimSettings" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/aim_settings.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+yaw_min_degrees = -70.0
+yaw_max_degrees = 70.0
+pitch_min_degrees = -15.0
+pitch_max_degrees = 45.0
+start_yaw_degrees = 0.0
+start_pitch_degrees = -5.0
+degrees_per_pixel = 0.085
+vertical_ratio = 0.8
+smoothing_speed = 24.0
+key_turn_speed = 75.0
+recoil_pitch_degrees = 0.12
+recoil_yaw_degrees = 0.07
+recoil_max_degrees = 2.2
+recoil_recovery_speed = 9.0
+camera_shake_degrees = 0.16
+fov_degrees = 43.0
+eye_offset = Vector3(0, 0.43, 1.35)
+zoom_factor = 2.5
+zoom_time = 0.14

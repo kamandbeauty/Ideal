@@ -1,0 +1,23 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/city_level.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/environment/city_siege.glb" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/player/defender.tscn" id="3"]
+[ext_resource type="Resource" path="res://resources/levels/city_siege_layout.tres" id="4"]
+[ext_resource type="Resource" path="res://resources/waves/stage_1_waves.tres" id="5"]
+[ext_resource type="Resource" path="res://resources/defense/city_wall.tres" id="6"]
+[ext_resource type="Resource" path="res://resources/zombies/walker.tres" id="7"]
+[ext_resource type="Resource" path="res://resources/zombies/runner.tres" id="8"]
+[ext_resource type="Resource" path="res://resources/zombies/brute.tres" id="9"]
+[ext_resource type="Resource" path="res://resources/zombies/boss.tres" id="10"]
+
+[node name="CitySiege" type="Node3D"]
+script = ExtResource("1")
+layout = ExtResource("4")
+wave_set = ExtResource("5")
+defense_data = ExtResource("6")
+zombie_types = Array[Resource]([ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10")])
+
+[node name="Geometry" parent="." instance=ExtResource("2")]
+
+[node name="Defender" parent="." instance=ExtResource("3")]

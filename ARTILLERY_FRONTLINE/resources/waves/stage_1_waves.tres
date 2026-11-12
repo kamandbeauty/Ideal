@@ -1,0 +1,94 @@
+[gd_resource type="Resource" script_class="WaveSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/waves/wave_set.gd" id="1_liu1k"]
+[ext_resource type="Script" path="res://scripts/waves/wave_data.gd" id="2_q0sl5"]
+[ext_resource type="Script" path="res://scripts/waves/spawn_group.gd" id="3_f8kfc"]
+
+[sub_resource type="Resource" id="Resource_t3e8m"]
+script = ExtResource("3_f8kfc")
+interval = 1.6
+routes = PackedStringArray("ring_right", "alley_right")
+
+[sub_resource type="Resource" id="Resource_35ne5"]
+script = ExtResource("3_f8kfc")
+start_time = 9.0
+interval = 1.8
+routes = PackedStringArray("ring_left", "alley_left")
+target = "wall"
+
+[sub_resource type="Resource" id="Resource_wk0l1"]
+script = ExtResource("2_q0sl5")
+groups = Array[ExtResource("3_f8kfc")]([SubResource("Resource_t3e8m"), SubResource("Resource_35ne5")])
+max_alive = 30
+
+[sub_resource type="Resource" id="Resource_ffxeh"]
+script = ExtResource("3_f8kfc")
+count = 10
+interval = 1.3
+routes = PackedStringArray("ring_right", "alley_right", "cross_right")
+
+[sub_resource type="Resource" id="Resource_de73t"]
+script = ExtResource("3_f8kfc")
+start_time = 4.0
+interval = 1.6
+routes = PackedStringArray("ring_left", "alley_left")
+target = "wall"
+
+[sub_resource type="Resource" id="Resource_25hg1"]
+script = ExtResource("3_f8kfc")
+zombie = &"runner"
+count = 6
+start_time = 16.0
+interval = 0.8
+routes = PackedStringArray("avenue_left", "avenue_right")
+target = "any"
+
+[sub_resource type="Resource" id="Resource_teuff"]
+script = ExtResource("2_q0sl5")
+groups = Array[ExtResource("3_f8kfc")]([SubResource("Resource_ffxeh"), SubResource("Resource_de73t"), SubResource("Resource_25hg1")])
+max_alive = 36
+hint_key = "wave_hint_runners"
+
+[sub_resource type="Resource" id="Resource_o1atk"]
+script = ExtResource("3_f8kfc")
+count = 12
+interval = 1.1
+routes = PackedStringArray("cross_left", "cross_right")
+
+[sub_resource type="Resource" id="Resource_au4gs"]
+script = ExtResource("3_f8kfc")
+count = 10
+start_time = 2.0
+interval = 1.4
+routes = PackedStringArray("ring_left", "alley_left")
+target = "wall"
+
+[sub_resource type="Resource" id="Resource_hcmkm"]
+script = ExtResource("3_f8kfc")
+zombie = &"runner"
+count = 6
+start_time = 10.0
+interval = 0.5
+burst = 2
+routes = PackedStringArray("ring_right", "alley_right")
+
+[sub_resource type="Resource" id="Resource_dho4t"]
+script = ExtResource("3_f8kfc")
+zombie = &"runner"
+count = 6
+start_time = 24.0
+interval = 0.5
+burst = 2
+routes = PackedStringArray("ring_left", "alley_left")
+target = "wall"
+
+[sub_resource type="Resource" id="Resource_ss8ay"]
+script = ExtResource("2_q0sl5")
+groups = Array[ExtResource("3_f8kfc")]([SubResource("Resource_o1atk"), SubResource("Resource_au4gs"), SubResource("Resource_hcmkm"), SubResource("Resource_dho4t")])
+intermission = 8.0
+
+[resource]
+script = ExtResource("1_liu1k")
+waves = Array[ExtResource("2_q0sl5")]([SubResource("Resource_wk0l1"), SubResource("Resource_teuff"), SubResource("Resource_ss8ay")])
+health_growth = 0.06
+speed_growth = 0.02

@@ -1,0 +1,247 @@
+name: LAST WALL
+# Imports the project with the official editor, runs the headless suites,
+# plays the game under a software renderer for screenshots, then exports the
+# Android packages. Evidence and the APK are committed back to the branch.
+on:
+  push:
+    branches: [arena/93ab6e29-ideal]
+    paths: ['ARTILLERY_FRONTLINE/**', '!ARTILLERY_FRONTLINE/documentation/**', '!ARTILLERY_FRONTLINE/**/*.md', '.github/workflows/last-wall.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+concurrency:
+  group: last-wall-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  GODOT_VERSION: 4.7.2-stable
+  GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+  PROJECT: ARTILLERY_FRONTLINE
+  SESSION_BRANCH: arena/93ab6e29-ideal
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cache verified Godot editor
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/godot-bin
+          key: godot-4.7.2-stable-linux-v1
+      - name: Install checksum-verified Godot
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/godot-bin
+          if [ ! -x ~/.local/godot-bin/godot ]; then
+            curl -fL --retry 5 --retry-all-errors --retry-delay 5 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+            echo "${GODOT_SHA256}  $RUNNER_TEMP/godot.zip" | sha256sum -c -
+            unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+            cp "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" ~/.local/godot-bin/godot
+            chmod +x ~/.local/godot-bin/godot
+          fi
+          echo "$HOME/.local/godot-bin" >> "$GITHUB_PATH"
+          ~/.local/godot-bin/godot --headless --version
+      - name: Import project and compile scripts
+        run: |
+          mkdir -p "$PROJECT/documentation/qa"
+          rm -f "$PROJECT"/documentation/qa/*.png "$PROJECT"/documentation/qa/*.log "$PROJECT"/documentation/qa/*.json
+          godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1 || { tail -160 /tmp/import.log; cp /tmp/import.log "$PROJECT/documentation/qa/import.log"; exit 1; }
+          cp /tmp/import.log "$PROJECT/documentation/qa/import.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' /tmp/import.log; then exit 1; fi
+      - name: Audit the project tree
+        run: python3 "$PROJECT/tools/audit_project.py" "$PROJECT" "$PROJECT/documentation/qa/project-audit.json"
+      - name: Run unit and integration suites
+        run: |
+          rc=0
+          godot --headless --path "$PROJECT" --script res://tests/run_tests.gd > /tmp/tests.log 2>&1 || rc=$?
+          cat /tmp/tests.log
+          cp /tmp/tests.log "$PROJECT/documentation/qa/tests.log"
+          exit "$rc"
+      - name: Check test report
+        run: python3 "$PROJECT/tools/check_report.py" "$PROJECT/documentation/qa/test-results.json"
+      - name: Software-rendered play-through with screenshots
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri
+          rc=0
+          xvfb-run -a -s '-screen 0 1440x810x24' godot --path "$PROJECT" --rendering-method gl_compatibility --resolution 1440x810 -- --smoke > /tmp/smoke.log 2>&1 || rc=$?
+          cat /tmp/smoke.log
+          cp /tmp/smoke.log "$PROJECT/documentation/qa/smoke.log"
+          if grep -qiE "shader.*error|ERROR:.*shader" /tmp/smoke.log; then echo "::error::Shader errors during the play-through"; exit 1; fi
+          if grep -qE "SCRIPT ERROR|Parse Error" /tmp/smoke.log; then echo "::error::GDScript errors during the play-through"; exit 1; fi
+          python3 -c "import json,sys; r=json.load(open('$PROJECT/documentation/qa/smoke-report.json')); sys.exit(0 if r['passed'] and not r['failures'] and len(r['screenshots']) >= 37 else 1)" || { echo "::error::Play-through report failed"; exit 1; }
+          echo "Play-through passed; engine exit code $rc (software-renderer teardown noise is tolerated once the report has passed)"
+          test -s "$PROJECT/documentation/qa/01-menu-fa.png"
+          test -s "$PROJECT/documentation/qa/08-gate-firing.png"
+          test -s "$PROJECT/documentation/qa/11-rocket-blast.png"
+          test -s "$PROJECT/documentation/qa/19-boss-at-the-gate.png"
+          test -s "$PROJECT/documentation/qa/22-defeat.png"
+          test -s "$PROJECT/documentation/qa/25-phone-20x9-play.png"
+          test -s "$PROJECT/documentation/qa/27-tablet-4x3-play.png"
+          test -s "$PROJECT/documentation/qa/29-peak-crowd.png"
+          test -s "$PROJECT/documentation/qa/30-sight-drawn-in.png"
+          test -s "$PROJECT/documentation/qa/32-six-barrel-firing.png"
+          test -s "$PROJECT/documentation/qa/35-second-stage-begins.png"
+      - name: Preserve validation evidence
+        if: always() && github.ref_name == env.SESSION_BRANCH
+        run: |
+          bash "$PROJECT/tools/publish_ci.sh" 'test: record headless suites and software-rendered play-through' "$PROJECT/documentation/qa"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: validation-evidence
+          path: ARTILLERY_FRONTLINE/documentation/qa/
+  android:
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android SDK 36
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.1.0' 'platform-tools'
+      - name: Cache Android export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates/4.7.2.stable
+          key: godot-4.7.2-android-templates-v1
+      - name: Install verified editor and Android templates
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/godot-bin ~/.local/share/godot/export_templates/4.7.2.stable
+          curl -fL --retry 5 --retry-all-errors --retry-delay 5 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" -o "$RUNNER_TEMP/godot.zip"
+          echo "${GODOT_SHA256}  $RUNNER_TEMP/godot.zip" | sha256sum -c -
+          unzip -qo "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+          cp "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" ~/.local/godot-bin/godot
+          chmod +x ~/.local/godot-bin/godot
+          echo "$HOME/.local/godot-bin" >> "$GITHUB_PATH"
+          T=~/.local/share/godot/export_templates/4.7.2.stable
+          if [ ! -s "$T/android_release.apk" ]; then
+            curl -fL --retry 5 --retry-all-errors --retry-delay 5 "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" -o "$RUNNER_TEMP/templates.tpz"
+            unzip -j "$RUNNER_TEMP/templates.tpz" 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/android_source.zip' 'templates/version.txt' -d "$T"
+          fi
+      - name: Import and point the editor at the SDK
+        run: |
+          godot --headless --path "$PROJECT" --editor --import > /tmp/import.log 2>&1
+          python3 "$PROJECT/tools/configure_editor.py"
+      - name: Configure signing in ephemeral runner storage
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.ARTILLERY_KEYSTORE_BASE64 }}
+          RELEASE_KEYSTORE_PASSWORD: ${{ secrets.ARTILLERY_KEYSTORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.ARTILLERY_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          if [ -n "${RELEASE_KEYSTORE_BASE64:-}" ]; then
+            printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.keystore"
+            {
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$RUNNER_TEMP/release.keystore"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=$RELEASE_KEY_ALIAS"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$RELEASE_KEYSTORE_PASSWORD"
+              echo "EXPORT_MODE=--export-release"
+              echo "SIGNING_SCOPE=release key from repository secrets"
+            } >> "$GITHUB_ENV"
+          else
+            PASSWORD=$(openssl rand -hex 32)
+            keytool -genkeypair -keystore "$RUNNER_TEMP/development.keystore" -storepass "$PASSWORD" -keypass "$PASSWORD" -alias lastwall -keyalg RSA -keysize 2048 -validity 30 -dname 'CN=Last Wall Development,O=Frontline,C=NL' >/dev/null 2>&1
+            # The throw-away key signs a release export: the optimised engine, not debuggable. That is
+            # the build whose frame rate is worth measuring on a phone. If the release export does not
+            # go through, the debug export is used instead and BUILD-STATUS.txt says so.
+            {
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$RUNNER_TEMP/development.keystore"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_USER=lastwall"
+              echo "GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=$PASSWORD"
+              echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$RUNNER_TEMP/development.keystore"
+              echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=lastwall"
+              echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=$PASSWORD"
+              echo "EXPORT_MODE=--export-release"
+              echo "FALLBACK_MODE=--export-debug"
+              echo "SIGNING_SCOPE=ephemeral development key; installable for testing, not a store release"
+            } >> "$GITHUB_ENV"
+          fi
+      - name: Export ARM64 APKs
+        run: |
+          set -euo pipefail
+          # The APK committed to the branch is only replaced by the publish step, after the checks below
+          # have passed; this folder is the runner's working copy.
+          rm -rf delivery && mkdir -p delivery
+          export_one() {
+            if godot --headless --path "$PROJECT" "$EXPORT_MODE" "$1" "res://../delivery/$2" > "$3" 2>&1 && [ -s "delivery/$2" ]; then
+              echo "$EXPORT_MODE" > "$RUNNER_TEMP/mode-$2"
+              return 0
+            fi
+            if [ -n "${FALLBACK_MODE:-}" ]; then
+              echo "::warning title=Android export::$2 did not export with $EXPORT_MODE, trying $FALLBACK_MODE"
+              grep -E 'ERROR|Error|failed|Failed|keystore' "$3" | tail -15 | while IFS= read -r line; do echo "::warning title=Release export::${line}"; done
+              rm -f "delivery/$2"
+              if godot --headless --path "$PROJECT" "$FALLBACK_MODE" "$1" "res://../delivery/$2" > "$3" 2>&1 && [ -s "delivery/$2" ]; then
+                echo "$FALLBACK_MODE" > "$RUNNER_TEMP/mode-$2"
+                return 0
+              fi
+            fi
+            tail -100 "$3"
+            return 1
+          }
+          export_one 'Android APK' LastWall-arm64.apk /tmp/apk.log
+          export_one 'Android Compatibility' LastWall-compatibility.apk /tmp/compat.log
+          if [ "$(cat "$RUNNER_TEMP/mode-LastWall-arm64.apk")" = "--export-release" ]; then
+            echo "BUILD_KIND=release export template (optimised engine, not debuggable)" >> "$GITHUB_ENV"
+          else
+            echo "BUILD_KIND=debug export template (debuggable, slower than a release build)" >> "$GITHUB_ENV"
+          fi
+          ls -la delivery
+      - name: Verify signatures, architecture and manifest
+        run: |
+          set -euo pipefail
+          # Job logs cannot always be fetched afterwards; report the failing command as an annotation.
+          trap 'echo "::error title=Package verification::line $LINENO failed: $BASH_COMMAND"' ERR
+          BT="$ANDROID_HOME/build-tools/36.1.0"
+          "$BT/apksigner" verify --verbose --print-certs delivery/LastWall-arm64.apk > delivery/apk-signature.txt
+          "$BT/apksigner" verify --verbose --print-certs delivery/LastWall-compatibility.apk > delivery/compatibility-signature.txt
+          "$BT/aapt2" dump badging delivery/LastWall-arm64.apk > delivery/package-metadata.txt
+          "$BT/aapt2" dump badging delivery/LastWall-compatibility.apk > delivery/compatibility-package-metadata.txt
+          "$BT/aapt2" dump xmltree delivery/LastWall-arm64.apk --file AndroidManifest.xml > delivery/AndroidManifest.txt
+          "$BT/aapt2" dump xmltree delivery/LastWall-compatibility.apk --file AndroidManifest.xml > delivery/compatibility-AndroidManifest.txt
+          python3 "$PROJECT/tools/verify_packages.py" delivery
+          mkdir -p "$RUNNER_TEMP/compatibility-package"
+          mv delivery/LastWall-compatibility.apk "$RUNNER_TEMP/compatibility-package/"
+          rm -f delivery/*.idsig
+          sha256sum delivery/*.apk > delivery/SHA256SUMS.txt
+          {
+            printf 'Game: LAST WALL: Zombie Siege\n'
+            printf 'Source commit: %s\n' "$GITHUB_SHA"
+            printf 'Engine: Godot %s\n' "$GODOT_VERSION"
+            printf 'Version: %s (code %s)\n' "$(sed -n 's/^version\/name="\(.*\)"$/\1/p' "$PROJECT/export_presets.cfg" | head -1)" "$(sed -n 's/^version\/code=\(.*\)$/\1/p' "$PROJECT/export_presets.cfg" | head -1)"
+            printf 'Build: %s\n' "$BUILD_KIND"
+            printf 'Signing: %s\n' "$SIGNING_SCOPE"
+            printf 'Checked in CI: signature, ARM64 library only, ZIP CRC, landscape manifest, no permissions at all, declared as a game, version, every project file packed\n'
+            printf 'Not checked in CI: running on an Android device or emulator\n'
+            printf 'Installing: remove any earlier build first; every build is signed with a different throw-away key\n'
+          } > delivery/BUILD-STATUS.txt
+          cat delivery/BUILD-STATUS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-compatibility-apk
+          path: ${{ runner.temp }}/compatibility-package/
+      - name: Publish the APK to the session branch
+        if: github.ref_name == env.SESSION_BRANCH
+        run: |
+          bash "$PROJECT/tools/publish_ci.sh" 'build: deliver the verified ARM64 Android APK' delivery
+      - name: Surface build diagnostics
+        if: failure()
+        run: |
+          for log in /tmp/import.log /tmp/apk.log /tmp/compat.log; do
+            if [ -f "$log" ]; then
+              grep -E 'ERROR|Error|FAILURE|failed|Failed|configuration|SDK|keystore' "$log" | tail -25 | while IFS= read -r line; do echo "::error title=Android build::${line}"; done
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: LastWall-Android
+          path: delivery/
+          if-no-files-found: ignore

@@ -1,0 +1,27 @@
+# Local engine caches, generated imports and build products
+.ci-cache/
+.toolchain/
+.godot/
+**/.godot/
+**/.import/
+**/build/
+**/dist/
+**/node_modules/
+*.tmp
+*.bak
+*.keystore
+*.jks
+key.properties
+local.properties
+.env
+.env.*
+__pycache__/
+*.pyc
+# CI commits the installable APK to delivery/ on the session branch.
+
+# Blender editor backups
+*.blend1
+
+# The compatibility APK is a CI artifact, not a tracked deliverable.
+delivery/LastWall-compatibility.apk
+delivery/*.idsig

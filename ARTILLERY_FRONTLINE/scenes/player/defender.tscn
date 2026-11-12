@@ -1,0 +1,16 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/defender.gd" id="1"]
+[ext_resource type="Resource" path="res://resources/aim/default_aim.tres" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/twin_hmg.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/rpg_launcher.tscn" id="4"]
+[ext_resource type="Resource" path="res://resources/weapons/frag_grenade.tres" id="5"]
+
+[node name="Defender" type="Node3D"]
+script = ExtResource("1")
+aim_settings = ExtResource("2")
+grenade_data = ExtResource("5")
+
+[node name="Weapon" parent="." instance=ExtResource("3")]
+
+[node name="Launcher" parent="." instance=ExtResource("4")]

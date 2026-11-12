@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="ZombieData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/zombies/zombie_data.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/zombies/zombie_brute.tscn" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"brute"
+name_key = "zombie_brute"
+scene = ExtResource("2")
+skins = 2
+prewarm = 4
+is_boss = false
+max_health = 520.0
+scale_min = 0.97
+scale_max = 1.04
+head_damage_scale = 1.0
+blast_damage_scale = 1.0
+speed = 1.2
+speed_variance = 0.08
+stride_speed = 1.08
+turn_speed = 4.0
+flinch_slow = 0.9
+stagger_health_share = 0.3
+blast_reel_scale = 0.45
+knockback_scale = 0.3
+hit_rock_degrees = 1.8
+attack_damage = 14.0
+attack_interval = 1.7
+attack_hit_point = 0.56
+breach_damage = 90.0
+footprint = 2
+body_radius = 0.5
+body_height = 1.95
+head_radius = 0.26
+body_lean_degrees = 8.0
+voice_pitch = 0.72
+voice_volume_db = 2.0
+spawn_sound = ""
+death_sound = ""
+corpse_time = 8.0

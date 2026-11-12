@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rotary_gun"
+name_key = "weapon_rotary_gun"
+kind = "bullet"
+icon = "rotary"
+damage = 17.0
+headshot_multiplier = 2.0
+penetration = 0
+penetration_damage_scale = 0.6
+fire_interval = 0.04
+muzzle_velocity = 780.0
+spread_degrees = 0.55
+max_range = 420.0
+tracer_every = 3
+min_convergence = 12.0
+spin_up_time = 0.3
+magazine_size = 500
+reload_time = 3.6
+auto_reload = true
+reserve = -1
+reserve_max = -1
+raise_time = 0.3
+lower_time = 0.22
+recoil_scale = 0.5
+barrel_travel = 0.0
