@@ -65,6 +65,7 @@ func _ready() -> void:
 				add_box(Vector3(side * 5.78, 0.58, z + offset), Vector3(0.16, 1.16, 0.16), steel)
 			if i % 3 == 0:
 				add_box(Vector3(side * 5.58, 0.38, z), Vector3(0.08, 0.18, 0.48), amber)
+	create_city_entrance()
 	# Clouds stay outside the playable bridge on both sides.
 	var cloud_mesh := SphereMesh.new()
 	cloud_mesh.radius = 1.0
@@ -83,6 +84,43 @@ func _ready() -> void:
 		cloud.scale = Vector3(random.randf_range(5, 9), random.randf_range(2, 4), random.randf_range(5, 9))
 		add_child(cloud)
 
+func create_city_entrance() -> void:
+	# A distant entrance at the end of the bridge; no collision blocks the run.
+	var entrance := Node3D.new()
+	entrance.name = "CityEntrance"
+	entrance.position.z = 169.0
+	add_child(entrance)
+	var stone := new_material(Color(0.32, 0.37, 0.41), 0.87)
+	var trim := new_material(Color(0.22, 0.28, 0.32), 0.74)
+	var metal := new_material(Color(0.11, 0.18, 0.22), 0.55)
+	var light := new_material(Color(1.0, 0.61, 0.22), 0.45)
+	light.emission_enabled = true
+	light.emission = Color(0.85, 0.27, 0.04)
+	for side in [-1, 1]:
+		add_box(Vector3(side * 6.5, 5.1, 0), Vector3(2.0, 10.2, 3.1), stone, entrance)
+		add_box(Vector3(side * 6.5, 10.25, 0), Vector3(2.3, 0.40, 3.4), trim, entrance)
+		add_box(Vector3(side * 5.38, 4.3, -0.7), Vector3(0.28, 8.6, 1.5), trim, entrance)
+		add_box(Vector3(side * 6.5, 7.5, -1.58), Vector3(0.7, 1.5, 0.12), metal, entrance)
+		add_box(Vector3(side * 6.5, 7.55, -1.68), Vector3(0.3, 0.6, 0.1), light, entrance)
+		for offset in [-0.72, 0.0, 0.72]:
+			add_box(Vector3(side * 6.5 + offset, 10.8, -0.95), Vector3(0.4, 0.9, 0.5), stone, entrance)
+		# Silhouettes hint at the city beyond without replacing the cloud setting.
+		add_box(Vector3(side * 10.0, 4.3, 8.5), Vector3(4.0, 8.6, 4.0), trim, entrance)
+		add_box(Vector3(side * 10.0, 8.75, 8.5), Vector3(4.2, 0.35, 4.2), stone, entrance)
+	add_box(Vector3(0, 8.9, 0), Vector3(11.5, 1.6, 2.0), stone, entrance)
+	add_box(Vector3(0, 8.05, -1.06), Vector3(11.1, 0.22, 0.22), trim, entrance)
+	add_box(Vector3(0, 9.8, -1.06), Vector3(11.1, 0.22, 0.22), trim, entrance)
+	var sign := Label3D.new()
+	sign.font = preload("res://assets/fonts/DejaVuSans.ttf")
+	sign.text = "ورودی شهر"
+	sign.font_size = 80
+	sign.pixel_size = 0.009
+	sign.outline_size = 8
+	sign.outline_modulate = Color(0.03, 0.05, 0.08)
+	sign.position = Vector3(0, 8.9, -1.15)
+	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	entrance.add_child(sign)
+
 func asphalt_material(color: Color) -> ShaderMaterial:
 	var material := ShaderMaterial.new()
 	material.shader = preload("res://shaders/bridge_asphalt.gdshader")
@@ -96,7 +134,7 @@ func new_material(color: Color, roughness: float) -> StandardMaterial3D:
 	result.roughness = roughness
 	return result
 
-func add_box(pos: Vector3, size: Vector3, mat: Material) -> void:
+func add_box(pos: Vector3, size: Vector3, mat: Material, parent: Node3D = null) -> void:
 	var box := MeshInstance3D.new()
 	if not box_meshes.has(size):
 		var mesh := BoxMesh.new()
@@ -105,4 +143,7 @@ func add_box(pos: Vector3, size: Vector3, mat: Material) -> void:
 	box.mesh = box_meshes[size]
 	box.material_override = mat
 	box.position = pos
-	add_child(box)
+	if parent == null:
+		add_child(box)
+	else:
+		parent.add_child(box)

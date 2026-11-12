@@ -91,6 +91,11 @@ func run_capture() -> void:
 				await snapshot("04-glass-gate")
 			if level.soldiers.size() > 0:
 				await snapshot("05-recruited-soldiers")
+			if level.hero.position.z > 139.0 and not captured.has("09-city-entrance"):
+				for enemy in level.enemies:
+					if is_instance_valid(enemy) and enemy.role == "brute" and not enemy.dead:
+						await snapshot("09-city-entrance")
+						break
 		Input.action_release("ui_left")
 		if not level.running:
 			if is_instance_valid(level.hero) and level.hero.health > 0 and level.enemies.is_empty():
@@ -125,7 +130,7 @@ func run_capture() -> void:
 			quit(1)
 			return
 		await snapshot("07-defeat-test-only")
-	var required := ["01-launcher", "02-initial-bridge", "03-zombie-encounter", "04-glass-gate", "05-recruited-soldiers", "06-victory", "08-firing"]
+	var required := ["01-launcher", "02-initial-bridge", "03-zombie-encounter", "04-glass-gate", "05-recruited-soldiers", "06-victory", "08-firing", "09-city-entrance"]
 	if captured.has("07-defeat"):
 		required.append("07-defeat")
 	else:

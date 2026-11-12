@@ -28,7 +28,7 @@ var hit_direction := 1.0
 # Experimental user-provided static meshes; collision and combat stay procedural.
 const MODEL_CONFIG := {
 	"hero": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
-	"soldier": ["res://assets/models/soldier-quaternius.glb", 1.0, 0.0, 0.0],
+	"soldier": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
 	"zombie": ["res://assets/models/zombie-13899.glb", 0.0142, 0.020, PI],
 	"runner": ["res://assets/models/zombie-28069.glb", 0.0644, -0.406, PI],
 	"brute": ["res://assets/models/zombie-27189.glb", 0.0263, 0.001, PI],
@@ -189,7 +189,7 @@ func update_animation(delta: float, moving: bool) -> void:
 		visual_root.rotation.z = sway + hit_lean
 		if role != "soldier":
 			visual_root.position.y = absf(sin(run_clock * 7)) * 0.035 if moving else 0.0
-	if rig and role == "hero":
+	if rig and (role == "hero" or role == "soldier"):
 		var stride := sin(run_clock * 9.0) * 0.55 * gait_blend
 		pose_bone("LegRight", Quaternion(Vector3.RIGHT, stride))
 		pose_bone("LegLeft", Quaternion(Vector3.RIGHT, -stride))
@@ -209,16 +209,11 @@ func update_animation(delta: float, moving: bool) -> void:
 	combat_animation_time = maxf(0.0, combat_animation_time - delta)
 	if role == "soldier" and animation_player:
 		play_soldier_motion(moving)
-	if weapon and rig and role == "hero":
+	if weapon and rig and (role == "hero" or role == "soldier"):
 		var arm := rig.find_bone("ArmRight")
 		if arm >= 0:
 			var hand_in_rig: Vector3 = rig.get_bone_global_pose(arm) * Vector3(-18, -13, 0)
 			weapon.position = to_local(rig.to_global(hand_in_rig))
-			weapon.position.z -= gun_recoil
-	elif weapon and rig and role == "soldier":
-		var hand := rig.find_bone("Fist.R")
-		if hand >= 0:
-			weapon.position = to_local(rig.to_global(rig.get_bone_global_pose(hand).origin))
 			weapon.position.z -= gun_recoil
 
 func play_soldier_motion(moving: bool) -> void:

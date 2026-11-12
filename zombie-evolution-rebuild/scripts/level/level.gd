@@ -47,7 +47,7 @@ func _ready() -> void:
 		spawn_enemy("zombie", Vector3(float(i % 3 - 1) * 2.2, 0.05, 30 + i * 5))
 	for i in range(8):
 		spawn_enemy("runner" if i % 3 == 0 else "zombie", Vector3(float(i % 3 - 1) * 2.2, 0.05, 88 + i * 7))
-	spawn_enemy("brute", Vector3(0, 0.05, 153))
+	spawn_enemy("brute", Vector3(0, 0.05, 160))
 	hud = HudScript.new()
 	add_child(hud)
 	hud.retry_requested.connect(func(): get_tree().reload_current_scene())
@@ -113,13 +113,19 @@ func _physics_process(delta: float) -> void:
 		instruction = "در حال پر کردن خشاب"
 	hud.update_status(hero.health, soldiers.size(), coins, ammo, instruction)
 
+const FORMATION_OFFSETS: Array[Vector2] = [
+	Vector2(-1.55, -2.35), Vector2(1.65, -2.55),
+	Vector2(-2.90, -3.05), Vector2(2.95, -3.20),
+	Vector2(-1.15, -4.15), Vector2(1.25, -4.40),
+	Vector2(-3.90, -4.30), Vector2(3.90, -4.50),
+	Vector2(-2.35, -5.55), Vector2(2.45, -5.70),
+]
+
 func formation_position(index: int, _total: int) -> Vector3:
-	# Paired columns leave the central camera sightline to the hero clear.
-	var column: int = index % 2
-	var row: int = index / 2
-	var center := clampf(hero.position.x, -4.0, 4.0)
-	var side := -1.0 if column == 0 else 1.0
-	return Vector3(center + side * 1.35, 0.05, hero.position.z - 2.6 - row * 1.5)
+	# An irregular, open crescent stays behind the hero, not in straight rows.
+	var offset: Vector2 = FORMATION_OFFSETS[index]
+	var center := clampf(hero.position.x, -1.05, 1.05)
+	return Vector3(center + offset.x, 0.05, hero.position.z + offset.y)
 
 func update_squad(delta: float) -> void:
 	for i in range(soldiers.size()):
@@ -146,6 +152,11 @@ func update_enemies(delta: float) -> void:
 		var dz: float = enemy.position.z - hero.position.z
 		enemy.visible = absf(dz) < 60
 		if dz > 30:
+			continue
+		# The stage brute waits in front of the entrance until approached.
+		if enemy.role == "brute" and dz > 14.0:
+			enemy.step_motion(Vector3.ZERO, delta)
+			enemy.update_animation(delta, false)
 			continue
 		var victim = hero
 		var closest: float = enemy.position.distance_to(hero.position)
