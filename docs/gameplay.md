@@ -50,6 +50,22 @@ fruit and four unrelated pieces elsewhere burst with them. The rule is gone (`mo
 blocks are still standing after a move, and a swap that builds nothing but a square is rejected as
 "no match" (`TEST STAGE 5B`).
 
+### The fan, and the gust it blows
+
+The fan is the only piece whose move is the swap itself: put it into a fruit and the move is accepted,
+and every piece of **that fruit's colour** leaves the board — the colour of the piece it traded places
+with (`move_resolver.gd`, `fan_swap`). Nothing else leaves with them.
+
+The effect has to say exactly that, so it is drawn from the list of cells the resolver is about to
+clear (`board_view.gd`, `_gust_travel`): the painted wind is **laid flat** — six tenths of its height —
+and blown in **one straight line** from the cell that fired it towards the middle of the fruit it is
+taking, at a slight lift above the grid. It never spins. A tornado turning on the spot reads as weather
+happening somewhere else; a gust crossing the board reads as "the wind passes and the fruit is gone".
+The pieces then burst in the wind's wake — each one when the gust reaches it, ordered by how far down
+the wind's line it lies — so the board empties in the direction the player watched the wind travel
+(`GUST_SWEEP_SECONDS`). `TEST STAGE 4` pins the motion: no rotation, one straight line, laid flat, and
+the gust clears itself off the board; `TEST STAGE 14C` pins what it takes.
+
 ## 2. Input
 
 Both gestures exist, deliberately:

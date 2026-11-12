@@ -206,6 +206,32 @@ func _run() -> void:
 			unresolved.append("power-up %d" % kind)
 	failures += _check(unresolved.is_empty(),
 		"every piece, obstacle and power-up has a picture (%s)" % ", ".join(unresolved))
+	print("UI STAGE 2b: the fan's gust crosses the board without spinning")
+	# The fan's gust: the player asked for a wind that crosses the grid, not a top that spins on it. So the
+	# effect must never rotate, must keep to one straight line, and must lie flat — its height a fraction of
+	# its width — because a full-height tornado reads as standing on the board instead of blowing over it.
+	var gust_host := Control.new()
+	tree_root.add_child(gust_host)
+	Fx.whirlwind(gust_host, Vector2(100.0, 200.0), Vector2(180.0, 0.0), 96.0)
+	await process_frame
+	var gust := gust_host.get_node_or_null("whirlwind") as TextureRect
+	failures += _check(gust != null, "firing the fan puts its gust on the board")
+	if gust != null:
+		var gust_start: Vector2 = gust.position
+		await create_timer(0.22).timeout
+		failures += _check(is_zero_approx(gust.rotation), "the gust never spins (%.4f rad)" % gust.rotation)
+		failures += _check(gust.position.x > gust_start.x + 8.0,
+			"the gust travels across the grid (%.1f dp)" % (gust.position.x - gust_start.x))
+		failures += _check(absf(gust.position.y - gust_start.y) < 1.0,
+			"the gust travels in a straight line (%.2f dp off its line)" % (gust.position.y - gust_start.y))
+		failures += _check(gust.scale.y / maxf(0.001, gust.scale.x) < 0.75,
+			"the gust lies flat on the grid (height is %.2f of its width)"
+			% (gust.scale.y / maxf(0.001, gust.scale.x)))
+		await create_timer(0.6).timeout
+		failures += _check(gust_host.get_node_or_null("whirlwind") == null,
+			"the gust clears itself off the board when it is done")
+	gust_host.queue_free()
+	await process_frame
 	var host := Control.new()
 	tree_root.add_child(host)
 	var panel := UiKit.panel(host, "panel", 10.0, 20.0, 100.0, 50.0, UiTokens.SURFACE, UiTokens.RADIUS_MD)

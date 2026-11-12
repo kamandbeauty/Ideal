@@ -184,31 +184,43 @@ static func streak(parent: Node, center: Vector2, length: float, horizontal: boo
 	tween.chain().tween_callback(bar.queue_free)
 
 
-## The fan's whirlwind: the painted tornado spins up over the board and blows itself out.
-static func whirlwind(parent: Node, center: Vector2, diameter: float = 96.0,
+## The fan's gust: the painted whirlwind laid flat on the grid and blown straight across it.
+##
+## It does **not** spin. A tornado turning on the spot is a weather event happening somewhere else;
+## what the player has to read is "this wind crosses the board and takes the fruit of one colour with
+## it", so the picture is squashed to about six tenths of its height — it lies on the grid instead of
+## standing on it — and it travels in a straight line from the piece that fired it towards the fruit it
+## is about to take. `from` is the centre of the cell that fired, `travel` the straight line it covers.
+const WHIRLWIND_FLATTEN := 0.58
+
+static func whirlwind(parent: Node, from: Vector2, travel: Vector2, diameter: float = 96.0,
 		tint: Color = Color(1, 1, 1, 0.92)) -> void:
-	var swirl := TextureRect.new()
-	swirl.name = "whirlwind"
-	swirl.texture = load(WHIRLWIND)
-	swirl.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	swirl.stretch_mode = TextureRect.STRETCH_SCALE
-	swirl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	swirl.modulate = tint
-	var native := float(swirl.texture.get_width())
-	swirl.size = Vector2(native, native)
-	swirl.pivot_offset = Vector2(native, native) * 0.5
-	swirl.position = center - Vector2(native, native) * 0.5
+	var gust := TextureRect.new()
+	gust.name = "whirlwind"
+	gust.texture = load(WHIRLWIND)
+	gust.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	gust.stretch_mode = TextureRect.STRETCH_SCALE
+	gust.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	gust.modulate = tint
+	var native := float(gust.texture.get_width())
+	gust.size = Vector2(native, native)
+	gust.pivot_offset = Vector2(native, native) * 0.5
 	var full := diameter / native
-	swirl.scale = Vector2(full * 0.55, full * 0.55)
-	parent.add_child(swirl)
-	var tween := swirl.create_tween()
+	var flat := Vector2(full, full * WHIRLWIND_FLATTEN)
+	var home := from - Vector2(native, native) * 0.5
+	gust.position = home
+	gust.scale = Vector2(flat.x, flat.y) * 0.55
+	parent.add_child(gust)
+	var tween := gust.create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(swirl, "scale", Vector2(full * 1.2, full * 1.2), WHIRLWIND_SECONDS) \
-		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_property(swirl, "rotation", TAU * 1.6, WHIRLWIND_SECONDS)
-	tween.tween_property(swirl, "modulate", Color(tint.r, tint.g, tint.b, 0.0), WHIRLWIND_SECONDS) \
-		.set_delay(WHIRLWIND_SECONDS * 0.45)
-	tween.chain().tween_callback(swirl.queue_free)
+	# One straight line, no rotation: the whole action is the crossing.
+	tween.tween_property(gust, "position", home + travel, WHIRLWIND_SECONDS * 0.85) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(gust, "scale", flat, WHIRLWIND_SECONDS * 0.45) \
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(gust, "modulate", Color(tint.r, tint.g, tint.b, 0.0),
+		WHIRLWIND_SECONDS * 0.45).set_delay(WHIRLWIND_SECONDS * 0.55)
+	tween.chain().tween_callback(gust.queue_free)
 
 ## Coins flying up and fading: the reward moment of a first clear.
 static func coin_burst(parent: Node, center: Vector2, amount: int = 14) -> void:

@@ -23,6 +23,10 @@ const FALL_SECONDS := 0.24
 ## A special piece takes its time: the whirlwind or the beam plays for about half a second and the
 ## pieces it takes start bursting a beat after it, so the player sees the cause before the effect.
 const POWER_LEAD := 0.24
+## How far the fan's gust is blown across the grid, in cells, and how long the board takes to empty in
+## its wake. Both are short on purpose: the point of the piece is the colour that leaves, not the wind.
+const FAN_SWEEP_CELLS := 2.6
+const GUST_SWEEP_SECONDS := 0.26
 const SHAKE_SECONDS := 0.34
 const SWAP_SECONDS := 0.18
 const REJECT_SECONDS := 0.20
@@ -389,9 +393,24 @@ func _home_of(tile: Control) -> Vector2:
 ## is an exact picture of the board the resolver produced.
 func play_result(before: BoardModel, events: Array) -> void:
 	_busy = true
+	# What the move takes is read first, because the effects are drawn from it: the gust of a fan has to
+	# know which way the fruit it is about to take lies before it can be blown across the board.
+	var cleared := {}
+	for event in events:
+		if not event is Dictionary:
+			continue
+		if str(event.get("type", "")) != "piece_cleared":
+			continue
+		var pos = event.get("position", Vector2i(-1, -1))
+		if pos is Vector2i:
+			cleared[pos] = int(event.get("piece", GameTypes.PieceKind.NONE))
+
 	# A special piece that fired gets its own effect before the pieces it took start to burst: the fan
-	# spins up a whirlwind, the rocket a ring where it went off, the kite a ring where it landed.
+	# blows a gust across the board, the rocket a ring where it went off, the kite a ring where it landed.
 	var fired_any := false
+	var gust_from := Vector2.ZERO
+	var gust_travel := Vector2.ZERO
+	var has_gust := false
 	for event in events:
 		if not event is Dictionary:
 			continue
@@ -404,7 +423,12 @@ func play_result(before: BoardModel, events: Array) -> void:
 		var centre := cell_center(fired)
 		match int(event.get("kind", 0)):
 			GameTypes.PowerUpKind.FAN:
-				Fx.whirlwind(self, centre, cell_size * 3.6)
+				# Straight across the grid, towards the middle of what it takes: the wind crosses, and
+				# the pieces go where the wind has been, not all at once under a spinning top.
+				gust_from = centre
+				gust_travel = _gust_travel(fired, cleared)
+				has_gust = true
+				Fx.whirlwind(self, centre, gust_travel, cell_size * 2.7)
 				_shake(cell_size * 0.10)
 			GameTypes.PowerUpKind.ROCKET_HORIZONTAL:
 				Fx.streak(self, centre, cell_size * float(run.board.width), true)
@@ -418,37 +442,62 @@ func play_result(before: BoardModel, events: Array) -> void:
 	if fired_any:
 		await get_tree().create_timer(POWER_LEAD).timeout
 
-	var cleared := {}
-	for event in events:
-		if not event is Dictionary:
-			continue
-		if str(event.get("type", "")) != "piece_cleared":
-			continue
-		var pos = event.get("position", Vector2i(-1, -1))
-		if pos is Vector2i:
-			cleared[pos] = int(event.get("piece", GameTypes.PieceKind.NONE))
-
 	if not cleared.is_empty():
 		var tween := create_tween()
 		tween.set_parallel(true)
+		var gust_reach := maxf(1.0, gust_travel.length())
 		for pos in cleared:
 			var tile: Control = _tiles.get(pos)
 			if tile == null:
 				continue
-			# Juice, not sparks: the fruit bursts into its own colour, and the splat is a piece of art.
-			# The cell itself is the boundary of the splash: one fruit's juice never lands in the
-			# next fruit's square.
-			Fx.splash(self, cell_center(pos), Fx.piece_tint(int(cleared[pos])), cell_size)
+			# A piece the gust takes goes when the gust reaches it: the delay is how far down the wind's
+			# own line the cell lies, so the board empties in the order the player watched the wind cross.
+			var delay := 0.0
+			if has_gust:
+				var along := (cell_center(pos) - gust_from).dot(gust_travel / gust_reach)
+				delay = clampf(along / gust_reach, 0.0, 1.0) * GUST_SWEEP_SECONDS
+			if delay > 0.0:
+				var timer := get_tree().create_timer(delay)
+				timer.timeout.connect(_burst_one.bind(pos, int(cleared[pos])))
+			else:
+				# Juice, not sparks: the fruit bursts into its own colour, and the splat is a piece of art.
+				# The cell itself is the boundary of the splash: one fruit's juice never lands in the
+				# next fruit's square.
+				Fx.splash(self, cell_center(pos), Fx.piece_tint(int(cleared[pos])), cell_size)
 			tween.tween_property(tile, "scale", Vector2(0.2, 0.2), CLEAR_SECONDS) \
-				.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				.set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 			# A small twist as it goes: a matched stone is lifted and taken, and a stone that only
 			# shrinks on its own axis is the one effect every match-3 has already shown the player.
-			tween.tween_property(tile, "rotation", CLEAR_TWIST, CLEAR_SECONDS)
-			tween.tween_property(tile, "modulate", Color(1, 1, 1, 0), CLEAR_SECONDS)
+			tween.tween_property(tile, "rotation", CLEAR_TWIST, CLEAR_SECONDS).set_delay(delay)
+			tween.tween_property(tile, "modulate", Color(1, 1, 1, 0), CLEAR_SECONDS).set_delay(delay)
 		await tween.finished
 
 	await _settle(before, cleared)
 	_busy = false
+
+## The line the gust travels: from the cell that fired it towards the middle of the fruit it takes,
+## which is the only direction that means anything to a player watching. When the fan takes a single
+## piece — or takes the cell it fired from — there is no line to draw, so it blows across the board on
+## the long axis and still reads as a crossing.
+func _gust_travel(origin: Vector2i, cleared: Dictionary) -> Vector2:
+	var sum := Vector2.ZERO
+	var count := 0
+	for pos in cleared:
+		sum += Vector2(pos)
+		count += 1
+	if count == 0:
+		return Vector2(cell_size * FAN_SWEEP_CELLS, 0.0)
+	var middle: Vector2 = sum / float(count)
+	var direction: Vector2 = middle - Vector2(origin)
+	if direction.length() < 0.4:
+		direction = Vector2(1.0, 0.0) if run.board.width >= run.board.height else Vector2(0.0, 1.0)
+	return direction.normalized() * cell_size * FAN_SWEEP_CELLS
+
+## One fruit's burst, on a delay: the gust reaches it before it goes.
+func _burst_one(pos: Vector2i, piece: int) -> void:
+	if not is_inside_tree():
+		return
+	Fx.splash(self, cell_center(pos), Fx.piece_tint(piece), cell_size)
 
 ## The board takes the hit: three short steps out and a longer one back, on the board's own position
 ## rather than on each tile, so a firing rocket moves everything it is about to clear and nothing has

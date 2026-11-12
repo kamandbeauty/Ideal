@@ -92,7 +92,8 @@ func _ready() -> void:
 	await _frames(20)
 
 	Engine.time_scale = 0.45
-	Fx.whirlwind(fx_view, fx_view.cell_center(Vector2i(4, 4)), fx_view.cell_size * 3.0)
+	Fx.whirlwind(fx_view, fx_view.cell_center(Vector2i(4, 4)),
+		Vector2(fx_view.cell_size * 2.2, fx_view.cell_size * 0.5), fx_view.cell_size * 2.7)
 	await _frames(12)
 	await _shot("14-whirlwind")
 	Engine.time_scale = 1.0
@@ -104,6 +105,7 @@ func _ready() -> void:
 	# lift and land rather than teleporting, and the animation work has to show itself.
 	await _swap_strip(app.get("board"))
 	await _match_strip(app.get("board"))
+	await _fan_strip(app.get("board"))
 
 	# The combo bubble lives for nine tenths of a second inside a chain, so a camera that waits for one
 	# would photograph an empty board. Ask the real screen to show a real bonus, pin the tween to its
@@ -265,6 +267,56 @@ func _match_strip(board_screen) -> void:
 	Engine.time_scale = 1.0
 	await _frames(30)
 	_save_strip(frames, "16-match-strip", 3, 2)
+
+## The fan, fired for real, frame by frame: the gust crosses the grid in a straight line and the fruit
+## of the colour it was swapped with leaves in its wake. A still of an effect proves the art exists; only
+## the sequence proves the wind travels and that the pieces it takes are the ones it passed over.
+func _fan_strip(board_screen) -> void:
+	_log("FAN STRIP start :: screen=%s" % str(board_screen))
+	if board_screen == null:
+		_log("FAN STRIP skipped :: no board screen")
+		return
+	var view = board_screen.get_node_or_null("board")
+	if view == null:
+		_log("FAN STRIP skipped :: the screen has no board view")
+		return
+	board_screen._hide_hand()
+	var stale_toast = board_screen.get_node_or_null("combo_toast")
+	if stale_toast != null:
+		stale_toast.queue_free()
+	for child in view.get_children():
+		var child_name := str(child.name)
+		if child_name.begins_with("splash") or child_name.begins_with("spray") \
+			or child_name.begins_with("sag") or child_name.begins_with("spark") \
+			or child_name.begins_with("ring") or child_name.begins_with("whirlwind"):
+			child.queue_free()
+	# Put a fan on the board and swap it with a neighbour: that is the move a player makes with it, and
+	# the colour it takes is the colour of the piece it traded places with.
+	var model = view.run.board
+	var fan_cell := Vector2i(1, 4)
+	var neighbour := Vector2i(2, 4)
+	model.at_pos(fan_cell).power_up = GameTypes.PowerUpKind.FAN
+	view.rebuild()
+	await _frames(4)
+	var origin: Vector2 = view.position + view.grid_origin
+	var side := int(view.cell_size * float(model.width)) + 8
+	var window := Rect2i(Vector2i(int(origin.x) - 4, int(origin.y) - 4), Vector2i(side, side))
+	var frames: Array = []
+	var before: Image = await _grab_rect(window)
+	if before != null:
+		frames.append(before)
+	Engine.time_scale = 0.2
+	board_screen._attempt_swap(fan_cell, neighbour)
+	var offsets := [0.03, 0.07, 0.12, 0.18, 0.26, 0.36, 0.50, 0.70, 0.95]
+	for index in range(offsets.size()):
+		await get_tree().create_timer(float(offsets[index])).timeout
+		var grabbed: Image = await _grab_rect(window)
+		_log("FAN STRIP frame %d :: %s" % [index, "null" if grabbed == null else str(grabbed.get_size())])
+		if grabbed != null:
+			frames.append(grabbed)
+	Engine.time_scale = 1.0
+	await _frames(40)
+	_save_strip(frames, "17-fan-strip", 3, 2)
 
 ## One cell's worth of board, photographed through a whole burst: the spray is a quarter of a second
 ## long, so a single still can never show both the droplets in the air and the splat they leave. This

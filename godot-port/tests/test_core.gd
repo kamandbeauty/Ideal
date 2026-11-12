@@ -519,6 +519,50 @@ func _run() -> void:
 	failures += _check(not Finder.has_match(whirlwind_board) and _is_board_full(whirlwind_board), "whirlwind leaves a full settled board")
 
 
+	print("TEST STAGE 14C: the fan takes the colour it was swapped with")
+	# The fan's promise, on the core: swap it into a piece and every piece of that piece's colour leaves,
+	# and nothing else does. The view draws the wind from this list of cleared cells, so a wrong list is
+	# only a prettier way of taking the wrong fruit.
+	var fan_board = Board.from_ascii(PackedStringArray(["AZMFL", "ZMFLA", "MFLAZ", "FLAZM", "LAZMF"]))
+	var fan_level = Level.new()
+	fan_level.width = 5
+	fan_level.height = 5
+	fan_level.pieces = move_pieces
+	fan_board.at(0, 0).power_up = GameTypes.PowerUpKind.FAN
+	var fan_colour: int = fan_board.at(1, 0).piece
+	var fan_on_board := 0
+	for y in range(fan_board.height):
+		for x in range(fan_board.width):
+			if fan_board.at(x, y).piece == fan_colour:
+				fan_on_board += 1
+	var fan_resolver = Resolver.new(fan_level, fan_board, Rng.new(0, 11), Goals.new(fan_level.goals))
+	var fan_move = fan_resolver.swap(Vector2i(0, 0), Vector2i(1, 0))
+	var fan_cleared: Array[Vector2i] = []
+	var fan_wrong: Array[Vector2i] = []
+	var fan_traded := Vector2i(1, 0)
+	for event in fan_move.events:
+		if not event is Dictionary:
+			continue
+		# Cascades come after the gust has done its work: what falls into the hole may match, and that
+		# is the ordinary rule, not the fan taking more than it promised.
+		if str(event.get("type", "")) == "cascade":
+			break
+		if str(event.get("type", "")) != "piece_cleared":
+			continue
+		var fan_at = event.get("position", Vector2i(-1, -1))
+		if not fan_at is Vector2i:
+			continue
+		fan_cleared.append(fan_at)
+		if int(event.get("piece", -1)) != fan_colour and fan_at != fan_traded:
+			fan_wrong.append(fan_at)
+	failures += _check(fan_move.accepted, "swapping the fan into a piece is a move on its own")
+	failures += _check(fan_cleared.size() >= fan_on_board,
+		"the fan clears every piece of the colour it was swapped with (%d cleared, %d of that colour on the board)"
+		% [fan_cleared.size(), fan_on_board])
+	failures += _check(fan_wrong.is_empty(),
+		"the fan takes nothing but that colour and the cell it traded with (%d stray: %s)"
+		% [fan_wrong.size(), str(fan_wrong)])
+
 	print("TEST STAGE 15: home, district, shop and settings screens build their widgets")
 	failures += _check(await _smoke_screen(HomeScreen.new(), "user://home-screen-smoke"), "home screen instantiates")
 	failures += _check(await _smoke_screen(DistrictScreen.new(), "user://district-screen-smoke"), "district screen instantiates")
