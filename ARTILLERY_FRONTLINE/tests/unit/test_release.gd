@@ -34,7 +34,7 @@ func _approved_play(t: TestContext) -> void:
 	var rocket_blast: ExplosionData = load("res://resources/explosions/rocket_blast.tres")
 	var grenade_blast: ExplosionData = load("res://resources/explosions/grenade_blast.tres")
 	t.check(is_equal_approx(rocket_blast.damage, 220.0) and is_equal_approx(rocket_blast.radius, 5.5), "a rocket's blast: 220 over 5.5 m")
-	t.check(is_equal_approx(grenade_blast.damage, 200.0) and is_equal_approx(grenade_blast.radius, 5.0), "a grenade's blast: 200 over 5 m")
+	t.check(is_equal_approx(grenade_blast.damage, 240.0) and is_equal_approx(grenade_blast.radius, 5.0), "a grenade's blast: 240 over 5 m")
 	t.check(rocket_blast.structure_damage <= 0.0 and grenade_blast.structure_damage <= 0.0, "neither harms the wall or the gate")
 	var grenade: GrenadeData = load("res://resources/weapons/frag_grenade.tres")
 	t.check(grenade.carried == 3 and grenade.capacity == 5 and is_equal_approx(grenade.max_range, 46.0), "grenades: three carried, five at most, 46 m of reach")

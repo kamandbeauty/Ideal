@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1")
-damage = 200.0
+damage = 240.0
 inner_radius = 1.0
 radius = 5.0
 edge_fraction = 0.15
