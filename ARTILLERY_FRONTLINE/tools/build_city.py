@@ -591,73 +591,123 @@ def ground(b):
 # Props
 # ---------------------------------------------------------------------------
 CAR_PROFILES = {
-    "sedan": ([(-2.15, 0.32), (-2.2, 0.82), (-1.55, 0.9), (-0.95, 1.36), (0.65, 1.36), (1.3, 0.88), (2.2, 0.78), (2.22, 0.32)], 1.72),
-    "van": ([(-2.4, 0.34), (-2.42, 1.75), (1.2, 1.78), (1.75, 1.1), (2.4, 1.0), (2.42, 0.34)], 1.9),
-    "hatch": ([(-1.85, 0.32), (-1.9, 0.86), (-1.6, 1.36), (0.5, 1.38), (1.15, 0.88), (1.9, 0.78), (1.92, 0.32)], 1.66),
+    "sedan": ([(-2.15, 0.28), (-2.22, 0.52), (-2.18, 0.86), (-1.55, 0.92), (-0.92, 1.42), (0.72, 1.42), (1.28, 0.92),
+               (2.12, 0.84), (2.22, 0.52), (2.18, 0.28)], 1.76),
+    "van": ([(-2.45, 0.30), (-2.50, 0.55), (-2.48, 1.78), (1.15, 1.82), (1.55, 1.78), (1.82, 1.12), (2.42, 1.02),
+             (2.50, 0.55), (2.45, 0.30)], 1.92),
+    "hatch": ([(-1.88, 0.28), (-1.95, 0.50), (-1.92, 0.88), (-1.55, 1.40), (0.55, 1.42), (1.18, 0.92), (1.88, 0.82),
+               (1.96, 0.50), (1.90, 0.28)], 1.68),
 }
+
+# Abandoned paint, not just burnt steel: the street still reads as a city.
+CAR_PAINT = [
+    (0.48, 0.14, 0.11),
+    (0.16, 0.26, 0.42),
+    (0.62, 0.60, 0.50),
+    (0.20, 0.22, 0.16),
+    (0.40, 0.32, 0.16),
+    (0.22, 0.22, 0.24),
+    (0.12, 0.13, 0.14),
+]
+
+
+def _wheel(b, node, centre, axis, radius, width, tire, hub, segments=12):
+    """Tyre plus a sunken rim, so a wreck is not a floating slab."""
+    axis = axis / np.linalg.norm(axis)
+    b.cylinder(node, "metal", centre - axis * (width * 0.5), radius, width, segments, tire, axis=axis)
+    b.cylinder(node, "metal", centre - axis * (width * 0.22), radius * 0.58, width * 0.44, max(8, segments - 2), hub, axis=axis)
 
 
 def car(b, node, x, z, yaw, seed, kind="sedan", tint=None, burnt=True, collide=True):
     rng = np.random.default_rng(seed)
     outline, width = CAR_PROFILES[kind]
     if tint is None:
-        tint = BURNT if burnt else (0.4, 0.42, 0.44)
-    glass = (0.05, 0.05, 0.055)
+        tint = BURNT if burnt else CAR_PAINT[int(seed) % len(CAR_PAINT)]
+    glass = (0.04, 0.045, 0.05)
+    chrome = (0.18, 0.18, 0.17) if burnt else (0.42, 0.42, 0.40)
     colors = []
     for i in range(len(outline)):
         a, c = outline[i], outline[(i + 1) % len(outline)]
-        sloped = abs(c[1] - a[1]) > 0.3 and abs(c[0] - a[0]) > 0.25 and min(a[1], c[1]) > 0.7
-        tone = 0.85 + 0.3 * rng.random()
+        sloped = abs(c[1] - a[1]) > 0.28 and abs(c[0] - a[0]) > 0.22 and min(a[1], c[1]) > 0.7
+        tone = (0.72 + 0.2 * rng.random()) if burnt else (0.88 + 0.16 * rng.random())
         colors.append(glass if sloped else tuple(v * tone for v in tint))
-    lift = 0.0 if not burnt else -0.12
+    lift = 0.0 if not burnt else -0.08
     b.prism(node, "metal", outline, width, (x, lift, z), yaw, tint, colors=colors)
     frame = rot_y(yaw)
     origin = np.array([x, lift, z])
-    # Side glass.
     roof = max(p[1] for p in outline)
-    z_back = min(p[0] for p in outline if p[1] > roof - 0.1)
-    z_front = max(p[0] for p in outline if p[1] > roof - 0.1)
+    z_back = min(p[0] for p in outline if p[1] > roof - 0.12)
+    z_front = max(p[0] for p in outline if p[1] > roof - 0.12)
+    z_min = min(p[0] for p in outline)
+    z_max = max(p[0] for p in outline)
+    length = z_max
+    # Cabin glass on both sides, slightly inset so the pillars read.
     for side in (-1, 1):
-        sx = side * (width / 2 + 0.006)
-        corners = [origin + frame @ np.array([sx, 0.95, z_back - 0.25]), origin + frame @ np.array([sx, 0.95, z_front + 0.3]),
-                   origin + frame @ np.array([sx, roof - 0.08, z_front - 0.05]), origin + frame @ np.array([sx, roof - 0.08, z_back + 0.1])]
+        sx = side * (width / 2 + 0.008)
+        corners = [origin + frame @ np.array([sx, 0.92, z_back - 0.18]), origin + frame @ np.array([sx, 0.92, z_front + 0.22]),
+                   origin + frame @ np.array([sx, roof - 0.07, z_front - 0.08]), origin + frame @ np.array([sx, roof - 0.07, z_back + 0.12])]
         if side > 0:
             corners = corners[::-1]
         b.quad(node, "interior", corners)
-    length = max(p[0] for p in outline)
+    # Bumpers, grille, light buckets.
+    b.box(node, "metal", origin + frame @ np.array([0.0, 0.38, z_max + 0.04]), (width * 0.92, 0.22, 0.16), yaw, chrome)
+    b.box(node, "metal", origin + frame @ np.array([0.0, 0.36, z_min - 0.04]), (width * 0.92, 0.2, 0.14), yaw, chrome)
+    b.box(node, "metal", origin + frame @ np.array([0.0, 0.58, z_max - 0.02]), (width * 0.42, 0.28, 0.08), yaw, (0.08, 0.08, 0.08))
+    lens = (0.55, 0.52, 0.42) if not burnt else (0.12, 0.1, 0.08)
+    tail = (0.45, 0.08, 0.06) if not burnt else (0.18, 0.06, 0.05)
+    for side in (-1, 1):
+        b.box(node, "metal", origin + frame @ np.array([side * (width * 0.38), 0.58, z_max + 0.02]), (0.28, 0.16, 0.1), yaw, lens)
+        b.box(node, "metal", origin + frame @ np.array([side * (width * 0.38), 0.52, z_min - 0.02]), (0.26, 0.14, 0.08), yaw, tail)
+        # Wing mirrors.
+        b.box(node, "metal", origin + frame @ np.array([side * (width * 0.52), 1.02, z_front + 0.15]), (0.14, 0.1, 0.18), yaw, chrome)
+    # Wheels sit in the arches; a burnt wreck may have lost one.
+    tire = (0.07, 0.07, 0.07) if not burnt else (0.16, 0.14, 0.12)
+    hub = (0.28, 0.28, 0.26) if not burnt else (0.22, 0.18, 0.14)
     for side in (-1, 1):
         for end in (-1, 1):
-            if burnt and rng.random() < 0.25:
+            if burnt and rng.random() < 0.22:
                 continue
-            centre = origin + frame @ np.array([side * (width / 2 - 0.12), 0.31 - lift * 0.5, end * (length - 0.75)])
+            centre = origin + frame @ np.array([side * (width / 2 - 0.14), 0.32 - lift * 0.4, end * (length - 0.72)])
             axis = frame @ np.array([side * 1.0, 0.0, 0.0])
-            b.cylinder(node, "metal", centre - axis * 0.1, 0.31, 0.2, 9, (0.08, 0.08, 0.08) if not burnt else (0.2, 0.17, 0.15), axis=axis)
+            _wheel(b, node, centre, axis, 0.32, 0.22, tire, hub)
     if collide:
         b.collide_box((x, 0.7, z), (width, 1.4, length * 2), yaw)
 
 
 def bus(b, node, x, z, yaw, roll=0.0):
     """Burnt-out bus, optionally lying on its side."""
-    length, width, height = 11.0, 2.5, 2.9
+    length, width, height = 11.0, 2.55, 2.95
     basis = rot_y(yaw) @ rot_z(roll)
     rolled = abs(roll) > 1.0
-    centre = np.array([x, width / 2 if rolled else height / 2 + 0.25, z])
-    b.box(node, "metal", centre, (width, height, length), basis=basis, color=(0.34, 0.2, 0.13), cell=2.4)
+    centre = np.array([x, width / 2 if rolled else height / 2 + 0.22, z])
+    body = (0.32, 0.18, 0.12)
+    dark = (0.12, 0.11, 0.10)
+    b.box(node, "metal", centre, (width, height, length), basis=basis, color=body, cell=2.4)
+    # Belt line and bumpers so it is not one painted crate.
+    b.box(node, "metal", centre + basis @ np.array([0.0, -height * 0.28, 0.0]), (width + 0.04, 0.18, length + 0.08),
+          basis=basis, color=dark)
+    b.box(node, "metal", centre + basis @ np.array([0.0, -height * 0.42, length / 2 + 0.04]), (width * 0.92, 0.28, 0.18),
+          basis=basis, color=dark)
+    b.box(node, "metal", centre + basis @ np.array([0.0, -height * 0.42, -length / 2 - 0.04]), (width * 0.92, 0.28, 0.16),
+          basis=basis, color=dark)
     for side in (-1, 1):
         for i in range(7):
-            local = np.array([side * (width / 2 + 0.012), 0.45, -length / 2 + 1.2 + i * 1.42])
+            local = np.array([side * (width / 2 + 0.012), 0.42, -length / 2 + 1.15 + i * 1.38])
             corners = []
             for sy, sz in ((-1, -1), (-1, 1), (1, 1), (1, -1)):
-                corners.append(centre + basis @ (local + np.array([0.0, sy * 0.42, sz * 0.56])))
+                corners.append(centre + basis @ (local + np.array([0.0, sy * 0.40, sz * 0.52])))
             if side > 0:
                 corners = corners[::-1]
             b.quad(node, "interior", corners)
-    # Wheels so the overturned hull is not a plain slab.
-    for dz in (-3.6, 3.6):
+    # Windscreen.
+    screen = [centre + basis @ np.array([sx * width * 0.42, sy * 0.5, length / 2 + 0.02]) for sx, sy in
+              ((-1, -1), (1, -1), (1, 1), (-1, 1))]
+    b.quad(node, "interior", screen)
+    for dz in (-3.7, -1.2, 3.5):
         for sx in (-1, 1):
-            hub = centre + basis @ np.array([sx * (width / 2 - 0.3), -height / 2 + 0.1, dz])
+            hub = centre + basis @ np.array([sx * (width / 2 - 0.28), -height / 2 + 0.12, dz])
             axis = basis @ np.array([sx * 1.0, 0.0, 0.0])
-            b.cylinder(node, "metal", hub - axis * 0.12, 0.5, 0.3, 10, (0.1, 0.1, 0.1), axis=axis)
+            _wheel(b, node, hub, axis, 0.52, 0.32, (0.08, 0.08, 0.08), (0.2, 0.18, 0.16), 12)
     if rolled:
         b.collide_box((x, width / 2, z), (height, width, length), yaw)
     else:
@@ -665,40 +715,69 @@ def bus(b, node, x, z, yaw, roll=0.0):
 
 
 def apc(b, node, x, z, yaw):
-    """Knocked-out tank in the court: hull, turret, gun, skirts, stowage."""
-    hull = [(-3.55, 0.42), (-3.7, 1.05), (-3.15, 1.72), (2.15, 1.72), (3.35, 1.28), (3.75, 0.95), (3.55, 0.42)]
-    olive = (0.28, 0.30, 0.20)
-    dark = (0.14, 0.15, 0.12)
-    rust = (0.38, 0.22, 0.10)
-    steel = (0.18, 0.18, 0.16)
-    b.prism(node, "metal", hull, 3.05, (x, 0.0, z), yaw, olive)
+    """Knocked-out main battle tank: sloped hull, turret, gun and running gear."""
+    # Side profile, nose toward +z. Glacis is a real slope, not a crate.
+    hull = [(-3.72, 0.36), (-3.88, 0.78), (-3.55, 1.38), (-2.15, 1.46), (-0.35, 1.52), (1.85, 1.52),
+            (2.55, 1.22), (3.45, 0.82), (3.82, 0.52), (3.68, 0.36)]
+    olive = (0.30, 0.32, 0.20)
+    drab = (0.22, 0.24, 0.16)
+    dark = (0.12, 0.13, 0.11)
+    rust = (0.40, 0.22, 0.10)
+    steel = (0.16, 0.16, 0.15)
+    tan = (0.34, 0.30, 0.18)
+    b.prism(node, "metal", hull, 3.18, (x, 0.0, z), yaw, olive)
     frame = rot_y(yaw)
     origin = np.array([x, 0.0, z])
-    # Side skirts over the running gear.
+    # Camo bands across the glacis and rear deck.
+    b.box(node, "metal", origin + frame @ np.array([0.0, 1.28, 2.55]), (3.05, 0.08, 1.35), yaw, drab)
+    b.box(node, "metal", origin + frame @ np.array([0.0, 1.44, -2.55]), (3.05, 0.1, 1.7), yaw, tan)
+    # Engine-deck grilles.
+    for dx in (-0.55, 0.55):
+        for dz in (-2.85, -2.35):
+            b.box(node, "metal", origin + frame @ np.array([dx, 1.50, dz]), (0.7, 0.05, 0.38), yaw, dark)
+    # Front splash plate and headlights.
+    b.box(node, "metal", origin + frame @ np.array([0.0, 0.58, 3.72]), (2.4, 0.16, 0.18), yaw, dark)
     for side in (-1, 1):
-        b.box(node, "metal", origin + frame @ np.array([side * 1.62, 0.72, 0.05]), (0.12, 0.55, 6.4), yaw, dark)
-        for dz in (-2.55, -1.35, -0.15, 1.05, 2.25):
-            hub = origin + frame @ np.array([side * 1.38, 0.48, dz])
-            axis = frame @ np.array([side * 1.0, 0.0, 0.0])
-            b.cylinder(node, "metal", hub, 0.48, 0.32, 10, (0.08, 0.08, 0.08), axis=axis)
-        # Track pads.
-        b.box(node, "metal", origin + frame @ np.array([side * 1.55, 0.16, 0.0]), (0.42, 0.14, 6.6), yaw, (0.1, 0.1, 0.09))
-    # Turret ring and cupola.
-    b.cylinder(node, "metal", origin + frame @ np.array([0.05, 1.78, -0.15]), 1.15, 0.16, 14, dark, axis=UP)
-    b.box(node, "metal", origin + frame @ np.array([0.05, 2.28, -0.2]), (2.15, 0.72, 2.35), yaw, (0.24, 0.26, 0.18))
-    b.cylinder(node, "metal", origin + frame @ np.array([0.35, 2.72, -0.35]), 0.38, 0.22, 10, olive, axis=UP)
-    # Main gun with a muzzle brake.
-    gun_axis = frame @ np.array([0.0, 0.04, 1.0])
-    b.cylinder(node, "metal", origin + frame @ np.array([0.05, 2.22, 0.7]), 0.13, 3.4, 10, steel, axis=gun_axis)
-    b.cylinder(node, "metal", origin + frame @ np.array([0.05, 2.22, 3.9]), 0.18, 0.38, 8, dark, axis=gun_axis)
-    b.box(node, "metal", origin + frame @ np.array([0.05, 2.22, 1.15]), (0.42, 0.28, 0.7), yaw, dark)
-    # Stowage, exhaust, antenna, a popped hatch.
-    b.box(node, "metal", origin + frame @ np.array([0.95, 1.95, -2.15]), (0.7, 0.45, 1.1), yaw, rust)
-    b.box(node, "metal", origin + frame @ np.array([-0.85, 1.88, -2.05]), (0.55, 0.32, 0.7), yaw, (0.32, 0.28, 0.16))
-    b.cylinder(node, "metal", origin + frame @ np.array([-1.15, 1.55, 2.35]), 0.16, 0.55, 8, rust, axis=frame @ np.array([0.0, 0.2, 1.0]))
-    b.cylinder(node, "metal", origin + frame @ np.array([-0.55, 3.35, -0.85]), 0.03, 1.35, 6, steel, axis=UP)
-    b.box(node, "metal", origin + frame @ np.array([0.55, 2.78, -0.15]), (0.55, 0.06, 0.7), basis=frame @ rot_x(-42), color=dark)
-    b.collide_box((x, 1.15, z), (3.05, 2.3, 7.2), yaw)
+        b.box(node, "metal", origin + frame @ np.array([side * 1.05, 0.72, 3.55]), (0.28, 0.16, 0.14), yaw, (0.45, 0.42, 0.32))
+    # Running gear: six road wheels, idler, sprocket, track, skirts.
+    tire = (0.08, 0.08, 0.075)
+    hub_c = (0.22, 0.20, 0.16)
+    for side in (-1, 1):
+        axis = frame @ np.array([side * 1.0, 0.0, 0.0])
+        for dz in (-2.65, -1.65, -0.65, 0.35, 1.35, 2.35):
+            _wheel(b, node, origin + frame @ np.array([side * 1.42, 0.46, dz]), axis, 0.46, 0.34, tire, hub_c, 12)
+        _wheel(b, node, origin + frame @ np.array([side * 1.42, 0.52, 3.22]), axis, 0.38, 0.30, tire, (0.18, 0.18, 0.16), 12)
+        _wheel(b, node, origin + frame @ np.array([side * 1.42, 0.58, -3.42]), axis, 0.42, 0.32, tire, steel, 12)
+        b.box(node, "metal", origin + frame @ np.array([side * 1.55, 0.14, -0.1]), (0.44, 0.12, 7.15), yaw, (0.09, 0.09, 0.08))
+        b.box(node, "metal", origin + frame @ np.array([side * 1.55, 0.92, -0.15]), (0.36, 0.1, 6.4), yaw, dark)
+        b.box(node, "metal", origin + frame @ np.array([side * 1.68, 0.78, 0.05]), (0.1, 0.62, 6.55), yaw, drab)
+        for dz in (-2.2, -0.4, 1.4):
+            b.box(node, "metal", origin + frame @ np.array([side * 1.74, 0.78, dz]), (0.04, 0.5, 0.08), yaw, dark)
+    # Turret: sloped bustle, not a crate. Ring sits on the hull roof.
+    turret = [(-1.42, 1.70), (-1.52, 2.08), (-1.18, 2.48), (0.72, 2.52), (1.18, 2.38), (1.32, 2.02), (1.12, 1.70)]
+    b.prism(node, "metal", turret, 2.28, (x, 0.0, z), yaw, (0.26, 0.28, 0.18))
+    b.cylinder(node, "metal", origin + frame @ np.array([0.02, 1.62, -0.12]), 1.18, 0.14, 16, dark, axis=UP)
+    # Mantlet, main gun, fume extractor, muzzle brake.
+    b.box(node, "metal", origin + frame @ np.array([0.02, 2.12, 1.22]), (0.72, 0.48, 0.55), yaw, dark)
+    gun_axis = frame @ np.array([0.0, 0.03, 1.0])
+    b.cylinder(node, "metal", origin + frame @ np.array([0.02, 2.14, 1.45]), 0.105, 3.55, 12, steel, axis=gun_axis)
+    b.cylinder(node, "metal", origin + frame @ np.array([0.02, 2.14, 3.05]), 0.15, 0.42, 12, dark, axis=gun_axis)
+    b.cylinder(node, "metal", origin + frame @ np.array([0.02, 2.14, 4.85]), 0.14, 0.28, 10, dark, axis=gun_axis)
+    b.cylinder(node, "metal", origin + frame @ np.array([0.02, 2.14, 4.85]), 0.09, 0.28, 10, steel, axis=gun_axis)
+    # Coax, cupola, open hatch (the turret is burning out of this).
+    b.cylinder(node, "metal", origin + frame @ np.array([0.38, 2.18, 1.35]), 0.035, 1.15, 8, steel, axis=gun_axis)
+    b.cylinder(node, "metal", origin + frame @ np.array([0.42, 2.52, -0.28]), 0.40, 0.22, 12, olive, axis=UP)
+    b.box(node, "metal", origin + frame @ np.array([0.62, 2.78, -0.12]), (0.52, 0.05, 0.62), basis=frame @ rot_x(-48), color=dark)
+    b.cylinder(node, "metal", origin + frame @ np.array([-0.58, 3.42, -0.92]), 0.028, 1.45, 6, steel, axis=UP)
+    # Smoke launchers, stowage, fuel drum, exhaust, shovel.
+    for side, dz in ((-1, 0.55), (1, 0.55), (-1, 0.85), (1, 0.85)):
+        b.box(node, "metal", origin + frame @ np.array([side * 1.05, 2.12, dz]), (0.22, 0.16, 0.18), yaw, dark)
+    b.box(node, "metal", origin + frame @ np.array([1.05, 1.72, -2.35]), (0.72, 0.48, 1.15), yaw, rust)
+    b.box(node, "metal", origin + frame @ np.array([-0.95, 1.68, -2.15]), (0.58, 0.36, 0.78), yaw, tan)
+    b.cylinder(node, "metal", origin + frame @ np.array([1.15, 1.55, -3.15]), 0.22, 0.85, 10, rust, axis=frame @ np.array([0.0, 0.0, 1.0]))
+    b.cylinder(node, "metal", origin + frame @ np.array([-1.22, 1.42, 2.45]), 0.15, 0.62, 8, rust, axis=frame @ np.array([0.0, 0.18, 1.0]))
+    b.box(node, "metal", origin + frame @ np.array([-1.55, 1.22, 0.4]), (0.06, 0.06, 1.35), yaw, steel)
+    b.collide_box((x, 1.2, z), (3.2, 2.4, 7.5), yaw)
 
 
 def barrier(b, node, x, z, yaw, tint=(0.8, 0.8, 0.78), length=2.6):
@@ -737,6 +816,7 @@ def props(b, layout):
     apc(b, court, 0.3, -33.5, 24.0)
     car(b, court, -0.6, -24.5, 72.0, 5, "sedan")
     layout["fires"].append(((-0.6, 0.9, -24.5), 1.3))
+    layout["fires"].append(((0.35, 2.55, -33.6), 0.95))
     debris(b, court, 0.8, -28.6, 2.0, 1.5, 0.55, 31, slabs=1, rocks=2)
     # Hedgehogs and dragon's teeth ring the dead ground below the bastion.
     for i, degrees in enumerate(np.arange(-42.0, 42.1, 10.5)):
@@ -767,16 +847,16 @@ def props(b, layout):
     street = "StreetProps"
     # Ring road and avenue wrecks, kept clear of the walking lanes.
     car(b, street, 6.9, -62.5, 8.0, 11, "sedan")
-    car(b, street, -7.1, -68.0, 172.0, 12, "hatch")
+    car(b, street, -7.1, -68.0, 172.0, 12, "hatch", CAR_PAINT[1], burnt=False)
     car(b, street, -6.6, -74.5, -14.0, 13, "van", (0.3, 0.27, 0.24))
-    car(b, street, 7.3, -96.0, 190.0, 14, "hatch")
-    car(b, street, -7.0, -101.5, 10.0, 15, "sedan")
+    car(b, street, 7.3, -96.0, 190.0, 14, "hatch", CAR_PAINT[0], burnt=False)
+    car(b, street, -7.0, -101.5, 10.0, 15, "sedan", CAR_PAINT[4], burnt=False)
     car(b, street, -6.8, -118.0, 160.0, 16, "van")
-    car(b, street, 6.4, -123.0, 30.0, 17, "sedan")
-    car(b, street, 25.0, -49.3, 93.0, 18, "sedan")
+    car(b, street, 6.4, -123.0, 30.0, 17, "sedan", CAR_PAINT[2], burnt=False)
+    car(b, street, 25.0, -49.3, 93.0, 18, "sedan", CAR_PAINT[5], burnt=False)
     car(b, street, -41.0, -49.4, 86.0, 19, "van", (0.26, 0.22, 0.19))
     car(b, street, 21.0, -88.9, 96.0, 20, "hatch")
-    car(b, street, -24.0, -79.2, 86.0, 21, "sedan")
+    car(b, street, -24.0, -79.2, 86.0, 21, "sedan", CAR_PAINT[3], burnt=False)
     bus(b, street, 6.3, -109.0, 24.0, 90.0)
     layout["fires"].append(((6.9, 0.9, -62.5), 1.1))
     layout["fires"].append(((-6.8, 1.2, -118.0), 1.4))

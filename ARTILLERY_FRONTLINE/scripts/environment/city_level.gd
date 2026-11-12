@@ -150,10 +150,12 @@ func _build_environment() -> void:
 	environment.fog_density = 0.004
 	environment.fog_sky_affect = 0.0
 	environment.fog_aerial_perspective = 0.0
-	environment.fog_sun_scatter = 0.08
+	# Scatter around lights draws a coloured ball into the picture on the mobile renderer.
+	environment.fog_sun_scatter = 0.0
 	environment.adjustment_enabled = true
 	environment.adjustment_contrast = 1.18
 	environment.adjustment_saturation = 1.06
+	environment.glow_enabled = false
 	environment.glow_intensity = 0.5
 	environment.glow_bloom = 0.08
 	environment.glow_hdr_threshold = 1.1
@@ -295,7 +297,7 @@ func _build_smoke() -> void:
 	var material := _particle_material(false)
 	for spec: Dictionary in layout.smokes:
 		var size: float = spec.scale
-		var column := _emitter(material, 9, 16.0, Vector2(2.2, 3.4), Vector2(9.0, 14.0) * size, 2.6,
+		var column := _emitter(material, 9, 16.0, Vector2(2.2, 3.4), Vector2(3.2, 5.4) * size, 1.8,
 			Color(0.1, 0.095, 0.09, 0.42), Color(0.22, 0.2, 0.19, 0.0), 6.0, Vector3(2.0, 0.5, 2.0) * size)
 		column.name = "SmokeColumn"
 		column.position = spec.position

@@ -119,20 +119,31 @@ func _ready() -> void:
 	apply_quality(Graphics.tier, Graphics.profile())
 
 
+## Soft disc baked on the CPU. A live GradientTexture2D has been seen to turn
+## into a giant cyan/green billboard on some phones mid-match.
+static func bake_radial(stops: Array, size: int = 64) -> Texture2D:
+	var gradient := Gradient.new()
+	gradient.set_offset(0, stops[0][0])
+	gradient.set_color(0, stops[0][1])
+	gradient.set_offset(1, stops[stops.size() - 1][0])
+	gradient.set_color(1, stops[stops.size() - 1][1])
+	for index: int in range(1, stops.size() - 1):
+		gradient.add_point(stops[index][0], stops[index][1])
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var centre := Vector2(0.5, 0.5)
+	var extent: float = 0.5
+	for y: int in size:
+		for x: int in size:
+			var uv := Vector2((float(x) + 0.5) / float(size), (float(y) + 0.5) / float(size))
+			var distance: float = uv.distance_to(centre) / extent
+			image.set_pixel(x, y, gradient.sample(clampf(distance, 0.0, 1.0)))
+	image.generate_mipmaps()
+	return ImageTexture.create_from_image(image)
+
+
 static func soft_dot() -> Texture2D:
 	if dot_texture == null:
-		var gradient := Gradient.new()
-		gradient.set_color(0, Color(1, 1, 1, 1))
-		gradient.set_color(1, Color(1, 1, 1, 0))
-		gradient.add_point(0.45, Color(1, 1, 1, 0.75))
-		var texture := GradientTexture2D.new()
-		texture.gradient = gradient
-		texture.fill = GradientTexture2D.FILL_RADIAL
-		texture.fill_from = Vector2(0.5, 0.5)
-		texture.fill_to = Vector2(1.0, 0.5)
-		texture.width = 64
-		texture.height = 64
-		dot_texture = texture
+		dot_texture = bake_radial([[0.0, Color(1, 1, 1, 1)], [0.45, Color(1, 1, 1, 0.75)], [1.0, Color(1, 1, 1, 0)]])
 	return dot_texture
 
 
@@ -176,7 +187,8 @@ func burst(kind: String, at: Vector3, normal: Vector3 = Vector3.UP, size: float 
 	var emitter: CPUParticles3D = list[index]
 	emitter.global_position = at
 	emitter.direction = normal if normal.length_squared() > 0.01 else Vector3.UP
-	emitter.scale = Vector3.ONE * size
+	# A runaway scale turns a puff into a billboard that covers the street.
+	emitter.scale = Vector3.ONE * clampf(size, 0.15, 3.5)
 	emitter.restart()
 	emitter.emitting = true
 	bursts += 1

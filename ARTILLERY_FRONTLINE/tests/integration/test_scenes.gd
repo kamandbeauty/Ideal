@@ -35,6 +35,7 @@ func run(t: TestContext) -> void:
 
 	# Lighting and atmosphere.
 	t.check(level.environment.fog_enabled and level.environment.background_mode == Environment.BG_SKY, "the scene has a sky and fog")
+	t.check(is_zero_approx(level.environment.fog_sun_scatter), "fog does not scatter a ball of light into the picture")
 	t.check(level.sun != null and level.sun.light_energy > 0.5, "the scene has a sun")
 	t.check(level.sun.global_basis.z.dot(-CityLevel.SUN_TRAVEL.normalized()) > 0.99, "the sun shines along the configured direction")
 	t.check(level.fire_nodes.size() == layout.fires.size() and level.fire_nodes.size() >= 3, "fires are built from the layout")
