@@ -1,15 +1,13 @@
 {
-  "passed": false,
-  "problems": [
-    "identical assets: assets/models/zombies/zombie_gibberling_gibberling.png = assets/textures/zombies/zombie_gibberling.png; assets/models/zombies/zombie_boomer_boomer.png = assets/textures/zombies/zombie_boomer.png; assets/models/zombies/zombie_bloat_bloat.png = assets/textures/zombies/zombie_bloat.png"
-  ],
+  "passed": true,
+  "problems": [],
   "counted": {
     "paths_checked": 162,
     "scripts": 49,
     "scenes": 10,
     "resources": 17,
-    "assets": 97,
-    "asset_megabytes": 37.8,
+    "assets": 94,
+    "asset_megabytes": 33.2,
     "sounds": 46,
     "text_keys": 100
   },
