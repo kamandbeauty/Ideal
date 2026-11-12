@@ -1,8 +1,8 @@
 # Animation reference rig (not used in gameplay)
 
-`ual-reference-rig.glb` is the unmodified `public/models/survivor.glb` from
+`ual-reference-rig.glb` is a dequantized conversion of `public/models/survivor.glb` from
 [WorldapocalypticRetrogame commit ae169369be6d8be92d8c52d97c19469d48091991](https://github.com/shonejj/WorldapocalypticRetrogame/tree/ae169369be6d8be92d8c52d97c19469d48091991),
-SHA-256 recorded in `CURRENT_MANIFEST.sha256`. Its authors identify it as an
+SHA-256 recorded in `CURRENT_MANIFEST.sha256`. Converted with `gltf-transform dequantize` because Godot 4.4.1 cannot import the source KHR_mesh_quantization extension. Its authors identify it as an
 optimized Quaternius Universal Animation Library Standard mannequin with 21
 animations, licensed CC0; see the included `UAL_CC0_LICENSE.txt` and the
 [source PR](https://github.com/shonejj/WorldapocalypticRetrogame/pull/7).
