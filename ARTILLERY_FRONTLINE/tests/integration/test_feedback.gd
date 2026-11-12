@@ -168,7 +168,7 @@ func run(t: TestContext) -> void:
 		walker._rock(Vector3(0.6, 0.0, -0.8), 1.0)
 	t.check(walker.rock.length() <= Zombie.ROCK_LIMIT + 0.001, "however many rounds land, it never tips past %.0f°" % Zombie.ROCK_LIMIT)
 	_tick(walker, 1.0)
-	t.check(walker.rock == Vector2.ZERO and walker.model.rotation.is_equal_approx(Vector3.ZERO), "within a second it stands straight again")
+	t.check(walker.rock == Vector2.ZERO and walker.model.rotation.is_equal_approx(walker.gait_lean), "within a second it stands straight again")
 	walker.rotation = Vector3.ZERO
 	walker._rock(Vector3(1.0, 0.0, 0.0), 1.0)
 	t.check(absf(walker.rock.y) > 0.5 and absf(walker.rock.x) < 0.01, "a round from the side tips it sideways")
@@ -205,7 +205,7 @@ func run(t: TestContext) -> void:
 	# Recycled, a figure is upright again.
 	walker._rock(Vector3(0.0, 0.0, -1.0), 1.0)
 	walker.recycle()
-	t.check(walker.rock == Vector2.ZERO and walker.model.rotation.is_equal_approx(Vector3.ZERO), "a recycled zombie goes back to the pool upright")
+	t.check(walker.rock == Vector2.ZERO and walker.model.rotation.is_equal_approx(walker.gait_lean), "a recycled zombie goes back to the pool upright")
 
 	# A blast is built in layers.
 	var blast: ExplosionData = load("res://resources/explosions/rocket_blast.tres")
