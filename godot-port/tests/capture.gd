@@ -93,7 +93,7 @@ func _ready() -> void:
 
 	Engine.time_scale = 0.45
 	Fx.whirlwind(fx_view, fx_view.cell_center(Vector2i(4, 4)),
-		Vector2(fx_view.cell_size * 2.2, fx_view.cell_size * 0.5), fx_view.cell_size * 2.7)
+		Vector2(fx_view.cell_size * 2.4, 0.0), fx_view.cell_size * 3.2)
 	await _frames(12)
 	await _shot("14-whirlwind")
 	Engine.time_scale = 1.0

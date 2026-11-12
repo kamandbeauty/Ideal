@@ -224,7 +224,7 @@ func _run() -> void:
 			"the gust travels across the grid (%.1f dp)" % (gust.position.x - gust_start.x))
 		failures += _check(absf(gust.position.y - gust_start.y) < 1.0,
 			"the gust travels in a straight line (%.2f dp off its line)" % (gust.position.y - gust_start.y))
-		failures += _check(gust.scale.y / maxf(0.001, gust.scale.x) < 0.75,
+		failures += _check(gust.scale.y / maxf(0.001, gust.scale.x) < 0.55,
 			"the gust lies flat on the grid (height is %.2f of its width)"
 			% (gust.scale.y / maxf(0.001, gust.scale.x)))
 		await create_timer(0.6).timeout

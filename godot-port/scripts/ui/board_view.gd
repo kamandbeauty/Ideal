@@ -428,7 +428,9 @@ func play_result(before: BoardModel, events: Array) -> void:
 				gust_from = centre
 				gust_travel = _gust_travel(fired, cleared)
 				has_gust = true
-				Fx.whirlwind(self, centre, gust_travel, cell_size * 2.7)
+				# A hand's width above the row it was fired on: the wind passes over the fruit, not
+				# through it.
+				Fx.whirlwind(self, centre - Vector2(0.0, cell_size * 0.10), gust_travel, cell_size * 3.2)
 				_shake(cell_size * 0.10)
 			GameTypes.PowerUpKind.ROCKET_HORIZONTAL:
 				Fx.streak(self, centre, cell_size * float(run.board.width), true)
@@ -456,14 +458,15 @@ func play_result(before: BoardModel, events: Array) -> void:
 			if has_gust:
 				var along := (cell_center(pos) - gust_from).dot(gust_travel / gust_reach)
 				delay = clampf(along / gust_reach, 0.0, 1.0) * GUST_SWEEP_SECONDS
-			if delay > 0.0:
-				var timer := get_tree().create_timer(delay)
-				timer.timeout.connect(_burst_one.bind(pos, int(cleared[pos])))
-			else:
-				# Juice, not sparks: the fruit bursts into its own colour, and the splat is a piece of art.
-				# The cell itself is the boundary of the splash: one fruit's juice never lands in the
-				# next fruit's square.
-				Fx.splash(self, cell_center(pos), Fx.piece_tint(int(cleared[pos])), cell_size)
+			# Juice, not sparks: the fruit bursts into its own colour, and the splat is a piece of art.
+			# The cell itself is the boundary of the splash: one fruit's juice never lands in the next
+			# fruit's square. It is hung on this tween rather than a timer so that leaving the board
+			# mid-animation cannot leave a burst firing into a scene that is gone.
+			var juice: Color = Fx.piece_tint(int(cleared[pos]))
+			var burst_at: Vector2 = cell_center(pos)
+			var juice_burst := func() -> void:
+				Fx.splash(self, burst_at, juice, cell_size)
+			tween.tween_callback(juice_burst).set_delay(delay)
 			tween.tween_property(tile, "scale", Vector2(0.2, 0.2), CLEAR_SECONDS) \
 				.set_delay(delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 			# A small twist as it goes: a matched stone is lifted and taken, and a stone that only
@@ -475,29 +478,29 @@ func play_result(before: BoardModel, events: Array) -> void:
 	await _settle(before, cleared)
 	_busy = false
 
-## The line the gust travels: from the cell that fired it towards the middle of the fruit it takes,
-## which is the only direction that means anything to a player watching. When the fan takes a single
-## piece — or takes the cell it fired from — there is no line to draw, so it blows across the board on
-## the long axis and still reads as a crossing.
+## The line the gust travels: across the grid, from the cell that fired it towards the side the fruit it
+## is taking lies on. It is level — never diagonal — because a wind that climbs over the board reads as
+## something walking across it, and the player asked for the wind to pass flat over the grid. The
+## direction is taken from the fruit itself, so the gust always blows towards what it is about to take,
+## and its length is the shorter of the sweep and the room left on that side.
 func _gust_travel(origin: Vector2i, cleared: Dictionary) -> Vector2:
-	var sum := Vector2.ZERO
-	var count := 0
+	var balance := 0.0
 	for pos in cleared:
-		sum += Vector2(pos)
-		count += 1
-	if count == 0:
-		return Vector2(cell_size * FAN_SWEEP_CELLS, 0.0)
-	var middle: Vector2 = sum / float(count)
-	var direction: Vector2 = middle - Vector2(origin)
-	if direction.length() < 0.4:
-		direction = Vector2(1.0, 0.0) if run.board.width >= run.board.height else Vector2(0.0, 1.0)
-	return direction.normalized() * cell_size * FAN_SWEEP_CELLS
-
-## One fruit's burst, on a delay: the gust reaches it before it goes.
-func _burst_one(pos: Vector2i, piece: int) -> void:
-	if not is_inside_tree():
-		return
-	Fx.splash(self, cell_center(pos), Fx.piece_tint(piece), cell_size)
+		balance += float(pos.x - origin.x)
+	if is_zero_approx(balance):
+		balance = 1.0
+	var direction := 1.0 if balance > 0.0 else -1.0
+	var right_room := float(run.board.width - 1 - origin.x)
+	var left_room := float(origin.x)
+	var room := right_room if direction > 0.0 else left_room
+	var other := left_room if direction > 0.0 else right_room
+	# A fan fired from the last column has nowhere to blow that way, so it blows the other way rather
+	# than across the rim of the board.
+	if room < 1.2 and other > room:
+		direction = -direction
+		room = other
+	var reach := minf(FAN_SWEEP_CELLS, maxf(1.2, room))
+	return Vector2(direction * reach * cell_size, 0.0)
 
 ## The board takes the hit: three short steps out and a longer one back, on the board's own position
 ## rather than on each tile, so a firing rocket moves everything it is about to clear and nothing has

@@ -72,11 +72,11 @@ jobs:
       # The rules assertions are the evidence for a rule change, and the log lives on the runner. The
       # ones that pin the clearing rule are lifted into the run itself so they can be read from the
       # repository and not from a log behind a login.
-      - name: Show the clearing-rule assertions on the run
+      - name: Show the clearing-rule and fan assertions on the run
         if: always()
         run: |
-          grep -E "^(PASS|FAIL): (a 2x2|the 2x2|the first clear|the bystander|the square-only|a swap that only)" \
-            /tmp/core.log | head -12 | while IFS= read -r line; do
+          grep -E "^(PASS|FAIL): (a 2x2|the 2x2|the first clear|the bystander|the square-only|a swap that only|swapping the fan|the fan takes|the fan clears)" \
+            /tmp/core.log | head -16 | while IFS= read -r line; do
             echo "::notice title=test_core::$line"
           done
 
@@ -90,6 +90,16 @@ jobs:
             echo "::error title=test_ui::$line"
           done
           exit $status
+
+      # The fan's gust is a motion, and a still cannot show it: the four assertions that pin "flat,
+      # straight, no spin, clears itself" are lifted into the run so the shape of the effect is
+      # readable without the log behind a login.
+      - name: Show the fan-gust assertions on the run
+        if: always()
+        run: |
+          grep -E "^(PASS|FAIL): (the gust|firing the fan)" /tmp/ui.log | head -8 | while IFS= read -r line; do
+            echo "::notice title=test_ui::$line"
+          done
 
       # A failing assertion is a line in a log behind a login. Both logs are committed to the branch on
       # failure so the reason can be read from the repository itself.
