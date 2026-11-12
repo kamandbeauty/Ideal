@@ -48,7 +48,7 @@ else
 fi
 run launcher env CI_SMOKE_SCENE=res://scenes/launcher.tscn CI_SMOKE_FRAMES=5 "$GODOT" --verbose --headless --path "$PROJECT" --script res://ci/scene_smoke.gd
 run level_load env CI_SMOKE_SCENE=res://scenes/level/sky_bridge.tscn CI_SMOKE_FRAMES=240 "$GODOT" --verbose --headless --path "$PROJECT" --fixed-fps 60 --script res://ci/scene_smoke.gd
-for test in preferences_test level_test launcher_and_controls_test persian_ui_test autoplay_test imported_gate_edge_test visual_assets_test effects_test audio_lifecycle_test; do
+for test in preferences_test level_test launcher_and_controls_test persian_ui_test autoplay_test imported_gate_edge_test visual_assets_test effects_test audio_lifecycle_test character_combat_visual_test; do
     run "$test" "$GODOT" --verbose --headless --path "$PROJECT" --fixed-fps 60 --script "res://tests/$test.gd"
 done
 printf 'Checks passed=%d failed=%d warnings=%d\n' "$passed" "$failed" "$warnings" | tee "$LOG_DIR/summary.txt"

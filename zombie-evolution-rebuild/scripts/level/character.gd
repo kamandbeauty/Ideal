@@ -16,10 +16,13 @@ var dead := false
 var visual_root: Node3D
 var muzzle_flash: MeshInstance3D
 var muzzle_time := 0.0
+var rig: Skeleton3D
+var gun_recoil := 0.0
 
 # Experimental user-provided static meshes; collision and combat stay procedural.
 const MODEL_CONFIG := {
-	"hero": ["res://assets/models/hero-2630.glb", 0.026, -0.011, 0.0],
+	"hero": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
+	"soldier": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
 	"zombie": ["res://assets/models/zombie-13899.glb", 0.0142, 0.020, PI],
 	"runner": ["res://assets/models/zombie-28069.glb", 0.0644, -0.406, PI],
 	"brute": ["res://assets/models/zombie-27189.glb", 0.0263, 0.001, PI],
@@ -70,7 +73,20 @@ func create_model(kind: String) -> bool:
 	model.scale = Vector3.ONE * float(config[1])
 	model.position.y = float(config[2])
 	model.rotation.y = float(config[3])
+	if kind == "hero" or kind == "soldier":
+		rig = find_skeleton(model)
+		if rig == null:
+			push_warning("Procedural hero skeleton was not imported")
 	return true
+
+func find_skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node
+	for child in node.get_children():
+		var found := find_skeleton(child)
+		if found != null:
+			return found
+	return null
 
 func create_placeholder() -> void:
 	var clothes := Color(0.32, 0.42, 0.28) if is_enemy() else Color(0.22, 0.32, 0.3)
@@ -87,7 +103,7 @@ func create_placeholder() -> void:
 func create_weapon() -> void:
 	# A lightweight rifle assembled from shared-purpose primitive components.
 	weapon = Node3D.new()
-	weapon.position = Vector3(0.35, 1.25, 0.44)
+	weapon.position = Vector3(-0.28, 1.25, 0.44)
 	add_child(weapon)
 	var dark := Color(0.09, 0.11, 0.12)
 	var metal := Color(0.19, 0.22, 0.23)
@@ -116,8 +132,7 @@ func create_weapon() -> void:
 	weapon.add_child(muzzle_flash)
 
 func show_shot() -> void:
-	if weapon:
-		weapon.position.z = 0.24
+	gun_recoil = 0.2
 	if muzzle_flash:
 		muzzle_flash.visible = true
 		muzzle_time = 0.07
@@ -147,9 +162,15 @@ func add_part(parent: Node3D, pos: Vector3, size: Vector3, color: Color) -> Mesh
 func update_animation(delta: float, moving: bool) -> void:
 	run_clock += delta
 	if visual_root:
-		# Whole-mesh motion is only a placeholder; these imports have no rig.
 		visual_root.rotation.z = sin(run_clock * 7) * 0.025 if moving else 0.0
 		visual_root.position.y = absf(sin(run_clock * 7)) * 0.035 if moving else 0.0
+	if rig:
+		var stride := sin(run_clock * 9.0) * 0.55 if moving else 0.0
+		pose_bone("LegRight", Quaternion(Vector3.RIGHT, stride))
+		pose_bone("LegLeft", Quaternion(Vector3.RIGHT, -stride))
+		# Bring the static outstretched arms forward into a two-handed aiming pose.
+		pose_bone("ArmRight", Quaternion(Vector3.UP, 1.2))
+		pose_bone("ArmLeft", Quaternion(Vector3.UP, -1.2))
 	if left_leg and right_leg:
 		left_leg.rotation.x = sin(run_clock * 9) * 0.55 if moving else 0.0
 		right_leg.rotation.x = -left_leg.rotation.x
@@ -159,8 +180,18 @@ func update_animation(delta: float, moving: bool) -> void:
 			muzzle_flash.visible = false
 	attack_timer = maxf(0, attack_timer - delta)
 	fire_timer = maxf(0, fire_timer - delta)
-	if weapon:
-		weapon.position.z = lerpf(weapon.position.z, 0.44, minf(1, delta * 10))
+	gun_recoil = move_toward(gun_recoil, 0.0, delta * 2.0)
+	if weapon and rig:
+		var arm := rig.find_bone("ArmRight")
+		if arm >= 0:
+			var hand_in_rig: Vector3 = rig.get_bone_global_pose(arm) * Vector3(-18, -13, 0)
+			weapon.position = to_local(rig.to_global(hand_in_rig))
+			weapon.position.z -= gun_recoil
+
+func pose_bone(bone_name: String, rotation: Quaternion) -> void:
+	var bone := rig.find_bone(bone_name)
+	if bone >= 0:
+		rig.set_bone_pose_rotation(bone, rotation)
 
 func step_motion(horizontal: Vector3, delta: float) -> void:
 	velocity.x = horizontal.x

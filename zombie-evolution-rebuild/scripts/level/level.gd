@@ -181,8 +181,11 @@ func hero_fire() -> bool:
 			return true
 	var target = nearest_enemy(hero.position, 27.0)
 	if target == null:
-		return false
-	shoot_at(hero, target.global_position + Vector3(0, 1.2, 0), 18)
+		# Keep firing down the bridge, even between enemy waves. Reloading and
+		# the existing raycast, cadence and ammunition rules still apply.
+		shoot_at(hero, hero.global_position + Vector3(0, 1.25, 27), 18)
+	else:
+		shoot_at(hero, target.global_position + Vector3(0, 1.2, 0), 18)
 	return true
 
 func shoot_at(shooter, destination: Vector3, damage: float) -> void:
