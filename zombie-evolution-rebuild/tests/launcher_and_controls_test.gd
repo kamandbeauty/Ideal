@@ -49,10 +49,18 @@ func run_tests() -> void:
 	level._unhandled_input(drag)
 	await physics_frame
 	await physics_frame
-	verify(level.hero.position.x > x_before, "touch drag moves hero")
+	var screen_right: float = (level.hero.position.x - x_before) * level.camera.global_basis.x.x
+	verify(screen_right > 0, "rightward touch drag moves hero right on screen")
+	x_before = level.hero.position.x
+	drag.relative = Vector2(-75, 0)
+	level._unhandled_input(drag)
+	await physics_frame
+	await physics_frame
+	var screen_left: float = (level.hero.position.x - x_before) * level.camera.global_basis.x.x
+	verify(screen_left < 0, "leftward touch drag moves hero left on screen")
 	level.hero.position.x = -4.6
 	var large_drag := InputEventScreenDrag.new()
-	large_drag.relative = Vector2(-10000, 0)
+	large_drag.relative = Vector2(10000, 0)
 	level._unhandled_input(large_drag)
 	await physics_frame
 	await physics_frame

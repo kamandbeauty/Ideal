@@ -4,6 +4,7 @@ signal retry_requested
 signal menu_requested
 
 const FONT = preload("res://assets/fonts/DejaVuSans.ttf")
+const UIStyle = preload("res://scripts/ui_style.gd")
 var info: Label
 var tip: Label
 var end_panel: CenterContainer
@@ -15,6 +16,15 @@ func _ready() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.layout_direction = Control.LAYOUT_DIRECTION_RTL
 	add_child(root)
+	var backplate := Panel.new()
+	backplate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	backplate.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	backplate.offset_left = 12
+	backplate.offset_right = -12
+	backplate.offset_top = 12
+	backplate.offset_bottom = 170
+	backplate.add_theme_stylebox_override("panel", UIStyle.panel())
+	root.add_child(backplate)
 	info = make_label(26)
 	info.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	info.offset_left = 20
@@ -36,6 +46,7 @@ func _ready() -> void:
 	root.add_child(end_panel)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(580, 350)
+	panel.add_theme_stylebox_override("panel", UIStyle.panel())
 	end_panel.add_child(panel)
 	end_box = VBoxContainer.new()
 	end_box.add_theme_constant_override("separation", 16)
@@ -84,5 +95,6 @@ func add_button(text: String, action: Callable) -> void:
 	button.add_theme_font_override("font", FONT)
 	button.add_theme_font_size_override("font_size", 28)
 	button.custom_minimum_size.y = 70
+	UIStyle.apply_button(button)
 	button.pressed.connect(action)
 	end_box.add_child(button)

@@ -41,7 +41,7 @@ jobs:
           python3 - <<'PYCODE'
           from pathlib import Path
           lines = []
-          for name in ('godot_version.log', 'summary.txt', 'autoplay_test.log', 'level_test.log', 'launcher_and_controls_test.log', 'persian_ui_test.log', 'preferences_test.log', 'imported_gate_edge_test.log'):
+          for name in ('godot_version.log', 'summary.txt', 'autoplay_test.log', 'level_test.log', 'launcher_and_controls_test.log', 'persian_ui_test.log', 'preferences_test.log', 'imported_gate_edge_test.log', 'visual_assets_test.log', 'effects_test.log'):
               p = Path('ci-artifacts/headless') / name
               if p.exists():
                   lines.extend(f'{name}: {line}' for line in p.read_text(errors='replace').splitlines() if line.startswith(('4.4.1', 'PASS:', 'FAIL:', 'Checks passed=', 'Autoplay frames=', 'Preferences', 'Persian UI', 'Level integration', 'Launcher/control')))

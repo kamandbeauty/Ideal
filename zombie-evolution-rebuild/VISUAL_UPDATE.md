@@ -1,0 +1,17 @@
+# Semi-realistic visual iteration
+
+This is an in-progress visual update, not a claim of final art quality, Android performance, or a tested APK. The launcher uses a generated background image (not a gameplay screenshot). The level adds a procedural sky, atmospheric colors, bridge details, shared box meshes, clouds and clearer gates. The Persian UI retains its existing controls and text, with darker panels for contrast. Bridge collision, combat, progression and the portrait camera remain unchanged. The earlier correction reverses screen-drag world-X mapping and updates directional touch assertions; it still requires actual device validation.
+
+## Character assets
+
+The user's `2630_open3dmodel.zip` OBJ and textures were converted to GLB for the hero. Its original static T-pose received a rough vertex-space shoulder adjustment; this is not a rig and may have deformation artifacts. `13899_open3dmodel.zip` OBJ and texture were converted for the regular zombie. `28069_open3dmodel.rar` and `27189_open3dmodel.rar` contained 3ds Max files only; their base editable-mesh vertices, faces and UVs were extracted using the open-source `io_scene_max` parser in [3DConvert](https://github.com/Zigg0r/3DConvert), and the supplied TGA textures embedded in GLB. Source Z-up coordinates were converted to Y-up for the hero and the Max meshes. They are used for runner and brute appearances respectively. These are experimental static conversions; the Max conversion does not include node transforms, skeletons, skin weights or animation. The whole-mesh bob is only a placeholder, not a walk or attack animation. If a model fails to load, the existing procedural placeholder is used.
+
+The original archives remain untouched. The user states that all supplied character models are free and licensed. The license texts and specific permissions or attribution requirements were not found in the reviewed archives and have not been independently verified; retain the relevant source and license records before distribution. The hero filename identifies Leon Kennedy.
+
+## Validation status
+
+A texture/mesh structure check and GDScript grammar check are possible locally, but these do not verify visual composition, engine import, animations, Persian shaping, mobile speed, or compatibility. The new `visual_assets_test.gd` attempts to load and instantiate all four models in Godot; the existing 12 headless checks remain. A fresh rendered run and Android export/device test are necessary before presenting a new APK as verified. The historic `SOURCE_MANIFEST.sha256` is preserved; `CURRENT_MANIFEST.sha256` records the current changed and new project assets.
+
+## Prototype weapon and sound pass
+
+A low-poly rifle with receiver, barrel, stock, grip, magazine and sight replaces the one-box gun. Each real shot triggers a short muzzle flash and an original generated rifle sound; real damage hits, gate selection, reloading, hero damage and results trigger separate generated effects. These are placeholders, not recorded or final mastered audio. Effects use a bounded pool on the existing Master bus, so the existing sound setting mutes them. Raycast origin, collision masks, damage, ammunition and shooting cadence have not been changed. `ci/create_prototype_sfx.py` generates the WAV files deterministically, and `tests/effects_test.gd` checks importing, voice selection, muzzle-flash lifetime and muting. The original static-model and license limitations above remain.

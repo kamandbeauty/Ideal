@@ -1,21 +1,30 @@
 extends Control
 
 const PERSIAN_FONT = preload("res://assets/fonts/DejaVuSans.ttf")
+const UIStyle = preload("res://scripts/ui_style.gd")
 var content: VBoxContainer
 var status: Label
 
 func _ready() -> void:
 	layout_direction = Control.LAYOUT_DIRECTION_RTL
-	var background := ColorRect.new()
-	background.color = Color(0.19, 0.48, 0.69)
+	var background := TextureRect.new()
+	background.texture = load("res://assets/ui/sky_bridge_background.png")
+	background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(background)
+	var shade := ColorRect.new()
+	shade.color = Color(0.02, 0.04, 0.07, 0.30)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(shade)
 	var container := CenterContainer.new()
 	container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(container)
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(600, 0)
+	panel.add_theme_stylebox_override("panel", UIStyle.panel())
 	container.add_child(panel)
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 35)
@@ -41,6 +50,7 @@ func add_text(text: String, size: int) -> Label:
 	item.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	item.add_theme_font_override("font", PERSIAN_FONT)
 	item.add_theme_font_size_override("font_size", size)
+	item.add_theme_color_override("font_color", Color(0.93, 0.95, 0.91))
 	content.add_child(item)
 	return item
 
@@ -51,6 +61,7 @@ func add_button(text: String, callback: Callable) -> void:
 	item.custom_minimum_size.y = 76
 	item.add_theme_font_override("font", PERSIAN_FONT)
 	item.add_theme_font_size_override("font_size", 28)
+	UIStyle.apply_button(item)
 	item.pressed.connect(callback)
 	content.add_child(item)
 

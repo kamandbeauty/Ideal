@@ -4,6 +4,7 @@ const EnvironmentScript = preload("res://scripts/level/environment.gd")
 const CharacterScript = preload("res://scripts/level/character.gd")
 const GateScript = preload("res://scripts/level/gates.gd")
 const HudScript = preload("res://scripts/level/hud.gd")
+const SoundScript = preload("res://scripts/level/sound_effects.gd")
 const END_Z := 165.0
 const WALK_SPEED := 2.6
 
@@ -21,9 +22,12 @@ var reload_time := 0.0
 var message_time := 5.0
 var message := "برای حرکت، انگشت خود را به چپ و راست بکشید."
 var pending_drag := 0.0
+var sound
 
 func _ready() -> void:
 	add_child(EnvironmentScript.new())
+	sound = SoundScript.new()
+	add_child(sound)
 	hero = new_character("hero", Vector3(0, 0.05, 2))
 	hero.defeated.connect(on_character_defeated)
 	camera = Camera3D.new()
@@ -63,10 +67,11 @@ func spawn_enemy(kind: String, location: Vector3) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not running:
 		return
+	# The camera looks along +Z, so screen-right points toward world -X.
 	if event is InputEventScreenDrag:
-		pending_drag += event.relative.x * 0.018
+		pending_drag -= event.relative.x * 0.018
 	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		pending_drag += event.relative.x * 0.018
+		pending_drag -= event.relative.x * 0.018
 
 func _physics_process(delta: float) -> void:
 	if not running:
@@ -95,6 +100,7 @@ func _physics_process(delta: float) -> void:
 			ammo -= 1
 			if ammo <= 0:
 				reload_time = 1.8
+				sound.play_effect("reload")
 	camera.position = camera.position.lerp(Vector3(hero.position.x * 0.25, 7.5, hero.position.z - 12), minf(delta * 3, 1))
 	camera.look_at(Vector3(hero.position.x * 0.25, 1, hero.position.z + 13), Vector3.UP)
 	if hero.position.z >= END_Z and enemies.is_empty():
@@ -150,6 +156,8 @@ func update_enemies(delta: float) -> void:
 		if closest <= 1.5 and enemy.attack_timer <= 0:
 			enemy.attack_timer = 1.2
 			victim.apply_damage(16 if enemy.role == "brute" else 8)
+			if victim == hero:
+				sound.play_effect("hurt")
 			if not running:
 				return
 
@@ -191,8 +199,9 @@ func shoot_at(shooter, destination: Vector3, damage: float) -> void:
 			collider.get_meta("gate_pair").select(int(collider.get_meta("gate_side")))
 		elif collider.has_method("apply_damage"):
 			collider.apply_damage(damage)
-	if shooter.weapon:
-		shooter.weapon.position.z = 0.24
+			sound.play_effect("impact")
+	shooter.show_shot()
+	sound.play_effect("rifle")
 	show_tracer(origin, end)
 
 func show_tracer(origin: Vector3, end: Vector3) -> void:
@@ -213,6 +222,7 @@ func show_tracer(origin: Vector3, end: Vector3) -> void:
 	get_tree().create_timer(0.08).timeout.connect(line.queue_free)
 
 func on_gate_chosen(side: int) -> void:
+	sound.play_effect("gate")
 	message = "دروازه چپ انتخاب شد" if side < 0 else "دروازه راست انتخاب شد"
 	message_time = 2
 
@@ -240,4 +250,5 @@ func finish(win: bool) -> void:
 	if not running:
 		return
 	running = false
+	sound.play_effect("victory" if win else "defeat")
 	hud.show_result(win, kills, soldiers.size())

@@ -31,7 +31,10 @@ func make_gate(side: int, caption: String) -> void:
 	var text := Label3D.new()
 	text.font = FONT
 	text.text = caption
-	text.font_size = 80
+	text.font_size = 96
+	text.pixel_size = 0.012
+	text.outline_size = 10
+	text.outline_modulate = Color(0.02, 0.07, 0.10, 0.95)
 	text.position = Vector3(0, 3, -0.2)
 	text.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	body.add_child(text)
