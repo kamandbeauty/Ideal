@@ -17,6 +17,7 @@ func run() -> void:
 	for i in range(frames):
 		await process_frame
 	if current_scene != null and current_scene.get("sound") != null:
+		current_scene.set_physics_process(false)
 		current_scene.sound.stop_all()
 	var ok: bool = await AudioProbe.drain(self)
 	quit(0 if ok else 1)

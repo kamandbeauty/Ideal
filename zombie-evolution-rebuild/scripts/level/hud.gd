@@ -9,7 +9,6 @@ var info: Label
 var tip: Label
 var end_panel: CenterContainer
 var end_box: VBoxContainer
-var fire_button: Button
 
 func _ready() -> void:
 	var root := Control.new()
@@ -41,20 +40,6 @@ func _ready() -> void:
 	tip.offset_top = 200
 	tip.offset_bottom = 270
 	root.add_child(tip)
-	# Touch input is captured by the level so a second finger can steer.
-	fire_button = Button.new()
-	fire_button.text = "شلیک"
-	fire_button.text_direction = Control.TEXT_DIRECTION_RTL
-	fire_button.add_theme_font_override("font", FONT)
-	fire_button.add_theme_font_size_override("font_size", 30)
-	fire_button.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	fire_button.offset_left = -180
-	fire_button.offset_right = -24
-	fire_button.offset_top = -156
-	fire_button.offset_bottom = -24
-	fire_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	UIStyle.apply_button(fire_button)
-	root.add_child(fire_button)
 	end_panel = CenterContainer.new()
 	end_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	end_panel.visible = false
@@ -91,7 +76,6 @@ func update_status(hp: float, count: int, coins: int, ammo: int, instruction: St
 	tip.text = instruction
 
 func show_result(win: bool, kills: int, soldiers: int) -> void:
-	fire_button.visible = false
 	end_panel.visible = true
 	var title := make_label(32)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

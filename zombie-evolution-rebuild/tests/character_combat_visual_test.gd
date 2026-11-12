@@ -48,23 +48,10 @@ func run_tests() -> void:
 	var initial_z: float = level.hero.position.z
 	level._physics_process(0.1)
 	check(level.hero.position.z > initial_z, "hero moves through the world, not just the camera")
-	check(level.ammo == 30, "released fire does not fire")
-	var touch := InputEventScreenTouch.new()
-	touch.index = 4
-	touch.position = level.hud.fire_button.get_global_rect().get_center()
-	touch.pressed = true
-	level._input(touch)
-	check(level.is_fire_held(), "touch press holds fire")
-	level._physics_process(0.016)
-	check(level.ammo == 29 and level.hero.muzzle_flash.visible, "touch fire shoots with muzzle flash")
+	check(level.ammo == 29 and level.hero.muzzle_flash.visible, "automatic fire starts without a button")
 	level.hero.fire_timer = 0
 	level._physics_process(0.016)
-	check(level.ammo == 28, "holding fire repeats shots")
-	touch.pressed = false
-	level._input(touch)
-	level.hero.fire_timer = 0
-	level._physics_process(0.016)
-	check(not level.is_fire_held() and level.ammo == 28, "releasing touch stops shots")
+	check(level.ammo == 28, "automatic fire repeats between waves")
 	level.on_gate_crossed("add3")
 	var a: Vector3 = level.formation_position(0, 3)
 	var b: Vector3 = level.formation_position(1, 3)

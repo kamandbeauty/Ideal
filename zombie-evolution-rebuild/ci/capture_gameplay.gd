@@ -67,10 +67,6 @@ func run_capture() -> void:
 			printerr("FAIL: launcher did not open gameplay")
 			quit(1)
 			return
-		var fire := InputEventAction.new()
-		fire.action = "fire"
-		fire.pressed = true
-		level._input(fire)
 		if attempt == 0:
 			await snapshot("02-initial-bridge")
 		else:

@@ -23,10 +23,6 @@ func run_test() -> void:
 	await process_frame
 	await process_frame
 	var level = current_scene
-	var fire := InputEventAction.new()
-	fire.action = "fire"
-	fire.pressed = true
-	level._input(fire)
 	var max_soldiers := 0
 	var frame := 0
 	while level.running and frame < 9000:

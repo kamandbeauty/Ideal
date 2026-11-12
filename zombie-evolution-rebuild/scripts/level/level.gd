@@ -24,9 +24,6 @@ var message_time := 5.0
 var message := "برای حرکت، انگشت خود را به چپ و راست بکشید."
 var pending_drag := 0.0
 var sound
-var fire_touch := -1
-var fire_mouse := false
-var fire_keyboard := false
 
 func _ready() -> void:
 	add_child(EnvironmentScript.new())
@@ -68,46 +65,13 @@ func spawn_enemy(kind: String, location: Vector3) -> void:
 	enemy.defeated.connect(on_character_defeated)
 	enemies.append(enemy)
 
-func _input(event: InputEvent) -> void:
-	if not running or hud == null or not is_instance_valid(hud.fire_button):
-		return
-	if event is InputEventScreenTouch:
-		if event.pressed and fire_touch == -1 and hud.fire_button.get_global_rect().has_point(event.position):
-			fire_touch = event.index
-			get_viewport().set_input_as_handled()
-		elif not event.pressed and event.index == fire_touch:
-			fire_touch = -1
-			get_viewport().set_input_as_handled()
-	elif event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
-		if fire_touch != -1:
-			return
-		if event.pressed and hud.fire_button.get_global_rect().has_point(event.position):
-			fire_mouse = true
-			get_viewport().set_input_as_handled()
-		elif not event.pressed and fire_mouse:
-			fire_mouse = false
-			get_viewport().set_input_as_handled()
-	elif event.is_action_pressed("fire"):
-		fire_keyboard = true
-	elif event.is_action_released("fire"):
-		fire_keyboard = false
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		fire_touch = -1
-		fire_mouse = false
-		fire_keyboard = false
-
-func is_fire_held() -> bool:
-	return fire_touch != -1 or fire_mouse or fire_keyboard
-
 func _unhandled_input(event: InputEvent) -> void:
 	if not running:
 		return
 	# The camera looks along +Z, so screen-right points toward world -X.
-	if event is InputEventScreenDrag and event.index != fire_touch:
+	if event is InputEventScreenDrag:
 		pending_drag -= event.relative.x * 0.018
-	elif event is InputEventMouseMotion and not fire_mouse and fire_touch == -1 and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		pending_drag -= event.relative.x * 0.018
 
 func _physics_process(delta: float) -> void:
@@ -131,7 +95,7 @@ func _physics_process(delta: float) -> void:
 		reload_time -= delta
 		if reload_time <= 0:
 			ammo = 30
-	if is_fire_held() and hero.fire_timer <= 0 and reload_time <= 0:
+	if hero.fire_timer <= 0 and reload_time <= 0:
 		if hero_fire():
 			hero.fire_timer = fire_interval
 			ammo -= 1
@@ -292,7 +256,7 @@ func on_gate_crossed(effect: String) -> void:
 	var number := soldiers.size() + 1 if effect == "double" else 3
 	var to_add := mini(10 - soldiers.size(), number)
 	for i in range(to_add):
-		var soldier = new_character("soldier", formation_position(soldiers.size(), soldiers.size() + 1))
+		var soldier = new_character("soldier", formation_position(soldiers.size(), soldiers.size() + (to_add - i)))
 		soldier.defeated.connect(on_character_defeated)
 		soldiers.append(soldier)
 	message = "نیروهای تازه به گروه پیوستند!"
