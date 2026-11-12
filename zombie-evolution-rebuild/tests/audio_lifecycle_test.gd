@@ -77,6 +77,17 @@ func run_tests() -> void:
 	for i in range(6):
 		current_scene.sound.play_effect("impact")
 	check(await AudioProbe.drain(self), "temporary impact playbacks naturally finish and are released")
+	for restart in range(3):
+		var old_level = current_scene
+		var old_ref: WeakRef = weakref(old_level)
+		old_level.sound.play_effect("rifle")
+		old_level.hud.retry_requested.emit()
+		old_level = null
+		await process_frame
+		await process_frame
+		check(old_ref.get_ref() == null and current_scene.scene_file_path == "res://scenes/level/sky_bridge.tscn", "retry reloads and frees the previous gameplay scene")
+		current_scene.set_physics_process(false)
+		check(await AudioProbe.drain(self), "retry releases previous gameplay audio")
 	await load_scene("res://scenes/launcher.tscn")
 	print("Audio lifecycle test failures: ", failures)
 	quit(1 if failures else 0)
