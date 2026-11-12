@@ -234,7 +234,7 @@ func _run() -> void:
 			% (gust.position.x - gust_start.x))
 		failures += _loud(absf(gust.position.y - gust_start.y) < 1.0,
 			"the gust keeps to a straight line (%.2f dp off it)" % (gust.position.y - gust_start.y))
-		failures += _loud(gust.scale.y / maxf(0.001, gust.scale.x) < 0.7,
+		failures += _loud(gust.scale.y / maxf(0.001, gust.scale.x) < 0.6,
 			"the gust lies flat on the grid (height is %.2f of its width)"
 			% (gust.scale.y / maxf(0.001, gust.scale.x)))
 		await create_timer(0.6).timeout

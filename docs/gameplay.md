@@ -57,7 +57,7 @@ and every piece of **that fruit's colour** leaves the board — the colour of th
 with (`move_resolver.gd`, `fan_swap`). Nothing else leaves with them.
 
 The effect has to say exactly that, so it is drawn from the list of cells the resolver is about to
-clear (`board_view.gd`, `_gust_travel`): the painted wind is **laid flat** — six tenths of its height —
+clear (`board_view.gd`, `_gust_travel`): the painted wind is **laid flat** — half its height —
 and blown in **one level line** from the cell that fired it towards the side the fruit it is taking
 lies on, a hand's width above the row, never diagonally. It never spins. A tornado turning on the spot reads as weather
 happening somewhere else; a gust crossing the board reads as "the wind passes and the fruit is gone".
