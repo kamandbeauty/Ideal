@@ -112,7 +112,7 @@ jobs:
           import base64, io
           from PIL import Image
           image = Image.open('ci-artifacts/rendered/screenshots/09-city-entrance.png').convert('RGB')
-          image.thumbnail((360, 640))
+          image.thumbnail((240, 427))
           data = io.BytesIO()
           image.save(data, format='JPEG', quality=65, optimize=True)
           encoded = base64.b64encode(data.getvalue()).decode('ascii')
