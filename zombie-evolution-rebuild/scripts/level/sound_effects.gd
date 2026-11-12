@@ -22,6 +22,7 @@ func _ready() -> void:
 		player.bus = "Master"
 		player.volume_db = -12.0
 		add_child(player)
+		player.finished.connect(_on_voice_finished.bind(player))
 		voices.append(player)
 
 func play_effect(name: String) -> void:
@@ -34,6 +35,12 @@ func play_effect(name: String) -> void:
 	player.play()
 	if OS.has_environment("CI_SOUND_DIAGNOSTICS"):
 		AudioProbe.record(player.get_stream_playback())
+
+func _on_voice_finished(player: AudioStreamPlayer) -> void:
+	# Keep the player, not its completed sound. Streams are shared preloads and
+	# are never manually freed. Do not clear a voice that was already reused.
+	if is_instance_valid(player) and not player.playing:
+		player.stream = null
 
 func stop_all() -> void:
 	for player in voices:

@@ -77,6 +77,8 @@ func run_tests() -> void:
 	for i in range(6):
 		current_scene.sound.play_effect("impact")
 	check(await AudioProbe.drain(self), "temporary impact playbacks naturally finish and are released")
+	await process_frame
+	check(current_scene.sound.voices.all(func(voice): return not voice.playing and voice.stream == null), "completed pooled voices release their stream references")
 	for restart in range(3):
 		var old_level = current_scene
 		var old_ref: WeakRef = weakref(old_level)
