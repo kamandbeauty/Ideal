@@ -1,7 +1,7 @@
 {
   "LastWall-arm64.apk": {
-    "bytes": 43861656,
-    "sha256": "74ec5c19679580d1d92ea156b18731cc8de7def29e5909b397b3b3b4cc334b6c",
+    "bytes": 44431234,
+    "sha256": "fd7bb250b2ec0cd51d14ff63d248b96b92475a2c82814e2e716acb9686f4e614",
     "package": "com.frontline.lastwall",
     "arm64": true,
     "min_sdk": "24",
@@ -18,12 +18,12 @@
       "lib/arm64-v8a/libc++_shared.so",
       "lib/arm64-v8a/libgodot_android.so"
     ],
-    "project_files_packed": 170,
+    "project_files_packed": 171,
     "project_files_missing": []
   },
   "LastWall-compatibility.apk": {
-    "bytes": 43861656,
-    "sha256": "b5705fa92cc22f335db33fa61f2fe886a4aa10a66edae268add700411083776d",
+    "bytes": 44431234,
+    "sha256": "1a6be370434a3b70b3db2fce990667ab2e00400c3a3c1aec813d15549f3bd455",
     "package": "com.frontline.lastwall.compatibility",
     "arm64": true,
     "min_sdk": "24",
@@ -40,7 +40,7 @@
       "lib/arm64-v8a/libc++_shared.so",
       "lib/arm64-v8a/libgodot_android.so"
     ],
-    "project_files_packed": 170,
+    "project_files_packed": 171,
     "project_files_missing": []
   },
   "problems": [],
