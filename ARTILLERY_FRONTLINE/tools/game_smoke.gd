@@ -427,6 +427,9 @@ func _sight() -> void:
 	while defender.zoom < 0.999 and glide < 240:
 		await frames(1)
 		glide += 1
+	# It has walked on meanwhile: the sight is laid on it again, as a gunner would.
+	if far != null and far.alive:
+		_aim_at(far.position + Vector3(0.0, 1.2, 0.0))
 	await frames(3)
 	var drawn: float = defender.view_fov()
 	check(is_equal_approx(defender.zoom, 1.0) and absf(drawn - defender.aim_settings.fov_at(defender.aim_settings.zoom_factor)) < 0.01,
@@ -549,8 +552,9 @@ func _aim_at(point: Vector3) -> void:
 
 
 ## One of each kind side by side on the court, seen through a long lens, with
-## the gun and the HUD out of the picture. Not a view the player gets: it is
-## here so the four models can be compared in the real renderer.
+## the gun and the HUD out of the picture: the whole row, then each pair from
+## closer. Not a view the player gets: it is here so the four models can be
+## compared, and looked at, in the real renderer.
 func _line_up() -> void:
 	var eye: Vector3 = level.defender.eye_position()
 	var places: Dictionary = {&"runner": 3.9, &"walker": 5.3, &"brute": 7.0, &"boss": 9.5}
@@ -564,12 +568,24 @@ func _line_up() -> void:
 	check(row.size() == 4 and level.horde.alive_count() == 4, "one of each kind stands on the court")
 	var camera: Camera3D = level.defender.camera
 	var lens: float = camera.fov
-	_aim_at(Vector3(6.9, 1.75, -26.0))
-	camera.fov = 12.5
 	level.defender.weapon.visible = false
 	game.hud.visible = false
-	await frames(10)
-	await shot("17-the-four-kinds", "staged")
+	# The gunner's own eye is held still for these pictures: his aim would put the field of view back every frame.
+	level.defender.set_process(false)
+	# [picture, the point looked at, field of view]: the whole row, then the two small ones and the two big ones from closer.
+	var views: Array = [
+		["17-the-four-kinds", Vector3(6.9, 1.75, -26.0), 12.5],
+		["36-runner-and-walker-close", Vector3(4.6, 0.95, -26.0), 5.5],
+		["37-brute-and-behemoth-close", Vector3(8.25, 1.8, -26.0), 9.5],
+	]
+	for view: Array in views:
+		_aim_at(view[1])
+		level.defender._apply_aim()
+		camera.fov = view[2]
+		await frames(10 if view == views[0] else 4)
+		check(absf(camera.fov - float(view[2])) < 0.01, "the long lens is on for %s (a field of %.1f degrees)" % [view[0], camera.fov])
+		await shot(view[0], "staged")
+	level.defender.set_process(true)
 	camera.fov = lens
 	level.defender.weapon.visible = true
 	game.hud.visible = true
