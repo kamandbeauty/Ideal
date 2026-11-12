@@ -69,7 +69,7 @@ jobs:
           cp /tmp/smoke.log "$PROJECT/documentation/qa/smoke.log"
           if grep -qiE "shader.*error|ERROR:.*shader" /tmp/smoke.log; then echo "::error::Shader errors during the play-through"; exit 1; fi
           if grep -qE "SCRIPT ERROR|Parse Error" /tmp/smoke.log; then echo "::error::GDScript errors during the play-through"; exit 1; fi
-          python3 -c "import json,sys; r=json.load(open('$PROJECT/documentation/qa/smoke-report.json')); sys.exit(0 if r['passed'] and not r['failures'] and len(r['screenshots']) >= 29 else 1)" || { echo "::error::Play-through report failed"; exit 1; }
+          python3 -c "import json,sys; r=json.load(open('$PROJECT/documentation/qa/smoke-report.json')); sys.exit(0 if r['passed'] and not r['failures'] and len(r['screenshots']) >= 35 else 1)" || { echo "::error::Play-through report failed"; exit 1; }
           echo "Play-through passed; engine exit code $rc (software-renderer teardown noise is tolerated once the report has passed)"
           test -s "$PROJECT/documentation/qa/01-menu-fa.png"
           test -s "$PROJECT/documentation/qa/08-gate-firing.png"
@@ -79,6 +79,9 @@ jobs:
           test -s "$PROJECT/documentation/qa/25-phone-20x9-play.png"
           test -s "$PROJECT/documentation/qa/27-tablet-4x3-play.png"
           test -s "$PROJECT/documentation/qa/29-peak-crowd.png"
+          test -s "$PROJECT/documentation/qa/30-sight-drawn-in.png"
+          test -s "$PROJECT/documentation/qa/32-six-barrel-firing.png"
+          test -s "$PROJECT/documentation/qa/35-second-stage-begins.png"
       - name: Preserve validation evidence
         if: always() && github.ref_name == env.SESSION_BRANCH
         run: |

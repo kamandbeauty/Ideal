@@ -100,7 +100,7 @@ func _android(t: TestContext) -> void:
 		t.check(not bool(presets.get_value(options, "gradle_build/use_gradle_build", true)), "%s uses the stock template, whose floor is Android 7.0" % label)
 		t.check(bool(presets.get_value(options, "package/signed", false)), "%s is signed" % label)
 		t.equal(String(presets.get_value(options, "version/name", "")), version, "%s carries the project's version" % label)
-		t.check(int(presets.get_value(options, "version/code", 0)) >= 5, "%s has a version code above every earlier build" % label)
+		t.check(int(presets.get_value(options, "version/code", 0)) >= 6, "%s has a version code above every earlier build" % label)
 		var left_out: String = String(presets.get_value(head, "exclude_filter", ""))
 		t.check(left_out.contains("tests/*") and left_out.contains("tools/*") and left_out.contains("documentation/*"), "%s ships no tests, tools or reports" % label)
 	t.check(String(presets.get_value("preset.0.options", "package/unique_name", "")) != String(presets.get_value("preset.1.options", "package/unique_name", "")),
