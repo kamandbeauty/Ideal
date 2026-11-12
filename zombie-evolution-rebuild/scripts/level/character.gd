@@ -127,7 +127,9 @@ func create_weapon() -> void:
 		var rifle := rifle_scene.instantiate() as Node3D
 		rifle.scale = Vector3.ONE * 0.30
 		rifle.rotation.y = -PI / 2.0
-		rifle.position = Vector3(0, -0.12, -0.30)
+		# The rifle's +X axis points from stock to muzzle. Place its grip at
+		# the hand anchor instead of centering the model on the wrist.
+		rifle.position = Vector3(0, -0.05, -0.18)
 		weapon.add_child(rifle)
 	muzzle_flash = MeshInstance3D.new()
 	var flash_mesh := QuadMesh.new()
@@ -143,9 +145,17 @@ func create_weapon() -> void:
 	glow.emission_enabled = true
 	glow.emission = Color(1.0, 0.4, 0.05)
 	muzzle_flash.material_override = glow
-	muzzle_flash.position.z = 0.58
+	muzzle_flash.position = Vector3(0, 0.08, 0.695)
 	muzzle_flash.visible = false
 	weapon.add_child(muzzle_flash)
+
+func aim_weapon(destination: Vector3) -> void:
+	if not is_instance_valid(weapon):
+		return
+	var direction := destination - weapon.global_position
+	direction.y = 0.0
+	if direction.length_squared() > 0.001:
+		weapon.rotation.y = atan2(direction.x, direction.z)
 
 func show_shot() -> void:
 	gun_recoil = 0.2

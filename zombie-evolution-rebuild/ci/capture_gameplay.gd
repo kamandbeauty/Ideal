@@ -91,7 +91,7 @@ func run_capture() -> void:
 				await snapshot("04-glass-gate")
 			if level.soldiers.size() > 0:
 				await snapshot("05-recruited-soldiers")
-			if level.hero.position.z > 139.0 and not captured.has("09-city-entrance"):
+			if level.hero.position.z > 130.0 and not captured.has("09-city-entrance"):
 				for enemy in level.enemies:
 					if is_instance_valid(enemy) and enemy.role == "brute" and not enemy.dead:
 						await snapshot("09-city-entrance")

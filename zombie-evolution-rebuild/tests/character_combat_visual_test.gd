@@ -32,6 +32,8 @@ func run_tests() -> void:
 			check(actor.weapon.position.distance_to(expected) < 0.01, "hero weapon follows the hand")
 			actor.update_animation(0.3, false)
 			check(actor.gait_blend == 0.0 and absf(actor.rig.get_bone_pose_rotation(left).x) < 0.001, "hero gait smoothly returns to idle")
+	actor.aim_weapon(actor.weapon.global_position + Vector3(3, 0, 3))
+	check(is_equal_approx(actor.weapon.rotation.y, PI / 4.0), "rifle turns toward target")
 	actor.queue_free()
 	var soldier = Character.new()
 	root.add_child(soldier)
@@ -62,6 +64,7 @@ func run_tests() -> void:
 	var initial_z: float = level.hero.position.z
 	level._physics_process(0.1)
 	check(level.hero.position.z > initial_z, "hero moves through the world, not just the camera")
+	check(level.fire_interval <= 0.15, "automatic rifle fires at rapid cadence")
 	check(level.ammo == 29 and level.hero.muzzle_flash.visible, "automatic fire starts without a button")
 	level.hero.fire_timer = 0
 	level._physics_process(0.016)

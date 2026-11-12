@@ -7,7 +7,7 @@ const HudScript = preload("res://scripts/level/hud.gd")
 const SoundScript = preload("res://scripts/level/sound_effects.gd")
 const END_Z := 165.0
 const WALK_SPEED := 2.6
-@export_range(0.05, 2.0, 0.01) var fire_interval := 0.32
+@export_range(0.05, 2.0, 0.01) var fire_interval := 0.14
 
 var hero
 var camera: Camera3D
@@ -24,6 +24,10 @@ var message_time := 5.0
 var message := "برای حرکت، انگشت خود را به چپ و راست بکشید."
 var pending_drag := 0.0
 var sound
+var bullet_mesh: SphereMesh
+var bullet_material: StandardMaterial3D
+const MAX_VISIBLE_BULLETS := 64
+var visible_bullets: Array[Node3D] = []
 
 func _ready() -> void:
 	add_child(EnvironmentScript.new())
@@ -214,12 +218,13 @@ func shoot_at(shooter, destination: Vector3, damage: float) -> void:
 			collider.apply_damage(damage)
 			sound.play_effect("impact")
 			show_impact(end)
+	shooter.aim_weapon(end)
 	shooter.show_shot()
 	sound.play_effect("rifle")
 	var tracer_origin := origin
 	if is_instance_valid(shooter.muzzle_flash):
 		tracer_origin = shooter.muzzle_flash.global_position
-	show_tracer(tracer_origin, end)
+	show_bullet(tracer_origin, end)
 
 func show_impact(location: Vector3) -> void:
 	var spark := MeshInstance3D.new()
@@ -263,22 +268,39 @@ func show_impact(location: Vector3) -> void:
 	particles.emitting = true
 	get_tree().create_timer(0.65).timeout.connect(particles.queue_free)
 
-func show_tracer(origin: Vector3, end: Vector3) -> void:
-	var length := origin.distance_to(end)
-	if length < 0.01:
+func show_bullet(origin: Vector3, end: Vector3) -> void:
+	# Visual-only projectile. Raycast damage remains immediate and authoritative.
+	if origin.distance_squared_to(end) < 0.0001 or visible_bullets.size() >= MAX_VISIBLE_BULLETS:
 		return
-	var line := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(0.045, 0.045, length)
-	line.mesh = mesh
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color(1, 0.85, 0.34)
-	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	line.material_override = mat
-	add_child(line)
-	line.global_position = (origin + end) / 2
-	line.look_at(end, Vector3.UP)
-	get_tree().create_timer(0.08).timeout.connect(line.queue_free)
+	if bullet_mesh == null:
+		bullet_mesh = SphereMesh.new()
+		bullet_mesh.radius = 0.07
+		bullet_mesh.height = 0.22
+		bullet_mesh.radial_segments = 10
+		bullet_mesh.rings = 5
+		bullet_material = StandardMaterial3D.new()
+		bullet_material.albedo_color = Color(1.0, 0.69, 0.18)
+		bullet_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		bullet_material.emission_enabled = true
+		bullet_material.emission = Color(1.0, 0.45, 0.06)
+		bullet_mesh.material = bullet_material
+	var bullet := MeshInstance3D.new()
+	bullet.name = "BulletVisual"
+	bullet.mesh = bullet_mesh
+	add_child(bullet)
+	bullet.global_position = origin
+	# The short capsule follows the flight direction; no long beam is drawn.
+	bullet.look_at(end, Vector3.UP)
+	bullet.rotate_object_local(Vector3.RIGHT, PI / 2.0)
+	visible_bullets.append(bullet)
+	var travel_time := clampf(origin.distance_to(end) / 85.0, 0.06, 0.34)
+	var flight := create_tween()
+	flight.tween_property(bullet, "global_position", end, travel_time)
+	flight.tween_callback(func():
+		visible_bullets.erase(bullet)
+		if is_instance_valid(bullet):
+			bullet.queue_free()
+	)
 
 func on_gate_chosen(side: int) -> void:
 	sound.play_effect("gate")
