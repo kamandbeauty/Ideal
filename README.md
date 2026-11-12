@@ -39,5 +39,7 @@ desktop. The first device test is the next step; the Phase 5 and Phase 6
 reports list what to look at. See the project README for details and the
 roadmap.
 
-The image files and the `.max`/`.dds` files in this folder are reference
-material supplied for the project; the game does not use them.
+The image files, the `.max`/`.dds` files, and the zombie character
+archives in this folder (`13899_open3dmodel.zip`, `27189_open3dmodel.rar`,
+`28069_open3dmodel.rar`) are reference material supplied for the project.
+The game does not load, convert or ship them.

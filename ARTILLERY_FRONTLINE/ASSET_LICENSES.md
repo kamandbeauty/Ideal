@@ -44,6 +44,7 @@ its third-party components under their own licences, as listed in Godot's
 
 ## Reference material in the repository root
 
-The screenshots, the `.max` file and the `.dds` files in the repository
-root were supplied as reference for the project. The game does not load,
-convert or ship them.
+The screenshots, the `.max` file, the `.dds` files and the three zombie
+character archives in the repository root (`13899_open3dmodel.zip`,
+`27189_open3dmodel.rar`, `28069_open3dmodel.rar`) were supplied as
+reference for the project. The game does not load, convert or ship them.
