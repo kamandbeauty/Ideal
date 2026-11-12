@@ -78,6 +78,8 @@ func run_tests() -> void:
 		for j in range(i):
 			check(point.distance_to(level.formation_position(j, 10)) >= 1.0, "crescent slots stay separated")
 	check(level.find_child("CityEntrance", true, false) is Node3D, "city entrance exists at bridge end")
+	var city = level.find_child("CityBuildings", true, false)
+	check(city is Node3D and city.get_child_count() > 10, "city facade sits beyond the entrance")
 	var brute = level.enemies.back()
 	check(brute.role == "brute" and is_equal_approx(brute.position.z, 160.0), "stage brute begins in front of the city")
 	level.hero.position.z = 130

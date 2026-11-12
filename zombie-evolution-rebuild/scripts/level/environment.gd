@@ -107,6 +107,20 @@ func create_city_entrance() -> void:
 		# Silhouettes hint at the city beyond without replacing the cloud setting.
 		add_box(Vector3(side * 10.0, 4.3, 8.5), Vector3(4.0, 8.6, 4.0), trim, entrance)
 		add_box(Vector3(side * 10.0, 8.75, 8.5), Vector3(4.2, 0.35, 4.2), stone, entrance)
+	# Visible building fronts sit beyond the arch, beside a clear central road.
+	var buildings := Node3D.new()
+	buildings.name = "CityBuildings"
+	entrance.add_child(buildings)
+	var facade := new_material(Color(0.40, 0.44, 0.46), 0.83)
+	var windows := new_material(Color(0.17, 0.30, 0.35), 0.28)
+	add_box(Vector3(0, -0.14, 8.0), Vector3(11.0, 0.22, 12.0), trim, buildings)
+	for side in [-1, 1]:
+		add_box(Vector3(side * 4.0, 3.5, 10.0), Vector3(3.5, 7.0, 3.8), facade, buildings)
+		add_box(Vector3(side * 4.0, 7.15, 10.0), Vector3(3.7, 0.30, 4.0), trim, buildings)
+		for floor_index in range(3):
+			for horizontal in [-0.75, 0.75]:
+				add_box(Vector3(side * 4.0 + horizontal, 1.6 + floor_index * 1.85, 8.06), Vector3(0.70, 1.05, 0.10), windows, buildings)
+		add_box(Vector3(side * 4.0, 7.8, 10.0), Vector3(1.8, 1.3, 2.0), trim, buildings)
 	add_box(Vector3(0, 8.9, 0), Vector3(11.5, 1.6, 2.0), stone, entrance)
 	add_box(Vector3(0, 8.05, -1.06), Vector3(11.1, 0.22, 0.22), trim, entrance)
 	add_box(Vector3(0, 9.8, -1.06), Vector3(11.1, 0.22, 0.22), trim, entrance)
