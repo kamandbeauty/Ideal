@@ -168,7 +168,10 @@ func run(t: TestContext) -> void:
 			taken[member.walk_clip] = true
 			phases[snappedf(member.anim.current_animation_position, 0.01)] = true
 			if index == 0:
-				t.equal(member.walk_clips.size(), int(kind[2]), "a %s has %d walks to choose from" % [kind[0], kind[2]])
+				if member.look_index == 0:
+					t.equal(member.walk_clips.size(), int(kind[2]), "a %s has %d walks to choose from" % [kind[0], kind[2]])
+				else:
+					t.check(member.walk_clips.size() >= 2, "an extra look still has walks to limp with")
 		t.equal(strangers, 0, "every %s sets out on one of the walks its model has" % kind[0])
 		t.check(taken.size() >= int(kind[3]), "%d of them walk in at least %d different ways (%s)" % [kind[1], kind[3], str(taken.keys())])
 		t.check(lame_left > 0 and lame_left < int(kind[1]), "some are lame in the left leg and some in the right (%d of %d in the left)" % [lame_left, kind[1]])

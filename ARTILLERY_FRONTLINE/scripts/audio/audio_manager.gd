@@ -25,7 +25,8 @@ const MIN_GAP_MS: Dictionary = {
 ## more: bullet strikes give way to everything, and nothing cuts off an alarm,
 ## a blast or the giant. Clips not listed rank 1.
 const RANK: Dictionary = {
-	"impact": 0, "impact_flesh": 0, "impact_metal": 0, "grenade_bounce": 0, "body_fall": 0, "hmg_tail": 0, "rotary_tail": 0, "rotary_spin": 0,
+	"impact": 0, "impact_flesh": 0, "impact_metal": 0, "grenade_bounce": 0, "zombie_groan_1": 0, "zombie_groan_2": 0,
+	"zombie_groan_3": 0, "body_fall": 0, "hmg_tail": 0, "rotary_tail": 0, "rotary_spin": 0,
 	"explosion": 2, "explosion_small": 2, "rocket": 2, "critical": 2, "resupply": 2, "ui_start": 2,
 	"gate_break": 3, "wall_break": 3, "boss_roar": 3, "boss_death": 3, "alarm": 3, "wave_horn": 3, "wave_clear": 3,
 	"victory": 3, "defeat": 3,
