@@ -1,7 +1,7 @@
 {
   "LastWall-arm64.apk": {
-    "bytes": 37103433,
-    "sha256": "4ce350f80d4cc0de3b93ddd9daceda9712df8ee7d5f62ec63f49fb9e92d7d23d",
+    "bytes": 41005376,
+    "sha256": "e77bbc506cbf7af24bc6c8076818b0265fa079c07da48fe0571e60878b758020",
     "package": "com.frontline.lastwall",
     "arm64": true,
     "min_sdk": "24",
@@ -12,18 +12,18 @@
     "permissions": [],
     "declared_as_game": true,
     "build": "release template (not debuggable)",
-    "version_name": "0.5.0",
-    "version_code": "5",
+    "version_name": "0.6.0",
+    "version_code": "6",
     "native_libraries": [
       "lib/arm64-v8a/libc++_shared.so",
       "lib/arm64-v8a/libgodot_android.so"
     ],
-    "project_files_packed": 152,
+    "project_files_packed": 164,
     "project_files_missing": []
   },
   "LastWall-compatibility.apk": {
-    "bytes": 37103433,
-    "sha256": "94adb59244d175a197116b6a2162140ad99c6429157a9c5fca784649df32e325",
+    "bytes": 41005376,
+    "sha256": "a06c31550c7a8f847f7ef1a58d1a7c31a73b12aa4a132370473a9124769c4d70",
     "package": "com.frontline.lastwall.compatibility",
     "arm64": true,
     "min_sdk": "24",
@@ -34,13 +34,13 @@
     "permissions": [],
     "declared_as_game": true,
     "build": "release template (not debuggable)",
-    "version_name": "0.5.0",
-    "version_code": "5",
+    "version_name": "0.6.0",
+    "version_code": "6",
     "native_libraries": [
       "lib/arm64-v8a/libc++_shared.so",
       "lib/arm64-v8a/libgodot_android.so"
     ],
-    "project_files_packed": 152,
+    "project_files_packed": 164,
     "project_files_missing": []
   },
   "problems": [],

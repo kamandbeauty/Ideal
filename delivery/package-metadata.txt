@@ -1,4 +1,4 @@
-package: name='com.frontline.lastwall' versionCode='5' versionName='0.5.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+package: name='com.frontline.lastwall' versionCode='6' versionName='0.6.0' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
 install-location:'auto'
 minSdkVersion:'24'
 targetSdkVersion:'36'
