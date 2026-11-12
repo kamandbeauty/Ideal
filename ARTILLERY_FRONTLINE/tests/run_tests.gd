@@ -32,6 +32,7 @@ func _run() -> void:
 	var profile: Node = root.get_node("Profile")
 	profile.persist = false
 	profile.load_profile()
+	Zombie.mix_extras = false
 	var only: String = ""
 	var report_path: String = REPORT_PATH
 	for argument: String in OS.get_cmdline_user_args():

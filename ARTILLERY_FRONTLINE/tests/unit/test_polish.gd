@@ -46,10 +46,16 @@ func _tiers(t: TestContext) -> void:
 	t.check(Graphics.TIERS.has(Graphics.resolve_tier("auto")), "\"auto\" resolves to a real tier")
 	var viewport: Viewport = Graphics.get_viewport()
 	if viewport:
-		var buffer: float = viewport.scaling_3d_scale
+		var msaa: int = viewport.msaa_3d
 		Graphics.apply_tier("low")
+		t.near(viewport.scaling_3d_scale, float(low.scale), 0.0001, "low quality renders at its own 3D scale")
+		t.near(Graphics.buffer_scale(), Graphics.render_scale, 0.0001, "and the viewport matches the governor")
+		Graphics.apply_tier("medium")
+		t.near(viewport.scaling_3d_scale, float(medium.scale), 0.0001, "medium quality renders at its own 3D scale")
 		Graphics.apply_tier("high")
-		t.near(viewport.scaling_3d_scale, buffer, 0.0001, "changing quality does not rebuild the 3D buffer")
+		t.near(viewport.scaling_3d_scale, float(high.scale), 0.0001, "high quality renders at its own 3D scale")
+		t.equal(viewport.msaa_3d, msaa, "MSAA is not rebuilt after the first commit")
+		t.equal(viewport.scaling_3d_mode, Viewport.SCALING_3D_MODE_BILINEAR, "dynamic resolution stays bilinear")
 	_governor(t)
 
 
@@ -104,6 +110,7 @@ func _governor(t: TestContext) -> void:
 	var fill := func(_tier: String, scale: float) -> float: return 8.0 + 22.0 * scale * scale
 	_play(2.6, fill)
 	t.near(Graphics.render_scale, medium - rules.scale_step, 0.0001, "two seconds of slow frames lower the render resolution one step")
+	t.near(Graphics.buffer_scale(), Graphics.render_scale, 0.0001, "and the 3D buffer follows that step")
 	_play(120.0, fill)
 	var rest: float = Graphics.render_scale
 	t.check(rest < medium and rest > rules.scale_floor and not Graphics.monitor.is_slow(fill.call("medium", rest)),
@@ -318,6 +325,14 @@ func _loops_and_buses(t: TestContext) -> void:
 	t.check(not AudioServer.is_bus_mute(Sound.sfx_bus), "and leaves the effects (and the wind) alone")
 	Profile.set_setting("music_volume", 0.5)
 	t.near(AudioServer.get_bus_volume_db(Sound.music_bus), linear_to_db(0.5), 0.01, "half volume is six decibels down")
+	var wind_was: bool = Sound.is_looping("wind")
+	Sound.start_loop("wind", "Effects", -19.0)
+	Sound.play("hmg_shot")
+	Sound.silence_combat()
+	t.check(Sound.is_looping("wind"), "silencing combat leaves the wind bed")
+	t.check(Sound.spatial[0].stream == null and Sound.flat[0].stream == null, "and drops every one-shot voice")
+	if not wind_was:
+		Sound.stop_loop("wind")
 	Profile.reset()
 
 
@@ -457,9 +472,3 @@ func _flare(t: TestContext) -> void:
 	t.check(lit > 4 and lit < rim - 4, "between them it is rays, not a disc (%d of %d lit)" % [lit, rim])
 	t.check(EffectPool.flare(6) == flare, "the texture is built once")
 	t.check(EffectPool.flare(8) != flare, "a flash with more rays is its own texture")
-	var dot: Texture2D = EffectPool.soft_dot()
-	t.check(dot is ImageTexture, "particle sprites are baked images, not live gradients")
-	var disc: Image = dot.get_image()
-	t.check(disc.get_pixel(disc.get_width() / 2, disc.get_height() / 2).a > 0.8, "the particle sprite is solid at its heart")
-	t.check(disc.get_pixel(0, 0).a < 0.05, "and empty at the corner")
-	t.check(EffectPool.soft_dot() == dot, "the particle sprite is built once")

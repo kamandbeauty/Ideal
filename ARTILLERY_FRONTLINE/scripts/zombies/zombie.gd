@@ -12,6 +12,9 @@ const KNOCK_TIME: float = 0.38
 const ROCK_LIMIT: float = 7.0
 ## A heading this close to the goal (in radians, a thirtieth of a degree) counts as reached.
 const FACING_SLACK: float = 0.0006
+## Extra character meshes are mixed into a fraction of lives. The test runner
+## pins this off so type health and the type's own figure stay deterministic.
+static var mix_extras: bool = true
 
 var data: ZombieData
 var horde: Horde
@@ -72,50 +75,82 @@ var gait_rate: float = 1.0
 func _ready() -> void:
 	model = get_node_or_null("Model")
 	looks.clear()
-	if model:
-		looks.append(model)
-	if data:
-		for packed: PackedScene in data.extra_looks:
-			if packed == null:
-				continue
-			var extra: Node3D = packed.instantiate()
-			extra.visible = false
-			extra.name = "Look%d" % looks.size()
-			add_child(extra)
-			looks.append(extra)
 	look_anims.clear()
 	look_skeletons.clear()
 	look_meshes.clear()
-	for look: Node3D in looks:
-		var player: AnimationPlayer = look.find_child("AnimationPlayer", true, false)
-		var skel: Skeleton3D = look.find_child("Skeleton3D", true, false)
-		var mesh: MeshInstance3D = null
-		for node: Node in look.find_children("*", "MeshInstance3D", true, false):
-			mesh = node
-			break
-		look_anims.append(player)
-		look_skeletons.append(skel)
-		look_meshes.append(mesh)
-		if player:
-			for clip: String in player.get_animation_list():
-				if clip.begins_with("walk") or clip in LOOPING:
-					if player.has_animation(clip):
-						player.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
-			player.playback_default_blend_time = 0.18
+	head_areas.clear()
+	# Only the type's own figure is built up front. Extra character meshes are
+	# heavy (a second skinned body); they are instanced the first time a life
+	# actually wears one, and sit disabled otherwise.
+	if model:
+		_register_look(model)
+	_build_body_volume()
 	_use_look(0)
-	_build_hit_volumes()
 	_sleep()
+
+
+func _register_look(look: Node3D) -> void:
+	var player: AnimationPlayer = look.find_child("AnimationPlayer", true, false)
+	var skel: Skeleton3D = look.find_child("Skeleton3D", true, false)
+	var mesh: MeshInstance3D = null
+	for node: Node in look.find_children("*", "MeshInstance3D", true, false):
+		mesh = node
+		break
+	if player:
+		for clip: String in player.get_animation_list():
+			if clip.begins_with("walk") or clip in LOOPING:
+				if player.has_animation(clip):
+					player.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
+		player.playback_default_blend_time = 0.18
+	looks.append(look)
+	look_anims.append(player)
+	look_skeletons.append(skel)
+	look_meshes.append(mesh)
+	_attach_head(looks.size() - 1)
+	_set_look_active(looks.size() - 1, false)
+
+
+func _ensure_look(index: int) -> void:
+	if data == null:
+		return
+	while looks.size() <= index and looks.size() - 1 < data.extra_looks.size():
+		var packed: PackedScene = data.extra_looks[looks.size() - 1]
+		if packed == null:
+			break
+		var extra: Node3D = packed.instantiate()
+		extra.name = "Look%d" % looks.size()
+		extra.visible = false
+		add_child(extra)
+		_register_look(extra)
+
+
+func _set_look_active(index: int, on: bool) -> void:
+	if index < 0 or index >= looks.size():
+		return
+	var look: Node3D = looks[index]
+	look.visible = on
+	look.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
+	var player: AnimationPlayer = look_anims[index]
+	if player and not on:
+		player.stop()
+	var mesh: MeshInstance3D = look_meshes[index]
+	if mesh:
+		# Extra figures are the heavy mesh; they never cast shadows. The type's
+		# own figure follows the sun.
+		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if on and index == 0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mesh.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 
 
 func _use_look(index: int) -> void:
 	if looks.is_empty():
 		return
+	_ensure_look(index)
 	if anim:
 		anim.stop()
 		current_clip = ""
 	look_index = clampi(index, 0, looks.size() - 1)
 	for i: int in looks.size():
-		looks[i].visible = i == look_index
+		_set_look_active(i, i == look_index)
 	model = looks[look_index]
 	anim = look_anims[look_index]
 	skeleton = look_skeletons[look_index]
@@ -134,10 +169,9 @@ func _walk_name(clip: String) -> String:
 	return clip.substr(slash + 1) if slash >= 0 else clip
 
 
-func _build_hit_volumes() -> void:
+func _build_body_volume() -> void:
 	var radius: float = data.body_radius if data else 0.3
 	var height: float = data.body_height if data else 1.45
-	var head_radius: float = data.head_radius if data else 0.2
 	var lean: float = deg_to_rad(data.body_lean_degrees if data else 10.0)
 	body_area = _area("Body", false)
 	var capsule := CapsuleShape3D.new()
@@ -150,32 +184,36 @@ func _build_hit_volumes() -> void:
 	body_shape.rotation.x = lean
 	body_area.add_child(body_shape)
 	add_child(body_area)
-	head_areas.clear()
-	var hosts: Array = looks if not looks.is_empty() else [self]
-	for i: int in hosts.size():
-		var host: Node = hosts[i]
-		var skel: Skeleton3D = look_skeletons[i] if i < look_skeletons.size() else skeleton
-		var head: Area3D = _area("Head", true)
-		var sphere := SphereShape3D.new()
-		sphere.radius = head_radius
-		var head_shape := CollisionShape3D.new()
-		head_shape.shape = sphere
-		# The skull sits half a radius above the joint that carries it.
-		head_shape.position = Vector3(0.0, head_radius * 0.5, head_radius * 0.15)
-		head.add_child(head_shape)
-		var bone: int = skel.find_bone("Head") if skel else -1
-		if bone >= 0:
-			# Ride the head bone so a lunging or falling zombie keeps an honest head box.
-			var attachment := BoneAttachment3D.new()
-			attachment.name = "HeadSocket"
-			skel.add_child(attachment)
-			attachment.bone_name = "Head"
-			attachment.add_child(head)
-		else:
-			head.position = Vector3(0.0, height + head_radius * 0.5, sin(lean) * height * 0.8)
-			host.add_child(head)
-		head_areas.append(head)
-	head_area = head_areas[look_index] if look_index < head_areas.size() else head_areas[0]
+
+
+func _attach_head(index: int) -> void:
+	var head_radius: float = data.head_radius if data else 0.2
+	var height: float = data.body_height if data else 1.45
+	var lean: float = deg_to_rad(data.body_lean_degrees if data else 10.0)
+	var host: Node = looks[index] if index < looks.size() else self
+	var skel: Skeleton3D = look_skeletons[index] if index < look_skeletons.size() else skeleton
+	var head: Area3D = _area("Head", true)
+	var sphere := SphereShape3D.new()
+	sphere.radius = head_radius
+	var head_shape := CollisionShape3D.new()
+	head_shape.shape = sphere
+	# The skull sits half a radius above the joint that carries it.
+	head_shape.position = Vector3(0.0, head_radius * 0.5, head_radius * 0.15)
+	head.add_child(head_shape)
+	var bone: int = skel.find_bone("Head") if skel else -1
+	if bone >= 0:
+		# Ride the head bone so a lunging or falling zombie keeps an honest head box.
+		var attachment := BoneAttachment3D.new()
+		attachment.name = "HeadSocket"
+		skel.add_child(attachment)
+		attachment.bone_name = "Head"
+		attachment.add_child(head)
+	else:
+		head.position = Vector3(0.0, height + head_radius * 0.5, sin(lean) * height * 0.8)
+		host.add_child(head)
+	head_areas.append(head)
+	if index == look_index:
+		head_area = head
 
 
 func _area(area_name: String, head: bool) -> Area3D:
@@ -213,6 +251,8 @@ func _sleep() -> void:
 	if anim:
 		anim.stop()
 	current_clip = ""
+	for i: int in looks.size():
+		_set_look_active(i, false)
 
 
 ## Brings a pooled zombie to life at the start of `walk_path`.
@@ -225,7 +265,7 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	target = wanted
 	side = lane_side
 	lateral = lane
-	var chosen: int = rng.randi() % maxi(looks.size(), 1)
+	var chosen: int = _pick_look(rng)
 	_use_look(chosen)
 	var health_mul: float = 1.0
 	var size_mul: float = 1.0
@@ -262,9 +302,7 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 		if chosen == 0:
 			body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % data.skins)
 		else:
-			var packed: PackedScene = data.extra_looks[chosen - 1]
-			var look_name: String = packed.resource_path.get_file().get_basename().trim_prefix("zombie_")
-			body_mesh.material_override = MaterialLibrary.extra_skin(look_name)
+			body_mesh.material_override = null
 	visible = true
 	_set_hittable(true)
 	# Each life picks a limp (which leg, and how broken) and a point in the stride, so a crowd does not march.
@@ -273,6 +311,20 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	if anim and anim.has_animation(walk_clip):
 		anim.seek(rng.randf() * anim.get_animation(walk_clip).length, true)
 		anim.advance(0.0)
+
+
+func _pick_look(rng: RandomNumberGenerator) -> int:
+	var extras: int = data.extra_looks.size() if data else 0
+	if extras <= 0 or not mix_extras:
+		return 0
+	# The extra figure is a second skinned body. On a filled street it is the
+	# thing that drops the frame rate, so only a quarter of lives wear it, and
+	# never when the quality tier has dropped the dressing.
+	if not bool(Graphics.profile().get("detail", true)):
+		return 0
+	if rng.randf() > 0.25:
+		return 0
+	return 1 + rng.randi() % extras
 
 
 func _pick_walk(rng: RandomNumberGenerator) -> String:

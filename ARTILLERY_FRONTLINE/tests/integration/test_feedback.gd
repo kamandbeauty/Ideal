@@ -11,6 +11,8 @@ func _still(level: CityLevel, type_id: StringName, at: Vector3) -> Zombie:
 	zombie.rotation = Vector3.ZERO
 	zombie.speed = 0.0
 	zombie.scale = Vector3.ONE
+	zombie.health = zombie.data.max_health
+	zombie.full_health = zombie.health
 	return zombie
 
 

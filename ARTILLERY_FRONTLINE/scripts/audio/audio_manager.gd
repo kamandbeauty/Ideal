@@ -267,13 +267,23 @@ func is_looping(id: String) -> bool:
 	return loops.has(id)
 
 
+## Stops combat one-shots without touching the wind or the theme, so a trip
+## back to the title does not leave a groan or a burst hanging in the mixer.
+func silence_combat() -> void:
+	for index: int in spatial.size():
+		spatial[index].stop()
+		spatial[index].stream = null
+		spatial_busy[index] = 0
+		spatial_rank[index] = 0
+	for index: int in flat.size():
+		flat[index].stop()
+		flat[index].stream = null
+		flat_busy[index] = 0
+		flat_rank[index] = 0
+
+
 func stop_all() -> void:
-	for player: AudioStreamPlayer3D in spatial:
-		player.stop()
-		player.stream = null
-	for player: AudioStreamPlayer in flat:
-		player.stop()
-		player.stream = null
+	silence_combat()
 	for id: String in loops.keys():
 		stop_loop(id)
 

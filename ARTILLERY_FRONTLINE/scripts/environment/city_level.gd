@@ -48,7 +48,6 @@ var gate_body: StaticBody3D
 var patch_body: StaticBody3D
 var patch_node: Node3D
 var fire_nodes: Array[Node3D] = []
-var fire_lights: Array[OmniLight3D] = []
 
 
 func _ready() -> void:
@@ -288,7 +287,6 @@ func _build_fires() -> void:
 		glow.shadow_enabled = false
 		glow.position.y = 0.6
 		root.add_child(glow)
-		fire_lights.append(glow)
 		add_child(root)
 		fire_nodes.append(root)
 
@@ -396,12 +394,6 @@ func _process(delta: float) -> void:
 		for index: int in gate_leaves.size():
 			var wobble: float = sin(clock * 68.0 + float(index) * 1.7) * deg_to_rad(gate_shake)
 			gate_leaves[index].rotation.y = gate_rest[index] + wobble
-	for index: int in fire_lights.size():
-		if not fire_nodes[index].visible:
-			continue
-		var light: OmniLight3D = fire_lights[index]
-		var base: float = light.omni_range * 0.25
-		light.light_energy = base * (0.78 + 0.22 * sin(clock * (9.0 + float(index) * 1.3)) * sin(clock * 3.7 + float(index)))
 	if end_left >= 0.0:
 		end_left -= delta / maxf(Engine.time_scale, 0.05)
 		if end_left < 0.0:
