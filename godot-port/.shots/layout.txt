@@ -38,7 +38,7 @@ STATE board :: home=0 board=1 districts=0 shop=0 settings=0 :: root=(738.0, 415.
 LAYOUT board :: 0 control(s) escape their parent
 STRIP 15-burst-strip 1900x766 frames=10
 STRIP start :: screen=BoardScreen:<Control#54072968790>
-STRIP move :: [(2, 0), (2, 1)]
+STRIP move :: [(3, 0), (3, 1)]
 STRIP board :: board:<Control#61656270588>
 STRIP frame 0 :: (142, 131)
 STRIP frame 1 :: (142, 131)
@@ -51,7 +51,7 @@ STRIP frame 7 :: (142, 131)
 STRIP frame 8 :: (142, 131)
 STRIP 11-swap-strip 2190x816 frames=10
 MATCH STRIP start :: screen=BoardScreen:<Control#54072968790>
-MATCH STRIP move :: [(0, 0), (1, 0)]
+MATCH STRIP move :: [(6, 0), (6, 1)]
 MATCH STRIP frame 0 :: (386, 386)
 MATCH STRIP frame 1 :: (386, 386)
 MATCH STRIP frame 2 :: (386, 386)
