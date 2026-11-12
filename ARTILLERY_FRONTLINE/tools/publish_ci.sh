@@ -3,7 +3,7 @@
 # branch so they can be reviewed without downloading workflow artifacts.
 set -euo pipefail
 MESSAGE="$1"; shift
-SESSION_BRANCH="${SESSION_BRANCH:-arena/93ab6e29-ideal}"
+SESSION_BRANCH="${SESSION_BRANCH:-arena/64301cf7-ideal}"
 BRANCH="${GITHUB_REF_NAME:-$SESSION_BRANCH}"
 if [ "$BRANCH" != "$SESSION_BRANCH" ]; then echo 'Refusing to publish outside the session branch'; exit 1; fi
 git config user.name 'github-actions[bot]'
