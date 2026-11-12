@@ -7,6 +7,7 @@ cd "$ROOT"
 LOG_DIR="${LOG_DIR:-$ROOT/ci-artifacts/headless}"
 GODOT="${GODOT:-godot}"
 mkdir -p "$LOG_DIR" "$LOG_DIR/user-data"
+export CI_SOUND_DIAGNOSTICS=1
 export XDG_DATA_HOME="$LOG_DIR/user-data"
 passed=0
 failed=0
@@ -45,9 +46,9 @@ if [ "${CI_RENDERED_IMPORT:-0}" = 1 ]; then
 else
     run import "$GODOT" --headless --import --path "$PROJECT" || exit 1
 fi
-run launcher "$GODOT" --verbose --headless --path "$PROJECT" --quit-after 5
-run level_load "$GODOT" --verbose --headless --path "$PROJECT" res://scenes/level/sky_bridge.tscn --fixed-fps 60 --quit-after 240
-for test in preferences_test level_test launcher_and_controls_test persian_ui_test autoplay_test imported_gate_edge_test visual_assets_test effects_test; do
+run launcher env CI_SMOKE_SCENE=res://scenes/launcher.tscn CI_SMOKE_FRAMES=5 "$GODOT" --verbose --headless --path "$PROJECT" --script res://ci/scene_smoke.gd
+run level_load env CI_SMOKE_SCENE=res://scenes/level/sky_bridge.tscn CI_SMOKE_FRAMES=240 "$GODOT" --verbose --headless --path "$PROJECT" --fixed-fps 60 --script res://ci/scene_smoke.gd
+for test in preferences_test level_test launcher_and_controls_test persian_ui_test autoplay_test imported_gate_edge_test visual_assets_test effects_test audio_lifecycle_test; do
     run "$test" "$GODOT" --verbose --headless --path "$PROJECT" --fixed-fps 60 --script "res://tests/$test.gd"
 done
 printf 'Checks passed=%d failed=%d warnings=%d\n' "$passed" "$failed" "$warnings" | tee "$LOG_DIR/summary.txt"

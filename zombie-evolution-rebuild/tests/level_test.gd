@@ -1,5 +1,7 @@
 extends SceneTree
 
+const AudioProbe = preload("res://ci/audio_probe.gd")
+
 var failures := 0
 
 func _initialize() -> void:
@@ -66,6 +68,10 @@ func run_test() -> void:
 	level.hero.position.z = level.END_Z
 	level._physics_process(0.016)
 	check(not level.running and level.hud.end_panel.visible, "victory state appears")
+	level.sound.stop_all()
 	level.queue_free()
+	await process_frame
+	if not await AudioProbe.drain(self):
+		failures += 1
 	print("Level integration failures: ", failures)
 	quit(1 if failures else 0)

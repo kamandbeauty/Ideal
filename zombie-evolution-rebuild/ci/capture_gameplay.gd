@@ -1,5 +1,7 @@
 extends SceneTree
 
+const AudioProbe = preload("res://ci/audio_probe.gd")
+
 # Normal screenshots come from natural play. If both runs win, capture a clearly
 # labeled test-only defeat through the real damage and defeat transition.
 var captured := {}
@@ -132,4 +134,8 @@ func run_capture() -> void:
 			printerr("FAIL: requested capture was not produced: ", name)
 			missing += 1
 	print("Captured ", captured.size(), "/", required.size(), "; missing=", missing)
+	if current_scene != null and current_scene.get("sound") != null:
+		current_scene.sound.stop_all()
+	if not await AudioProbe.drain(self):
+		missing += 1
 	quit(1 if missing else 0)

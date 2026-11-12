@@ -101,6 +101,7 @@ jobs:
         run: |
           set -o pipefail
           export LIBGL_ALWAYS_SOFTWARE=1
+          export CI_SOUND_DIAGNOSTICS=1
           export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
           timeout 1200 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --audio-driver Dummy --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_gameplay.gd 2>&1 | tee ci-artifacts/rendered/capture.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/capture.log; then exit 1; fi

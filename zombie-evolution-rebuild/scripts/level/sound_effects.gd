@@ -11,6 +11,7 @@ const EFFECTS := {
 	"victory": preload("res://assets/audio/victory.wav"),
 	"defeat": preload("res://assets/audio/defeat.wav"),
 }
+const AudioProbe = preload("res://ci/audio_probe.gd")
 const VOICE_COUNT := 12
 var voices: Array[AudioStreamPlayer] = []
 var next_voice := 0
@@ -31,8 +32,13 @@ func play_effect(name: String) -> void:
 	player.stop()
 	player.stream = EFFECTS[name]
 	player.play()
+	if OS.has_environment("CI_SOUND_DIAGNOSTICS"):
+		AudioProbe.record(player.get_stream_playback())
 
-func _exit_tree() -> void:
+func stop_all() -> void:
 	for player in voices:
 		player.stop()
 		player.stream = null
+
+func _exit_tree() -> void:
+	stop_all()

@@ -1,5 +1,7 @@
 extends SceneTree
 
+const AudioProbe = preload("res://ci/audio_probe.gd")
+
 # Exercises a real, unmodified level loop without changing health, damage or positions.
 func _initialize() -> void:
 	call_deferred("run_test")
@@ -30,7 +32,9 @@ func run_test() -> void:
 	var survived: bool = is_instance_valid(level.hero) and level.hero.health > 0
 	var won: bool = not level.running and survived and level.enemies.is_empty()
 	print("Autoplay frames=", frame, " won=", won, " survived=", survived, " kills=", level.kills, " max_soldiers=", max_soldiers, " enemies_remaining=", level.enemies.size())
-	quit(0 if won and max_soldiers >= 1 else 1)
+	level.sound.stop_all()
+	var cleaned: bool = await AudioProbe.drain(self)
+	quit(0 if won and max_soldiers >= 1 and cleaned else 1)
 
 func find_start(node: Node) -> Button:
 	if node is Button and node.text == "شروع بازی":

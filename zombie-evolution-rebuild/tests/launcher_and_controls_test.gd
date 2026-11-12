@@ -1,5 +1,7 @@
 extends SceneTree
 
+const AudioProbe = preload("res://ci/audio_probe.gd")
+
 var failures := 0
 
 func _initialize() -> void:
@@ -67,5 +69,8 @@ func run_tests() -> void:
 	verify(level.hero.position.x >= -4.71, "touch movement stays on bridge")
 	level.hero.apply_damage(10000)
 	verify(not level.running and level.hud.end_panel.visible, "hero death shows defeat")
+	level.sound.stop_all()
+	if not await AudioProbe.drain(self):
+		failures += 1
 	print("Launcher/control test failures: ", failures)
 	quit(1 if failures else 0)

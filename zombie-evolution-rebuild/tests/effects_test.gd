@@ -1,5 +1,7 @@
 extends SceneTree
 
+const AudioProbe = preload("res://ci/audio_probe.gd")
+
 const SoundScript = preload("res://scripts/level/sound_effects.gd")
 var failures := 0
 
@@ -36,7 +38,10 @@ func run_tests() -> void:
 	check(AudioServer.is_bus_mute(bus), "sound preference mutes effects bus")
 	preferences.sound_enabled = was_enabled
 	preferences.apply_settings()
+	level.sound.stop_all()
 	level.queue_free()
 	await process_frame
+	if not await AudioProbe.drain(self):
+		failures += 1
 	print("Effects test failures: ", failures)
 	quit(1 if failures else 0)
