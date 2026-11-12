@@ -1,12 +1,9 @@
 {
   "checks": 2321,
   "engine": "4.7.2-stable (official)",
-  "failures": [
-    "test_polish: groans give way to death cries",
-    "test_horde: a runner has 2 walks to choose from (got 4, expected 2)"
-  ],
+  "failures": [],
   "game": "LAST WALL: Zombie Siege",
-  "passed": false,
+  "passed": true,
   "scope": "Headless logic and scene integration on desktop; not an Android device run",
   "suites": {
     "test_aim": 46,
