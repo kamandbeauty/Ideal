@@ -134,7 +134,7 @@ func run(t: TestContext) -> void:
 				if box.position.x < margins.x - 0.5 or box.end.x > view.x - margins.y + 0.5 or box.position.y < 0.0 or box.end.y > view.y:
 					outside.append("%s %s" % [part[1], str(box)])
 			t.check(outside.is_empty(), "%s: every part of the HUD is on the screen and inside the margins (%s)" % [label, str(outside)])
-			var buttons: Array[HudWidgets.RoundButton] = [hud.fire_button, hud.reload_button, hud.grenade_button, hud.pause_button]
+			var buttons: Array[HudWidgets.RoundButton] = [hud.fire_button, hud.reload_button, hud.grenade_button, hud.pause_button, hud.zoom_button]
 			var apart: bool = true
 			for first: int in buttons.size():
 				for second: int in range(first + 1, buttons.size()):
@@ -144,6 +144,7 @@ func run(t: TestContext) -> void:
 			# The cards of the two weapons and the buttons are found by a touch at their middle.
 			var found: bool = hud.role_at(hud.fire_button.center()) == "fire" and hud.role_at(hud.reload_button.center()) == "reload" \
 				and hud.role_at(hud.grenade_button.center()) == "grenade" and hud.role_at(hud.pause_button.center()) == "pause" \
+				and hud.role_at(hud.zoom_button.center()) == "zoom" \
 				and hud.role_at(hud.weapon_slots[0].center()) == "weapon_0" and hud.role_at(hud.weapon_slots[1].center()) == "weapon_1" \
 				and hud.role_at(view * 0.5) == "aim"
 			t.check(found, "%s: every control is found where it is drawn" % label)
@@ -158,7 +159,26 @@ func run(t: TestContext) -> void:
 					if nearest.distance_to(at) < button.radius + 4.0:
 						clear = false
 			t.check(clear, "%s: the weapon cards are clear of each other and of the buttons" % label)
-		t.check(hud.fire_button.radius >= 80.0 and hud.reload_button.radius >= 40.0 and hud.grenade_button.radius >= 44.0 and hud.pause_button.radius >= 30.0,
+			# A threat arrow may come up at either edge, at either of its two heights: wherever it does, it and its
+			# caption stay off the thumb buttons, for a right hand and for a left.
+			for left_handed: bool in [false, true]:
+				Profile.set_setting("left_handed", left_handed)
+				await t.frames(2)
+				var covered: Array[String] = []
+				for side: float in [-1.0, 1.0]:
+					for placing: Array in [[hud.gate_arrow, hud.gate_arrow_label, Hud.GATE_ARROW_HEIGHT], [hud.wall_arrow, hud.wall_arrow_label, Hud.WALL_ARROW_HEIGHT]]:
+						hud._place_arrow(placing[0], placing[1], true, side, view, placing[2])
+						for box: Rect2 in [(placing[0] as Control).get_global_rect(), (placing[1] as Control).get_global_rect()]:
+							for button: HudWidgets.RoundButton in [hud.fire_button, hud.reload_button, hud.grenade_button, hud.pause_button, hud.zoom_button]:
+								var at: Vector2 = button.center()
+								var nearest := Vector2(clampf(at.x, box.position.x, box.end.x), clampf(at.y, box.position.y, box.end.y))
+								if nearest.distance_to(at) < button.radius + 2.0:
+									covered.append("%s on %s" % [str(box), button.kind])
+				t.check(covered.is_empty(), "%s, %s hand: no threat arrow or caption lies on a thumb button (%s)" % [label, "left" if left_handed else "right", str(covered)])
+			Profile.set_setting("left_handed", false)
+			await t.frames(2)
+		t.check(hud.fire_button.radius >= 80.0 and hud.reload_button.radius >= 40.0 and hud.grenade_button.radius >= 44.0 and hud.pause_button.radius >= 30.0
+			and hud.zoom_button.radius >= 44.0,
 			"%s: the buttons keep their size" % shape[1])
 		t.check(hud.weapon_slots[0].size.y >= 76.0 and hud.weapon_slots[0].size.x >= 150.0, "%s: a weapon card is a thumb wide and high" % shape[1])
 		t.check(hud.crosshair.get_global_rect().get_center().is_equal_approx(view * 0.5), "%s: the sight is in the middle of the screen" % shape[1])
@@ -260,6 +280,48 @@ func run(t: TestContext) -> void:
 				t.check(_overlaps(pressables).is_empty(), "%s: no two controls overlap" % label)
 				t.equal(menus.holder.layout_direction, Control.LAYOUT_DIRECTION_RTL if language == "fa" else Control.LAYOUT_DIRECTION_LTR,
 					"%s: laid out in the reading direction" % label)
+
+	# The title screen in detail: the title at the reading edge, the card of the coming battle at the other,
+	# with the gun between them; a player with a career has two more lines under the title.
+	for career: bool in [false, true]:
+		Profile.data.stats.matches = 12 if career else 0
+		Profile.data.stats.victories = 7 if career else 0
+		Profile.data.stats.kills = 23456 if career else 0
+		Profile.data.stats.best_wave = 8 if career else 0
+		Profile.data.stats.stages_cleared = 3 if career else 0
+		for shape: Array in SHAPES:
+			root.size = shape[0]
+			await t.frames(2)
+			var view: Vector2 = menus.get_viewport().get_visible_rect().size
+			var margins: Vector2 = Hud.margins_for(view, Vector2.ZERO)
+			for language: String in Profile.LANGUAGES:
+				Profile.set_setting("language", language)
+				for gun: String in Profile.GUNS:
+					Profile.set_setting("gun", gun)
+					menus.show_main()
+					await t.frames(2)
+					var label: String = "%s, %s, %s%s" % [shape[1], language, gun, ", with a career" if career else ""]
+					var title: Control = menus.stage_brief
+					var card: Control = menus.stage_brief.get_parent().get_parent()
+					var column: Control = null
+					for control: Control in _visible_controls(menus.holder):
+						if control is Label and (control as Label).text == Loc.t("title"):
+							column = control.get_parent()
+					t.check(column != null and card is PanelContainer and title != null, "%s: the title screen has its title and its card" % label)
+					var title_box: Rect2 = column.get_global_rect()
+					var card_box: Rect2 = card.get_global_rect()
+					t.check(_strays(menus, Rect2(margins.x, 0.0, view.x - margins.x - margins.y, view.y)).is_empty(), "%s: every text and control is on the screen, inside the margins" % label)
+					t.check(Rect2(Vector2.ZERO, view).encloses(card_box) and Rect2(Vector2.ZERO, view).encloses(title_box), "%s: so are the two blocks themselves" % label)
+					var gap: float = (title_box.position.x - card_box.end.x) if language == "fa" else (card_box.position.x - title_box.end.x)
+					t.check(gap >= 200.0, "%s: the title stands at the reading edge and the card at the other, with the street between (%.0f units)" % [label, gap])
+					t.check(card_box.end.y <= view.y * 0.76, "%s: the card ends above the gun (at %.0f of %.0f)" % [label, card_box.end.y, view.y])
+					t.check(menus.gun_note.get_line_count() <= 2, "%s: the line about the gun fits the two lines kept for it" % label)
+					var cut: Array[String] = []
+					for button: Button in menus.stage_choices.buttons + menus.gun_choices.buttons:
+						if button.get_minimum_size().x > button.size.x + 0.5:
+							cut.append(button.text)
+					t.check(cut.is_empty(), "%s: every name on a choice fits its button (%s)" % [label, str(cut)])
+	Profile.reset()
 
 	# The settings screen in detail (16:9, Persian).
 	root.size = Vector2i(1440, 810)

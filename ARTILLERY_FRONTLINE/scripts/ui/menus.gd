@@ -111,6 +111,7 @@ func is_open() -> bool:
 
 func _clear() -> void:
 	armed = null
+	stage_brief = null
 	stage_choices = null
 	gun_choices = null
 	gun_note = null
@@ -400,7 +401,7 @@ func _build_result() -> void:
 		story = Loc.t("stage_won_text")
 	column.add_child(_heading(title, 60, color))
 	if not result_victory and int(result_stats.get("wave", 0)) > 0:
-		story += "  " + Loc.t("fell_in_wave", [int(result_stats.wave)])
+		story += "  " + Loc.t("fell_in_wave", [int(result_stats.get("stage", 0)) + 1, int(result_stats.wave)])
 	column.add_child(_text(story, 24, UITheme.TEXT))
 	if result_record:
 		column.add_child(_heading(Loc.t("new_record"), 24, UITheme.AMBER))
