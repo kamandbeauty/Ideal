@@ -42,9 +42,19 @@ Godot Engine 4.7.2, MIT licence. The exported game includes the engine and
 its third-party components under their own licences, as listed in Godot's
 `COPYRIGHT.txt`.
 
+## Free zombie characters
+
+| Asset | Origin | Notes |
+| --- | --- | --- |
+| `assets/models/zombies/zombie_bloat.glb` | `13899_open3dmodel.zip` (Bloat_Summer, free personal-use character from Open3DModel) | Skinned to the shared 18-bone skeleton and mixed into walker, runner and brute spawns. The fat figure has more health than the type's own look. |
+
+The other two root archives (`27189_open3dmodel.rar`, `28069_open3dmodel.rar`)
+are also free character packs, but they only contain 3ds Max scenes, which
+the game cannot load. They stay in the repository root as source.
+
 ## Reference material in the repository root
 
-The screenshots, the `.max` file, the `.dds` files and the three zombie
-character archives in the repository root (`13899_open3dmodel.zip`,
-`27189_open3dmodel.rar`, `28069_open3dmodel.rar`) were supplied as
-reference for the project. The game does not load, convert or ship them.
+The screenshots, the `.max` file, the `.dds` files and the character
+archives in the repository root were supplied for the project. The game
+does not load those files at run time; the bloat mesh is the converted
+copy under `assets/models/zombies/`.

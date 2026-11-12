@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="ZombieData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ZombieData" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/zombies/zombie_data.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/zombies/zombie_brute.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://assets/models/zombies/zombie_bloat.glb" id="3"]
 
 [resource]
 script = ExtResource("1")
@@ -9,11 +10,14 @@ id = &"brute"
 name_key = "zombie_brute"
 scene = ExtResource("2")
 skins = 2
+extra_looks = Array[PackedScene]([ExtResource("3")])
+extra_look_health = PackedFloat32Array(1.45)
+extra_look_scale = PackedFloat32Array(1.08)
 prewarm = 4
 is_boss = false
 max_health = 520.0
-scale_min = 0.97
-scale_max = 1.04
+scale_min = 1.24
+scale_max = 1.34
 head_damage_scale = 1.0
 blast_damage_scale = 1.0
 speed = 1.2

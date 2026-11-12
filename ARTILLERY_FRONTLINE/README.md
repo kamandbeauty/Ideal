@@ -54,6 +54,11 @@ move the rest. Health and speed rise a little with every wave, each wave
 that brings something new says so under its banner, and the Behemoth has its
 own health bar.
 
+Each walker, runner or brute is one of the original figures or the free
+bloat character, picked at random when it spawns. The bloat is the fatter
+monster: it takes a bit more killing than the rest of its type. The whole
+horde is scaled up so the figures read against the wall from the bastion.
+
 None of them walks sound. Every kind drags a leg: one foot takes the weight
 and the other is hauled after it, with the trunk pitching over the good side.
 Each model brings that walk lame in the left leg and lame in the right (the

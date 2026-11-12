@@ -18,6 +18,7 @@ func run(t: TestContext) -> void:
 			"%s numbers are positive" % id)
 		t.check(data.attack_hit_point > 0.0 and data.attack_hit_point < 1.0, "%s lands its blow inside the swing" % id)
 		t.check(data.scale_min <= data.scale_max, "%s scale range is ordered" % id)
+		t.check(data.scale_min >= 1.1, "%s is large enough to read against the wall" % id)
 		t.check(data.prewarm >= 1, "%s is built before the match" % id)
 		var pace: float = data.speed / data.stride_speed
 		t.check(pace > 0.6 and pace < 1.6, "%s walks at a pace its legs can show (clip rate %.2f)" % [id, pace])
@@ -88,6 +89,11 @@ func run(t: TestContext) -> void:
 	t.check(boss.spawn_sound != "" and boss.death_sound != "", "it announces itself and dies loudly")
 	t.check(boss.height() > brute.height() and brute.height() > walker.height() and walker.height() > runner.height() * 0.95,
 		"sizes are ordered: boss, brute, walker and runner")
+	t.check(walker.extra_looks.size() >= 1 and runner.extra_looks.size() >= 1 and brute.extra_looks.size() >= 1,
+		"walkers, runners and brutes mix in the free character meshes")
+	t.check(walker.extra_look_health.size() >= 1 and walker.extra_look_health[0] > 1.2 and walker.extra_look_health[0] < 1.8,
+		"the extra monster look has a bit more health than the type's own figure")
+	t.check(boss.extra_looks.is_empty(), "the Behemoth keeps its own figure")
 
 	# Against the weapons.
 	var gun: WeaponData = load("res://resources/weapons/twin_hmg.tres")

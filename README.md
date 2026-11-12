@@ -39,7 +39,8 @@ desktop. The first device test is the next step; the Phase 5 and Phase 6
 reports list what to look at. See the project README for details and the
 roadmap.
 
-The image files, the `.max`/`.dds` files, and the zombie character
-archives in this folder (`13899_open3dmodel.zip`, `27189_open3dmodel.rar`,
-`28069_open3dmodel.rar`) are reference material supplied for the project.
-The game does not load, convert or ship them.
+The image files, the `.max`/`.dds` files, and the character archives in
+this folder are source material. The free bloat character from
+`13899_open3dmodel.zip` is converted into the horde
+(`ARTILLERY_FRONTLINE/assets/models/zombies/zombie_bloat.glb`) and mixed
+in at random with the original figures.

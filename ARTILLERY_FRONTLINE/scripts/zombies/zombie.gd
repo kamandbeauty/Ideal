@@ -56,26 +56,73 @@ var body_mesh: MeshInstance3D
 var body_area: Area3D
 var head_area: Area3D
 var blows: int = 0
+## Own model plus any extra character meshes this type mixes in.
+var looks: Array[Node3D] = []
+var look_anims: Array = []
+var look_skeletons: Array = []
+var look_meshes: Array = []
+var head_areas: Array[Area3D] = []
+var look_index: int = 0
 
 
 func _ready() -> void:
 	model = get_node_or_null("Model")
-	anim = find_child("AnimationPlayer", true, false)
-	skeleton = find_child("Skeleton3D", true, false)
-	for node: Node in find_children("*", "MeshInstance3D", true, false):
-		body_mesh = node
-		break
+	looks.clear()
+	if model:
+		looks.append(model)
+	if data:
+		for packed: PackedScene in data.extra_looks:
+			if packed == null:
+				continue
+			var extra: Node3D = packed.instantiate()
+			extra.visible = false
+			extra.name = "Look%d" % looks.size()
+			add_child(extra)
+			looks.append(extra)
+	look_anims.clear()
+	look_skeletons.clear()
+	look_meshes.clear()
+	for look: Node3D in looks:
+		var player: AnimationPlayer = look.find_child("AnimationPlayer", true, false)
+		var skel: Skeleton3D = look.find_child("Skeleton3D", true, false)
+		var mesh: MeshInstance3D = null
+		for node: Node in look.find_children("*", "MeshInstance3D", true, false):
+			mesh = node
+			break
+		look_anims.append(player)
+		look_skeletons.append(skel)
+		look_meshes.append(mesh)
+		if player:
+			for clip: String in player.get_animation_list():
+				if clip.begins_with("walk") or clip in LOOPING:
+					if player.has_animation(clip):
+						player.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
+			player.playback_default_blend_time = 0.18
+	_use_look(0)
+	_build_hit_volumes()
+	_sleep()
+
+
+func _use_look(index: int) -> void:
+	if looks.is_empty():
+		return
+	if anim:
+		anim.stop()
+		current_clip = ""
+	look_index = clampi(index, 0, looks.size() - 1)
+	for i: int in looks.size():
+		looks[i].visible = i == look_index
+	model = looks[look_index]
+	anim = look_anims[look_index]
+	skeleton = look_skeletons[look_index]
+	body_mesh = look_meshes[look_index]
+	head_area = head_areas[look_index] if look_index < head_areas.size() else head_area
+	walk_clips.clear()
 	if anim:
 		for clip: String in anim.get_animation_list():
 			if clip.begins_with("walk"):
 				walk_clips.append(clip)
 		walk_clips.sort()
-		for clip: String in LOOPING + walk_clips:
-			if anim.has_animation(clip):
-				anim.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
-		anim.playback_default_blend_time = 0.18
-	_build_hit_volumes()
-	_sleep()
 
 
 func _build_hit_volumes() -> void:
@@ -94,25 +141,32 @@ func _build_hit_volumes() -> void:
 	body_shape.rotation.x = lean
 	body_area.add_child(body_shape)
 	add_child(body_area)
-	head_area = _area("Head", true)
-	var sphere := SphereShape3D.new()
-	sphere.radius = head_radius
-	var head_shape := CollisionShape3D.new()
-	head_shape.shape = sphere
-	# The skull sits half a radius above the joint that carries it.
-	head_shape.position = Vector3(0.0, head_radius * 0.5, head_radius * 0.15)
-	head_area.add_child(head_shape)
-	var bone: int = skeleton.find_bone("Head") if skeleton else -1
-	if bone >= 0:
-		# Ride the head bone so a lunging or falling zombie keeps an honest head box.
-		var attachment := BoneAttachment3D.new()
-		attachment.name = "HeadSocket"
-		skeleton.add_child(attachment)
-		attachment.bone_name = "Head"
-		attachment.add_child(head_area)
-	else:
-		head_area.position = Vector3(0.0, height + head_radius * 0.5, sin(lean) * height * 0.8)
-		add_child(head_area)
+	head_areas.clear()
+	var hosts: Array = looks if not looks.is_empty() else [self]
+	for i: int in hosts.size():
+		var host: Node = hosts[i]
+		var skel: Skeleton3D = look_skeletons[i] if i < look_skeletons.size() else skeleton
+		var head: Area3D = _area("Head", true)
+		var sphere := SphereShape3D.new()
+		sphere.radius = head_radius
+		var head_shape := CollisionShape3D.new()
+		head_shape.shape = sphere
+		# The skull sits half a radius above the joint that carries it.
+		head_shape.position = Vector3(0.0, head_radius * 0.5, head_radius * 0.15)
+		head.add_child(head_shape)
+		var bone: int = skel.find_bone("Head") if skel else -1
+		if bone >= 0:
+			# Ride the head bone so a lunging or falling zombie keeps an honest head box.
+			var attachment := BoneAttachment3D.new()
+			attachment.name = "HeadSocket"
+			skel.add_child(attachment)
+			attachment.bone_name = "Head"
+			attachment.add_child(head)
+		else:
+			head.position = Vector3(0.0, height + head_radius * 0.5, sin(lean) * height * 0.8)
+			host.add_child(head)
+		head_areas.append(head)
+	head_area = head_areas[look_index] if look_index < head_areas.size() else head_areas[0]
 
 
 func _area(area_name: String, head: bool) -> Area3D:
@@ -134,7 +188,10 @@ func hit_rids() -> Array[RID]:
 
 func _set_hittable(enabled: bool) -> void:
 	body_area.collision_layer = Layers.ZOMBIE_BODY if enabled else 0
-	head_area.collision_layer = Layers.ZOMBIE_HEAD if enabled else 0
+	for i: int in head_areas.size():
+		head_areas[i].collision_layer = Layers.ZOMBIE_HEAD if enabled and i == look_index else 0
+	if head_areas.is_empty() and head_area:
+		head_area.collision_layer = Layers.ZOMBIE_HEAD if enabled else 0
 
 
 func _sleep() -> void:
@@ -159,7 +216,17 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	target = wanted
 	side = lane_side
 	lateral = lane
-	health = data.max_health * health_scale
+	var chosen: int = rng.randi() % maxi(looks.size(), 1)
+	_use_look(chosen)
+	var health_mul: float = 1.0
+	var size_mul: float = 1.0
+	if chosen > 0:
+		var extra: int = chosen - 1
+		if extra < data.extra_look_health.size() and data.extra_look_health[extra] > 0.0:
+			health_mul = data.extra_look_health[extra]
+		if extra < data.extra_look_scale.size() and data.extra_look_scale[extra] > 0.0:
+			size_mul = data.extra_look_scale[extra]
+	health = data.max_health * health_scale * health_mul
 	full_health = health
 	speed = data.speed * speed_scale * (1.0 + rng.randf_range(-data.speed_variance, data.speed_variance))
 	alive = true
@@ -172,14 +239,17 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	retry_left = rng.randf_range(0.2, 0.8)
 	blows = 0
 	_settle_rock()
-	scale = Vector3.ONE * rng.randf_range(data.scale_min, data.scale_max)
+	scale = Vector3.ONE * rng.randf_range(data.scale_min, data.scale_max) * size_mul
 	position = path[0] if path.size() > 0 else Vector3.ZERO
 	if path.size() > 1:
 		var ahead: Vector3 = path[1] - path[0]
 		facing_goal = atan2(ahead.x, ahead.z)
 		rotation = Vector3(0.0, facing_goal, 0.0)
 	if body_mesh:
-		body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % data.skins)
+		if chosen == 0:
+			body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % data.skins)
+		else:
+			body_mesh.material_override = null
 	visible = true
 	_set_hittable(true)
 	# No two in a crowd need limp alike: each takes one of the walks its model has, at its own point in the stride.
