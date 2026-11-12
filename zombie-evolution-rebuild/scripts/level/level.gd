@@ -118,7 +118,8 @@ func formation_position(index: int, total: int) -> Vector3:
 	var row: int = index / 4
 	var count: int = mini(4, total - row * 4)
 	var center := clampf(hero.position.x, -3.0, 3.0)
-	return Vector3(center + (float(column) - (count - 1) * 0.5) * 1.35, 0.05, hero.position.z - 2.0 - row * 1.8)
+	var center_stagger := 1.2 if count % 2 == 1 and column == count / 2 else 0.0
+	return Vector3(center + (float(column) - (count - 1) * 0.5) * 1.35, 0.05, hero.position.z - 2.6 - row * 1.8 - center_stagger)
 
 func update_squad(delta: float) -> void:
 	for i in range(soldiers.size()):

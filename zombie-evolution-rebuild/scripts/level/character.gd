@@ -24,7 +24,7 @@ var gun_recoil := 0.0
 # Experimental user-provided static meshes; collision and combat stay procedural.
 const MODEL_CONFIG := {
 	"hero": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
-	"soldier": ["res://assets/models/soldier-quaternius.glb", 1.0, 0.0, PI],
+	"soldier": ["res://assets/models/soldier-quaternius.glb", 1.0, 0.0, 0.0],
 	"zombie": ["res://assets/models/zombie-13899.glb", 0.0142, 0.020, PI],
 	"runner": ["res://assets/models/zombie-28069.glb", 0.0644, -0.406, PI],
 	"brute": ["res://assets/models/zombie-27189.glb", 0.0263, 0.001, PI],
