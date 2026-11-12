@@ -28,6 +28,7 @@ func run_tests() -> void:
 	check(level.sound.voices[slot].stream == SoundScript.EFFECTS["rifle"], "firing selects rifle effect")
 	level.hero.show_shot()
 	check(level.hero.muzzle_flash.visible, "shot shows muzzle flash")
+	check(level.hero.muzzle_flash.mesh is QuadMesh and level.hero.muzzle_flash.material_override.albedo_texture is Texture2D, "muzzle flash uses the imported starburst texture")
 	level.hero.update_animation(0.2, false)
 	check(not level.hero.muzzle_flash.visible, "muzzle flash expires")
 	var bus := AudioServer.get_bus_index("Master")

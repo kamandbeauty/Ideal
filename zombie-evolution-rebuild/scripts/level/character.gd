@@ -9,6 +9,7 @@ var speed := 2.0
 var attack_timer := 0.0
 var fire_timer := 0.0
 var run_clock := 0.0
+var gait_blend := 0.0
 var left_leg: Node3D
 var right_leg: Node3D
 var weapon: Node3D
@@ -129,17 +130,18 @@ func create_weapon() -> void:
 		rifle.position = Vector3(0, -0.12, -0.30)
 		weapon.add_child(rifle)
 	muzzle_flash = MeshInstance3D.new()
-	var flash_mesh := SphereMesh.new()
-	flash_mesh.radius = 0.15
-	flash_mesh.height = 0.3
-	flash_mesh.radial_segments = 8
-	flash_mesh.rings = 4
+	var flash_mesh := QuadMesh.new()
+	flash_mesh.size = Vector2(0.7, 0.7)
 	muzzle_flash.mesh = flash_mesh
 	var glow := StandardMaterial3D.new()
-	glow.albedo_color = Color(1.0, 0.72, 0.25)
+	glow.albedo_color = Color(1.0, 0.86, 0.62)
+	glow.albedo_texture = preload("res://assets/effects/muzzle_star.png")
+	glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	glow.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	glow.cull_mode = BaseMaterial3D.CULL_DISABLED
 	glow.emission_enabled = true
-	glow.emission = Color(1.0, 0.40, 0.04)
+	glow.emission = Color(1.0, 0.4, 0.05)
 	muzzle_flash.material_override = glow
 	muzzle_flash.position.z = 0.58
 	muzzle_flash.visible = false
@@ -175,7 +177,10 @@ func add_part(parent: Node3D, pos: Vector3, size: Vector3, color: Color) -> Mesh
 	return node
 
 func update_animation(delta: float, moving: bool) -> void:
-	run_clock += delta
+	var planar_speed := Vector2(velocity.x, velocity.z).length()
+	var speed_factor := clampf(planar_speed / 2.6, 0.0, 1.8) if moving else 0.0
+	run_clock += delta * speed_factor
+	gait_blend = move_toward(gait_blend, 1.0 if moving else 0.0, delta * 6.0)
 	if not dead:
 		hit_reaction_time = maxf(0.0, hit_reaction_time - delta)
 	if visual_root and not dead:
@@ -185,7 +190,7 @@ func update_animation(delta: float, moving: bool) -> void:
 		if role != "soldier":
 			visual_root.position.y = absf(sin(run_clock * 7)) * 0.035 if moving else 0.0
 	if rig and role == "hero":
-		var stride := sin(run_clock * 9.0) * 0.55 if moving else 0.0
+		var stride := sin(run_clock * 9.0) * 0.55 * gait_blend
 		pose_bone("LegRight", Quaternion(Vector3.RIGHT, stride))
 		pose_bone("LegLeft", Quaternion(Vector3.RIGHT, -stride))
 		# Bring the static outstretched arms forward into a two-handed aiming pose.

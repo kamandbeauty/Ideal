@@ -35,19 +35,33 @@ func make_gate(side: int, caption: String, color: Color) -> void:
 	edge.emission_enabled = true
 	edge.emission = color * 0.22
 	for x in [-2.82, 2.82]:
-		gate_part(panel, Vector3(x, 2.28, 0), Vector3(0.10, 3.55, 0.42), edge)
+		gate_rail(panel, Vector3(x, 2.28, -0.04), 3.55, false, edge)
 	for y in [0.53, 4.03]:
-		gate_part(panel, Vector3(0, y, 0), Vector3(5.70, 0.10, 0.42), edge)
+		gate_rail(panel, Vector3(0, y, -0.04), 5.70, true, edge)
 	var text := Label3D.new()
 	text.font = FONT
 	text.text = caption
-	text.font_size = 96
+	text.font_size = 120
 	text.pixel_size = 0.012
 	text.outline_size = 10
 	text.outline_modulate = Color(0.02, 0.03, 0.06, 0.98)
 	text.position = Vector3(0, 2.8, -0.24)
 	text.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	panel.add_child(text)
+
+func gate_rail(parent: Node3D, pos: Vector3, length: float, horizontal: bool, material: Material) -> void:
+	var rail := MeshInstance3D.new()
+	var mesh := CapsuleMesh.new()
+	mesh.radius = 0.16
+	mesh.height = length
+	mesh.radial_segments = 12
+	mesh.rings = 6
+	rail.mesh = mesh
+	rail.material_override = material
+	rail.position = pos
+	if horizontal:
+		rail.rotation.z = PI / 2.0
+	parent.add_child(rail)
 
 func gate_part(parent: Node3D, pos: Vector3, size: Vector3, material: Material) -> void:
 	var part := MeshInstance3D.new()
