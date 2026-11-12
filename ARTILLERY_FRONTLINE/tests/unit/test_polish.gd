@@ -44,6 +44,12 @@ func _tiers(t: TestContext) -> void:
 	t.check(low.corpses < medium.corpses and medium.corpses < high.corpses, "and keeps more bodies on the ground")
 	t.equal(Graphics.resolve_tier("low"), "low", "a chosen tier is used as it is")
 	t.check(Graphics.TIERS.has(Graphics.resolve_tier("auto")), "\"auto\" resolves to a real tier")
+	var viewport: Viewport = Graphics.get_viewport()
+	if viewport:
+		var buffer: float = viewport.scaling_3d_scale
+		Graphics.apply_tier("low")
+		Graphics.apply_tier("high")
+		t.near(viewport.scaling_3d_scale, buffer, 0.0001, "changing quality does not rebuild the 3D buffer")
 	_governor(t)
 
 

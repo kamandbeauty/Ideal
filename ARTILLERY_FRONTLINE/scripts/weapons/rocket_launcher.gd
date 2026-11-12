@@ -27,6 +27,7 @@ func _build() -> void:
 		warhead_rest = warhead.position
 	if muzzle:
 		_build_flash()
+	_enrich_surfaces(holder)
 	rest = Transform3D(Basis.from_euler(Vector3(deg_to_rad(REST_ANGLES.x), deg_to_rad(REST_ANGLES.y), deg_to_rad(REST_ANGLES.z))),
 		REST_POSITION)
 

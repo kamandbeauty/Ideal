@@ -63,6 +63,10 @@ var look_skeletons: Array = []
 var look_meshes: Array = []
 var head_areas: Array[Area3D] = []
 var look_index: int = 0
+## Extra lean this figure was born with, in radians, so a crowd does not stand alike.
+var gait_lean := Vector3.ZERO
+## Playback of the walk, on top of speed / stride_speed.
+var gait_rate: float = 1.0
 
 
 func _ready() -> void:
@@ -120,9 +124,14 @@ func _use_look(index: int) -> void:
 	walk_clips.clear()
 	if anim:
 		for clip: String in anim.get_animation_list():
-			if clip.begins_with("walk"):
+			if _walk_name(clip).begins_with("walk"):
 				walk_clips.append(clip)
 		walk_clips.sort()
+
+
+func _walk_name(clip: String) -> String:
+	var slash: int = clip.rfind("/")
+	return clip.substr(slash + 1) if slash >= 0 else clip
 
 
 func _build_hit_volumes() -> void:
@@ -239,7 +248,11 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	retry_left = rng.randf_range(0.2, 0.8)
 	blows = 0
 	_settle_rock()
-	scale = Vector3.ONE * rng.randf_range(data.scale_min, data.scale_max) * size_mul
+	var bulk: float = rng.randf_range(data.scale_min, data.scale_max) * size_mul
+	scale = Vector3(bulk * rng.randf_range(0.93, 1.07), bulk * rng.randf_range(0.90, 1.12), bulk)
+	gait_lean = Vector3(rng.randf_range(-0.03, 0.14), rng.randf_range(-0.05, 0.05), rng.randf_range(-0.10, 0.10))
+	gait_rate = rng.randf_range(0.92, 1.08)
+	_apply_rock()
 	position = path[0] if path.size() > 0 else Vector3.ZERO
 	if path.size() > 1:
 		var ahead: Vector3 = path[1] - path[0]
@@ -252,11 +265,28 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 			body_mesh.material_override = null
 	visible = true
 	_set_hittable(true)
-	# No two in a crowd need limp alike: each takes one of the walks its model has, at its own point in the stride.
-	walk_clip = walk_clips[rng.randi() % walk_clips.size()] if not walk_clips.is_empty() else "walk"
-	_play(walk_clip, speed / data.stride_speed, 0.0)
+	# Each life picks a limp (which leg, and how broken) and a point in the stride, so a crowd does not march.
+	walk_clip = _pick_walk(rng)
+	_play(walk_clip, speed / data.stride_speed * gait_rate, 0.0)
 	if anim and anim.has_animation(walk_clip):
 		anim.seek(rng.randf() * anim.get_animation(walk_clip).length, true)
+		anim.advance(0.0)
+
+
+func _pick_walk(rng: RandomNumberGenerator) -> String:
+	if walk_clips.is_empty():
+		return "walk"
+	var broken: Array[String] = []
+	var regular: Array[String] = []
+	for clip: String in walk_clips:
+		if _walk_name(clip).begins_with("walk_b"):
+			broken.append(clip)
+		else:
+			regular.append(clip)
+	var pool: Array[String] = broken if not broken.is_empty() and rng.randf() < 0.5 else regular
+	if pool.is_empty():
+		pool = walk_clips
+	return pool[rng.randi() % pool.size()]
 
 
 func _play(clip: String, rate: float = 1.0, blend: float = -1.0) -> void:
@@ -285,7 +315,7 @@ func fall_back(point: Vector3) -> void:
 	court_index = 0
 	state = State.ADVANCE
 	retry_left = 0.3
-	_play(walk_clip, speed / data.stride_speed)
+	_play(walk_clip, speed / data.stride_speed * gait_rate)
 
 
 ## Sends the zombie to a (new) standing place.
@@ -298,7 +328,7 @@ func assign_slot(claimed: AttackLines.Slot) -> void:
 		path_index = 1
 		court_index = 0
 		state = State.ADVANCE
-		_play(walk_clip, speed / data.stride_speed)
+		_play(walk_clip, speed / data.stride_speed * gait_rate)
 	elif path.size() > 0:
 		path[path.size() - 1] = claimed.position
 
@@ -318,7 +348,7 @@ func enter_breach(route: PackedVector3Array) -> void:
 	path_index = 1
 	court_index = 0
 	state = State.BREACH
-	_play(walk_clip, speed * 1.25 / data.stride_speed)
+	_play(walk_clip, speed * 1.25 / data.stride_speed * gait_rate)
 
 
 func tick(delta: float) -> void:
@@ -442,9 +472,9 @@ func _swing(delta: float) -> void:
 func _resume_clip() -> void:
 	match state:
 		State.ADVANCE:
-			_play(walk_clip, speed / data.stride_speed)
+			_play(walk_clip, speed / data.stride_speed * gait_rate)
 		State.BREACH:
-			_play(walk_clip, speed * 1.25 / data.stride_speed)
+			_play(walk_clip, speed * 1.25 / data.stride_speed * gait_rate)
 		State.ATTACK:
 			_play_attack()
 		State.WAIT:
@@ -514,13 +544,13 @@ func _rock(direction: Vector3, weight: float) -> void:
 
 func _apply_rock() -> void:
 	if model:
-		model.rotation = Vector3(deg_to_rad(rock.x), 0.0, deg_to_rad(rock.y))
+		model.rotation = gait_lean + Vector3(deg_to_rad(rock.x), 0.0, deg_to_rad(rock.y))
 
 
 func _settle_rock() -> void:
 	rock = Vector2.ZERO
 	if model:
-		model.rotation = Vector3.ZERO
+		model.rotation = gait_lean
 
 
 ## Where the body lies once it has fallen: on the ground, between the feet and the head.

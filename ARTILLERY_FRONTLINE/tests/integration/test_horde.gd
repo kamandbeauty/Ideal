@@ -76,6 +76,13 @@ func run(t: TestContext) -> void:
 			overflow += 1
 	t.equal(at_gate, columns * 2, "the gate takes two full rows")
 	t.equal(overflow, 2, "the rest take places on the wall beside it")
+	var gaits: Dictionary = {}
+	var leans: Dictionary = {}
+	for member: Zombie in squad:
+		gaits[member.walk_clip] = true
+		leans["%.2f" % member.gait_lean.x] = true
+	t.check(gaits.size() >= 2, "walkers in a crowd do not all limp the same way (%s)" % str(gaits.keys()))
+	t.check(leans.size() >= 2, "and they do not all lean the same")
 	_until(t, level, 200.0, func() -> bool:
 		for member: Zombie in squad:
 			if member.state == Zombie.State.ADVANCE:

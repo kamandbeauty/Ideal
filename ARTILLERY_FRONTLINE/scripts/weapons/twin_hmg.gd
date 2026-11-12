@@ -75,6 +75,23 @@ func _build() -> void:
 	light.light_specular = 0.1
 	light.visible = lights_on
 	pivot.add_child(light)
+	_enrich_surfaces(model)
+	_dress_twin()
+
+
+func _dress_twin() -> void:
+	# Hardware the gunner sees: a sight ladder on the receiver, cooling slots
+	# along each jacket, and a blade at each muzzle.
+	var steel := Color(0.07, 0.075, 0.08)
+	var dark := Color(0.03, 0.032, 0.034)
+	_kit_box(pivot, Vector3(0.0, 0.11, 0.42), Vector3(0.034, 0.012, 0.55), steel)
+	_kit_box(pivot, Vector3(0.0, 0.145, 0.62), Vector3(0.046, 0.018, 0.046), steel)
+	_kit_box(pivot, Vector3(0.0, 0.168, 0.62), Vector3(0.01, 0.04, 0.012), dark, 0.4, 0.7)
+	for recoiler: Node3D in recoilers:
+		for i: int in 7:
+			var z: float = 0.35 + float(i) * 0.16
+			_kit_box(recoiler, Vector3(0.0, 0.028, z), Vector3(0.055, 0.006, 0.028), dark, 0.2, 0.85)
+		_kit_box(recoiler, Vector3(0.0, 0.04, 1.55), Vector3(0.012, 0.05, 0.014), steel)
 
 
 func _build_flash(muzzle: Node3D) -> void:

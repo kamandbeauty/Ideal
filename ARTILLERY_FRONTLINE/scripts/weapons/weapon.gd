@@ -46,6 +46,60 @@ func _build() -> void:
 	pass
 
 
+## Sharpens the gun metal so the kit reads as machined steel, not a smooth toy.
+func _enrich_surfaces(root: Node) -> void:
+	if root == null:
+		return
+	for node: Node in root.find_children("*", "MeshInstance3D", true, false):
+		var mesh: MeshInstance3D = node
+		if mesh.mesh == null:
+			continue
+		for index: int in mesh.mesh.get_surface_count():
+			var source: Material = mesh.get_active_material(index)
+			if source == null or not (source is StandardMaterial3D):
+				continue
+			var dressed: StandardMaterial3D = (source as StandardMaterial3D).duplicate()
+			var n: String = dressed.resource_name.to_lower()
+			if n.contains("bore") or n.contains("black"):
+				dressed.albedo_color = Color(0.015, 0.016, 0.018)
+				dressed.roughness = 0.92
+				dressed.metallic = 0.15
+			elif n.contains("olive"):
+				dressed.albedo_color = Color(0.12, 0.14, 0.09)
+				dressed.roughness = 0.58
+				dressed.metallic = 0.22
+			elif n.contains("grip") or n.contains("wood"):
+				dressed.roughness = 0.94
+				dressed.metallic = 0.0
+			elif n.contains("brass"):
+				dressed.albedo_color = Color(0.62, 0.48, 0.18)
+				dressed.metallic = 0.85
+				dressed.roughness = 0.38
+			else:
+				dressed.metallic = maxf(dressed.metallic, 0.84)
+				dressed.roughness = clampf(dressed.roughness * 0.7, 0.26, 0.5)
+				dressed.metallic_specular = 0.72
+			dressed.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+			mesh.set_surface_override_material(index, dressed)
+
+
+func _kit_box(parent: Node3D, at: Vector3, size: Vector3, color: Color, metal: float = 0.85, rough: float = 0.4) -> MeshInstance3D:
+	var box := BoxMesh.new()
+	box.size = size
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.metallic = metal
+	mat.roughness = rough
+	mat.metallic_specular = 0.65
+	box.material = mat
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = box
+	mesh.position = at
+	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mesh)
+	return mesh
+
+
 ## Places the model for the current readiness, recoil and reload.
 func _pose() -> void:
 	pass

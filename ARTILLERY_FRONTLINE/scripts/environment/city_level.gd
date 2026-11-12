@@ -350,7 +350,8 @@ func apply_quality(_tier: String, settings: Dictionary) -> void:
 		sun.shadow_enabled = settings.shadows
 		sun.directional_shadow_max_distance = settings.shadow_distance
 	if environment:
-		environment.glow_enabled = settings.glow
+		# Turning glow on at runtime on the mobile renderer tears or blacks the picture.
+		environment.glow_enabled = false
 	for index: int in fire_nodes.size():
 		fire_nodes[index].visible = index < int(settings.fires)
 	if ash:

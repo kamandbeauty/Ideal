@@ -61,6 +61,9 @@ var tier_locked: bool = false
 ## How often the governor has acted since the quality setting last changed; tests read these.
 var scale_changes: int = 0
 var tier_changes: int = 0
+## The 3D buffer has been sized once. Changing scale or MSAA again on the mobile
+## renderer rebuilds it wrong (stretched, black or torn picture).
+var viewport_committed: bool = false
 
 
 func _ready() -> void:
@@ -132,14 +135,29 @@ func apply_tier(value: String) -> void:
 	tier = value
 	var settings: Dictionary = profile()
 	render_scale = settings.scale
-	var viewport: Viewport = get_viewport()
-	if viewport:
-		viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
-		viewport.scaling_3d_scale = render_scale
-		viewport.msaa_3d = Viewport.MSAA_DISABLED if compatibility else (settings.msaa as Viewport.MSAA)
+	_commit_viewport(settings)
 	MaterialLibrary.set_normal_maps(settings.normal_maps)
 	get_tree().call_group("quality_listener", "apply_quality", tier, settings)
 	quality_changed.emit(tier)
+
+
+func _root_viewport() -> Viewport:
+	var window: Window = get_window()
+	return window.get_viewport() if window else get_viewport()
+
+
+## Size the 3D buffer once. Later quality changes still move shadows, lights and
+## particles; they must not recreate the buffer, which tears the picture.
+func _commit_viewport(settings: Dictionary) -> void:
+	if viewport_committed:
+		return
+	var viewport: Viewport = _root_viewport()
+	if viewport == null:
+		return
+	viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+	viewport.scaling_3d_scale = render_scale
+	viewport.msaa_3d = Viewport.MSAA_DISABLED if compatibility else (settings.msaa as Viewport.MSAA)
+	viewport_committed = true
 
 
 func _process(delta: float) -> void:
@@ -205,9 +223,7 @@ func _set_scale(value: float) -> void:
 		return
 	render_scale = value
 	scale_changes += 1
-	var viewport: Viewport = get_viewport()
-	if viewport:
-		viewport.scaling_3d_scale = render_scale
+	# Do not write scaling_3d_scale again: see viewport_committed.
 
 
 func _give_up_tier() -> void:
@@ -242,9 +258,6 @@ func _change_tier(value: String) -> void:
 	var base: float = profile().scale
 	if not scale_useless:
 		render_scale = clampf(held, minf(rules.scale_floor, base), base)
-		var viewport: Viewport = get_viewport()
-		if viewport:
-			viewport.scaling_3d_scale = render_scale
 	tier_changes += 1
 	monitor.reset()
 	floor_time = 0.0

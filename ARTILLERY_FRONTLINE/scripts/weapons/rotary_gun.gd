@@ -70,6 +70,10 @@ func _build() -> void:
 	light.light_specular = 0.1
 	light.visible = lights_on
 	pivot.add_child(light)
+	_enrich_surfaces(model)
+	var steel := Color(0.07, 0.075, 0.08)
+	_kit_box(pivot, Vector3(0.0, 0.22, -0.15), Vector3(0.04, 0.014, 0.42), steel)
+	_kit_box(pivot, Vector3(0.0, 0.255, -0.32), Vector3(0.012, 0.045, 0.014), steel)
 
 
 func _build_flash() -> void:
