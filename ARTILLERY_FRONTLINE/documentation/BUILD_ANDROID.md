@@ -13,16 +13,18 @@ session branch that touches the project.
      leads nowhere, no script, scene, resource, asset, sound or text key
      that nothing uses, no duplicate asset, no debug print;
    - runs the headless suites (`tests/run_tests.gd`) and requires the report
-     to pass with at least 1700 checks;
+     to pass with at least 2250 checks;
    - plays the real game under a software renderer (`-- --smoke`): menus,
-     every weapon, every kind of zombie, the boss at the gate, the gate
-     falling and the defeat screen, then the same game on a 20:9 phone with
-     a camera cut-out and on a 4:3 tablet, and last the heaviest moment the
-     game has (the last wave's cap alive at once), which it measures. There
-     is a screenshot of each step (29 of them) and a report that files every
-     picture as an actual capture, a staged scene, a preview with made-up
-     figures or a simulated condition. The pictures are taken on the medium
-     quality tier, the one a phone starts on;
+     every weapon, the sight drawn in, every kind of zombie, the boss at the
+     gate, the gate falling and the defeat screen, then the same game on a
+     20:9 phone with a camera cut-out and on a 4:3 tablet, the heaviest
+     moment the game has (the cap of the last wave alive at once), which it
+     measures, and last the six-barrel gun chosen on the title screen and
+     fired, and the second stage opened and begun. There is a screenshot of
+     each step (37 of them) and a report that files every picture as an
+     actual capture, a staged scene, a preview with made-up figures or a
+     simulated condition. The pictures are taken on the medium quality tier,
+     the one a phone starts on;
    - commits the evidence to `documentation/qa/`.
 2. **android** (only if validate passed)
    - installs Java 17, Android SDK 36 and the Godot export templates;
