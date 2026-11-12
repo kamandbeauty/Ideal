@@ -23,3 +23,6 @@ renderer/rendering_method.mobile="gl_compatibility"
 
 textures/vram_compression/import_etc2_astc=true
 textures/vram_compression/compress_with_gpu=false
+
+[input]
+fire={"deadzone": 0.5, "events": [Object(InputEventKey,"physical_keycode":32)]}

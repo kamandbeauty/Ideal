@@ -17,12 +17,14 @@ var visual_root: Node3D
 var muzzle_flash: MeshInstance3D
 var muzzle_time := 0.0
 var rig: Skeleton3D
+var animation_player: AnimationPlayer
+var current_animation := ""
 var gun_recoil := 0.0
 
 # Experimental user-provided static meshes; collision and combat stay procedural.
 const MODEL_CONFIG := {
 	"hero": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
-	"soldier": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
+	"soldier": ["res://assets/models/soldier-quaternius.glb", 1.0, 0.0, PI],
 	"zombie": ["res://assets/models/zombie-13899.glb", 0.0142, 0.020, PI],
 	"runner": ["res://assets/models/zombie-28069.glb", 0.0644, -0.406, PI],
 	"brute": ["res://assets/models/zombie-27189.glb", 0.0263, 0.001, PI],
@@ -75,8 +77,9 @@ func create_model(kind: String) -> bool:
 	model.rotation.y = float(config[3])
 	if kind == "hero" or kind == "soldier":
 		rig = find_skeleton(model)
+		animation_player = find_animation_player(model)
 		if rig == null:
-			push_warning("Procedural hero skeleton was not imported")
+			push_warning("Character skeleton was not imported: " + kind)
 	return true
 
 func find_skeleton(node: Node) -> Skeleton3D:
@@ -84,6 +87,15 @@ func find_skeleton(node: Node) -> Skeleton3D:
 		return node
 	for child in node.get_children():
 		var found := find_skeleton(child)
+		if found != null:
+			return found
+	return null
+
+func find_animation_player(node: Node) -> AnimationPlayer:
+	if node is AnimationPlayer:
+		return node
+	for child in node.get_children():
+		var found := find_animation_player(child)
 		if found != null:
 			return found
 	return null
@@ -105,15 +117,14 @@ func create_weapon() -> void:
 	weapon = Node3D.new()
 	weapon.position = Vector3(-0.28, 1.25, 0.44)
 	add_child(weapon)
-	var dark := Color(0.09, 0.11, 0.12)
-	var metal := Color(0.19, 0.22, 0.23)
-	var grip := Color(0.26, 0.23, 0.16)
-	add_part(weapon, Vector3(0, 0, 0.05), Vector3(0.18, 0.20, 0.48), dark)
-	add_part(weapon, Vector3(0, 0, 0.50), Vector3(0.07, 0.07, 0.58), metal)
-	add_part(weapon, Vector3(0, 0.08, -0.30), Vector3(0.13, 0.12, 0.28), dark)
-	add_part(weapon, Vector3(0, -0.15, 0.0), Vector3(0.12, 0.25, 0.13), grip)
-	add_part(weapon, Vector3(0, -0.17, 0.15), Vector3(0.12, 0.25, 0.12), metal)
-	add_part(weapon, Vector3(0, 0.14, 0.08), Vector3(0.08, 0.06, 0.16), metal)
+	# CC0 low-poly assault rifle. Its source length axis is +X.
+	var rifle_scene: PackedScene = load("res://assets/models/rifle-quaternius.glb")
+	if rifle_scene:
+		var rifle := rifle_scene.instantiate() as Node3D
+		rifle.scale = Vector3.ONE * 0.30
+		rifle.rotation.y = -PI / 2.0
+		rifle.position = Vector3(0, -0.12, -0.30)
+		weapon.add_child(rifle)
 	muzzle_flash = MeshInstance3D.new()
 	var flash_mesh := SphereMesh.new()
 	flash_mesh.radius = 0.15
@@ -127,7 +138,7 @@ func create_weapon() -> void:
 	glow.emission_enabled = true
 	glow.emission = Color(1.0, 0.40, 0.04)
 	muzzle_flash.material_override = glow
-	muzzle_flash.position.z = 0.84
+	muzzle_flash.position.z = 0.58
 	muzzle_flash.visible = false
 	weapon.add_child(muzzle_flash)
 
@@ -161,10 +172,10 @@ func add_part(parent: Node3D, pos: Vector3, size: Vector3, color: Color) -> Mesh
 
 func update_animation(delta: float, moving: bool) -> void:
 	run_clock += delta
-	if visual_root:
+	if visual_root and role != "soldier":
 		visual_root.rotation.z = sin(run_clock * 7) * 0.025 if moving else 0.0
 		visual_root.position.y = absf(sin(run_clock * 7)) * 0.035 if moving else 0.0
-	if rig:
+	if rig and role == "hero":
 		var stride := sin(run_clock * 9.0) * 0.55 if moving else 0.0
 		pose_bone("LegRight", Quaternion(Vector3.RIGHT, stride))
 		pose_bone("LegLeft", Quaternion(Vector3.RIGHT, -stride))
@@ -181,12 +192,31 @@ func update_animation(delta: float, moving: bool) -> void:
 	attack_timer = maxf(0, attack_timer - delta)
 	fire_timer = maxf(0, fire_timer - delta)
 	gun_recoil = move_toward(gun_recoil, 0.0, delta * 2.0)
-	if weapon and rig:
+	if role == "soldier" and animation_player:
+		play_soldier_motion(moving)
+	if weapon and rig and role == "hero":
 		var arm := rig.find_bone("ArmRight")
 		if arm >= 0:
 			var hand_in_rig: Vector3 = rig.get_bone_global_pose(arm) * Vector3(-18, -13, 0)
 			weapon.position = to_local(rig.to_global(hand_in_rig))
 			weapon.position.z -= gun_recoil
+	elif weapon and rig and role == "soldier":
+		var hand := rig.find_bone("Fist.R")
+		if hand >= 0:
+			weapon.position = to_local(rig.to_global(rig.get_bone_global_pose(hand).origin))
+			weapon.position.z -= gun_recoil
+
+func play_soldier_motion(moving: bool) -> void:
+	var wanted := "Walk_Carry" if moving else "Idle"
+	if current_animation != wanted:
+		for name in animation_player.get_animation_list():
+			if String(name).ends_with(wanted):
+				var clip := animation_player.get_animation(name)
+				clip.loop_mode = Animation.LOOP_LINEAR
+				animation_player.play(name, 0.15)
+				current_animation = wanted
+				break
+	animation_player.speed_scale = clampf(Vector2(velocity.x, velocity.z).length() / 2.6, 0.6, 2.0) if moving else 1.0
 
 func pose_bone(bone_name: String, rotation: Quaternion) -> void:
 	var bone := rig.find_bone(bone_name)

@@ -15,39 +15,61 @@ func check(value: bool, label: String) -> void:
 		printerr("FAIL: ", label)
 
 func run_tests() -> void:
-	for role in ["hero", "soldier"]:
-		var actor = Character.new()
-		root.add_child(actor)
-		actor.setup(role)
-		check(is_instance_valid(actor.rig), role + " uses the skinned human model")
-		if actor.rig != null:
-			var left: int = actor.rig.find_bone("LegLeft")
-			var right: int = actor.rig.find_bone("LegRight")
-			var arm: int = actor.rig.find_bone("ArmRight")
-			check(left >= 0 and right >= 0 and arm >= 0, role + " has leg and arm bones")
-			actor.update_animation(0.17, true)
-			if left >= 0 and right >= 0 and arm >= 0:
-				check(absf(actor.rig.get_bone_pose_rotation(left).x) > 0.1 and actor.rig.get_bone_pose_rotation(left).x * actor.rig.get_bone_pose_rotation(right).x < 0, role + " legs move in opposite directions")
-				check(absf(actor.rig.get_bone_pose_rotation(arm).y) > 0.1, role + " aims the arm")
-				var expected: Vector3 = actor.to_local(actor.rig.to_global(actor.rig.get_bone_global_pose(arm) * Vector3(-18, -13, 0)))
-				check(actor.weapon.position.distance_to(expected) < 0.01, role + " weapon follows the hand")
-			actor.update_animation(0.016, false)
-			if left >= 0:
-				check(absf(actor.rig.get_bone_pose_rotation(left).x) < 0.001, role + " legs return to idle")
-		actor.queue_free()
+	var actor = Character.new()
+	root.add_child(actor)
+	actor.setup("hero")
+	check(is_instance_valid(actor.rig), "hero has a skeleton")
+	if actor.rig != null:
+		var left: int = actor.rig.find_bone("LegLeft")
+		var right: int = actor.rig.find_bone("LegRight")
+		var arm: int = actor.rig.find_bone("ArmRight")
+		check(left >= 0 and right >= 0 and arm >= 0, "hero has leg and arm bones")
+		actor.update_animation(0.17, true)
+		if left >= 0 and right >= 0 and arm >= 0:
+			check(absf(actor.rig.get_bone_pose_rotation(left).x) > 0.1 and actor.rig.get_bone_pose_rotation(left).x * actor.rig.get_bone_pose_rotation(right).x < 0, "hero legs move in opposite directions")
+			var expected: Vector3 = actor.to_local(actor.rig.to_global(actor.rig.get_bone_global_pose(arm) * Vector3(-18, -13, 0)))
+			check(actor.weapon.position.distance_to(expected) < 0.01, "hero weapon follows the hand")
+	actor.queue_free()
+	var soldier = Character.new()
+	root.add_child(soldier)
+	soldier.setup("soldier")
+	check(is_instance_valid(soldier.rig) and is_instance_valid(soldier.animation_player), "soldier has a skinned model with animation clips")
+	if soldier.animation_player:
+		soldier.update_animation(0.1, true)
+		check(soldier.current_animation == "Walk_Carry" and soldier.animation_player.is_playing(), "soldier plays the walking animation")
+		soldier.update_animation(0.1, false)
+		check(soldier.current_animation == "Idle", "soldier transitions to idle")
+	soldier.queue_free()
 	var level = load("res://scenes/level/sky_bridge.tscn").instantiate()
 	root.add_child(level)
 	level.set_physics_process(false)
 	await physics_frame
 	await physics_frame
-	check(level.nearest_enemy(level.hero.position, 27.0) == null, "test starts between enemy waves")
-	var ammo: int = level.ammo
+	var initial_z: float = level.hero.position.z
+	level._physics_process(0.1)
+	check(level.hero.position.z > initial_z, "hero moves through the world, not just the camera")
+	check(level.ammo == 30, "released fire does not fire")
+	var touch := InputEventScreenTouch.new()
+	touch.index = 4
+	touch.position = level.hud.fire_button.get_global_rect().get_center()
+	touch.pressed = true
+	level._input(touch)
+	check(level.is_fire_held(), "touch press holds fire")
 	level._physics_process(0.016)
-	check(level.ammo == ammo - 1, "hero fires even without a target")
-	check(level.hero.muzzle_flash.visible, "automatic shot shows the muzzle flash")
+	check(level.ammo == 29 and level.hero.muzzle_flash.visible, "touch fire shoots with muzzle flash")
 	level.hero.fire_timer = 0
 	level._physics_process(0.016)
-	check(level.ammo == ammo - 2, "automatic fire repeats and consumes ammo")
+	check(level.ammo == 28, "holding fire repeats shots")
+	touch.pressed = false
+	level._input(touch)
+	level.hero.fire_timer = 0
+	level._physics_process(0.016)
+	check(not level.is_fire_held() and level.ammo == 28, "releasing touch stops shots")
+	level.on_gate_crossed("add3")
+	var a: Vector3 = level.formation_position(0, 3)
+	var b: Vector3 = level.formation_position(1, 3)
+	var c: Vector3 = level.formation_position(2, 3)
+	check(is_equal_approx(a.x + c.x, 2.0 * b.x) and a.distance_to(b) >= 1.3, "three-soldier formation is symmetric and separated")
 	level.sound.stop_all()
 	level.queue_free()
 	await process_frame

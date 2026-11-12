@@ -105,6 +105,18 @@ jobs:
           export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
           timeout 1200 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --audio-driver Dummy --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_gameplay.gd 2>&1 | tee ci-artifacts/rendered/capture.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/capture.log; then exit 1; fi
+      - name: Publish compact screenshot evidence
+        if: success()
+        run: |
+          python3 - <<'PYCODE'
+          import base64
+          from pathlib import Path
+          image = Path('ci-artifacts/rendered/screenshots/05-recruited-soldiers.png')
+          encoded = base64.b64encode(image.read_bytes()).decode('ascii')
+          chunks = [encoded[i:i+48000] for i in range(0, len(encoded), 48000)]
+          for index, chunk in enumerate(chunks):
+              print(f'::notice::SCREENSHOT_CHUNK_{index:03d}_OF_{len(chunks):03d}:{chunk}')
+          PYCODE
       - name: Publish renderer capture diagnostics
         if: always()
         run: |
