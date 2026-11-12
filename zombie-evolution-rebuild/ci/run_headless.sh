@@ -33,7 +33,9 @@ if ! command -v "$GODOT" >/dev/null 2>&1; then
     exit 1
 fi
 run godot_version "$GODOT" --version
-run manifest sha256sum -c "$PROJECT/SOURCE_MANIFEST.sha256"
+# Preserve and authenticate the historical baseline while checking every current
+# project file against the separately maintained post-fix manifest.
+run manifest bash -c 'echo "91eb09119c7c8b26b5387d9dacf2720aa481de028ef263be4eff2e97db971280  $1/SOURCE_MANIFEST.sha256" | sha256sum -c - && sha256sum -c "$1/CURRENT_MANIFEST.sha256"' _ "$PROJECT"
 run export_config python3 "$PROJECT/tests/export_config_test.py"
 run import "$GODOT" --headless --editor --path "$PROJECT" --quit
 run launcher "$GODOT" --headless --path "$PROJECT" --quit-after 5
