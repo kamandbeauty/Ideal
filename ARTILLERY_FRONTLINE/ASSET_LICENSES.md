@@ -47,14 +47,15 @@ its third-party components under their own licences, as listed in Godot's
 | Asset | Origin | Notes |
 | --- | --- | --- |
 | `assets/models/zombies/zombie_bloat.glb` | `13899_open3dmodel.zip` (Bloat_Summer, free personal-use character from Open3DModel) | Skinned to the shared 18-bone skeleton and mixed into walker, runner and brute spawns. The fat figure has more health than the type's own look. |
+| `assets/models/zombies/zombie_boomer.glb` | Same free Bloat mesh, retargeted; colour from the Boomer pack (`27189`, Max-only mesh) | Heavier silhouette, cooler grey-blue skin. |
+| `assets/models/zombies/zombie_gibberling.glb` | Same free Bloat mesh, retargeted; colour from the Gibberling pack (`28069`, Max-only mesh) | Narrower hunched figure. |
 
-The other two root archives (`27189_open3dmodel.rar`, `28069_open3dmodel.rar`)
-are also free character packs, but they only contain 3ds Max scenes, which
-the game cannot load. They stay in the repository root as source.
+The Max scenes in `27189_open3dmodel.rar` and `28069_open3dmodel.rar` stay in
+the repository root as source; the game loads the converted GLBs.
 
 ## Reference material in the repository root
 
 The screenshots, the `.max` file, the `.dds` files and the character
 archives in the repository root were supplied for the project. The game
-does not load those files at run time; the bloat mesh is the converted
-copy under `assets/models/zombies/`.
+does not load those files at run time; the extra character meshes are the
+converted copies under `assets/models/zombies/`.

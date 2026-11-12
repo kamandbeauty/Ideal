@@ -15,8 +15,8 @@ const CLIPS: Array[String] = [
 ]
 ## Shortest gap between two starts of the same clip, in milliseconds.
 const MIN_GAP_MS: Dictionary = {
-	"impact_flesh": 45, "impact": 60, "impact_metal": 60, "headshot": 70, "zombie_groan_1": 500, "zombie_groan_2": 500,
-	"zombie_groan_3": 500, "zombie_death_1": 120, "zombie_death_2": 120, "zombie_attack_1": 180, "zombie_attack_2": 180,
+	"impact_flesh": 45, "impact": 60, "impact_metal": 60, "headshot": 70, "zombie_groan_1": 160, "zombie_groan_2": 160,
+	"zombie_groan_3": 160, "zombie_death_1": 120, "zombie_death_2": 120, "zombie_attack_1": 120, "zombie_attack_2": 120,
 	"gate_hit_1": 160, "gate_hit_2": 160, "wall_hit_1": 160, "wall_hit_2": 160, "explosion": 70, "explosion_small": 70,
 	"grenade_bounce": 50, "body_fall": 150, "hmg_tail": 250, "ui_toggle": 40, "rotary_tail": 250, "rotary_spin": 200,
 }
@@ -25,8 +25,7 @@ const MIN_GAP_MS: Dictionary = {
 ## more: bullet strikes give way to everything, and nothing cuts off an alarm,
 ## a blast or the giant. Clips not listed rank 1.
 const RANK: Dictionary = {
-	"impact": 0, "impact_flesh": 0, "impact_metal": 0, "grenade_bounce": 0, "zombie_groan_1": 0, "zombie_groan_2": 0,
-	"zombie_groan_3": 0, "body_fall": 0, "hmg_tail": 0, "rotary_tail": 0, "rotary_spin": 0,
+	"impact": 0, "impact_flesh": 0, "impact_metal": 0, "grenade_bounce": 0, "body_fall": 0, "hmg_tail": 0, "rotary_tail": 0, "rotary_spin": 0,
 	"explosion": 2, "explosion_small": 2, "rocket": 2, "critical": 2, "resupply": 2, "ui_start": 2,
 	"gate_break": 3, "wall_break": 3, "boss_roar": 3, "boss_death": 3, "alarm": 3, "wave_horn": 3, "wave_clear": 3,
 	"victory": 3, "defeat": 3,
@@ -75,8 +74,8 @@ func _ready() -> void:
 	for index: int in SPATIAL_VOICES:
 		var player := AudioStreamPlayer3D.new()
 		player.bus = "Effects"
-		player.max_distance = 400.0
-		player.unit_size = 22.0
+		player.max_distance = 520.0
+		player.unit_size = 32.0
 		player.attenuation_filter_cutoff_hz = 9000.0
 		add_child(player)
 		spatial.append(player)

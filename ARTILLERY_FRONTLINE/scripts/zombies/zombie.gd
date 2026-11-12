@@ -262,7 +262,9 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 		if chosen == 0:
 			body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % data.skins)
 		else:
-			body_mesh.material_override = null
+			var packed: PackedScene = data.extra_looks[chosen - 1]
+			var look_name: String = packed.resource_path.get_file().get_basename().trim_prefix("zombie_")
+			body_mesh.material_override = MaterialLibrary.extra_skin(look_name)
 	visible = true
 	_set_hittable(true)
 	# Each life picks a limp (which leg, and how broken) and a point in the stride, so a crowd does not march.

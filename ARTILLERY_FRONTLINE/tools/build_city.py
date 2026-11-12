@@ -665,22 +665,40 @@ def bus(b, node, x, z, yaw, roll=0.0):
 
 
 def apc(b, node, x, z, yaw):
-    """Knocked-out armoured carrier: the wreck in the middle of the court."""
-    hull = [(-3.3, 0.55), (-3.45, 1.35), (-2.9, 2.05), (1.6, 2.05), (2.9, 1.5), (3.45, 1.2), (3.2, 0.55)]
-    tint = (0.2, 0.22, 0.17)
-    b.prism(node, "metal", hull, 2.7, (x, 0.0, z), yaw, tint)
+    """Knocked-out tank in the court: hull, turret, gun, skirts, stowage."""
+    hull = [(-3.55, 0.42), (-3.7, 1.05), (-3.15, 1.72), (2.15, 1.72), (3.35, 1.28), (3.75, 0.95), (3.55, 0.42)]
+    olive = (0.28, 0.30, 0.20)
+    dark = (0.14, 0.15, 0.12)
+    rust = (0.38, 0.22, 0.10)
+    steel = (0.18, 0.18, 0.16)
+    b.prism(node, "metal", hull, 3.05, (x, 0.0, z), yaw, olive)
     frame = rot_y(yaw)
     origin = np.array([x, 0.0, z])
-    b.box(node, "metal", origin + frame @ np.array([0.0, 2.3, -0.3]), (1.5, 0.5, 1.7), yaw, (0.17, 0.18, 0.15))
-    muzzle = frame @ np.array([0.0, 0.12, 1.0])
-    b.cylinder(node, "metal", origin + frame @ np.array([0.0, 2.34, 0.4]), 0.06, 2.1, 8, (0.1, 0.1, 0.1), axis=muzzle)
+    # Side skirts over the running gear.
     for side in (-1, 1):
-        for dz in (-2.3, -0.8, 0.8, 2.3):
-            hub = origin + frame @ np.array([side * 1.2, 0.55, dz])
+        b.box(node, "metal", origin + frame @ np.array([side * 1.62, 0.72, 0.05]), (0.12, 0.55, 6.4), yaw, dark)
+        for dz in (-2.55, -1.35, -0.15, 1.05, 2.25):
+            hub = origin + frame @ np.array([side * 1.38, 0.48, dz])
             axis = frame @ np.array([side * 1.0, 0.0, 0.0])
-            b.cylinder(node, "metal", hub, 0.55, 0.36, 10, (0.09, 0.09, 0.09), axis=axis)
-    b.box(node, "metal", origin + frame @ np.array([0.7, 2.1, -2.0]), (0.8, 0.08, 0.9), basis=frame @ rot_x(-35), color=(0.16, 0.17, 0.14))
-    b.collide_box((x, 1.1, z), (2.7, 2.2, 6.8), yaw)
+            b.cylinder(node, "metal", hub, 0.48, 0.32, 10, (0.08, 0.08, 0.08), axis=axis)
+        # Track pads.
+        b.box(node, "metal", origin + frame @ np.array([side * 1.55, 0.16, 0.0]), (0.42, 0.14, 6.6), yaw, (0.1, 0.1, 0.09))
+    # Turret ring and cupola.
+    b.cylinder(node, "metal", origin + frame @ np.array([0.05, 1.78, -0.15]), 1.15, 0.16, 14, dark, axis=UP)
+    b.box(node, "metal", origin + frame @ np.array([0.05, 2.28, -0.2]), (2.15, 0.72, 2.35), yaw, (0.24, 0.26, 0.18))
+    b.cylinder(node, "metal", origin + frame @ np.array([0.35, 2.72, -0.35]), 0.38, 0.22, 10, olive, axis=UP)
+    # Main gun with a muzzle brake.
+    gun_axis = frame @ np.array([0.0, 0.04, 1.0])
+    b.cylinder(node, "metal", origin + frame @ np.array([0.05, 2.22, 0.7]), 0.13, 3.4, 10, steel, axis=gun_axis)
+    b.cylinder(node, "metal", origin + frame @ np.array([0.05, 2.22, 3.9]), 0.18, 0.38, 8, dark, axis=gun_axis)
+    b.box(node, "metal", origin + frame @ np.array([0.05, 2.22, 1.15]), (0.42, 0.28, 0.7), yaw, dark)
+    # Stowage, exhaust, antenna, a popped hatch.
+    b.box(node, "metal", origin + frame @ np.array([0.95, 1.95, -2.15]), (0.7, 0.45, 1.1), yaw, rust)
+    b.box(node, "metal", origin + frame @ np.array([-0.85, 1.88, -2.05]), (0.55, 0.32, 0.7), yaw, (0.32, 0.28, 0.16))
+    b.cylinder(node, "metal", origin + frame @ np.array([-1.15, 1.55, 2.35]), 0.16, 0.55, 8, rust, axis=frame @ np.array([0.0, 0.2, 1.0]))
+    b.cylinder(node, "metal", origin + frame @ np.array([-0.55, 3.35, -0.85]), 0.03, 1.35, 6, steel, axis=UP)
+    b.box(node, "metal", origin + frame @ np.array([0.55, 2.78, -0.15]), (0.55, 0.06, 0.7), basis=frame @ rot_x(-42), color=dark)
+    b.collide_box((x, 1.15, z), (3.05, 2.3, 7.2), yaw)
 
 
 def barrier(b, node, x, z, yaw, tint=(0.8, 0.8, 0.78), length=2.6):
@@ -782,21 +800,21 @@ def props(b, layout):
 # City
 # ---------------------------------------------------------------------------
 def city(b, layout):
-    palette = [(0.78, 0.74, 0.66), (0.7, 0.66, 0.6), (0.64, 0.68, 0.7), (0.76, 0.66, 0.56), (0.62, 0.62, 0.6), (0.72, 0.6, 0.52)]
+    palette = [(0.58, 0.50, 0.40), (0.46, 0.32, 0.26), (0.42, 0.46, 0.50), (0.54, 0.40, 0.30), (0.38, 0.38, 0.36), (0.52, 0.34, 0.26)]
     # First blocks, between the ring road and the cross street.
-    building(b, "BlockL1", -31.0, -FACADE_X, CROSS_Z1, RING_Z0, 5, 101, palette[0], 0.55, detail="x+z+", fire=0.05)
-    building(b, "BlockL1", -53.0, -36.0, CROSS_Z1, RING_Z0, 4, 102, palette[1], 0.75, "brick", detail="x+z+")
-    building(b, "BlockL1", -76.0, -55.0, CROSS_Z1 + 2.0, RING_Z0, 6, 103, palette[2], 0.35, detail="z+")
-    building(b, "BlockR1", FACADE_X, 33.0, CROSS_Z1, RING_Z0, 6, 111, palette[3], 0.5, detail="x-z+")
-    building(b, "BlockR1", 37.5, 55.0, CROSS_Z1, RING_Z0, 3, 112, palette[4], 0.8, "brick", detail="x-z+")
-    building(b, "BlockR1", 57.0, 76.0, CROSS_Z1 + 3.0, RING_Z0, 5, 113, palette[5], 0.4, detail="z+")
+    building(b, "BlockL1", -31.0, -FACADE_X, CROSS_Z1, RING_Z0, 5, 101, palette[0], 0.55, detail="x+z+", fire=0.08, lit=0.14)
+    building(b, "BlockL1", -53.0, -36.0, CROSS_Z1, RING_Z0, 4, 102, palette[1], 0.75, "brick", detail="x+z+", lit=0.08)
+    building(b, "BlockL1", -76.0, -55.0, CROSS_Z1 + 2.0, RING_Z0, 6, 103, palette[2], 0.35, detail="z+", lit=0.12)
+    building(b, "BlockR1", FACADE_X, 33.0, CROSS_Z1, RING_Z0, 6, 111, palette[3], 0.5, detail="x-z+", fire=0.06, lit=0.16)
+    building(b, "BlockR1", 37.5, 55.0, CROSS_Z1, RING_Z0, 3, 112, palette[4], 0.8, "brick", detail="x-z+", lit=0.1)
+    building(b, "BlockR1", 57.0, 76.0, CROSS_Z1 + 3.0, RING_Z0, 5, 113, palette[5], 0.4, detail="z+", lit=0.12)
     # Second blocks.
-    building(b, "BlockL2", -32.0, -FACADE_X, -110.0, CROSS_Z0, 6, 121, palette[4], 0.5, detail="x+z+", fire=0.04)
-    building(b, "BlockL2", -30.0, -FACADE_X, END_Z, -112.5, 4, 122, palette[3], 0.7, "brick", detail="x+z+")
-    building(b, "BlockL2", -60.0, -35.0, -116.0, CROSS_Z0, 8, 123, palette[1], 0.45, detail="x+z+")
-    building(b, "BlockR2", FACADE_X, 31.0, -108.0, CROSS_Z0, 4, 131, palette[2], 0.65, detail="x-z+")
-    building(b, "BlockR2", FACADE_X, 33.0, END_Z, -110.5, 8, 132, palette[0], 0.5, detail="x-z+", fire=0.03)
-    building(b, "BlockR2", 36.0, 62.0, -118.0, CROSS_Z0, 6, 133, palette[5], 0.55, detail="x-z+")
+    building(b, "BlockL2", -32.0, -FACADE_X, -110.0, CROSS_Z0, 6, 121, palette[4], 0.5, detail="x+z+", fire=0.06, lit=0.14)
+    building(b, "BlockL2", -30.0, -FACADE_X, END_Z, -112.5, 4, 122, palette[3], 0.7, "brick", detail="x+z+", lit=0.1)
+    building(b, "BlockL2", -60.0, -35.0, -116.0, CROSS_Z0, 8, 123, palette[1], 0.45, detail="x+z+", lit=0.12)
+    building(b, "BlockR2", FACADE_X, 31.0, -108.0, CROSS_Z0, 4, 131, palette[2], 0.65, detail="x-z+", lit=0.14)
+    building(b, "BlockR2", FACADE_X, 33.0, END_Z, -110.5, 8, 132, palette[0], 0.5, detail="x-z+", fire=0.05, lit=0.12)
+    building(b, "BlockR2", 36.0, 62.0, -118.0, CROSS_Z0, 6, 133, palette[5], 0.55, detail="x-z+", lit=0.1)
     # Landmark closing the avenue.
     building(b, "Landmark", -30.0, -5.0, LANDMARK_Z - 22.0, LANDMARK_Z, 9, 141, palette[1], 0.5, detail="z+x+")
     building(b, "Landmark", -5.0, 13.0, LANDMARK_Z - 26.0, LANDMARK_Z - 3.0, 12, 142, palette[4], 0.6, detail="z+x-x+")
@@ -828,7 +846,7 @@ def city(b, layout):
             x0, x1 = sorted((side * xa, side * xb))
             face = "" if i == 3 else ("x-" if side > 0 else "x+")
             building(b, "InnerCity", x0, x1, z0, z1, floors, 300 + i + (10 if side > 0 else 0), tones[i % 3], 0.0,
-                     detail=face, lit=0.07, collide=False)
+                     detail=face, lit=0.18, collide=False)
 
     # Far skyline: flat silhouettes that the fog swallows.
     rng = np.random.default_rng(900)

@@ -61,10 +61,7 @@ func _pools_and_volumes(t: TestContext) -> void:
 			t.check(head.y > 1.0 and head.y < data.height() * size * 1.4,
 				"the extra look's head volume sits on its own shoulders (%.2f m up)" % head.y)
 		t.near(zombie.anim.speed_scale, zombie.speed / data.stride_speed * zombie.gait_rate, 0.001, "the %s walk clip is paced to its ground speed" % id)
-		if zombie.look_index == 0:
-			t.check(zombie.body_mesh != null and zombie.body_mesh.material_override != null, "the %s wears one of its skins" % id)
-		else:
-			t.check(zombie.body_mesh != null, "the extra look brings its own skin")
+		t.check(zombie.body_mesh != null and zombie.body_mesh.material_override != null, "the %s wears one of its skins" % id)
 	t.equal(horde.alive_count(), 4, "one of each is on the field")
 	t.check(horde.boss != null and horde.boss.data.is_boss, "the horde knows which one is the boss")
 	await t.discard(level)

@@ -107,6 +107,8 @@ func run(t: TestContext) -> void:
 	t.check(zombie.body_area.get_meta("zombie") == zombie and zombie.head_area.get_meta("head") == true, "hit volumes know their zombie")
 	t.check(MaterialLibrary.zombie_skin("walker", 0) != MaterialLibrary.zombie_skin("walker", 1), "zombie skins differ")
 	t.check((MaterialLibrary.zombie_skin("walker", 2) as StandardMaterial3D).albedo_texture != null, "zombie skins are textured")
+	t.check((MaterialLibrary.extra_skin("bloat") as StandardMaterial3D).albedo_texture != null, "the extra bloat look has its painted skin")
+	t.check(MaterialLibrary.extra_skin("bloat") != MaterialLibrary.extra_skin("boomer"), "the extra looks do not share a skin")
 
 	# Spawn points are out of the gunner's sight.
 	var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state

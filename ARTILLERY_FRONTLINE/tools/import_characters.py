@@ -19,6 +19,7 @@ from build_zombies import WALKER, Animator, Sculpt, clips  # noqa: E402
 
 PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODEL_DIR = os.path.join(PROJECT, "assets", "models", "zombies")
+TEXTURE_DIR = os.path.join(PROJECT, "assets", "textures", "zombies")
 REPO = os.path.dirname(PROJECT)
 
 # Standing height of the bloat in metres, before the type's scale_min/max.
@@ -137,6 +138,8 @@ def export_look(name, verts, normals, uvs, faces, texture, sculpt):
             tracks.append((joint_nodes[sk.index(bone)], "rotation", times, np.asarray(keys)))
         glb.animation(clip, tracks)
     os.makedirs(MODEL_DIR, exist_ok=True)
+    os.makedirs(TEXTURE_DIR, exist_ok=True)
+    texture.convert("RGB").save(os.path.join(TEXTURE_DIR, "zombie_%s.png" % name), "PNG", optimize=True)
     path = os.path.join(MODEL_DIR, "zombie_%s.glb" % name)
     size = glb.write(path)
     print("%s: %d triangles, height %.2f m, %d KB" % (name, faces.shape[0], float(verts[:, 1].max()), size // 1024))
@@ -165,6 +168,49 @@ def _bloat_sources():
     raise FileNotFoundError("Bloat_Summer.obj not found in %s" % archive)
 
 
+def _normals_of(verts, faces):
+    normals = np.zeros_like(verts)
+    v0, v1, v2 = verts[faces[:, 0]], verts[faces[:, 1]], verts[faces[:, 2]]
+    face_n = np.cross(v1 - v0, v2 - v0)
+    for i in range(3):
+        np.add.at(normals, faces[:, i], face_n)
+    length = np.linalg.norm(normals, axis=1, keepdims=True)
+    return np.divide(normals, np.maximum(length, 1e-8)).astype(np.float32)
+
+
+def _fatter(verts):
+    """Boomer: thicker trunk and a heavier belly."""
+    out = verts.copy()
+    y = out[:, 1]
+    belly = np.clip((y - 0.35) / 0.45, 0.0, 1.0) * np.clip((1.45 - y) / 0.45, 0.0, 1.0)
+    scale = 1.16 + 0.38 * belly
+    out[:, 0] *= scale
+    out[:, 2] *= scale
+    return out
+
+
+def _thinner(verts):
+    """Gibberling: narrower, a little hunched forward."""
+    out = verts.copy()
+    y = out[:, 1]
+    out[:, 0] *= 0.70
+    out[:, 2] *= 0.76
+    hunch = np.clip((y - 0.95) / 0.85, 0.0, 1.0)
+    out[:, 2] += hunch * 0.22
+    out[:, 1] *= 0.90
+    out[:, 1] -= out[:, 1].min()
+    return out
+
+
+def _tint(image, rgb, sat=1.0):
+    arr = np.asarray(image.convert("RGB"), np.float32)
+    arr *= np.asarray(rgb, np.float32)
+    if sat != 1.0:
+        gray = arr.mean(axis=2, keepdims=True)
+        arr = gray + (arr - gray) * sat
+    return Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8))
+
+
 def main():
     obj, png = _bloat_sources()
     positions, texcoords, faces = load_obj(obj)
@@ -178,6 +224,12 @@ def main():
         texture = texture.resize((1024, 1024), Image.LANCZOS)
     sculpt = Sculpt(WALKER)
     export_look("bloat", verts, normals.astype(np.float32), uvs, indices, texture, sculpt)
+    boomer_verts = _fatter(verts)
+    export_look("boomer", boomer_verts, _normals_of(boomer_verts, indices), uvs, indices,
+                _tint(texture, (0.78, 0.84, 0.92), 0.82), sculpt)
+    gib_verts = _thinner(verts)
+    export_look("gibberling", gib_verts, _normals_of(gib_verts, indices), uvs, indices,
+                _tint(texture, (0.68, 0.78, 0.62), 0.55), sculpt)
 
 
 if __name__ == "__main__":

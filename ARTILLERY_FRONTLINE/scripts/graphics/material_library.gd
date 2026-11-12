@@ -38,6 +38,19 @@ static func surface(material_name: String) -> Material:
 		material.normal_texture = load(TEXTURE_DIR + material_name + "_n.png")
 		material.normal_enabled = normal_maps
 		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+		match material_name:
+			"plaster":
+				material.albedo_color = Color(0.78, 0.74, 0.66)
+			"brick":
+				material.albedo_color = Color(0.92, 0.78, 0.70)
+			"metal":
+				material.albedo_color = Color(0.72, 0.74, 0.62)
+			"concrete":
+				material.albedo_color = Color(0.82, 0.80, 0.76)
+			"asphalt":
+				material.albedo_color = Color(0.55, 0.55, 0.52)
+			"paving":
+				material.albedo_color = Color(0.78, 0.76, 0.70)
 		if TWO_SIDED.has(material_name):
 			material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	else:
@@ -102,6 +115,25 @@ static func zombie_skin(type_id: String, variant: int) -> Material:
 	material.albedo_texture = load("res://assets/textures/zombies/zombie_%s_%s.png" % [type_id, "abcdefgh"[variant % 8]])
 	material.roughness = 0.86
 	material.metallic_specular = 0.25
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	cache[key] = material
+	return material
+
+
+## Painted skin of an extra character look (zombie_bloat.png, zombie_boomer.png, ...).
+static func extra_skin(look_name: String) -> Material:
+	var key: String = "extra_%s" % look_name
+	if cache.has(key):
+		return cache[key]
+	var material := StandardMaterial3D.new()
+	material.resource_name = key
+	material.albedo_color = Color(0.55, 0.48, 0.40)
+	var path: String = "res://assets/textures/zombies/zombie_%s.png" % look_name
+	if ResourceLoader.exists(path):
+		material.albedo_texture = load(path)
+		material.albedo_color = Color.WHITE
+	material.roughness = 0.86
+	material.metallic_specular = 0.22
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	cache[key] = material
 	return material

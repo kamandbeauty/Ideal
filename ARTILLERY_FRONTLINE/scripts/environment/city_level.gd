@@ -139,21 +139,21 @@ func _build_environment() -> void:
 	# The panorama is painted with its cool, smoke-streaked half in the image centre; turn that half toward the street.
 	environment.sky_rotation = Vector3(0.0, PI, 0.0)
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.55, 0.6, 0.72)
-	environment.ambient_light_energy = 1.0
+	environment.ambient_light_color = Color(0.42, 0.46, 0.55)
+	environment.ambient_light_energy = 0.72
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	environment.tonemap_exposure = 1.05
-	environment.tonemap_white = 6.0
+	environment.tonemap_exposure = 1.12
+	environment.tonemap_white = 5.4
 	# The haze matches the horizon band painted into the sky, so far blocks melt into it.
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.47, 0.45, 0.47)
-	environment.fog_density = 0.006
+	environment.fog_light_color = Color(0.42, 0.40, 0.40)
+	environment.fog_density = 0.004
 	environment.fog_sky_affect = 0.0
 	environment.fog_aerial_perspective = 0.0
 	environment.fog_sun_scatter = 0.08
 	environment.adjustment_enabled = true
-	environment.adjustment_contrast = 1.08
-	environment.adjustment_saturation = 0.94
+	environment.adjustment_contrast = 1.18
+	environment.adjustment_saturation = 1.06
 	environment.glow_intensity = 0.5
 	environment.glow_bloom = 0.08
 	environment.glow_hdr_threshold = 1.1
@@ -167,7 +167,7 @@ func _build_sun() -> void:
 	sun = DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.light_color = Color(1.0, 0.86, 0.7)
-	sun.light_energy = 1.5
+	sun.light_energy = 1.75
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_max_distance = 85.0

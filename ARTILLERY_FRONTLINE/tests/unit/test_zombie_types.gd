@@ -89,8 +89,8 @@ func run(t: TestContext) -> void:
 	t.check(boss.spawn_sound != "" and boss.death_sound != "", "it announces itself and dies loudly")
 	t.check(boss.height() > brute.height() and brute.height() > walker.height() and walker.height() > runner.height() * 0.95,
 		"sizes are ordered: boss, brute, walker and runner")
-	t.check(walker.extra_looks.size() >= 1 and runner.extra_looks.size() >= 1 and brute.extra_looks.size() >= 1,
-		"walkers, runners and brutes mix in the free character meshes")
+	t.check(walker.extra_looks.size() >= 3 and runner.extra_looks.size() >= 3 and brute.extra_looks.size() >= 3,
+		"walkers, runners and brutes mix in the three extra character meshes")
 	t.check(walker.extra_look_health.size() >= 1 and walker.extra_look_health[0] > 1.2 and walker.extra_look_health[0] < 1.8,
 		"the extra monster look has a bit more health than the type's own figure")
 	t.check(boss.extra_looks.is_empty(), "the Behemoth keeps its own figure")
