@@ -1,11 +1,11 @@
 N: android=http://schemas.android.com/apk/res/android (line=2)
   E: manifest (line=2)
-    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=6
-    A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="0.6.0" (Raw: "0.6.0")
+    A: http://schemas.android.com/apk/res/android:versionCode(0x0101021b)=7
+    A: http://schemas.android.com/apk/res/android:versionName(0x0101021c)="0.6.1" (Raw: "0.6.1")
     A: http://schemas.android.com/apk/res/android:installLocation(0x010102b7)=0
     A: http://schemas.android.com/apk/res/android:compileSdkVersion(0x01010572)=36
     A: http://schemas.android.com/apk/res/android:compileSdkVersionCodename(0x01010573)="16" (Raw: "16")
-    A: package="com.frontline.lastwall" (Raw: "com.frontline.lastwall")
+    A: package="com.studiojavid.zombiesiege" (Raw: "com.studiojavid.zombiesiege")
     A: platformBuildVersionCode=36
     A: platformBuildVersionName=16
       E: uses-sdk (line=8)
@@ -65,7 +65,7 @@ N: android=http://schemas.android.com/apk/res/android (line=2)
           E: provider (line=71)
             A: http://schemas.android.com/apk/res/android:name(0x01010003)="androidx.core.content.FileProvider" (Raw: "androidx.core.content.FileProvider")
             A: http://schemas.android.com/apk/res/android:exported(0x01010010)=false
-            A: http://schemas.android.com/apk/res/android:authorities(0x01010018)="com.frontline.lastwall.fileprovider" (Raw: "com.frontline.lastwall.fileprovider")
+            A: http://schemas.android.com/apk/res/android:authorities(0x01010018)="com.studiojavid.zombiesiege.fileprovider" (Raw: "com.studiojavid.zombiesiege.fileprovider")
             A: http://schemas.android.com/apk/res/android:grantUriPermissions(0x0101001b)=true
               E: meta-data (line=76)
                 A: http://schemas.android.com/apk/res/android:name(0x01010003)="android.support.FILE_PROVIDER_PATHS" (Raw: "android.support.FILE_PROVIDER_PATHS")
@@ -73,7 +73,7 @@ N: android=http://schemas.android.com/apk/res/android (line=2)
           E: provider (line=80)
             A: http://schemas.android.com/apk/res/android:name(0x01010003)="androidx.startup.InitializationProvider" (Raw: "androidx.startup.InitializationProvider")
             A: http://schemas.android.com/apk/res/android:exported(0x01010010)=false
-            A: http://schemas.android.com/apk/res/android:authorities(0x01010018)="com.frontline.lastwall.fileprovider" (Raw: "com.frontline.lastwall.fileprovider")
+            A: http://schemas.android.com/apk/res/android:authorities(0x01010018)="com.studiojavid.zombiesiege.fileprovider" (Raw: "com.studiojavid.zombiesiege.fileprovider")
               E: meta-data (line=84)
                 A: http://schemas.android.com/apk/res/android:name(0x01010003)="androidx.profileinstaller.ProfileInstallerInitializer" (Raw: "androidx.profileinstaller.ProfileInstallerInitializer")
                 A: http://schemas.android.com/apk/res/android:value(0x01010024)="androidx.startup" (Raw: "androidx.startup")
