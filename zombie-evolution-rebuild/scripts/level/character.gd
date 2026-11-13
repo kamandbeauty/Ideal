@@ -24,12 +24,13 @@ var gun_recoil := 0.0
 var combat_animation_time := 0.0
 var hit_reaction_time := 0.0
 var hit_direction := 1.0
+var enemy_action_time := 0.0
 
 # Experimental user-provided static meshes; collision and combat stay procedural.
 const MODEL_CONFIG := {
 	"hero": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
 	"soldier": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
-	"zombie": ["res://assets/models/zombie-13899.glb", 0.0142, 0.020, PI],
+	"zombie": ["res://assets/models/zombie-user-animated.glb", 0.01, 0.0, PI],
 	"runner": ["res://assets/models/zombie-28069.glb", 0.0644, -0.406, PI],
 	"brute": ["res://assets/models/zombie-27189.glb", 0.0263, 0.001, PI],
 }
@@ -79,7 +80,7 @@ func create_model(kind: String) -> bool:
 	model.scale = Vector3.ONE * float(config[1])
 	model.position.y = float(config[2])
 	model.rotation.y = float(config[3])
-	if kind == "hero" or kind == "soldier":
+	if kind == "hero" or kind == "soldier" or kind == "zombie":
 		rig = find_skeleton(model)
 		animation_player = find_animation_player(model)
 		if rig == null:
@@ -193,7 +194,7 @@ func update_animation(delta: float, moving: bool) -> void:
 	gait_blend = move_toward(gait_blend, 1.0 if moving else 0.0, delta * 6.0)
 	if not dead:
 		hit_reaction_time = maxf(0.0, hit_reaction_time - delta)
-	if visual_root and not dead:
+	if visual_root and not dead and role != "zombie":
 		var sway := sin(run_clock * 7) * 0.025 if moving and role != "soldier" else 0.0
 		var hit_lean := hit_direction * hit_reaction_time * 0.8
 		visual_root.rotation.z = sway + hit_lean
@@ -219,12 +220,32 @@ func update_animation(delta: float, moving: bool) -> void:
 	combat_animation_time = maxf(0.0, combat_animation_time - delta)
 	if role == "soldier" and animation_player:
 		play_soldier_motion(moving)
+	if role == "zombie" and animation_player and not dead:
+		enemy_action_time = maxf(0.0, enemy_action_time - delta)
+		if enemy_action_time <= 0.0:
+			play_zombie_clip("Walk" if moving else "Idle", true)
 	if weapon and rig and (role == "hero" or role == "soldier"):
 		var arm := rig.find_bone("ArmRight")
 		if arm >= 0:
 			var hand_in_rig: Vector3 = rig.get_bone_global_pose(arm) * Vector3(-18, -13, 0)
 			weapon.position = to_local(rig.to_global(hand_in_rig))
 			weapon.position.z -= gun_recoil
+
+func play_zombie_clip(clip_name: String, loop: bool = false) -> void:
+	if not animation_player or not animation_player.has_animation(clip_name):
+		return
+	if current_animation == clip_name and animation_player.is_playing():
+		return
+	var clip := animation_player.get_animation(clip_name)
+	clip.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
+	animation_player.play(clip_name, 0.15)
+	current_animation = clip_name
+
+func play_zombie_action(clip_name: String, hold: float) -> void:
+	if role != "zombie" or dead:
+		return
+	enemy_action_time = hold
+	play_zombie_clip(clip_name)
 
 func play_soldier_motion(moving: bool) -> void:
 	var wanted := "Shoot_OneHanded" if combat_animation_time > 0.0 else ("Walk_Carry" if moving else "Idle")
@@ -256,13 +277,18 @@ func apply_damage(amount: float) -> void:
 	health -= amount
 	hit_direction = -hit_direction
 	hit_reaction_time = 0.18
+	if health > 0 and role == "zombie":
+		play_zombie_action("Hit", 0.35)
 	if health <= 0:
 		dead = true
 		defeated.emit(self)
 		# Remove collision immediately without delaying the gameplay defeat signal.
 		collision_layer = 0
 		collision_mask = 0
-		if visual_root:
+		if role == "zombie" and animation_player and animation_player.has_animation("Death"):
+			play_zombie_clip("Death")
+			get_tree().create_timer(animation_player.get_animation("Death").length + 0.1).timeout.connect(queue_free)
+		elif visual_root:
 			var fall := create_tween()
 			fall.tween_property(visual_root, "rotation:x", -1.25, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 			fall.tween_callback(queue_free)

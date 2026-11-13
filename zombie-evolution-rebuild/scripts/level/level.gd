@@ -177,6 +177,7 @@ func update_enemies(delta: float) -> void:
 		enemy.update_animation(delta, closest > 1.35)
 		if closest <= 1.5 and enemy.attack_timer <= 0:
 			enemy.attack_timer = 1.2
+			enemy.play_zombie_action("Attack", 0.7)
 			victim.apply_damage(16 if enemy.role == "brute" else 8)
 			if victim == hero:
 				sound.play_effect("hurt")

@@ -15,5 +15,8 @@ node name and embed the texture. Raw source files remain in the user's Drive,
 not in this repository. Six source clips: idle1, walk, run, atack1 (original
 spelling), gethit, death1. Original source model and rig are retained, not
 replaced with synthetic procedural motions. Source's second texture set and
-other clips are not yet integrated. The GLB is an experimental import awaiting
-visual inspection in Godot and is not yet used as a gameplay character.
+other clips are not yet integrated. The GLB replaces only the ordinary zombie role; the runner and brute remain
+their existing models. Movement selects authored idle and walk, attacks and
+hits play their respective clips, and death plays the supplied death clip.
+Gameplay damage is still applied immediately, not synchronized to the animation
+strike frame. Conversion and animation timing still need in-game visual review.

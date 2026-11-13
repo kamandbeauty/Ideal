@@ -82,6 +82,11 @@ func run_capture() -> void:
 				continue
 			if level.hero.muzzle_flash.visible and not captured.has("08-firing"):
 				await snapshot("08-firing")
+			if not captured.has("11-animated-zombie"):
+				for enemy in level.enemies:
+					if is_instance_valid(enemy) and enemy.role == "zombie" and enemy.position.distance_to(level.hero.position) < 27.5:
+						await snapshot("11-animated-zombie")
+						break
 			if not captured.has("03-zombie-encounter"):
 				for enemy in level.enemies:
 					if is_instance_valid(enemy) and enemy.position.z > level.hero.position.z and enemy.position.distance_to(level.hero.position) < 22:
@@ -130,7 +135,7 @@ func run_capture() -> void:
 			quit(1)
 			return
 		await snapshot("07-defeat-test-only")
-	var required := ["01-launcher", "02-initial-bridge", "03-zombie-encounter", "04-glass-gate", "05-recruited-soldiers", "06-victory", "08-firing", "09-city-entrance"]
+	var required := ["01-launcher", "02-initial-bridge", "03-zombie-encounter", "04-glass-gate", "05-recruited-soldiers", "06-victory", "08-firing", "09-city-entrance", "11-animated-zombie"]
 	if captured.has("07-defeat"):
 		required.append("07-defeat")
 	else:
