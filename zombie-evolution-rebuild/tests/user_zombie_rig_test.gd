@@ -60,9 +60,14 @@ func run_tests() -> void:
 	check(actor.current_animation == "Attack", "attack plays supplied clip")
 	actor.apply_damage(1)
 	check(actor.current_animation == "Hit", "damage plays supplied hit clip")
-	actor.apply_damage(999)
+	var death_start: Vector3 = actor.visual_root.position
+	actor.apply_damage(999, Vector3(0, 0, 1))
 	check(actor.dead and actor.current_animation == "Death", "defeat plays supplied death clip")
-	actor.queue_free()
+	check(actor.collision_layer == 0 and actor.animation_player.speed_scale == 6.0, "death disables collision and accelerates animation")
+	await create_timer(0.25).timeout
+	check(actor.visual_root.position.z > death_start.z + 0.3, "lethal impact throws zombie away from shooter")
+	await create_timer(1.2).timeout
+	check(not is_instance_valid(actor), "defeated zombie is cleaned up after the accelerated death")
 	await process_frame
 	print("User zombie rig failures: ", failures)
 	quit(1 if failures else 0)

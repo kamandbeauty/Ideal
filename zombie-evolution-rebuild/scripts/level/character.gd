@@ -271,7 +271,7 @@ func step_motion(horizontal: Vector3, delta: float) -> void:
 	move_and_slide()
 	position.x = clampf(position.x, -5.0, 5.0)
 
-func apply_damage(amount: float) -> void:
+func apply_damage(amount: float, impact_direction: Vector3 = Vector3.ZERO) -> void:
 	if dead:
 		return
 	health -= amount
@@ -285,9 +285,29 @@ func apply_damage(amount: float) -> void:
 		# Remove collision immediately without delaying the gameplay defeat signal.
 		collision_layer = 0
 		collision_mask = 0
-		if role == "zombie" and animation_player and animation_player.has_animation("Death"):
-			play_zombie_clip("Death")
-			get_tree().create_timer(animation_player.get_animation("Death").length + 0.1).timeout.connect(queue_free)
+		if is_enemy() and visual_root:
+			# Visual knockback is independent of gameplay collision and kill timing.
+			var launch := Vector3(impact_direction.x, 0, impact_direction.z)
+			if launch.length_squared() < 0.001:
+				launch = Vector3.FORWARD
+			launch = (global_transform.basis.inverse() * launch).normalized()
+			launch.y = 0
+			var initial := visual_root.position
+			var landing := initial + launch * (0.55 if role == "brute" else 1.0)
+			var flight := create_tween()
+			flight.set_parallel(true)
+			flight.tween_property(visual_root, "position:x", landing.x, 0.40).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			flight.tween_property(visual_root, "position:z", landing.z, 0.40).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			var arc := create_tween()
+			arc.tween_property(visual_root, "position:y", initial.y + 0.24, 0.13).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+			arc.tween_property(visual_root, "position:y", initial.y, 0.27).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			if role == "zombie" and animation_player and animation_player.has_animation("Death"):
+				animation_player.speed_scale = 6.0
+				play_zombie_clip("Death")
+				get_tree().create_timer(animation_player.get_animation("Death").length / 6.0 + 0.15).timeout.connect(queue_free)
+			else:
+				flight.tween_property(visual_root, "rotation:x", -1.25, 0.36).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				flight.chain().tween_callback(queue_free)
 		elif visual_root:
 			var fall := create_tween()
 			fall.tween_property(visual_root, "rotation:x", -1.25, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)

@@ -6,7 +6,7 @@ const GateScript = preload("res://scripts/level/gates.gd")
 const HudScript = preload("res://scripts/level/hud.gd")
 const SoundScript = preload("res://scripts/level/sound_effects.gd")
 const END_Z := 165.0
-const WALK_SPEED := 2.6
+const WALK_SPEED := 1.7
 @export_range(0.05, 2.0, 0.01) var fire_interval := 0.14
 
 var hero
@@ -38,9 +38,9 @@ func _ready() -> void:
 	camera = Camera3D.new()
 	camera.current = true
 	camera.fov = 62
-	camera.position = Vector3(0, 7.5, -10)
+	camera.position = Vector3(0, 6.8, -8.5)
 	add_child(camera)
-	camera.look_at(Vector3(0, 1, 15), Vector3.UP)
+	camera.look_at(Vector3(0, 1, 14), Vector3.UP)
 	gate = GateScript.new()
 	gate.position = Vector3(0, 0, 65)
 	gate.crossed.connect(on_gate_crossed)
@@ -74,9 +74,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	# The camera looks along +Z, so screen-right points toward world -X.
 	if event is InputEventScreenDrag:
-		pending_drag -= event.relative.x * 0.018
+		pending_drag -= event.relative.x * 0.012
 	elif event is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		pending_drag -= event.relative.x * 0.018
+		pending_drag -= event.relative.x * 0.012
 
 func _physics_process(delta: float) -> void:
 	if not running:
@@ -84,7 +84,7 @@ func _physics_process(delta: float) -> void:
 	message_time = maxf(0, message_time - delta)
 	hero.position.x = clampf(hero.position.x + pending_drag, -4.7, 4.7)
 	pending_drag = 0
-	var horizontal := Input.get_axis("ui_left", "ui_right") * 5.0
+	var horizontal := Input.get_axis("ui_left", "ui_right") * 3.5
 	var forward := WALK_SPEED if hero.position.z < END_Z else 0.0
 	hero.step_motion(Vector3(horizontal, 0, forward), delta)
 	hero.position.x = clampf(hero.position.x, -4.7, 4.7)
@@ -106,8 +106,8 @@ func _physics_process(delta: float) -> void:
 			if ammo <= 0:
 				reload_time = 1.8
 				sound.play_effect("reload")
-	camera.position = camera.position.lerp(Vector3(hero.position.x * 0.25, 7.5, hero.position.z - 12), minf(delta * 3, 1))
-	camera.look_at(Vector3(hero.position.x * 0.25, 1, hero.position.z + 13), Vector3.UP)
+	camera.position = camera.position.lerp(Vector3(hero.position.x * 0.25, 6.8, hero.position.z - 10.5), minf(delta * 3, 1))
+	camera.look_at(Vector3(hero.position.x * 0.25, 1, hero.position.z + 12), Vector3.UP)
 	if hero.position.z >= END_Z and enemies.is_empty():
 		finish(true)
 	var instruction := message if message_time > 0 else ""
@@ -216,7 +216,7 @@ func shoot_at(shooter, destination: Vector3, damage: float) -> void:
 		end = hit.position
 		var collider = hit.collider
 		if collider.has_method("apply_damage"):
-			collider.apply_damage(damage)
+			collider.apply_damage(damage, (end - origin).normalized())
 			sound.play_effect("impact")
 			show_impact(end)
 	shooter.aim_weapon(end)

@@ -61,6 +61,7 @@ func run_tests() -> void:
 	level.set_physics_process(false)
 	await physics_frame
 	await physics_frame
+	check(is_equal_approx(level.WALK_SPEED, 1.7), "hero forward speed is reduced")
 	var initial_z: float = level.hero.position.z
 	level._physics_process(0.1)
 	check(level.hero.position.z > initial_z, "hero moves through the world, not just the camera")
