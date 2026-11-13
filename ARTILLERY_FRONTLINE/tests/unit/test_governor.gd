@@ -43,6 +43,14 @@ func run(t: TestContext) -> void:
 	t.check(Graphics.render_scale < float(Graphics.PROFILES["medium"].scale) - 0.001, "the governor lowered render_scale")
 	t.near(viewport.scaling_3d_scale, Graphics.render_scale, 0.0001, "and the viewport scale is that value, not the old one")
 	t.equal(viewport.msaa_3d, msaa, "the drop does not touch MSAA")
+	var lowered: float = Graphics.render_scale
+	var recover: float = 12.0
+	while recover > 0.0:
+		Graphics.observe(12.0, 0.1)
+		recover -= 0.1
+	t.check(Graphics.render_scale > lowered + 0.001, "fast frames raise the buffer again (%.2f after %.2f)" % [Graphics.render_scale, lowered])
+	t.near(viewport.scaling_3d_scale, Graphics.render_scale, 0.0001, "the 3D buffer follows the raise, not only the drop")
+	t.equal(viewport.msaa_3d, msaa, "raising scale still leaves MSAA as first committed")
 
 	# A player who picks a tier gets that tier's buffer at once, governor or not.
 	Profile.persist = false

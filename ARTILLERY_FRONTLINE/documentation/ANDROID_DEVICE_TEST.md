@@ -1,5 +1,8 @@
 # Android device test — LAST WALL 0.6.1
 
+**Physical-device validation: PENDING.** No phone or emulator has run this
+build. CI software-renderer play is not this procedure.
+
 Repeatable procedure for a real ARM64 phone. **CI does not run this.**
 Nothing in this file is evidence that a device was used.
 

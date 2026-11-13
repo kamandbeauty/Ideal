@@ -320,11 +320,26 @@ func _pick_look(rng: RandomNumberGenerator) -> int:
 	# The extra figure is a second skinned body. On a filled street it is the
 	# thing that drops the frame rate, so only a quarter of lives wear it, and
 	# never when the quality tier has dropped the dressing.
-	if not bool(Graphics.profile().get("detail", true)):
+	if not _quality_allows_extras():
 		return 0
 	if rng.randf() > 0.25:
 		return 0
 	return 1 + rng.randi() % extras
+
+
+## Looked up at runtime. This script is a class_name the headless runner may
+## compile before autoloads exist, so it must not name `Graphics` at parse time.
+static func _quality_allows_extras() -> bool:
+	var loop: MainLoop = Engine.get_main_loop()
+	if not (loop is SceneTree):
+		return true
+	var gfx: Node = (loop as SceneTree).root.get_node_or_null("Graphics")
+	if gfx == null:
+		return true
+	var settings: Variant = gfx.call("profile")
+	if settings is Dictionary:
+		return bool((settings as Dictionary).get("detail", true))
+	return true
 
 
 func _pick_walk(rng: RandomNumberGenerator) -> String:

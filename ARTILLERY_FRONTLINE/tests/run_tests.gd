@@ -32,7 +32,10 @@ func _run() -> void:
 	var profile: Node = root.get_node("Profile")
 	profile.persist = false
 	profile.load_profile()
-	Zombie.mix_extras = false
+	# Loaded after autoloads exist. Naming class_name Zombie here would compile
+	# zombie.gd as a dependency of this --script, before Graphics is registered.
+	var zombie_script: GDScript = load("res://scripts/zombies/zombie.gd")
+	zombie_script.mix_extras = false
 	var only: String = ""
 	var report_path: String = REPORT_PATH
 	for argument: String in OS.get_cmdline_user_args():
@@ -59,6 +62,7 @@ func _run() -> void:
 		var script: Script = load(path)
 		if script == null or not script.can_instantiate():
 			context.check(false, "suite failed to compile")
+			_write_report(report_path, false)
 			continue
 		var instance: RefCounted = script.new()
 		await instance.run(context)
@@ -66,6 +70,13 @@ func _run() -> void:
 		if ran == 0:
 			context.check(false, "suite ran no checks (did it stop on a script error?)")
 		print("  %-28s %4d checks" % [context.suite, ran])
+		# Written after every suite so a later crash still leaves a valid JSON report.
+		_write_report(report_path, false)
+	_write_report(report_path, true)
+	quit(0 if context.failures.is_empty() else 1)
+
+
+func _write_report(report_path: String, announce: bool) -> void:
 	var report: Dictionary = {
 		"game": ProjectSettings.get_setting("application/config/name"),
 		"version": ProjectSettings.get_setting("application/config/version"),
@@ -76,10 +87,10 @@ func _run() -> void:
 		"passed": context.failures.is_empty(),
 		"scope": "Headless logic and scene integration on desktop; not an Android device run",
 	}
-	print("LASTWALL_TEST_REPORT " + JSON.stringify(report))
+	if announce:
+		print("LASTWALL_TEST_REPORT " + JSON.stringify(report))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(report_path.get_base_dir()))
 	var file := FileAccess.open(report_path, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify(report, "  ") + "\n")
 		file.close()
-	quit(0 if context.failures.is_empty() else 1)

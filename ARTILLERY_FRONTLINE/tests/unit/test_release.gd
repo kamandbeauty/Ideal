@@ -103,8 +103,10 @@ func _android(t: TestContext) -> void:
 		t.check(int(presets.get_value(options, "version/code", 0)) >= 6, "%s has a version code above every earlier build" % label)
 		var left_out: String = String(presets.get_value(head, "exclude_filter", ""))
 		t.check(left_out.contains("tests/*") and left_out.contains("tools/*") and left_out.contains("documentation/*"), "%s ships no tests, tools or reports" % label)
-	t.check(String(presets.get_value("preset.0.options", "package/unique_name", "")) != String(presets.get_value("preset.1.options", "package/unique_name", "")),
-		"the two packages can be installed side by side")
+	t.equal(String(presets.get_value("preset.0.options", "package/unique_name", "")), "com.studiojavid.zombiesiege",
+		"the ARM64 package id is com.studiojavid.zombiesiege")
+	t.equal(String(presets.get_value("preset.1.options", "package/unique_name", "")), "com.studiojavid.zombiesiege.compatibility",
+		"the compatibility package uses a distinct id so both can be installed")
 	t.check(bool(ProjectSettings.get_setting("display/window/energy_saving/keep_screen_on")), "the screen stays on during a siege")
 	t.equal(int(ProjectSettings.get_setting("physics/common/physics_ticks_per_second")), 60, "the simulation runs 60 ticks a second")
 	t.check(not bool(ProjectSettings.get_setting("audio/driver/enable_input")), "the microphone is never opened")

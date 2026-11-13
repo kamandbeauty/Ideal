@@ -24,6 +24,7 @@ func run(t: TestContext) -> void:
 
 	# One walker: route, slot, arrival, attack.
 	var zombie: Zombie = horde.spawn(&"walker", "ring_right", "gate")
+	t.check(zombie != null and is_instance_of(zombie, Zombie), "Horde instantiates a Zombie node, not a bare Node3D")
 	t.check(zombie != null and zombie.alive and zombie.visible and zombie.state == Zombie.State.ADVANCE, "a spawned zombie is alive and advancing")
 	var spawn: Vector3 = (layout.routes.ring_right.points as PackedVector3Array)[0]
 	t.check(zombie.position.distance_to(spawn) <= float(layout.routes.ring_right.widths[0]) + 0.01, "it starts at the route's spawn, inside its lane")
