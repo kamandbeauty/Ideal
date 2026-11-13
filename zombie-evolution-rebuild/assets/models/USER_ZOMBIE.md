@@ -17,6 +17,6 @@ spelling), gethit, death1. Original source model and rig are retained, not
 replaced with synthetic procedural motions. Source's second texture set and
 other clips are not yet integrated. The GLB replaces only the ordinary zombie role; the runner and brute remain
 their existing models. Movement selects authored idle and walk, attacks and
-hits play their respective clips, and death plays the supplied death clip.
+hits play their respective clips, and death plays the supplied death clip accelerated sixfold with scripted visual knockback.
 Gameplay damage is still applied immediately, not synchronized to the animation
 strike frame. The asset was rendered in a test-only close-up; the albedo and character mesh are visible. A normal gameplay frame was also inspected, but the enemies are too small there to validate orientation, foot contact, transitions or animation quality. Strike timing and visual quality still need an in-game motion review.
