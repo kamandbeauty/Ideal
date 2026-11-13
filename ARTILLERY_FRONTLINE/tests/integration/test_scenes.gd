@@ -108,24 +108,14 @@ func run(t: TestContext) -> void:
 	t.check(zombie.body_area.get_meta("zombie") == zombie and zombie.head_area.get_meta("head") == true, "hit volumes know their zombie")
 	t.check(MaterialLibrary.zombie_skin("walker", 0) != MaterialLibrary.zombie_skin("walker", 1), "zombie skins differ")
 	t.check((MaterialLibrary.zombie_skin("walker", 2) as StandardMaterial3D).albedo_texture != null, "zombie skins are textured")
-	t.check((MaterialLibrary.extra_skin("bloat") as StandardMaterial3D).albedo_texture != null, "the extra bloat look has its painted skin")
-	t.check(MaterialLibrary.extra_skin("bloat") != MaterialLibrary.extra_skin("boomer"), "the extra looks do not share a skin")
-	t.check((MaterialLibrary.extra_skin("bloat") as StandardMaterial3D).albedo_color.v < 0.9, "an extra look is never left white")
 	var walk_rng := RandomNumberGenerator.new()
 	walk_rng.seed = 7
+	t.equal(zombie._pick_look(walk_rng), 0, "a life never wears the extra white figures")
 	var limping: int = 0
 	for _i: int in 200:
 		if zombie._walk_name(zombie._pick_walk(walk_rng)).begins_with("walk_b"):
 			limping += 1
 	t.check(limping > 5 and limping < 50, "most walkers shuffle; a few still limp (%d of 200)" % limping)
-	zombie._ensure_look(1)
-	zombie._use_look(1)
-	zombie._paint_look(1, walk_rng)
-	var extra_mat: StandardMaterial3D = null
-	if zombie.body_mesh:
-		extra_mat = zombie.body_mesh.material_override as StandardMaterial3D
-	t.check(extra_mat != null and extra_mat.albedo_color.v < 0.9, "an extra figure wears a painted skin, not the empty white default")
-	zombie._use_look(0)
 
 	# Spawn points are out of the gunner's sight.
 	var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state

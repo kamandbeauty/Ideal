@@ -12,9 +12,9 @@ const KNOCK_TIME: float = 0.38
 const ROCK_LIMIT: float = 7.0
 ## A heading this close to the goal (in radians, a thirtieth of a degree) counts as reached.
 const FACING_SLACK: float = 0.0006
-## Extra character meshes are mixed into a fraction of lives. The test runner
-## pins this off so type health and the type's own figure stay deterministic.
-static var mix_extras: bool = true
+## Extra character meshes (bloat, boomer, gibberling) read white in play: their
+## GLBs drop embedded textures. They are not mixed into the horde.
+static var mix_extras: bool = false
 
 var data: ZombieData
 var horde: Horde
@@ -309,33 +309,9 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 		anim.advance(0.0)
 
 
-func _pick_look(rng: RandomNumberGenerator) -> int:
-	var extras: int = data.extra_looks.size() if data else 0
-	if extras <= 0 or not mix_extras:
-		return 0
-	# The extra figure is a second skinned body. On a filled street it is the
-	# thing that drops the frame rate, so only a quarter of lives wear it, and
-	# never when the quality tier has dropped the dressing.
-	if not _quality_allows_extras():
-		return 0
-	if rng.randf() > 0.25:
-		return 0
-	return 1 + rng.randi() % extras
-
-
-## Looked up at runtime. This script is a class_name the headless runner may
-## compile before autoloads exist, so it must not name `Graphics` at parse time.
-static func _quality_allows_extras() -> bool:
-	var loop: MainLoop = Engine.get_main_loop()
-	if not (loop is SceneTree):
-		return true
-	var gfx: Node = (loop as SceneTree).root.get_node_or_null("Graphics")
-	if gfx == null:
-		return true
-	var settings: Variant = gfx.call("profile")
-	if settings is Dictionary:
-		return bool((settings as Dictionary).get("detail", true))
-	return true
+func _pick_look(_rng: RandomNumberGenerator) -> int:
+	# The extra figures are the white bodies. They stay out of the street.
+	return 0
 
 
 func _paint_look(chosen: int, rng: RandomNumberGenerator) -> void:

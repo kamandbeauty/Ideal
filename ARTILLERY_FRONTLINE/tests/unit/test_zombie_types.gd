@@ -91,10 +91,8 @@ func run(t: TestContext) -> void:
 		"sizes are ordered: boss, brute, walker and runner")
 	t.check(walker.skins >= 5, "walkers wear at least five painted outfits")
 	t.check(walker.scale_max <= 1.25 and walker.scale_min >= 1.05, "walkers stand near a man's height against the wall")
-	t.check(walker.extra_looks.size() >= 3 and runner.extra_looks.size() >= 3 and brute.extra_looks.size() >= 3,
-		"walkers, runners and brutes mix in the three extra character meshes")
-	t.check(walker.extra_look_health.size() >= 1 and walker.extra_look_health[0] > 1.2 and walker.extra_look_health[0] < 1.8,
-		"the extra monster look has a bit more health than the type's own figure")
+	t.check(walker.extra_looks.is_empty() and runner.extra_looks.is_empty() and brute.extra_looks.is_empty(),
+		"the extra character meshes are not mixed into the horde")
 	t.check(boss.extra_looks.is_empty(), "the Behemoth keeps its own figure")
 
 	# Against the weapons.
