@@ -26,12 +26,12 @@ func run_tests() -> void:
 	root.add_child(level)
 	level.set_physics_process(false)
 	await process_frame
-	check(level.camera.fov <= 47.0, "elevated gameplay camera uses a tighter field of view")
-	check(level.camera.position.y >= 11.0, "gameplay camera uses the requested elevated top view")
-	var target := Vector3(0, 0.85, 7.0)
+	check(level.camera.fov >= 60.0 and level.camera.fov <= 72.0, "third-person camera uses a broad gameplay field of view")
+	check(level.camera.position.y >= 3.5 and level.camera.position.y <= 6.0, "third-person camera follows from behind at shoulder height")
+	var target := Vector3(0, 1.25, 8.5)
 	var forward: Vector3 = -level.camera.global_transform.basis.z
-	check(forward.dot((target - level.camera.global_position).normalized()) > 0.995, "camera points toward the forward gameplay lane")
-	check(level.hero.position.z == 2.0 and level.gate.position.z == 65.0, "camera pass preserves player start and gate placement")
+	check(forward.dot((target - level.camera.global_position).normalized()) > 0.995, "third-person camera points toward the forward gameplay lane")
+	check(level.hero.position.z == 2.0 and level.gate.position.z == 65.0, "third-person camera pass preserves player start and gate placement")
 	check(level.fire_interval <= 0.15 and level.ammo == 30, "camera pass preserves automatic-fire configuration")
 	level.sound.stop_all()
 	level.queue_free()
