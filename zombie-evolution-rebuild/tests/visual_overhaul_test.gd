@@ -29,7 +29,7 @@ func run_tests() -> void:
 	check(level.camera.fov <= 58.0, "elevated gameplay camera uses a tighter field of view")
 	check(level.camera.position.y >= 12.0, "gameplay camera uses the requested elevated top view")
 	var target := Vector3(0, 0.85, 11.5)
-	var forward := -level.camera.global_transform.basis.z
+	var forward: Vector3 = -level.camera.global_transform.basis.z
 	check(forward.dot((target - level.camera.global_position).normalized()) > 0.995, "camera points toward the forward gameplay lane")
 	check(level.hero.position.z == 2.0 and level.gate.position.z == 65.0, "camera pass preserves player start and gate placement")
 	check(level.fire_interval <= 0.15 and level.ammo == 30, "camera pass preserves automatic-fire configuration")
