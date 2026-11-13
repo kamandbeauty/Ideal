@@ -15,9 +15,10 @@
 | | |
 | --- | --- |
 | پایه | `e6ae907` Phase 7: bind governor scale to the 3D buffer |
-| CI قبلی | [43332282959](https://github.com/kamandbeauty/Ideal/actions/runs/43332282959) — **failure** |
-| علت | `zombie.gd:323` `Graphics.profile()`؛ کلاس Zombie کامپایل نشد؛ Horde `Node3D` گرفت؛ `test-results.json` خالی |
-| این تعمیر | کامیت `fix: compile zombie.gd without the Graphics autoload` روی `533c39d` |
+| CI قبلی | [43332282959](https://github.com/kamandbeauty/Ideal/actions/runs/43332282959) — JSON خالی |
+| Autoload | [43357325714](https://github.com/kamandbeauty/Ideal/actions/runs/43357325714) — سوئیت‌ها دویدند؛ `show_loading` نبود |
+| علت ۱ | `zombie.gd` `Graphics.profile()` زیر `--script` |
+| علت ۲ | فاز ۷ `menus.show_loading()` را صدا زد بدون پیاده‌سازی؛ `start_match` شکست؛ back روی عنوان `quit()` کرد |
 
 URL اجرای این کامیت بعد از پوش در Actions همان workflow `LAST WALL` است.
 تا آن اجرا سبز نشود، سوئیت‌ها **پاس‌شده اعلام نمی‌شوند**.
@@ -42,6 +43,13 @@ URL اجرای این کامیت بعد از پوش در Actions همان workfl
 
 رفتار زمان اجرا همان است: شکل اضافه فقط وقتی کیفیت `detail` دارد و حدود
 یک‌چهارم جمعیت.
+
+اجرای `05adb5b` سوئیت‌ها را راه انداخت (`test_governor` ۲۲، `test_combat`
+۳۷، `test_project` ۲۹، JSON غیرخالی). بعد `start_match` به
+`menus.show_loading()` خورد که فاز ۷ صدا زد و ننوشت. مسابقه شروع نشد؛
+`NOTIFICATION_WM_GO_BACK_REQUEST` روی عنوان `get_tree().quit()` کرد و
+رانر مرد. `show_loading` الان صفحهٔ GET READY است؛ `start_match` دو فریم
+منتظر رنگ‌شدن است؛ تست‌های شروع مسابقه `frames(4)` می‌مانند.
 
 ## ۳. شناسهٔ بسته
 

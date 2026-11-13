@@ -40,6 +40,8 @@ var stage_brief: Label
 var stage_choices: MenuWidgets.Choices
 var gun_choices: MenuWidgets.Choices
 var gun_note: Label
+## The title (and loading) START control. Playthrough taps this rather than searching labels.
+var play_button: Button
 ## What the pause screen says about the match in progress: wave, waves, wall, gate.
 var pause_status: Dictionary = {}
 var fade: Tween
@@ -115,6 +117,7 @@ func _clear() -> void:
 	stage_choices = null
 	gun_choices = null
 	gun_note = null
+	play_button = null
 	for child: Node in holder.get_children():
 		holder.remove_child(child)
 		child.queue_free()
@@ -143,6 +146,9 @@ func _show(name: String, fade_in: bool = true) -> void:
 		"result":
 			dim.color = Color(0.05, 0.01, 0.01, 0.72) if not result_victory else Color(0.01, 0.035, 0.02, 0.66)
 			_build_result()
+		"loading":
+			dim.color = Color(0.02, 0.02, 0.025, 0.82)
+			_build_loading()
 	if fade != null and fade.is_valid():
 		fade.kill()
 	if not fade_in:
@@ -174,6 +180,11 @@ func show_result(victory: bool, stats: Dictionary, record: bool = false, onward:
 	result_record = record
 	result_onward = victory and onward
 	_show("result")
+
+
+## Covers the street while the next match is instantiated, so the hitch is not a frozen title.
+func show_loading() -> void:
+	_show("loading")
 
 
 # -- Building blocks -----------------------------------------------------------------
@@ -347,7 +358,13 @@ func _build_main() -> void:
 	# Room for two lines whichever gun is chosen, so the card does not jump when the choice changes.
 	gun_note.custom_minimum_size = Vector2(0.0, gun_note.get_line_height() * 2.0 + 4.0)
 	plan.add_child(gun_note)
-	plan.add_child(UITheme.button(Loc.t("play"), func() -> void: play_requested.emit(), "accent", "ui_start"))
+	play_button = UITheme.button(Loc.t("play"), func() -> void: play_requested.emit(), "accent", "ui_start")
+	plan.add_child(play_button)
+
+
+func _build_loading() -> void:
+	var column: VBoxContainer = _panel(480.0)
+	column.add_child(_heading(Loc.t("get_ready"), 56, UITheme.AMBER))
 
 
 ## What a stage holds, in a line: its number, its waves and how many zombies it fields.

@@ -70,7 +70,7 @@ func run(t: TestContext) -> void:
 
 	# The first stage.
 	_button(menus, Loc.t("play")).pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	var level: CityLevel = game.level
 	t.check(game.mode == game.Mode.PLAYING and level.running, "PLAY starts the match")
 	t.check(level.stage == 0 and level.wave_set == first, "on the waves of the first stage")
@@ -99,7 +99,7 @@ func run(t: TestContext) -> void:
 	t.equal(int(Profile.data.stats.stages_cleared), 0, "nothing is opened by it")
 	t.equal(int(Profile.data.stats.best_wave), 2, "the wave reached is kept")
 	_button(menus, Loc.t("restart")).pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	t.check(game.mode == game.Mode.PLAYING and game.level.stage == 0 and game.level.stats.wave == 0, "AGAIN starts the same stage from its first wave")
 
 	# Winning it opens the second, and the result screen leads straight on.
@@ -113,7 +113,7 @@ func run(t: TestContext) -> void:
 	t.check(onward != null and onward.size.y >= UITheme.TOUCH - 0.5, "NEXT STAGE is offered, a full touch target high")
 	t.check(_button(menus, Loc.t("restart")) != null and _button(menus, Loc.t("main_menu")) != null, "beside AGAIN and MAIN MENU")
 	onward.pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	level = game.level
 	t.check(game.mode == game.Mode.PLAYING and game.stage == 1 and level.stage == 1, "it starts the second stage")
 	t.check(level.wave_set == Campaign.waves(1) and level.director.wave_count() == Campaign.waves(1).waves.size(), "on its own waves")
@@ -160,7 +160,7 @@ func run(t: TestContext) -> void:
 	Profile.set_setting("language", "en")
 	await t.frames(2)
 	_button(menus, Loc.t("play")).pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	t.check(game.level.stage == 0 and game.level.director.wave_count() == 3, "PLAY starts the stage that was picked")
 	_end(game, true, 3)
 	await t.frames(2)
@@ -176,12 +176,12 @@ func run(t: TestContext) -> void:
 
 	# The second stage won, then the third: the siege is over.
 	_button(menus, Loc.t("play")).pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	_end(game, true, Campaign.waves(1).waves.size())
 	await t.frames(2)
 	t.equal(int(Profile.data.stats.stages_cleared), 2, "winning the second stage opens the third")
 	_button(menus, Loc.t("next_stage")).pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	level = game.level
 	var last: WaveSet = Campaign.waves(2)
 	t.check(level.stage == 2 and level.wave_set == last, "the third stage is the last")
@@ -208,7 +208,7 @@ func run(t: TestContext) -> void:
 	Profile.reset()
 	Profile.set_setting("language", "en")
 	_button(menus, Loc.t("play")).pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	t.check(game.stage == 0 and game.level.stage == 0 and game.level.wave_set == first, "with the progress gone, PLAY starts the first stage whatever was lit")
 	game.to_menu()
 	await t.frames(3)

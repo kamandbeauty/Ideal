@@ -490,7 +490,7 @@ func _controls(t: TestContext) -> void:
 	t.tree.root.add_child(game)
 	await t.frames(3)
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var hud: Hud = game.hud
 	var level: CityLevel = game.level
 	var defender: Defender = level.defender

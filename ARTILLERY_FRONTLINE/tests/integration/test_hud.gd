@@ -42,7 +42,7 @@ func run(t: TestContext) -> void:
 
 	# Starting a match.
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var level: CityLevel = game.level
 	var defender: Defender = level.defender
 	t.equal(game.mode, 1, "DEFEND starts play")
@@ -157,7 +157,7 @@ func run(t: TestContext) -> void:
 	t.equal(Profile.data.stats.matches, matches + 1, "the match is recorded in the profile")
 	t.equal(Profile.data.stats.best_wave, 3, "the best wave is recorded")
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	t.check(game.mode == 1 and game.level != level and game.level.running, "RESTART builds a fresh level")
 	t.near(game.level.defense.wall_fraction(), 1.0, 0.0001, "the new match starts with an intact wall")
 	game.to_menu()

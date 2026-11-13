@@ -107,7 +107,7 @@ func run(t: TestContext) -> void:
 	var hud: Hud = game.hud
 	var menus: Menus = game.menus
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var level: CityLevel = game.level
 	level.director.stop()
 

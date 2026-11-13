@@ -124,7 +124,7 @@ func _on_the_hud(t: TestContext) -> void:
 	root.size = Vector2i(1440, 810)
 	var hud: Hud = game.hud
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var level: CityLevel = game.level
 	level.director.stop()
 	var defender: Defender = level.defender

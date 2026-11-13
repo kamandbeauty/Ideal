@@ -304,7 +304,7 @@ func _boss(t: TestContext) -> void:
 	await t.frames(3)
 	Profile.set_setting("language", "en")
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var hud: Hud = game.hud
 	var level: CityLevel = game.level
 	var horde: Horde = level.horde

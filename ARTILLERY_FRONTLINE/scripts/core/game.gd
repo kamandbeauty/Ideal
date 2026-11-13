@@ -101,6 +101,7 @@ func start_match() -> void:
 	menus.show_loading()
 	# Let the loading screen paint before the hitch of instantiating the street.
 	await get_tree().process_frame
+	await get_tree().process_frame
 	_load_level()
 	menus.hide_all()
 	hud.set_active(true)

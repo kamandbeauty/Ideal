@@ -293,7 +293,7 @@ func _the_choice(t: TestContext) -> void:
 	game.choose_gun("pea_shooter")
 	t.equal(String(Profile.setting("gun")), "rotary_gun", "a gun that does not exist cannot be chosen")
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var level: CityLevel = game.level
 	level.director.stop()
 	t.check(level.defender.weapon is RotaryGun and level.defender.gun_id() == "rotary_gun", "the match is fought with the chosen gun")
