@@ -403,6 +403,7 @@ func _process(delta: float) -> void:
 func _on_wave_started(index: int, _total: int) -> void:
 	stats.wave = index + 1
 	Sound.play("wave_horn", -4.0)
+	Sound.play("wave_horde", -7.0)
 
 
 func _on_wave_cleared(index: int, total: int) -> void:

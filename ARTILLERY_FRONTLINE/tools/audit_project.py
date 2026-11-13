@@ -145,7 +145,7 @@ notes["asset_megabytes"] = round(sum(p.stat().st_size for p in assets) / 1e6, 1)
 # 4. Sounds: the mixer's list and the files on disk are the same set, and each is asked for.
 mixer = texts[root / "scripts/audio/audio_manager.gd"]
 listed = set(re.findall(r'"(\w+)"', mixer.split("const CLIPS", 1)[1].split("= [", 1)[1].split("\n]", 1)[0]))
-on_disk = {p.stem for p in (root / "assets/audio").glob("*.wav")}
+on_disk = {p.stem for p in (root / "assets/audio").iterdir() if p.suffix in {".wav", ".mp3", ".ogg"}}
 if listed != on_disk:
     problems.append("sounds listed but missing: %s; on disk but not listed: %s" % (sorted(listed - on_disk), sorted(on_disk - listed)))
 others = {p: t for p, t in game_texts.items() if p != root / "scripts/audio/audio_manager.gd"}

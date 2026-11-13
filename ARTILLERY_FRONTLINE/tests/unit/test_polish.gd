@@ -276,7 +276,7 @@ func _voices(t: TestContext) -> void:
 	t.check(Sound.rank_of("zombie_groan_1") < Sound.rank_of("zombie_death_1"), "groans give way to death cries")
 	t.check(Sound.rank_of("hmg_shot") < Sound.rank_of("explosion"), "the gun does not cut off a blast")
 	t.check(Sound.rank_of("explosion") < Sound.rank_of("alarm"), "nothing cuts off the alarm")
-	for name: String in ["boss_roar", "boss_death", "gate_break", "wall_break", "wave_horn", "victory", "defeat"]:
+	for name: String in ["boss_roar", "boss_death", "gate_break", "wall_break", "wave_horn", "wave_horde", "victory", "defeat"]:
 		t.check(Sound.rank_of(name) > Sound.rank_of("hmg_shot"), "%s outranks the gun" % name)
 	t.equal(Sound.rank_of("click"), 1, "a clip without a rank of its own is ordinary")
 	# The same clip cannot be started twice inside its gap.
@@ -290,9 +290,11 @@ func _voices(t: TestContext) -> void:
 func _loops_and_buses(t: TestContext) -> void:
 	# The importer stores clips compressed; a loop measured in bytes ended two fifths of the way through the theme.
 	var wind: AudioStreamWAV = Sound.clips["wind"]
-	var theme: AudioStreamWAV = Sound.clips["music_theme"]
 	t.equal(Sound.frames_of(wind), 8 * 24000, "the wind bed is measured as its full eight seconds")
-	t.equal(Sound.frames_of(theme), 48 * 24000, "the theme is measured as its full forty-eight seconds")
+	t.check(Sound.has_clip("music_theme"), "the title theme is shipped")
+	t.check(Sound.clips["music_theme"].get_length() > 30.0, "it is a full piece, not a sting")
+	t.check(Sound.has_clip("wave_horde"), "the wave crowd is shipped")
+	t.check(Sound.clips["wave_horde"].get_length() > 8.0, "and long enough to cover the rush")
 	var was_looping: bool = Sound.is_looping("wind")
 	Sound.start_loop("wind", "Effects", -19.0)
 	var player: AudioStreamPlayer = Sound.loops["wind"]

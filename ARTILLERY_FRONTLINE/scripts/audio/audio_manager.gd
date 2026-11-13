@@ -2,15 +2,15 @@ extends Node
 ## Autoload Sound: pooled one-shot voices, looping beds, per-clip throttling
 ## and a rank for every clip, so a full horde or a long burst can neither flood
 ## the mixer nor cut off the sounds that matter. A limiter on the master bus
-## keeps a rocket landing in the middle of a burst from clipping. Every clip is
-## original, synthesized by tools/build_audio.py.
+## keeps a rocket landing in the middle of a burst from clipping. Most clips are
+## synthesized by tools/build_audio.py; the theme and the wave crowd are recorded.
 
 const CLIP_DIR: String = "res://assets/audio/"
 const CLIPS: Array[String] = [
 	"hmg_shot", "hmg_tail", "dry_fire", "reload", "click", "critical", "impact", "impact_flesh", "impact_metal", "explosion", "rocket",
 	"headshot", "zombie_groan_1", "zombie_groan_2", "zombie_groan_3", "zombie_death_1", "zombie_death_2", "zombie_attack_1",
 	"zombie_attack_2", "gate_hit_1", "gate_hit_2", "wall_hit_1", "wall_hit_2", "gate_break", "wall_break", "alarm", "wave_horn",
-	"wave_clear", "wind", "music_theme", "explosion_small", "grenade_throw", "grenade_bounce", "weapon_switch", "resupply", "boss_roar",
+	"wave_clear", "wind", "music_theme", "wave_horde", "explosion_small", "grenade_throw", "grenade_bounce", "weapon_switch", "resupply", "boss_roar",
 	"boss_death", "body_fall", "ui_toggle", "ui_start", "ui_back", "victory", "defeat", "rotary_shot", "rotary_spin", "rotary_tail",
 ]
 ## Shortest gap between two starts of the same clip, in milliseconds.
@@ -19,6 +19,7 @@ const MIN_GAP_MS: Dictionary = {
 	"zombie_groan_3": 160, "zombie_death_1": 120, "zombie_death_2": 120, "zombie_attack_1": 120, "zombie_attack_2": 120,
 	"gate_hit_1": 160, "gate_hit_2": 160, "wall_hit_1": 160, "wall_hit_2": 160, "explosion": 70, "explosion_small": 70,
 	"grenade_bounce": 50, "body_fall": 150, "hmg_tail": 250, "ui_toggle": 40, "rotary_tail": 250, "rotary_spin": 200,
+	"wave_horde": 2500,
 }
 ## How much a clip matters when every voice is busy. A new sound may take the
 ## voice of one that matters no more than itself, never of one that matters
@@ -28,7 +29,7 @@ const RANK: Dictionary = {
 	"impact": 0, "impact_flesh": 0, "impact_metal": 0, "grenade_bounce": 0, "zombie_groan_1": 0, "zombie_groan_2": 0,
 	"zombie_groan_3": 0, "body_fall": 0, "hmg_tail": 0, "rotary_tail": 0, "rotary_spin": 0,
 	"explosion": 2, "explosion_small": 2, "rocket": 2, "critical": 2, "resupply": 2, "ui_start": 2,
-	"gate_break": 3, "wall_break": 3, "boss_roar": 3, "boss_death": 3, "alarm": 3, "wave_horn": 3, "wave_clear": 3,
+	"gate_break": 3, "wall_break": 3, "boss_roar": 3, "boss_death": 3, "alarm": 3, "wave_horn": 3, "wave_horde": 3, "wave_clear": 3,
 	"victory": 3, "defeat": 3,
 }
 const SPATIAL_VOICES: int = 14
@@ -66,9 +67,9 @@ func _ready() -> void:
 	playback_enabled = DisplayServer.get_name() != "headless"
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	for id: String in CLIPS:
-		var path: String = CLIP_DIR + id + ".wav"
-		if ResourceLoader.exists(path):
-			clips[id] = load(path)
+		var stream: Resource = _load_clip(id)
+		if stream != null:
+			clips[id] = stream
 	sfx_bus = _bus("Effects")
 	music_bus = _bus("Music")
 	_protect_master()
@@ -93,6 +94,14 @@ func _ready() -> void:
 	flat_since.resize(FLAT_VOICES)
 	Profile.changed.connect(apply_settings)
 	apply_settings()
+
+
+func _load_clip(id: String) -> Resource:
+	for extension: String in [".wav", ".mp3", ".ogg"]:
+		var path: String = CLIP_DIR + id + extension
+		if ResourceLoader.exists(path):
+			return load(path)
+	return null
 
 
 func _bus(bus_name: String) -> int:
@@ -231,10 +240,9 @@ static func frames_of(stream: AudioStreamWAV) -> int:
 func start_loop(id: String, bus: String = "Music", volume_db: float = 0.0, fade: float = LOOP_FADE) -> void:
 	if loops.has(id) or not clips.has(id):
 		return
-	var stream: AudioStreamWAV = clips[id].duplicate()
-	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	stream.loop_begin = 0
-	stream.loop_end = frames_of(stream)
+	var stream: AudioStream = _looped(clips[id])
+	if stream == null:
+		return
 	var player := AudioStreamPlayer.new()
 	player.stream = stream
 	player.bus = bus
@@ -251,6 +259,23 @@ func start_loop(id: String, bus: String = "Music", volume_db: float = 0.0, fade:
 		rise.tween_method(func(level: float) -> void: player.volume_db = linear_to_db(level),
 			db_to_linear(SILENT_DB), db_to_linear(volume_db), fade)
 	player.play()
+
+
+func _looped(source: AudioStream) -> AudioStream:
+	var stream: AudioStream = source.duplicate()
+	if stream is AudioStreamWAV:
+		var wav: AudioStreamWAV = stream
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		wav.loop_begin = 0
+		wav.loop_end = frames_of(wav)
+		return wav
+	if stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = true
+		return stream
+	if stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+		return stream
+	return null
 
 
 func stop_loop(id: String) -> void:

@@ -13,7 +13,7 @@ the two font families. Nothing is downloaded at build time or at run time.
 | `assets/models/weapons/rpg_launcher.glb`, `rocket.glb`, `frag_grenade.glb`, `rotary_gun.glb` | `tools/build_weapons.py` | The shoulder launcher with its loaded round, the round in flight, the hand grenade, and the six-barrel gun on its pedestal (a rotor of six barrels that turns, its housing, ammunition can and feed chute), built from lathed and boxed primitives |
 | `resources/levels/city_siege_layout.tres` | `tools/build_city.py` | Routes and attack places, from the same numbers as the mesh |
 | `assets/textures/world/*.jpg`, `*_n.png`, `sky_dusk.jpg` | `tools/build_textures.py` | Tiling surfaces with normal maps, and the sky panorama |
-| `assets/audio/*.wav` (46 clips) | `tools/build_audio.py` | Synthesized from oscillators and filtered noise: the guns and the tail of a burst, the six-barrel gun's motor running up, its paired report and its run-down, strikes, voices, the rocket launch, both explosions, the boss's roar and death, a body falling, the interface sounds, the victory and defeat stings, the wind bed and the music loop |
+| `assets/audio/*.wav` (synthesized clips) | `tools/build_audio.py` | Synthesized from oscillators and filtered noise: the guns and the tail of a burst, the six-barrel gun's motor running up, its paired report and its run-down, strikes, voices, the rocket launch, both explosions, the boss's roar and death, a body falling, the interface sounds, the victory and defeat stings, and the wind bed |
 | `assets/textures/icon.png` | `tools/build_icon.py` | App icon |
 
 ## Carried over from the earlier project
@@ -28,6 +28,13 @@ The earlier project's notes dedicated its original assets to the public
 domain (CC0) where legally possible. That text was removed together with the
 old documentation; nothing in this pass changes or extends it. Which licence
 the new original assets carry is the project owner's decision.
+
+## Recorded audio
+
+| Asset | Origin | Licence |
+| --- | --- | --- |
+| `assets/audio/music_theme.mp3` | *Teeth In The Wire*, supplied for this project as the main theme | Project owner's recording |
+| `assets/audio/wave_horde.wav` | Trimmed (16 s, mono 24 kHz) from [Freesound 111044](https://freesound.org/people/GaryQ/sounds/111044/) *Zombie group 2 (small)* by GaryQ | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
 ## Third-party fonts
 
