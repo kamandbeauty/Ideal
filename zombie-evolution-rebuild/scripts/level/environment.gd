@@ -9,8 +9,8 @@ func _ready() -> void:
 	var env := Environment.new()
 	var atmosphere := Sky.new()
 	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color(0.10, 0.24, 0.40)
-	sky_material.sky_horizon_color = Color(0.70, 0.79, 0.84)
+	sky_material.sky_top_color = Color(0.055, 0.13, 0.23)
+	sky_material.sky_horizon_color = Color(0.48, 0.61, 0.70)
 	sky_material.ground_bottom_color = Color(0.24, 0.34, 0.44)
 	sky_material.ground_horizon_color = Color(0.70, 0.79, 0.84)
 	atmosphere.sky_material = sky_material
@@ -18,19 +18,19 @@ func _ready() -> void:
 	env.sky = atmosphere
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.75, 0.82, 0.90)
-	env.ambient_light_energy = 0.68
+	env.ambient_light_energy = 0.82
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.61, 0.68, 0.73)
-	env.fog_density = 0.0025
+	env.fog_density = 0.0032
 	world.environment = env
 	add_child(world)
 	var sunlight := DirectionalLight3D.new()
 	sunlight.rotation_degrees = Vector3(-42, -28, 0)
 	sunlight.light_color = Color(1.0, 0.88, 0.73)
-	sunlight.light_energy = 1.15
+	sunlight.light_energy = 1.35
 	sunlight.shadow_enabled = true
-	sunlight.directional_shadow_max_distance = 60.0
+	sunlight.directional_shadow_max_distance = 78.0
 	add_child(sunlight)
 
 	var concrete := asphalt_material(Color(0.50, 0.54, 0.57))
@@ -71,12 +71,12 @@ func _ready() -> void:
 	var cloud_mesh := SphereMesh.new()
 	cloud_mesh.radius = 1.0
 	cloud_mesh.height = 2.0
-	cloud_mesh.radial_segments = 48
-	cloud_mesh.rings = 24
-	var cloud_mat := new_material(Color(0.78, 0.84, 0.87), 1.0)
+	cloud_mesh.radial_segments = 24
+	cloud_mesh.rings = 12
+	var cloud_mat := new_material(Color(0.79, 0.86, 0.92), 1.0)
 	var random := RandomNumberGenerator.new()
 	random.seed = 473
-	var cloud_highlight := new_material(Color(0.88, 0.92, 0.95), 1.0)
+	var cloud_highlight := new_material(Color(0.94, 0.97, 1.0), 1.0)
 	for i in range(48):
 		var cloud_bank := Node3D.new()
 		cloud_bank.name = "CloudBank_%02d" % i
