@@ -71,9 +71,20 @@ func _build() -> void:
 	light.visible = lights_on
 	pivot.add_child(light)
 	_enrich_surfaces(model)
-	var steel := Color(0.07, 0.075, 0.08)
-	_kit_box(pivot, Vector3(0.0, 0.22, -0.15), Vector3(0.04, 0.014, 0.42), steel)
-	_kit_box(pivot, Vector3(0.0, 0.255, -0.32), Vector3(0.012, 0.045, 0.014), steel)
+	_dress_rotary()
+
+
+func _dress_rotary() -> void:
+	var steel := Color(0.075, 0.078, 0.082)
+	var dark := Color(0.03, 0.032, 0.034)
+	var brass := Color(0.7, 0.52, 0.2)
+	_kit_box(pivot, Vector3(0.0, 0.22, -0.15), Vector3(0.046, 0.016, 0.48), steel, 0.92, 0.24)
+	_kit_box(pivot, Vector3(0.0, 0.258, -0.32), Vector3(0.014, 0.05, 0.016), dark, 0.4, 0.65)
+	_kit_box(pivot, Vector3(0.0, 0.14, 0.12), Vector3(0.16, 0.08, 0.22), steel, 0.88, 0.3)
+	_kit_box(pivot, Vector3(0.08, 0.05, 0.05), Vector3(0.05, 0.07, 0.28), dark, 0.2, 0.8)
+	for z: float in [-0.55, -0.95, -1.35]:
+		_kit_cyl(pivot, Vector3(0.0, 0.02, z), 0.07, 0.018, dark, 0.35, 0.55, "z")
+	_kit_cyl(pivot, Vector3(0.0, 0.18, -0.05), 0.012, 0.03, brass, 0.92, 0.28)
 
 
 func _build_flash() -> void:
@@ -83,13 +94,13 @@ func _build_flash() -> void:
 	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	material.albedo_texture = EffectPool.flare(6)
 	# Brighter than white, so the tone mapper leaves the heart of the flame burnt out.
-	material.albedo_color = Color(2.2, 1.6, 0.8, 1.0)
+	material.albedo_color = Color(2.5, 1.9, 0.9, 1.0)
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.disable_receive_shadows = true
 	material.disable_fog = true
 	var mesh := QuadMesh.new()
 	# Small enough that even its longest ray ends below the sight line.
-	mesh.size = Vector2(0.5, 0.5)
+	mesh.size = Vector2(0.44, 0.44)
 	mesh.material = material
 	flash = MeshInstance3D.new()
 	flash.name = "Flash"
@@ -98,6 +109,17 @@ func _build_flash() -> void:
 	flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	flash.visible = false
 	muzzle.add_child(flash)
+	var corona_mat: StandardMaterial3D = material.duplicate()
+	corona_mat.albedo_color = Color(1.7, 0.75, 0.25, 0.65)
+	var corona_mesh := QuadMesh.new()
+	corona_mesh.size = Vector2(0.7, 0.26)
+	corona_mesh.material = corona_mat
+	var corona := MeshInstance3D.new()
+	corona.name = "Corona"
+	corona.mesh = corona_mesh
+	corona.position = Vector3(0.0, 0.0, -0.02)
+	corona.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	flash.add_child(corona)
 
 
 func apply_quality(_tier: String, settings: Dictionary) -> void:
@@ -125,7 +147,7 @@ func spin_fraction() -> float:
 func _tick(delta: float) -> void:
 	var wanted: bool = trigger and is_ready() and not state.reloading and state.ammo > 0
 	if wanted and not driving and spin < 0.5:
-		Sound.play("rotary_spin", -8.0, rng.randf_range(0.97, 1.03))
+		Sound.play("rotary_spin", -6.0, rng.randf_range(0.97, 1.03))
 	driving = wanted
 	if driving:
 		spin = minf(1.0, spin + delta / maxf(data.spin_up_time, 0.001))
@@ -160,7 +182,7 @@ func _fire_round() -> void:
 	# One clip holds two reports, 40 ms apart: at this rate of fire single shots would run together
 	# and take every voice the mixer has.
 	if burst % 2 == 1:
-		Sound.play("rotary_shot", -3.0, rng.randf_range(0.96, 1.05))
+		Sound.play("rotary_shot", -2.2, rng.randf_range(0.97, 1.04))
 	shot_fired.emit(0)
 
 

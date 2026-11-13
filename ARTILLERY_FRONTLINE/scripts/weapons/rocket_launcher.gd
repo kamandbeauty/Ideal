@@ -28,6 +28,10 @@ func _build() -> void:
 	if muzzle:
 		_build_flash()
 	_enrich_surfaces(holder)
+	var steel := Color(0.1, 0.1, 0.11)
+	var dark := Color(0.04, 0.04, 0.042)
+	_kit_box(holder, Vector3(0.0, 0.05, -0.12), Vector3(0.04, 0.018, 0.12), steel, 0.85, 0.32)
+	_kit_box(holder, Vector3(0.0, 0.07, -0.18), Vector3(0.012, 0.04, 0.012), dark, 0.3, 0.7)
 	rest = Transform3D(Basis.from_euler(Vector3(deg_to_rad(REST_ANGLES.x), deg_to_rad(REST_ANGLES.y), deg_to_rad(REST_ANGLES.z))),
 		REST_POSITION)
 

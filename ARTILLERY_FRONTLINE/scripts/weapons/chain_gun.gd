@@ -52,9 +52,21 @@ func _build() -> void:
 	light.visible = lights_on
 	pivot.add_child(light)
 	_enrich_surfaces(model)
-	var steel := Color(0.08, 0.075, 0.06)
-	_kit_box(pivot, Vector3(0.0, 0.2, -0.2), Vector3(0.042, 0.014, 0.36), steel)
-	_kit_box(pivot, Vector3(0.0, 0.24, -0.4), Vector3(0.012, 0.05, 0.014), steel)
+	_dress_chain()
+
+
+func _dress_chain() -> void:
+	var steel := Color(0.08, 0.078, 0.07)
+	var dark := Color(0.03, 0.032, 0.03)
+	var brass := Color(0.6, 0.46, 0.18)
+	_kit_box(pivot, Vector3(0.0, 0.2, -0.2), Vector3(0.048, 0.016, 0.42), steel, 0.9, 0.26)
+	_kit_box(pivot, Vector3(0.0, 0.245, -0.42), Vector3(0.014, 0.055, 0.016), dark, 0.35, 0.7)
+	_kit_box(pivot, Vector3(0.0, 0.12, 0.08), Vector3(0.11, 0.06, 0.2), steel, 0.86, 0.32)
+	_kit_box(pivot, Vector3(0.06, 0.04, -0.05), Vector3(0.04, 0.05, 0.24), dark, 0.2, 0.82)
+	for z: float in [-0.7, -1.15, -1.6]:
+		_kit_cyl(pivot, Vector3(0.0, 0.02, z), 0.032, 0.022, dark, 0.4, 0.6, "z")
+	_kit_cyl(pivot, Vector3(0.0, 0.16, -0.1), 0.01, 0.024, brass, 0.9, 0.3)
+	_kit_cyl(pivot, Vector3(0.0, 0.0, -1.85), 0.026, 0.05, steel, 0.88, 0.25, "z")
 
 
 func _build_flash() -> void:
@@ -63,12 +75,12 @@ func _build_flash() -> void:
 	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	material.albedo_texture = EffectPool.flare(6)
-	material.albedo_color = Color(2.4, 1.5, 0.7, 1.0)
+	material.albedo_color = Color(2.7, 1.7, 0.75, 1.0)
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.disable_receive_shadows = true
 	material.disable_fog = true
 	var mesh := QuadMesh.new()
-	mesh.size = Vector2(0.62, 0.62)
+	mesh.size = Vector2(0.5, 0.5)
 	mesh.material = material
 	flash = MeshInstance3D.new()
 	flash.name = "Flash"
@@ -77,6 +89,17 @@ func _build_flash() -> void:
 	flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	flash.visible = false
 	muzzle.add_child(flash)
+	var corona_mat: StandardMaterial3D = material.duplicate()
+	corona_mat.albedo_color = Color(1.8, 0.65, 0.18, 0.7)
+	var corona_mesh := QuadMesh.new()
+	corona_mesh.size = Vector2(0.82, 0.3)
+	corona_mesh.material = corona_mat
+	var corona := MeshInstance3D.new()
+	corona.name = "Corona"
+	corona.mesh = corona_mesh
+	corona.position = Vector3(0.0, 0.0, -0.02)
+	corona.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	flash.add_child(corona)
 
 
 func apply_quality(_tier: String, settings: Dictionary) -> void:
@@ -113,7 +136,7 @@ func _fire_round() -> void:
 	if effects and smoke_due >= 4:
 		smoke_due = 0
 		effects.burst("wisp", origin + bore_direction() * 0.3, Vector3.UP)
-	Sound.play("hmg_shot", -4.0, rng.randf_range(0.86, 0.94))
+	Sound.play("hmg_shot", -2.8, rng.randf_range(0.84, 0.92))
 	shot_fired.emit(0)
 
 

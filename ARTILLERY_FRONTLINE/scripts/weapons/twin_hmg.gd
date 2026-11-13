@@ -80,18 +80,25 @@ func _build() -> void:
 
 
 func _dress_twin() -> void:
-	# Hardware the gunner sees: a sight ladder on the receiver, cooling slots
-	# along each jacket, and a blade at each muzzle.
-	var steel := Color(0.07, 0.075, 0.08)
-	var dark := Color(0.03, 0.032, 0.034)
-	_kit_box(pivot, Vector3(0.0, 0.11, 0.42), Vector3(0.034, 0.012, 0.55), steel)
-	_kit_box(pivot, Vector3(0.0, 0.145, 0.62), Vector3(0.046, 0.018, 0.046), steel)
-	_kit_box(pivot, Vector3(0.0, 0.168, 0.62), Vector3(0.01, 0.04, 0.012), dark, 0.4, 0.7)
+	# Hardware the gunner sees: a sight ladder, cooling slots, muzzle brakes,
+	# feed chutes and a few rivets so the kit is not a smooth toy.
+	var steel := Color(0.08, 0.082, 0.086)
+	var dark := Color(0.028, 0.03, 0.032)
+	var brass := Color(0.62, 0.46, 0.18)
+	_kit_box(pivot, Vector3(0.0, 0.11, 0.42), Vector3(0.038, 0.014, 0.58), steel, 0.92, 0.26)
+	_kit_box(pivot, Vector3(0.0, 0.148, 0.62), Vector3(0.05, 0.02, 0.05), steel, 0.9, 0.24)
+	_kit_box(pivot, Vector3(0.0, 0.175, 0.62), Vector3(0.01, 0.046, 0.012), dark, 0.35, 0.7)
+	_kit_box(pivot, Vector3(0.0, 0.12, 0.18), Vector3(0.12, 0.04, 0.16), steel, 0.88, 0.3)
+	for side: float in [-1.0, 1.0]:
+		_kit_box(pivot, Vector3(side * 0.09, 0.02, 0.28), Vector3(0.03, 0.05, 0.22), dark, 0.2, 0.8)
+		_kit_cyl(pivot, Vector3(side * 0.055, 0.09, 0.5), 0.007, 0.018, brass, 0.9, 0.3)
 	for recoiler: Node3D in recoilers:
-		for i: int in 7:
-			var z: float = 0.35 + float(i) * 0.16
-			_kit_box(recoiler, Vector3(0.0, 0.028, z), Vector3(0.055, 0.006, 0.028), dark, 0.2, 0.85)
-		_kit_box(recoiler, Vector3(0.0, 0.04, 1.55), Vector3(0.012, 0.05, 0.014), steel)
+		for i: int in 8:
+			var z: float = 0.28 + float(i) * 0.15
+			_kit_box(recoiler, Vector3(0.0, 0.03, z), Vector3(0.058, 0.007, 0.03), dark, 0.15, 0.86)
+		_kit_box(recoiler, Vector3(0.0, 0.042, 1.55), Vector3(0.016, 0.055, 0.018), steel, 0.9, 0.22)
+		_kit_cyl(recoiler, Vector3(0.0, 0.0, 1.62), 0.028, 0.045, dark, 0.4, 0.7, "z")
+		_kit_box(recoiler, Vector3(0.0, -0.02, 0.55), Vector3(0.02, 0.016, 0.7), steel, 0.85, 0.32)
 
 
 func _build_flash(muzzle: Node3D) -> void:
@@ -101,14 +108,14 @@ func _build_flash(muzzle: Node3D) -> void:
 	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	material.albedo_texture = EffectPool.flare(6)
 	# Brighter than white, so the tone mapper leaves the heart of the flash burnt out.
-	material.albedo_color = Color(2.2, 1.6, 0.8, 1.0)
+	material.albedo_color = Color(2.6, 1.85, 0.85, 1.0)
 	# The gunner looks at the flash from behind the gun, along the bore.
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	material.disable_receive_shadows = true
 	material.disable_fog = true
 	var mesh := QuadMesh.new()
 	# Small enough that even its longest ray ends below the sight line.
-	mesh.size = Vector2(0.52, 0.52)
+	mesh.size = Vector2(0.46, 0.46)
 	mesh.material = material
 	var flash := MeshInstance3D.new()
 	flash.name = "Flash"
@@ -118,6 +125,17 @@ func _build_flash(muzzle: Node3D) -> void:
 	flash.visible = false
 	muzzle.add_child(flash)
 	flashes.append(flash)
+	var corona_mat: StandardMaterial3D = material.duplicate()
+	corona_mat.albedo_color = Color(1.6, 0.7, 0.22, 0.7)
+	var corona_mesh := QuadMesh.new()
+	corona_mesh.size = Vector2(0.72, 0.28)
+	corona_mesh.material = corona_mat
+	var corona := MeshInstance3D.new()
+	corona.name = "Corona"
+	corona.mesh = corona_mesh
+	corona.position = Vector3(0.0, 0.0, 0.18)
+	corona.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	flash.add_child(corona)
 
 
 func apply_quality(_tier: String, settings: Dictionary) -> void:
@@ -160,7 +178,7 @@ func _fire_round() -> void:
 	if effects and smoke_due >= 5:
 		smoke_due = 0
 		effects.burst("wisp", origin + bore_direction() * 0.25, Vector3.UP)
-	Sound.play("hmg_shot", -3.5, rng.randf_range(0.92, 1.04))
+	Sound.play("hmg_shot", -2.5, rng.randf_range(0.94, 1.03))
 	shot_fired.emit(barrel)
 	barrel = 1 - barrel
 

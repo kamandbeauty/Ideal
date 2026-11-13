@@ -61,24 +61,31 @@ func _enrich_surfaces(root: Node) -> void:
 			var dressed: StandardMaterial3D = (source as StandardMaterial3D).duplicate()
 			var n: String = dressed.resource_name.to_lower()
 			if n.contains("bore") or n.contains("black"):
-				dressed.albedo_color = Color(0.015, 0.016, 0.018)
-				dressed.roughness = 0.92
-				dressed.metallic = 0.15
-			elif n.contains("olive"):
-				dressed.albedo_color = Color(0.12, 0.14, 0.09)
-				dressed.roughness = 0.58
+				dressed.albedo_color = Color(0.012, 0.013, 0.015)
+				dressed.roughness = 0.88
 				dressed.metallic = 0.22
+			elif n.contains("olive"):
+				dressed.albedo_color = Color(0.14, 0.16, 0.10)
+				dressed.roughness = 0.52
+				dressed.metallic = 0.28
 			elif n.contains("grip") or n.contains("wood"):
-				dressed.roughness = 0.94
+				dressed.roughness = 0.96
 				dressed.metallic = 0.0
+				dressed.metallic_specular = 0.12
 			elif n.contains("brass"):
-				dressed.albedo_color = Color(0.62, 0.48, 0.18)
-				dressed.metallic = 0.85
-				dressed.roughness = 0.38
+				dressed.albedo_color = Color(0.72, 0.54, 0.20)
+				dressed.metallic = 0.92
+				dressed.roughness = 0.28
+				dressed.clearcoat_enabled = true
+				dressed.clearcoat = 0.45
+				dressed.clearcoat_roughness = 0.18
 			else:
-				dressed.metallic = maxf(dressed.metallic, 0.84)
-				dressed.roughness = clampf(dressed.roughness * 0.7, 0.26, 0.5)
-				dressed.metallic_specular = 0.72
+				dressed.metallic = maxf(dressed.metallic, 0.88)
+				dressed.roughness = clampf(dressed.roughness * 0.55, 0.18, 0.42)
+				dressed.metallic_specular = 0.82
+				dressed.clearcoat_enabled = true
+				dressed.clearcoat = 0.28
+				dressed.clearcoat_roughness = 0.22
 			dressed.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 			mesh.set_surface_override_material(index, dressed)
 	_apply_finish(root, String(data.id) if data else "")
@@ -88,16 +95,6 @@ func _enrich_surfaces(root: Node) -> void:
 func _apply_finish(root: Node, id: String) -> void:
 	if root == null or id == "" or id == "twin_hmg" or id == "rotary_gun":
 		return
-	var tint: Color = Color.WHITE
-	match id:
-		"dual_mauler":
-			tint = Color(0.62, 0.48, 0.32)
-		"gilded_minigun":
-			tint = Color(0.92, 0.74, 0.28)
-		"bushmaster":
-			tint = Color(0.42, 0.48, 0.36)
-		_:
-			return
 	for node: Node in root.find_children("*", "MeshInstance3D", true, false):
 		var mesh: MeshInstance3D = node
 		if mesh.mesh == null:
@@ -107,22 +104,67 @@ func _apply_finish(root: Node, id: String) -> void:
 			if source == null or not (source is StandardMaterial3D):
 				continue
 			var dressed: StandardMaterial3D = (source as StandardMaterial3D).duplicate()
-			dressed.albedo_color = dressed.albedo_color * tint
+			match id:
+				"dual_mauler":
+					dressed.albedo_color = dressed.albedo_color * Color(0.58, 0.42, 0.26)
+					dressed.metallic = minf(1.0, dressed.metallic + 0.06)
+					dressed.roughness = clampf(dressed.roughness * 0.9, 0.16, 0.45)
+				"gilded_minigun":
+					dressed.albedo_color = dressed.albedo_color * Color(0.95, 0.72, 0.22)
+					dressed.metallic = 0.96
+					dressed.roughness = 0.22
+					dressed.clearcoat_enabled = true
+					dressed.clearcoat = 0.55
+					dressed.clearcoat_roughness = 0.12
+				"bushmaster":
+					dressed.albedo_color = dressed.albedo_color * Color(0.38, 0.44, 0.32)
+					dressed.roughness = clampf(dressed.roughness + 0.08, 0.22, 0.55)
+				_:
+					continue
 			mesh.set_surface_override_material(index, dressed)
+
+
+func _steel(color: Color, metal: float = 0.9, rough: float = 0.28) -> StandardMaterial3D:
+	var mat := StandardMaterial3D.new()
+	mat.albedo_color = color
+	mat.metallic = metal
+	mat.roughness = rough
+	mat.metallic_specular = 0.78
+	if metal > 0.5:
+		mat.clearcoat_enabled = true
+		mat.clearcoat = 0.32
+		mat.clearcoat_roughness = 0.2
+	return mat
 
 
 func _kit_box(parent: Node3D, at: Vector3, size: Vector3, color: Color, metal: float = 0.85, rough: float = 0.4) -> MeshInstance3D:
 	var box := BoxMesh.new()
 	box.size = size
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.metallic = metal
-	mat.roughness = rough
-	mat.metallic_specular = 0.65
-	box.material = mat
+	box.material = _steel(color, metal, rough)
 	var mesh := MeshInstance3D.new()
 	mesh.mesh = box
 	mesh.position = at
+	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mesh)
+	return mesh
+
+
+func _kit_cyl(parent: Node3D, at: Vector3, radius: float, height: float, color: Color, metal: float = 0.9, rough: float = 0.3, along: String = "y") -> MeshInstance3D:
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = radius
+	cyl.bottom_radius = radius
+	cyl.height = height
+	cyl.radial_segments = 10
+	cyl.rings = 1
+	cyl.material = _steel(color, metal, rough)
+	var mesh := MeshInstance3D.new()
+	mesh.mesh = cyl
+	mesh.position = at
+	match along:
+		"z":
+			mesh.rotation_degrees = Vector3(90.0, 0.0, 0.0)
+		"x":
+			mesh.rotation_degrees = Vector3(0.0, 0.0, 90.0)
 	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mesh)
 	return mesh

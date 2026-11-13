@@ -38,14 +38,18 @@ func _ready() -> void:
 	angles.resize(COUNT)
 	ages.resize(COUNT)
 	var brass := StandardMaterial3D.new()
-	brass.albedo_color = Color(0.82, 0.63, 0.27)
-	brass.metallic = 0.55
-	brass.roughness = 0.32
+	brass.albedo_color = Color(0.86, 0.64, 0.22)
+	brass.metallic = 0.92
+	brass.roughness = 0.22
+	brass.metallic_specular = 0.8
+	brass.clearcoat_enabled = true
+	brass.clearcoat = 0.4
+	brass.clearcoat_roughness = 0.18
 	var mesh := CylinderMesh.new()
-	mesh.top_radius = RADIUS * 0.8
+	mesh.top_radius = RADIUS * 0.72
 	mesh.bottom_radius = RADIUS
 	mesh.height = LENGTH
-	mesh.radial_segments = 6
+	mesh.radial_segments = 8
 	mesh.rings = 1
 	mesh.material = brass
 	multimesh = MultiMesh.new()
