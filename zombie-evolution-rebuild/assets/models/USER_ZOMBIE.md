@@ -19,4 +19,4 @@ other clips are not yet integrated. The GLB replaces only the ordinary zombie ro
 their existing models. Movement selects authored idle and walk, attacks and
 hits play their respective clips, and death plays the supplied death clip.
 Gameplay damage is still applied immediately, not synchronized to the animation
-strike frame. Conversion and animation timing still need in-game visual review.
+strike frame. The asset was rendered in a test-only close-up; the albedo and character mesh are visible. A normal gameplay frame was also inspected, but the enemies are too small there to validate orientation, foot contact, transitions or animation quality. Strike timing and visual quality still need an in-game motion review.

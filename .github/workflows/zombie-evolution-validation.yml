@@ -35,7 +35,7 @@ jobs:
         run: |
           set -o pipefail
           sudo apt-get update 2>&1 | tee ci-artifacts/headless/apt-update.log
-          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-vulkan-drivers libvulkan1 python3-pil 2>&1 | tee ci-artifacts/headless/apt-install.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-vulkan-drivers libvulkan1 2>&1 | tee ci-artifacts/headless/apt-install.log
       - name: Run all headless checks
         run: |
           set -o pipefail
@@ -90,7 +90,7 @@ jobs:
         run: |
           set -o pipefail
           sudo apt-get update 2>&1 | tee ci-artifacts/rendered/apt-update.log
-          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-utils mesa-vulkan-drivers libvulkan1 python3-pil 2>&1 | tee ci-artifacts/rendered/apt-install.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-utils mesa-vulkan-drivers libvulkan1 2>&1 | tee ci-artifacts/rendered/apt-install.log
       - name: Verify software OpenGL and import assets
         run: |
           set -o pipefail
@@ -105,25 +105,6 @@ jobs:
           export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
           timeout 1200 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --audio-driver Dummy --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_gameplay.gd 2>&1 | tee ci-artifacts/rendered/capture.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/capture.log; then exit 1; fi
-      - name: Capture and publish test-only zombie inspection
-        run: |
-          set -o pipefail
-          export LIBGL_ALWAYS_SOFTWARE=1
-          export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
-          timeout 120 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --audio-driver Dummy --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_zombie_review.gd 2>&1 | tee ci-artifacts/rendered/zombie-review.log
-          if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/zombie-review.log; then exit 1; fi
-          /usr/bin/python3 - <<'PYCODE'
-          import base64, io
-          from PIL import Image
-          image = Image.open('ci-artifacts/rendered/screenshots/11-animated-zombie.png').convert('RGB')
-          image.thumbnail((240, 427))
-          data = io.BytesIO()
-          image.save(data, format='JPEG', quality=65, optimize=True)
-          encoded = base64.b64encode(data.getvalue()).decode('ascii')
-          chunks = [encoded[i:i+3500] for i in range(0, len(encoded), 3500)]
-          for index, chunk in enumerate(chunks):
-              print(f'::notice::SCREENSHOT_CHUNK_{index:03d}_OF_{len(chunks):03d}:{chunk}')
-          PYCODE
       - name: Publish renderer capture diagnostics
         if: always()
         run: |
@@ -212,7 +193,7 @@ jobs:
         run: |
           set -o pipefail
           sudo apt-get update 2>&1 | tee ci-artifacts/android/apt-update.log
-          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-vulkan-drivers libvulkan1 python3-pil 2>&1 | tee ci-artifacts/android/apt-install.log
+          sudo apt-get install -y xvfb xauth libgl1-mesa-dri libgl1 mesa-vulkan-drivers libvulkan1 2>&1 | tee ci-artifacts/android/apt-install.log
       - name: Configure temporary debug signing and export
         run: |
           set -euo pipefail
