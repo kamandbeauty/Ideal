@@ -12,6 +12,7 @@ void vertex() {
 
 void fragment() {
 	ALBEDO = texture(asphalt_texture, world_pos.xz / 8.0).rgb * asphalt_color.rgb;
-	ROUGHNESS = 0.94;
-	SPECULAR = 0.12;
+	// Wet asphalt: restrained reflections tuned for mobile rendering.
+	ROUGHNESS = 0.34;
+	SPECULAR = 0.58;
 }

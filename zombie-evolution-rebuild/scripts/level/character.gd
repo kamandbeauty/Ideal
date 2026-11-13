@@ -26,10 +26,10 @@ var hit_reaction_time := 0.0
 var hit_direction := 1.0
 var enemy_action_time := 0.0
 
-# Hero and squad still use an approximate rig; enemies share the authored zombie rig.
+# The hero uses the custom procedural rig, squad members use the authored CC0 soldier with combat clips, and enemies use the supplied animated zombie rig.
 const MODEL_CONFIG := {
 	"hero": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
-	"soldier": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
+	"soldier": ["res://assets/models/soldier-quaternius.glb", 0.026, 0.0, 0.0],
 	"zombie": ["res://assets/models/zombie-user-animated.glb", 0.01, 0.0, PI],
 	"runner": ["res://assets/models/zombie-user-animated.glb", 0.01, 0.0, PI],
 	"brute": ["res://assets/models/zombie-user-animated.glb", 0.01, 0.0, PI],
