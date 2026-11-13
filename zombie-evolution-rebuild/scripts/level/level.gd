@@ -37,10 +37,10 @@ func _ready() -> void:
 	hero.defeated.connect(on_character_defeated)
 	camera = Camera3D.new()
 	camera.current = true
-	camera.fov = 46
-	camera.position = Vector3(0, 18.0, -8.5)
+	camera.fov = 68
+	camera.position = Vector3(1.15, 4.8, -5.8)
 	add_child(camera)
-	camera.look_at(Vector3(0, 0.85, 10.0), Vector3.UP)
+	camera.look_at(Vector3(0, 1.25, 8.5), Vector3.UP)
 	gate = GateScript.new()
 	gate.position = Vector3(0, 0, 65)
 	gate.crossed.connect(on_gate_crossed)
@@ -106,8 +106,8 @@ func _physics_process(delta: float) -> void:
 			if ammo <= 0:
 				reload_time = 1.8
 				sound.play_effect("reload")
-	camera.position = camera.position.lerp(Vector3(hero.position.x * 0.20, 18.0, hero.position.z - 8.5), minf(delta * 3, 1))
-	camera.look_at(Vector3(hero.position.x * 0.20, 0.85, hero.position.z + 10.0), Vector3.UP)
+	camera.position = camera.position.lerp(Vector3(hero.position.x * 0.20 + 1.15, 4.8, hero.position.z - 5.8), minf(delta * 4.0, 1.0))
+	camera.look_at(Vector3(hero.position.x * 0.20, 1.25, hero.position.z + 8.5), Vector3.UP)
 	if hero.position.z >= END_Z and enemies.is_empty():
 		finish(true)
 	var instruction := message if message_time > 0 else ""
