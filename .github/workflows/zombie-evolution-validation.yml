@@ -115,7 +115,7 @@ jobs:
           /usr/bin/python3 - <<'PYCODE'
           import base64, io
           from PIL import Image
-          image = Image.open('ci-artifacts/rendered/screenshots/10-user-zombie-test-only.png').convert('RGB')
+          image = Image.open('ci-artifacts/rendered/screenshots/11-animated-zombie.png').convert('RGB')
           image.thumbnail((240, 427))
           data = io.BytesIO()
           image.save(data, format='JPEG', quality=65, optimize=True)
