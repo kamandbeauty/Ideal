@@ -26,13 +26,13 @@ var hit_reaction_time := 0.0
 var hit_direction := 1.0
 var enemy_action_time := 0.0
 
-# Experimental user-provided static meshes; collision and combat stay procedural.
+# Hero and squad still use an approximate rig; enemies share the authored zombie rig.
 const MODEL_CONFIG := {
 	"hero": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
 	"soldier": ["res://assets/models/hero-2630-procedural-rig.glb", 0.026, -0.011, 0.0],
 	"zombie": ["res://assets/models/zombie-user-animated.glb", 0.01, 0.0, PI],
-	"runner": ["res://assets/models/zombie-28069.glb", 0.0644, -0.406, PI],
-	"brute": ["res://assets/models/zombie-27189.glb", 0.0263, 0.001, PI],
+	"runner": ["res://assets/models/zombie-user-animated.glb", 0.01, 0.0, PI],
+	"brute": ["res://assets/models/zombie-user-animated.glb", 0.01, 0.0, PI],
 }
 
 func setup(kind: String) -> void:
@@ -78,9 +78,13 @@ func create_model(kind: String) -> bool:
 	var model = resource.instantiate()
 	visual_root.add_child(model)
 	model.scale = Vector3.ONE * float(config[1])
+	if kind == "brute":
+		# Distinguish the larger stage enemy without changing its skeleton.
+		model.scale.x *= 1.25
+		model.scale.z *= 1.15
 	model.position.y = float(config[2])
 	model.rotation.y = float(config[3])
-	if kind == "hero" or kind == "soldier" or kind == "zombie":
+	if kind == "hero" or kind == "soldier" or is_enemy():
 		rig = find_skeleton(model)
 		animation_player = find_animation_player(model)
 		if rig == null:
@@ -194,7 +198,7 @@ func update_animation(delta: float, moving: bool) -> void:
 	gait_blend = move_toward(gait_blend, 1.0 if moving else 0.0, delta * 6.0)
 	if not dead:
 		hit_reaction_time = maxf(0.0, hit_reaction_time - delta)
-	if visual_root and not dead and role != "zombie":
+	if visual_root and not dead and not is_enemy():
 		var sway := sin(run_clock * 7) * 0.025 if moving and role != "soldier" else 0.0
 		var hit_lean := hit_direction * hit_reaction_time * 0.8
 		visual_root.rotation.z = sway + hit_lean
@@ -220,10 +224,12 @@ func update_animation(delta: float, moving: bool) -> void:
 	combat_animation_time = maxf(0.0, combat_animation_time - delta)
 	if role == "soldier" and animation_player:
 		play_soldier_motion(moving)
-	if role == "zombie" and animation_player and not dead:
+	if is_enemy() and animation_player and not dead:
 		enemy_action_time = maxf(0.0, enemy_action_time - delta)
 		if enemy_action_time <= 0.0:
-			play_zombie_clip("Walk" if moving else "Idle", true)
+			var motion := "Run" if role == "runner" else "Walk"
+			play_zombie_clip(motion if moving else "Idle", true)
+			animation_player.speed_scale = clampf(planar_speed / speed, 0.65, 1.3) if moving else 1.0
 	if weapon and rig and (role == "hero" or role == "soldier"):
 		var arm := rig.find_bone("ArmRight")
 		if arm >= 0:
@@ -242,9 +248,11 @@ func play_zombie_clip(clip_name: String, loop: bool = false) -> void:
 	current_animation = clip_name
 
 func play_zombie_action(clip_name: String, hold: float) -> void:
-	if role != "zombie" or dead:
+	if not is_enemy() or dead:
 		return
 	enemy_action_time = hold
+	if animation_player:
+		animation_player.speed_scale = 1.0
 	play_zombie_clip(clip_name)
 
 func play_soldier_motion(moving: bool) -> void:
@@ -277,7 +285,7 @@ func apply_damage(amount: float, impact_direction: Vector3 = Vector3.ZERO) -> vo
 	health -= amount
 	hit_direction = -hit_direction
 	hit_reaction_time = 0.18
-	if health > 0 and role == "zombie":
+	if health > 0 and is_enemy():
 		play_zombie_action("Hit", 0.35)
 	if health <= 0:
 		dead = true
@@ -301,7 +309,7 @@ func apply_damage(amount: float, impact_direction: Vector3 = Vector3.ZERO) -> vo
 			var arc := create_tween()
 			arc.tween_property(visual_root, "position:y", initial.y + 0.24, 0.13).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 			arc.tween_property(visual_root, "position:y", initial.y, 0.27).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-			if role == "zombie" and animation_player and animation_player.has_animation("Death"):
+			if animation_player and animation_player.has_animation("Death"):
 				animation_player.speed_scale = 6.0
 				play_zombie_clip("Death")
 				get_tree().create_timer(animation_player.get_animation("Death").length / 6.0 + 0.15).timeout.connect(queue_free)

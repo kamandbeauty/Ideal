@@ -69,5 +69,21 @@ func run_tests() -> void:
 	await create_timer(1.2).timeout
 	check(not is_instance_valid(actor), "defeated zombie is cleaned up after the accelerated death")
 	await process_frame
+	for role in ["runner", "brute"]:
+		var variant = preload("res://scripts/level/character.gd").new()
+		root.add_child(variant)
+		variant.setup(role)
+		check(is_instance_valid(variant.rig) and is_instance_valid(variant.animation_player), role + " uses the supplied skinned rig")
+		variant.velocity = Vector3(0, 0, variant.speed)
+		variant.update_animation(0.1, true)
+		check(variant.current_animation == ("Run" if role == "runner" else "Walk"), role + " uses the appropriate authored movement")
+		variant.play_zombie_action("Attack", 0.7)
+		check(variant.current_animation == "Attack", role + " plays the authored attack")
+		variant.apply_damage(1)
+		check(variant.current_animation == "Hit", role + " plays the authored hit reaction")
+		variant.apply_damage(999, Vector3(0, 0, 1))
+		check(variant.dead and variant.current_animation == "Death" and variant.collision_layer == 0, role + " plays death and disables collision")
+		variant.queue_free()
+	await process_frame
 	print("User zombie rig failures: ", failures)
 	quit(1 if failures else 0)
