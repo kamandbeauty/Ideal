@@ -67,34 +67,43 @@ func _ready() -> void:
 				add_box(Vector3(side * 5.58, 0.38, z), Vector3(0.08, 0.18, 0.48), amber)
 	create_bridge_superstructure(steel, edge, amber)
 	create_city_entrance()
-	# Clouds stay outside the playable bridge on both sides.
+	# Two batched MultiMeshes keep the layered cloud banks to two draw calls.
 	var cloud_mesh := SphereMesh.new()
 	cloud_mesh.radius = 1.0
 	cloud_mesh.height = 2.0
 	cloud_mesh.radial_segments = 24
 	cloud_mesh.rings = 12
 	var cloud_mat := new_material(Color(0.79, 0.86, 0.92), 1.0)
+	var cloud_highlight := new_material(Color(0.94, 0.97, 1.0), 1.0)
 	var random := RandomNumberGenerator.new()
 	random.seed = 473
-	var cloud_highlight := new_material(Color(0.94, 0.97, 1.0), 1.0)
+	var cloud_cores := MultiMesh.new()
+	cloud_cores.transform_format = MultiMesh.TRANSFORM_3D
+	cloud_cores.mesh = cloud_mesh
+	cloud_cores.instance_count = 48
+	var cloud_lobes := MultiMesh.new()
+	cloud_lobes.transform_format = MultiMesh.TRANSFORM_3D
+	cloud_lobes.mesh = cloud_mesh
+	cloud_lobes.instance_count = 96
 	for i in range(48):
-		var cloud_bank := Node3D.new()
-		cloud_bank.name = "CloudBank_%02d" % i
 		var side := -1.0 if i % 2 == 0 else 1.0
-		cloud_bank.position = Vector3(side * random.randf_range(14, 21), random.randf_range(-4.5, -2.0), float(i / 2) * 8.0 - 8.0)
-		add_child(cloud_bank)
-		var core := MeshInstance3D.new()
-		core.mesh = cloud_mesh
-		core.material_override = cloud_mat
-		core.scale = Vector3(random.randf_range(5.5, 7.0), random.randf_range(2.0, 2.8), random.randf_range(5.0, 6.5))
-		cloud_bank.add_child(core)
+		var bank_position := Vector3(side * random.randf_range(14, 21), random.randf_range(-4.5, -2.0), float(i / 2) * 8.0 - 8.0)
+		var core_scale := Vector3(random.randf_range(5.5, 7.0), random.randf_range(2.0, 2.8), random.randf_range(5.0, 6.5))
+		cloud_cores.set_instance_transform(i, Transform3D(Basis.from_scale(core_scale), bank_position))
 		for lobe_index in range(2):
-			var lobe := MeshInstance3D.new()
-			lobe.mesh = cloud_mesh
-			lobe.material_override = cloud_highlight if lobe_index == 0 else cloud_mat
-			lobe.position = Vector3(-2.2 if lobe_index == 0 else 2.0, 0.25, 0.8 if lobe_index == 0 else -0.9)
-			lobe.scale = Vector3(4.1, 2.0, 3.8)
-			cloud_bank.add_child(lobe)
+			var offset := Vector3(-2.2 if lobe_index == 0 else 2.0, 0.25, 0.8 if lobe_index == 0 else -0.9)
+			var lobe_scale := Vector3(4.1, 2.0, 3.8)
+			cloud_lobes.set_instance_transform(i * 2 + lobe_index, Transform3D(Basis.from_scale(lobe_scale), bank_position + offset))
+	var cloud_core_batch := MultiMeshInstance3D.new()
+	cloud_core_batch.name = "CloudCoreBatch"
+	cloud_core_batch.multimesh = cloud_cores
+	cloud_core_batch.material_override = cloud_mat
+	add_child(cloud_core_batch)
+	var cloud_lobe_batch := MultiMeshInstance3D.new()
+	cloud_lobe_batch.name = "CloudHighlightBatch"
+	cloud_lobe_batch.multimesh = cloud_lobes
+	cloud_lobe_batch.material_override = cloud_highlight
+	add_child(cloud_lobe_batch)
 
 
 func create_bridge_superstructure(steel: StandardMaterial3D, edge: StandardMaterial3D, amber: StandardMaterial3D) -> void:
