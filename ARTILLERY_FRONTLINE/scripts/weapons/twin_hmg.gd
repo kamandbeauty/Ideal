@@ -160,7 +160,7 @@ func _fire_round() -> void:
 	if effects and smoke_due >= 5:
 		smoke_due = 0
 		effects.burst("wisp", origin + bore_direction() * 0.25, Vector3.UP)
-	Sound.play("hmg_shot", -5.0, rng.randf_range(0.95, 1.05))
+	Sound.play("hmg_shot", -3.5, rng.randf_range(0.92, 1.04))
 	shot_fired.emit(barrel)
 	barrel = 1 - barrel
 

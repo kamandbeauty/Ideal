@@ -81,6 +81,34 @@ func _enrich_surfaces(root: Node) -> void:
 				dressed.metallic_specular = 0.72
 			dressed.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 			mesh.set_surface_override_material(index, dressed)
+	_apply_finish(root, String(data.id) if data else "")
+
+
+## Recolours a shared mesh so two guns on the same model still read as different kits.
+func _apply_finish(root: Node, id: String) -> void:
+	if root == null or id == "" or id == "twin_hmg" or id == "rotary_gun":
+		return
+	var tint: Color = Color.WHITE
+	match id:
+		"dual_mauler":
+			tint = Color(0.62, 0.48, 0.32)
+		"gilded_minigun":
+			tint = Color(0.92, 0.74, 0.28)
+		"bushmaster":
+			tint = Color(0.42, 0.48, 0.36)
+		_:
+			return
+	for node: Node in root.find_children("*", "MeshInstance3D", true, false):
+		var mesh: MeshInstance3D = node
+		if mesh.mesh == null:
+			continue
+		for index: int in mesh.mesh.get_surface_count():
+			var source: Material = mesh.get_active_material(index)
+			if source == null or not (source is StandardMaterial3D):
+				continue
+			var dressed: StandardMaterial3D = (source as StandardMaterial3D).duplicate()
+			dressed.albedo_color = dressed.albedo_color * tint
+			mesh.set_surface_override_material(index, dressed)
 
 
 func _kit_box(parent: Node3D, at: Vector3, size: Vector3, color: Color, metal: float = 0.85, rough: float = 0.4) -> MeshInstance3D:

@@ -66,6 +66,9 @@ func _load_level() -> void:
 	add_child(level)
 	move_child(level, 0)
 	hud.bind(level)
+	var chosen: String = str(Profile.setting("gun"))
+	if level.defender != null and level.defender.gun_id() != chosen:
+		level.defender.mount_gun(chosen)
 
 
 ## Picks the stage PLAY will start. A stage that is still locked is refused.

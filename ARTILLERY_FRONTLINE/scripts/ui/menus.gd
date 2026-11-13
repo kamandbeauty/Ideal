@@ -349,7 +349,7 @@ func _build_main() -> void:
 		var gun: WeaponData = gun_data(id)
 		names.append(Loc.t(gun.name_key))
 		outlines.append(gun.icon)
-	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines)
+	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 3)
 	gun_choices.chosen.connect(func(index: int) -> void:
 		gun_note.text = gun_note_for(Profile.GUNS[index])
 		gun_chosen.emit(Profile.GUNS[index]))

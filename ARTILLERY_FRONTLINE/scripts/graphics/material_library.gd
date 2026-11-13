@@ -127,11 +127,13 @@ static func extra_skin(look_name: String) -> Material:
 		return cache[key]
 	var material := StandardMaterial3D.new()
 	material.resource_name = key
-	material.albedo_color = Color(0.55, 0.48, 0.40)
+	# Never leave an extra figure white: missing UVs still read as dirty flesh,
+	# and a painted atlas is multiplied a little so pale islands cannot blow out.
+	material.albedo_color = Color(0.58, 0.48, 0.38)
 	var path: String = "res://assets/textures/zombies/zombie_%s.png" % look_name
 	if ResourceLoader.exists(path):
 		material.albedo_texture = load(path)
-		material.albedo_color = Color.WHITE
+		material.albedo_color = Color(0.78, 0.66, 0.52)
 	material.roughness = 0.86
 	material.metallic_specular = 0.22
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS

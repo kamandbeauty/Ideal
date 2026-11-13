@@ -152,8 +152,8 @@ class Glyph:
 
 
 class Choices:
-	extends HBoxContainer
-	## A row of choices of which exactly one is lit. A choice may carry an outline over its
+	extends GridContainer
+	## A row (or two) of choices of which exactly one is lit. A choice may carry an outline over its
 	## name, and may be locked: drawn dim under a padlock, and deaf to the thumb.
 	signal chosen(index: int)
 
@@ -165,8 +165,15 @@ class Choices:
 	var locked: Array[int] = []
 	var selected: int = -1
 
-	func _init(labels: Array = [], start: int = 0, icons: Array = []) -> void:
-		add_theme_constant_override("separation", 6)
+	func _init(labels: Array = [], start: int = 0, icons: Array = [], wrap_after: int = 0) -> void:
+		# One row unless the caller asks to wrap (the title's five guns).
+		if wrap_after > 0 and labels.size() > wrap_after:
+			columns = wrap_after
+		else:
+			columns = maxi(labels.size(), 1)
+		size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		add_theme_constant_override("h_separation", 6)
+		add_theme_constant_override("v_separation", 6)
 		for index: int in labels.size():
 			var button := Button.new()
 			button.text = labels[index]

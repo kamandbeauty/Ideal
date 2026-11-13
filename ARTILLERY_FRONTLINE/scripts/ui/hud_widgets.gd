@@ -22,7 +22,7 @@ static func draw_plate(canvas: CanvasItem, area: Rect2, fill: Color, edge: Color
 
 
 ## Every pictogram `draw_icon` knows.
-const ICONS: Array[String] = ["wall", "gate", "skull", "grenade", "fire", "reload", "pause", "endless", "gun", "rotary", "launcher", "zoom", "lock"]
+const ICONS: Array[String] = ["wall", "gate", "skull", "grenade", "fire", "reload", "pause", "endless", "gun", "rotary", "chain", "launcher", "zoom", "lock"]
 
 
 ## Pictograms shared by the HUD and the menus. `size` is the side of the box the picture fills.
@@ -88,6 +88,8 @@ static func draw_icon(canvas: CanvasItem, kind: String, at: Vector2, size: float
 			_draw_gun(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
 		"rotary":
 			_draw_rotary(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
+		"chain":
+			_draw_chain(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
 		"launcher":
 			_draw_launcher(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
 		"zoom":
@@ -112,6 +114,16 @@ static func _draw_gun(canvas: CanvasItem, base: Vector2, k: float, ink: Color) -
 		canvas.draw_line(base + Vector2(30.0, offset) * k, base + Vector2(100.0, offset) * k, ink, 3.0 * k)
 		canvas.draw_rect(Rect2(base + Vector2(6.0, offset - 4.5) * k, Vector2(34.0, 9.0) * k), ink)
 		canvas.draw_rect(Rect2(base + Vector2(92.0, offset - 3.0) * k, Vector2(8.0, 6.0) * k), ink)
+	canvas.draw_rect(Rect2(base + Vector2(0.0, -3.0) * k, Vector2(10.0, 6.0) * k), ink)
+	canvas.draw_colored_polygon(PackedVector2Array([base + Vector2(18.0, 12.0) * k, base + Vector2(30.0, 12.0) * k,
+		base + Vector2(34.0, 22.0) * k, base + Vector2(14.0, 22.0) * k]), ink)
+
+
+## One long barrel on a cradle: the chain gun.
+static func _draw_chain(canvas: CanvasItem, base: Vector2, k: float, ink: Color) -> void:
+	canvas.draw_line(base + Vector2(28.0, 0.0) * k, base + Vector2(100.0, 0.0) * k, ink, 4.2 * k)
+	canvas.draw_rect(Rect2(base + Vector2(8.0, -8.0) * k, Vector2(36.0, 16.0) * k), ink)
+	canvas.draw_rect(Rect2(base + Vector2(92.0, -3.5) * k, Vector2(8.0, 7.0) * k), ink)
 	canvas.draw_rect(Rect2(base + Vector2(0.0, -3.0) * k, Vector2(10.0, 6.0) * k), ink)
 	canvas.draw_colored_polygon(PackedVector2Array([base + Vector2(18.0, 12.0) * k, base + Vector2(30.0, 12.0) * k,
 		base + Vector2(34.0, 22.0) * k, base + Vector2(14.0, 22.0) * k]), ink)
@@ -524,6 +536,8 @@ class WeaponSlot:
 				HudWidgets._draw_launcher(self, base, k, ink)
 			"rotary":
 				HudWidgets._draw_rotary(self, base, k, ink)
+			"chain":
+				HudWidgets._draw_chain(self, base, k, ink)
 			_:
 				HudWidgets._draw_gun(self, base, k, ink)
 		if endless:

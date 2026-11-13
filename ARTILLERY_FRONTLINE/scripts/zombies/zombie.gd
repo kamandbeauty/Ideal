@@ -290,19 +290,15 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	_settle_rock()
 	var bulk: float = rng.randf_range(data.scale_min, data.scale_max) * size_mul
 	scale = Vector3(bulk * rng.randf_range(0.93, 1.07), bulk * rng.randf_range(0.90, 1.12), bulk)
-	gait_lean = Vector3(rng.randf_range(-0.03, 0.14), rng.randf_range(-0.05, 0.05), rng.randf_range(-0.10, 0.10))
-	gait_rate = rng.randf_range(0.92, 1.08)
+	gait_lean = Vector3(rng.randf_range(-0.02, 0.08), rng.randf_range(-0.04, 0.04), rng.randf_range(-0.06, 0.06))
+	gait_rate = rng.randf_range(0.88, 1.12)
 	_apply_rock()
 	position = path[0] if path.size() > 0 else Vector3.ZERO
 	if path.size() > 1:
 		var ahead: Vector3 = path[1] - path[0]
 		facing_goal = atan2(ahead.x, ahead.z)
 		rotation = Vector3(0.0, facing_goal, 0.0)
-	if body_mesh:
-		if chosen == 0:
-			body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % data.skins)
-		else:
-			body_mesh.material_override = null
+	_paint_look(chosen, rng)
 	visible = true
 	_set_hittable(true)
 	# Each life picks a limp (which leg, and how broken) and a point in the stride, so a crowd does not march.
@@ -342,6 +338,34 @@ static func _quality_allows_extras() -> bool:
 	return true
 
 
+func _paint_look(chosen: int, rng: RandomNumberGenerator) -> void:
+	if looks.is_empty() or look_index < 0 or look_index >= looks.size():
+		return
+	if chosen == 0:
+		if body_mesh:
+			body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % maxi(data.skins, 1))
+		return
+	var packed: PackedScene = data.extra_looks[chosen - 1] if chosen - 1 < data.extra_looks.size() else null
+	var look_name: String = packed.resource_path.get_file().get_basename() if packed else ""
+	if look_name.begins_with("zombie_"):
+		look_name = look_name.trim_prefix("zombie_")
+	var painted: StandardMaterial3D = MaterialLibrary.extra_skin(look_name) as StandardMaterial3D
+	if painted == null:
+		return
+	var meshes: Array[Node] = looks[look_index].find_children("*", "MeshInstance3D", true, false)
+	if body_mesh != null and not meshes.has(body_mesh):
+		meshes.append(body_mesh)
+	for node: Node in meshes:
+		var mesh: MeshInstance3D = node
+		var n: String = mesh.name.to_lower()
+		if n.contains("foot") or n.contains("toe") or n.contains("shoe") or n.contains("boot"):
+			var dirt: StandardMaterial3D = painted.duplicate()
+			dirt.albedo_color = Color(0.22, 0.16, 0.12)
+			mesh.material_override = dirt
+		else:
+			mesh.material_override = painted
+
+
 func _pick_walk(rng: RandomNumberGenerator) -> String:
 	if walk_clips.is_empty():
 		return "walk"
@@ -352,7 +376,10 @@ func _pick_walk(rng: RandomNumberGenerator) -> String:
 			broken.append(clip)
 		else:
 			regular.append(clip)
-	var pool: Array[String] = broken if not broken.is_empty() and rng.randf() < 0.5 else regular
+	# Most of the small horde shuffles. A hard limp is the exception.
+	var pool: Array[String] = regular
+	if not broken.is_empty() and rng.randf() < 0.12:
+		pool = broken
 	if pool.is_empty():
 		pool = walk_clips
 	return pool[rng.randi() % pool.size()]

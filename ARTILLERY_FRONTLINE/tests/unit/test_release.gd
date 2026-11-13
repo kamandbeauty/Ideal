@@ -49,7 +49,11 @@ func _approved_play(t: TestContext) -> void:
 	t.check(rotary.damage / rotary.fire_interval < gun.damage / gun.fire_interval * 1.1 and rotary.damage / rotary.fire_interval > gun.damage / gun.fire_interval * 0.9,
 		"held on a body the two guns do the same work to within a tenth (%.0f against %.0f a second)" % [
 			rotary.damage / rotary.fire_interval, gun.damage / gun.fire_interval])
-	t.check(Profile.GUNS == ["twin_hmg", "rotary_gun"] and Profile.DEFAULTS.settings.gun == "twin_hmg", "the twin gun is the one a new player starts with")
+	t.check(Profile.GUNS.size() >= 4 and Profile.GUNS[0] == "twin_hmg" and Profile.DEFAULTS.settings.gun == "twin_hmg",
+		"a new player starts with the twin gun, and four or five kits stand on the title")
+	for id: String in Profile.GUNS:
+		t.check(Defender.GUN_SCENES.has(id) and ResourceLoader.exists(String(Defender.GUN_SCENES[id])),
+			"%s has a scene on the mount" % id)
 	t.check(is_equal_approx(aim.fov_degrees, 43.0) and is_equal_approx(aim.zoom_factor, 2.5), "the eye sees 43 degrees; the drawn-in sight brings the street 2.5 times closer")
 	var waves: WaveSet = Campaign.whole()
 	t.equal(waves.waves.size(), 8, "the siege is eight waves")

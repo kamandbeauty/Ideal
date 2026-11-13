@@ -160,7 +160,7 @@ func _fire_round() -> void:
 	# One clip holds two reports, 40 ms apart: at this rate of fire single shots would run together
 	# and take every voice the mixer has.
 	if burst % 2 == 1:
-		Sound.play("rotary_shot", -5.0, rng.randf_range(0.97, 1.03))
+		Sound.play("rotary_shot", -3.0, rng.randf_range(0.96, 1.05))
 	shot_fired.emit(0)
 
 
