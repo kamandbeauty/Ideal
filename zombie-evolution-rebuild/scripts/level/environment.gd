@@ -71,19 +71,30 @@ func _ready() -> void:
 	var cloud_mesh := SphereMesh.new()
 	cloud_mesh.radius = 1.0
 	cloud_mesh.height = 2.0
-	cloud_mesh.radial_segments = 32
-	cloud_mesh.rings = 16
+	cloud_mesh.radial_segments = 48
+	cloud_mesh.rings = 24
 	var cloud_mat := new_material(Color(0.78, 0.84, 0.87), 1.0)
 	var random := RandomNumberGenerator.new()
 	random.seed = 473
-	for i in range(72):
-		var cloud := MeshInstance3D.new()
-		cloud.mesh = cloud_mesh
-		cloud.material_override = cloud_mat
+	var cloud_highlight := new_material(Color(0.88, 0.92, 0.95), 1.0)
+	for i in range(48):
+		var cloud_bank := Node3D.new()
+		cloud_bank.name = "CloudBank_%02d" % i
 		var side := -1.0 if i % 2 == 0 else 1.0
-		cloud.position = Vector3(side * random.randf_range(15, 27), random.randf_range(-7, -3.5), float(i / 2) * 6.0 - 8.0)
-		cloud.scale = Vector3(random.randf_range(5, 9), random.randf_range(2, 4), random.randf_range(5, 9))
-		add_child(cloud)
+		cloud_bank.position = Vector3(side * random.randf_range(17, 25), random.randf_range(-7, -4), float(i / 2) * 8.0 - 8.0)
+		add_child(cloud_bank)
+		var core := MeshInstance3D.new()
+		core.mesh = cloud_mesh
+		core.material_override = cloud_mat
+		core.scale = Vector3(random.randf_range(5.5, 7.0), random.randf_range(2.0, 2.8), random.randf_range(5.0, 6.5))
+		cloud_bank.add_child(core)
+		for lobe_index in range(2):
+			var lobe := MeshInstance3D.new()
+			lobe.mesh = cloud_mesh
+			lobe.material_override = cloud_highlight if lobe_index == 0 else cloud_mat
+			lobe.position = Vector3(-2.2 if lobe_index == 0 else 2.0, 0.25, 0.8 if lobe_index == 0 else -0.9)
+			lobe.scale = Vector3(4.1, 2.0, 3.8)
+			cloud_bank.add_child(lobe)
 
 
 func create_bridge_superstructure(steel: StandardMaterial3D, edge: StandardMaterial3D, amber: StandardMaterial3D) -> void:
@@ -100,15 +111,15 @@ func create_bridge_superstructure(steel: StandardMaterial3D, edge: StandardMater
 		portal.position.z = float(z)
 		structure.add_child(portal)
 		for side in [-1.0, 1.0]:
-			add_box(Vector3(side * 5.36, 4.45, 0), Vector3(0.34, 6.9, 0.42), steel, portal)
-			add_box(Vector3(side * 5.36, 7.95, 0), Vector3(0.52, 0.34, 0.58), edge, portal)
-			add_beam(Vector3(side * 5.36, 1.2, -4.0), Vector3(side * 5.36, 7.7, 0), 0.16, brace, portal)
-			add_beam(Vector3(side * 5.36, 7.7, 0), Vector3(side * 5.36, 1.2, 4.0), 0.16, brace, portal)
-			add_box(Vector3(side * 5.36, 4.45, -6.0), Vector3(0.12, 6.2, 0.12), cable, portal)
-			add_box(Vector3(side * 5.36, 4.45, 6.0), Vector3(0.12, 6.2, 0.12), cable, portal)
-			add_box(Vector3(side * 5.36, 7.72, 0), Vector3(0.16, 0.16, 24.0), cable, portal)
-		add_box(Vector3(0, 7.95, 0), Vector3(10.9, 0.30, 0.52), steel, portal)
-		add_box(Vector3(0, -0.12, 0), Vector3(11.5, 0.18, 0.42), edge, portal)
+			add_box(Vector3(side * 5.36, 3.55, 0), Vector3(0.26, 5.8, 0.30), steel, portal)
+			add_box(Vector3(side * 5.36, 6.55, 0), Vector3(0.38, 0.20, 0.40), edge, portal)
+			add_beam(Vector3(side * 5.36, 1.2, -4.0), Vector3(side * 5.36, 6.35, 0), 0.12, brace, portal)
+			add_beam(Vector3(side * 5.36, 6.35, 0), Vector3(side * 5.36, 1.2, 4.0), 0.12, brace, portal)
+			add_box(Vector3(side * 5.36, 3.25, -6.0), Vector3(0.08, 4.8, 0.08), cable, portal)
+			add_box(Vector3(side * 5.36, 3.25, 6.0), Vector3(0.08, 4.8, 0.08), cable, portal)
+			add_box(Vector3(side * 5.36, 6.42, 0), Vector3(0.10, 0.10, 24.0), cable, portal)
+		add_box(Vector3(0, 6.55, 0), Vector3(10.9, 0.16, 0.24), steel, portal)
+		add_box(Vector3(0, -0.12, 0), Vector3(11.5, 0.14, 0.28), edge, portal)
 	# Roadside lighting and deck joints provide readable scale and rhythm.
 	for z in range(18, 157, 36):
 		for side in [-1.0, 1.0]:
