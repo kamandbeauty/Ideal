@@ -1,5 +1,5 @@
 Game: LAST WALL: Zombie Siege
-Source commit: 7f67dc70deb8fcc52832fb47ad6b2ca457584e51
+Source commit: 78cad569e087b44bf6ffeb30677be61381902e02
 Engine: Godot 4.7.2-stable
 Version: 0.6.1 (code 7)
 Build: release export template (optimised engine, not debuggable)
