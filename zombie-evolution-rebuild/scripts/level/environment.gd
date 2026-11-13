@@ -9,8 +9,8 @@ func _ready() -> void:
 	var env := Environment.new()
 	var atmosphere := Sky.new()
 	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color(0.10, 0.24, 0.40)
-	sky_material.sky_horizon_color = Color(0.70, 0.79, 0.84)
+	sky_material.sky_top_color = Color(0.055, 0.13, 0.23)
+	sky_material.sky_horizon_color = Color(0.48, 0.61, 0.70)
 	sky_material.ground_bottom_color = Color(0.24, 0.34, 0.44)
 	sky_material.ground_horizon_color = Color(0.70, 0.79, 0.84)
 	atmosphere.sky_material = sky_material
@@ -18,23 +18,23 @@ func _ready() -> void:
 	env.sky = atmosphere
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.75, 0.82, 0.90)
-	env.ambient_light_energy = 0.68
+	env.ambient_light_energy = 0.82
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.61, 0.68, 0.73)
-	env.fog_density = 0.0025
+	env.fog_density = 0.0032
 	world.environment = env
 	add_child(world)
 	var sunlight := DirectionalLight3D.new()
 	sunlight.rotation_degrees = Vector3(-42, -28, 0)
 	sunlight.light_color = Color(1.0, 0.88, 0.73)
-	sunlight.light_energy = 1.15
+	sunlight.light_energy = 1.35
 	sunlight.shadow_enabled = true
-	sunlight.directional_shadow_max_distance = 60.0
+	sunlight.directional_shadow_max_distance = 78.0
 	add_child(sunlight)
 
-	var concrete := asphalt_material(Color(0.68, 0.71, 0.74))
-	var alternate := asphalt_material(Color(0.64, 0.67, 0.70))
+	var concrete := asphalt_material(Color(0.50, 0.54, 0.57))
+	var alternate := asphalt_material(Color(0.45, 0.49, 0.52))
 	var steel := new_material(Color(0.19, 0.25, 0.29), 0.6)
 	var edge := new_material(Color(0.12, 0.17, 0.20), 0.8)
 	var lane := new_material(Color(0.75, 0.66, 0.40), 0.95)
@@ -65,24 +65,88 @@ func _ready() -> void:
 				add_box(Vector3(side * 5.78, 0.58, z + offset), Vector3(0.16, 1.16, 0.16), steel)
 			if i % 3 == 0:
 				add_box(Vector3(side * 5.58, 0.38, z), Vector3(0.08, 0.18, 0.48), amber)
+	create_bridge_superstructure(steel, edge, amber)
 	create_city_entrance()
-	# Clouds stay outside the playable bridge on both sides.
+	# Two batched MultiMeshes keep the layered cloud banks to two draw calls.
 	var cloud_mesh := SphereMesh.new()
 	cloud_mesh.radius = 1.0
 	cloud_mesh.height = 2.0
-	cloud_mesh.radial_segments = 32
-	cloud_mesh.rings = 16
-	var cloud_mat := new_material(Color(0.78, 0.84, 0.87), 1.0)
+	cloud_mesh.radial_segments = 24
+	cloud_mesh.rings = 12
+	var cloud_mat := new_material(Color(0.79, 0.86, 0.92), 1.0)
+	var cloud_highlight := new_material(Color(0.94, 0.97, 1.0), 1.0)
 	var random := RandomNumberGenerator.new()
 	random.seed = 473
-	for i in range(72):
-		var cloud := MeshInstance3D.new()
-		cloud.mesh = cloud_mesh
-		cloud.material_override = cloud_mat
+	var cloud_cores := MultiMesh.new()
+	cloud_cores.transform_format = MultiMesh.TRANSFORM_3D
+	cloud_cores.mesh = cloud_mesh
+	cloud_cores.instance_count = 48
+	var cloud_lobes := MultiMesh.new()
+	cloud_lobes.transform_format = MultiMesh.TRANSFORM_3D
+	cloud_lobes.mesh = cloud_mesh
+	cloud_lobes.instance_count = 96
+	for i in range(48):
 		var side := -1.0 if i % 2 == 0 else 1.0
-		cloud.position = Vector3(side * random.randf_range(15, 27), random.randf_range(-7, -3.5), float(i / 2) * 6.0 - 8.0)
-		cloud.scale = Vector3(random.randf_range(5, 9), random.randf_range(2, 4), random.randf_range(5, 9))
-		add_child(cloud)
+		var bank_position := Vector3(side * random.randf_range(14, 21), random.randf_range(-4.5, -2.0), float(i / 2) * 8.0 - 8.0)
+		var core_scale := Vector3(random.randf_range(5.5, 7.0), random.randf_range(2.0, 2.8), random.randf_range(5.0, 6.5))
+		cloud_cores.set_instance_transform(i, Transform3D(Basis.from_scale(core_scale), bank_position))
+		for lobe_index in range(2):
+			var offset := Vector3(-2.2 if lobe_index == 0 else 2.0, 0.25, 0.8 if lobe_index == 0 else -0.9)
+			var lobe_scale := Vector3(4.1, 2.0, 3.8)
+			cloud_lobes.set_instance_transform(i * 2 + lobe_index, Transform3D(Basis.from_scale(lobe_scale), bank_position + offset))
+	var cloud_core_batch := MultiMeshInstance3D.new()
+	cloud_core_batch.name = "CloudCoreBatch"
+	cloud_core_batch.multimesh = cloud_cores
+	cloud_core_batch.material_override = cloud_mat
+	add_child(cloud_core_batch)
+	var cloud_lobe_batch := MultiMeshInstance3D.new()
+	cloud_lobe_batch.name = "CloudHighlightBatch"
+	cloud_lobe_batch.multimesh = cloud_lobes
+	cloud_lobe_batch.material_override = cloud_highlight
+	add_child(cloud_lobe_batch)
+
+
+func create_bridge_superstructure(steel: StandardMaterial3D, edge: StandardMaterial3D, amber: StandardMaterial3D) -> void:
+	# Lightweight suspension-bridge trusses add a strong silhouette without
+	# changing the collision deck, player route, or enemy navigation.
+	var structure := Node3D.new()
+	structure.name = "BridgeSuperstructure"
+	add_child(structure)
+	var cable := new_material(Color(0.075, 0.105, 0.13), 0.34)
+	var brace := new_material(Color(0.23, 0.29, 0.32), 0.48)
+	for z in range(12, 157, 24):
+		var portal := Node3D.new()
+		portal.name = "SuspensionPortal_%03d" % z
+		portal.position.z = float(z)
+		structure.add_child(portal)
+		for side in [-1.0, 1.0]:
+			add_box(Vector3(side * 5.36, 3.55, 0), Vector3(0.26, 5.8, 0.30), steel, portal)
+			add_box(Vector3(side * 5.36, 6.55, 0), Vector3(0.38, 0.20, 0.40), edge, portal)
+			add_beam(Vector3(side * 5.36, 1.2, -4.0), Vector3(side * 5.36, 6.35, 0), 0.12, brace, portal)
+			add_beam(Vector3(side * 5.36, 6.35, 0), Vector3(side * 5.36, 1.2, 4.0), 0.12, brace, portal)
+			add_box(Vector3(side * 5.36, 3.25, -6.0), Vector3(0.08, 4.8, 0.08), cable, portal)
+			add_box(Vector3(side * 5.36, 3.25, 6.0), Vector3(0.08, 4.8, 0.08), cable, portal)
+			add_box(Vector3(side * 5.36, 6.42, 0), Vector3(0.10, 0.10, 24.0), cable, portal)
+		add_box(Vector3(0, 6.55, 0), Vector3(10.9, 0.16, 0.24), steel, portal)
+		add_box(Vector3(0, -0.12, 0), Vector3(11.5, 0.14, 0.28), edge, portal)
+	# Roadside lighting and deck joints provide readable scale and rhythm.
+	for z in range(18, 157, 36):
+		for side in [-1.0, 1.0]:
+			add_box(Vector3(side * 4.95, 2.05, float(z)), Vector3(0.10, 2.0, 0.10), steel, structure)
+			add_box(Vector3(side * 4.72, 3.0, float(z)), Vector3(0.55, 0.10, 0.10), steel, structure)
+			add_box(Vector3(side * 4.48, 2.92, float(z)), Vector3(0.18, 0.12, 0.24), amber, structure)
+	for z in range(8, 168, 8):
+		add_box(Vector3(0, 0.025, float(z)), Vector3(11.2, 0.035, 0.10), edge, structure)
+
+func add_beam(start: Vector3, finish: Vector3, width: float, material: Material, parent: Node3D) -> void:
+	var beam := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(width, width, start.distance_to(finish))
+	beam.mesh = mesh
+	beam.material_override = material
+	beam.position = (start + finish) * 0.5
+	beam.basis = Basis.looking_at((finish - start).normalized(), Vector3.UP)
+	parent.add_child(beam)
 
 func create_city_entrance() -> void:
 	# A distant entrance at the end of the bridge; no collision blocks the run.
