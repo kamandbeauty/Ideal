@@ -65,6 +65,7 @@ func _ready() -> void:
 				add_box(Vector3(side * 5.78, 0.58, z + offset), Vector3(0.16, 1.16, 0.16), steel)
 			if i % 3 == 0:
 				add_box(Vector3(side * 5.58, 0.38, z), Vector3(0.08, 0.18, 0.48), amber)
+	create_bridge_superstructure(steel, edge, amber)
 	create_city_entrance()
 	# Clouds stay outside the playable bridge on both sides.
 	var cloud_mesh := SphereMesh.new()
@@ -83,6 +84,49 @@ func _ready() -> void:
 		cloud.position = Vector3(side * random.randf_range(15, 27), random.randf_range(-7, -3.5), float(i / 2) * 6.0 - 8.0)
 		cloud.scale = Vector3(random.randf_range(5, 9), random.randf_range(2, 4), random.randf_range(5, 9))
 		add_child(cloud)
+
+
+func create_bridge_superstructure(steel: StandardMaterial3D, edge: StandardMaterial3D, amber: StandardMaterial3D) -> void:
+	# Lightweight suspension-bridge trusses add a strong silhouette without
+	# changing the collision deck, player route, or enemy navigation.
+	var structure := Node3D.new()
+	structure.name = "BridgeSuperstructure"
+	add_child(structure)
+	var cable := new_material(Color(0.075, 0.105, 0.13), 0.34)
+	var brace := new_material(Color(0.23, 0.29, 0.32), 0.48)
+	for z in range(12, 157, 24):
+		var portal := Node3D.new()
+		portal.name = "SuspensionPortal_%03d" % z
+		portal.position.z = float(z)
+		structure.add_child(portal)
+		for side in [-1.0, 1.0]:
+			add_box(Vector3(side * 5.36, 4.45, 0), Vector3(0.34, 6.9, 0.42), steel, portal)
+			add_box(Vector3(side * 5.36, 7.95, 0), Vector3(0.52, 0.34, 0.58), edge, portal)
+			add_beam(Vector3(side * 5.36, 1.2, -4.0), Vector3(side * 5.36, 7.7, 0), 0.16, brace, portal)
+			add_beam(Vector3(side * 5.36, 7.7, 0), Vector3(side * 5.36, 1.2, 4.0), 0.16, brace, portal)
+			add_box(Vector3(side * 5.36, 4.45, -6.0), Vector3(0.12, 6.2, 0.12), cable, portal)
+			add_box(Vector3(side * 5.36, 4.45, 6.0), Vector3(0.12, 6.2, 0.12), cable, portal)
+			add_box(Vector3(side * 5.36, 7.72, 0), Vector3(0.16, 0.16, 24.0), cable, portal)
+		add_box(Vector3(0, 7.95, 0), Vector3(10.9, 0.30, 0.52), steel, portal)
+		add_box(Vector3(0, -0.12, 0), Vector3(11.5, 0.18, 0.42), edge, portal)
+	# Roadside lighting and deck joints provide readable scale and rhythm.
+	for z in range(18, 157, 36):
+		for side in [-1.0, 1.0]:
+			add_box(Vector3(side * 4.95, 2.05, float(z)), Vector3(0.10, 2.0, 0.10), steel, structure)
+			add_box(Vector3(side * 4.72, 3.0, float(z)), Vector3(0.55, 0.10, 0.10), steel, structure)
+			add_box(Vector3(side * 4.48, 2.92, float(z)), Vector3(0.18, 0.12, 0.24), amber, structure)
+	for z in range(8, 168, 8):
+		add_box(Vector3(0, 0.025, float(z)), Vector3(11.2, 0.035, 0.10), edge, structure)
+
+func add_beam(start: Vector3, finish: Vector3, width: float, material: Material, parent: Node3D) -> void:
+	var beam := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(width, width, start.distance_to(finish))
+	beam.mesh = mesh
+	beam.material_override = material
+	beam.position = (start + finish) * 0.5
+	beam.look_at(finish, Vector3.UP)
+	parent.add_child(beam)
 
 func create_city_entrance() -> void:
 	# A distant entrance at the end of the bridge; no collision blocks the run.
