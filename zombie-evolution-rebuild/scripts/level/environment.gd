@@ -33,8 +33,8 @@ func _ready() -> void:
 	sunlight.directional_shadow_max_distance = 60.0
 	add_child(sunlight)
 
-	var concrete := asphalt_material(Color(0.68, 0.71, 0.74))
-	var alternate := asphalt_material(Color(0.64, 0.67, 0.70))
+	var concrete := asphalt_material(Color(0.50, 0.54, 0.57))
+	var alternate := asphalt_material(Color(0.45, 0.49, 0.52))
 	var steel := new_material(Color(0.19, 0.25, 0.29), 0.6)
 	var edge := new_material(Color(0.12, 0.17, 0.20), 0.8)
 	var lane := new_material(Color(0.75, 0.66, 0.40), 0.95)
@@ -81,7 +81,7 @@ func _ready() -> void:
 		var cloud_bank := Node3D.new()
 		cloud_bank.name = "CloudBank_%02d" % i
 		var side := -1.0 if i % 2 == 0 else 1.0
-		cloud_bank.position = Vector3(side * random.randf_range(17, 25), random.randf_range(-7, -4), float(i / 2) * 8.0 - 8.0)
+		cloud_bank.position = Vector3(side * random.randf_range(14, 21), random.randf_range(-4.5, -2.0), float(i / 2) * 8.0 - 8.0)
 		add_child(cloud_bank)
 		var core := MeshInstance3D.new()
 		core.mesh = cloud_mesh
