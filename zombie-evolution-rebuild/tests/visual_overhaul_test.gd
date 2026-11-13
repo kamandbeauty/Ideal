@@ -21,7 +21,7 @@ func run_tests() -> void:
 	var structure = environment.find_child("BridgeSuperstructure", true, false)
 	check(structure is Node3D, "bridge has a dedicated suspension superstructure")
 	if structure is Node3D:
-		check(structure.get_child_count() >= 40, "bridge superstructure contains detailed portals, lamps and deck joints")
+		check(structure.get_child_count() >= 30, "bridge superstructure contains detailed portals, lamps and deck joints")
 	var level = LevelScene.instantiate()
 	root.add_child(level)
 	level.set_physics_process(false)

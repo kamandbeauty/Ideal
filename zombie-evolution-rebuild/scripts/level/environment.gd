@@ -125,7 +125,7 @@ func add_beam(start: Vector3, finish: Vector3, width: float, material: Material,
 	beam.mesh = mesh
 	beam.material_override = material
 	beam.position = (start + finish) * 0.5
-	beam.look_at(finish, Vector3.UP)
+	beam.basis = Basis.looking_at((finish - start).normalized(), Vector3.UP)
 	parent.add_child(beam)
 
 func create_city_entrance() -> void:
