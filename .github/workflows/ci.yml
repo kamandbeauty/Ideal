@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: project-check-${{ github.ref }}
@@ -109,6 +109,18 @@ jobs:
             exit 1
           }
           test -s documentation/qa/02-town-fa.png
+
+      - name: Publish play-through previews
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          if git status --porcelain documentation/qa/preview | grep -q .; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add documentation/qa/preview
+            git commit -m "chore: refresh play-through previews [skip ci]"
+            git push
+          fi
 
       - uses: actions/upload-artifact@v4
         if: always()

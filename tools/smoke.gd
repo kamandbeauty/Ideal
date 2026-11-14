@@ -11,6 +11,7 @@ extends Node
 const MENU_SCENE := preload("res://scenes/ui/main_menu.tscn")
 const TOWN_SCENE := preload("res://scenes/town/town.tscn")
 const CAPTURE_DIR := "res://documentation/qa"
+const PREVIEW_DIR := "res://documentation/qa/preview"
 
 var _town: Node
 
@@ -20,8 +21,8 @@ func _ready() -> void:
 
 
 func _run() -> void:
-	var directory := ProjectSettings.globalize_path(CAPTURE_DIR)
-	DirAccess.make_dir_recursive_absolute(directory)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CAPTURE_DIR))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(PREVIEW_DIR))
 
 	var menu = MENU_SCENE.instantiate()
 	add_child(menu)
@@ -104,3 +105,10 @@ func _capture(name: String) -> void:
 	var path := "%s/%s.png" % [CAPTURE_DIR, name]
 	var error := image.save_png(path)
 	print("SMOKE: captured %s (%s)" % [path, error_string(error)])
+
+	# Small, committed stills so the play-through can be reviewed without
+	# downloading the (much larger) full-resolution artifact.
+	var preview := image.duplicate() as Image
+	preview.resize(960, 540, Image.INTERPOLATE_BILINEAR)
+	var preview_error := preview.save_jpg("%s/%s.jpg" % [PREVIEW_DIR, name], 0.72)
+	print("SMOKE: preview %s (%s)" % [name, error_string(preview_error)])

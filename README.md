@@ -44,7 +44,9 @@ godot --headless --path . --script res://tests/run_tests.gd   # tests
 xvfb-run godot --path . res://tools/smoke.tscn                # screenshots
 ```
 
-The screenshots land in `documentation/qa/` (ignored by git). CI runs the same
+The full-resolution screenshots land in `documentation/qa/` (ignored by git) and
+CI publishes small stills to `documentation/qa/preview/` after every run, e.g.
+[`07-town-en.jpg`](documentation/qa/preview/07-town-en.jpg). CI runs the same
 three steps on every push; the `Project check` workflow is the authority on
 whether the project imports and plays.
 
