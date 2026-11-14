@@ -94,18 +94,18 @@ func _update_cell(cell: Vector2i) -> void:
 	var id := state.structure_at(cell)
 
 	if id.is_empty():
-		_road_map.set_cell_item(position, GridMap.INVALID_CELL)
-		_building_map.set_cell_item(position, GridMap.INVALID_CELL)
+		_road_map.set_cell_item(position, -1)
+		_building_map.set_cell_item(position, -1)
 		return
 
 	if id == "road":
 		var piece := CityData.road_piece(CityData.road_mask(state.cells, cell))
-		var road_item := int(_items.get(str(piece["model"]), GridMap.INVALID_CELL))
+		var road_item := int(_items.get(str(piece["model"]), -1))
 		_road_map.set_cell_item(position, road_item, _orientation(int(piece["rotation"])))
-		_building_map.set_cell_item(position, GridMap.INVALID_CELL)
+		_building_map.set_cell_item(position, -1)
 	else:
-		var item := int(_items.get(CityData.model_of(id), GridMap.INVALID_CELL))
-		_road_map.set_cell_item(position, GridMap.INVALID_CELL)
+		var item := int(_items.get(CityData.model_of(id), -1))
+		_road_map.set_cell_item(position, -1)
 		_building_map.set_cell_item(position, item, _orientation(state.rotation_at(cell)))
 
 
