@@ -31,6 +31,7 @@ func _run() -> void:
 	App.set_language("en")
 	await _settle(6)
 	await _capture("01-menu-en")
+	App.set_language("fa")
 	menu.queue_free()
 	await _settle(3)
 

@@ -49,20 +49,21 @@ func _build_environment() -> void:
 	var sky_material := ProceduralSkyMaterial.new()
 	var top := TownData.sky_color(state.town_id)
 	sky_material.sky_top_color = top
-	sky_material.sky_horizon_color = top.lightened(0.45)
-	sky_material.ground_horizon_color = TownData.ground_color(state.town_id)
-	sky_material.ground_bottom_color = Color(0.4, 0.34, 0.26)
+	sky_material.sky_horizon_color = top.lightened(0.16)
+	sky_material.ground_horizon_color = TownData.ground_color(state.town_id).darkened(0.1)
+	sky_material.ground_bottom_color = TownData.ground_color(state.town_id).darkened(0.35)
 	sky.sky_material = sky_material
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.9
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.ambient_light_energy = 0.4
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_exposure = 0.9
 	world.environment = env
 	add_child(world)
 
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
-	sun.light_energy = 1.15
+	sun.light_energy = 0.8
 	sun.light_color = Color(1.0, 0.94, 0.84)
 	sun.rotation_degrees = Vector3(-52, -38, 0)
 	sun.shadow_enabled = true
@@ -76,7 +77,7 @@ func _build_ground() -> void:
 	plane.size = Vector2(80, 80)
 	ground.mesh = plane
 	var material := StandardMaterial3D.new()
-	material.albedo_color = TownData.ground_color(state.town_id)
+	material.albedo_color = TownData.ground_color(state.town_id).darkened(0.12)
 	material.roughness = 1.0
 	ground.material_override = material
 	ground.position.y = -0.02
@@ -133,7 +134,6 @@ func _build_businesses() -> void:
 
 		_build_plot_ground(node)
 		_build_model(node, id)
-		_build_sign(node, id)
 		_build_pips(node, id)
 		_build_collider(node, id)
 		buildings[id] = node
@@ -162,22 +162,6 @@ func _build_model(parent: Node3D, id: String) -> void:
 	model.name = "Model"
 	model.scale = Vector3.ONE * BUSINESS_SCALE
 	parent.add_child(model)
-
-
-func _build_sign(parent: Node3D, id: String) -> void:
-	var sign := MeshInstance3D.new()
-	sign.name = "Sign"
-	var board := BoxMesh.new()
-	board.size = Vector3(1.5, 0.5, 0.08)
-	sign.mesh = board
-	var material := StandardMaterial3D.new()
-	material.albedo_color = BusinessData.accent(id)
-	material.emission_enabled = true
-	material.emission = BusinessData.accent(id)
-	material.emission_energy_multiplier = 0.5
-	sign.material_override = material
-	sign.position = Vector3(0, 1.9, -1.35)
-	parent.add_child(sign)
 
 
 func _build_pips(parent: Node3D, id: String) -> void:
@@ -239,9 +223,6 @@ func refresh_business(id: String) -> void:
 	if model != null:
 		for mesh in _mesh_instances(model):
 			mesh.material_override = _locked_material if locked else null
-	var sign_node: Node3D = node.get_node_or_null("Sign")
-	if sign_node != null:
-		sign_node.visible = not locked
 	var group: Array = pips.get(id, [])
 	for i in group.size():
 		group[i].visible = (not locked) and business.level > i + 1

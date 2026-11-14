@@ -23,19 +23,34 @@ func test_advance_credits_the_profit() -> void:
 	almost(town.cash, cash + rate, "zero time must not pay", 0.01)
 
 
+func test_offline_only_runs_managed_businesses() -> void:
+	var town := TownState.new("desert")
+	equal(town.offline_earnings(3600.0), 0.0, "no manager means no offline income")
+	town.cash = 100000.0
+	check(town.hire_manager("gas_station"), "the manager should be affordable")
+	check(town.offline_earnings(3600.0) > 0.0, "a managed business earns offline")
+	equal(town.offline_net_per_minute(), town.net_per_minute(), "one managed business")
+
+
 func test_offline_is_capped_at_eight_hours() -> void:
 	var town := TownState.new("desert")
+	town.cash = 100000.0
+	town.hire_manager("gas_station")
 	var eight_hours := TownState.OFFLINE_CAP_SECONDS
 	almost(
 		town.offline_earnings(eight_hours * 3.0),
 		town.offline_earnings(eight_hours),
 		"offline earnings are capped at eight hours"
 	)
-	almost(town.offline_earnings(60.0), town.net_per_minute() * TownState.OFFLINE_RATE, "rate")
+	almost(
+		town.offline_earnings(60.0),
+		town.offline_net_per_minute() * TownState.OFFLINE_RATE,
+		"rate"
+	)
 	equal(town.offline_earnings(0.0), 0.0, "no time away, no money")
 	var report := town.apply_offline(eight_hours * 2.0)
 	almost(float(report["seconds"]), eight_hours, "the report should be capped")
-	check(town.cash > TownState.STARTING_CASH, "offline income should be credited")
+	check(town.cash > 100000.0, "offline income should be credited")
 
 
 func test_upgrades_raise_profit_and_price() -> void:

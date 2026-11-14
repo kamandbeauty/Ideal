@@ -60,11 +60,13 @@ Caps: 5 levels, 5 branch steps (a branch may not exceed the building level),
 
 ## Offline income
 
-- Every save stores `last_seen` (unix seconds).
-- On load, `away = now − last_seen`, capped at **8 hours**, and paid at
-  `net/min × away/60 × 0.6`. The HUD shows the report once, with a Collect button.
-- The rate is lower than active play on purpose: it rewards returning without
-  replacing the game.
+- Only **managed** businesses keep earning while the game is closed:
+  `offline_net/min = Σ net/min of unlocked businesses with a manager`.
+- Every save stores `last_seen` (unix seconds). On load, `away = now − last_seen`,
+  capped at **8 hours**, and paid at `offline_net/min × away/60 × 0.6`. The HUD
+  shows the report once, with a Collect button.
+- Managers therefore automate a business rather than merely boosting it, and a
+  fresh player has to hire one before leaving the game idle.
 
 ## Reputation, gems and towns
 

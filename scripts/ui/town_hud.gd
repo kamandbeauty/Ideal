@@ -10,7 +10,6 @@ var _town_label: Label
 var _cash_label: Label
 var _gems_label: Label
 var _reputation_label: Label
-var _hint: Label
 var _cards: Dictionary = {}
 var _panel: PanelContainer
 var _panel_title: Label
@@ -46,12 +45,12 @@ func setup(session_node: Node) -> void:
 	_build()
 	_apply_language()
 	_refresh()
+	_show_toast(App.t("hud.hint"))
 	App.language_changed.connect(_on_language_changed)
 
 
 func _build() -> void:
 	_build_top_bar()
-	_build_hint()
 	_build_cards()
 	_build_panel()
 	_build_toast()
@@ -91,17 +90,6 @@ func _build_top_bar() -> void:
 	_menu_button = _button("hud.menu", "GhostButton", 96, 44)
 	_menu_button.pressed.connect(_on_menu)
 	row.add_child(_menu_button)
-
-
-func _build_hint() -> void:
-	_hint = _label(15, UiTheme.MUTED, false)
-	_hint.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	_hint.offset_left = 20
-	_hint.offset_top = 80
-	_hint.offset_right = 520
-	_hint.offset_bottom = 110
-	_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_hint)
 
 
 func _build_cards() -> void:
@@ -153,7 +141,7 @@ func _build_panel() -> void:
 	_panel = PanelContainer.new()
 	_panel.name = "BusinessPanel"
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
-	_panel.offset_left = -368
+	_panel.offset_left = -432
 	_panel.offset_right = -12
 	_panel.offset_top = 84
 	_panel.offset_bottom = -150
@@ -192,7 +180,8 @@ func _build_panel() -> void:
 		button.focus_mode = Control.FOCUS_NONE
 		button.custom_minimum_size = Vector2(0, 58)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.add_theme_font_size_override("font_size", 14)
+		button.clip_text = true
+		button.add_theme_font_size_override("font_size", 13)
 		button.pressed.connect(_on_branch.bind(branch))
 		_branches_box.add_child(button)
 		_branch_buttons[branch] = button
@@ -278,7 +267,6 @@ func _build_offline() -> void:
 
 func _apply_language() -> void:
 	layout_direction = App.layout_direction()
-	_hint.text = App.t("hud.hint")
 	_save_button.text = App.t("hud.save")
 	_menu_button.text = App.t("hud.menu")
 	_close_button.text = App.t("hud.close")
@@ -371,8 +359,10 @@ func _refresh_panel() -> void:
 	_panel_stats.text = "\n".join([
 		App.t("hud.income_value", [_money(business.net_per_minute(traffic))]),
 		"%s: %d" % [App.t("hud.customers"), int(round(business.served_per_minute(traffic)))],
-		App.t("hud.capacity_value", [int(round(business.capacity()))]),
-		App.t("hud.upkeep_value", [_money(business.upkeep_per_minute())]),
+		"%s: %d" % [App.t("hud.capacity"), int(round(business.capacity()))],
+		"%s: %s" % [App.t("hud.upkeep"), App.t("hud.upkeep_value", [
+			_money(business.upkeep_per_minute())
+		])],
 		App.t("hud.efficiency", [int(round(business.efficiency() * 100.0))]),
 	])
 
@@ -396,12 +386,16 @@ func _refresh_panel() -> void:
 		var level := business.branch_level(branch)
 		if business.can_upgrade_branch(branch):
 			button.text = "%s\n%s" % [
-				App.t("hud.branch", [App.t("branch.%s" % branch), level]),
-				_money(business.branch_cost(branch) * state.cost_scale()),
+				App.t("branch.%s" % branch),
+				App.t("hud.branch_state", [
+					level, _money(business.branch_cost(branch) * state.cost_scale())
+				]),
 			]
 			button.disabled = not state.can_afford(business.branch_cost(branch) * state.cost_scale())
 		else:
-			button.text = App.t("hud.branch", [App.t("branch.%s" % branch), level])
+			button.text = "%s\n%s" % [
+				App.t("branch.%s" % branch), App.t("hud.branch_state", [level, "—"])
+			]
 			button.disabled = true
 
 	_manager_label.text = App.t("manager.rank.%d" % business.manager_rank)

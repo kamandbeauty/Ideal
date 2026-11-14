@@ -16,8 +16,8 @@ the next town on the highway unlocks.
   each with 5 levels, 3 upgrade branches (capacity / speed / quality) and 4
   manager ranks.
 - **Idle economy** — cash, reputation, gems, per-minute profit shown live.
-- **Offline income** — up to 8 hours away, credited when you come back, with a
-  report in the HUD.
+- **Offline income** — managed businesses keep earning for up to 8 hours away,
+  credited when you come back, with a report in the HUD.
 - **Saving** — versioned JSON in `user://saves/`, a rolling backup, autosave every
   20 seconds, and a corrupted save falls back to the backup.
 - **Persian and English** UI, switchable at any time, with Vazirmatn for proper

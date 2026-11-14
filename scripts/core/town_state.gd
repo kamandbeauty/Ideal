@@ -145,8 +145,18 @@ func offline_seconds_capped(seconds: float) -> float:
 	return clampf(seconds, 0.0, OFFLINE_CAP_SECONDS)
 
 
+## Only managed businesses keep working while the player is away.
+func offline_net_per_minute() -> float:
+	var total := 0.0
+	for id in business_ids():
+		var state: BusinessState = businesses[id]
+		if state.unlocked and state.manager_rank > 0:
+			total += state.net_per_minute(traffic())
+	return total * income_multiplier()
+
+
 func offline_earnings(seconds: float) -> float:
-	return net_per_minute() * (offline_seconds_capped(seconds) / 60.0) * OFFLINE_RATE
+	return offline_net_per_minute() * (offline_seconds_capped(seconds) / 60.0) * OFFLINE_RATE
 
 
 ## Credits the time the player was away and returns a small report.
