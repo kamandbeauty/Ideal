@@ -85,6 +85,11 @@ func _dress_rotary() -> void:
 	for z: float in [-0.55, -0.95, -1.35]:
 		_kit_cyl(pivot, Vector3(0.0, 0.02, z), 0.07, 0.018, dark, 0.35, 0.55, "z")
 	_kit_cyl(pivot, Vector3(0.0, 0.18, -0.05), 0.012, 0.03, brass, 0.92, 0.28)
+	if data and String(data.id) == "gilded_minigun":
+		var gold := Color(0.84, 0.62, 0.18)
+		_kit_cyl(pivot, Vector3(0.0, 0.02, -1.55), 0.078, 0.03, gold, 0.96, 0.18, "z")
+		_kit_box(pivot, Vector3(0.0, 0.24, -0.08), Vector3(0.05, 0.022, 0.36), gold, 0.94, 0.2)
+		_kit_cyl(pivot, Vector3(0.0, 0.2, -0.05), 0.014, 0.034, gold, 0.96, 0.16)
 
 
 func _build_flash() -> void:

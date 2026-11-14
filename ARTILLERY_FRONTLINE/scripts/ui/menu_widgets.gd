@@ -178,10 +178,13 @@ class Choices:
 			var button := Button.new()
 			button.text = labels[index]
 			button.focus_mode = Control.FOCUS_NONE
+			button.clip_text = false
+			button.autowrap_mode = TextServer.AUTOWRAP_OFF
 			button.custom_minimum_size = Vector2(0.0, 84.0)
 			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			button.add_theme_font_override("font", UITheme.font(true))
-			button.add_theme_font_size_override("font_size", UITheme.font_size(24 if icons.is_empty() else 21))
+			var type_size: int = 24 if icons.is_empty() else (18 if labels.size() >= 5 else 21)
+			button.add_theme_font_size_override("font_size", UITheme.font_size(type_size))
 			button.pressed.connect(_choose.bind(index))
 			add_child(button)
 			buttons.append(button)

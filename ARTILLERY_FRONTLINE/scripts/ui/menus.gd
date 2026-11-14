@@ -21,8 +21,8 @@ const FADE_TIME: float = 0.16
 ## A button that asks to be pressed twice stays armed this long.
 const CONFIRM_TIME: float = 3.0
 ## Widths of the two blocks of the title screen: the title itself, and the card of the coming battle.
-const TITLE_WIDTH: float = 560.0
-const PLAN_WIDTH: float = 500.0
+const TITLE_WIDTH: float = 540.0
+const PLAN_WIDTH: float = 560.0
 
 var screen: String = ""
 var came_from: String = "main"
@@ -342,14 +342,15 @@ func _build_main() -> void:
 		stage_brief.text = stage_brief_for(index)
 		stage_chosen.emit(index))
 	plan.add_child(stage_choices)
-	# Which gun stands on the mount. The street behind the menu shows it at once.
+	# Which gun stands on the mount. All five sit in one row so none are clipped
+	# off the card; the street behind the menu shows the one that is lit.
 	var names: Array = []
 	var outlines: Array = []
 	for id: String in Profile.GUNS:
 		var gun: WeaponData = gun_data(id)
-		names.append(Loc.t(gun.name_key))
+		names.append(Loc.t(gun.name_key + "_short"))
 		outlines.append(gun.icon)
-	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 3)
+	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 0)
 	gun_choices.chosen.connect(func(index: int) -> void:
 		gun_note.text = gun_note_for(Profile.GUNS[index])
 		gun_chosen.emit(Profile.GUNS[index]))

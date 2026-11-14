@@ -55,6 +55,10 @@ func _on_paper(t: TestContext) -> void:
 				"%s is described in a line that names its belt (%s)" % [id, language])
 		gun.free()
 	t.check(icons[0] != icons[1], "the two guns are told apart by their outlines")
+	var unique: Dictionary = {}
+	for icon: String in icons:
+		unique[icon] = true
+	t.equal(unique.size(), icons.size(), "each title gun has its own outline (%s)" % str(icons))
 	var source: String = FileAccess.get_file_as_string("res://scripts/ui/hud_widgets.gd")
 	var undrawn: Array[String] = []
 	for icon: String in HudWidgets.ICONS:
@@ -273,6 +277,7 @@ func _the_choice(t: TestContext) -> void:
 	var hud: Hud = game.hud
 	t.check(menus.screen == "main" and menus.gun_choices != null, "the title screen offers the guns")
 	t.equal(menus.gun_choices.buttons.size(), Profile.GUNS.size(), "one choice for each")
+	t.equal(menus.gun_choices.columns, Profile.GUNS.size(), "all of them sit in one row, none clipped onto a second")
 	t.equal(menus.gun_choices.selected, 0, "the twin gun is lit for a new player")
 	var outlined: int = 0
 	for glyph: MenuWidgets.Glyph in menus.gun_choices.glyphs:

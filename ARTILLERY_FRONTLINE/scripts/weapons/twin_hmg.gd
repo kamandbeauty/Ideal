@@ -99,6 +99,12 @@ func _dress_twin() -> void:
 		_kit_box(recoiler, Vector3(0.0, 0.042, 1.55), Vector3(0.016, 0.055, 0.018), steel, 0.9, 0.22)
 		_kit_cyl(recoiler, Vector3(0.0, 0.0, 1.62), 0.028, 0.045, dark, 0.4, 0.7, "z")
 		_kit_box(recoiler, Vector3(0.0, -0.02, 0.55), Vector3(0.02, 0.016, 0.7), steel, 0.85, 0.32)
+	if data and String(data.id) == "dual_mauler":
+		# A drum and heavier brakes so this twin is not the same kit as the HMG.
+		_kit_cyl(pivot, Vector3(0.0, 0.2, 0.22), 0.07, 0.09, brass, 0.92, 0.28)
+		_kit_box(pivot, Vector3(0.0, 0.16, 0.22), Vector3(0.16, 0.05, 0.16), brass, 0.88, 0.32)
+		for recoiler: Node3D in recoilers:
+			_kit_cyl(recoiler, Vector3(0.0, 0.0, 1.7), 0.034, 0.07, brass, 0.9, 0.26, "z")
 
 
 func _build_flash(muzzle: Node3D) -> void:
