@@ -60,6 +60,12 @@ monster: it takes a bit more killing than the rest of its type. Walkers wear
 one of five painted outfits. The horde is sized to read against the wall from
 the bastion without towering over the gate.
 
+Quaternius's CC0 `Hit_Chest` and `Hit_Head` motions are blended into the
+upper-body hit reactions, adapted to the game's own zombie skeleton. After
+regenerating the zombie GLBs, run `python3 tools/retarget_hits.py` to restore
+these reactions from the supplied animation archive. Kenney's CC0 weapon
+change sound adds a subtle layer when switching weapons.
+
 None of them walks sound. Every kind drags a leg: one foot takes the weight
 and the other is hauled after it, with the trunk pitching over the good side.
 Each model brings that walk lame in the left leg and lame in the right (the

@@ -3,7 +3,7 @@ extends RefCounted
 ## between them the ones the design promises.
 
 const IDS: Array[String] = ["walker", "runner", "brute", "boss"]
-const CLIPS: Array[String] = ["walk", "walk_m", "idle", "attack", "hit", "death_back", "death_front"]
+const CLIPS: Array[String] = ["walk", "walk_m", "idle", "attack", "hit", "hit_chest", "hit_head", "death_back", "death_front"]
 
 
 func run(t: TestContext) -> void:

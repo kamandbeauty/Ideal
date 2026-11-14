@@ -258,6 +258,8 @@ func _switch_to(index: int) -> void:
 	# The new weapon waits for the old one to clear the view.
 	weapon.select(previous.data.lower_time * previous.readiness)
 	Sound.play("weapon_switch", -7.0)
+	# A short CC0 mechanical layer, low in the mix beneath the original switch.
+	Sound.play("kenney_weapon_change", -17.0, 0.9)
 	Events.weapon_changed.emit(weapon_index, weapon)
 	Events.ammo_changed.emit(weapon.state.ammo, weapon.data.magazine_size)
 

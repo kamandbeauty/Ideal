@@ -519,6 +519,13 @@ func _swing(delta: float) -> void:
 		attack_landed = false
 
 
+## The retargeted upper-body reactions keep the original hit as a fallback for
+## a model that does not have the extra clips.
+func _hit_clip(headshot: bool) -> String:
+	var chosen: String = "hit_head" if headshot else "hit_chest"
+	return chosen if anim != null and anim.has_animation(chosen) else "hit"
+
+
 func _resume_clip() -> void:
 	match state:
 		State.ADVANCE:
@@ -545,7 +552,7 @@ func take_hit(amount: float, headshot: bool, _at: Vector3, direction: Vector3) -
 	_rock(direction, clampf(amount / maxf(full_health, 1.0) * 6.0, 0.35, 1.0))
 	if state == State.ADVANCE and stagger_left <= 0.0 and amount >= data.max_health * data.stagger_health_share:
 		stagger_left = 0.36
-		_play("hit", 1.15, 0.06)
+		_play(_hit_clip(headshot), 1.15, 0.06)
 	return false
 
 
@@ -574,10 +581,11 @@ func take_blast(amount: float, origin: Vector3, share: float, blast: ExplosionDa
 	reel_left = maxf(reel_left, maxf(0.25, blast.stagger_time * share * data.blast_reel_scale))
 	flinch_left = reel_left + 0.3
 	stagger_left = 0.0
-	if anim and anim.has_animation("hit"):
-		current_clip = "hit"
-		anim.play("hit", 0.06, 1.0)
-		anim.speed_scale = clampf(anim.get_animation("hit").length / reel_left, 0.35, 1.4)
+	var clip: String = _hit_clip(false)
+	if anim and anim.has_animation(clip):
+		current_clip = clip
+		anim.play(clip, 0.06, 1.0)
+		anim.speed_scale = clampf(anim.get_animation(clip).length / reel_left, 0.35, 1.4)
 	return false
 
 

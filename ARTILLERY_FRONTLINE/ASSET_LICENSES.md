@@ -40,6 +40,7 @@ the new original assets carry is the project owner's decision.
 
 | Asset | Origin | Licence |
 | --- | --- | --- |
+| `assets/audio/kenney_weapon_change.ogg` | Kenney Starter Kit FPS, `sounds/weapon_change.ogg` | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) (the kit README explicitly covers audio assets) |
 | `assets/audio/teeth_in_the_wire.mp3` | User-supplied recording, Teeth In The Wire | Rights not documented; verify before distribution |
 | `assets/audio/music_theme.wav` | Synthesized bass bed (`tools/build_audio.py`, oscillators only, no noise) | Original |
 | `assets/audio/wave_horde.wav` | Trimmed (16 s, mono 24 kHz) from [Freesound 111044](https://freesound.org/people/GaryQ/sounds/111044/) *Zombie group 2 (small)* by GaryQ | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
@@ -74,3 +75,19 @@ The `.max` file, `.dds` files and character archives in the repository root
 are source materials supplied for the project. The game does not load them at
 run time; the extra character meshes are converted copies under
 `assets/models/zombies/`. Former visual reference images remain in Git history.
+
+## User-supplied packs reviewed
+
+- `Universal_Animation_LibraryStandard.zip`: Quaternius, CC0 1.0. The
+  `Hit_Chest` and `Hit_Head` upper-body rotations were retargeted and blended
+  into the four original zombie GLBs using `tools/retarget_hits.py`. The
+  original model and animation library are not loaded at runtime.
+- `Starter-Kit-FPS-main.zip`: Kenney; assets CC0 1.0, code MIT (the archive
+  carries a 2025 MIT notice, the README a 2026 notice). The weapon-change
+  sound is used as a quiet layer. Its stylized models and moving-player
+  controller do not fit the game's stationary realistic gunner.
+- `pyrolux_lite_store_v1.0.3.zip`: gennai, free for games but restrictions
+  prohibit sharing the effects on their own or in asset packs. Its shaders and
+  code have not been copied into the public project; an exported game is
+  allowed under its licence. The existing pooled, quality-scaled effects stay
+  in place pending a suitable distribution and performance review.
