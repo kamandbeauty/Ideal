@@ -37,7 +37,7 @@ func capture() -> void:
 	var model := preload("res://assets/models/soldier-bamen-reference.glb").instantiate() as Node3D
 	stage.add_child(model)
 	var camera := Camera3D.new()
-	camera.position = Vector3(2.8, 1.75, -4.3)
+	camera.position = Vector3(4.8, 1.6, 0.5)
 	camera.fov = 36
 	stage.add_child(camera)
 	camera.look_at(Vector3(0, 1.05, 0), Vector3.UP)
@@ -63,6 +63,7 @@ func capture() -> void:
 	var weapon := Node3D.new()
 	stage.add_child(weapon)
 	weapon.global_position = skeleton.to_global(skeleton.get_bone_global_pose(hand) * Vector3(0, 5, 0))
+	print("Candidate hand position: ", weapon.global_position)
 	var rifle := preload("res://assets/models/rifle-quaternius.glb").instantiate() as Node3D
 	rifle.scale = Vector3.ONE * 0.3
 	rifle.rotation.y = -PI / 2.0
