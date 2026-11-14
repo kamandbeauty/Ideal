@@ -108,6 +108,10 @@ func run(t: TestContext) -> void:
 	t.check(zombie.body_area.get_meta("zombie") == zombie and zombie.head_area.get_meta("head") == true, "hit volumes know their zombie")
 	t.check(MaterialLibrary.zombie_skin("walker", 0) != MaterialLibrary.zombie_skin("walker", 1), "zombie skins differ")
 	t.check((MaterialLibrary.zombie_skin("walker", 2) as StandardMaterial3D).albedo_texture != null, "zombie skins are textured")
+	t.check((MaterialLibrary.zombie_skin("walker", 0) as StandardMaterial3D).albedo_color.v < 0.95, "a walker is never left white")
+	t.check(zombie.body_mesh != null and zombie.body_mesh.material_override != null
+		and (zombie.body_mesh.material_override as StandardMaterial3D).albedo_color.v < 0.95,
+		"the figure on the street wears its painted skin")
 	var walk_rng := RandomNumberGenerator.new()
 	walk_rng.seed = 7
 	t.equal(zombie._pick_look(walk_rng), 0, "a life never wears the extra white figures")

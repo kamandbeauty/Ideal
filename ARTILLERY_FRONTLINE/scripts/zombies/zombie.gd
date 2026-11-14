@@ -86,6 +86,8 @@ func _ready() -> void:
 		_register_look(model)
 	_build_body_volume()
 	_use_look(0)
+	if data:
+		_paint_look(0, RandomNumberGenerator.new())
 	_sleep()
 
 
@@ -110,18 +112,9 @@ func _register_look(look: Node3D) -> void:
 	_set_look_active(looks.size() - 1, false)
 
 
-func _ensure_look(index: int) -> void:
-	if data == null:
-		return
-	while looks.size() <= index and looks.size() - 1 < data.extra_looks.size():
-		var packed: PackedScene = data.extra_looks[looks.size() - 1]
-		if packed == null:
-			break
-		var extra: Node3D = packed.instantiate()
-		extra.name = "Look%d" % looks.size()
-		extra.visible = false
-		add_child(extra)
-		_register_look(extra)
+func _ensure_look(_index: int) -> void:
+	# Extra character meshes are the white figures. They are never instanced.
+	pass
 
 
 func _set_look_active(index: int, on: bool) -> void:
@@ -314,32 +307,17 @@ func _pick_look(_rng: RandomNumberGenerator) -> int:
 	return 0
 
 
-func _paint_look(chosen: int, rng: RandomNumberGenerator) -> void:
-	if looks.is_empty() or look_index < 0 or look_index >= looks.size():
+func _paint_look(_chosen: int, rng: RandomNumberGenerator) -> void:
+	if looks.is_empty() or look_index < 0 or look_index >= looks.size() or data == null:
 		return
-	if chosen == 0:
-		if body_mesh:
-			body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % maxi(data.skins, 1))
-		return
-	var packed: PackedScene = data.extra_looks[chosen - 1] if chosen - 1 < data.extra_looks.size() else null
-	var look_name: String = packed.resource_path.get_file().get_basename() if packed else ""
-	if look_name.begins_with("zombie_"):
-		look_name = look_name.trim_prefix("zombie_")
-	var painted: StandardMaterial3D = MaterialLibrary.extra_skin(look_name) as StandardMaterial3D
-	if painted == null:
-		return
-	var meshes: Array[Node] = looks[look_index].find_children("*", "MeshInstance3D", true, false)
-	if body_mesh != null and not meshes.has(body_mesh):
-		meshes.append(body_mesh)
-	for node: Node in meshes:
-		var mesh: MeshInstance3D = node
-		var n: String = mesh.name.to_lower()
-		if n.contains("foot") or n.contains("toe") or n.contains("shoe") or n.contains("boot"):
-			var dirt: StandardMaterial3D = painted.duplicate()
-			dirt.albedo_color = Color(0.22, 0.16, 0.12)
-			mesh.material_override = dirt
-		else:
-			mesh.material_override = painted
+	var skin: Material = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % maxi(data.skins, 1))
+	var look: Node = looks[look_index]
+	if look is MeshInstance3D:
+		(look as MeshInstance3D).material_override = skin
+	for node: Node in look.find_children("*", "MeshInstance3D", true, false):
+		(node as MeshInstance3D).material_override = skin
+	if body_mesh:
+		body_mesh.material_override = skin
 
 
 func _pick_walk(rng: RandomNumberGenerator) -> String:

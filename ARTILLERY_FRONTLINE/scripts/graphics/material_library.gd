@@ -112,9 +112,16 @@ static func zombie_skin(type_id: String, variant: int) -> Material:
 		return cache[key]
 	var material := StandardMaterial3D.new()
 	material.resource_name = key
-	material.albedo_texture = load("res://assets/textures/zombies/zombie_%s_%s.png" % [type_id, "abcdefgh"[variant % 8]])
+	# Never a white body: missing paint still reads as dirty flesh.
+	material.albedo_color = Color(0.42, 0.36, 0.28)
+	var path: String = "res://assets/textures/zombies/zombie_%s_%s.png" % [type_id, "abcdefgh"[variant % 8]]
+	if ResourceLoader.exists(path):
+		material.albedo_texture = load(path)
+		# A little dirt so pale atlas islands cannot blow out to white.
+		material.albedo_color = Color(0.82, 0.72, 0.58)
 	material.roughness = 0.86
 	material.metallic_specular = 0.25
+	material.vertex_color_use_as_albedo = false
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	cache[key] = material
 	return material
