@@ -1,86 +1,85 @@
-# Ideal — Island City Builder · آیدیل — شهرساز جزیره
+# Roadstop Tycoon — رودستاپ تایکون
 
-بازی شهرسازی سه‌بعدی برای اندروید، ساخته‌شده با **Godot 4.7**.
-یک جزیرهٔ خالی را آباد می‌کنی: جاده می‌کشی، خانه و کارگاه می‌سازی، پارک و
-فواره می‌گذاری و با طلا و رضایت مردم، شهر را بزرگ می‌کنی. رابط بازی فارسی
-(راست‌به‌چپ) و انگلیسی است و در همان‌جا عوض می‌شود.
+A hybrid idle tycoon for **Android**, built with **Godot 4.7**. You run a chain of
+roadside towns: buy businesses, upgrade their capacity, speed and quality, hire
+managers so they keep earning while you are away, and grow your reputation until
+the next town on the highway unlocks.
 
-A 3D city builder for Android, built with **Godot 4.7**. Start with an empty
-island: lay roads, raise homes and workshops, plant parks and fountains, and
-grow a town with gold, people and happiness. The interface ships in Persian
-(right-to-left) and English and can be switched at any time.
+بازی مدیریتی و آیدل برای اندروید: شهرک‌های بین‌راهی را می‌سازی، کسب‌وکارها را
+ارتقا می‌دهی، مدیر استخدام می‌کنی و حتی وقتی بازی بسته است درآمد می‌گیری.
 
-## در این نسخه / What is in the build
+## What is in this vertical slice
 
-| | |
+- **One playable town** (desert) on a 3D isometric map: highway with moving cars,
+  six plots, six businesses.
+- **Six businesses** — gas station, restaurant, store, workshop, motel, car wash —
+  each with 5 levels, 3 upgrade branches (capacity / speed / quality) and 4
+  manager ranks.
+- **Idle economy** — cash, reputation, gems, per-minute profit shown live.
+- **Offline income** — up to 8 hours away, credited when you come back, with a
+  report in the HUD.
+- **Saving** — versioned JSON in `user://saves/`, a rolling backup, autosave every
+  20 seconds, and a corrupted save falls back to the backup.
+- **Persian and English** UI, switchable at any time, with Vazirmatn for proper
+  right-to-left shaping.
+- **Touch first** — tap to manage, drag to pan, pinch to zoom; Q/E, R and the mouse
+  wheel work on desktop too.
+
+## Controls
+
+| Action | Touch | Desktop |
+| --- | --- | --- |
+| Manage a business | tap the building or its card | click |
+| Pan | drag with one finger | drag |
+| Zoom | pinch | wheel |
+| Rotate the view | camera buttons in the HUD | Q / E |
+| Reset the view | — | R |
+| Close / leave | system back | Esc |
+
+## Run it
+
+```bash
+godot --path .                     # play
+godot --headless --path . --script res://tests/run_tests.gd   # tests
+xvfb-run godot --path . res://tools/smoke.tscn                # screenshots
+```
+
+The screenshots land in `documentation/qa/` (ignored by git). CI runs the same
+three steps on every push; the `Project check` workflow is the authority on
+whether the project imports and plays.
+
+## Economy at a glance
+
+```
+served/min   = min(demand × traffic, capacity × throughput)
+revenue/min  = served/min × price
+profit/min   = max(0, revenue/min − upkeep/min)
+net/min      = profit/min × (0.6 + 0.1 × manager_rank) × town income multiplier
+```
+
+Capacity grows 30 % per level and 20 % per capacity branch; speed adds 8 % per
+level and 12 % per branch; quality adds 10 % per level and 15 % per branch and
+raises the price. Upgrades cost ×1.75 per level, branches ×1.6 per step, manager
+ranks ×2. A branch may never be ahead of the building's level.
+
+## Project layout
+
+| Path | Contents |
 | --- | --- |
-| نقشه | جزیرهٔ ۲۴×۲۴ خانه‌ای با شهرداری در مرکز |
-| جاده | یک ابزار جاده که خودکار به جادهٔ راست، گوشه، سه‌راه و چهارراه تبدیل می‌شود |
-| ساختمان‌ها | سه خانه (۴، ۷ و ۱۵ نفر) و کارگاه درآمدزا |
-| طبیعت و خدمات | چمن، درخت، درخت بلند، پیاده‌رو و فواره برای رضایت مردم |
-| اقتصاد | طلا، درآمد در ثانیه، رشد جمعیت تا ظرفیت، جریمهٔ ساختمان‌های بی‌جاده |
-| هدف‌ها | ۲۰، ۵۰، ۱۰۰ و ۲۰۰ نفر؛ هر هدف پاداش طلا می‌دهد |
-| ذخیره | ذخیرهٔ خودکار هر ۲۰ ثانیه و دکمهٔ ذخیره؛ ادامهٔ شهر از منو |
-| زبان | فارسی (RTL) و انگلیسی، ذخیره‌شده در `user://settings.cfg` |
-| صدا | موسیقی محیط و صدای ساخت، تخریب و چرخش از کیت Kenney |
+| `scripts/core/` | data (`business_data`, `town_data`), simulation (`business_state`, `town_state`), `save_manager`, autoloads (`app`, `game`, `sound`, `l10n`) |
+| `scripts/town/` | 3D view, isometric camera, traffic, scene controller |
+| `scripts/ui/` | HUD, detail panel, menu, theme |
+| `tests/` | headless suites run by `tests/run_tests.gd` |
+| `tools/smoke.gd` | scripted play-through that saves screenshots |
+| `assets/` | Kenney models and audio, Vazirmatn font (see `ATTRIBUTION.md`) |
+| `documentation/DESIGN.md` | design notes, numbers, save format, roadmap |
 
-## اجرا / Running
+## Next milestones
 
-```bash
-# Godot 4.7.x
-godot --path .                 # بازی
-godot --path . --editor        # ویرایشگر
-godot --headless --path . --editor --import   # ایمپورت بدون پنجره
-```
+1. World map for the five towns (forest, mountain, coast, highway) with
+   reputation gates.
+2. Managers as visible characters and timed contracts instead of a flat purchase.
+3. Missions and a first-time flow.
+4. Android export presets, signed APK/AAB, and an on-device performance pass.
 
-## کنترل‌ها / Controls
-
-- **لمس/کلیک** روی زمین: ساختن ساختار انتخاب‌شده
-- **کشیدن**: جابه‌جایی دوربین • **دو انگشت / چرخ ماوس**: بزرگ‌نمایی
-- دکمه‌های پایین صفحه: دسته‌ها، چرخش ساختمان، تخریب، واگرد
-- دکمه‌های بالا: ذخیره و بازگشت به منو
-
-## تست / Tests
-
-```bash
-godot --headless --path . --script res://tests/run_tests.gd
-```
-
-پوشش: جدول ساختمان‌ها و قیمت‌ها، قاعدهٔ خودچینش جاده، اقتصاد و رشد جمعیت،
-اتصال جاده و شهرداری، هدف‌ها، ذخیره/بارگذاری و کامل‌بودن جدول ترجمه.
-گزارش در `documentation/qa/test-results.json` نوشته می‌شود.
-
-CI روی هر push موتور Godot را نصب می‌کند، پروژه را ایمپورت می‌کند، تست‌ها را
-اجرا می‌کند و بعد **یک بازی اسکریپت‌شده زیر Xvfb** انجام می‌دهد و از منو و
-شهر اسکرین‌شات می‌گیرد (`tools/smoke.tscn`)؛ خروجی به‌صورت artifact
-ذخیره می‌شود. قدم بعدی، ساخت APK اندروید در همان ورک‌فلو است.
-
-## ساختار / Layout
-
-```
-project.godot            تنظیمات پروژه، اتولودهای App و Sound
-scenes/                  صحنهٔ اصلی، منو، HUD، شهر
-scripts/core/            زبان (L10n)، تنظیمات (App)، صدا (Sound)
-scripts/city/            دادهٔ ساختمان‌ها، وضعیت شهر، نمای شهر، دوربین، صحنه
-scripts/ui/              تم، منو، HUD
-assets/models/           مدل‌های GLB کیت Kenney (CC0) + بافت
-assets/audio/            صداهای OGG کیت Kenney (CC0)
-assets/fonts/            وزیرمتن (Vazirmatn) با مجوز OFL
-tests/                   مجموعه‌تست‌های headless
-tools/smoke.tscn         بازی اسکریپت‌شده و اسکرین‌شات برای CI
-documentation/           طراحی و خروجی کنترل کیفیت
-```
-
-## دارایی‌ها / Assets
-
-مدل‌ها، بافت‌ها و صداها از **Starter Kit City Builder** (Kenney) گرفته شده‌اند:
-کد کیت با مجوز MIT و دارایی‌ها با CC0. متن مجوز در
-[`assets/kenney/LICENSE.md`](assets/kenney/LICENSE.md) و فهرست کامل در
-[`ATTRIBUTION.md`](ATTRIBUTION.md) است. فونت رابط، Vazirmatn، با مجوز SIL OFL
-است (`assets/fonts/OFL.txt`).
-
-## وضعیت / Status
-
-نسخهٔ ۰٫۲٫۰: حلقهٔ کامل شهرسازی (ساخت، اتصال جاده، اقتصاد، رشد، هدف،
-ذخیره) و تست و اسکرین‌شات در CI. جزئیات عددها و قدم‌های بعدی در
-[`documentation/DESIGN.md`](documentation/DESIGN.md).
+Licences for the art, audio and fonts are listed in [`ATTRIBUTION.md`](ATTRIBUTION.md).

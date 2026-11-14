@@ -103,7 +103,7 @@ jobs:
             echo "::error::The play-through did not finish"
             exit 1
           }
-          test -s documentation/qa/02-city-fa.png
+          test -s documentation/qa/02-town-fa.png
 
       - uses: actions/upload-artifact@v4
         if: always()

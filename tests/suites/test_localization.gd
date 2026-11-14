@@ -12,16 +12,18 @@ func test_every_key_exists_in_every_language() -> void:
 
 
 func test_arguments_are_substituted() -> void:
-	var persian := L10n.translate("fa", "hud.population_value", [3, 10])
-	check(persian.contains("3"), "Persian population missing: " + persian)
-	check(persian.contains("10"), "Persian capacity missing: " + persian)
-	var english := L10n.translate("en", "menu.best", [7])
-	check(english.contains("7"), "best population not substituted: " + english)
+	var persian := L10n.translate("fa", "hud.level", [3])
+	check(persian.contains("3"), "Persian level missing: " + persian)
+	var english := L10n.translate("en", "menu.record", [7])
+	check(english.contains("7"), "best reputation not substituted: " + english)
+	var offline := L10n.translate("en", "hud.offline_body", [2, 5, "1,200"])
+	check(offline.contains("2") and offline.contains("5"), "offline numbers missing")
+	check(offline.contains("1,200"), "offline earnings missing")
 
 
 func test_unknown_key_is_echoed() -> void:
 	equal(L10n.translate("fa", "no.such.key"), "no.such.key", "unknown keys should echo")
-	equal(L10n.translate("fa", "hud.cash"), "طلا", "gold label")
+	equal(L10n.translate("fa", "hud.cash"), "پول", "cash label")
 
 
 func test_languages_are_distinct() -> void:
@@ -35,16 +37,22 @@ func test_languages_are_distinct() -> void:
 	check(not L10n.has_language("de"), "unexpected language accepted")
 
 
-func test_every_structure_has_a_name_and_a_description() -> void:
-	for id in CityData.all_ids():
+func test_every_business_has_a_name_and_a_description() -> void:
+	for id in BusinessData.ids():
 		for language in L10n.LANGUAGES:
-			var name := L10n.translate(language, "structure.%s.name" % id)
-			var description := L10n.translate(language, "structure.%s.desc" % id)
-			check(name != "structure.%s.name" % id, "missing name for " + id)
-			check(
-				description != "structure.%s.desc" % id,
-				"missing description for " + id
-			)
-	for category in CityData.CATEGORIES:
-		var label := L10n.translate("en", "category." + category)
-		check(label != "category." + category, "missing category label for " + category)
+			var name := L10n.translate(language, "business.%s.name" % id)
+			var description := L10n.translate(language, "business.%s.desc" % id)
+			check(name != "business.%s.name" % id, "missing name for " + id)
+			check(description != "business.%s.desc" % id, "missing description for " + id)
+
+
+func test_every_town_branch_and_manager_is_named() -> void:
+	for id in TownData.ORDER:
+		var label := L10n.translate("en", "town.%s" % id)
+		check(label != "town.%s" % id, "missing town name for " + id)
+	for branch in BusinessData.BRANCHES:
+		var label := L10n.translate("fa", "branch.%s" % branch)
+		check(label != "branch.%s" % branch, "missing branch label for " + branch)
+	for rank in range(BusinessData.MAX_MANAGER + 1):
+		var label := L10n.translate("en", "manager.rank.%d" % rank)
+		check(label != "manager.rank.%d" % rank, "missing manager rank %d" % rank)

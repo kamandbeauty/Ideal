@@ -1,88 +1,166 @@
-# Ideal — Island City Builder: design notes
+# Roadstop Tycoon — design notes
+
+Hybrid idle tycoon, isometric 3D, Godot 4.7, Android first, offline-first.
+This file records what the vertical slice actually implements and the numbers it
+runs on.
 
 ## The loop
 
-1. A new city starts with 5,000 gold, a town hall at the centre of a 24×24
-   island and no roads.
-2. The player picks a structure at the bottom of the screen and taps a cell.
-   Roads cost 30, homes 120–300, a workshop 220, parks and paving 10–90.
-3. A building only works when one of its four sides touches a road that is
-   connected — through other roads — to the town hall. Unconnected buildings
-   hold nobody, earn nothing and cost 4 happiness each.
-4. Connected homes add capacity; people move in over time and pay tax.
-   Connected workshops add a flat income but a little pollution.
-5. Goals at 20, 50, 100 and 200 people pay 400, 800, 1,500 and 2,500 gold.
-6. The city is saved automatically every 20 seconds, on pause and on exit, and
-   can be continued from the main menu.
+1. A new town starts with **1,500 coins** and one open business: the gas station.
+2. The player taps a business (or its card) to open the management panel: level,
+   three upgrade branches, the manager slot and the live numbers.
+3. Every business turns passing traffic into customers, limited by its capacity,
+   and customers into coins. Reputation grows with every served customer.
+4. Coins buy more businesses, levels and branches. Managers raise efficiency, so
+   a managed business also earns while the game is closed.
+5. Reputation opens gems at 100 / 300 / 700 / 1,500 and, later, the next towns on
+   the highway.
 
-## Numbers
+## Businesses
 
-| Thing | Value |
-| --- | --- |
-| Starting gold | 5,000 |
-| Road | 30 |
-| Small house | 120 → 4 people, +0.3 income |
-| Town house | 170 → 7 people, +0.6 income |
-| Apartment | 300 → 15 people, +1.4 income |
-| Workshop | 220 → +2.2 income, pollution 2 |
-| Lawn / trees / tall trees | 10 / 30 / 50 → +1 / +3 / +4.5 happiness |
-| Pavement / fountain | 20 / 90 → +1.5 / +8 happiness |
-| Refund on demolition | 50 % |
-| Milestones | 20, 50, 100, 200 people |
+Every business has the same skeleton so the UI can treat them uniformly:
+`base_price`, `base_capacity`, `base_demand`, `base_upkeep`, plus one cost per
+upgrade type. All six are defined in `scripts/core/business_data.gd`.
 
-Derived values, recomputed on every grid change (`CityState.recompute`):
+| Business | Unlock | Price | Capacity | Demand/min | Upkeep/min | Upgrade | Branch | Manager |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Gas station | free | 2.6 | 6 | 10 | 28 | 850 | 480 | 900 |
+| Restaurant | 1,400 | 3.4 | 5 | 9 | 34 | 980 | 520 | 1,000 |
+| Store | 1,100 | 2.0 | 8 | 8 | 22 | 760 | 420 | 800 |
+| Workshop | 2,000 | 4.2 | 3 | 5 | 40 | 1,250 | 620 | 1,200 |
+| Motel | 3,500 | 6.0 | 4 | 4 | 55 | 1,800 | 900 | 1,600 |
+| Car wash | 2,600 | 1.8 | 7 | 7 | 26 | 1,400 | 700 | 1,300 |
+
+## Formulas
 
 ```
-capacity  = Σ population of connected buildings
-income    = Σ income of connected buildings
-happiness = clamp(45 + green bonuses − 4 × unconnected buildings − pollution, 0, 100)
-income/s  = (income + population × 0.06) × (0.4 + 0.6 × happiness / 100)
+capacity   = base_capacity × (1 + 0.3 (level − 1)) × (1 + 0.2 capacity_branch)
+throughput = 1 + 0.08 (level − 1) + 0.12 speed_branch
+quality    = 1 + 0.10 (level − 1) + 0.15 quality_branch
+price      = base_price × quality
+upkeep/min = base_upkeep × (1 + 0.12 (level − 1))
+
+served/min   = min(base_demand × traffic, capacity × throughput)
+revenue/min  = served/min × price
+profit/min   = max(0, revenue/min − upkeep/min)
+efficiency   = 0.6 + 0.1 × manager_rank          # 60 % … 100 %
+net/min      = profit/min × efficiency × town_income
 ```
 
-Population grows at `0.9 × happiness/100` people per second towards capacity
-when happiness is at least 45, and falls at 0.25 per second when the town is
-unhappier than that. Capacity removed by demolition is shed at 0.6 per second.
+Costs:
 
-## Road auto-tiling
+```
+level upgrade  = base_upgrade × 1.75^(level − 1)
+branch upgrade = base_branch × 1.6^(branch_level)
+manager rank   = base_manager × 2.0^(rank)
+```
 
-Roads are one build tool, not four. When a road is placed, the view asks
-`CityData.road_piece(mask)` for the piece that matches its neighbours:
+Caps: 5 levels, 5 branch steps (a branch may not exceed the building level),
+4 manager ranks. Town cost multipliers apply to every purchase.
 
-| Neighbours | Piece |
+## Offline income
+
+- Every save stores `last_seen` (unix seconds).
+- On load, `away = now − last_seen`, capped at **8 hours**, and paid at
+  `net/min × away/60 × 0.6`. The HUD shows the report once, with a Collect button.
+- The rate is lower than active play on purpose: it rewards returning without
+  replacing the game.
+
+## Reputation, gems and towns
+
+- Reputation grows by `0.5 × served customers`.
+- Town level = `1 + floor(reputation / 250)`.
+- Gems: +5 at 100, 300, 700 and 1,500 reputation, once each.
+- Five towns are defined in `scripts/core/town_data.gd` with their own traffic,
+  income and cost multipliers and unlock reputation:
+
+| Town | Traffic | Income | Cost | Reputation |
+| --- | --- | --- | --- | --- |
+| Desert | 1.00 | 1.00 | 1.00 | 0 |
+| Forest | 0.85 | 1.20 | 1.10 | 600 |
+| Mountain | 0.90 | 1.30 | 1.25 | 1,400 |
+| Coast | 1.15 | 1.25 | 1.20 | 2,600 |
+| Highway | 1.40 | 1.40 | 1.40 | 4,200 |
+
+Only the desert town is playable in the slice; the others are data-ready for the
+world map.
+
+## Save format
+
+`user://saves/profile_01.json`, with the previous write rotated to
+`user://saves/backup_01.json`:
+
+```json
+{
+  "version": 1,
+  "town": "desert",
+  "cash": 1234.5,
+  "gems": 10,
+  "reputation": 321.0,
+  "customers": 812.0,
+  "elapsed": 640.0,
+  "gems_claimed": 2,
+  "last_seen": 1763000000,
+  "businesses": [
+    {"id": "gas_station", "unlocked": true, "level": 3,
+     "capacity": 1, "speed": 0, "quality": 2, "manager": 1,
+     "customers": 400.0, "revenue": 1200.0}
+  ]
+}
+```
+
+Loading validates the version and the town id, drops unknown businesses, clamps
+levels and branches into range, and re-opens the gas station if a save somehow
+lost it. If the main file is unreadable, `backup_01.json` is used; if both fail a
+new town starts.
+
+## Scene and script map
+
+| Path | Role |
 | --- | --- |
-| north + south, or east + west | straight |
-| two adjacent sides | corner |
-| three sides | T junction |
-| four sides | crossroads |
-| none / one | straight (a dead end) |
+| `scenes/main.tscn` → `scripts/main.gd` | menu ↔ town switching, owns the session |
+| `scenes/ui/main_menu.tscn` → `scripts/ui/main_menu.gd` | title, new/continue, language |
+| `scenes/town/town.tscn` → `scripts/town/town.gd` | simulation tick, input, autosave, HUD wiring |
+| `scripts/town/town_view.gd` | ground, road, plots, buildings, selection ring, tap picking |
+| `scripts/town/traffic.gd` | cosmetic cars looping on the highway |
+| `scripts/town/isometric_camera.gd` | fixed pitch, quarter turns, pinch/wheel zoom, panning |
+| `scripts/ui/town_hud.gd` | resource bar, business cards, detail panel, offline report |
+| `scripts/core/game.gd` (autoload) | current town, save/continue, offline claim |
+| `scripts/core/save_manager.gd` | file I/O, backup rotation, validation |
+| `scripts/core/l10n.gd` | every string in Persian and English |
 
-Masks use `N=1, E=2, S=4, W=8`. Each road model has a base mask measured from
-the kit's geometry (`corner` opens south-west, `split` opens east/west/south),
-and the chosen quarter-turn is the one that rotates the base mask onto the real
-one. `tests/suites/test_roads.gd` checks all sixteen arrangements.
+## Performance notes
 
-## Presentation
+- Verified against a **POCO X5 Pro / 60 FPS** target rather than a desktop.
+- Compatibility renderer (`gl_compatibility`), no SSAO/SSIL, one shadow-casting
+  directional light, simple box cars, six buildings, no per-frame allocations in
+  the simulation loop.
+- The economy is statistical: traffic is not simulated per customer, so more cars
+  never cost more CPU.
 
-- Kenney's low-poly kit is drawn through two `GridMap`s (roads, everything
-  else) built from a `MeshLibrary` generated at runtime, so a filled city is a
-  handful of draw calls rather than hundreds of nodes.
-- A soft sky, one shadow-casting sun, a grass ground box, a sand shore and a
-  water plane; a thin grid overlay marks buildable cells.
-- The camera orbits a focus point at a fixed 55° pitch: drag to pan, pinch or
-  wheel to zoom (11–44), quarter-turn button to rotate.
-- The ghost preview is drawn in place of the mouse cursor on desktop; on touch
-  the tap commits immediately and a 50-deep undo stack takes it back.
-- All text lives in `scripts/core/l10n.gd` with Persian and English entries.
-  Vazirmatn is the default font and Persian switches the UI to RTL.
+## Roadmap
 
-## Next steps
+1. **Vertical slice (this build)** — desert town, six businesses, three branches,
+   managers, offline income, saving, FA/EN, smoke screenshots.
+2. World map and the remaining four towns with their own scenery and business
+   mixes.
+3. Managers as characters with contracts and traits; staff for the workshop.
+4. Missions, daily objectives and a first-time flow.
+5. Android export presets, signed APK/AAB and an on-device performance pass.
 
-1. **Android delivery** — export preset, signed ARM64 APK built in CI, first
-   run on a device.
-2. **A reason to plan** — block-level land value, service radius (park, school),
-   traffic on busy roads.
-3. **More content** — second island with a river, larger buildings, milestones
-   that unlock new structures instead of only paying gold.
-4. **Presentation** — day/night cycle, citizens walking the streets, richer
-   build effects.
-5. **Balance pass** with real play-test data.
+## Test coverage
+
+`tests/run_tests.gd` runs four suites headlessly:
+
+- `test_localization` — both languages complete, placeholders substitute, every
+  business/town/branch/manager rank is named.
+- `test_business_data` — catalogue completeness, model files exist, plots unique,
+  town table valid.
+- `test_economy` — profit, upgrades, branch caps, manager efficiency, reputation,
+  gems and the offline cap.
+- `test_save` — round trip, rejected saves, clamping, unknown ids, file I/O and
+  the backup fallback.
+
+`tools/smoke.gd` then boots the real scenes with a software renderer and captures
+the menu (FA/EN), the town, the detail panel, a turned and a zoomed camera, the
+offline report and the English HUD.

@@ -1,5 +1,5 @@
 extends Control
-## Title screen: new city, continue, language.
+## Title screen: new town, continue, language.
 
 signal play_requested
 signal continue_requested
@@ -30,7 +30,7 @@ func _build() -> void:
 	_built = true
 
 	var gradient := Gradient.new()
-	gradient.set_color(0, Color(0.09, 0.16, 0.24))
+	gradient.set_color(0, Color(0.13, 0.18, 0.24))
 	gradient.set_color(1, Color(0.02, 0.03, 0.05))
 	var texture := GradientTexture2D.new()
 	texture.gradient = gradient
@@ -52,10 +52,10 @@ func _build() -> void:
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 14)
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	column.custom_minimum_size = Vector2(520, 0)
+	column.custom_minimum_size = Vector2(560, 0)
 	center.add_child(column)
 
-	_title = _make_label(76, UiTheme.TEXT)
+	_title = _make_label(72, UiTheme.TEXT)
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_title)
 
@@ -69,18 +69,19 @@ func _build() -> void:
 
 	_hint = _make_label(19, UiTheme.MUTED)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_hint)
 
 	var gap2 := Control.new()
 	gap2.custom_minimum_size = Vector2(0, 22)
 	column.add_child(gap2)
 
-	_play = _make_button(340, 76, "PrimaryButton")
+	_play = _make_button(360, 76, "PrimaryButton")
 	_play.add_theme_font_size_override("font_size", 24)
 	_play.pressed.connect(func() -> void: play_requested.emit())
 	column.add_child(_play)
 
-	_continue = _make_button(340, 62, "GhostButton")
+	_continue = _make_button(360, 62, "GhostButton")
 	_continue.pressed.connect(func() -> void: continue_requested.emit())
 	column.add_child(_continue)
 
@@ -138,10 +139,10 @@ func _apply_language() -> void:
 	_subtitle.text = App.t("app.subtitle")
 	_hint.text = App.t("menu.hint")
 	_controls.text = App.t("menu.controls")
-	_play.text = App.t("menu.play")
+	_play.text = App.t("menu.new_game")
 	_continue.text = App.t("menu.continue")
 	_language.text = App.t("menu.language_target")
 	_quit.text = App.t("menu.quit")
-	_best.text = App.t("menu.best", [App.best_population])
-	_continue.visible = CityState.save_exists()
+	_best.text = App.t("menu.record", [App.best_reputation])
+	_continue.visible = Game.has_save()
 	_quit.visible = not OS.has_feature("mobile")
