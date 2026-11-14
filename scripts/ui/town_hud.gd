@@ -305,11 +305,13 @@ func _refresh() -> void:
 	if state == null:
 		return
 	_town_label.text = "%s · %s" % [
-		App.t("town.%s" % state.town_id), App.t("hud.town_level", [state.town_level()])
+		App.t("town.%s" % state.town_id), App.t("hud.town_level", [_num(state.town_level())])
 	]
 	_cash_label.text = "%s %s" % [App.t("hud.cash"), _money(state.cash)]
-	_gems_label.text = "%s %d" % [App.t("hud.gems"), state.gems]
-	_reputation_label.text = "%s %d" % [App.t("hud.reputation"), int(state.reputation)]
+	_gems_label.text = "%s %s" % [App.t("hud.gems"), _num(state.gems)]
+	_reputation_label.text = "%s %s" % [
+		App.t("hud.reputation"), _num(int(state.reputation))
+	]
 
 	for id in _cards:
 		_refresh_card(id)
@@ -327,7 +329,7 @@ func _refresh_card(id: String) -> void:
 	var income: Label = card["income"]
 
 	if business.unlocked:
-		status.text = App.t("hud.level", [business.level])
+		status.text = App.t("hud.level", [_num(business.level)])
 		status.add_theme_color_override("font_color", UiTheme.GOOD)
 		income.text = App.t("hud.income_value", [_money(business.net_per_minute(state.traffic()))])
 	else:
@@ -358,12 +360,12 @@ func _refresh_panel() -> void:
 	var traffic := state.traffic()
 	_panel_stats.text = "\n".join([
 		App.t("hud.income_value", [_money(business.net_per_minute(traffic))]),
-		"%s: %d" % [App.t("hud.customers"), int(round(business.served_per_minute(traffic)))],
-		"%s: %d" % [App.t("hud.capacity"), int(round(business.capacity()))],
+		"%s: %s" % [App.t("hud.customers"), _num(round(business.served_per_minute(traffic)))],
+		"%s: %s" % [App.t("hud.capacity"), _num(round(business.capacity()))],
 		"%s: %s" % [App.t("hud.upkeep"), App.t("hud.upkeep_value", [
 			_money(business.upkeep_per_minute())
 		])],
-		App.t("hud.efficiency", [int(round(business.efficiency() * 100.0))]),
+		App.t("hud.efficiency", [_num(round(business.efficiency() * 100.0))]),
 	])
 
 	var locked := not business.unlocked
@@ -388,13 +390,13 @@ func _refresh_panel() -> void:
 			button.text = "%s\n%s" % [
 				App.t("branch.%s" % branch),
 				App.t("hud.branch_state", [
-					level, _money(business.branch_cost(branch) * state.cost_scale())
+					_num(level), _money(business.branch_cost(branch) * state.cost_scale())
 				]),
 			]
 			button.disabled = not state.can_afford(business.branch_cost(branch) * state.cost_scale())
 		else:
 			button.text = "%s\n%s" % [
-				App.t("branch.%s" % branch), App.t("hud.branch_state", [level, "—"])
+				App.t("branch.%s" % branch), App.t("hud.branch_state", [_num(level), "—"])
 			]
 			button.disabled = true
 
@@ -439,7 +441,7 @@ func hide_business() -> void:
 func show_offline(seconds: float, earnings: float) -> void:
 	var total := int(maxf(seconds, 0.0))
 	_offline_body.text = App.t("hud.offline_body", [
-		total / 3600, (total % 3600) / 60, _money(earnings)
+		_num(total / 3600), _num((total % 3600) / 60), _money(earnings)
 	])
 	_offline_layer.visible = true
 	_offline_layer.move_to_front()
@@ -539,8 +541,12 @@ func _business_name(id: String) -> String:
 func _money(value: float) -> String:
 	var amount := maxf(0.0, value)
 	if amount >= 1000000.0:
-		return "%.1fM" % (amount / 1000000.0)
-	return str(int(round(amount)))
+		return "%sM" % App.format_number(amount / 1000000.0, 1)
+	return App.format_number(amount)
+
+
+func _num(value: float) -> String:
+	return App.format_number(value)
 
 
 func _label(font_size: int, color: Color, bold: bool) -> Label:

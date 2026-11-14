@@ -143,6 +143,6 @@ func _apply_language() -> void:
 	_continue.text = App.t("menu.continue")
 	_language.text = App.t("menu.language_target")
 	_quit.text = App.t("menu.quit")
-	_best.text = App.t("menu.record", [App.best_reputation])
+	_best.text = App.t("menu.record", [App.format_number(float(App.best_reputation))])
 	_continue.visible = Game.has_save()
 	_quit.visible = not OS.has_feature("mobile")

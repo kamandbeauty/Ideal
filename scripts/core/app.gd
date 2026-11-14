@@ -4,6 +4,7 @@ extends Node
 signal language_changed(language: String)
 
 const SETTINGS_PATH := "user://settings.cfg"
+const PERSIAN_DIGITS: Array[String] = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"]
 const DEFAULT_LANGUAGE := "fa"
 
 var language: String = DEFAULT_LANGUAGE
@@ -15,6 +16,22 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load_settings()
 	ui_theme = UiTheme.build()
+
+
+## Number formatting for the current language: Persian reads its own digits.
+func format_number(value: float, decimals: int = 0) -> String:
+	var text := ""
+	if decimals > 0:
+		text = ("%." + str(decimals) + "f") % value
+	else:
+		text = str(int(round(value)))
+	if language != "fa":
+		return text
+	var converted := ""
+	for character in text:
+		var index := "0123456789".find(character)
+		converted += PERSIAN_DIGITS[index] if index >= 0 else character
+	return converted
 
 
 ## Localised string lookup.
