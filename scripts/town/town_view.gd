@@ -689,23 +689,29 @@ func apply_time(t: float) -> void:
 	var sky_day := TownData.sky_color(state.town_id)
 
 	if _sun != null:
-		_sun.rotation_degrees = Vector3(-(12.0 + 68.0 * day), -40.0 + 360.0 * t, 0)
-		_sun.light_energy = 0.05 + 0.95 * day
-		_sun.light_color = Color(1.0, 0.6, 0.34).lerp(Color(1.0, 0.94, 0.84), day)
-		_sun.visible = elevation > -0.12
+		# The same light doubles as the moon after sunset, so the town never
+		# turns into a black silhouette.
+		_sun.rotation_degrees = Vector3(
+			-(12.0 + 68.0 * day), -40.0 + 360.0 * t, 0
+		)
+		_sun.light_energy = 0.26 + 0.72 * day
+		var sun_color := Color(0.62, 0.72, 1.0)
+		sun_color = sun_color.lerp(Color(1.0, 0.58, 0.32), dusk * 0.9)
+		sun_color = sun_color.lerp(Color(1.0, 0.94, 0.84), day)
+		_sun.light_color = sun_color
 	if _fill != null:
-		_fill.light_energy = 0.1 + 0.18 * day
+		_fill.light_energy = 0.16 + 0.12 * day
 		_fill.light_color = Color(0.45, 0.55, 0.85).lerp(Color(0.66, 0.78, 1.0), day)
 	if _env != null:
-		_env.ambient_light_energy = 0.2 + 0.28 * day
-		_env.ambient_light_color = Color(0.38, 0.45, 0.68).lerp(Color(0.86, 0.92, 1.0), day)
-		_env.fog_light_color = sand.lightened(0.3).lerp(Color(0.1, 0.13, 0.24), night)
-		_env.fog_density = 0.0045 + 0.002 * night
+		_env.ambient_light_energy = 0.34 + 0.2 * day
+		_env.ambient_light_color = Color(0.32, 0.4, 0.62).lerp(Color(0.86, 0.92, 1.0), day)
+		_env.fog_light_color = sand.lightened(0.3).lerp(Color(0.14, 0.18, 0.32), night)
+		_env.fog_density = 0.0038 + 0.0012 * night
 	if _sky_material != null:
-		_sky_material.sky_top_color = sky_day.lerp(Color(0.03, 0.05, 0.13), night)
+		_sky_material.sky_top_color = sky_day.lerp(Color(0.07, 0.1, 0.22), night)
 		var horizon := sky_day.lightened(0.22)
 		horizon = horizon.lerp(Color(1.0, 0.56, 0.32), dusk * 0.85)
-		_sky_material.sky_horizon_color = horizon.lerp(Color(0.08, 0.1, 0.2), night)
+		_sky_material.sky_horizon_color = horizon.lerp(Color(0.13, 0.17, 0.3), night)
 		_sky_material.ground_horizon_color = horizon.lerp(sand.lightened(0.15), 0.4 * day)
 		_sky_material.ground_bottom_color = sand.darkened(0.45).lerp(
 			Color(0.05, 0.06, 0.1), night
