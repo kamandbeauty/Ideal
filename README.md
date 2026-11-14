@@ -70,6 +70,19 @@ level and 12 % per branch; quality adds 10 % per level and 15 % per branch and
 raises the price. Upgrades cost ×1.75 per level, branches ×1.6 per step, manager
 ranks ×2. A branch may never be ahead of the building's level.
 
+## Screenshots
+
+`documentation/qa/preview/` holds the stills CI captures on every push:
+
+| File | Scene |
+| --- | --- |
+| `00-menu-fa.jpg` / `01-menu-en.jpg` | title screen in Persian and English |
+| `02-town-fa.jpg` | the desert town, Persian HUD |
+| `03-business-panel-fa.jpg` | detail panel with level meter and branches |
+| `04-town-turned.jpg` / `05-town-close.jpg` | quarter turn and close zoom |
+| `06-offline-fa.jpg` | offline income report |
+| `07-town-en.jpg` | English HUD and panel |
+
 ## Project layout
 
 | Path | Contents |

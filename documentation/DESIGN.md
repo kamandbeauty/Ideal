@@ -92,9 +92,10 @@ gold; the flag is saved, so the reward is paid once per town.
   building in with an eased scale tween.
 - **Traffic** — eight vehicles in three silhouettes (car, van, truck) with
   spinning wheels, headlights and brake lights, each with its own speed, looping
-  along the highway.
-- **Camera** — a 1.2 s intro pull-in from 38 to 30 units, quarter turns, pinch
-  zoom, drag panning, and a pulsing selection ring.
+  along the highway. Three more cars are parked at the plots and the workshop
+  keeps a small stack of barrels.
+- **Camera** — a 39° isometric pitch, a 1.2 s intro pull-in from 38 to 30 units,
+  quarter turns, pinch zoom, drag panning, and a pulsing selection ring.
 - **Interface** — a vignette behind the HUD, coloured card stripes, a five-step
   level meter in the detail panel, and Persian digits in Persian.
 
