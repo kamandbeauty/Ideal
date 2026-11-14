@@ -123,15 +123,21 @@ func _build_top_area() -> void:
 	_menu_button.pressed.connect(_on_menu)
 	row.add_child(_menu_button)
 
+	var pill := PanelContainer.new()
+	pill.name = "Completion"
+	pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_theme_stylebox_override("panel", UiTheme.pill_style())
+	column.add_child(pill)
+
 	var progress := HBoxContainer.new()
-	progress.name = "Completion"
 	progress.add_theme_constant_override("separation", 10)
 	progress.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(progress)
+	pill.add_child(progress)
 
 	_completion_bar = ProgressBar.new()
 	_completion_bar.show_percentage = false
-	_completion_bar.custom_minimum_size = Vector2(220, 12)
+	_completion_bar.custom_minimum_size = Vector2(190, 10)
 	_completion_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_completion_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_completion_bar.add_theme_stylebox_override(
@@ -142,7 +148,7 @@ func _build_top_area() -> void:
 	)
 	progress.add_child(_completion_bar)
 
-	_completion_label = _label(13, UiTheme.MUTED, false)
+	_completion_label = _label(14, UiTheme.TEXT, false)
 	_completion_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	progress.add_child(_completion_label)
 

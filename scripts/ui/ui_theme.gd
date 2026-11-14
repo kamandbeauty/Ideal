@@ -91,6 +91,19 @@ static func slim_style(fill: Color, border: Color) -> StyleBoxFlat:
 	return style
 
 
+static func pill_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.075, 0.094, 0.145, 0.88)
+	style.border_color = BORDER
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(14)
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	return style
+
+
 static func panel_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = PANEL
