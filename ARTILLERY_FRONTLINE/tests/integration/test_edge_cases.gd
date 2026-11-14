@@ -272,7 +272,7 @@ func _controls(t: TestContext) -> void:
 	root.size = Vector2i(1440, 810)
 	await t.frames(2)
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var hud: Hud = game.hud
 	var level: CityLevel = game.level
 	level.director.stop()
@@ -319,7 +319,7 @@ func _controls(t: TestContext) -> void:
 	game.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	t.check(game.mode == 0 and not t.tree.paused, "on the title screen there is nothing to pause")
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	level = game.level
 	level.director.stop()
 	defender = level.defender
@@ -388,7 +388,7 @@ func _controls(t: TestContext) -> void:
 	game.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	t.check(game.mode == 3 and not t.tree.paused, "which an interruption leaves as it is")
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	t.check(game.level != level and game.level.horde.boss == null, "the next match has no boss")
 	t.check(not game.hud.boss_shown, "and no boss bar")
 	t.check(game.level.defense.wall_health == game.level.defense.data.wall_max_health and not game.level.over, "behind a whole wall")

@@ -152,8 +152,8 @@ class Glyph:
 
 
 class Choices:
-	extends HBoxContainer
-	## A row of choices of which exactly one is lit. A choice may carry an outline over its
+	extends GridContainer
+	## A row (or two) of choices of which exactly one is lit. A choice may carry an outline over its
 	## name, and may be locked: drawn dim under a padlock, and deaf to the thumb.
 	signal chosen(index: int)
 
@@ -165,16 +165,26 @@ class Choices:
 	var locked: Array[int] = []
 	var selected: int = -1
 
-	func _init(labels: Array = [], start: int = 0, icons: Array = []) -> void:
-		add_theme_constant_override("separation", 6)
+	func _init(labels: Array = [], start: int = 0, icons: Array = [], wrap_after: int = 0) -> void:
+		# One row unless the caller asks to wrap (the title's five guns).
+		if wrap_after > 0 and labels.size() > wrap_after:
+			columns = wrap_after
+		else:
+			columns = maxi(labels.size(), 1)
+		size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		add_theme_constant_override("h_separation", 6)
+		add_theme_constant_override("v_separation", 6)
 		for index: int in labels.size():
 			var button := Button.new()
 			button.text = labels[index]
 			button.focus_mode = Control.FOCUS_NONE
+			button.clip_text = false
+			button.autowrap_mode = TextServer.AUTOWRAP_OFF
 			button.custom_minimum_size = Vector2(0.0, 84.0)
 			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			button.add_theme_font_override("font", UITheme.font(true))
-			button.add_theme_font_size_override("font_size", UITheme.font_size(24 if icons.is_empty() else 21))
+			var type_size: int = 24 if icons.is_empty() else (18 if labels.size() >= 5 else 21)
+			button.add_theme_font_size_override("font_size", UITheme.font_size(type_size))
 			button.pressed.connect(_choose.bind(index))
 			add_child(button)
 			buttons.append(button)

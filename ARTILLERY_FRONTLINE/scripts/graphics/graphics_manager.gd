@@ -61,6 +61,11 @@ var tier_locked: bool = false
 ## How often the governor has acted since the quality setting last changed; tests read these.
 var scale_changes: int = 0
 var tier_changes: int = 0
+## MSAA has been bound once. Recreating that buffer on the mobile renderer
+## tears or blacks the picture; scale uses bilinear 3D scaling and may move.
+var msaa_committed: bool = false
+## True after the first bind of the 3D buffer (MSAA + initial scale).
+var viewport_committed: bool = false
 
 
 func _ready() -> void:
@@ -132,14 +137,49 @@ func apply_tier(value: String) -> void:
 	tier = value
 	var settings: Dictionary = profile()
 	render_scale = settings.scale
-	var viewport: Viewport = get_viewport()
-	if viewport:
-		viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
-		viewport.scaling_3d_scale = render_scale
-		viewport.msaa_3d = Viewport.MSAA_DISABLED if compatibility else (settings.msaa as Viewport.MSAA)
+	_apply_quality(settings)
+
+
+## The 3D buffer's current scale, read from the viewport itself.
+func buffer_scale() -> float:
+	var viewport: Viewport = _root_viewport()
+	return viewport.scaling_3d_scale if viewport else render_scale
+
+
+func _root_viewport() -> Viewport:
+	var window: Window = get_window()
+	return window.get_viewport() if window else get_viewport()
+
+
+func _apply_quality(settings: Dictionary) -> void:
+	_sync_viewport(settings)
 	MaterialLibrary.set_normal_maps(settings.normal_maps)
 	get_tree().call_group("quality_listener", "apply_quality", tier, settings)
 	quality_changed.emit(tier)
+
+
+## Bilinear 3D scale may move at runtime (that is the governor's job). MSAA is
+## bound once: recreating it on the mobile renderer tears the picture.
+func _sync_viewport(settings: Dictionary) -> void:
+	var viewport: Viewport = _root_viewport()
+	if viewport == null:
+		return
+	viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+	if not is_equal_approx(viewport.scaling_3d_scale, render_scale):
+		viewport.scaling_3d_scale = render_scale
+	if not msaa_committed:
+		viewport.msaa_3d = Viewport.MSAA_DISABLED if compatibility else (settings.msaa as Viewport.MSAA)
+		msaa_committed = true
+	viewport_committed = true
+
+
+func _write_scale() -> void:
+	var viewport: Viewport = _root_viewport()
+	if viewport == null:
+		return
+	viewport.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+	if not is_equal_approx(viewport.scaling_3d_scale, render_scale):
+		viewport.scaling_3d_scale = render_scale
 
 
 func _process(delta: float) -> void:
@@ -205,9 +245,7 @@ func _set_scale(value: float) -> void:
 		return
 	render_scale = value
 	scale_changes += 1
-	var viewport: Viewport = get_viewport()
-	if viewport:
-		viewport.scaling_3d_scale = render_scale
+	_write_scale()
 
 
 func _give_up_tier() -> void:
@@ -237,14 +275,17 @@ func _judge_drop() -> void:
 
 ## Switches tier and keeps the resolution where it was, so that the frames before and after can be compared.
 func _change_tier(value: String) -> void:
+	if not PROFILES.has(value):
+		return
 	var held: float = render_scale
-	apply_tier(value)
-	var base: float = profile().scale
+	tier = value
+	var settings: Dictionary = profile()
+	var base: float = settings.scale
 	if not scale_useless:
 		render_scale = clampf(held, minf(rules.scale_floor, base), base)
-		var viewport: Viewport = get_viewport()
-		if viewport:
-			viewport.scaling_3d_scale = render_scale
+	else:
+		render_scale = base
+	_apply_quality(settings)
 	tier_changes += 1
 	monitor.reset()
 	floor_time = 0.0

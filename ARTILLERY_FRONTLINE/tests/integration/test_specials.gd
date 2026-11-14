@@ -41,7 +41,12 @@ func _pools_and_volumes(t: TestContext) -> void:
 		var zombie: Zombie = horde.spawn(data.id, "ring_right", "gate")
 		t.check(zombie != null and zombie.alive and zombie.data == data, "a %s spawns" % id)
 		await t.physics_frames(2)
-		t.near(zombie.health, data.max_health, 0.001, "the %s starts with its type's health" % id)
+		var expected_health: float = data.max_health
+		if zombie.look_index > 0:
+			var extra: int = zombie.look_index - 1
+			if extra < data.extra_look_health.size() and data.extra_look_health[extra] > 0.0:
+				expected_health *= data.extra_look_health[extra]
+		t.near(zombie.health, expected_health, 0.001, "the %s starts with its type's health" % id)
 		t.near(zombie.health_fraction(), 1.0, 0.0001, "and reports it as full")
 		var capsule: CapsuleShape3D = (zombie.body_area.get_child(0) as CollisionShape3D).shape
 		var sphere: SphereShape3D = (zombie.head_area.get_child(0) as CollisionShape3D).shape
@@ -49,9 +54,13 @@ func _pools_and_volumes(t: TestContext) -> void:
 		t.near(sphere.radius, data.head_radius, 0.0001, "and its head volume its type's size")
 		var head: Vector3 = zombie.head_area.get_child(0).global_position - zombie.global_position
 		var size: float = zombie.scale.y
-		t.check(head.y > data.body_height * size * 0.82 and head.y < data.height() * size * 1.05,
-			"the %s head volume sits on its shoulders (%.2f m up)" % [id, head.y])
-		t.near(zombie.anim.speed_scale, zombie.speed / data.stride_speed, 0.001, "the %s walk clip is paced to its ground speed" % id)
+		if zombie.look_index == 0:
+			t.check(head.y > data.body_height * size * 0.82 and head.y < data.height() * size * 1.05,
+				"the %s head volume sits on its shoulders (%.2f m up)" % [id, head.y])
+		else:
+			t.check(head.y > 1.0 and head.y < data.height() * size * 1.4,
+				"the extra look's head volume sits on its own shoulders (%.2f m up)" % head.y)
+		t.near(zombie.anim.speed_scale, zombie.speed / data.stride_speed * zombie.gait_rate, 0.001, "the %s walk clip is paced to its ground speed" % id)
 		t.check(zombie.body_mesh != null and zombie.body_mesh.material_override != null, "the %s wears one of its skins" % id)
 	t.equal(horde.alive_count(), 4, "one of each is on the field")
 	t.check(horde.boss != null and horde.boss.data.is_boss, "the horde knows which one is the boss")
@@ -295,7 +304,7 @@ func _boss(t: TestContext) -> void:
 	await t.frames(3)
 	Profile.set_setting("language", "en")
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var hud: Hud = game.hud
 	var level: CityLevel = game.level
 	var horde: Horde = level.horde

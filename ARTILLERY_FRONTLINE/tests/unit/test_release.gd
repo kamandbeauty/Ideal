@@ -34,7 +34,7 @@ func _approved_play(t: TestContext) -> void:
 	var rocket_blast: ExplosionData = load("res://resources/explosions/rocket_blast.tres")
 	var grenade_blast: ExplosionData = load("res://resources/explosions/grenade_blast.tres")
 	t.check(is_equal_approx(rocket_blast.damage, 220.0) and is_equal_approx(rocket_blast.radius, 5.5), "a rocket's blast: 220 over 5.5 m")
-	t.check(is_equal_approx(grenade_blast.damage, 200.0) and is_equal_approx(grenade_blast.radius, 5.0), "a grenade's blast: 200 over 5 m")
+	t.check(is_equal_approx(grenade_blast.damage, 240.0) and is_equal_approx(grenade_blast.radius, 5.0), "a grenade's blast: 240 over 5 m")
 	t.check(rocket_blast.structure_damage <= 0.0 and grenade_blast.structure_damage <= 0.0, "neither harms the wall or the gate")
 	var grenade: GrenadeData = load("res://resources/weapons/frag_grenade.tres")
 	t.check(grenade.carried == 3 and grenade.capacity == 5 and is_equal_approx(grenade.max_range, 46.0), "grenades: three carried, five at most, 46 m of reach")
@@ -49,7 +49,11 @@ func _approved_play(t: TestContext) -> void:
 	t.check(rotary.damage / rotary.fire_interval < gun.damage / gun.fire_interval * 1.1 and rotary.damage / rotary.fire_interval > gun.damage / gun.fire_interval * 0.9,
 		"held on a body the two guns do the same work to within a tenth (%.0f against %.0f a second)" % [
 			rotary.damage / rotary.fire_interval, gun.damage / gun.fire_interval])
-	t.check(Profile.GUNS == ["twin_hmg", "rotary_gun"] and Profile.DEFAULTS.settings.gun == "twin_hmg", "the twin gun is the one a new player starts with")
+	t.check(Profile.GUNS.size() >= 4 and Profile.GUNS[0] == "twin_hmg" and Profile.DEFAULTS.settings.gun == "twin_hmg",
+		"a new player starts with the twin gun, and four or five kits stand on the mount")
+	for id: String in Profile.GUNS:
+		t.check(Defender.GUN_SCENES.has(id) and ResourceLoader.exists(String(Defender.GUN_SCENES[id])),
+			"%s has a scene on the mount" % id)
 	t.check(is_equal_approx(aim.fov_degrees, 43.0) and is_equal_approx(aim.zoom_factor, 2.5), "the eye sees 43 degrees; the drawn-in sight brings the street 2.5 times closer")
 	var waves: WaveSet = Campaign.whole()
 	t.equal(waves.waves.size(), 8, "the siege is eight waves")
@@ -103,8 +107,10 @@ func _android(t: TestContext) -> void:
 		t.check(int(presets.get_value(options, "version/code", 0)) >= 6, "%s has a version code above every earlier build" % label)
 		var left_out: String = String(presets.get_value(head, "exclude_filter", ""))
 		t.check(left_out.contains("tests/*") and left_out.contains("tools/*") and left_out.contains("documentation/*"), "%s ships no tests, tools or reports" % label)
-	t.check(String(presets.get_value("preset.0.options", "package/unique_name", "")) != String(presets.get_value("preset.1.options", "package/unique_name", "")),
-		"the two packages can be installed side by side")
+	t.equal(String(presets.get_value("preset.0.options", "package/unique_name", "")), "com.studiojavid.zombiesiege",
+		"the ARM64 package id is com.studiojavid.zombiesiege")
+	t.equal(String(presets.get_value("preset.1.options", "package/unique_name", "")), "com.studiojavid.zombiesiege.compatibility",
+		"the compatibility package uses a distinct id so both can be installed")
 	t.check(bool(ProjectSettings.get_setting("display/window/energy_saving/keep_screen_on")), "the screen stays on during a siege")
 	t.equal(int(ProjectSettings.get_setting("physics/common/physics_ticks_per_second")), 60, "the simulation runs 60 ticks a second")
 	t.check(not bool(ProjectSettings.get_setting("audio/driver/enable_input")), "the microphone is never opened")

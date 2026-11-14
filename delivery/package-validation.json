@@ -1,8 +1,8 @@
 {
   "LastWall-arm64.apk": {
-    "bytes": 41005376,
-    "sha256": "9e114eb52bb8af22f8dfef77c3a499e85d2c0e334cf114bed1a8fd8e5aac3934",
-    "package": "com.frontline.lastwall",
+    "bytes": 48085076,
+    "sha256": "3d19e9b32da6be50c909dc412fa2344e52180c62343b602b61d8c3ff262cf3f4",
+    "package": "com.studiojavid.zombiesiege",
     "arm64": true,
     "min_sdk": "24",
     "target_sdk": "36",
@@ -12,19 +12,19 @@
     "permissions": [],
     "declared_as_game": true,
     "build": "release template (not debuggable)",
-    "version_name": "0.6.0",
-    "version_code": "6",
+    "version_name": "0.6.1",
+    "version_code": "7",
     "native_libraries": [
       "lib/arm64-v8a/libc++_shared.so",
       "lib/arm64-v8a/libgodot_android.so"
     ],
-    "project_files_packed": 164,
+    "project_files_packed": 172,
     "project_files_missing": []
   },
   "LastWall-compatibility.apk": {
-    "bytes": 41005376,
-    "sha256": "0674a55c54d36fcba5778321569ced9e34ddd7c1793366eaad00007afdc65f93",
-    "package": "com.frontline.lastwall.compatibility",
+    "bytes": 48085076,
+    "sha256": "88b043c5c0c0eb9f530f4b654b7acdffd67f63b82035188224dc5ec74c7b1b88",
+    "package": "com.studiojavid.zombiesiege.compatibility",
     "arm64": true,
     "min_sdk": "24",
     "target_sdk": "36",
@@ -34,13 +34,13 @@
     "permissions": [],
     "declared_as_game": true,
     "build": "release template (not debuggable)",
-    "version_name": "0.6.0",
-    "version_code": "6",
+    "version_name": "0.6.1",
+    "version_code": "7",
     "native_libraries": [
       "lib/arm64-v8a/libc++_shared.so",
       "lib/arm64-v8a/libgodot_android.so"
     ],
-    "project_files_packed": 164,
+    "project_files_packed": 172,
     "project_files_missing": []
   },
   "problems": [],

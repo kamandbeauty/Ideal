@@ -48,7 +48,6 @@ var gate_body: StaticBody3D
 var patch_body: StaticBody3D
 var patch_node: Node3D
 var fire_nodes: Array[Node3D] = []
-var fire_lights: Array[OmniLight3D] = []
 
 
 func _ready() -> void:
@@ -139,21 +138,23 @@ func _build_environment() -> void:
 	# The panorama is painted with its cool, smoke-streaked half in the image centre; turn that half toward the street.
 	environment.sky_rotation = Vector3(0.0, PI, 0.0)
 	environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	environment.ambient_light_color = Color(0.55, 0.6, 0.72)
-	environment.ambient_light_energy = 1.0
+	environment.ambient_light_color = Color(0.42, 0.46, 0.55)
+	environment.ambient_light_energy = 0.72
 	environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	environment.tonemap_exposure = 1.05
-	environment.tonemap_white = 6.0
+	environment.tonemap_exposure = 1.12
+	environment.tonemap_white = 5.4
 	# The haze matches the horizon band painted into the sky, so far blocks melt into it.
 	environment.fog_enabled = true
-	environment.fog_light_color = Color(0.47, 0.45, 0.47)
-	environment.fog_density = 0.006
+	environment.fog_light_color = Color(0.42, 0.40, 0.40)
+	environment.fog_density = 0.004
 	environment.fog_sky_affect = 0.0
 	environment.fog_aerial_perspective = 0.0
-	environment.fog_sun_scatter = 0.08
+	# Scatter around lights draws a coloured ball into the picture on the mobile renderer.
+	environment.fog_sun_scatter = 0.0
 	environment.adjustment_enabled = true
-	environment.adjustment_contrast = 1.08
-	environment.adjustment_saturation = 0.94
+	environment.adjustment_contrast = 1.18
+	environment.adjustment_saturation = 1.06
+	environment.glow_enabled = false
 	environment.glow_intensity = 0.5
 	environment.glow_bloom = 0.08
 	environment.glow_hdr_threshold = 1.1
@@ -167,7 +168,7 @@ func _build_sun() -> void:
 	sun = DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.light_color = Color(1.0, 0.86, 0.7)
-	sun.light_energy = 1.5
+	sun.light_energy = 1.75
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_max_distance = 85.0
@@ -286,7 +287,6 @@ func _build_fires() -> void:
 		glow.shadow_enabled = false
 		glow.position.y = 0.6
 		root.add_child(glow)
-		fire_lights.append(glow)
 		add_child(root)
 		fire_nodes.append(root)
 
@@ -295,7 +295,7 @@ func _build_smoke() -> void:
 	var material := _particle_material(false)
 	for spec: Dictionary in layout.smokes:
 		var size: float = spec.scale
-		var column := _emitter(material, 9, 16.0, Vector2(2.2, 3.4), Vector2(9.0, 14.0) * size, 2.6,
+		var column := _emitter(material, 9, 16.0, Vector2(2.2, 3.4), Vector2(3.2, 5.4) * size, 1.8,
 			Color(0.1, 0.095, 0.09, 0.42), Color(0.22, 0.2, 0.19, 0.0), 6.0, Vector3(2.0, 0.5, 2.0) * size)
 		column.name = "SmokeColumn"
 		column.position = spec.position
@@ -350,7 +350,8 @@ func apply_quality(_tier: String, settings: Dictionary) -> void:
 		sun.shadow_enabled = settings.shadows
 		sun.directional_shadow_max_distance = settings.shadow_distance
 	if environment:
-		environment.glow_enabled = settings.glow
+		# Turning glow on at runtime on the mobile renderer tears or blacks the picture.
+		environment.glow_enabled = false
 	for index: int in fire_nodes.size():
 		fire_nodes[index].visible = index < int(settings.fires)
 	if ash:
@@ -393,12 +394,6 @@ func _process(delta: float) -> void:
 		for index: int in gate_leaves.size():
 			var wobble: float = sin(clock * 68.0 + float(index) * 1.7) * deg_to_rad(gate_shake)
 			gate_leaves[index].rotation.y = gate_rest[index] + wobble
-	for index: int in fire_lights.size():
-		if not fire_nodes[index].visible:
-			continue
-		var light: OmniLight3D = fire_lights[index]
-		var base: float = light.omni_range * 0.25
-		light.light_energy = base * (0.78 + 0.22 * sin(clock * (9.0 + float(index) * 1.3)) * sin(clock * 3.7 + float(index)))
 	if end_left >= 0.0:
 		end_left -= delta / maxf(Engine.time_scale, 0.05)
 		if end_left < 0.0:
@@ -408,6 +403,7 @@ func _process(delta: float) -> void:
 func _on_wave_started(index: int, _total: int) -> void:
 	stats.wave = index + 1
 	Sound.play("wave_horn", -4.0)
+	Sound.play("wave_horde", -7.0)
 
 
 func _on_wave_cleared(index: int, total: int) -> void:

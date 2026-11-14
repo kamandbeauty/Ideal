@@ -191,8 +191,10 @@ func _physics_process(delta: float) -> void:
 		pooled[type_id].append(_create(types[type_id]))
 	groan_left -= delta
 	if groan_left <= 0.0:
-		groan_left = rng.randf_range(1.2, 3.6)
+		groan_left = rng.randf_range(0.35, 1.15)
 		_groan()
+		if living > 4:
+			_groan()
 
 
 func _groan() -> void:
@@ -202,7 +204,7 @@ func _groan() -> void:
 	if zombie.alive:
 		var clip: String = "zombie_attack" if zombie.state == Zombie.State.ATTACK else "zombie_groan"
 		Sound.play_variant_at(clip, 2 if clip == "zombie_attack" else 3, zombie.position + Vector3(0.0, zombie.data.height() * 0.85, 0.0),
-			-5.0 + zombie.data.voice_volume_db, rng.randf_range(0.85, 1.12) * zombie.data.voice_pitch)
+			7.0 + zombie.data.voice_volume_db, rng.randf_range(0.85, 1.12) * zombie.data.voice_pitch)
 
 
 ## A waiting zombie asks again for a place at the wall.
@@ -260,7 +262,7 @@ func died(zombie: Zombie, headshot: bool) -> void:
 		Sound.play(zombie.data.death_sound, zombie.data.voice_volume_db)
 	else:
 		Sound.play_variant_at("zombie_death", 2, zombie.position + Vector3(0.0, zombie.data.height() * 0.7, 0.0),
-			-4.0 + zombie.data.voice_volume_db, randf_range(0.88, 1.1) * zombie.data.voice_pitch)
+			6.0 + zombie.data.voice_volume_db, randf_range(0.88, 1.1) * zombie.data.voice_pitch)
 	if zombie == boss:
 		boss = null
 		Events.boss_fell.emit(zombie)

@@ -35,6 +35,7 @@ func run(t: TestContext) -> void:
 
 	# Lighting and atmosphere.
 	t.check(level.environment.fog_enabled and level.environment.background_mode == Environment.BG_SKY, "the scene has a sky and fog")
+	t.check(is_zero_approx(level.environment.fog_sun_scatter), "fog does not scatter a ball of light into the picture")
 	t.check(level.sun != null and level.sun.light_energy > 0.5, "the scene has a sun")
 	t.check(level.sun.global_basis.z.dot(-CityLevel.SUN_TRAVEL.normalized()) > 0.99, "the sun shines along the configured direction")
 	t.check(level.fire_nodes.size() == layout.fires.size() and level.fire_nodes.size() >= 3, "fires are built from the layout")
@@ -107,6 +108,18 @@ func run(t: TestContext) -> void:
 	t.check(zombie.body_area.get_meta("zombie") == zombie and zombie.head_area.get_meta("head") == true, "hit volumes know their zombie")
 	t.check(MaterialLibrary.zombie_skin("walker", 0) != MaterialLibrary.zombie_skin("walker", 1), "zombie skins differ")
 	t.check((MaterialLibrary.zombie_skin("walker", 2) as StandardMaterial3D).albedo_texture != null, "zombie skins are textured")
+	t.check((MaterialLibrary.zombie_skin("walker", 0) as StandardMaterial3D).albedo_color.v < 0.95, "a walker is never left white")
+	t.check(zombie.body_mesh != null and zombie.body_mesh.material_override != null
+		and (zombie.body_mesh.material_override as StandardMaterial3D).albedo_color.v < 0.95,
+		"the figure on the street wears its painted skin")
+	var walk_rng := RandomNumberGenerator.new()
+	walk_rng.seed = 7
+	t.equal(zombie._pick_look(walk_rng), 0, "a life never wears the extra white figures")
+	var limping: int = 0
+	for _i: int in 200:
+		if zombie._walk_name(zombie._pick_walk(walk_rng)).begins_with("walk_b"):
+			limping += 1
+	t.check(limping > 5 and limping < 50, "most walkers shuffle; a few still limp (%d of 200)" % limping)
 
 	# Spawn points are out of the gunner's sight.
 	var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state

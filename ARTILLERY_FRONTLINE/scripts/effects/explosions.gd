@@ -110,21 +110,7 @@ func apply_quality(_tier: String, settings: Dictionary) -> void:
 
 
 static func _radial(stops: Array) -> Texture2D:
-	var gradient := Gradient.new()
-	gradient.set_offset(0, stops[0][0])
-	gradient.set_color(0, stops[0][1])
-	gradient.set_offset(1, stops[stops.size() - 1][0])
-	gradient.set_color(1, stops[stops.size() - 1][1])
-	for index: int in range(1, stops.size() - 1):
-		gradient.add_point(stops[index][0], stops[index][1])
-	var texture := GradientTexture2D.new()
-	texture.gradient = gradient
-	texture.fill = GradientTexture2D.FILL_RADIAL
-	texture.fill_from = Vector2(0.5, 0.5)
-	texture.fill_to = Vector2(1.0, 0.5)
-	texture.width = 64
-	texture.height = 64
-	return texture
+	return EffectPool.bake_radial(stops, 64)
 
 
 static func _sprite(texture: Texture2D, color: Color, additive: bool, billboard: bool) -> StandardMaterial3D:
@@ -257,6 +243,10 @@ func _process(delta: float) -> void:
 func _animate(delta: float, drawn: bool = false) -> void:
 	for slot: int in BLASTS:
 		if ages[slot] > RING_TIME:
+			if lights[slot].visible or flashes[slot].visible or rings[slot].visible:
+				lights[slot].visible = false
+				flashes[slot].visible = false
+				rings[slot].visible = false
 			continue
 		if drawn and fresh[slot] == 1:
 			fresh[slot] = 0
@@ -265,8 +255,8 @@ func _animate(delta: float, drawn: bool = false) -> void:
 		var age: float = ages[slot]
 		var size: float = scales[slot]
 		var burn: float = clampf(1.0 - age / FLASH_TIME, 0.0, 1.0)
-		lights[slot].light_energy = 10.0 * size * burn * burn
-		lights[slot].omni_range = 16.0 * size
+		lights[slot].light_energy = minf(8.0, 6.0 * size) * burn * burn
+		lights[slot].omni_range = minf(18.0, 12.0 * size)
 		var flash: MeshInstance3D = flashes[slot]
 		var glare: float = clampf(age / GLARE_TIME, 0.0, 1.0)
 		flash.scale = Vector3.ONE * lerpf(2.2, 6.0, 1.0 - (1.0 - glare) * (1.0 - glare)) * size

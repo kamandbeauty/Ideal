@@ -12,6 +12,9 @@ const KNOCK_TIME: float = 0.38
 const ROCK_LIMIT: float = 7.0
 ## A heading this close to the goal (in radians, a thirtieth of a degree) counts as reached.
 const FACING_SLACK: float = 0.0006
+## Extra character meshes (bloat, boomer, gibberling) read white in play: their
+## GLBs drop embedded textures. They are not mixed into the horde.
+static var mix_extras: bool = false
 
 var data: ZombieData
 var horde: Horde
@@ -56,32 +59,112 @@ var body_mesh: MeshInstance3D
 var body_area: Area3D
 var head_area: Area3D
 var blows: int = 0
+## Own model plus any extra character meshes this type mixes in.
+var looks: Array[Node3D] = []
+var look_anims: Array = []
+var look_skeletons: Array = []
+var look_meshes: Array = []
+var head_areas: Array[Area3D] = []
+var look_index: int = 0
+## Extra lean this figure was born with, in radians, so a crowd does not stand alike.
+var gait_lean := Vector3.ZERO
+## Playback of the walk, on top of speed / stride_speed.
+var gait_rate: float = 1.0
 
 
 func _ready() -> void:
 	model = get_node_or_null("Model")
-	anim = find_child("AnimationPlayer", true, false)
-	skeleton = find_child("Skeleton3D", true, false)
-	for node: Node in find_children("*", "MeshInstance3D", true, false):
-		body_mesh = node
-		break
-	if anim:
-		for clip: String in anim.get_animation_list():
-			if clip.begins_with("walk"):
-				walk_clips.append(clip)
-		walk_clips.sort()
-		for clip: String in LOOPING + walk_clips:
-			if anim.has_animation(clip):
-				anim.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
-		anim.playback_default_blend_time = 0.18
-	_build_hit_volumes()
+	looks.clear()
+	look_anims.clear()
+	look_skeletons.clear()
+	look_meshes.clear()
+	head_areas.clear()
+	# Only the type's own figure is built up front. Extra character meshes are
+	# heavy (a second skinned body); they are instanced the first time a life
+	# actually wears one, and sit disabled otherwise.
+	if model:
+		_register_look(model)
+	_build_body_volume()
+	_use_look(0)
+	if data:
+		_paint_look(0, RandomNumberGenerator.new())
 	_sleep()
 
 
-func _build_hit_volumes() -> void:
+func _register_look(look: Node3D) -> void:
+	var player: AnimationPlayer = look.find_child("AnimationPlayer", true, false)
+	var skel: Skeleton3D = look.find_child("Skeleton3D", true, false)
+	var mesh: MeshInstance3D = null
+	for node: Node in look.find_children("*", "MeshInstance3D", true, false):
+		mesh = node
+		break
+	if player:
+		for clip: String in player.get_animation_list():
+			if clip.begins_with("walk") or clip in LOOPING:
+				if player.has_animation(clip):
+					player.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
+		player.playback_default_blend_time = 0.18
+	looks.append(look)
+	look_anims.append(player)
+	look_skeletons.append(skel)
+	look_meshes.append(mesh)
+	_attach_head(looks.size() - 1)
+	_set_look_active(looks.size() - 1, false)
+
+
+func _ensure_look(_index: int) -> void:
+	# Extra character meshes are the white figures. They are never instanced.
+	pass
+
+
+func _set_look_active(index: int, on: bool) -> void:
+	if index < 0 or index >= looks.size():
+		return
+	var look: Node3D = looks[index]
+	look.visible = on
+	look.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
+	var player: AnimationPlayer = look_anims[index]
+	if player and not on:
+		player.stop()
+	var mesh: MeshInstance3D = look_meshes[index]
+	if mesh:
+		# Extra figures are the heavy mesh; they never cast shadows. The type's
+		# own figure follows the sun.
+		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if on and index == 0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mesh.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+
+
+func _use_look(index: int) -> void:
+	if looks.is_empty():
+		return
+	_ensure_look(index)
+	if anim:
+		anim.stop()
+		current_clip = ""
+	look_index = clampi(index, 0, looks.size() - 1)
+	for i: int in looks.size():
+		_set_look_active(i, i == look_index)
+	model = looks[look_index]
+	anim = look_anims[look_index]
+	skeleton = look_skeletons[look_index]
+	body_mesh = look_meshes[look_index]
+	head_area = head_areas[look_index] if look_index < head_areas.size() else head_area
+	walk_clips.clear()
+	if anim:
+		for clip: String in anim.get_animation_list():
+			if _walk_name(clip).begins_with("walk"):
+				walk_clips.append(clip)
+		walk_clips.sort()
+
+
+func _walk_name(clip: String) -> String:
+	var slash: int = clip.rfind("/")
+	return clip.substr(slash + 1) if slash >= 0 else clip
+
+
+func _build_body_volume() -> void:
 	var radius: float = data.body_radius if data else 0.3
 	var height: float = data.body_height if data else 1.45
-	var head_radius: float = data.head_radius if data else 0.2
 	var lean: float = deg_to_rad(data.body_lean_degrees if data else 10.0)
 	body_area = _area("Body", false)
 	var capsule := CapsuleShape3D.new()
@@ -94,25 +177,36 @@ func _build_hit_volumes() -> void:
 	body_shape.rotation.x = lean
 	body_area.add_child(body_shape)
 	add_child(body_area)
-	head_area = _area("Head", true)
+
+
+func _attach_head(index: int) -> void:
+	var head_radius: float = data.head_radius if data else 0.2
+	var height: float = data.body_height if data else 1.45
+	var lean: float = deg_to_rad(data.body_lean_degrees if data else 10.0)
+	var host: Node = looks[index] if index < looks.size() else self
+	var skel: Skeleton3D = look_skeletons[index] if index < look_skeletons.size() else skeleton
+	var head: Area3D = _area("Head", true)
 	var sphere := SphereShape3D.new()
 	sphere.radius = head_radius
 	var head_shape := CollisionShape3D.new()
 	head_shape.shape = sphere
 	# The skull sits half a radius above the joint that carries it.
 	head_shape.position = Vector3(0.0, head_radius * 0.5, head_radius * 0.15)
-	head_area.add_child(head_shape)
-	var bone: int = skeleton.find_bone("Head") if skeleton else -1
+	head.add_child(head_shape)
+	var bone: int = skel.find_bone("Head") if skel else -1
 	if bone >= 0:
 		# Ride the head bone so a lunging or falling zombie keeps an honest head box.
 		var attachment := BoneAttachment3D.new()
 		attachment.name = "HeadSocket"
-		skeleton.add_child(attachment)
+		skel.add_child(attachment)
 		attachment.bone_name = "Head"
-		attachment.add_child(head_area)
+		attachment.add_child(head)
 	else:
-		head_area.position = Vector3(0.0, height + head_radius * 0.5, sin(lean) * height * 0.8)
-		add_child(head_area)
+		head.position = Vector3(0.0, height + head_radius * 0.5, sin(lean) * height * 0.8)
+		host.add_child(head)
+	head_areas.append(head)
+	if index == look_index:
+		head_area = head
 
 
 func _area(area_name: String, head: bool) -> Area3D:
@@ -134,7 +228,10 @@ func hit_rids() -> Array[RID]:
 
 func _set_hittable(enabled: bool) -> void:
 	body_area.collision_layer = Layers.ZOMBIE_BODY if enabled else 0
-	head_area.collision_layer = Layers.ZOMBIE_HEAD if enabled else 0
+	for i: int in head_areas.size():
+		head_areas[i].collision_layer = Layers.ZOMBIE_HEAD if enabled and i == look_index else 0
+	if head_areas.is_empty() and head_area:
+		head_area.collision_layer = Layers.ZOMBIE_HEAD if enabled else 0
 
 
 func _sleep() -> void:
@@ -147,6 +244,8 @@ func _sleep() -> void:
 	if anim:
 		anim.stop()
 	current_clip = ""
+	for i: int in looks.size():
+		_set_look_active(i, false)
 
 
 ## Brings a pooled zombie to life at the start of `walk_path`.
@@ -159,7 +258,17 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	target = wanted
 	side = lane_side
 	lateral = lane
-	health = data.max_health * health_scale
+	var chosen: int = _pick_look(rng)
+	_use_look(chosen)
+	var health_mul: float = 1.0
+	var size_mul: float = 1.0
+	if chosen > 0:
+		var extra: int = chosen - 1
+		if extra < data.extra_look_health.size() and data.extra_look_health[extra] > 0.0:
+			health_mul = data.extra_look_health[extra]
+		if extra < data.extra_look_scale.size() and data.extra_look_scale[extra] > 0.0:
+			size_mul = data.extra_look_scale[extra]
+	health = data.max_health * health_scale * health_mul
 	full_health = health
 	speed = data.speed * speed_scale * (1.0 + rng.randf_range(-data.speed_variance, data.speed_variance))
 	alive = true
@@ -172,21 +281,62 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	retry_left = rng.randf_range(0.2, 0.8)
 	blows = 0
 	_settle_rock()
-	scale = Vector3.ONE * rng.randf_range(data.scale_min, data.scale_max)
+	var bulk: float = rng.randf_range(data.scale_min, data.scale_max) * size_mul
+	scale = Vector3(bulk * rng.randf_range(0.93, 1.07), bulk * rng.randf_range(0.90, 1.12), bulk)
+	gait_lean = Vector3(rng.randf_range(-0.02, 0.08), rng.randf_range(-0.04, 0.04), rng.randf_range(-0.06, 0.06))
+	gait_rate = rng.randf_range(0.88, 1.12)
+	_apply_rock()
 	position = path[0] if path.size() > 0 else Vector3.ZERO
 	if path.size() > 1:
 		var ahead: Vector3 = path[1] - path[0]
 		facing_goal = atan2(ahead.x, ahead.z)
 		rotation = Vector3(0.0, facing_goal, 0.0)
-	if body_mesh:
-		body_mesh.material_override = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % data.skins)
+	_paint_look(chosen, rng)
 	visible = true
 	_set_hittable(true)
-	# No two in a crowd need limp alike: each takes one of the walks its model has, at its own point in the stride.
-	walk_clip = walk_clips[rng.randi() % walk_clips.size()] if not walk_clips.is_empty() else "walk"
-	_play(walk_clip, speed / data.stride_speed, 0.0)
+	# Each life picks a limp (which leg, and how broken) and a point in the stride, so a crowd does not march.
+	walk_clip = _pick_walk(rng)
+	_play(walk_clip, speed / data.stride_speed * gait_rate, 0.0)
 	if anim and anim.has_animation(walk_clip):
 		anim.seek(rng.randf() * anim.get_animation(walk_clip).length, true)
+		anim.advance(0.0)
+
+
+func _pick_look(_rng: RandomNumberGenerator) -> int:
+	# The extra figures are the white bodies. They stay out of the street.
+	return 0
+
+
+func _paint_look(_chosen: int, rng: RandomNumberGenerator) -> void:
+	if looks.is_empty() or look_index < 0 or look_index >= looks.size() or data == null:
+		return
+	var skin: Material = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % maxi(data.skins, 1))
+	var look: Node = looks[look_index]
+	if look is MeshInstance3D:
+		(look as MeshInstance3D).material_override = skin
+	for node: Node in look.find_children("*", "MeshInstance3D", true, false):
+		(node as MeshInstance3D).material_override = skin
+	if body_mesh:
+		body_mesh.material_override = skin
+
+
+func _pick_walk(rng: RandomNumberGenerator) -> String:
+	if walk_clips.is_empty():
+		return "walk"
+	var broken: Array[String] = []
+	var regular: Array[String] = []
+	for clip: String in walk_clips:
+		if _walk_name(clip).begins_with("walk_b"):
+			broken.append(clip)
+		else:
+			regular.append(clip)
+	# Most of the small horde shuffles. A hard limp is the exception.
+	var pool: Array[String] = regular
+	if not broken.is_empty() and rng.randf() < 0.12:
+		pool = broken
+	if pool.is_empty():
+		pool = walk_clips
+	return pool[rng.randi() % pool.size()]
 
 
 func _play(clip: String, rate: float = 1.0, blend: float = -1.0) -> void:
@@ -215,7 +365,7 @@ func fall_back(point: Vector3) -> void:
 	court_index = 0
 	state = State.ADVANCE
 	retry_left = 0.3
-	_play(walk_clip, speed / data.stride_speed)
+	_play(walk_clip, speed / data.stride_speed * gait_rate)
 
 
 ## Sends the zombie to a (new) standing place.
@@ -228,7 +378,7 @@ func assign_slot(claimed: AttackLines.Slot) -> void:
 		path_index = 1
 		court_index = 0
 		state = State.ADVANCE
-		_play(walk_clip, speed / data.stride_speed)
+		_play(walk_clip, speed / data.stride_speed * gait_rate)
 	elif path.size() > 0:
 		path[path.size() - 1] = claimed.position
 
@@ -248,7 +398,7 @@ func enter_breach(route: PackedVector3Array) -> void:
 	path_index = 1
 	court_index = 0
 	state = State.BREACH
-	_play(walk_clip, speed * 1.25 / data.stride_speed)
+	_play(walk_clip, speed * 1.25 / data.stride_speed * gait_rate)
 
 
 func tick(delta: float) -> void:
@@ -372,9 +522,9 @@ func _swing(delta: float) -> void:
 func _resume_clip() -> void:
 	match state:
 		State.ADVANCE:
-			_play(walk_clip, speed / data.stride_speed)
+			_play(walk_clip, speed / data.stride_speed * gait_rate)
 		State.BREACH:
-			_play(walk_clip, speed * 1.25 / data.stride_speed)
+			_play(walk_clip, speed * 1.25 / data.stride_speed * gait_rate)
 		State.ATTACK:
 			_play_attack()
 		State.WAIT:
@@ -444,13 +594,13 @@ func _rock(direction: Vector3, weight: float) -> void:
 
 func _apply_rock() -> void:
 	if model:
-		model.rotation = Vector3(deg_to_rad(rock.x), 0.0, deg_to_rad(rock.y))
+		model.rotation = gait_lean + Vector3(deg_to_rad(rock.x), 0.0, deg_to_rad(rock.y))
 
 
 func _settle_rock() -> void:
 	rock = Vector2.ZERO
 	if model:
-		model.rotation = Vector3.ZERO
+		model.rotation = gait_lean
 
 
 ## Where the body lies once it has fallen: on the ground, between the feet and the head.

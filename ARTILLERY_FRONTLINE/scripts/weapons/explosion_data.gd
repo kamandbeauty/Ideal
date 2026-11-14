@@ -25,6 +25,7 @@ extends Resource
 ## Camera jolt in degrees for a blast ten metres from the gunner; it fades with distance.
 @export_range(0.0, 8.0, 0.1) var shake_degrees: float = 1.4
 @export var sound: String = "explosion"
+## Quieter blast clip used by smaller charges: "explosion_small".
 @export_range(-30.0, 12.0, 0.5) var volume_db: float = 2.0
 
 

@@ -102,48 +102,66 @@ def write(name, samples, peak=0.92):
     print("audio %-18s %.2fs" % (name, len(samples) / RATE))
 
 
+def metal_ping(seconds, freqs, seed, ring=40.0):
+    """A short mechanical strike: inharmonic partials plus a noise transient."""
+    x = t(seconds)
+    rng = np.random.default_rng(seed)
+    out = np.zeros_like(x)
+    for index, freq in enumerate(freqs):
+        out += np.sin(2 * np.pi * freq * x + rng.uniform(0, 6.28)) * np.exp(-x * (ring + index * 8.0)) / (1.0 + index * 0.4)
+    out += bandpass(noise(seconds, seed + 1), 1800, 7000) * decay(seconds, 90, 0.0004) * 0.7
+    return out
+
+
 def hmg_shot():
-    seconds = 0.3
-    crack = highpass(noise(seconds, 1), 900) * decay(seconds, 46)
-    body = lowpass(noise(seconds, 2), 1400) * decay(seconds, 20)
-    thump = sweep(seconds, 150, 48) * decay(seconds, 17)
-    clack = bandpass(noise(seconds, 3), 2200, 5200) * decay(seconds, 90) * 0.5
-    tail = lowpass(noise(seconds, 4), 500) * decay(seconds, 7) * 0.35
-    write("hmg_shot", np.tanh((crack * 0.9 + body * 1.2 + thump * 1.4 + clack + tail) * 1.8))
+    """A heavy mounted gun: tight crack, chest thump, bolt, short street tail."""
+    seconds = 0.34
+    crack = highpass(noise(seconds, 1), 2200) * decay(seconds, 95, 0.00035)
+    snap = bandpass(noise(seconds, 11), 700, 2800) * decay(seconds, 55, 0.0005)
+    body = bandpass(noise(seconds, 2), 140, 1400) * decay(seconds, 16, 0.0012)
+    thump = sweep(seconds, 108, 32, curve=0.5) * decay(seconds, 12, 0.0007)
+    thump += sweep(seconds, 58, 24) * decay(seconds, 9, 0.001) * 0.7
+    bolt = metal_ping(seconds, (1840, 2650, 4120, 6300), 3, 55.0) * 0.55
+    room = lowpass(noise(seconds, 4), 620) * decay(seconds, 5.5, 0.01) * 0.42
+    write("hmg_shot", np.tanh((crack * 1.35 + snap * 1.1 + body * 1.45 + thump * 1.9 + bolt + room) * 1.55))
 
 
 def hmg_tail():
     """What is left of a burst once the trigger is released: the report rolling off the house fronts."""
-    seconds = 1.1
+    seconds = 1.15
     x = t(seconds)
-    roll = lowpass(noise(seconds, 421), 1100) * decay(seconds, 4.2, 0.012)
-    low = lowpass(noise(seconds, 422), 320) * decay(seconds, 3.0, 0.03) * 1.3
+    roll = lowpass(noise(seconds, 421), 900) * decay(seconds, 3.6, 0.01)
+    low = lowpass(noise(seconds, 422), 240) * decay(seconds, 2.4, 0.025) * 1.5
     slaps = np.zeros_like(x)
-    for index, (at, gain) in enumerate(((0.09, 0.55), (0.21, 0.36), (0.38, 0.22))):
-        place(slaps, bandpass(noise(0.16, 423 + index), 500, 2600) * decay(0.16, 26, 0.004) * gain, at)
-    write("hmg_tail", roll + low + slaps, 0.6)
+    for index, (at, gain) in enumerate(((0.07, 0.62), (0.18, 0.4), (0.34, 0.24), (0.52, 0.14))):
+        place(slaps, bandpass(noise(0.18, 423 + index), 400, 2200) * decay(0.18, 22, 0.003) * gain, at)
+    write("hmg_tail", np.tanh((roll + low + slaps) * 1.15), 0.62)
 
 
 def rotary_gun():
     """The six-barrel gun. At twenty-five rounds a second single shots run together, so the clip the game
     repeats holds two reports, 40 ms apart, over the whine of the drive. Its spin-up and its run-down are
     clips of their own."""
-    seconds = 0.26
+    seconds = 0.24
     shots = np.zeros(int(RATE * seconds))
-    for index, at in enumerate((0.0, 0.04)):
-        length = 0.2
-        crack = highpass(noise(length, 501 + index), 1300) * decay(length, 70)
-        body = bandpass(noise(length, 503 + index), 250, 1800) * decay(length, 34)
-        thump = sweep(length, 190, 70) * decay(length, 30)
-        place(shots, crack * 0.9 + body * 1.1 + thump, at)
-    whine = lowpass(sweep(seconds, 612, 600, "saw"), 2600) * envelope(seconds, 0.004, 0.12) * 0.1
-    tail = lowpass(noise(seconds, 507), 700) * decay(seconds, 9) * 0.3
-    write("rotary_shot", np.tanh((shots + whine + tail) * 1.7))
+    for index, at in enumerate((0.0, 0.038)):
+        length = 0.16
+        crack = highpass(noise(length, 501 + index), 2400) * decay(length, 110, 0.0003)
+        body = bandpass(noise(length, 503 + index), 220, 1600) * decay(length, 38, 0.0008)
+        thump = sweep(length, 210, 62, curve=0.55) * decay(length, 28, 0.0006)
+        ping = metal_ping(length, (2100, 3400, 5100), 505 + index, 70.0) * 0.35
+        place(shots, crack * 1.2 + body * 1.15 + thump * 1.1 + ping, at)
+    whine = lowpass(sweep(seconds, 680, 640, "saw"), 2800) * envelope(seconds, 0.003, 0.1) * 0.12
+    tail = lowpass(noise(seconds, 507), 580) * decay(seconds, 8) * 0.22
+    write("rotary_shot", np.tanh((shots + whine + tail) * 1.65))
     # The motor climbing to speed before the first round goes.
-    seconds = 0.42
-    climb = lowpass(sweep(seconds, 90, 620, "saw", 0.7), 2400) * envelope(seconds, 0.03, 0.08)
-    gear = bandpass(noise(seconds, 508), 900, 3200) * envelope(seconds, 0.05, 0.1) * (t(seconds) / seconds) * 0.25
-    write("rotary_spin", climb * 0.6 + gear, 0.45)
+    seconds = 0.44
+    climb = lowpass(sweep(seconds, 70, 740, "saw", 0.65), 2600) * envelope(seconds, 0.025, 0.07)
+    gear = bandpass(noise(seconds, 508), 800, 3800) * envelope(seconds, 0.04, 0.08) * (t(seconds) / seconds) * 0.32
+    ticks = np.zeros(int(RATE * seconds))
+    for index in range(7):
+        place(ticks, metal_ping(0.05, (900 + index * 40, 1800), 520 + index, 80.0) * (0.15 + 0.08 * index), index * 0.055)
+    write("rotary_spin", climb * 0.7 + gear + ticks * 0.45, 0.5)
     # The barrels coasting to a stop while the report rolls off the house fronts.
     seconds = 1.2
     fall = lowpass(sweep(seconds, 600, 70, "saw", 0.6), 2000) * decay(seconds, 2.6, 0.01) * 0.5
@@ -153,16 +171,51 @@ def rotary_gun():
 
 
 def dry_fire():
-    seconds = 0.09
-    write("dry_fire", bandpass(noise(seconds, 5), 1800, 6000) * decay(seconds, 80) + sweep(seconds, 2600, 2300) * decay(seconds, 110) * 0.5, 0.6)
+    seconds = 0.11
+    click = metal_ping(seconds, (2100, 3400, 5100), 5, 90.0)
+    hollow = sweep(seconds, 420, 280) * decay(seconds, 70, 0.0005) * 0.45
+    write("dry_fire", click * 0.9 + hollow, 0.62)
 
 
 def headshot():
-    seconds = 0.3
-    pop = sweep(seconds, 320, 70) * decay(seconds, 22)
-    wet = lowpass(noise(seconds, 6), 2600) * decay(seconds, 26)
-    crack = bandpass(noise(seconds, 7), 1500, 4500) * decay(seconds, 70) * 0.6
-    write("headshot", pop + wet * 0.9 + crack, 0.85)
+    seconds = 0.32
+    pop = sweep(seconds, 280, 52, curve=0.45) * decay(seconds, 18, 0.0006)
+    wet = lowpass(noise(seconds, 6), 1800) * decay(seconds, 20, 0.001)
+    crack = highpass(noise(seconds, 7), 2200) * decay(seconds, 80, 0.0004) * 0.7
+    bone = metal_ping(seconds, (980, 1620, 2400), 8, 28.0) * 0.4
+    write("headshot", np.tanh((pop * 1.3 + wet * 1.1 + crack + bone) * 1.4), 0.88)
+
+
+def mechanics():
+    """Reload, click, and the three kinds of strike: paving, flesh, metal."""
+    seconds = 0.82
+    belt = np.zeros(int(RATE * seconds))
+    place(belt, metal_ping(0.16, (420, 880, 1540), 601, 28.0) * 0.8, 0.0)
+    place(belt, metal_ping(0.12, (980, 1760, 2650), 602, 40.0) * 0.7, 0.22)
+    place(belt, bandpass(noise(0.18, 603), 200, 900) * envelope(0.18, 0.02, 0.08) * 0.5, 0.38)
+    place(belt, metal_ping(0.22, (310, 640, 1100, 1880), 604, 18.0) * 1.1, 0.52)
+    write("reload", np.tanh(belt * 1.3), 0.78)
+    seconds = 0.08
+    tick = metal_ping(seconds, (1320, 1980, 3100), 401, 100.0)
+    write("click", tick, 0.68)
+    seconds = 0.7
+    thud = sweep(seconds, 92, 36, curve=0.5) * decay(seconds, 10, 0.003) * 1.5
+    grit = bandpass(noise(seconds, 701), 400, 2200) * decay(seconds, 14, 0.002)
+    stone = highpass(noise(seconds, 702), 2800) * decay(seconds, 40) * 0.35
+    write("impact", np.tanh((thud + grit + stone) * 1.2), 0.86)
+    seconds = 0.34
+    wet = lowpass(noise(seconds, 711), 1400) * decay(seconds, 22, 0.001) * 1.3
+    slap = sweep(seconds, 78, 28) * decay(seconds, 16, 0.0008)
+    drip = bandpass(noise(seconds, 712), 900, 2800) * decay(seconds, 36) * 0.45
+    write("impact_flesh", np.tanh((wet + slap * 1.2 + drip) * 1.25), 0.84)
+    seconds = 0.85
+    ring = metal_ping(seconds, (1180, 1870, 2760, 3920, 5100), 721, 9.0)
+    boom = sweep(seconds, 140, 48) * decay(seconds, 11, 0.002)
+    write("impact_metal", np.tanh((ring * 1.2 + boom * 0.9) * 1.15), 0.88)
+    seconds = 0.72
+    warn = metal_ping(seconds, (1320, 1980, 2640), 731, 8.0)
+    pulse = sweep(seconds, 220, 90) * decay(seconds, 7, 0.004) * 0.8
+    write("critical", np.tanh((warn + pulse) * 1.1), 0.8)
 
 
 def voice(seconds, start, end, seed, rough=0.5, formants=((480, 900), (1000, 1700)), breath=0.25):
@@ -276,22 +329,25 @@ def signals():
 
 def blast(seconds, seed, weight=1.0, crack_rate=22.0):
     """An explosion: the crack of the charge, a falling boom, rolling rumble and the patter of debris."""
-    crack = highpass(noise(seconds, seed), 1100) * decay(seconds, crack_rate, 0.001)
-    body = lowpass(noise(seconds, seed + 1), 1500) * decay(seconds, 7.0 / weight, 0.002)
-    boom = sweep(seconds, 96.0 / weight, 30.0, curve=0.6) * decay(seconds, 3.4 / weight, 0.004)
-    rumble = lowpass(noise(seconds, seed + 2), 260) * decay(seconds, 2.2 / weight, 0.02) * (0.6 + np.abs(lowpass(noise(seconds, seed + 3), 14)) * 5.0)
-    patter = highpass(noise(seconds, seed + 4), 2800) * np.clip(lowpass(noise(seconds, seed + 5), 30) * 9.0, 0.0, 1.0) \
-        * envelope(seconds, 0.12, seconds * 0.8) * 0.22
-    return np.tanh((crack * 1.3 + body * 1.5 + boom * 2.4 * weight + rumble * 1.6 + patter) * 1.5)
+    crack = highpass(noise(seconds, seed), 1600) * decay(seconds, crack_rate, 0.0006)
+    body = bandpass(noise(seconds, seed + 1), 80, 1200) * decay(seconds, 6.2 / weight, 0.0015)
+    boom = sweep(seconds, 84.0 / weight, 24.0, curve=0.5) * decay(seconds, 2.8 / weight, 0.003)
+    boom += sweep(seconds, 48.0 / weight, 18.0) * decay(seconds, 2.2 / weight, 0.004) * 0.8
+    rumble = lowpass(noise(seconds, seed + 2), 220) * decay(seconds, 1.8 / weight, 0.018) * (0.6 + np.abs(lowpass(noise(seconds, seed + 3), 12)) * 5.0)
+    patter = highpass(noise(seconds, seed + 4), 2600) * np.clip(lowpass(noise(seconds, seed + 5), 28) * 9.0, 0.0, 1.0) \
+        * envelope(seconds, 0.1, seconds * 0.8) * 0.28
+    return np.tanh((crack * 1.5 + body * 1.6 + boom * 2.6 * weight + rumble * 1.7 + patter) * 1.45)
 
 
 def explosives():
     write("explosion", blast(2.6, 201, 1.0), 0.97)
     write("explosion_small", blast(1.7, 211, 0.72, 30.0), 0.95)
     # Rocket leaving the tube: the pop of the booster, then the motor tearing away down the street.
-    seconds = 1.2
+    seconds = 1.25
     x = t(seconds)
-    pop = lowpass(noise(seconds, 221), 2200) * decay(seconds, 38, 0.001) * 1.6 + sweep(seconds, 170, 55) * decay(seconds, 16) * 1.2
+    pop = highpass(noise(seconds, 221), 900) * decay(seconds, 42, 0.0006) * 1.3
+    pop += lowpass(noise(seconds, 221), 1800) * decay(seconds, 28, 0.001) * 1.4
+    pop += sweep(seconds, 160, 42, curve=0.5) * decay(seconds, 12, 0.0008) * 1.6
     centre = 2600.0 * np.exp(-x * 2.4) + 420.0
     roar = np.zeros_like(x)
     hiss = noise(seconds, 222)
@@ -484,25 +540,58 @@ def base_set():
            + n * 0.35 * exp(-x * 60))
     render("critical", 0.7, lambda x, n, l, l2: sum(a * sin(2 * pi * f * x) * exp(-x * d) for f, a, d in [(1320, 0.45, 6), (1980, 0.3, 8), (2640, 0.18, 11)])
            + n * 0.08 * exp(-x * 90))
-    # The music loop uses integer frequencies only, so it repeats exactly at its length.
+    # The title theme is built by music_theme(): oscillators only, no noise bed.
+
+
+def music_theme():
+    """A looping bass bed for the title: sub, a walking bass and a dark pad.
+    Integer frequencies over 48 seconds so the loop meets itself. No noise,
+    no hats: the old hiss was the hat, and it read as a fault on a phone."""
+    seconds = 48.0
+    x = t(seconds)
+    # Four bars of twelve seconds. Roots are integer Hz so 48 s is a whole number of cycles.
     chords = [(55, 110, 165, 220), (44, 88, 132, 176), (49, 98, 147, 196), (41, 82, 123, 164)]
-
-    def theme(x, n, l, l2):
-        chord = chords[int(x // 12) % 4]
-        pad = sum(sin(2 * pi * f * x) for f in chord) * 0.05 * (0.75 + 0.25 * sin(2 * pi * x / 6))
-        bass = sin(2 * pi * chord[0] * x) * 0.22 * exp(-(x % 0.75) * 6)
-        kick = sin(2 * pi * 48 * (x % 1.5)) * 0.5 * exp(-(x % 1.5) * 9)
-        hat = n * 0.07 * exp(-(x % 0.375) * 60)
-        return pad + bass + kick + hat
-
-    render("music_theme", 48.0, theme)
+    out = np.zeros_like(x)
+    bar = 12.0
+    for index, chord in enumerate(chords):
+        start = int(index * bar * RATE)
+        end = int((index + 1) * bar * RATE)
+        clock = x[start:end]
+        beat = clock - index * bar
+        breathe = 0.78 + 0.22 * np.sin(2.0 * np.pi * clock / 6.0)
+        pad = np.zeros_like(clock)
+        for freq in chord:
+            pad += np.sin(2.0 * np.pi * freq * clock)
+        pad *= 0.042 * breathe
+        pulse = np.exp(-(beat % 0.75) * 5.2)
+        bass = np.sin(2.0 * np.pi * chord[0] * clock) * 0.36 * pulse
+        sub = np.sin(2.0 * np.pi * (chord[0] * 0.5) * clock) * 0.30 * (0.62 + 0.38 * pulse)
+        kick = np.sin(2.0 * np.pi * 42.0 * (beat % 1.5)) * 0.40 * np.exp(-(beat % 1.5) * 8.0)
+        out[start:end] = pad + bass + sub + kick
+    out = np.tanh(out * 1.12)
+    # Looping bed: do not fade the ends to zero (that would thump every 48 s).
+    samples = np.asarray(out, np.float64)
+    samples = samples - samples.mean()
+    top = np.abs(samples).max()
+    if top > 0:
+        samples = samples / top * 0.86
+    data = np.round(samples * 32767.0).astype("<i2")
+    os.makedirs(OUT, exist_ok=True)
+    with wave.open(os.path.join(OUT, "music_theme.wav"), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(RATE)
+        handle.writeframes(data.tobytes())
+    print("audio %-18s %.2fs" % ("music_theme", seconds))
 
 
 GROUPS = {
+    "theme": music_theme,
     "hmg": lambda: (hmg_shot(), hmg_tail()),
     "rotary": rotary_gun,
     "dry_fire": dry_fire,
     "headshot": headshot,
+    "mechanics": mechanics,
     "zombies": zombies,
     "giants": giants,
     "bodies": bodies,

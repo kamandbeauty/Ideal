@@ -66,6 +66,9 @@ func _load_level() -> void:
 	add_child(level)
 	move_child(level, 0)
 	hud.bind(level)
+	var chosen: String = str(Profile.setting("gun"))
+	if level.defender != null and level.defender.gun_id() != chosen:
+		level.defender.mount_gun(chosen)
 
 
 ## Picks the stage PLAY will start. A stage that is still locked is refused.
@@ -83,8 +86,8 @@ func next_stage() -> void:
 		start_match()
 
 
-## Puts another gun on the mount. It is the player's for every match from now on, and the title
-## screen, which looks out over the gun, shows it at once.
+## Puts another gun on the mount. It is the player's for every match from now on, and the armory,
+## which looks out over the gun, shows it at once.
 func choose_gun(id: String) -> void:
 	if not Profile.GUNS.has(id):
 		return
@@ -97,6 +100,11 @@ func start_match() -> void:
 	won_onward = false
 	get_tree().paused = false
 	Engine.time_scale = 1.0
+	hud.set_active(false)
+	menus.show_loading()
+	# Let the loading screen paint before the hitch of instantiating the street.
+	await get_tree().process_frame
+	await get_tree().process_frame
 	_load_level()
 	menus.hide_all()
 	hud.set_active(true)
@@ -139,6 +147,7 @@ func to_menu() -> void:
 	Engine.time_scale = 1.0
 	mode = Mode.MENU
 	hud.set_active(false)
+	Sound.silence_combat()
 	_load_level()
 	menus.show_main()
 
@@ -154,6 +163,7 @@ func _on_match_finished(victory: bool, stats: Dictionary) -> void:
 	var record: bool = int(Profile.data.stats.matches) > 0 and int(stats.get("wave_overall", 0)) > int(Profile.data.stats.best_wave)
 	Profile.record_match(stats)
 	won_onward = victory and stage + 1 < Campaign.count()
+	Sound.silence_combat()
 	menus.show_result(victory, stats, record, won_onward)
 	Sound.play("victory" if victory else "defeat", -5.0)
 
@@ -170,6 +180,10 @@ func go_back() -> bool:
 			resume()
 	elif menus.screen == "settings":
 		menus.show_main()
+	elif menus.screen == "arsenal":
+		menus.show_main()
+	elif menus.screen == "loading":
+		return true
 	elif mode == Mode.RESULT:
 		to_menu()
 	else:

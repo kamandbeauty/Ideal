@@ -8,6 +8,13 @@ extends Resource
 @export var scene: PackedScene
 ## How many painted skins exist for this type (assets/textures/zombies/zombie_<id>_a..).
 @export_range(1, 8) var skins: int = 3
+## Extra character meshes mixed in with this type's own model. A spawn picks
+## at random among the original figure and these.
+@export var extra_looks: Array[PackedScene] = []
+## Health of each extra look, as a multiple of max_health (same order as extra_looks).
+@export var extra_look_health: PackedFloat32Array = PackedFloat32Array()
+## Extra size of each extra look, on top of scale_min/max.
+@export var extra_look_scale: PackedFloat32Array = PackedFloat32Array()
 ## Nodes built before the match so the first ones do not hitch.
 @export_range(0, 80) var prewarm: int = 0
 ## A boss is announced, gets a health bar on the HUD, and its fall is celebrated.
@@ -17,8 +24,8 @@ extends Resource
 
 @export_group("Body")
 @export_range(1.0, 100000.0, 1.0) var max_health: float = 80.0
-@export_range(0.5, 3.0, 0.01) var scale_min: float = 0.95
-@export_range(0.5, 3.0, 0.01) var scale_max: float = 1.06
+@export_range(0.5, 4.0, 0.01) var scale_min: float = 0.95
+@export_range(0.5, 4.0, 0.01) var scale_max: float = 1.06
 ## Share of a head hit's damage that gets through the skull (1 = the weapon's full headshot bonus).
 @export_range(0.1, 2.0, 0.05) var head_damage_scale: float = 1.0
 ## Share of blast damage that gets through.

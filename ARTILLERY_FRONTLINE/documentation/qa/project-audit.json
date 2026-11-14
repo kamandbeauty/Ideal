@@ -1,15 +1,17 @@
 {
-  "passed": true,
-  "problems": [],
+  "passed": false,
+  "problems": [
+    "text keys nothing shows: weapon_bushmaster_short, weapon_dual_mauler_short, weapon_gilded_minigun_short, weapon_rotary_gun_short, weapon_twin_hmg_short"
+  ],
   "counted": {
-    "paths_checked": 152,
-    "scripts": 49,
-    "scenes": 10,
-    "resources": 17,
-    "assets": 88,
-    "asset_megabytes": 22.9,
-    "sounds": 46,
-    "text_keys": 100
+    "paths_checked": 172,
+    "scripts": 50,
+    "scenes": 13,
+    "resources": 20,
+    "assets": 97,
+    "asset_megabytes": 36.6,
+    "sounds": 47,
+    "text_keys": 111
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
 }

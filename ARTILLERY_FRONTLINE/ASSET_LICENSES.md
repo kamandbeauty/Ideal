@@ -8,12 +8,12 @@ the two font families. Nothing is downloaded at build time or at run time.
 | Asset | Generator | Notes |
 | --- | --- | --- |
 | `assets/models/zombies/zombie_walker.glb`, `zombie_runner.glb`, `zombie_brute.glb`, `zombie_boss.glb` | `tools/build_zombies.py` | Each sculpted as a signed-distance field from its own proportions, meshed, unwrapped, skinned to the same 18-bone skeleton. Open wounds (one down to the ribs on every kind), torn sleeves and trouser legs and a missing shoe are part of the sculpt. Procedural animation clips per kind: a limping walk lame in either leg (the walker has two such gaits, so four walks), idle, attack, hit and two deaths; the runner's lurching sprint, the heavy gait and the two-fisted blow of the brute and the boss are generated the same way |
-| `assets/textures/zombies/zombie_walker_{a,b,c,d}.png`, `zombie_runner_{a,b,c}.png`, `zombie_brute_{a,b}.png`, `zombie_boss_a.png` | `tools/build_zombies.py` | Painted skins baked from the sculpts: skin, cloth, blood and grime laid by where the surface is and what it is (768 px for the walker and the runner, 1024 px for the brute and the boss) |
+| `assets/textures/zombies/zombie_walker_{a,b,c,d,e}.png`, `zombie_runner_{a,b,c}.png`, `zombie_brute_{a,b}.png`, `zombie_boss_a.png` | `tools/build_zombies.py` | Painted skins baked from the sculpts: skin, cloth, blood and grime laid by where the surface is and what it is (768 px for the walker and the runner, 1024 px for the brute and the boss) |
 | `assets/models/environment/city_siege.glb` | `tools/build_city.py` | Fortress, gate court, ruined city blocks, wrecks and props |
 | `assets/models/weapons/rpg_launcher.glb`, `rocket.glb`, `frag_grenade.glb`, `rotary_gun.glb` | `tools/build_weapons.py` | The shoulder launcher with its loaded round, the round in flight, the hand grenade, and the six-barrel gun on its pedestal (a rotor of six barrels that turns, its housing, ammunition can and feed chute), built from lathed and boxed primitives |
 | `resources/levels/city_siege_layout.tres` | `tools/build_city.py` | Routes and attack places, from the same numbers as the mesh |
 | `assets/textures/world/*.jpg`, `*_n.png`, `sky_dusk.jpg` | `tools/build_textures.py` | Tiling surfaces with normal maps, and the sky panorama |
-| `assets/audio/*.wav` (46 clips) | `tools/build_audio.py` | Synthesized from oscillators and filtered noise: the guns and the tail of a burst, the six-barrel gun's motor running up, its paired report and its run-down, strikes, voices, the rocket launch, both explosions, the boss's roar and death, a body falling, the interface sounds, the victory and defeat stings, the wind bed and the music loop |
+| `assets/audio/*.wav` (synthesized clips) | `tools/build_audio.py` | Synthesized from oscillators and filtered noise: the guns and the tail of a burst, the six-barrel gun's motor running up, its paired report and its run-down, strikes, voices, the rocket launch, both explosions, the boss's roar and death, a body falling, the interface sounds, the victory and defeat stings, and the wind bed |
 | `assets/textures/icon.png` | `tools/build_icon.py` | App icon |
 
 ## Carried over from the earlier project
@@ -29,6 +29,13 @@ domain (CC0) where legally possible. That text was removed together with the
 old documentation; nothing in this pass changes or extends it. Which licence
 the new original assets carry is the project owner's decision.
 
+## Recorded audio
+
+| Asset | Origin | Licence |
+| --- | --- | --- |
+| `assets/audio/music_theme.wav` | Synthesized bass bed (`tools/build_audio.py`, oscillators only, no noise) | Original |
+| `assets/audio/wave_horde.wav` | Trimmed (16 s, mono 24 kHz) from [Freesound 111044](https://freesound.org/people/GaryQ/sounds/111044/) *Zombie group 2 (small)* by GaryQ | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
+
 ## Third-party fonts
 
 | Font | Licence | File |
@@ -42,8 +49,20 @@ Godot Engine 4.7.2, MIT licence. The exported game includes the engine and
 its third-party components under their own licences, as listed in Godot's
 `COPYRIGHT.txt`.
 
+## Free zombie characters
+
+| Asset | Origin | Notes |
+| --- | --- | --- |
+| `assets/models/zombies/zombie_bloat.glb` | `13899_open3dmodel.zip` (Bloat_Summer, free personal-use character from Open3DModel) | Skinned to the shared 18-bone skeleton and mixed into walker, runner and brute spawns. The fat figure has more health than the type's own look. |
+| `assets/models/zombies/zombie_boomer.glb` | Same free Bloat mesh, retargeted; colour from the Boomer pack (`27189`, Max-only mesh) | Heavier silhouette, cooler grey-blue skin. |
+| `assets/models/zombies/zombie_gibberling.glb` | Same free Bloat mesh, retargeted; colour from the Gibberling pack (`28069`, Max-only mesh) | Narrower hunched figure. |
+
+The Max scenes in `27189_open3dmodel.rar` and `28069_open3dmodel.rar` stay in
+the repository root as source; the game loads the converted GLBs.
+
 ## Reference material in the repository root
 
-The screenshots, the `.max` file and the `.dds` files in the repository
-root were supplied as reference for the project. The game does not load,
-convert or ship them.
+The screenshots, the `.max` file, the `.dds` files and the character
+archives in the repository root were supplied for the project. The game
+does not load those files at run time; the extra character meshes are the
+converted copies under `assets/models/zombies/`.

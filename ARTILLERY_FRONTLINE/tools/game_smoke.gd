@@ -447,12 +447,14 @@ func _sight() -> void:
 	check(not defender.zoomed and absf(defender.view_fov() - naked) < 0.01 and not game.hud.scope.visible, "a second press lets it out again")
 
 
-## The other gun: chosen on the title screen, where the street behind the menu shows it at once, then
+## The other gun: chosen in the armory, where the street behind the menu shows it at once, then
 ## fired at the gate through the touch path like the first.
 func _six_barrels() -> void:
 	level = game.level
-	check(game.menus.screen == "main" and game.menus.gun_choices != null and game.menus.gun_choices.buttons.size() == Profile.GUNS.size(),
-		"the title screen offers the guns")
+	game.menus.show_arsenal()
+	await frames(2)
+	check(game.menus.screen == "arsenal" and game.menus.gun_choices != null and game.menus.gun_choices.buttons.size() == Profile.GUNS.size(),
+		"the armory offers the guns")
 	game.menus.gun_choices.buttons[1].pressed.emit()
 	await frames(4)
 	check(String(Profile.setting("gun")) == "rotary_gun" and level.defender.weapon is RotaryGun, "a tap on the six-barrel gun stands it on the mount behind the menu")
@@ -495,6 +497,8 @@ func _six_barrels() -> void:
 	await frames(6)
 	level = game.level
 	# Back to the gun a new player has.
+	game.menus.show_arsenal()
+	await frames(2)
 	game.menus.gun_choices.buttons[0].pressed.emit()
 	await frames(3)
 	check(String(Profile.setting("gun")) == "twin_hmg" and level.defender.weapon is TwinHmg, "the twin gun goes back on the mount")
@@ -507,9 +511,11 @@ func _second_stage() -> void:
 	Profile.record_match(_victory_figures(0))
 	game.to_menu()
 	await frames(4)
+	game.menus.show_arsenal()
+	await frames(2)
 	var choices: MenuWidgets.Choices = game.menus.stage_choices
 	check(int(Profile.data.stats.stages_cleared) == 1 and not choices.is_locked(1) and choices.is_locked(2),
-		"with the first stage won the title screen shows the second open and the third still locked")
+		"with the first stage won the armory shows the second open and the third still locked")
 	choices.buttons[1].pressed.emit()
 	await frames(4)
 	check(game.stage == 1 and game.menus.stage_choices.selected == 1, "a tap picks the second stage")
@@ -542,6 +548,8 @@ func _second_stage() -> void:
 	game.to_menu()
 	await frames(4)
 	level = game.level
+	game.menus.show_arsenal()
+	await frames(2)
 	check(game.stage == 0 and level.stage == 0 and game.menus.stage_choices.is_locked(1),
 		"with that win taken back the second stage is locked again and the first is the one laid behind the menu")
 

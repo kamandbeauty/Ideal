@@ -4,7 +4,7 @@ name: LAST WALL
 # Android packages. Evidence and the APK are committed back to the branch.
 on:
   push:
-    branches: [arena/93ab6e29-ideal]
+    branches: [arena/64301cf7-ideal]
     paths: ['ARTILLERY_FRONTLINE/**', '!ARTILLERY_FRONTLINE/documentation/**', '!ARTILLERY_FRONTLINE/**/*.md', '.github/workflows/last-wall.yml']
   workflow_dispatch:
 permissions:
@@ -17,7 +17,7 @@ env:
   GODOT_VERSION: 4.7.2-stable
   GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
   PROJECT: ARTILLERY_FRONTLINE
-  SESSION_BRANCH: arena/93ab6e29-ideal
+  SESSION_BRANCH: arena/64301cf7-ideal
 jobs:
   validate:
     runs-on: ubuntu-24.04

@@ -107,7 +107,7 @@ func run(t: TestContext) -> void:
 	var hud: Hud = game.hud
 	var menus: Menus = game.menus
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var level: CityLevel = game.level
 	level.director.stop()
 
@@ -255,10 +255,12 @@ func run(t: TestContext) -> void:
 		var view: Vector2 = menus.get_viewport().get_visible_rect().size
 		for language: String in Profile.LANGUAGES:
 			Profile.set_setting("language", language)
-			for screen: String in ["main", "settings", "pause", "result"]:
+			for screen: String in ["main", "arsenal", "settings", "pause", "result"]:
 				match screen:
 					"main":
 						menus.show_main()
+					"arsenal":
+						menus.show_arsenal()
 					"settings":
 						menus.show_settings("pause")
 					"pause":
@@ -281,8 +283,7 @@ func run(t: TestContext) -> void:
 				t.equal(menus.holder.layout_direction, Control.LAYOUT_DIRECTION_RTL if language == "fa" else Control.LAYOUT_DIRECTION_LTR,
 					"%s: laid out in the reading direction" % label)
 
-	# The title screen in detail: the title at the reading edge, the card of the coming battle at the other,
-	# with the gun between them; a player with a career has two more lines under the title.
+	# The title is a poster: the name of the game and PLAY. Guns wait in the armory.
 	for career: bool in [false, true]:
 		Profile.data.stats.matches = 12 if career else 0
 		Profile.data.stats.victories = 7 if career else 0
@@ -296,31 +297,27 @@ func run(t: TestContext) -> void:
 			var margins: Vector2 = Hud.margins_for(view, Vector2.ZERO)
 			for language: String in Profile.LANGUAGES:
 				Profile.set_setting("language", language)
-				for gun: String in Profile.GUNS:
-					Profile.set_setting("gun", gun)
-					menus.show_main()
-					await t.frames(2)
-					var label: String = "%s, %s, %s%s" % [shape[1], language, gun, ", with a career" if career else ""]
-					var title: Control = menus.stage_brief
-					var card: Control = menus.stage_brief.get_parent().get_parent()
-					var column: Control = null
-					for control: Control in _visible_controls(menus.holder):
-						if control is Label and (control as Label).text == Loc.t("title"):
-							column = control.get_parent()
-					t.check(column != null and card is PanelContainer and title != null, "%s: the title screen has its title and its card" % label)
-					var title_box: Rect2 = column.get_global_rect()
-					var card_box: Rect2 = card.get_global_rect()
-					t.check(_strays(menus, Rect2(margins.x, 0.0, view.x - margins.x - margins.y, view.y)).is_empty(), "%s: every text and control is on the screen, inside the margins" % label)
-					t.check(Rect2(Vector2.ZERO, view).encloses(card_box) and Rect2(Vector2.ZERO, view).encloses(title_box), "%s: so are the two blocks themselves" % label)
-					var gap: float = (title_box.position.x - card_box.end.x) if language == "fa" else (card_box.position.x - title_box.end.x)
-					t.check(gap >= 200.0, "%s: the title stands at the reading edge and the card at the other, with the street between (%.0f units)" % [label, gap])
-					t.check(card_box.end.y <= view.y * 0.76, "%s: the card ends above the gun (at %.0f of %.0f)" % [label, card_box.end.y, view.y])
-					t.check(menus.gun_note.get_line_count() <= 2, "%s: the line about the gun fits the two lines kept for it" % label)
-					var cut: Array[String] = []
-					for button: Button in menus.stage_choices.buttons + menus.gun_choices.buttons:
-						if button.get_minimum_size().x > button.size.x + 0.5:
-							cut.append(button.text)
-					t.check(cut.is_empty(), "%s: every name on a choice fits its button (%s)" % [label, str(cut)])
+				menus.show_main()
+				await t.frames(2)
+				var label: String = "%s, %s%s" % [shape[1], language, ", with a career" if career else ""]
+				t.check(menus.play_button != null and menus.gun_choices == null and menus.stage_choices == null,
+					"%s: the title offers PLAY, not the guns or the stages" % label)
+				t.check(_strays(menus, Rect2(margins.x, 0.0, view.x - margins.x - margins.y, view.y)).is_empty(),
+					"%s: every text and control is on the screen, inside the margins" % label)
+				t.check(menus.play_button.get_global_rect().size.y >= 84.0, "%s: PLAY is a thumb target" % label)
+				menus.show_arsenal()
+				await t.frames(2)
+				t.check(menus.screen == "arsenal" and menus.gun_choices != null and menus.stage_choices != null,
+					"%s: PLAY opens the armory" % label)
+				t.equal(menus.gun_choices.buttons.size(), Profile.GUNS.size(), "%s: every gun has a choice" % label)
+				t.check(menus.gun_note.get_line_count() <= 2, "%s: the line about the gun fits the two lines kept for it" % label)
+				t.check(_strays(menus, Rect2(margins.x, 0.0, view.x - margins.x - margins.y, view.y)).is_empty(),
+					"%s: the armory stays on the screen" % label)
+				var cut: Array[String] = []
+				for button: Button in menus.stage_choices.buttons + menus.gun_choices.buttons:
+					if button.get_minimum_size().x > button.size.x + 0.5:
+						cut.append(button.text)
+				t.check(cut.is_empty(), "%s: every name on a choice fits its button (%s)" % [label, str(cut)])
 	Profile.reset()
 
 	# The settings screen in detail (16:9, Persian).

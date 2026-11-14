@@ -217,14 +217,14 @@ func _rocket_blast(t: TestContext) -> void:
 	t.equal(reports.size(), 1, "the rocket bursts in the crowd")
 	t.check(not struck.alive, "the zombie it strikes dies")
 	t.check(not beside.alive, "the one beside it dies in the blast")
-	t.check(wounded.alive and wounded.health < walker.max_health, "one farther out is wounded but lives")
-	t.check(spared.alive and is_equal_approx(spared.health, walker.max_health), "one outside the radius is untouched")
+	t.check(wounded.alive and wounded.health < wounded.full_health, "one farther out is wounded but lives")
+	t.check(spared.alive and is_equal_approx(spared.health, spared.full_health), "one outside the radius is untouched")
 	if reports.size() == 1:
 		var at: Vector3 = reports[0][0]
 		t.check(at.distance_to(centre + Vector3(0.0, 0.9, 0.0)) < 0.8, "the blast is centred on the struck zombie")
 		t.equal(int(reports[0][2]), 2, "the blast reports its kills")
 		var distance: float = Explosions.distance_to_body(at, wounded)
-		t.near(walker.max_health - wounded.health, blast.damage_at(distance), 0.5, "the wound follows the falloff at %.1f m" % distance)
+		t.near(wounded.full_health - wounded.health, blast.damage_at(distance), 0.5, "the wound follows the falloff at %.1f m" % distance)
 		t.check(Explosions.distance_to_body(at, spared) > blast.radius, "the spared one really stood outside")
 	t.equal(level.stats.kills, 2, "blast kills count as kills")
 	t.equal(level.stats.blast_kills, 2, "and are tallied as explosive kills")
@@ -304,7 +304,6 @@ func _grenades(t: TestContext) -> void:
 	var defender: Defender = level.defender
 	var data: GrenadeData = defender.grenade_data
 	var blast: ExplosionData = data.explosion
-	var walker: ZombieData = level.zombie_types[0]
 	var spot := Vector3(-8.0, 0.0, -22.0)
 	var close: Zombie = _stand(level, spot + Vector3(1.2, 0.0, 0.0))
 	var other: Zombie = _stand(level, spot + Vector3(-1.5, 0.0, 1.0))
@@ -348,7 +347,7 @@ func _grenades(t: TestContext) -> void:
 	t.check(burst.y < 1.0, "on the ground (%.2f m up)" % burst.y)
 	t.check(seconds >= data.min_flight_time and seconds < data.max_life, "flight and fuze take a believable time (%.2f s)" % seconds)
 	t.check(not close.alive and not other.alive, "the zombies around the burst die")
-	t.check(far.alive and is_equal_approx(far.health, walker.max_health), "one well away is untouched")
+	t.check(far.alive and is_equal_approx(far.health, far.full_health), "one well away is untouched")
 	t.equal(level.stats.blast_kills, 2, "grenade kills are tallied as explosive kills")
 	t.check(is_equal_approx(level.defense.gate_health, gate_before), "the gate is unharmed")
 	t.equal(level.grenades.get_child_count(), nodes, "no node was created by the throw")
@@ -491,7 +490,7 @@ func _controls(t: TestContext) -> void:
 	t.tree.root.add_child(game)
 	await t.frames(3)
 	game.start_match()
-	await t.frames(3)
+	await t.frames(4)
 	var hud: Hud = game.hud
 	var level: CityLevel = game.level
 	var defender: Defender = level.defender

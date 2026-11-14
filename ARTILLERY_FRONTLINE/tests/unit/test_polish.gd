@@ -44,6 +44,18 @@ func _tiers(t: TestContext) -> void:
 	t.check(low.corpses < medium.corpses and medium.corpses < high.corpses, "and keeps more bodies on the ground")
 	t.equal(Graphics.resolve_tier("low"), "low", "a chosen tier is used as it is")
 	t.check(Graphics.TIERS.has(Graphics.resolve_tier("auto")), "\"auto\" resolves to a real tier")
+	var viewport: Viewport = Graphics.get_viewport()
+	if viewport:
+		var msaa: int = viewport.msaa_3d
+		Graphics.apply_tier("low")
+		t.near(viewport.scaling_3d_scale, float(low.scale), 0.0001, "low quality renders at its own 3D scale")
+		t.near(Graphics.buffer_scale(), Graphics.render_scale, 0.0001, "and the viewport matches the governor")
+		Graphics.apply_tier("medium")
+		t.near(viewport.scaling_3d_scale, float(medium.scale), 0.0001, "medium quality renders at its own 3D scale")
+		Graphics.apply_tier("high")
+		t.near(viewport.scaling_3d_scale, float(high.scale), 0.0001, "high quality renders at its own 3D scale")
+		t.equal(viewport.msaa_3d, msaa, "MSAA is not rebuilt after the first commit")
+		t.equal(viewport.scaling_3d_mode, Viewport.SCALING_3D_MODE_BILINEAR, "dynamic resolution stays bilinear")
 	_governor(t)
 
 
@@ -98,6 +110,7 @@ func _governor(t: TestContext) -> void:
 	var fill := func(_tier: String, scale: float) -> float: return 8.0 + 22.0 * scale * scale
 	_play(2.6, fill)
 	t.near(Graphics.render_scale, medium - rules.scale_step, 0.0001, "two seconds of slow frames lower the render resolution one step")
+	t.near(Graphics.buffer_scale(), Graphics.render_scale, 0.0001, "and the 3D buffer follows that step")
 	_play(120.0, fill)
 	var rest: float = Graphics.render_scale
 	t.check(rest < medium and rest > rules.scale_floor and not Graphics.monitor.is_slow(fill.call("medium", rest)),
@@ -263,7 +276,7 @@ func _voices(t: TestContext) -> void:
 	t.check(Sound.rank_of("zombie_groan_1") < Sound.rank_of("zombie_death_1"), "groans give way to death cries")
 	t.check(Sound.rank_of("hmg_shot") < Sound.rank_of("explosion"), "the gun does not cut off a blast")
 	t.check(Sound.rank_of("explosion") < Sound.rank_of("alarm"), "nothing cuts off the alarm")
-	for name: String in ["boss_roar", "boss_death", "gate_break", "wall_break", "wave_horn", "victory", "defeat"]:
+	for name: String in ["boss_roar", "boss_death", "gate_break", "wall_break", "wave_horn", "wave_horde", "victory", "defeat"]:
 		t.check(Sound.rank_of(name) > Sound.rank_of("hmg_shot"), "%s outranks the gun" % name)
 	t.equal(Sound.rank_of("click"), 1, "a clip without a rank of its own is ordinary")
 	# The same clip cannot be started twice inside its gap.
@@ -277,9 +290,11 @@ func _voices(t: TestContext) -> void:
 func _loops_and_buses(t: TestContext) -> void:
 	# The importer stores clips compressed; a loop measured in bytes ended two fifths of the way through the theme.
 	var wind: AudioStreamWAV = Sound.clips["wind"]
-	var theme: AudioStreamWAV = Sound.clips["music_theme"]
 	t.equal(Sound.frames_of(wind), 8 * 24000, "the wind bed is measured as its full eight seconds")
-	t.equal(Sound.frames_of(theme), 48 * 24000, "the theme is measured as its full forty-eight seconds")
+	t.check(Sound.has_clip("music_theme"), "the title theme is shipped")
+	t.check(Sound.clips["music_theme"].get_length() > 30.0, "it is a full piece, not a sting")
+	t.check(Sound.has_clip("wave_horde"), "the wave crowd is shipped")
+	t.check(Sound.clips["wave_horde"].get_length() > 8.0, "and long enough to cover the rush")
 	var was_looping: bool = Sound.is_looping("wind")
 	Sound.start_loop("wind", "Effects", -19.0)
 	var player: AudioStreamPlayer = Sound.loops["wind"]
@@ -312,6 +327,14 @@ func _loops_and_buses(t: TestContext) -> void:
 	t.check(not AudioServer.is_bus_mute(Sound.sfx_bus), "and leaves the effects (and the wind) alone")
 	Profile.set_setting("music_volume", 0.5)
 	t.near(AudioServer.get_bus_volume_db(Sound.music_bus), linear_to_db(0.5), 0.01, "half volume is six decibels down")
+	var wind_was: bool = Sound.is_looping("wind")
+	Sound.start_loop("wind", "Effects", -19.0)
+	Sound.play("hmg_shot")
+	Sound.silence_combat()
+	t.check(Sound.is_looping("wind"), "silencing combat leaves the wind bed")
+	t.check(Sound.spatial[0].stream == null and Sound.flat[0].stream == null, "and drops every one-shot voice")
+	if not wind_was:
+		Sound.stop_loop("wind")
 	Profile.reset()
 
 

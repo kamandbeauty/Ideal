@@ -30,7 +30,7 @@ const DEFAULTS: Dictionary = {
 const QUALITY_CHOICES: Array[String] = ["auto", "low", "medium", "high"]
 const LANGUAGES: Array[String] = ["fa", "en"]
 ## The guns that can stand on the mount; the player picks one before a match.
-const GUNS: Array[String] = ["twin_hmg", "rotary_gun"]
+const GUNS: Array[String] = ["twin_hmg", "rotary_gun", "dual_mauler", "bushmaster", "gilded_minigun"]
 
 var save_path: String = "user://lastwall_v1.json"
 ## Tests switch persistence off so they never touch a real save.

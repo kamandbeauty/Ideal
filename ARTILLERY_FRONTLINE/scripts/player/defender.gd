@@ -19,6 +19,9 @@ const THROW_HAND := Vector3(0.3, -0.25, -0.6)
 const GUN_SCENES: Dictionary = {
 	"twin_hmg": "res://scenes/weapons/twin_hmg.tscn",
 	"rotary_gun": "res://scenes/weapons/rotary_gun.tscn",
+	"dual_mauler": "res://scenes/weapons/dual_mauler.tscn",
+	"bushmaster": "res://scenes/weapons/bushmaster.tscn",
+	"gilded_minigun": "res://scenes/weapons/gilded_minigun.tscn",
 }
 
 var aim: AimController

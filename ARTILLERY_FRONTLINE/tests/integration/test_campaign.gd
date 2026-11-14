@@ -1,6 +1,6 @@
 extends RefCounted
 ## The siege as the player meets it: three short stages, each opened by winning
-## the one before, chosen on the title screen and played one at a time.
+## the one before, chosen in the armory after PLAY and fought one at a time.
 
 
 func _button(menus: Menus, text: String) -> Button:
@@ -13,6 +13,21 @@ func _button(menus: Menus, text: String) -> Button:
 		if button != null and button.is_visible_in_tree() and button.text == text:
 			return button
 	return null
+
+
+## PLAY on the title opens the armory; DEPLOY there starts the match.
+func _open_armory(menus: Menus) -> void:
+	if menus.screen != "arsenal":
+		if menus.play_button != null:
+			menus.play_button.pressed.emit()
+		else:
+			menus.show_arsenal()
+
+
+func _begin(menus: Menus) -> void:
+	_open_armory(menus)
+	if menus.play_button != null:
+		menus.play_button.pressed.emit()
 
 
 func _has_text(menus: Menus, text: String) -> bool:
@@ -54,8 +69,11 @@ func run(t: TestContext) -> void:
 	var stages: int = Campaign.count()
 	t.equal(stages, 3, "the siege is fought in three stages")
 
-	# A new player: one stage open, the others under a padlock.
-	t.check(menus.screen == "main" and menus.stage_choices != null, "the title screen shows the stages")
+	# A new player: PLAY opens the armory, where one stage is open and the others wait under a padlock.
+	t.check(menus.screen == "main" and menus.play_button != null and menus.gun_choices == null, "the title offers PLAY, not the guns")
+	menus.play_button.pressed.emit()
+	await t.frames(2)
+	t.check(menus.screen == "arsenal" and menus.stage_choices != null, "PLAY opens the armory")
 	t.equal(menus.stage_choices.buttons.size(), stages, "one choice for each")
 	t.equal(game.stage, 0, "a new player starts at the first")
 	t.equal(menus.stage_choices.selected, 0, "which is the one lit")
@@ -63,16 +81,16 @@ func run(t: TestContext) -> void:
 	t.check(menus.stage_choices.buttons[1].disabled and menus.stage_choices.buttons[2].disabled, "and deaf to the thumb")
 	var first: WaveSet = Campaign.waves(0)
 	t.equal(first.waves.size(), 3, "the first stage has three waves")
-	t.equal(menus.stage_brief.text, Loc.t("stage_brief", [1, first.waves.size(), first.total_zombies()]), "the title screen says what the lit stage holds: its waves and its zombies")
+	t.equal(menus.stage_brief.text, Loc.t("stage_brief", [1, first.waves.size(), first.total_zombies()]), "the armory says what the lit stage holds: its waves and its zombies")
 	menus.stage_choices._choose(1)
 	t.check(menus.stage_choices.selected == 0 and game.stage == 0, "a tap on a locked stage changes nothing")
 	t.check(not game.select_stage(1) and not game.select_stage(-1) and game.stage == 0, "and the game refuses a stage that is not open")
 
 	# The first stage.
-	_button(menus, Loc.t("play")).pressed.emit()
-	await t.frames(3)
+	_begin(menus)
+	await t.frames(4)
 	var level: CityLevel = game.level
-	t.check(game.mode == game.Mode.PLAYING and level.running, "PLAY starts the match")
+	t.check(game.mode == game.Mode.PLAYING and level.running, "DEPLOY starts the match")
 	t.check(level.stage == 0 and level.wave_set == first, "on the waves of the first stage")
 	t.equal(level.director.wave_count(), 3, "three of them")
 	t.equal(level.stats.waves_total, 3, "the match is counted against those three")
@@ -99,7 +117,7 @@ func run(t: TestContext) -> void:
 	t.equal(int(Profile.data.stats.stages_cleared), 0, "nothing is opened by it")
 	t.equal(int(Profile.data.stats.best_wave), 2, "the wave reached is kept")
 	_button(menus, Loc.t("restart")).pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	t.check(game.mode == game.Mode.PLAYING and game.level.stage == 0 and game.level.stats.wave == 0, "AGAIN starts the same stage from its first wave")
 
 	# Winning it opens the second, and the result screen leads straight on.
@@ -113,7 +131,7 @@ func run(t: TestContext) -> void:
 	t.check(onward != null and onward.size.y >= UITheme.TOUCH - 0.5, "NEXT STAGE is offered, a full touch target high")
 	t.check(_button(menus, Loc.t("restart")) != null and _button(menus, Loc.t("main_menu")) != null, "beside AGAIN and MAIN MENU")
 	onward.pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	level = game.level
 	t.check(game.mode == game.Mode.PLAYING and game.stage == 1 and level.stage == 1, "it starts the second stage")
 	t.check(level.wave_set == Campaign.waves(1) and level.director.wave_count() == Campaign.waves(1).waves.size(), "on its own waves")
@@ -139,19 +157,21 @@ func run(t: TestContext) -> void:
 	_button(menus, Loc.t("main_menu")).pressed.emit()
 	await t.frames(3)
 	t.check(game.mode == game.Mode.MENU and menus.screen == "main", "MAIN MENU goes back to the title")
-	t.equal(menus.stage_choices.selected, 1, "where the stage just fought is still the one lit")
-	t.check(not menus.stage_choices.is_locked(0) and not menus.stage_choices.is_locked(1) and menus.stage_choices.is_locked(2), "the first two are open, the third locked")
 	t.check(_has_text(menus, Loc.t("best_run", [2, 2])), "the record is written as a stage and a wave")
 	t.equal(game.level.stage, 1, "the street behind the menu is laid for that stage")
+	_open_armory(menus)
+	await t.frames(2)
+	t.equal(menus.stage_choices.selected, 1, "where the stage just fought is still the one lit")
+	t.check(not menus.stage_choices.is_locked(0) and not menus.stage_choices.is_locked(1) and menus.stage_choices.is_locked(2), "the first two are open, the third locked")
 
 	# An earlier stage can be played again.
 	menus.stage_choices.buttons[0].pressed.emit()
 	await t.frames(2)
 	t.check(game.stage == 0 and menus.stage == 0 and menus.stage_choices.selected == 0, "a tap on an open stage picks it")
 	t.equal(menus.stage_brief.text, Loc.t("stage_brief", [1, first.waves.size(), first.total_zombies()]), "and the line above the choices describes it")
-	menus.show_settings("main")
+	menus.show_settings("arsenal")
 	await t.frames(2)
-	menus.show_main()
+	menus.show_arsenal()
 	await t.frames(2)
 	t.equal(menus.stage_choices.selected, 0, "the choice survives a visit to the settings")
 	Profile.set_setting("language", "fa")
@@ -159,9 +179,9 @@ func run(t: TestContext) -> void:
 	t.check(menus.stage_choices.selected == 0 and menus.stage_brief.text == Loc.t("stage_brief", [1, first.waves.size(), first.total_zombies()]), "and a change of language")
 	Profile.set_setting("language", "en")
 	await t.frames(2)
-	_button(menus, Loc.t("play")).pressed.emit()
-	await t.frames(3)
-	t.check(game.level.stage == 0 and game.level.director.wave_count() == 3, "PLAY starts the stage that was picked")
+	_begin(menus)
+	await t.frames(4)
+	t.check(game.level.stage == 0 and game.level.director.wave_count() == 3, "DEPLOY starts the stage that was picked")
 	_end(game, true, 3)
 	await t.frames(2)
 	t.equal(int(Profile.data.stats.stages_cleared), 1, "winning an old stage again opens nothing new")
@@ -172,16 +192,18 @@ func run(t: TestContext) -> void:
 	# Leaving a won stage by MAIN MENU: the title offers the next one.
 	_button(menus, Loc.t("main_menu")).pressed.emit()
 	await t.frames(3)
-	t.check(game.stage == 1 and menus.stage_choices.selected == 1, "back on the title after a won stage, the next one is lit")
+	_open_armory(menus)
+	await t.frames(2)
+	t.check(game.stage == 1 and menus.stage_choices.selected == 1, "back in the armory after a won stage, the next one is lit")
 
 	# The second stage won, then the third: the siege is over.
-	_button(menus, Loc.t("play")).pressed.emit()
-	await t.frames(3)
+	_begin(menus)
+	await t.frames(4)
 	_end(game, true, Campaign.waves(1).waves.size())
 	await t.frames(2)
 	t.equal(int(Profile.data.stats.stages_cleared), 2, "winning the second stage opens the third")
 	_button(menus, Loc.t("next_stage")).pressed.emit()
-	await t.frames(3)
+	await t.frames(4)
 	level = game.level
 	var last: WaveSet = Campaign.waves(2)
 	t.check(level.stage == 2 and level.wave_set == last, "the third stage is the last")
@@ -198,21 +220,25 @@ func run(t: TestContext) -> void:
 	t.equal(int(Profile.data.stats.best_wave), Campaign.total_waves(), "and the record is the last wave of the siege")
 	_button(menus, Loc.t("main_menu")).pressed.emit()
 	await t.frames(3)
+	t.check(_has_text(menus, Loc.t("best_run", [3, last.waves.size()])), "and the record as the last wave of the last stage")
+	_open_armory(menus)
+	await t.frames(2)
 	var locked: int = 0
 	for index: int in stages:
 		if menus.stage_choices.is_locked(index):
 			locked += 1
-	t.check(locked == 0 and menus.stage_choices.selected == 2, "the title shows all three open, the last one lit")
-	t.check(_has_text(menus, Loc.t("best_run", [3, last.waves.size()])), "and the record as the last wave of the last stage")
+	t.check(locked == 0 and menus.stage_choices.selected == 2, "the armory shows all three open, the last one lit")
 	# A profile that loses its progress under a running game (a save wiped from outside) cannot leave a locked stage playable.
 	Profile.reset()
 	Profile.set_setting("language", "en")
-	_button(menus, Loc.t("play")).pressed.emit()
-	await t.frames(3)
-	t.check(game.stage == 0 and game.level.stage == 0 and game.level.wave_set == first, "with the progress gone, PLAY starts the first stage whatever was lit")
+	_begin(menus)
+	await t.frames(4)
+	t.check(game.stage == 0 and game.level.stage == 0 and game.level.wave_set == first, "with the progress gone, DEPLOY starts the first stage whatever was lit")
 	game.to_menu()
 	await t.frames(3)
-	t.check(menus.stage_choices.selected == 0 and menus.stage_choices.is_locked(1), "and the title shows the stages locked again")
+	_open_armory(menus)
+	await t.frames(2)
+	t.check(menus.stage_choices.selected == 0 and menus.stage_choices.is_locked(1), "and the armory shows the stages locked again")
 	game.queue_free()
 	await t.frames(2)
 
@@ -223,7 +249,9 @@ func run(t: TestContext) -> void:
 	root.add_child(game)
 	await t.frames(3)
 	t.equal(game.stage, 1, "a player who has won the first stage is offered the second on opening the game")
-	t.equal(game.menus.stage_choices.selected, 1, "lit on the title screen")
+	game.menus.show_arsenal()
+	await t.frames(2)
+	t.equal(game.menus.stage_choices.selected, 1, "lit in the armory")
 	t.equal(game.level.stage, 1, "with the street laid for it")
 	game.queue_free()
 	await t.frames(2)

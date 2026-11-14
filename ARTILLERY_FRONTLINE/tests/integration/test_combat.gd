@@ -9,6 +9,9 @@ func _still(level: CityLevel, at: Vector3) -> Zombie:
 	zombie.rotation = Vector3.ZERO
 	zombie.speed = 0.0
 	zombie.scale = Vector3.ONE
+	# Combat checks the type's own health, not the tougher extra looks mixed into the horde.
+	zombie.health = zombie.data.max_health
+	zombie.full_health = zombie.health
 	return zombie
 
 
@@ -17,14 +20,13 @@ func run(t: TestContext) -> void:
 	await t.frames(2)
 	await t.physics_frames(3)
 	var bullets: BulletPool = level.bullets
-	var walker: ZombieData = level.zombie_types[0]
 	var nodes_before: int = bullets.get_child_count()
 
 	# Body hit.
 	var target: Zombie = _still(level, Vector3(8.0, 0.0, -30.0))
 	await t.physics_frames(3)
 	var full: float = target.health
-	t.near(full, walker.max_health, 0.001, "a fresh zombie has full health")
+	t.near(full, target.full_health, 0.001, "a fresh zombie has full health")
 	var slot: int = bullets.fire(Vector3(8.0, 1.0, -12.0), Vector3(0.0, 0.0, -700.0), 34.0, 400.0, true, 0, 0.5, 2.5)
 	t.check(slot >= 0 and bullets.active_count == 1, "firing takes a pooled round")
 	await t.physics_frames(4)
@@ -61,12 +63,12 @@ func run(t: TestContext) -> void:
 	await t.physics_frames(3)
 	bullets.fire(Vector3(-8.0, 1.0, -12.0), Vector3(0.0, 0.0, -700.0), 34.0, 400.0, true, 1, 0.6, 2.5)
 	await t.physics_frames(4)
-	t.near(front.health, walker.max_health - 34.0, 0.001, "a piercing round damages the first zombie")
-	t.near(rear.health, walker.max_health - 34.0 * 0.6, 0.001, "and carries reduced damage into the one behind")
+	t.near(front.health, front.full_health - 34.0, 0.001, "a piercing round damages the first zombie")
+	t.near(rear.health, rear.full_health - 34.0 * 0.6, 0.001, "and carries reduced damage into the one behind")
 	bullets.fire(Vector3(-8.0, 1.0, -12.0), Vector3(0.0, 0.0, -700.0), 10.0, 400.0, true, 0, 0.6, 2.5)
 	await t.physics_frames(4)
-	t.near(rear.health, walker.max_health - 34.0 * 0.6, 0.001, "without penetration the one behind is shielded")
-	t.near(front.health, walker.max_health - 44.0, 0.001, "the shielding zombie takes that round")
+	t.near(rear.health, rear.full_health - 34.0 * 0.6, 0.001, "without penetration the one behind is shielded")
+	t.near(front.health, front.full_health - 44.0, 0.001, "the shielding zombie takes that round")
 
 	# The world and the gate stop rounds.
 	var bursts: int = level.effects.bursts
@@ -78,13 +80,13 @@ func run(t: TestContext) -> void:
 	await t.physics_frames(3)
 	bullets.fire(Vector3(8.0, 1.1, -19.0), Vector3(700.0, 0.0, 0.0), 34.0, 400.0)
 	await t.physics_frames(4)
-	t.near(inside.health, walker.max_health, 0.001, "the closed gate stops rounds")
+	t.near(inside.health, inside.full_health, 0.001, "the closed gate stops rounds")
 	level.defense.apply_damage("gate", 100000.0)
 	t.equal(level.gate_body.collision_layer, 0, "the fallen gate no longer blocks")
 	await t.physics_frames(3)
 	bullets.fire(Vector3(8.0, 1.1, -19.0), Vector3(700.0, 0.0, 0.0), 34.0, 400.0)
 	await t.physics_frames(4)
-	t.near(inside.health, walker.max_health - 34.0, 0.001, "rounds pass through the opening once the gate is down")
+	t.near(inside.health, inside.full_health - 34.0, 0.001, "rounds pass through the opening once the gate is down")
 	bullets.fire(Vector3(-10.0, 2.0, -26.5), Vector3(-700.0, 0.0, 0.0), 34.0, 400.0)
 	await t.physics_frames(3)
 	t.equal(bullets.active_count, 0, "the wall patch stops rounds")

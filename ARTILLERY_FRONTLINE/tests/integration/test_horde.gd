@@ -24,6 +24,7 @@ func run(t: TestContext) -> void:
 
 	# One walker: route, slot, arrival, attack.
 	var zombie: Zombie = horde.spawn(&"walker", "ring_right", "gate")
+	t.check(zombie != null and is_instance_of(zombie, Zombie), "Horde instantiates a Zombie node, not a bare Node3D")
 	t.check(zombie != null and zombie.alive and zombie.visible and zombie.state == Zombie.State.ADVANCE, "a spawned zombie is alive and advancing")
 	var spawn: Vector3 = (layout.routes.ring_right.points as PackedVector3Array)[0]
 	t.check(zombie.position.distance_to(spawn) <= float(layout.routes.ring_right.widths[0]) + 0.01, "it starts at the route's spawn, inside its lane")
@@ -76,6 +77,13 @@ func run(t: TestContext) -> void:
 			overflow += 1
 	t.equal(at_gate, columns * 2, "the gate takes two full rows")
 	t.equal(overflow, 2, "the rest take places on the wall beside it")
+	var gaits: Dictionary = {}
+	var leans: Dictionary = {}
+	for member: Zombie in squad:
+		gaits[member.walk_clip] = true
+		leans["%.2f" % member.gait_lean.x] = true
+	t.check(gaits.size() >= 2, "walkers in a crowd do not all limp the same way (%s)" % str(gaits.keys()))
+	t.check(leans.size() >= 2, "and they do not all lean the same")
 	_until(t, level, 200.0, func() -> bool:
 		for member: Zombie in squad:
 			if member.state == Zombie.State.ADVANCE:
@@ -161,7 +169,10 @@ func run(t: TestContext) -> void:
 			taken[member.walk_clip] = true
 			phases[snappedf(member.anim.current_animation_position, 0.01)] = true
 			if index == 0:
-				t.equal(member.walk_clips.size(), int(kind[2]), "a %s has %d walks to choose from" % [kind[0], kind[2]])
+				if member.look_index == 0:
+					t.equal(member.walk_clips.size(), int(kind[2]), "a %s has %d walks to choose from" % [kind[0], kind[2]])
+				else:
+					t.check(member.walk_clips.size() >= 2, "an extra look still has walks to limp with")
 		t.equal(strangers, 0, "every %s sets out on one of the walks its model has" % kind[0])
 		t.check(taken.size() >= int(kind[3]), "%d of them walk in at least %d different ways (%s)" % [kind[1], kind[3], str(taken.keys())])
 		t.check(lame_left > 0 and lame_left < int(kind[1]), "some are lame in the left leg and some in the right (%d of %d in the left)" % [lame_left, kind[1]])

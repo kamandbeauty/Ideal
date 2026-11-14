@@ -7,7 +7,7 @@ extends Resource
 ## "bullet" rounds are swept rays; a "rocket" is a flying round that detonates.
 @export_enum("bullet", "rocket") var kind: String = "bullet"
 ## The outline drawn on the weapon's card and in the menu.
-@export_enum("gun", "rotary", "launcher") var icon: String = "gun"
+@export_enum("gun", "rotary", "chain", "mauler", "gilded", "launcher") var icon: String = "gun"
 
 @export_group("Damage")
 ## Damage of one round to what it strikes (for a rocket: on top of its blast).

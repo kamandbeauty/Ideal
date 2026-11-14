@@ -16,8 +16,8 @@ root = pathlib.Path(sys.argv[1])
 project = pathlib.Path(__file__).resolve().parent.parent
 NOT_EXPORTED = ("tests", "tools", "documentation", ".godot", "android")
 PACKAGES = {
-    "LastWall-arm64.apk": ("package-metadata.txt", "AndroidManifest.txt", "com.frontline.lastwall"),
-    "LastWall-compatibility.apk": ("compatibility-package-metadata.txt", "compatibility-AndroidManifest.txt", "com.frontline.lastwall.compatibility"),
+    "LastWall-arm64.apk": ("package-metadata.txt", "AndroidManifest.txt", "com.studiojavid.zombiesiege"),
+    "LastWall-compatibility.apk": ("compatibility-package-metadata.txt", "compatibility-AndroidManifest.txt", "com.studiojavid.zombiesiege.compatibility"),
 }
 problems = []
 report = {}

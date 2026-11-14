@@ -22,7 +22,7 @@ static func draw_plate(canvas: CanvasItem, area: Rect2, fill: Color, edge: Color
 
 
 ## Every pictogram `draw_icon` knows.
-const ICONS: Array[String] = ["wall", "gate", "skull", "grenade", "fire", "reload", "pause", "endless", "gun", "rotary", "launcher", "zoom", "lock"]
+const ICONS: Array[String] = ["wall", "gate", "skull", "grenade", "fire", "reload", "pause", "endless", "gun", "rotary", "chain", "mauler", "gilded", "launcher", "zoom", "lock"]
 
 
 ## Pictograms shared by the HUD and the menus. `size` is the side of the box the picture fills.
@@ -88,6 +88,12 @@ static func draw_icon(canvas: CanvasItem, kind: String, at: Vector2, size: float
 			_draw_gun(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
 		"rotary":
 			_draw_rotary(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
+		"chain":
+			_draw_chain(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
+		"mauler":
+			_draw_mauler(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
+		"gilded":
+			_draw_gilded(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
 		"launcher":
 			_draw_launcher(canvas, at - Vector2(s * 0.5, 0.0), s / 100.0, ink)
 		"zoom":
@@ -115,6 +121,38 @@ static func _draw_gun(canvas: CanvasItem, base: Vector2, k: float, ink: Color) -
 	canvas.draw_rect(Rect2(base + Vector2(0.0, -3.0) * k, Vector2(10.0, 6.0) * k), ink)
 	canvas.draw_colored_polygon(PackedVector2Array([base + Vector2(18.0, 12.0) * k, base + Vector2(30.0, 12.0) * k,
 		base + Vector2(34.0, 22.0) * k, base + Vector2(14.0, 22.0) * k]), ink)
+
+
+## One long barrel on a cradle: the chain gun.
+static func _draw_chain(canvas: CanvasItem, base: Vector2, k: float, ink: Color) -> void:
+	canvas.draw_line(base + Vector2(28.0, 0.0) * k, base + Vector2(100.0, 0.0) * k, ink, 4.2 * k)
+	canvas.draw_rect(Rect2(base + Vector2(8.0, -8.0) * k, Vector2(36.0, 16.0) * k), ink)
+	canvas.draw_rect(Rect2(base + Vector2(92.0, -3.5) * k, Vector2(8.0, 7.0) * k), ink)
+	canvas.draw_rect(Rect2(base + Vector2(0.0, -3.0) * k, Vector2(10.0, 6.0) * k), ink)
+	canvas.draw_colored_polygon(PackedVector2Array([base + Vector2(18.0, 12.0) * k, base + Vector2(30.0, 12.0) * k,
+		base + Vector2(34.0, 22.0) * k, base + Vector2(14.0, 22.0) * k]), ink)
+
+
+## The Mauler: a twin gun with a heavier receiver and a drum on top.
+static func _draw_mauler(canvas: CanvasItem, base: Vector2, k: float, ink: Color) -> void:
+	for offset: float in [-8.0, 8.0]:
+		canvas.draw_line(base + Vector2(28.0, offset) * k, base + Vector2(100.0, offset) * k, ink, 4.2 * k)
+		canvas.draw_rect(Rect2(base + Vector2(4.0, offset - 5.5) * k, Vector2(36.0, 11.0) * k), ink)
+		canvas.draw_rect(Rect2(base + Vector2(90.0, offset - 4.0) * k, Vector2(10.0, 8.0) * k), ink)
+	canvas.draw_rect(Rect2(base + Vector2(10.0, -16.0) * k, Vector2(28.0, 32.0) * k), ink)
+	canvas.draw_circle(base + Vector2(24.0, -18.0) * k, 9.0 * k, ink)
+	canvas.draw_rect(Rect2(base + Vector2(0.0, -3.0) * k, Vector2(10.0, 6.0) * k), ink)
+	canvas.draw_colored_polygon(PackedVector2Array([base + Vector2(16.0, 14.0) * k, base + Vector2(30.0, 14.0) * k,
+		base + Vector2(34.0, 24.0) * k, base + Vector2(12.0, 24.0) * k]), ink)
+
+
+## The gilded six-barrel: rotary silhouette with a flared muzzle crown.
+static func _draw_gilded(canvas: CanvasItem, base: Vector2, k: float, ink: Color) -> void:
+	_draw_rotary(canvas, base, k, ink)
+	canvas.draw_colored_polygon(PackedVector2Array([
+		base + Vector2(96.0, -11.0) * k, base + Vector2(108.0, 0.0) * k, base + Vector2(96.0, 11.0) * k,
+		base + Vector2(92.0, 6.0) * k, base + Vector2(100.0, 0.0) * k, base + Vector2(92.0, -6.0) * k
+	]), ink)
 
 
 ## Six barrels in a cluster (three show from the side) with their clamps, the housing and its yoke; 100 units long.
@@ -464,7 +502,7 @@ class WeaponSlot:
 	## One weapon of the gunner: a card with its outline. The HUD's router
 	## hit-tests it with `contains` and writes the round count on a label inside it.
 	var kind: String = "bullet"
-	## Which outline the card carries: "gun", "rotary" or "launcher".
+		## Which outline the card carries: gun, rotary, chain, mauler, gilded or launcher.
 	var icon: String = "gun"
 	var active: bool = false
 	var spent: bool = false
@@ -524,6 +562,8 @@ class WeaponSlot:
 				HudWidgets._draw_launcher(self, base, k, ink)
 			"rotary":
 				HudWidgets._draw_rotary(self, base, k, ink)
+			"chain":
+				HudWidgets._draw_chain(self, base, k, ink)
 			_:
 				HudWidgets._draw_gun(self, base, k, ink)
 		if endless:

@@ -33,10 +33,16 @@ func run(t: TestContext) -> void:
 	var presets := ConfigFile.new()
 	t.equal(presets.load("res://export_presets.cfg"), OK, "export presets parse")
 	t.equal(String(presets.get_value("preset.0", "platform")), "Android", "the first preset targets Android")
-	t.equal(String(presets.get_value("preset.0.options", "package/unique_name")), "com.frontline.lastwall", "the Android package id is the new one")
+	t.equal(String(presets.get_value("preset.0.options", "package/unique_name")), "com.studiojavid.zombiesiege", "the Android package id is the shipped one")
+	t.equal(String(presets.get_value("preset.1.options", "package/unique_name")), "com.studiojavid.zombiesiege.compatibility",
+		"the compatibility package can sit beside it")
 	t.check(bool(presets.get_value("preset.0.options", "architectures/arm64-v8a")), "the APK is built for ARM64")
 	t.check(not bool(presets.get_value("preset.0.options", "permissions/internet")), "the game asks for no network permission")
 	t.check(String(presets.get_value("preset.0", "exclude_filter")).contains("tools/*"), "development tools are not exported")
+	var zombie_source: String = FileAccess.get_file_as_string("res://scripts/zombies/zombie.gd")
+	t.check(not zombie_source.contains("Graphics."), "zombie.gd does not name the Graphics autoload (the headless runner may compile it before autoloads exist)")
+	var runner_source: String = FileAccess.get_file_as_string("res://tests/run_tests.gd")
+	t.check(not runner_source.contains("Zombie.mix_extras"), "the test runner does not name class_name Zombie at parse time")
 
 	# No file, script, scene or resource of the old game remains.
 	var files: Array[String] = []

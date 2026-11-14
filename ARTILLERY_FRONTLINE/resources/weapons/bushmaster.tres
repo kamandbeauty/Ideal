@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/weapons/weapon_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"bushmaster"
+name_key = "weapon_bushmaster"
+kind = "bullet"
+icon = "chain"
+damage = 90.0
+headshot_multiplier = 2.2
+penetration = 2
+penetration_damage_scale = 0.7
+fire_interval = 0.22
+muzzle_velocity = 820.0
+spread_degrees = 0.22
+max_range = 480.0
+tracer_every = 1
+min_convergence = 14.0
+spin_up_time = 0.0
+magazine_size = 80
+reload_time = 3.2
+auto_reload = true
+reserve = -1
+reserve_max = -1
+raise_time = 0.32
+lower_time = 0.24
+recoil_scale = 1.6
+barrel_travel = 0.07
