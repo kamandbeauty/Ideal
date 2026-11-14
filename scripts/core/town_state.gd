@@ -102,6 +102,26 @@ func upkeep_per_minute() -> float:
 	return total
 
 
+## How finished this town is, 0..1. Half of each business is simply opening it;
+## the rest is its level and the three upgrade branches.
+func completion() -> float:
+	if businesses.is_empty():
+		return 0.0
+	var total := 0.0
+	for id in business_ids():
+		var state: BusinessState = businesses[id]
+		var opened := 0.5 if state.unlocked else 0.0
+		var level_part := 0.25 * float(state.level - 1) / float(BusinessData.MAX_LEVEL - 1)
+		var branches := state.capacity_level + state.speed_level + state.quality_level
+		var branch_part := 0.25 * float(branches) / float(3 * BusinessData.MAX_BRANCH_LEVEL)
+		total += opened + level_part + branch_part
+	return clampf(total / float(businesses.size()), 0.0, 1.0)
+
+
+func is_complete() -> bool:
+	return completion() >= 0.999
+
+
 func town_level() -> int:
 	return 1 + int(floor(reputation / 250.0))
 

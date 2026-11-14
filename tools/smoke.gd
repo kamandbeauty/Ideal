@@ -38,7 +38,7 @@ func _run() -> void:
 	Game.start_new_game()
 	_town = TOWN_SCENE.instantiate()
 	add_child(_town)
-	await _settle(8)
+	await _settle(80)
 
 	_boost_town(_town)
 	await _settle(12)

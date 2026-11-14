@@ -34,6 +34,7 @@ func _ready() -> void:
 	camera_rig = IsometricCamera.new()
 	camera_rig.name = "CameraRig"
 	add_child(camera_rig)
+	_intro_camera()
 
 	hud = HUD_SCENE.instantiate()
 	add_child(hud)
@@ -41,6 +42,21 @@ func _ready() -> void:
 
 	if Game.offline_seconds > 0.0:
 		hud.show_offline(Game.offline_seconds, state.offline_earnings(Game.offline_seconds))
+
+
+func _intro_camera() -> void:
+	camera_rig.zoom = 38.0
+	camera_rig.target = Vector3(0, 0, 5.0)
+	camera_rig.apply()
+	var tween := create_tween()
+	tween.tween_method(_apply_intro, 0.0, 1.0, 1.2) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+func _apply_intro(t: float) -> void:
+	camera_rig.zoom = lerpf(38.0, 30.0, t)
+	camera_rig.target = Vector3(0, 0, lerpf(5.0, 0.0, t))
+	camera_rig.apply()
 
 
 func _process(delta: float) -> void:

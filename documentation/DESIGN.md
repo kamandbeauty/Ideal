@@ -68,6 +68,37 @@ Caps: 5 levels, 5 branch steps (a branch may not exceed the building level),
 - Managers therefore automate a business rather than merely boosting it, and a
   fresh player has to hire one before leaving the game idle.
 
+## Completion
+
+Each business contributes `0.5` for being open, `0.25 × (level−1)/4` for its
+level and `0.25 × (capacity + speed + quality)/15` for its branches; the town's
+completion is the average over its six businesses. `is_complete()` is
+`completion() ≥ 0.999`, which needs all six businesses at level 5 with all three
+branches maxed. The HUD shows a progress bar under the resource bar and
+celebrates once when the town is finished — the hook for the next town.
+
+## Presentation
+
+- **Lighting** — one shadow-casting warm sun, a cool sky fill, ACES tonemapping
+  at 0.92 exposure, sky lighting at 0.42, and depth fog that fades the dunes.
+- **Ground** — a 150×150 plane with a seamless sand noise texture, ring-shaped
+  dunes at the horizon, and MultiMesh scatters of rocks, dry shrubs and trees
+  that skip the road corridor and every plot.
+- **Businesses** — a paved plot per business, the kit model scaled 2.4×, a
+  roadside totem with an emissive board in the business colour, and level pips.
+  Locked businesses show an empty lot with a pale board; buying in pops the
+  building in with an eased scale tween.
+- **Traffic** — eight vehicles in three silhouettes (car, van, truck) with
+  spinning wheels, headlights and brake lights, each with its own speed, looping
+  along the highway.
+- **Camera** — a 1.2 s intro pull-in from 38 to 30 units, quarter turns, pinch
+  zoom, drag panning, and a pulsing selection ring.
+- **Interface** — a vignette behind the HUD, coloured card stripes, a five-step
+  level meter in the detail panel, and Persian digits in Persian.
+
+Everything stays inside the Compatibility renderer: no SSAO, SSIL, glow or
+screen-space effects, so the POCO X5 Pro / 60 FPS target remains realistic.
+
 ## Reputation, gems and towns
 
 - Reputation grows by `0.5 × served customers`.

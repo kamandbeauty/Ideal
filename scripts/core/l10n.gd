@@ -110,6 +110,11 @@ const STRINGS := {
 	},
 	"hud.offline_claim": {"fa": "دریافت", "en": "Collect"},
 	"hud.manager_none": {"fa": "بدون مدیر", "en": "No manager"},
+	"hud.completion": {"fa": "تکمیل شهرک {0}٪", "en": "Town completion {0}%"},
+	"hud.town_complete": {
+		"fa": "شهرک کامل شد؛ آمادهٔ شهر بعدی!",
+		"en": "Town complete — ready for the next stop!",
+	},
 	"hud.hint": {
 		"fa": "یک کسب‌وکار را لمس کن تا ارتقا و مدیرش را ببینی.",
 		"en": "Tap a business to see upgrades and its manager.",

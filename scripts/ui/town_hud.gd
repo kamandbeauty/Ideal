@@ -24,6 +24,10 @@ var _upgrade_button: Button
 var _unlock_button: Button
 var _offline_layer: Control
 var _offline_body: Label
+var _completion_bar: ProgressBar
+var _completion_label: Label
+var _completion_announced := false
+var _stars: Array[ColorRect] = []
 var _save_button: Button
 var _menu_button: Button
 var _close_button: Button
@@ -50,11 +54,64 @@ func setup(session_node: Node) -> void:
 
 
 func _build() -> void:
+	_build_vignette()
 	_build_top_bar()
+	_build_progress()
 	_build_cards()
 	_build_panel()
 	_build_toast()
 	_build_offline()
+
+
+func _build_vignette() -> void:
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(1, 1, 1, 0.0))
+	gradient.set_color(1, Color(0.02, 0.03, 0.06, 0.5))
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5)
+	texture.fill_to = Vector2(1.05, 0.5)
+	texture.width = 256
+	texture.height = 256
+	var vignette := TextureRect.new()
+	vignette.name = "Vignette"
+	vignette.texture = texture
+	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	vignette.stretch_mode = TextureRect.STRETCH_SCALE
+	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(vignette)
+
+
+func _build_progress() -> void:
+	var holder := HBoxContainer.new()
+	holder.name = "Progress"
+	holder.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	holder.offset_left = 20
+	holder.offset_top = 80
+	holder.offset_right = 460
+	holder.offset_bottom = 104
+	holder.add_theme_constant_override("separation", 10)
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(holder)
+
+	_completion_bar = ProgressBar.new()
+	_completion_bar.show_percentage = false
+	_completion_bar.custom_minimum_size = Vector2(220, 10)
+	_completion_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_completion_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_completion_bar.add_theme_stylebox_override(
+		"background", UiTheme.slim_style(UiTheme.PANEL_SOFT, UiTheme.BORDER)
+	)
+	_completion_bar.add_theme_stylebox_override(
+		"fill", UiTheme.slim_style(UiTheme.GOOD, UiTheme.GOOD)
+	)
+	holder.add_child(_completion_bar)
+
+	_completion_label = _label(13, UiTheme.MUTED, false)
+	_completion_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	holder.add_child(_completion_label)
 
 
 func _build_top_bar() -> void:
@@ -126,6 +183,13 @@ func _build_card(id: String) -> Button:
 	box.add_theme_constant_override("separation", 2)
 	card.add_child(box)
 
+	var stripe := ColorRect.new()
+	stripe.color = BusinessData.accent(id)
+	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stripe.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	stripe.offset_right = 4
+	card.add_child(stripe)
+
 	var title := _label(16, UiTheme.TEXT, true)
 	box.add_child(title)
 	var status := _label(13, UiTheme.MUTED, false)
@@ -168,6 +232,16 @@ func _build_panel() -> void:
 
 	_panel_stats = _label(15, UiTheme.TEXT, false)
 	column.add_child(_panel_stats)
+
+	var stars_row := HBoxContainer.new()
+	stars_row.add_theme_constant_override("separation", 6)
+	column.add_child(stars_row)
+	for i in BusinessData.MAX_LEVEL:
+		var star := ColorRect.new()
+		star.custom_minimum_size = Vector2(26, 6)
+		star.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		stars_row.add_child(star)
+		_stars.append(star)
 
 	_branches_box = GridContainer.new()
 	_branches_box.columns = 3
@@ -313,6 +387,13 @@ func _refresh() -> void:
 		App.t("hud.reputation"), _num(int(state.reputation))
 	]
 
+	var progress := state.completion()
+	_completion_bar.value = progress * 100.0
+	_completion_label.text = App.t("hud.completion", [_num(round(progress * 100.0))])
+	if progress >= 0.999 and not _completion_announced:
+		_completion_announced = true
+		_show_toast(App.t("hud.town_complete"))
+
 	for id in _cards:
 		_refresh_card(id)
 	if _panel.visible and not selected_id.is_empty():
@@ -367,6 +448,12 @@ func _refresh_panel() -> void:
 		])],
 		App.t("hud.efficiency", [_num(round(business.efficiency() * 100.0))]),
 	])
+
+	var accent := BusinessData.accent(selected_id)
+	for i in _stars.size():
+		_stars[i].color = (
+			accent if business.level > i else Color(0.24, 0.3, 0.4, 0.55)
+		)
 
 	var locked := not business.unlocked
 	_branches_box.visible = not locked

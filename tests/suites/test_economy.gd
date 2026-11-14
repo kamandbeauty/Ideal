@@ -153,6 +153,23 @@ func test_reputation_pays_gems_once() -> void:
 	equal(town.town_level(), 3, "600 reputation is level 3")
 
 
+func test_completion_tracks_progress() -> void:
+	var town := TownState.new("desert")
+	check(town.completion() > 0.0, "a fresh town has some progress")
+	check(town.completion() < 0.2, "a fresh town is barely started")
+	check(not town.is_complete(), "a fresh town is not complete")
+	town.cash = 100000000.0
+	for id in town.business_ids():
+		town.unlock_business(id)
+		while town.business(id).level < BusinessData.MAX_LEVEL:
+			town.upgrade_business(id)
+		for branch in BusinessData.BRANCHES:
+			while town.business(id).can_upgrade_branch(branch):
+				town.upgrade_branch(id, branch)
+	almost(town.completion(), 1.0, "a fully upgraded town is complete", 0.001)
+	check(town.is_complete(), "is_complete agrees with completion")
+
+
 func test_town_modifiers_apply() -> void:
 	var desert := TownState.new("desert")
 	var highway := TownState.new("highway")
