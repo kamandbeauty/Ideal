@@ -55,8 +55,7 @@ func setup(session_node: Node) -> void:
 
 func _build() -> void:
 	_build_vignette()
-	_build_top_bar()
-	_build_progress()
+	_build_top_area()
 	_build_cards()
 	_build_panel()
 	_build_toast()
@@ -84,45 +83,21 @@ func _build_vignette() -> void:
 	add_child(vignette)
 
 
-func _build_progress() -> void:
-	var holder := HBoxContainer.new()
-	holder.name = "Progress"
-	holder.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	holder.offset_left = 20
-	holder.offset_top = 80
-	holder.offset_right = 460
-	holder.offset_bottom = 104
-	holder.add_theme_constant_override("separation", 10)
-	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(holder)
+func _build_top_area() -> void:
+	var column := VBoxContainer.new()
+	column.name = "TopArea"
+	column.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	column.offset_left = 12
+	column.offset_right = -12
+	column.offset_top = 10
+	column.add_theme_constant_override("separation", 6)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(column)
 
-	_completion_bar = ProgressBar.new()
-	_completion_bar.show_percentage = false
-	_completion_bar.custom_minimum_size = Vector2(220, 10)
-	_completion_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_completion_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_completion_bar.add_theme_stylebox_override(
-		"background", UiTheme.slim_style(UiTheme.PANEL_SOFT, UiTheme.BORDER)
-	)
-	_completion_bar.add_theme_stylebox_override(
-		"fill", UiTheme.slim_style(UiTheme.GOOD, UiTheme.GOOD)
-	)
-	holder.add_child(_completion_bar)
-
-	_completion_label = _label(13, UiTheme.MUTED, false)
-	_completion_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	holder.add_child(_completion_label)
-
-
-func _build_top_bar() -> void:
 	var bar := PanelContainer.new()
 	bar.name = "TopBar"
-	bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	bar.offset_left = 12
-	bar.offset_right = -12
-	bar.offset_top = 10
 	bar.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(bar)
+	column.add_child(bar)
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 18)
@@ -147,6 +122,29 @@ func _build_top_bar() -> void:
 	_menu_button = _button("hud.menu", "GhostButton", 96, 44)
 	_menu_button.pressed.connect(_on_menu)
 	row.add_child(_menu_button)
+
+	var progress := HBoxContainer.new()
+	progress.name = "Completion"
+	progress.add_theme_constant_override("separation", 10)
+	progress.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(progress)
+
+	_completion_bar = ProgressBar.new()
+	_completion_bar.show_percentage = false
+	_completion_bar.custom_minimum_size = Vector2(220, 12)
+	_completion_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_completion_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_completion_bar.add_theme_stylebox_override(
+		"background", UiTheme.slim_style(UiTheme.PANEL_SOFT, UiTheme.BORDER)
+	)
+	_completion_bar.add_theme_stylebox_override(
+		"fill", UiTheme.slim_style(UiTheme.GOOD, UiTheme.GOOD)
+	)
+	progress.add_child(_completion_bar)
+
+	_completion_label = _label(13, UiTheme.MUTED, false)
+	_completion_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	progress.add_child(_completion_label)
 
 
 func _build_cards() -> void:
@@ -180,7 +178,8 @@ func _build_card(id: String) -> Button:
 	box.offset_right = -12
 	box.offset_bottom = -8
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_theme_constant_override("separation", 2)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 3)
 	card.add_child(box)
 
 	var stripe := ColorRect.new()
@@ -197,7 +196,21 @@ func _build_card(id: String) -> Button:
 	var income := _label(13, UiTheme.GOLD, false)
 	box.add_child(income)
 
-	_cards[id] = {"card": card, "title": title, "status": status, "income": income}
+	var dots := HBoxContainer.new()
+	dots.add_theme_constant_override("separation", 4)
+	dots.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(dots)
+	var dot_list: Array[ColorRect] = []
+	for i in BusinessData.MAX_LEVEL:
+		var dot := ColorRect.new()
+		dot.custom_minimum_size = Vector2(12, 4)
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dots.add_child(dot)
+		dot_list.append(dot)
+
+	_cards[id] = {
+		"card": card, "title": title, "status": status, "income": income, "dots": dot_list
+	}
 	return card
 
 
@@ -207,7 +220,7 @@ func _build_panel() -> void:
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
 	_panel.offset_left = -432
 	_panel.offset_right = -12
-	_panel.offset_top = 84
+	_panel.offset_top = 108
 	_panel.offset_bottom = -150
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_panel.visible = false
@@ -418,8 +431,14 @@ func _refresh_card(id: String) -> void:
 		status.add_theme_color_override("font_color", UiTheme.MUTED)
 		income.text = App.t("hud.unlock", [_money(BusinessData.unlock_cost(id) * state.cost_scale())])
 
+	var accent := BusinessData.accent(id)
+	var dots: Array = card.get("dots", [])
+	for i in dots.size():
+		var dot: ColorRect = dots[i]
+		var reached := business.unlocked and business.level > i
+		dot.color = accent if reached else Color(0.28, 0.33, 0.42, 0.7)
+
 	if id == selected_id:
-		var accent := BusinessData.accent(id)
 		var style := UiTheme.button_style(accent.darkened(0.72), accent)
 		card_button.add_theme_stylebox_override("normal", style)
 		card_button.add_theme_stylebox_override("hover", style)
