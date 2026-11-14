@@ -40,7 +40,7 @@ quality    = 1 + 0.10 (level − 1) + 0.15 quality_branch
 price      = base_price × quality
 upkeep/min = base_upkeep × (1 + 0.12 (level − 1))
 
-served/min   = min(base_demand × traffic, capacity × throughput)
+served/min   = min(base_demand × traffic × (1 + 0.15 (level − 1)), capacity × throughput)
 revenue/min  = served/min × price
 profit/min   = max(0, revenue/min − upkeep/min)
 efficiency   = 0.6 + 0.1 × manager_rank          # 60 % … 100 %

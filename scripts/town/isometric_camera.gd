@@ -4,13 +4,13 @@ extends Node3D
 
 const PITCH := 42.0
 const ZOOM_MIN := 9.0
-const ZOOM_MAX := 42.0
+const ZOOM_MAX := 46.0
 const ZOOM_STEP := 0.9
 const PAN_LIMIT := 16.0
 
 var target := Vector3.ZERO
 var yaw := 35.0
-var zoom := 21.0
+var zoom := 26.0
 var camera: Camera3D
 
 
@@ -68,6 +68,6 @@ func focus_on(point: Vector3) -> void:
 
 func reset_view() -> void:
 	yaw = 35.0
-	zoom = 21.0
+	zoom = 26.0
 	target = Vector3.ZERO
 	apply()

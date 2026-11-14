@@ -45,8 +45,11 @@ func upkeep_per_minute() -> float:
 	return base * (1.0 + 0.12 * (level - 1))
 
 
+## Demand also grows with the level, so an upgraded building never runs out of
+## customers and the capacity branch always has something to serve.
 func demand_per_minute(traffic: float) -> float:
-	return float(data().get("base_demand", 0.0)) * traffic
+	var base := float(data().get("base_demand", 0.0))
+	return base * traffic * (1.0 + 0.15 * (level - 1))
 
 
 func served_per_minute(traffic: float) -> float:

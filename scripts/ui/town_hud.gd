@@ -25,6 +25,10 @@ var _upgrade_button: Button
 var _unlock_button: Button
 var _offline_layer: Control
 var _offline_body: Label
+var _save_button: Button
+var _menu_button: Button
+var _close_button: Button
+var _offline_title: Label
 var _toast_panel: PanelContainer
 var _toast: Label
 
@@ -80,13 +84,13 @@ func _build_top_bar() -> void:
 	_reputation_label = _label(20, UiTheme.GOOD, true)
 	row.add_child(_reputation_label)
 
-	var save_button := _button("hud.save", "GhostButton", 96, 44)
-	save_button.pressed.connect(_on_save)
-	row.add_child(save_button)
+	_save_button = _button("hud.save", "GhostButton", 96, 44)
+	_save_button.pressed.connect(_on_save)
+	row.add_child(_save_button)
 
-	var menu_button := _button("hud.menu", "GhostButton", 96, 44)
-	menu_button.pressed.connect(_on_menu)
-	row.add_child(menu_button)
+	_menu_button = _button("hud.menu", "GhostButton", 96, 44)
+	_menu_button.pressed.connect(_on_menu)
+	row.add_child(_menu_button)
 
 
 func _build_hint() -> void:
@@ -166,9 +170,9 @@ func _build_panel() -> void:
 	_panel_title = _label(22, UiTheme.TEXT, true)
 	_panel_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_panel_title)
-	var close := _button("hud.close", "GhostButton", 84, 40)
-	close.pressed.connect(_on_close_panel)
-	header.add_child(close)
+	_close_button = _button("hud.close", "GhostButton", 84, 40)
+	_close_button.pressed.connect(_on_close_panel)
+	header.add_child(_close_button)
 
 	_panel_desc = _label(14, UiTheme.MUTED, false)
 	_panel_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -256,10 +260,10 @@ func _build_offline() -> void:
 	column.add_theme_constant_override("separation", 12)
 	panel.add_child(column)
 
-	var title := _label(26, UiTheme.GOLD, true)
-	title.text = App.t("hud.offline_title")
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(title)
+	_offline_title = _label(26, UiTheme.GOLD, true)
+	_offline_title.text = App.t("hud.offline_title")
+	_offline_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(_offline_title)
 
 	_offline_body = _label(17, UiTheme.TEXT, false)
 	_offline_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -275,6 +279,10 @@ func _build_offline() -> void:
 func _apply_language() -> void:
 	layout_direction = App.layout_direction()
 	_hint.text = App.t("hud.hint")
+	_save_button.text = App.t("hud.save")
+	_menu_button.text = App.t("hud.menu")
+	_close_button.text = App.t("hud.close")
+	_offline_title.text = App.t("hud.offline_title")
 	for id in _cards:
 		var card: Dictionary = _cards[id]
 		(card["title"] as Label).text = _business_name(id)
@@ -459,7 +467,7 @@ func _on_upgrade() -> void:
 	if business == null:
 		return
 	if state.upgrade_business(selected_id):
-		Sound.play("res://assets/audio/placement-1.ogg", -8.0)
+		Sound.play("res://assets/audio/placement-*.ogg", -8.0)
 		_show_toast(App.t("msg.upgraded", [_business_name(selected_id), business.level]))
 	else:
 		_show_toast(App.t("msg.no_cash"))
@@ -471,7 +479,7 @@ func _on_branch(branch: String) -> void:
 	if business == null:
 		return
 	if state.upgrade_branch(selected_id, branch):
-		Sound.play("res://assets/audio/placement-2.ogg", -8.0)
+		Sound.play("res://assets/audio/placement-*.ogg", -8.0)
 		_show_toast(App.t("msg.branch_upgraded", [
 			_business_name(selected_id),
 			App.t("branch.%s" % branch),
@@ -498,7 +506,7 @@ func _on_manager() -> void:
 
 func _on_unlock() -> void:
 	if state.unlock_business(selected_id):
-		Sound.play("res://assets/audio/placement-3.ogg", -6.0)
+		Sound.play("res://assets/audio/placement-*.ogg", -6.0)
 		_show_toast(App.t("msg.unlocked", [_business_name(selected_id)]))
 	else:
 		_show_toast(App.t("msg.no_cash"))
