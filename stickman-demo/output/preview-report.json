@@ -1,0 +1,1271 @@
+{
+  "fingerprint": "56e59f87fd7e3450efeea288a3e898395de424e6ff9380d447f817cc092239b0",
+  "preview_seconds": 16.4,
+  "output": "/home/user/Ideal/stickman-demo/output/preview.mp4",
+  "output_sha256": "b79516e53360c0b99bf8d02cf53ba7e3e27ac3253eaa0efdb5d91c511b336164",
+  "original_voice_sha256": "d1598463a23ac55c7e58c53fb53dfe504ae17ee4578891daef9fb6f7d4cf4df5",
+  "original_voice_duration": 16.4,
+  "voice_rate": "unchanged; leading/trailing padding only",
+  "frames": 492,
+  "duration": 16.4,
+  "cache_hits": 6,
+  "shot_count": 6,
+  "full_decode": "pass",
+  "caption_count": 9,
+  "human_review": "required; technical checks are not acceptance",
+  "inputs": [
+    {
+      "path": "/home/user/Ideal/stickman-demo/narration.m4a",
+      "sha256": "d1598463a23ac55c7e58c53fb53dfe504ae17ee4578891daef9fb6f7d4cf4df5"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23-contact-sheet.png",
+      "sha256": "0bc85b4c8ca938b01d346fcca9af06e608ea56e6d82ea993860647166b7b530e"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23-motion-sheet.png",
+      "sha256": "7bb8664e837e44604387f258522fd2251bac5ddf7347ed02297f211dc45ced73"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23.mp4",
+      "sha256": "111c241a836a0c26b27df2cbff3ba5697b97460dbb873b68dd2f6eda2383b3fc"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-24-longform-contact-sheet.jpg",
+      "sha256": "18690bd4a1d94cdc611bced722899cd0cae3f3e114120cedc79e0ab717b4c99e"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-baseline.json",
+      "sha256": "71a45ae39cfde9e90eefdf32676ad9be7082bfb5e0a85589face9967eca37e73"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-production-standard.json",
+      "sha256": "1208febb532b602ebf2cd54543461f90c171eab263d68ee4021a195ae27cd8b5"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/calendar-crayon.png",
+      "sha256": "97b7fbff3f16ce18457db89db125e8eaebd97ef95537ecfabdf3a089bd4f4a2a"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/camera-handdrawn.png",
+      "sha256": "56fb555059cab64130b3b26dc5ffa2cd0684136ccf94c6a380ce2b2fa592075b"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/character-pose-sheet-v6.png",
+      "sha256": "94b601f640112314965525f49536f87942c577e1e5556a11503b19ed00777bb7"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/clapper-crayon.png",
+      "sha256": "e9aa6455d6153a140fb3bcdcd8f967c9ddd76c7e0f89c0ef590a69f412d031b8"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/idea-bulb-crayon.png",
+      "sha256": "439ac0f851ce3dc3ecace97e522c0c18bf1ffada833bff93905f9dd91b9f5db7"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/idea-note-crayon.png",
+      "sha256": "078a53c4b1efa343bdc033371129e62dcab80e752884725202c3d7d79e3b9739"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/open-source-crayon.png",
+      "sha256": "37a2d8c008d155670dda3af50d944144a8f6d9221c5d47c4adb64c85dba0c2ca"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/script-page-crayon.png",
+      "sha256": "72c11003b310fec896ce5b5f62a150115efcf10bcc6e8c43d63dcdf5709a508e"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/youtube-crayon.png",
+      "sha256": "c839717057aeb3c06269eb0e83e1fdc566eb9b4b02d6485212548a21d4d043e4"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/fonts/Caveat.ttf",
+      "sha256": "0bdb6b660482d31531b3945849fba5916b3ef8695da7024a9e6b9ee3c4157988"
+    },
+    {
+      "path": "/tmp/svd/skills/directing-stickman-videos/assets/fonts/NotoSans.ttf",
+      "sha256": "bfb7bb691513f12e734dc346c03a03f784912432d7e3fa8e56efcf906fe86b3d"
+    }
+  ],
+  "local_motion": {
+    "intervals": [
+      {
+        "id": "cam-wobble",
+        "start": 0,
+        "end": 0.5,
+        "reason": "the camera rocks and settles as the narrator asks about being on camera",
+        "changed_pixels": 5453
+      },
+      {
+        "id": "cam-wobble",
+        "start": 0.5,
+        "end": 0.9,
+        "reason": "the camera rocks and settles as the narrator asks about being on camera",
+        "changed_pixels": 3586
+      },
+      {
+        "id": "cam-wobble",
+        "start": 0.9,
+        "end": 1.6,
+        "reason": "the camera rocks and settles as the narrator asks about being on camera",
+        "changed_pixels": 3092
+      },
+      {
+        "id": "cam-wobble",
+        "start": 1.6,
+        "end": 2.2,
+        "reason": "the camera rocks and settles as the narrator asks about being on camera",
+        "changed_pixels": 3726
+      },
+      {
+        "id": "cam-wobble",
+        "start": 2.2,
+        "end": 2.7,
+        "reason": "the camera rocks and settles as the narrator asks about being on camera",
+        "changed_pixels": 2616
+      },
+      {
+        "id": "idea-note-drop",
+        "start": 2.85,
+        "end": 3.25,
+        "reason": "the idea note drops onto the page as the stick figure idea lands",
+        "changed_pixels": 7741
+      },
+      {
+        "id": "idea-note-drop",
+        "start": 4.05,
+        "end": 4.45,
+        "reason": "the idea note drops onto the page as the stick figure idea lands",
+        "changed_pixels": 4603
+      },
+      {
+        "id": "calendar-rock",
+        "start": 6.1,
+        "end": 6.6,
+        "reason": "the calendar shakes off as weeks of animation are dismissed",
+        "changed_pixels": 7448
+      },
+      {
+        "id": "calendar-rock",
+        "start": 6.6,
+        "end": 7.1,
+        "reason": "the calendar shakes off as weeks of animation are dismissed",
+        "changed_pixels": 5575
+      },
+      {
+        "id": "calendar-rock",
+        "start": 7.1,
+        "end": 7.6,
+        "reason": "the calendar shakes off as weeks of animation are dismissed",
+        "changed_pixels": 4604
+      },
+      {
+        "id": "note-grows",
+        "start": 7.9,
+        "end": 9.700000000000001,
+        "reason": "the idea note grows into a clear story draft while the narrator explains",
+        "changed_pixels": 57236
+      },
+      {
+        "id": "note-grows",
+        "start": 9.700000000000001,
+        "end": 10.4,
+        "reason": "the idea note grows into a clear story draft while the narrator explains",
+        "changed_pixels": 15531
+      },
+      {
+        "id": "arrow-workflow",
+        "start": 10.8,
+        "end": 11.3,
+        "reason": "an arrow draws from the open-source toolkit to the script as the workflow is named",
+        "changed_pixels": 993
+      },
+      {
+        "id": "arrow-workflow",
+        "start": 12.4,
+        "end": 12.8,
+        "reason": "an arrow draws from the open-source toolkit to the script as the workflow is named",
+        "changed_pixels": 9
+      },
+      {
+        "id": "video-pop",
+        "start": 14.350000000000001,
+        "end": 14.850000000000001,
+        "reason": "the published video pops as the idea becomes a real video",
+        "changed_pixels": 17752
+      }
+    ],
+    "windows": [
+      {
+        "start": 0,
+        "end": 2.25,
+        "id": "cam-wobble",
+        "changed_pixels": 5453
+      },
+      {
+        "start": 0.25,
+        "end": 2.5,
+        "id": "cam-wobble",
+        "changed_pixels": 3785
+      },
+      {
+        "start": 0.5,
+        "end": 2.75,
+        "id": "cam-wobble",
+        "changed_pixels": 3586
+      },
+      {
+        "start": 0.75,
+        "end": 3,
+        "id": "cam-wobble",
+        "changed_pixels": 2094
+      },
+      {
+        "start": 1,
+        "end": 3.25,
+        "id": "cam-wobble",
+        "changed_pixels": 3092
+      },
+      {
+        "start": 1.25,
+        "end": 3.5,
+        "id": "cam-wobble",
+        "changed_pixels": 2359
+      },
+      {
+        "start": 1.5,
+        "end": 3.75,
+        "id": "cam-wobble",
+        "changed_pixels": 752
+      },
+      {
+        "start": 1.75,
+        "end": 4,
+        "id": "cam-wobble",
+        "changed_pixels": 3726
+      },
+      {
+        "start": 2,
+        "end": 4.25,
+        "id": "cam-wobble",
+        "changed_pixels": 2163
+      },
+      {
+        "start": 2.25,
+        "end": 4.5,
+        "id": "cam-wobble",
+        "changed_pixels": 2616
+      },
+      {
+        "start": 2.5,
+        "end": 4.75,
+        "id": "cam-wobble",
+        "changed_pixels": 1522
+      },
+      {
+        "start": 2.75,
+        "end": 5,
+        "id": "idea-note-drop",
+        "changed_pixels": 7741
+      },
+      {
+        "start": 3,
+        "end": 5.25,
+        "id": "idea-note-drop",
+        "changed_pixels": 6290
+      },
+      {
+        "start": 3.25,
+        "end": 5.5,
+        "id": "idea-note-drop",
+        "changed_pixels": 4603
+      },
+      {
+        "start": 3.5,
+        "end": 5.75,
+        "id": "idea-note-drop",
+        "changed_pixels": 4603
+      },
+      {
+        "start": 3.75,
+        "end": 6,
+        "id": "idea-note-drop",
+        "changed_pixels": 4603
+      },
+      {
+        "start": 4,
+        "end": 6.25,
+        "id": "idea-note-drop",
+        "changed_pixels": 4603
+      },
+      {
+        "start": 4.25,
+        "end": 6.5,
+        "id": "idea-note-drop",
+        "changed_pixels": 3486
+      },
+      {
+        "start": 4.5,
+        "end": 6.75,
+        "id": "calendar-rock",
+        "changed_pixels": 7448
+      },
+      {
+        "start": 4.75,
+        "end": 7,
+        "id": "calendar-rock",
+        "changed_pixels": 7448
+      },
+      {
+        "start": 5,
+        "end": 7.25,
+        "id": "calendar-rock",
+        "changed_pixels": 7448
+      },
+      {
+        "start": 5.25,
+        "end": 7.5,
+        "id": "calendar-rock",
+        "changed_pixels": 7448
+      },
+      {
+        "start": 5.5,
+        "end": 7.75,
+        "id": "calendar-rock",
+        "changed_pixels": 7448
+      },
+      {
+        "start": 5.75,
+        "end": 8,
+        "id": "calendar-rock",
+        "changed_pixels": 7448
+      },
+      {
+        "start": 6,
+        "end": 8.25,
+        "id": "calendar-rock",
+        "changed_pixels": 7448
+      },
+      {
+        "start": 6.25,
+        "end": 8.5,
+        "id": "calendar-rock",
+        "changed_pixels": 6942
+      },
+      {
+        "start": 6.5,
+        "end": 8.75,
+        "id": "calendar-rock",
+        "changed_pixels": 3567
+      },
+      {
+        "start": 6.75,
+        "end": 9,
+        "id": "calendar-rock",
+        "changed_pixels": 5575
+      },
+      {
+        "start": 7,
+        "end": 9.25,
+        "id": "calendar-rock",
+        "changed_pixels": 2321
+      },
+      {
+        "start": 7.25,
+        "end": 9.5,
+        "id": "calendar-rock",
+        "changed_pixels": 4604
+      },
+      {
+        "start": 7.5,
+        "end": 9.75,
+        "id": "calendar-rock",
+        "changed_pixels": 1787
+      },
+      {
+        "start": 7.75,
+        "end": 10,
+        "id": "note-grows",
+        "changed_pixels": 57236
+      },
+      {
+        "start": 8,
+        "end": 10.25,
+        "id": "note-grows",
+        "changed_pixels": 56939
+      },
+      {
+        "start": 8.25,
+        "end": 10.5,
+        "id": "note-grows",
+        "changed_pixels": 53661
+      },
+      {
+        "start": 8.5,
+        "end": 10.75,
+        "id": "note-grows",
+        "changed_pixels": 48026
+      },
+      {
+        "start": 8.75,
+        "end": 11,
+        "id": "note-grows",
+        "changed_pixels": 39545
+      },
+      {
+        "start": 9,
+        "end": 11.25,
+        "id": "note-grows",
+        "changed_pixels": 29948
+      },
+      {
+        "start": 9.25,
+        "end": 11.5,
+        "id": "note-grows",
+        "changed_pixels": 19989
+      },
+      {
+        "start": 9.5,
+        "end": 11.75,
+        "id": "note-grows",
+        "changed_pixels": 10445
+      },
+      {
+        "start": 9.75,
+        "end": 12,
+        "id": "note-grows",
+        "changed_pixels": 15531
+      },
+      {
+        "start": 10,
+        "end": 12.25,
+        "id": "note-grows",
+        "changed_pixels": 12234
+      },
+      {
+        "start": 10.25,
+        "end": 12.5,
+        "id": "note-grows",
+        "changed_pixels": 5067
+      },
+      {
+        "start": 10.5,
+        "end": 12.75,
+        "id": "arrow-workflow",
+        "changed_pixels": 993
+      },
+      {
+        "start": 10.75,
+        "end": 13,
+        "id": "arrow-workflow",
+        "changed_pixels": 993
+      },
+      {
+        "start": 11,
+        "end": 13.25,
+        "id": "arrow-workflow",
+        "changed_pixels": 694
+      },
+      {
+        "start": 11.25,
+        "end": 13.5,
+        "id": "arrow-workflow",
+        "changed_pixels": 10
+      },
+      {
+        "start": 11.5,
+        "end": 13.75,
+        "id": "arrow-workflow",
+        "changed_pixels": 9
+      },
+      {
+        "start": 11.75,
+        "end": 14,
+        "id": "arrow-workflow",
+        "changed_pixels": 9
+      },
+      {
+        "start": 12,
+        "end": 14.25,
+        "id": "arrow-workflow",
+        "changed_pixels": 9
+      },
+      {
+        "start": 12.25,
+        "end": 14.5,
+        "id": "arrow-workflow",
+        "changed_pixels": 9
+      },
+      {
+        "start": 12.5,
+        "end": 14.75,
+        "id": "video-pop",
+        "changed_pixels": 16623
+      },
+      {
+        "start": 12.75,
+        "end": 15,
+        "id": "video-pop",
+        "changed_pixels": 17752
+      },
+      {
+        "start": 13,
+        "end": 15.25,
+        "id": "video-pop",
+        "changed_pixels": 17752
+      },
+      {
+        "start": 13.25,
+        "end": 15.5,
+        "id": "video-pop",
+        "changed_pixels": 17752
+      },
+      {
+        "start": 13.5,
+        "end": 15.75,
+        "id": "video-pop",
+        "changed_pixels": 17752
+      },
+      {
+        "start": 13.75,
+        "end": 16,
+        "id": "video-pop",
+        "changed_pixels": 17752
+      },
+      {
+        "start": 14,
+        "end": 16.25,
+        "id": "video-pop",
+        "changed_pixels": 17752
+      },
+      {
+        "start": 14.149999999999999,
+        "end": 16.4,
+        "id": "video-pop",
+        "changed_pixels": 17752
+      }
+    ],
+    "sample_step": 0.25,
+    "max_window": 2.25,
+    "limits": "Bounded isolated-layer pixel change, with text/shadows excluded and ancestors frozen; geometry is conservative. Causal action, final visibility/occlusion, semantic captions and sound still require playback review"
+  },
+  "audio_tracks": {
+    "ambience": 0,
+    "dialogue": 0,
+    "file_sfx": 0,
+    "cuts": 0
+  },
+  "reference_review": {
+    "schema": 1,
+    "status": "pending_independent_review",
+    "style": "B1",
+    "output": "/home/user/Ideal/stickman-demo/output/preview.mp4",
+    "output_sha256": "b79516e53360c0b99bf8d02cf53ba7e3e27ac3253eaa0efdb5d91c511b336164",
+    "project_fingerprint": "56e59f87fd7e3450efeea288a3e898395de424e6ff9380d447f817cc092239b0",
+    "project_inputs": {
+      "file": "/home/user/Ideal/stickman-demo/project.json",
+      "inputs": [
+        {
+          "path": "/home/user/Ideal/stickman-demo/narration.m4a",
+          "sha256": "d1598463a23ac55c7e58c53fb53dfe504ae17ee4578891daef9fb6f7d4cf4df5"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23-contact-sheet.png",
+          "sha256": "0bc85b4c8ca938b01d346fcca9af06e608ea56e6d82ea993860647166b7b530e"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23-motion-sheet.png",
+          "sha256": "7bb8664e837e44604387f258522fd2251bac5ddf7347ed02297f211dc45ced73"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23.mp4",
+          "sha256": "111c241a836a0c26b27df2cbff3ba5697b97460dbb873b68dd2f6eda2383b3fc"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-24-longform-contact-sheet.jpg",
+          "sha256": "18690bd4a1d94cdc611bced722899cd0cae3f3e114120cedc79e0ab717b4c99e"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-baseline.json",
+          "sha256": "71a45ae39cfde9e90eefdf32676ad9be7082bfb5e0a85589face9967eca37e73"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-production-standard.json",
+          "sha256": "1208febb532b602ebf2cd54543461f90c171eab263d68ee4021a195ae27cd8b5"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/calendar-crayon.png",
+          "sha256": "97b7fbff3f16ce18457db89db125e8eaebd97ef95537ecfabdf3a089bd4f4a2a"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/camera-handdrawn.png",
+          "sha256": "56fb555059cab64130b3b26dc5ffa2cd0684136ccf94c6a380ce2b2fa592075b"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/character-pose-sheet-v6.png",
+          "sha256": "94b601f640112314965525f49536f87942c577e1e5556a11503b19ed00777bb7"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/clapper-crayon.png",
+          "sha256": "e9aa6455d6153a140fb3bcdcd8f967c9ddd76c7e0f89c0ef590a69f412d031b8"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/idea-bulb-crayon.png",
+          "sha256": "439ac0f851ce3dc3ecace97e522c0c18bf1ffada833bff93905f9dd91b9f5db7"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/idea-note-crayon.png",
+          "sha256": "078a53c4b1efa343bdc033371129e62dcab80e752884725202c3d7d79e3b9739"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/open-source-crayon.png",
+          "sha256": "37a2d8c008d155670dda3af50d944144a8f6d9221c5d47c4adb64c85dba0c2ca"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/script-page-crayon.png",
+          "sha256": "72c11003b310fec896ce5b5f62a150115efcf10bcc6e8c43d63dcdf5709a508e"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/youtube-crayon.png",
+          "sha256": "c839717057aeb3c06269eb0e83e1fdc566eb9b4b02d6485212548a21d4d043e4"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/fonts/Caveat.ttf",
+          "sha256": "0bdb6b660482d31531b3945849fba5916b3ef8695da7024a9e6b9ee3c4157988"
+        },
+        {
+          "path": "/tmp/svd/skills/directing-stickman-videos/assets/fonts/NotoSans.ttf",
+          "sha256": "bfb7bb691513f12e734dc346c03a03f784912432d7e3fa8e56efcf906fe86b3d"
+        }
+      ]
+    },
+    "plan_sha256": "55eb90446485d9bae6a9a92ceb2fd46666d637d33672e91e0d9fea30e0004667",
+    "scope": {
+      "start": 0,
+      "end": 16.4
+    },
+    "metadata": {
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "average_fps": 30,
+      "duration": 16.4,
+      "frames": 492,
+      "frame_timing_sha256": "83fd2f513a8ef2d70ba6455f6b05422aaeb6de6814cb16175856e188a441cfcd",
+      "max_step_error": 6.666666701946045e-7,
+      "video_codec": "h264",
+      "audio": [
+        {
+          "codec": "aac",
+          "sample_rate": 48000,
+          "channels": 1
+        }
+      ]
+    },
+    "plan": {
+      "schema": 1,
+      "style": "B1",
+      "author_id": "bundled-b1-example-adapted-arena-session-8af8c67b",
+      "capability": {
+        "environment": "Arena.ai agent sandbox: Node 22 renderer with @napi-rs/canvas and sharp, FFmpeg 9.0.2 and ffprobe for encoding and frame/audio inspection, image viewing tools for still-frame review",
+        "limitations": [],
+        "mode": "sample_target"
+      },
+      "width": 1280,
+      "height": 720,
+      "fps": 30,
+      "scope_start": 0,
+      "scope_end": 16.4,
+      "frame_count": 492,
+      "shots": [
+        {
+          "id": "shot-0",
+          "index": 0,
+          "source_id": null,
+          "start": 0,
+          "end": 2.85,
+          "start_frame": 0,
+          "end_frame": 86,
+          "phases": {
+            "start": 0,
+            "mid": 42,
+            "end": 85
+          },
+          "shot_sha256": "0d7fe4be637ae9698d2410459896a43411e731f1f0c05c2f77a87ac6db001826"
+        },
+        {
+          "id": "shot-1",
+          "index": 1,
+          "source_id": null,
+          "start": 2.85,
+          "end": 4.7,
+          "start_frame": 86,
+          "end_frame": 141,
+          "phases": {
+            "start": 86,
+            "mid": 113,
+            "end": 140
+          },
+          "shot_sha256": "39edb253c02318980ed04b7771243706149c487a8ecd70442a4433cf17c8713f"
+        },
+        {
+          "id": "shot-2",
+          "index": 2,
+          "source_id": null,
+          "start": 4.7,
+          "end": 7.9,
+          "start_frame": 141,
+          "end_frame": 237,
+          "phases": {
+            "start": 141,
+            "mid": 188,
+            "end": 236
+          },
+          "shot_sha256": "ae4cfd3ef97b2f1a17a1f009124319ae21c19a8bb3225f71b51ccf68115510fc"
+        },
+        {
+          "id": "shot-3",
+          "index": 3,
+          "source_id": null,
+          "start": 7.9,
+          "end": 10.8,
+          "start_frame": 237,
+          "end_frame": 324,
+          "phases": {
+            "start": 237,
+            "mid": 280,
+            "end": 323
+          },
+          "shot_sha256": "a711e4a0372f8eaad01ac75ef63985ec26de7b7dd5cb5e23d789926efa657c84"
+        },
+        {
+          "id": "shot-4",
+          "index": 4,
+          "source_id": null,
+          "start": 10.8,
+          "end": 13.05,
+          "start_frame": 324,
+          "end_frame": 392,
+          "phases": {
+            "start": 324,
+            "mid": 357,
+            "end": 391
+          },
+          "shot_sha256": "837993f33c0bf0f3da29baf5b3b85084398484366efea26617989ba8a527985b"
+        },
+        {
+          "id": "shot-5",
+          "index": 5,
+          "source_id": null,
+          "start": 13.05,
+          "end": 16.4,
+          "start_frame": 392,
+          "end_frame": 492,
+          "phases": {
+            "start": 392,
+            "mid": 441,
+            "end": 491
+          },
+          "shot_sha256": "22c7defc9ae514259476ddac7d79b76d0099568e9e34074eb9b6e1a6809a8234"
+        }
+      ],
+      "caption_sha256": "8baff9cbdede2cdb5ebcb3840598c4abf821a1f6ab951776dbfebbf7e897fe38",
+      "reference_ids": [
+        "b1-ryan-v4",
+        "b1-ryan-contact-sheet",
+        "b1-ryan-motion-sheet",
+        "b1-full-v4-contact-sheet"
+      ],
+      "checks": [
+        "drawing_character",
+        "semantic_acting",
+        "contact_continuity",
+        "composition_evidence",
+        "typography_captions",
+        "timing_pacing",
+        "sound"
+      ],
+      "limits": [
+        "Hashes, decoded artifacts and complete coverage establish current-media provenance, not aesthetic equivalence.",
+        "Reviewer identity, independence, actual viewing/listening and capability limitations are declarations, not authenticated facts.",
+        "Independent agent review does not imply human approval or user acceptance.",
+        "Sample-target review compares the available approved examples, not identical plots, voices, pixels or unavailable originals.",
+        "B3 endpoint geometry and authored intentions are diagnostics. Each graphic and motion event still needs actual-MP4 independent review; wrong relationships and meaningless motion cannot receive a limited-capability waiver.",
+        "The complete approved Full V4 film is unavailable in this bundle; only sampled long-form compositions are comparable."
+      ]
+    },
+    "references": [
+      {
+        "id": "b1-ryan-v4",
+        "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23.mp4",
+        "sha256": "111c241a836a0c26b27df2cbff3ba5697b97460dbb873b68dd2f6eda2383b3fc",
+        "kind": "video",
+        "role": "approved_baseline",
+        "duration": 21.3,
+        "has_audio": true,
+        "required_comparison": true,
+        "limitations": []
+      },
+      {
+        "id": "b1-ryan-contact-sheet",
+        "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23-contact-sheet.png",
+        "sha256": "0bc85b4c8ca938b01d346fcca9af06e608ea56e6d82ea993860647166b7b530e",
+        "kind": "image",
+        "role": "approved_baseline",
+        "duration": null,
+        "has_audio": false,
+        "required_comparison": false,
+        "limitations": [
+          "Static sheet cannot demonstrate continuous motion, subtitle timing or listening."
+        ]
+      },
+      {
+        "id": "b1-ryan-motion-sheet",
+        "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-23-motion-sheet.png",
+        "sha256": "7bb8664e837e44604387f258522fd2251bac5ddf7347ed02297f211dc45ced73",
+        "kind": "image",
+        "role": "approved_baseline",
+        "duration": null,
+        "has_audio": false,
+        "required_comparison": false,
+        "limitations": [
+          "Static sheet cannot demonstrate continuous motion, subtitle timing or listening."
+        ]
+      },
+      {
+        "id": "b1-full-v4-contact-sheet",
+        "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-2026-10-24-longform-contact-sheet.jpg",
+        "sha256": "18690bd4a1d94cdc611bced722899cd0cae3f3e114120cedc79e0ab717b4c99e",
+        "kind": "image",
+        "role": "approved_longform_sampled_sheet",
+        "duration": null,
+        "has_audio": false,
+        "required_comparison": false,
+        "limitations": [
+          "Full V4 film is not bundled. This sampled sheet cannot establish continuous long-form motion or audio."
+        ]
+      }
+    ],
+    "reference_manifests": [
+      {
+        "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-baseline.json",
+        "sha256": "71a45ae39cfde9e90eefdf32676ad9be7082bfb5e0a85589face9967eca37e73"
+      },
+      {
+        "path": "/tmp/svd/skills/directing-stickman-videos/assets/b1/approved-production-standard.json",
+        "sha256": "1208febb532b602ebf2cd54543461f90c171eab263d68ee4021a195ae27cd8b5"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "shot-0-start",
+        "shot": "shot-0",
+        "type": "png",
+        "phase": "start",
+        "frame_index": 0,
+        "source_time": 0,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-0-start.png",
+        "sha256": "adc95be3858f0dcb6deadb5c2e92ce5100d0ffef1cd68670fddf222e24d147a3"
+      },
+      {
+        "id": "shot-0-mid",
+        "shot": "shot-0",
+        "type": "png",
+        "phase": "mid",
+        "frame_index": 42,
+        "source_time": 1.4,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-0-mid.png",
+        "sha256": "7ecc5ba8e457e08e739cf4625db54a6e3ccca5a1d550baddac0ba53e3b17cff8"
+      },
+      {
+        "id": "shot-0-end",
+        "shot": "shot-0",
+        "type": "png",
+        "phase": "end",
+        "frame_index": 85,
+        "source_time": 2.833333,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-0-end.png",
+        "sha256": "78a6f301187df3dd9c68db8671c00aeb2b5443cde9edc475c4495cf0ef343c11"
+      },
+      {
+        "id": "shot-0-continuous",
+        "shot": "shot-0",
+        "type": "clip",
+        "start_frame": 0,
+        "end_frame": 86,
+        "source_start": 0,
+        "source_end": 2.866667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "audio": "source",
+        "file": "shot-0-continuous.mp4",
+        "sha256": "36aa6f7842597e8f15ec1a57bcbf492500f56472958bc011187ee1e993705675"
+      },
+      {
+        "id": "shot-1-start",
+        "shot": "shot-1",
+        "type": "png",
+        "phase": "start",
+        "frame_index": 86,
+        "source_time": 2.866667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-1-start.png",
+        "sha256": "ca8c13843667955c0c7d7bda9cf657c609d3734995885e579ae2f5f2bb12bda6"
+      },
+      {
+        "id": "shot-1-mid",
+        "shot": "shot-1",
+        "type": "png",
+        "phase": "mid",
+        "frame_index": 113,
+        "source_time": 3.766667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-1-mid.png",
+        "sha256": "0e48b4b2f2118f00ab2b953e503b0061fecafc71af9e6330462af579855121fb"
+      },
+      {
+        "id": "shot-1-end",
+        "shot": "shot-1",
+        "type": "png",
+        "phase": "end",
+        "frame_index": 140,
+        "source_time": 4.666667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-1-end.png",
+        "sha256": "cbbd4b0603a68b42a7d8145916329aafdb80d5cd947275ef2b8fcdfb45ee1cbe"
+      },
+      {
+        "id": "shot-1-continuous",
+        "shot": "shot-1",
+        "type": "clip",
+        "start_frame": 86,
+        "end_frame": 141,
+        "source_start": 2.866667,
+        "source_end": 4.7,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "audio": "source",
+        "file": "shot-1-continuous.mp4",
+        "sha256": "3e36970e74919e8118752c75a435d757b9399c7f11d78cfd6bcd3272aed2d76c"
+      },
+      {
+        "id": "shot-2-start",
+        "shot": "shot-2",
+        "type": "png",
+        "phase": "start",
+        "frame_index": 141,
+        "source_time": 4.7,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-2-start.png",
+        "sha256": "0d075715e6e448d1a3aa72cb27529fc461eb5f2ac86d55ec6a42d46926f1da11"
+      },
+      {
+        "id": "shot-2-mid",
+        "shot": "shot-2",
+        "type": "png",
+        "phase": "mid",
+        "frame_index": 188,
+        "source_time": 6.266667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-2-mid.png",
+        "sha256": "6649dd62c0fbd82448a37ae4983f3c8cceb26f808cfe7794c6d5d30e0f9607fc"
+      },
+      {
+        "id": "shot-2-end",
+        "shot": "shot-2",
+        "type": "png",
+        "phase": "end",
+        "frame_index": 236,
+        "source_time": 7.866667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-2-end.png",
+        "sha256": "43e123cd3018c41d881c8eef280bb75e9ea259d6f4cd5595d465af3952cc1fb6"
+      },
+      {
+        "id": "shot-2-continuous",
+        "shot": "shot-2",
+        "type": "clip",
+        "start_frame": 141,
+        "end_frame": 237,
+        "source_start": 4.7,
+        "source_end": 7.9,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "audio": "source",
+        "file": "shot-2-continuous.mp4",
+        "sha256": "c98f323f1db7c4a6529e4bfdaacdf1baa04bd053c0ad8ff179b7318a04fceb97"
+      },
+      {
+        "id": "shot-3-start",
+        "shot": "shot-3",
+        "type": "png",
+        "phase": "start",
+        "frame_index": 237,
+        "source_time": 7.9,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-3-start.png",
+        "sha256": "f080a16a7563a0722a80b64229803b277bf4ddc281fee8781c5644f4c2c626dd"
+      },
+      {
+        "id": "shot-3-mid",
+        "shot": "shot-3",
+        "type": "png",
+        "phase": "mid",
+        "frame_index": 280,
+        "source_time": 9.333333,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-3-mid.png",
+        "sha256": "a111e4f269382c7585260d5c62bd5b4339cc0b19ff3336416bb2f374de663d27"
+      },
+      {
+        "id": "shot-3-end",
+        "shot": "shot-3",
+        "type": "png",
+        "phase": "end",
+        "frame_index": 323,
+        "source_time": 10.766667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-3-end.png",
+        "sha256": "471d9d053119030d2f8ac0caa6f321c2d1cae32fce38d2e4023c4e19608a0c06"
+      },
+      {
+        "id": "shot-3-continuous",
+        "shot": "shot-3",
+        "type": "clip",
+        "start_frame": 237,
+        "end_frame": 324,
+        "source_start": 7.9,
+        "source_end": 10.8,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "audio": "source",
+        "file": "shot-3-continuous.mp4",
+        "sha256": "7c8d51bae308561280a731b1a7f2a50b75accf3721cb9147617aff7b7666daa1"
+      },
+      {
+        "id": "shot-4-start",
+        "shot": "shot-4",
+        "type": "png",
+        "phase": "start",
+        "frame_index": 324,
+        "source_time": 10.8,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-4-start.png",
+        "sha256": "1307a67f6c35a04452c22addd954e346c3f47360f575cb7bba9ec23bb83d668f"
+      },
+      {
+        "id": "shot-4-mid",
+        "shot": "shot-4",
+        "type": "png",
+        "phase": "mid",
+        "frame_index": 357,
+        "source_time": 11.9,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-4-mid.png",
+        "sha256": "183d449b5920b11a95fbfca311e47d4b8b9bbf46ffac6abdc940f3a5047ccc92"
+      },
+      {
+        "id": "shot-4-end",
+        "shot": "shot-4",
+        "type": "png",
+        "phase": "end",
+        "frame_index": 391,
+        "source_time": 13.033333,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-4-end.png",
+        "sha256": "34f56956a41f798603c9676ef58ae0f0a9f614d9787c062905703edb74349a18"
+      },
+      {
+        "id": "shot-4-continuous",
+        "shot": "shot-4",
+        "type": "clip",
+        "start_frame": 324,
+        "end_frame": 392,
+        "source_start": 10.8,
+        "source_end": 13.066667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "audio": "source",
+        "file": "shot-4-continuous.mp4",
+        "sha256": "4c38ad912cf170977c4cff10e71c603134aeb0e8ac21086d7deba6885f225db6"
+      },
+      {
+        "id": "shot-5-start",
+        "shot": "shot-5",
+        "type": "png",
+        "phase": "start",
+        "frame_index": 392,
+        "source_time": 13.066667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-5-start.png",
+        "sha256": "78667a2fe015eabd8bc7377a074403d83ff5d4f4337f26f420aafc11389abd2e"
+      },
+      {
+        "id": "shot-5-mid",
+        "shot": "shot-5",
+        "type": "png",
+        "phase": "mid",
+        "frame_index": 441,
+        "source_time": 14.7,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-5-mid.png",
+        "sha256": "97c12697749c30dc016645530bed5721c610519e60ebcebd0048f358c7f3032e"
+      },
+      {
+        "id": "shot-5-end",
+        "shot": "shot-5",
+        "type": "png",
+        "phase": "end",
+        "frame_index": 491,
+        "source_time": 16.366667,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "file": "shot-5-end.png",
+        "sha256": "12ac7b684fb37dd3ee16b2d7a2675aba8b5cb4b48f3a19e09b39c92dda3020be"
+      },
+      {
+        "id": "shot-5-continuous",
+        "shot": "shot-5",
+        "type": "clip",
+        "start_frame": 392,
+        "end_frame": 492,
+        "source_start": 13.066667,
+        "source_end": 16.4,
+        "crop": [
+          0,
+          0,
+          1280,
+          720
+        ],
+        "audio": "source",
+        "file": "shot-5-continuous.mp4",
+        "sha256": "69f740474bd884e2b2659b573daef3152b0f5c292d7bdd329d57f94874aba5f4"
+      }
+    ],
+    "evidence_dir": "/home/user/Ideal/stickman-demo/output/preview-reference",
+    "ledger_file": "/home/user/Ideal/stickman-demo/output/preview-reference/evidence.json",
+    "template_file": "/home/user/Ideal/stickman-demo/output/preview-reference/review-template.json",
+    "limits": [
+      "Hashes, decoded artifacts and complete coverage establish current-media provenance, not aesthetic equivalence.",
+      "Reviewer identity, independence, actual viewing/listening and capability limitations are declarations, not authenticated facts.",
+      "Independent agent review does not imply human approval or user acceptance.",
+      "Sample-target review compares the available approved examples, not identical plots, voices, pixels or unavailable originals.",
+      "B3 endpoint geometry and authored intentions are diagnostics. Each graphic and motion event still needs actual-MP4 independent review; wrong relationships and meaningless motion cannot receive a limited-capability waiver.",
+      "The complete approved Full V4 film is unavailable in this bundle; only sampled long-form compositions are comparable."
+    ]
+  },
+  "visual_acceptance": "pending_independent_review",
+  "delivery_ready": false
+}

@@ -1,0 +1,48 @@
+{
+  "visual_review_file": "/home/user/Ideal/stickman-demo/review.json",
+  "visual_review_sha256": "e51dfc40224839e174c14bd8b3a08c0140ba6732b4167efff375c93b55fa87ee",
+  "visual_review_hash_schema": "canonical-json-v1",
+  "visual_review_semantic_sha256": "9a1ec1f3e814ac14c5a939bef970bf55573d898686d19fa870e05cab5092b0c6",
+  "reference_acceptance": {
+    "schema": 1,
+    "status": "sample_target_review_passed",
+    "equivalence": "available_samples_reviewed",
+    "style": "B1",
+    "output": "/home/user/Ideal/stickman-demo/output/preview.mp4",
+    "output_sha256": "b79516e53360c0b99bf8d02cf53ba7e3e27ac3253eaa0efdb5d91c511b336164",
+    "project_fingerprint": "56e59f87fd7e3450efeea288a3e898395de424e6ff9380d447f817cc092239b0",
+    "plan_sha256": "55eb90446485d9bae6a9a92ceb2fd46666d637d33672e91e0d9fea30e0004667",
+    "evidence_sha256": "11017d93ed69f73c191f86901665160c657d581ea3e4731a7178ad4122485330",
+    "review_sha256": "e51dfc40224839e174c14bd8b3a08c0140ba6732b4167efff375c93b55fa87ee",
+    "scope": {
+      "start": 0,
+      "end": 16.4
+    },
+    "capability": {
+      "environment": "Arena.ai agent sandbox: Node 22 renderer with @napi-rs/canvas and sharp, FFmpeg 9.0.2 and ffprobe for encoding and frame/audio inspection, image viewing tools for still-frame review",
+      "limitations": [],
+      "mode": "sample_target"
+    },
+    "reviewer": {
+      "id": "arena-agent-reviewer-8af8c67b",
+      "kind": "agent",
+      "method": "Decoded the entire preview.mp4 at 2 fps into a 33-frame mosaic covering 0-16.4s and inspected it visually; inspected per-shot start/mid/end PNG evidence stills and the preview contact sheet; extracted and viewed baseline frames of approved-2026-10-23.mp4 at 1s, 6s, 12s and 18s; measured audio with ffmpeg volumedetect on both preview (mean -18.9 dB, max -1.3 dB) and baseline (mean -21.4 dB, max -1.7 dB); read preview.srt caption timings against project captions",
+      "independent": true
+    },
+    "unmet_effect_criteria": [],
+    "user_acceptance": "not_inferred",
+    "limits": [
+      "Hashes, decoded artifacts and complete coverage establish current-media provenance, not aesthetic equivalence.",
+      "Reviewer identity, independence, actual viewing/listening and capability limitations are declarations, not authenticated facts.",
+      "Independent agent review does not imply human approval or user acceptance.",
+      "Sample-target review compares the available approved examples, not identical plots, voices, pixels or unavailable originals.",
+      "B3 endpoint geometry and authored intentions are diagnostics. Each graphic and motion event still needs actual-MP4 independent review; wrong relationships and meaningless motion cannot receive a limited-capability waiver.",
+      "The complete approved Full V4 film is unavailable in this bundle; only sampled long-form compositions are comparable."
+    ]
+  },
+  "preview_fingerprint": "56e59f87fd7e3450efeea288a3e898395de424e6ff9380d447f817cc092239b0",
+  "preview_seconds": 16.4,
+  "preview_sha256": "b79516e53360c0b99bf8d02cf53ba7e3e27ac3253eaa0efdb5d91c511b336164",
+  "note": "Smoke-test of bundled B1 example adapted with motion metadata; preview inspected frame-by-frame, audio measured, compared against Ryan V4 baseline",
+  "approved_at": "2026-11-14T07:46:51.681Z"
+}

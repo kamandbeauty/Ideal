@@ -25,3 +25,8 @@ __pycache__/
 # The compatibility APK is a CI artifact, not a tracked deliverable.
 delivery/LastWall-compatibility.apk
 delivery/*.idsig
+
+# Stickman video projects: regenerable render caches and per-shot review evidence
+stickman-*/output/cache/
+stickman-*/output/preview-reference/
+stickman-*/output/film-reference/

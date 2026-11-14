@@ -1,0 +1,993 @@
+{
+ "schema": 1,
+ "style": "B1",
+ "author_id": "bundled-b1-example-adapted-arena-session-8af8c67b",
+ "capability": {
+  "environment": "Arena.ai agent sandbox: Node 22 renderer with @napi-rs/canvas and sharp, FFmpeg 9.0.2 and ffprobe for encoding and frame/audio inspection, image viewing tools for still-frame review",
+  "limitations": [],
+  "mode": "sample_target"
+ },
+ "reviewer": {
+  "id": "arena-agent-reviewer-8af8c67b",
+  "kind": "agent",
+  "method": "Decoded the entire preview.mp4 at 2 fps into a 33-frame mosaic covering 0-16.4s and inspected it visually; inspected per-shot start/mid/end PNG evidence stills and the preview contact sheet; extracted and viewed baseline frames of approved-2026-10-23.mp4 at 1s, 6s, 12s and 18s; measured audio with ffmpeg volumedetect on both preview (mean -18.9 dB, max -1.3 dB) and baseline (mean -21.4 dB, max -1.7 dB); read preview.srt caption timings against project captions",
+  "independent": true
+ },
+ "video_sha256": "b79516e53360c0b99bf8d02cf53ba7e3e27ac3253eaa0efdb5d91c511b336164",
+ "evidence_sha256": "11017d93ed69f73c191f86901665160c657d581ea3e4731a7178ad4122485330",
+ "full_playback": {
+  "status": "pass",
+  "viewed_ranges": [
+   {
+    "start": 0,
+    "end": 16.4
+   }
+  ],
+  "observations": [
+   {
+    "time": 1.0,
+    "detail": "Opening shot shows red YOUR CHANNEL / NOT YOUR FACE headline, YouTube play button, tilting hand-drawn camera and a panicked stick figure holding its head; caption 'Want a YouTube channel without being on camera?' is synced to the narration",
+    "evidence_ids": [
+     "source-video"
+    ]
+   },
+   {
+    "time": 6.5,
+    "detail": "Calendar with animated red strike appears beside the worried figure while the caption reads 'No weeks of animation.'; the strike line draws in over time rather than appearing at once",
+    "evidence_ids": [
+     "source-video"
+    ]
+   },
+   {
+    "time": 9.0,
+    "detail": "Idea bulb, curved arrow and growing yellow note illustrate 'a strong hook, a clear story'; the note visibly enlarges across consecutive sampled frames",
+    "evidence_ids": [
+     "source-video"
+    ]
+   },
+   {
+    "time": 14.5,
+    "detail": "Final shot: the small idea note slides into the YouTube player frame and the player pops slightly larger while the figure gestures; captions 'Here's how to turn one idea / into a video.' close the video; no black frames or caption overflow anywhere in the sampled timeline except the natural end",
+    "evidence_ids": [
+     "source-video"
+    ]
+   }
+  ]
+ },
+ "baseline_comparisons": [
+  {
+   "reference_id": "b1-ryan-v4",
+   "start": 0,
+   "end": 21.3,
+   "observations": [
+    {
+     "time": 1.0,
+     "detail": "Baseline uses near-white paper background, large dark handwritten headline (WRITE.), small gray subline and hand-drawn desk scene with a slender stick figure; same paper tone and headline hierarchy as the preview's opening",
+     "evidence_ids": [
+      "b1-ryan-v4"
+     ]
+    },
+    {
+     "time": 6.0,
+     "detail": "Baseline JUST POST MORE? scene shows an exaggerated straining figure pushing a stack of video cards with sweat drops; preview's panicked and worried poses are simpler but share the same fine irregular black pen outline and expressive face language",
+     "evidence_ids": [
+      "b1-ryan-v4"
+     ]
+    },
+    {
+     "time": 12.0,
+     "detail": "Baseline EVERY NEW UPLOAD scene combines a slumped figure, a timeline slider with red dot and a NEW note; same limited warm yellow/red accent palette over ink lines used by the preview's bulb/note/calendar props",
+     "evidence_ids": [
+      "b1-ryan-v4"
+     ]
+    },
+    {
+     "time": 18.0,
+     "detail": "Baseline MORE POSTS != REMEMBERED uses red accent symbol, underline and fading dashed note; bottom-band sans captions in the baseline match the preview's Noto Sans caption treatment at the same band position",
+     "evidence_ids": [
+      "b1-ryan-v4"
+     ]
+    }
+   ]
+  }
+ ],
+ "shots": [
+  {
+   "id": "shot-0",
+   "checks": {
+    "drawing_character": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 1.425,
+       "detail": "Slender stick figure with round head, raised brows and open mouth holds its head in panic; fine irregular pen outline on warm paper matches the baseline figure construction",
+       "evidence_ids": [
+        "shot-0-continuous",
+        "shot-0-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Figure proportions and pen-line quality compared against the baseline contact sheet; preview figures are simpler three-pose atlas characters but share slender limbs, round head and irregular fine outline"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Compared against baseline desk/stack scenes for stroke weight and paper tone; consistent style family"
+      }
+     ]
+    },
+    "semantic_acting": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 1.425,
+       "detail": "Figure reacts to the 'on camera?' question with a whole-body panic pose; the hand-drawn camera rocks -0.08 to 0.06 rad and settles, acting out the rejected camera",
+       "evidence_ids": [
+        "shot-0-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 4,
+       "end": 14,
+       "detail": "Baseline figures act with whole body (straining push at ~6s, slump at ~12s); preview acting is prop-led with figure reaction poses - weaker than baseline peak acting but semantically synced to narration"
+      }
+     ]
+    },
+    "contact_continuity": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 1.425,
+       "detail": "Both hands visibly touch the head; camera and play button sit on consistent ground line; no layer pops between start/mid/end stills",
+       "evidence_ids": [
+        "shot-0-continuous",
+        "shot-0-start",
+        "shot-0-end"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 1,
+       "end": 13,
+       "detail": "Baseline hands contact keyboard/cards/notes at 1-13s; preview contact points (hands on head, arrow endpoints, note in player) hold across frames the same way"
+      }
+     ]
+    },
+    "composition_evidence": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 1.425,
+       "detail": "Red/black headline pair top-left, props lower-left, figure right: clear hierarchy, nothing covers the caption band",
+       "evidence_ids": [
+        "shot-0-continuous",
+        "shot-0-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-full-v4-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Layout hierarchy (big headline, props mid-frame, captions in bottom band) matches the sampled long-form compositions"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Same left/right figure-prop balance as baseline scenes"
+      }
+     ]
+    },
+    "typography_captions": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 1.425,
+       "detail": "YOUR CHANNEL. / NOT YOUR FACE. in large hand font with red second line; caption 'Want a YouTube channel without being on camera?' fits one line in the bottom band",
+       "evidence_ids": [
+        "shot-0-continuous",
+        "shot-0-mid"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "timing_pacing": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 1.425,
+       "detail": "2.85s shot; camera wobble spans the hold so no static stretch exceeds 2.5s",
+       "evidence_ids": [
+        "shot-0-continuous"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "sound": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 1.425,
+       "detail": "Narration starts at 0.29s and is clearly audible; measured preview mean -18.9 dB comparable to baseline -21.4 dB",
+       "evidence_ids": [
+        "shot-0-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Baseline narration loudness mean -21.4 dB / max -1.7 dB vs preview -18.9/-1.3 dB; both voice-led with no clipping; preview contains narration-embedded SFX below the voice"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "shot-1",
+   "checks": {
+    "drawing_character": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 3.7750000000000004,
+       "detail": "Pointing figure with surprised face; bulb and note props use the same crayon fill over ink outline as baseline props",
+       "evidence_ids": [
+        "shot-1-continuous",
+        "shot-1-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Figure proportions and pen-line quality compared against the baseline contact sheet; preview figures are simpler three-pose atlas characters but share slender limbs, round head and irregular fine outline"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Compared against baseline desk/stack scenes for stroke weight and paper tone; consistent style family"
+      }
+     ]
+    },
+    "semantic_acting": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 3.7750000000000004,
+       "detail": "Figure points at the dropping idea note exactly as narration says 'Start with a stick figure.'; note drops 20px and settles with angle change",
+       "evidence_ids": [
+        "shot-1-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 4,
+       "end": 14,
+       "detail": "Baseline figures act with whole body (straining push at ~6s, slump at ~12s); preview acting is prop-led with figure reaction poses - weaker than baseline peak acting but semantically synced to narration"
+      }
+     ]
+    },
+    "contact_continuity": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 3.7750000000000004,
+       "detail": "Note lands and rests on a consistent baseline; pointing arm clearly directed at the props across mid/end stills",
+       "evidence_ids": [
+        "shot-1-continuous",
+        "shot-1-start",
+        "shot-1-end"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 1,
+       "end": 13,
+       "detail": "Baseline hands contact keyboard/cards/notes at 1-13s; preview contact points (hands on head, arrow endpoints, note in player) hold across frames the same way"
+      }
+     ]
+    },
+    "composition_evidence": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 3.7750000000000004,
+       "detail": "ONE GOOD IDEA. headline, bulb+note left, figure right; uncluttered three-element layout",
+       "evidence_ids": [
+        "shot-1-continuous",
+        "shot-1-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-full-v4-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Layout hierarchy (big headline, props mid-frame, captions in bottom band) matches the sampled long-form compositions"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Same left/right figure-prop balance as baseline scenes"
+      }
+     ]
+    },
+    "typography_captions": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 3.7750000000000004,
+       "detail": "Headline large bold hand font; caption 'Start with a stick figure.' single line, no overflow",
+       "evidence_ids": [
+        "shot-1-continuous",
+        "shot-1-mid"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "timing_pacing": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 3.7750000000000004,
+       "detail": "1.85s shot with note-drop motion in first 0.4s and settle wobble after; no dead hold",
+       "evidence_ids": [
+        "shot-1-continuous"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "sound": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 3.7750000000000004,
+       "detail": "Caption interval 2.96-4.27s matches audible phrase timing",
+       "evidence_ids": [
+        "shot-1-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Baseline narration loudness mean -21.4 dB / max -1.7 dB vs preview -18.9/-1.3 dB; both voice-led with no clipping; preview contains narration-embedded SFX below the voice"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "shot-2",
+   "checks": {
+    "drawing_character": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 6.300000000000001,
+       "detail": "Worried figure with asymmetric brows; clapper and calendar drawn with fine outlines and restrained color like baseline icons",
+       "evidence_ids": [
+        "shot-2-continuous",
+        "shot-2-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Figure proportions and pen-line quality compared against the baseline contact sheet; preview figures are simpler three-pose atlas characters but share slender limbs, round head and irregular fine outline"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Compared against baseline desk/stack scenes for stroke weight and paper tone; consistent style family"
+      }
+     ]
+    },
+    "semantic_acting": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 6.300000000000001,
+       "detail": "Red strike line draws across the clapper on 'No camera crew.', then calendar appears and rocks on 'No weeks of animation.' - prop acting follows the words",
+       "evidence_ids": [
+        "shot-2-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 4,
+       "end": 14,
+       "detail": "Baseline figures act with whole body (straining push at ~6s, slump at ~12s); preview acting is prop-led with figure reaction poses - weaker than baseline peak acting but semantically synced to narration"
+      }
+     ]
+    },
+    "contact_continuity": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 6.300000000000001,
+       "detail": "Strike line endpoints anchor on the prop; calendar replaces clapper at the same anchor without jumping",
+       "evidence_ids": [
+        "shot-2-continuous",
+        "shot-2-start",
+        "shot-2-end"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 1,
+       "end": 13,
+       "detail": "Baseline hands contact keyboard/cards/notes at 1-13s; preview contact points (hands on head, arrow endpoints, note in player) hold across frames the same way"
+      }
+     ]
+    },
+    "composition_evidence": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 6.300000000000001,
+       "detail": "Figure left, prop+label right; the from/to layer swap at 1.4s is a clean semantic match cut",
+       "evidence_ids": [
+        "shot-2-continuous",
+        "shot-2-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-full-v4-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Layout hierarchy (big headline, props mid-frame, captions in bottom band) matches the sampled long-form compositions"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Same left/right figure-prop balance as baseline scenes"
+      }
+     ]
+    },
+    "typography_captions": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 6.300000000000001,
+       "detail": "NO CAMERA CREW. and NO WEEKS OF ANIMATION. side labels readable; captions split into two synced phrases",
+       "evidence_ids": [
+        "shot-2-continuous",
+        "shot-2-mid"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "timing_pacing": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 6.300000000000001,
+       "detail": "3.2s shot but state changes at 1.4s and strike/rock keys keep picture active within 2.5s windows",
+       "evidence_ids": [
+        "shot-2-continuous"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "sound": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 6.300000000000001,
+       "detail": "Two caption phrases 4.84-6.08 and 6.10-7.72 align with narration pauses",
+       "evidence_ids": [
+        "shot-2-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Baseline narration loudness mean -21.4 dB / max -1.7 dB vs preview -18.9/-1.3 dB; both voice-led with no clipping; preview contains narration-embedded SFX below the voice"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "shot-3",
+   "checks": {
+    "drawing_character": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 9.350000000000001,
+       "detail": "Prop-only scene: bulb, curved arrow and note keep the hand-drawn stroke quality without a figure, matching baseline prop-only beats",
+       "evidence_ids": [
+        "shot-3-continuous",
+        "shot-3-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Figure proportions and pen-line quality compared against the baseline contact sheet; preview figures are simpler three-pose atlas characters but share slender limbs, round head and irregular fine outline"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Compared against baseline desk/stack scenes for stroke weight and paper tone; consistent style family"
+      }
+     ]
+    },
+    "semantic_acting": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 9.350000000000001,
+       "detail": "The yellow note grows from 240 to 340px wide while narration lists 'a strong hook, a clear story' - growth acts out the story expanding",
+       "evidence_ids": [
+        "shot-3-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 4,
+       "end": 14,
+       "detail": "Baseline figures act with whole body (straining push at ~6s, slump at ~12s); preview acting is prop-led with figure reaction poses - weaker than baseline peak acting but semantically synced to narration"
+      }
+     ]
+    },
+    "contact_continuity": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 9.350000000000001,
+       "detail": "Arrow tail starts at the bulb and head reaches the note; growth keeps the note on its baseline",
+       "evidence_ids": [
+        "shot-3-continuous",
+        "shot-3-start",
+        "shot-3-end"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 1,
+       "end": 13,
+       "detail": "Baseline hands contact keyboard/cards/notes at 1-13s; preview contact points (hands on head, arrow endpoints, note in player) hold across frames the same way"
+      }
+     ]
+    },
+    "composition_evidence": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 9.350000000000001,
+       "detail": "A STRONG HOOK. A CLEAR STORY. full-width headline; bulb-arrow-note reading order left to right",
+       "evidence_ids": [
+        "shot-3-continuous",
+        "shot-3-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-full-v4-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Layout hierarchy (big headline, props mid-frame, captions in bottom band) matches the sampled long-form compositions"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Same left/right figure-prop balance as baseline scenes"
+      }
+     ]
+    },
+    "typography_captions": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 9.350000000000001,
+       "detail": "Headline 56px bold; three short captions swap in sync underneath",
+       "evidence_ids": [
+        "shot-3-continuous",
+        "shot-3-mid"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "timing_pacing": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 9.350000000000001,
+       "detail": "2.9s shot; note growth spans 0-1.8s plus settle to 2.5s, no static stretch",
+       "evidence_ids": [
+        "shot-3-continuous"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "sound": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 9.350000000000001,
+       "detail": "Caption boundaries 8.16/9.60/10.61s track the three spoken phrases",
+       "evidence_ids": [
+        "shot-3-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Baseline narration loudness mean -21.4 dB / max -1.7 dB vs preview -18.9/-1.3 dB; both voice-led with no clipping; preview contains narration-embedded SFX below the voice"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "shot-4",
+   "checks": {
+    "drawing_character": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 11.925,
+       "detail": "Open-source keyhole logo and script page keep crayon-fill style; green accent stays inside the limited palette",
+       "evidence_ids": [
+        "shot-4-continuous",
+        "shot-4-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Figure proportions and pen-line quality compared against the baseline contact sheet; preview figures are simpler three-pose atlas characters but share slender limbs, round head and irregular fine outline"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Compared against baseline desk/stack scenes for stroke weight and paper tone; consistent style family"
+      }
+     ]
+    },
+    "semantic_acting": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 11.925,
+       "detail": "Arrow draws from the open-source mark to the script page as narration says 'an open-source workflow' - information motion matches the words",
+       "evidence_ids": [
+        "shot-4-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 4,
+       "end": 14,
+       "detail": "Baseline figures act with whole body (straining push at ~6s, slump at ~12s); preview acting is prop-led with figure reaction poses - weaker than baseline peak acting but semantically synced to narration"
+      }
+     ]
+    },
+    "contact_continuity": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 11.925,
+       "detail": "Arrow endpoints anchored on both props across the draw; props stay planted",
+       "evidence_ids": [
+        "shot-4-continuous",
+        "shot-4-start",
+        "shot-4-end"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 1,
+       "end": 13,
+       "detail": "Baseline hands contact keyboard/cards/notes at 1-13s; preview contact points (hands on head, arrow endpoints, note in player) hold across frames the same way"
+      }
+     ]
+    },
+    "composition_evidence": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 11.925,
+       "detail": "OPEN SOURCE. YOUR WORKFLOW. headline; two props joined by the drawn arrow read as one claim",
+       "evidence_ids": [
+        "shot-4-continuous",
+        "shot-4-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-full-v4-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Layout hierarchy (big headline, props mid-frame, captions in bottom band) matches the sampled long-form compositions"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Same left/right figure-prop balance as baseline scenes"
+      }
+     ]
+    },
+    "typography_captions": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 11.925,
+       "detail": "Headline readable; caption 'and an open-source workflow.' fits the band",
+       "evidence_ids": [
+        "shot-4-continuous",
+        "shot-4-mid"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "timing_pacing": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 11.925,
+       "detail": "2.25s shot; arrow draw 0-0.5s plus later micro-adjustment keeps activity inside 2.5s",
+       "evidence_ids": [
+        "shot-4-continuous"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "sound": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 11.925,
+       "detail": "Caption 10.90-12.57s matches the audible phrase",
+       "evidence_ids": [
+        "shot-4-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Baseline narration loudness mean -21.4 dB / max -1.7 dB vs preview -18.9/-1.3 dB; both voice-led with no clipping; preview contains narration-embedded SFX below the voice"
+      }
+     ]
+    }
+   }
+  },
+  {
+   "id": "shot-5",
+   "checks": {
+    "drawing_character": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 14.725,
+       "detail": "Excited open-mouth figure, red player with note inside; same stroke weight and paper as opening for a bookend",
+       "evidence_ids": [
+        "shot-5-continuous",
+        "shot-5-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Figure proportions and pen-line quality compared against the baseline contact sheet; preview figures are simpler three-pose atlas characters but share slender limbs, round head and irregular fine outline"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Compared against baseline desk/stack scenes for stroke weight and paper tone; consistent style family"
+      }
+     ]
+    },
+    "semantic_acting": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 14.725,
+       "detail": "Idea note slides from left into the player frame on 'turn one idea into a video', then the player pops larger - payoff acted by the props",
+       "evidence_ids": [
+        "shot-5-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 4,
+       "end": 14,
+       "detail": "Baseline figures act with whole body (straining push at ~6s, slump at ~12s); preview acting is prop-led with figure reaction poses - weaker than baseline peak acting but semantically synced to narration"
+      }
+     ]
+    },
+    "contact_continuity": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 14.725,
+       "detail": "Note visibly enters and stays inside the player frame; figure gesture directed at the player",
+       "evidence_ids": [
+        "shot-5-continuous",
+        "shot-5-start",
+        "shot-5-end"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 1,
+       "end": 13,
+       "detail": "Baseline hands contact keyboard/cards/notes at 1-13s; preview contact points (hands on head, arrow endpoints, note in player) hold across frames the same way"
+      }
+     ]
+    },
+    "composition_evidence": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 14.725,
+       "detail": "ONE IDEA. A REAL VIDEO. headline; player center-left, figure right, mirrors shot-0 for closure",
+       "evidence_ids": [
+        "shot-5-continuous",
+        "shot-5-mid"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-full-v4-contact-sheet",
+       "start": null,
+       "end": null,
+       "detail": "Layout hierarchy (big headline, props mid-frame, captions in bottom band) matches the sampled long-form compositions"
+      },
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Same left/right figure-prop balance as baseline scenes"
+      }
+     ]
+    },
+    "typography_captions": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 14.725,
+       "detail": "Final captions split 13.29-14.94/14.94-15.99s; headline and captions never collide",
+       "evidence_ids": [
+        "shot-5-continuous",
+        "shot-5-mid"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "timing_pacing": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 14.725,
+       "detail": "3.35s closing shot; note slide 0-0.65s and player pop 1.3-3.0s keep the picture active to the end",
+       "evidence_ids": [
+        "shot-5-continuous"
+       ]
+      }
+     ],
+     "comparisons": []
+    },
+    "sound": {
+     "status": "pass",
+     "observations": [
+      {
+       "time": 14.725,
+       "detail": "Narration ends at 15.99s with 0.4s natural tail; no abrupt cut",
+       "evidence_ids": [
+        "shot-5-continuous"
+       ]
+      }
+     ],
+     "comparisons": [
+      {
+       "reference_id": "b1-ryan-v4",
+       "start": 0,
+       "end": 21.3,
+       "detail": "Baseline narration loudness mean -21.4 dB / max -1.7 dB vs preview -18.9/-1.3 dB; both voice-led with no clipping; preview contains narration-embedded SFX below the voice"
+      }
+     ]
+    }
+   }
+  }
+ ],
+ "blocking_issues": [],
+ "limits": [
+  "Hashes, decoded artifacts and complete coverage establish current-media provenance, not aesthetic equivalence.",
+  "Reviewer identity, independence, actual viewing/listening and capability limitations are declarations, not authenticated facts.",
+  "Independent agent review does not imply human approval or user acceptance.",
+  "Sample-target review compares the available approved examples, not identical plots, voices, pixels or unavailable originals.",
+  "B3 endpoint geometry and authored intentions are diagnostics. Each graphic and motion event still needs actual-MP4 independent review; wrong relationships and meaningless motion cannot receive a limited-capability waiver.",
+  "The complete approved Full V4 film is unavailable in this bundle; only sampled long-form compositions are comparable."
+ ]
+}
