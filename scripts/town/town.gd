@@ -11,6 +11,7 @@ var state: TownState
 var view: TownView
 var camera_rig: IsometricCamera
 var hud: Control
+var day_cycle: DayCycle
 var selected_id := ""
 
 var _autosave := 0.0
@@ -19,17 +20,32 @@ var _press_position := Vector2.ZERO
 var _drag_distance := 0.0
 var _touches: Dictionary = {}
 var _pinch_distance := 0.0
+var _levels: Dictionary = {}
+var _coin_timer := 0.0
+var _coin_index := 0
+var _zoom_from := 30.0
+var _zoom_to := 30.0
+var _target_from := Vector3.ZERO
+var _target_to := Vector3.ZERO
 
 
 func _ready() -> void:
 	Game.ensure_town()
 	state = Game.town
 	state.business_changed.connect(_on_business_changed)
+	state.town_completed.connect(_on_town_completed)
+	for id in state.business_ids():
+		_levels[id] = state.business(id).level
 
 	view = TownView.new()
 	view.name = "TownView"
 	add_child(view)
 	view.setup(state)
+
+	day_cycle = DayCycle.new()
+	day_cycle.name = "DayCycle"
+	add_child(day_cycle)
+	day_cycle.setup(view)
 
 	camera_rig = IsometricCamera.new()
 	camera_rig.name = "CameraRig"
@@ -63,6 +79,10 @@ func _process(delta: float) -> void:
 	if state == null:
 		return
 	state.advance(delta)
+	_coin_timer += delta
+	if _coin_timer >= 3.5:
+		_coin_timer = 0.0
+		_pop_income()
 	_autosave += delta
 	if _autosave >= AUTOSAVE_SECONDS:
 		_autosave = 0.0
@@ -94,7 +114,66 @@ func deselect() -> void:
 
 
 func _on_business_changed(id: String) -> void:
+	var business := state.business(id)
+	var previous := int(_levels.get(id, business.level if business != null else 1))
 	view.refresh_business(id)
+	if business == null:
+		return
+	_levels[id] = business.level
+	if business.level > previous:
+		view.sparkle(id)
+		_focus_camera(id)
+
+
+func _pop_income() -> void:
+	var ids := state.unlocked_ids()
+	if ids.is_empty():
+		return
+	_coin_index = (_coin_index + 1) % ids.size()
+	var id := ids[_coin_index]
+	var business := state.business(id)
+	if business == null:
+		return
+	view.pop_income(id, business.net_per_second(state.traffic()) * 3.5)
+
+
+func _focus_camera(id: String) -> void:
+	var plot := BusinessData.plot(id)
+	_zoom_from = camera_rig.zoom
+	_zoom_to = camera_rig.zoom * 0.86
+	_target_from = camera_rig.target
+	_target_to = Vector3(plot.x * 0.35, 0, plot.y * 0.35)
+	var tween := create_tween()
+	tween.tween_method(_apply_camera_focus, 0.0, 1.0, 0.45).set_trans(Tween.TRANS_SINE)
+	tween.tween_method(_apply_camera_focus, 1.0, 0.0, 0.9) \
+		.set_trans(Tween.TRANS_SINE).set_delay(0.35)
+
+
+func _apply_camera_focus(t: float) -> void:
+	camera_rig.zoom = lerpf(_zoom_from, _zoom_to, t)
+	camera_rig.target = _target_from.lerp(_target_to, t)
+	camera_rig.apply()
+
+
+func _on_town_completed() -> void:
+	_zoom_from = camera_rig.zoom
+	_zoom_to = 40.0
+	_target_from = camera_rig.target
+	_target_to = Vector3.ZERO
+	var tween := create_tween()
+	tween.tween_method(_apply_camera_focus, 0.0, 1.0, 1.6).set_trans(Tween.TRANS_CUBIC)
+	if hud != null:
+		hud.show_completion_banner()
+
+
+## Called by the HUD once the completion banner is dismissed.
+func end_cinematic() -> void:
+	_zoom_from = camera_rig.zoom
+	_zoom_to = 30.0
+	_target_from = camera_rig.target
+	_target_to = Vector3.ZERO
+	var tween := create_tween()
+	tween.tween_method(_apply_camera_focus, 0.0, 1.0, 1.1).set_trans(Tween.TRANS_CUBIC)
 
 
 # --- HUD actions -----------------------------------------------------------

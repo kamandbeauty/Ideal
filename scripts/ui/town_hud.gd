@@ -23,6 +23,10 @@ var _manager_button: Button
 var _upgrade_button: Button
 var _unlock_button: Button
 var _offline_layer: Control
+var _complete_layer: Control
+var _complete_title: Label
+var _complete_body: Label
+var _complete_button: Button
 var _offline_body: Label
 var _completion_bar: ProgressBar
 var _completion_label: Label
@@ -59,6 +63,7 @@ func _build() -> void:
 	_build_panel()
 	_build_toast()
 	_build_offline()
+	_build_completion()
 
 
 func _build_vignette() -> void:
@@ -318,6 +323,51 @@ func _build_toast() -> void:
 	_toast_panel.add_child(_toast)
 
 
+func _build_completion() -> void:
+	_complete_layer = Control.new()
+	_complete_layer.name = "CompletionLayer"
+	_complete_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_complete_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	_complete_layer.visible = false
+	add_child(_complete_layer)
+
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.03, 0.05, 0.55)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_complete_layer.add_child(dim)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_complete_layer.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(600, 0)
+	center.add_child(panel)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 14)
+	panel.add_child(column)
+
+	_complete_title = _label(34, UiTheme.GOLD, true)
+	_complete_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(_complete_title)
+
+	_complete_body = _label(18, UiTheme.TEXT, false)
+	_complete_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_complete_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(_complete_body)
+
+	_complete_button = _button("hud.complete_continue", "PrimaryButton", 0, 56)
+	_complete_button.add_theme_font_size_override("font_size", 19)
+	_complete_button.pressed.connect(dismiss_completion)
+	column.add_child(_complete_button)
+
+
+func dismiss_completion() -> void:
+	_complete_layer.visible = false
+	session.end_cinematic()
+
+
 func _build_offline() -> void:
 	_offline_layer = Control.new()
 	_offline_layer.name = "OfflineLayer"
@@ -360,6 +410,9 @@ func _build_offline() -> void:
 
 func _apply_language() -> void:
 	layout_direction = App.layout_direction()
+	_complete_title.text = App.t("hud.complete_title")
+	_complete_body.text = App.t("hud.complete_body")
+	_complete_button.text = App.t("hud.complete_continue")
 	_save_button.text = App.t("hud.save")
 	_menu_button.text = App.t("hud.menu")
 	_close_button.text = App.t("hud.close")
@@ -571,8 +624,8 @@ func _on_card_pressed(id: String) -> void:
 
 
 func _on_town_completed() -> void:
-	_show_toast(App.t("hud.town_complete"))
 	Sound.play("res://assets/audio/toggle.ogg", -6.0)
+	show_completion_banner()
 
 
 func _on_close_panel() -> void:
@@ -637,6 +690,12 @@ func _on_save() -> void:
 
 func _on_menu() -> void:
 	session.leave_to_menu()
+
+
+func show_completion_banner() -> void:
+	_complete_layer.visible = true
+	_complete_layer.move_to_front()
+	Sound.play("res://assets/audio/placement-*.ogg", -5.0)
 
 
 func collect_offline() -> void:

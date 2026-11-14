@@ -94,8 +94,23 @@ gold; the flag is saved, so the reward is paid once per town.
   spinning wheels, headlights and brake lights, each with its own speed, looping
   along the highway. Three more cars are parked at the plots and the workshop
   keeps a small stack of barrels.
+- **Visible growth** — `BusinessDecor` builds four prop stages per business from
+  primitives (level 2 … 5). Stages pop in when the level reaches them, and the
+  building itself grows 2.5 % per level. Examples: fuel pumps and a lit canopy
+  (gas station), tables, awning, rooftop sign and a terrace (restaurant), crates,
+  entrance canopy, lit shop window and an upper floor (store), tyre stack, lift,
+  compressor and a service bay (workshop), parking bays, balcony rail, pool and a
+  sign tower (motel), barrels, wash arch, brushes and a second arch (car wash).
+- **Living town** — ten pedestrians walk the sidewalks with swinging legs and a
+  slight bob, and every few seconds an unlocked business pops a floating `+N`.
+- **Day and night** — `DayCycle` runs a 12-minute day, rotating the sun from
+  sunrise to sunset and blending sky, fog, ambient and fill light. Emissive
+  materials collected from totems, canopies, lamps, pools and signs switch on
+  after sunset; a compiled list means night costs nothing extra per frame.
 - **Camera** — a 39° isometric pitch, a 1.2 s intro pull-in from 38 to 30 units,
-  quarter turns, pinch zoom, drag panning, and a pulsing selection ring.
+  quarter turns, pinch zoom, drag panning, and a pulsing selection ring. An
+  upgrade leans the camera toward that plot for a moment, and completion pulls
+  back to 40 units for the banner.
 - **Interface** — a vignette behind the HUD, coloured card stripes, a five-step
   level meter in the detail panel, and Persian digits in Persian.
 
@@ -196,6 +211,8 @@ new town starts.
   gems and the offline cap.
 - `test_save` — round trip, rejected saves, clamping, unknown ids, file I/O and
   the backup fallback.
+- `test_decor` — all four visual stages build for every business, lit props
+  register their materials, and the day cycle's sun and phases are correct.
 
 `tools/smoke.gd` then boots the real scenes with a software renderer and captures
 the menu (FA/EN), the town, the detail panel, a turned and a zoomed camera, the

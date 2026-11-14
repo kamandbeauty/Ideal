@@ -50,25 +50,33 @@ func _run() -> void:
 
 	_town.deselect()
 	_town.camera_rig.turn_quarter(1)
-	await _settle(20)
-	await _capture("04-town-turned")
+	_town.day_cycle.set_time(0.47)
+	await _settle(24)
+	await _capture("04-town-dusk")
 
-	_town.camera_rig.zoom_by(0.6)
-	await _settle(14)
-	await _capture("05-town-close")
+	_town.day_cycle.set_time(0.78)
+	await _settle(24)
+	await _capture("05-town-night")
 
+	_town.day_cycle.set_time(0.22)
 	var away := 3.5 * 3600.0
 	_town.hud.show_offline(away, _town.state.offline_earnings(away))
-	await _settle(8)
+	await _settle(10)
 	await _capture("06-offline-fa")
 	_town.hud.collect_offline()
-	await _settle(4)
+	await _settle(6)
+
+	_max_town(_town)
+	await _settle(120)
+	await _capture("07-town-complete")
+	_town.hud.dismiss_completion()
+	await _settle(20)
 
 	App.set_language("en")
 	_town.camera_rig.reset_view()
 	_town.select_business("gas_station")
-	await _settle(10)
-	await _capture("07-town-en")
+	await _settle(18)
+	await _capture("08-town-en")
 
 	print("SMOKE OK")
 	get_tree().quit(0)
@@ -90,6 +98,19 @@ func _boost_town(town) -> void:
 	state.advance(0.05)
 	town.view.refresh_all()
 	town.hud.refresh()
+
+
+## Levels every business to the top so the completion banner can be captured.
+func _max_town(town) -> void:
+	var state: TownState = town.state
+	state.cash = 500000000.0
+	for id in state.business_ids():
+		while state.business(id).level < BusinessData.MAX_LEVEL:
+			state.upgrade_business(id)
+		for branch in BusinessData.BRANCHES:
+			while state.business(id).can_upgrade_branch(branch):
+				state.upgrade_branch(id, branch)
+	state.advance(0.2)
 
 
 func _settle(frames: int) -> void:

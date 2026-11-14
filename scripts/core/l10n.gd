@@ -116,6 +116,12 @@ const STRINGS := {
 		"fa": "شهرک کامل شد؛ آمادهٔ شهر بعدی!",
 		"en": "Town complete — ready for the next stop!",
 	},
+	"hud.complete_title": {"fa": "شهرک تکمیل شد!", "en": "Town complete!"},
+	"hud.complete_body": {
+		"fa": "هر شش کسب‌وکار ساخته شد و به بالاترین سطح رسید. ۲۵ الماس گرفتی و شهرک آمادهٔ مقصد بعدی است.",
+		"en": "All six businesses are built and maxed out. You earned 25 gems and the stop is ready for the next one.",
+	},
+	"hud.complete_continue": {"fa": "ادامه", "en": "Continue"},
 	"hud.hint": {
 		"fa": "یک کسب‌وکار را لمس کن تا ارتقا و مدیرش را ببینی.",
 		"en": "Tap a business to see upgrades and its manager.",

@@ -32,6 +32,13 @@ var ring: MeshInstance3D
 var highlight_id := ""
 var _locked_material: StandardMaterial3D
 var _plot_points: Array[Vector2] = []
+var _sun: DirectionalLight3D
+var _fill: DirectionalLight3D
+var _env: Environment
+var _sky_material: ProceduralSkyMaterial
+var _night_materials: Array[StandardMaterial3D] = []
+var _stages: Dictionary = {}
+var _totem_materials: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 
 
@@ -72,6 +79,7 @@ func _build_environment() -> void:
 	sky_material.ground_bottom_color = TownData.ground_color(state.town_id).darkened(0.4)
 	sky_material.sun_angle_max = 14.0
 	sky.sky_material = sky_material
+	_sky_material = sky_material
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
 	env.ambient_light_energy = 0.46
@@ -88,6 +96,7 @@ func _build_environment() -> void:
 	env.fog_sky_affect = 0.15
 	env.fog_aerial_perspective = 0.25
 	world.environment = env
+	_env = env
 	add_child(world)
 
 	var sun := DirectionalLight3D.new()
@@ -98,6 +107,7 @@ func _build_environment() -> void:
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 60.0
 	sun.shadow_bias = 0.04
+	_sun = sun
 	add_child(sun)
 
 	# Cool bounce from the opposite side so shadowed faces keep their shape.
@@ -107,6 +117,7 @@ func _build_environment() -> void:
 	fill.light_color = Color(0.66, 0.78, 1.0)
 	fill.rotation_degrees = Vector3(-24, 150, 0)
 	fill.shadow_enabled = false
+	_fill = fill
 	add_child(fill)
 
 
@@ -287,6 +298,9 @@ func _build_road() -> void:
 			piece.position = Vector3(0, 0, z)
 			piece.scale = Vector3(ROAD_WIDTH, 1.0, ROAD_STEP)
 			add_child(piece)
+		if i % 3 == 0:
+			for side in [-1.0, 1.0]:
+				_lamp(Vector3(1.62 * side, 2.1, z))
 		if pavement != null:
 			for side in [-1.0, 1.0]:
 				var walk: Node3D = pavement.instantiate()
@@ -297,6 +311,28 @@ func _build_road() -> void:
 	var traffic := Traffic.new()
 	traffic.name = "Traffic"
 	add_child(traffic)
+
+	var pedestrians := Pedestrians.new()
+	pedestrians.name = "Pedestrians"
+	add_child(pedestrians)
+
+
+func _lamp(position: Vector3) -> void:
+	var lamp := MeshInstance3D.new()
+	var sphere := SphereMesh.new()
+	sphere.radius = 0.13
+	sphere.height = 0.26
+	lamp.mesh = sphere
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(1.0, 0.94, 0.78)
+	material.emission_enabled = true
+	material.emission = Color(1.0, 0.9, 0.68)
+	material.emission_energy_multiplier = 0.4
+	lamp.material_override = material
+	lamp.position = position
+	lamp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(lamp)
+	_night_materials.append(material)
 
 
 # --- Businesses ------------------------------------------------------------
@@ -311,6 +347,7 @@ func _build_businesses() -> void:
 
 		_build_plot_ground(node)
 		_build_model(node, id)
+		_build_stages(node, id)
 		_build_totem(node, id)
 		_build_pips(node, id)
 		_build_collider(node, id)
@@ -362,6 +399,19 @@ func _build_model(parent: Node3D, id: String) -> void:
 	parent.add_child(model)
 
 
+func _build_stages(parent: Node3D, id: String) -> void:
+	var list: Array[Node3D] = []
+	for stage in BusinessDecor.STAGE_LEVELS:
+		var node := BusinessDecor.build_stage(id, stage, BusinessData.accent(id))
+		node.name = "Stage%d" % stage
+		node.visible = false
+		parent.add_child(node)
+		list.append(node)
+		for material in node.get_meta("night_materials", []):
+			_night_materials.append(material as StandardMaterial3D)
+	_stages[id] = list
+
+
 ## A roadside totem: post, glowing board in the business colour. Locked plots
 ## show an empty lot with a pale board until the player buys in.
 func _build_totem(parent: Node3D, id: String) -> void:
@@ -386,6 +436,9 @@ func _build_totem(parent: Node3D, id: String) -> void:
 	board_mesh.size = Vector3(0.95, 0.5, 0.07)
 	board.mesh = board_mesh
 	board.position.y = 1.62
+	var board_material := StandardMaterial3D.new()
+	board_material.roughness = 0.6
+	board.material_override = board_material
 	totem.add_child(board)
 
 	var lamp := MeshInstance3D.new()
@@ -394,7 +447,13 @@ func _build_totem(parent: Node3D, id: String) -> void:
 	lamp_mesh.size = Vector3(0.7, 0.16, 0.05)
 	lamp.mesh = lamp_mesh
 	lamp.position = Vector3(0, 1.22, 0.05)
+	var lamp_material := StandardMaterial3D.new()
+	lamp.material_override = lamp_material
 	totem.add_child(lamp)
+
+	_totem_materials[id] = {"board": board_material, "lamp": lamp_material}
+	_night_materials.append(board_material)
+	_night_materials.append(lamp_material)
 
 
 func _build_pips(parent: Node3D, id: String) -> void:
@@ -533,30 +592,129 @@ func refresh_business(id: String) -> void:
 			tween.tween_property(
 				model, "scale", Vector3.ONE * BUSINESS_SCALE, 0.45
 			).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		elif not locked:
+			# Each level makes the building itself a little more substantial.
+			var growth := 1.0 + 0.025 * float(business.level - 1)
+			model.scale = Vector3.ONE * BUSINESS_SCALE * growth
 
-	var totem := node.get_node_or_null("Totem")
-	if totem != null:
-		var board: MeshInstance3D = totem.get_node_or_null("Board")
-		var lamp: MeshInstance3D = totem.get_node_or_null("Lamp")
-		if board != null:
-			var board_material := StandardMaterial3D.new()
-			board_material.albedo_color = Color(0.55, 0.53, 0.46) if locked else accent
-			board_material.emission_enabled = not locked
-			board_material.emission = accent
-			board_material.emission_energy_multiplier = 0.45
-			board_material.roughness = 0.6
-			board.material_override = board_material
-		if lamp != null:
-			var lamp_material := StandardMaterial3D.new()
-			lamp_material.albedo_color = Color(0.5, 0.48, 0.42) if locked else Color(1, 0.96, 0.86)
-			lamp_material.emission_enabled = not locked
-			lamp_material.emission = Color(1.0, 0.9, 0.7)
-			lamp_material.emission_energy_multiplier = 0.8
-			lamp.material_override = lamp_material
+	var stages: Array = _stages.get(id, [])
+	for i in stages.size():
+		var stage_node: Node3D = stages[i]
+		var should_show := (not locked) and business.level >= i + 2
+		if should_show and not stage_node.visible:
+			stage_node.visible = true
+			stage_node.scale = Vector3.ONE * 0.2
+			var stage_tween := create_tween()
+			stage_tween.tween_property(stage_node, "scale", Vector3.ONE, 0.4) \
+				.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		elif not should_show:
+			stage_node.visible = false
+
+	var materials: Dictionary = _totem_materials.get(id, {})
+	if not materials.is_empty():
+		var board_material: StandardMaterial3D = materials["board"]
+		board_material.albedo_color = Color(0.55, 0.53, 0.46) if locked else accent
+		board_material.emission = accent
+		var lamp_material: StandardMaterial3D = materials["lamp"]
+		lamp_material.albedo_color = Color(0.5, 0.48, 0.42) if locked else Color(1, 0.96, 0.86)
+		lamp_material.emission = Color(1.0, 0.9, 0.7)
 
 	var group: Array = pips.get(id, [])
 	for i in group.size():
 		group[i].visible = (not locked) and business.level > i + 1
+
+
+func sparkle(id: String) -> void:
+	if not buildings.has(id):
+		return
+	var particles := CPUParticles3D.new()
+	particles.name = "Sparkle"
+	particles.amount = 20
+	particles.one_shot = true
+	particles.explosiveness = 0.9
+	particles.lifetime = 1.1
+	particles.direction = Vector3.UP
+	particles.spread = 55.0
+	particles.initial_velocity_min = 1.2
+	particles.initial_velocity_max = 2.6
+	particles.gravity = Vector3(0, -2.6, 0)
+	particles.scale_amount_min = 0.05
+	particles.scale_amount_max = 0.13
+	var mesh := BoxMesh.new()
+	mesh.size = Vector3(0.08, 0.08, 0.08)
+	particles.mesh = mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(1.0, 0.83, 0.35)
+	material.emission_enabled = true
+	material.emission = Color(1.0, 0.8, 0.3)
+	material.emission_energy_multiplier = 2.4
+	particles.material_override = material
+	var plot := BusinessData.plot(id)
+	particles.position = Vector3(plot.x, 0.9, plot.y)
+	add_child(particles)
+	particles.emitting = true
+	particles.finished.connect(particles.queue_free)
+
+
+func pop_income(id: String, amount: float) -> void:
+	if not buildings.has(id) or amount < 1.0:
+		return
+	var label := Label3D.new()
+	label.name = "Income"
+	label.text = "+%d" % int(round(amount))
+	label.font_size = 64
+	label.pixel_size = 0.0055
+	label.modulate = Color(1.0, 0.85, 0.42)
+	label.outline_size = 14
+	label.outline_modulate = Color(0.05, 0.06, 0.09, 0.7)
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	var plot := BusinessData.plot(id)
+	label.position = Vector3(plot.x, 1.7, plot.y)
+	add_child(label)
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", 2.8, 1.3).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(label, "modulate:a", 0.0, 1.3)
+	tween.chain().tween_callback(label.queue_free)
+
+
+## 0 = sunrise, 0.25 = noon, 0.5 = sunset, 0.75 = midnight.
+func apply_time(t: float) -> void:
+	var elevation := sin(t * TAU)
+	var day := clampf(elevation, 0.0, 1.0)
+	var night := clampf(-elevation * 2.6, 0.0, 1.0)
+	var dusk := clampf(1.0 - absf(elevation) * 3.4, 0.0, 1.0)
+	var sand := TownData.ground_color(state.town_id)
+	var sky_day := TownData.sky_color(state.town_id)
+
+	if _sun != null:
+		_sun.rotation_degrees = Vector3(-(12.0 + 68.0 * day), -40.0 + 360.0 * t, 0)
+		_sun.light_energy = 0.05 + 0.95 * day
+		_sun.light_color = Color(1.0, 0.6, 0.34).lerp(Color(1.0, 0.94, 0.84), day)
+		_sun.visible = elevation > -0.12
+	if _fill != null:
+		_fill.light_energy = 0.1 + 0.18 * day
+		_fill.light_color = Color(0.45, 0.55, 0.85).lerp(Color(0.66, 0.78, 1.0), day)
+	if _env != null:
+		_env.ambient_light_energy = 0.2 + 0.28 * day
+		_env.ambient_light_color = Color(0.38, 0.45, 0.68).lerp(Color(0.86, 0.92, 1.0), day)
+		_env.fog_light_color = sand.lightened(0.3).lerp(Color(0.1, 0.13, 0.24), night)
+		_env.fog_density = 0.0045 + 0.002 * night
+	if _sky_material != null:
+		_sky_material.sky_top_color = sky_day.lerp(Color(0.03, 0.05, 0.13), night)
+		var horizon := sky_day.lightened(0.22)
+		horizon = horizon.lerp(Color(1.0, 0.56, 0.32), dusk * 0.85)
+		_sky_material.sky_horizon_color = horizon.lerp(Color(0.08, 0.1, 0.2), night)
+		_sky_material.ground_horizon_color = horizon.lerp(sand.lightened(0.15), 0.4 * day)
+		_sky_material.ground_bottom_color = sand.darkened(0.45).lerp(
+			Color(0.05, 0.06, 0.1), night
+		)
+
+	var glow := 0.12 + 2.1 * night
+	for material in _night_materials:
+		material.emission_enabled = night > 0.08
+		material.emission_energy_multiplier = glow
 
 
 func set_selected(id: String) -> void:

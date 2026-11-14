@@ -30,6 +30,15 @@ the next town on the highway unlocks.
 - **Desert presentation** — textured sand with noise, dunes, scattered rocks and
   scrub, totem signs per business, three vehicle silhouettes with working wheels
   and lights, a vignette, and a short camera pull-in on load.
+- **Visible growth** — every business adds real props at levels 2–5: pumps and a
+  canopy, awnings and terraces, shop windows, a lift and tyres, a balcony and a
+  pool, wash arches and brushes. Upgrading pops the new stage in with a sparkle
+  and a short camera lean.
+- **A living stop** — ten travellers walk the sidewalks with a small leg
+  animation, traffic loops the highway, and income pops as floating coins.
+- **Day and night** — a 12-minute cycle moves the sun, sky, fog and ambient
+  light; at dusk and night the totem boards, canopy strips, pools and street
+  lamps really light up, and the completion sequence pulls the camera back.
 
 ## Controls
 
@@ -77,11 +86,12 @@ ranks ×2. A branch may never be ahead of the building's level.
 | File | Scene |
 | --- | --- |
 | `00-menu-fa.jpg` / `01-menu-en.jpg` | title screen in Persian and English |
-| `02-town-fa.jpg` | the desert town, Persian HUD |
+| `02-town-fa.jpg` | the desert town in the morning, Persian HUD |
 | `03-business-panel-fa.jpg` | detail panel with level meter and branches |
-| `04-town-turned.jpg` / `05-town-close.jpg` | quarter turn and close zoom |
+| `04-town-dusk.jpg` / `05-town-night.jpg` | sunset and the lit night town |
 | `06-offline-fa.jpg` | offline income report |
-| `07-town-en.jpg` | English HUD and panel |
+| `07-town-complete.jpg` | the completion cinematic and banner |
+| `08-town-en.jpg` | English HUD and panel |
 
 ## Project layout
 
