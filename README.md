@@ -1,37 +1,72 @@
-# Ideal
+# Ideal — Island Watch · آیدیل — دیده‌بان جزیره
 
-پروژهٔ تازهٔ بازی با **Godot 4.7**. مخزن خالی شده و اسکلت پروژه آماده است؛
-بازیِ اصلی روی همین پایه ساخته می‌شود.
+بازی استراتژی سه‌بعدیِ برج‌دفاعی برای اندروید، ساخته‌شده با **Godot 4.7**.
+یک جزیرهٔ کوچک را نگه می‌داری: روی پایه‌ها برج می‌سازی، دشمن‌ها را پیش از
+رسیدن به هسته از پا درمی‌آوری و با طلای هر موج، خط دفاعی را ارتقا می‌دهی.
+رابط بازی فارسی و انگلیسی است و در همان‌جا عوض می‌شود.
 
-A fresh **Godot 4.7** game project. The repository was cleared and this scaffold
-is the starting point for the new game.
+A 3D tower-defence strategy game for Android, built with **Godot 4.7**. Hold a
+small island: raise towers on the build pads, stop ten waves before they reach
+the core, and spend the gold you earn on upgrades. The interface ships in
+Persian and English and can be switched at any time.
 
-## وضعیت / Status
+## در این نسخه / What is in the build
 
-| بخش | مسیر |
+| | |
 | --- | --- |
-| پروژهٔ Godot | [`project.godot`](project.godot) |
-| صحنهٔ اصلی | [`scenes/main.tscn`](scenes/main.tscn) |
-| اسکریپت‌ها | [`scripts/`](scripts/) |
-| آیکون | [`icon.svg`](icon.svg) |
-
-The entry scene is a placeholder title screen: it exists so the project boots
-and can be imported by the engine. It is replaced by the real game.
+| نقشه | یک جزیرهٔ ۵۲×۵۲ با مسیر پیچ‌درپیچ، ۹ پایهٔ ساخت، هسته و دروازهٔ ورود |
+| برج‌ها | نگهبان (تک‌هدفِ سریع)، توپخانه (انفجاری)، سرمازا (کندکننده) — هر کدام سه سطح |
+| دشمن‌ها | پیاده، دونده، زره‌پوش و غول‌پیکر (موج ۵ و ۱۰) |
+| موج‌ها | ۱۰ موج با فاصلهٔ آماده‌سازی و پاداش شروع زودهنگام |
+| اقتصاد | ۲۲۰ طلای اولیه، پاداش کشتن و پایان موج، فروش برج با ۶۰٪ برگشت |
+| دوربین | چرخش با کشیدن، بزرگ‌نمایی با دو انگشت یا چرخ ماوس |
+| زبان | فارسی (راست‌به‌چپ) و انگلیسی، ذخیره‌شده در `user://settings.cfg` |
 
 ## اجرا / Running
 
 ```bash
-# Requires Godot 4.7.x
-godot --path .              # run the game
-godot --path . --editor     # open in the editor
-godot --headless --path . --editor --import   # import assets without a display
+# Godot 4.7.x
+godot --path .                 # بازی
+godot --path . --editor        # ویرایشگر
+godot --headless --path . --editor --import   # ایمپورت بدون پنجره
 ```
 
-## ساختار پیشنهادی / Layout
+## کنترل‌ها / Controls
+
+- **لمس/کلیک** روی پایهٔ ساخت: انتخاب پایه و باز شدن فهرست برج‌ها
+- **لمس/کلیک** روی برج: ارتقا، فروش و دیدن برد
+- **کشیدن** افقی: چرخش دوربین • **دو انگشت / چرخ ماوس**: بزرگ‌نمایی
+- دکمهٔ سرعت (×۱/×۲)، توقف، و «شروع موج» برای شروع زودهنگام
+
+## ساختار / Layout
 
 ```
-scenes/    scenes and levels
-scripts/   GDScript
-assets/    art, audio, fonts (imported by the engine)
-tests/     headless test scenes and suites
+project.godot          تنظیمات پروژه، اتولود App
+scenes/                صحنهٔ اصلی، منو، HUD، نبرد
+scripts/core/          زبان و رشته‌ها (L10n, App)
+scripts/game/          داده‌ها، وضعیت بازی، برج، دشمن، گلوله، نقشه، دوربین
+scripts/ui/            تم، منو، HUD
+assets/fonts/          وزیرمتن (Vazirmatn) با مجوز OFL
+tests/                 مجموعه‌تست‌های headless
+documentation/         طراحی و خروجی کنترل کیفیت
 ```
+
+## تست / Tests
+
+```bash
+godot --headless --path . --script res://tests/run_tests.gd
+```
+
+مجموعه‌ها اقتصاد و فازهای بازی، دادهٔ برج‌ها، ترکیب موج‌ها، هندسهٔ نقشه و
+کامل‌بودن جدول ترجمه را می‌سنجند و گزارش را در
+`documentation/qa/test-results.json` می‌نویسند. همان دستور در
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml) هم روی هر push اجرا
+می‌شود؛ موتور در CI نصب و بررسی می‌شود، پس «ایمپورت سالم» و «بازی بالا
+می‌آید» یک ادعا نیست، یک قدم از build است.
+
+## وضعیت / Status
+
+نسخهٔ ۰٫۱٫۰: حلقهٔ کامل بازی (ساخت، موج، ارتقا، پیروزی/شکست) پیاده شده و
+تست‌های منطقی در CI اجرا می‌شوند. قدم‌های بعدی در
+[`documentation/DESIGN.md`](documentation/DESIGN.md) آمده است: صدا،
+ذخیرهٔ پیشرفت، مرحلهٔ دوم نقشه، و ساخت APK اندروید در CI.

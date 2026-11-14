@@ -14,6 +14,7 @@ on:
       - 'scripts/**'
       - 'assets/**'
       - 'tests/**'
+      - 'documentation/**'
       - '.github/workflows/ci.yml'
   pull_request:
   workflow_dispatch:
@@ -68,6 +69,15 @@ jobs:
           cat "$RUNNER_TEMP/import.log"
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' "$RUNNER_TEMP/import.log"; then
             echo "::error::The engine reported errors while importing the project"
+            exit 1
+          fi
+
+      - name: Run the headless test suites
+        run: |
+          set -euo pipefail
+          godot --headless --path . --script res://tests/run_tests.gd 2>&1 | tee "$RUNNER_TEMP/tests.log"
+          if grep -qE 'SCRIPT ERROR|Parse Error' "$RUNNER_TEMP/tests.log"; then
+            echo "::error::The test run reported script errors"
             exit 1
           fi
 

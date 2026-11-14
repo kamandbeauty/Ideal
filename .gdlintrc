@@ -1,0 +1,3 @@
+# Style rules for the headless linter (gdtoolkit). The CI job is the authority
+# for compilation; this keeps the sources tidy.
+max-line-length: 120

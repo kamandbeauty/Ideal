@@ -1,15 +1,22 @@
 ; Engine configuration file.
-; Full documentation: https://docs.godotengine.org/en/latest/classes/class_projectsettings.html
+; Docs: https://docs.godotengine.org/en/latest/classes/class_projectsettings.html
 
 config_version=5
 
 [application]
 
 config/name="Ideal"
-config/description="A new game, built with Godot."
+config/description="Ideal — Island Watch: a 3D tower-defence strategy game for Android."
+config/version="0.1.0"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
+boot_splash/bg_color=Color(0.043, 0.051, 0.078, 1)
+boot_splash/show_image=false
+
+[autoload]
+
+App="*res://scripts/core/app.gd"
 
 [display]
 
@@ -19,13 +26,17 @@ window/size/window_width_override=1280
 window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/handheld/orientation=0
+window/energy_saving/keep_screen_on=true
 
 [gui]
 
-theme/default_font_multichannel_signed_distance_field=true
+theme/default_font_multichannel_signed_distance_field=false
 
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.043, 0.051, 0.078, 1)
+anti_aliasing/quality/msaa_3d=0
+textures/default_filters/anisotropic_filtering_level=1
