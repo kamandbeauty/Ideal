@@ -1,5 +1,5 @@
 {
-  "checks": 2684,
+  "checks": 2686,
   "engine": "4.7.2-stable (official)",
   "failures": [
     "test_screens: 16:9, en, twin_hmg: the card ends above the gun (at 621 of 810)",
@@ -44,7 +44,7 @@
     "test_project": 29,
     "test_release": 84,
     "test_save": 47,
-    "test_scenes": 69,
+    "test_scenes": 71,
     "test_screens": 650,
     "test_siege": 70,
     "test_sight": 51,
