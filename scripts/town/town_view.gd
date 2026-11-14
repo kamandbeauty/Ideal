@@ -16,6 +16,14 @@ const DUNE_COUNT := 9
 const SEED := 20251114
 
 const PROP_MODELS: Array[String] = ["grass-trees", "grass-trees-tall"]
+const PARKED_CARS := [
+	{"id": "gas_station", "offset": Vector3(1.85, 0, -1.25), "yaw": 92.0,
+		"color": Color(0.82, 0.28, 0.24)},
+	{"id": "motel", "offset": Vector3(-1.85, 0, 1.15), "yaw": -88.0,
+		"color": Color(0.26, 0.46, 0.8)},
+	{"id": "store", "offset": Vector3(1.8, 0, 1.3), "yaw": 6.0,
+		"color": Color(0.9, 0.78, 0.32)},
+]
 
 var state: TownState
 var buildings: Dictionary = {}
@@ -305,6 +313,13 @@ func _build_businesses() -> void:
 		_build_collider(node, id)
 		buildings[id] = node
 
+	for spot in PARKED_CARS:
+		var host: Node3D = buildings.get(str(spot["id"]))
+		if host != null:
+			_add_parked_car(host, spot)
+
+	_add_barrels(buildings.get("workshop"))
+
 
 func _build_plot_ground(parent: Node3D) -> void:
 	var apron := MeshInstance3D.new()
@@ -398,6 +413,70 @@ func _build_pips(parent: Node3D, id: String) -> void:
 		parent.add_child(pip)
 		group.append(pip)
 	pips[id] = group
+
+
+func _add_parked_car(parent: Node3D, spot: Dictionary) -> void:
+	var car := Node3D.new()
+	car.name = "Parked"
+	car.position = spot["offset"]
+	car.rotation_degrees.y = float(spot["yaw"])
+	car.scale = Vector3(0.9, 0.9, 0.9)
+	parent.add_child(car)
+
+	var body := MeshInstance3D.new()
+	var body_mesh := BoxMesh.new()
+	body_mesh.size = Vector3(0.55, 0.3, 1.05)
+	body.mesh = body_mesh
+	body.position.y = 0.3
+	body.material_override = _carlike(spot["color"], 0.4, 0.2)
+	car.add_child(body)
+
+	var cabin := MeshInstance3D.new()
+	var cabin_mesh := BoxMesh.new()
+	cabin_mesh.size = Vector3(0.5, 0.26, 0.5)
+	cabin.mesh = cabin_mesh
+	cabin.position = Vector3(0, 0.56, -0.05)
+	cabin.material_override = _carlike(Color(0.16, 0.2, 0.26), 0.15, 0.4)
+	car.add_child(cabin)
+
+	for side in [-1.0, 1.0]:
+		for axle in [-1.0, 1.0]:
+			var wheel := MeshInstance3D.new()
+			var cylinder := CylinderMesh.new()
+			cylinder.top_radius = 0.13
+			cylinder.bottom_radius = 0.13
+			cylinder.height = 0.09
+			cylinder.radial_segments = 10
+			wheel.mesh = cylinder
+			wheel.rotation_degrees.z = 90.0
+			wheel.position = Vector3(0.3 * side, 0.13, 0.33 * axle)
+			wheel.material_override = _carlike(Color(0.09, 0.1, 0.12), 0.6, 0.1)
+			car.add_child(wheel)
+
+
+func _add_barrels(host: Node3D) -> void:
+	if host == null:
+		return
+	var colors := [Color(0.62, 0.35, 0.2), Color(0.3, 0.45, 0.6), Color(0.45, 0.5, 0.3)]
+	for i in colors.size():
+		var barrel := MeshInstance3D.new()
+		var mesh := CylinderMesh.new()
+		mesh.top_radius = 0.22
+		mesh.bottom_radius = 0.22
+		mesh.height = 0.6
+		mesh.radial_segments = 12
+		barrel.mesh = mesh
+		barrel.position = Vector3(-1.5 + 0.55 * float(i), 0.3, -1.45)
+		barrel.material_override = _carlike(colors[i], 0.55, 0.3)
+		host.add_child(barrel)
+
+
+func _carlike(color: Color, roughness: float, metallic: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = roughness
+	material.metallic = metallic
+	return material
 
 
 func _build_collider(parent: Node3D, id: String) -> void:
