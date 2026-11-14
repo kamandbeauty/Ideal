@@ -3,7 +3,7 @@ extends Node
 ## and a rank for every clip, so a full horde or a long burst can neither flood
 ## the mixer nor cut off the sounds that matter. A limiter on the master bus
 ## keeps a rocket landing in the middle of a burst from clipping. Most clips are
-## synthesized by tools/build_audio.py; the theme and the wave crowd are recorded.
+## synthesized by tools/build_audio.py; the wave crowd is recorded.
 
 const CLIP_DIR: String = "res://assets/audio/"
 const CLIPS: Array[String] = [

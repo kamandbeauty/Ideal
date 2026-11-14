@@ -264,7 +264,7 @@ func _changing_guns(t: TestContext) -> void:
 	await t.discard(level)
 
 
-## The choice on the title screen: shown at once, kept, and used by the next match.
+## The choice in the armory: shown at once, kept, and used by the next match.
 func _the_choice(t: TestContext) -> void:
 	var root: Window = t.tree.root
 	var old_size: Vector2i = root.size
@@ -275,9 +275,12 @@ func _the_choice(t: TestContext) -> void:
 	await t.frames(2)
 	var menus: Menus = game.menus
 	var hud: Hud = game.hud
-	t.check(menus.screen == "main" and menus.gun_choices != null, "the title screen offers the guns")
+	t.check(menus.screen == "main" and menus.gun_choices == null, "the title does not offer the guns")
+	menus.play_button.pressed.emit()
+	await t.frames(2)
+	t.check(menus.screen == "arsenal" and menus.gun_choices != null, "PLAY opens the armory")
 	t.equal(menus.gun_choices.buttons.size(), Profile.GUNS.size(), "one choice for each")
-	t.equal(menus.gun_choices.columns, Profile.GUNS.size(), "all of them sit in one row, none clipped onto a second")
+	t.check(menus.gun_choices.columns >= 2, "they sit on more than one column so every kit is on the card")
 	t.equal(menus.gun_choices.selected, 0, "the twin gun is lit for a new player")
 	var outlined: int = 0
 	for glyph: MenuWidgets.Glyph in menus.gun_choices.glyphs:
@@ -288,14 +291,14 @@ func _the_choice(t: TestContext) -> void:
 	t.check(game.level.defender.weapon is TwinHmg, "and the gun behind the menu is that one")
 	var card_height: float = (menus.gun_note.get_parent().get_parent() as Control).size.y
 	var rotary_at: int = Profile.GUNS.find("rotary_gun")
-	t.check(rotary_at > 0, "the six-barrel is among the title guns")
+	t.check(rotary_at > 0, "the six-barrel is among the armory guns")
 	menus.gun_choices.buttons[rotary_at].pressed.emit()
 	await t.frames(3)
 	t.equal(String(Profile.setting("gun")), "rotary_gun", "a tap on the other gun makes it the player's")
 	t.equal(menus.gun_choices.selected, rotary_at, "it is the one lit now")
 	t.equal(menus.gun_note.text, Menus.gun_note_for("rotary_gun"), "the line under the choice describes it")
 	t.near((menus.gun_note.get_parent().get_parent() as Control).size.y, card_height, 0.5, "and the card does not change its size for it")
-	t.check(game.level.defender.weapon is RotaryGun, "the street behind the menu shows it on the mount at once")
+	t.check(game.level.defender.weapon is RotaryGun, "the street behind the armory shows it on the mount at once")
 	t.check(hud.weapon_slots.size() == 2 and hud.weapon_slots[0].icon == "rotary" and hud.weapon_slots[1].icon == "launcher", "and the HUD's cards are drawn for it")
 	game.choose_gun("pea_shooter")
 	t.equal(String(Profile.setting("gun")), "rotary_gun", "a gun that does not exist cannot be chosen")
@@ -306,13 +309,16 @@ func _the_choice(t: TestContext) -> void:
 	t.check(level.defender.weapon is RotaryGun and level.defender.gun_id() == "rotary_gun", "the match is fought with the chosen gun")
 	t.check(hud.weapon_slots.size() == 2 and hud.weapon_slots[0].icon == "rotary", "under its own card")
 	t.equal(hud.magazine, 500, "the round count shows its belt")
-	# The choice belongs to the title screen: mid-match the mount is left alone.
+	# The choice belongs to the armory: mid-match the mount is left alone.
 	game.choose_gun("twin_hmg")
 	t.check(level.defender.weapon is RotaryGun, "the gun is not swapped under the gunner in the middle of a match")
 	t.equal(String(Profile.setting("gun")), "twin_hmg", "though the choice is noted")
 	game.to_menu()
 	await t.frames(3)
-	t.check(game.level.defender.weapon is TwinHmg and menus.gun_choices.selected == 0, "back on the title screen the noted gun stands on the mount and is lit")
+	t.check(game.level.defender.weapon is TwinHmg, "back on the title the noted gun stands on the mount")
+	menus.show_arsenal()
+	await t.frames(2)
+	t.equal(menus.gun_choices.selected, 0, "and it is the one lit in the armory")
 	game.queue_free()
 	await t.frames(2)
 	root.size = old_size

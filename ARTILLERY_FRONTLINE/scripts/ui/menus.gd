@@ -1,10 +1,10 @@
 class_name Menus
 extends CanvasLayer
-## Title, settings, pause and result screens. Ordinary Controls: these are the
-## only places where taps go through Godot's GUI instead of the touch router.
-## Every screen is laid out for the reading direction of the language in use.
-## Buttons and the rows of the settings screen are 88 canvas units high and
-## its choice buttons 84 (7.4 and 7.0 mm on a 6.5-inch phone).
+## Title, armory, settings, pause and result screens. Ordinary Controls: these
+## are the only places where taps go through Godot's GUI instead of the touch
+## router. Every screen is laid out for the reading direction of the language
+## in use. Buttons are 88 canvas units high and choice buttons 84 (7.4 and
+## 7.0 mm on a 6.5-inch phone). PLAY opens the armory; the armory starts the match.
 
 signal play_requested
 signal resume_requested
@@ -20,9 +20,9 @@ signal gun_chosen(id: String)
 const FADE_TIME: float = 0.16
 ## A button that asks to be pressed twice stays armed this long.
 const CONFIRM_TIME: float = 3.0
-## Widths of the two blocks of the title screen: the title itself, and the card of the coming battle.
-const TITLE_WIDTH: float = 540.0
-const PLAN_WIDTH: float = 560.0
+## Width of the title poster and of the armory column.
+const TITLE_WIDTH: float = 640.0
+const ARMORY_WIDTH: float = 720.0
 
 var screen: String = ""
 var came_from: String = "main"
@@ -134,9 +134,12 @@ func _show(name: String, fade_in: bool = true) -> void:
 	holder.layout_direction = Control.LAYOUT_DIRECTION_RTL if Loc.is_rtl() else Control.LAYOUT_DIRECTION_LTR
 	match name:
 		"main":
-			# The title screen leaves the street in view: only the side the column stands on is darkened.
-			dim.color = Color(0.02, 0.02, 0.025, 0.18)
+			# The street stays in the picture; a veil over it so the poster reads.
+			dim.color = Color(0.02, 0.02, 0.028, 0.46)
 			_build_main()
+		"arsenal":
+			dim.color = Color(0.02, 0.02, 0.028, 0.62)
+			_build_arsenal()
 		"settings":
 			dim.color = Color(0.02, 0.02, 0.025, 0.74)
 			_build_settings()
@@ -161,6 +164,10 @@ func _show(name: String, fade_in: bool = true) -> void:
 
 func show_main() -> void:
 	_show("main")
+
+
+func show_arsenal() -> void:
+	_show("arsenal")
 
 
 func show_pause(status: Dictionary = {}) -> void:
@@ -269,24 +276,23 @@ func _disarm() -> void:
 
 
 # -- Title -----------------------------------------------------------------------------
-## The title stands at the reading edge of the screen and the coming battle on a card at the far one:
-## which stage, which gun, and the button that starts it. The gun itself shows below, between the two.
+## A poster over the street: the name of the game and the button that opens the armory.
 func _build_main() -> void:
-	var shade := MenuWidgets.Shade.new()
-	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	holder.add_child(shade)
 	var frame: MarginContainer = _frame(26.0)
 	var column := VBoxContainer.new()
 	column.custom_minimum_size = Vector2(TITLE_WIDTH, 0.0)
-	column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	column.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	column.add_theme_constant_override("separation", 10)
+	column.add_theme_constant_override("separation", 12)
 	frame.add_child(column)
 	column.add_child(MenuWidgets.Stripes.new())
-	column.add_child(_heading(Loc.t("title"), 84, UITheme.AMBER, false))
-	column.add_child(_heading(Loc.t("subtitle"), 32, UITheme.TEXT, false))
-	column.add_child(_text(Loc.t("tagline"), 24, UITheme.MUTED, false))
-	column.add_child(_spacer(10))
+	column.add_child(_heading(Loc.t("title"), 92, UITheme.AMBER))
+	column.add_child(_heading(Loc.t("subtitle"), 30, UITheme.TEXT))
+	column.add_child(_text(Loc.t("tagline"), 24, UITheme.MUTED))
+	column.add_child(_spacer(14))
+	play_button = UITheme.button(Loc.t("play"), func() -> void: show_arsenal(), "accent", "ui_start")
+	column.add_child(play_button)
+	column.add_child(_spacer(6))
 	var pair := HBoxContainer.new()
 	pair.add_theme_constant_override("separation", 10)
 	var settings_button: Button = UITheme.button(Loc.t("settings"), func() -> void: show_settings("main"))
@@ -303,30 +309,27 @@ func _build_main() -> void:
 			var place: Vector2i = Campaign.place_of(int(totals.best_wave))
 			record = Loc.t("best_run", [place.x, place.y])
 		var career: String = Loc.t("career", [int(totals.matches), int(totals.victories), int(totals.kills)])
-		column.add_child(_text(record + ("\n" if record != "" else "") + career, 20, UITheme.TEXT, false))
-	column.add_child(_text(Loc.t("version", [Loc.number(String(ProjectSettings.get_setting("application/config/version", "")))]), 20, UITheme.MUTED, false))
+		column.add_child(_text(record + ("\n" if record != "" else "") + career, 20, UITheme.TEXT))
+	column.add_child(_text(Loc.t("version", [Loc.number(String(ProjectSettings.get_setting("application/config/version", "")))]), 20, UITheme.MUTED))
 
-	# The card stands a third of the way down its side, clear of the gun in the lower part of the picture.
-	var rail := VBoxContainer.new()
-	rail.size_flags_horizontal = Control.SIZE_SHRINK_END
-	rail.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rail.add_theme_constant_override("separation", 0)
-	frame.add_child(rail)
+
+# -- Armory ----------------------------------------------------------------------------
+## After PLAY: pick the stage and the gun, then go to the wall. The street behind
+## the menu shows the gun that is lit.
+func _build_arsenal() -> void:
+	var frame: MarginContainer = _frame(20.0)
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(PLAN_WIDTH, 0.0)
-	card.add_theme_stylebox_override("panel", UITheme.box(Color(0.03, 0.032, 0.038, 0.8), UITheme.LINE, 10, 1, 16))
-	for share: float in [1.0, 2.0]:
-		var gap := Control.new()
-		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		gap.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		gap.size_flags_stretch_ratio = share
-		rail.add_child(gap)
-	rail.add_child(card)
-	rail.move_child(card, 1)
+	card.custom_minimum_size = Vector2(ARMORY_WIDTH, 0.0)
+	card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	card.add_theme_stylebox_override("panel", UITheme.box(Color(0.03, 0.032, 0.038, 0.88), UITheme.LINE, 10, 1, 18))
+	frame.add_child(card)
 	var plan := VBoxContainer.new()
-	plan.add_theme_constant_override("separation", 10)
+	plan.add_theme_constant_override("separation", 6)
 	card.add_child(plan)
-	# Which stage PLAY starts: every stage already won and the one after; the rest wait under a padlock.
+	plan.add_child(MenuWidgets.Stripes.new())
+	plan.add_child(_heading(Loc.t("armory"), 36, UITheme.AMBER))
+	var totals: Dictionary = Profile.data.stats
 	var open: int = Campaign.open_stages(int(totals.stages_cleared))
 	var stages: Array = []
 	for index: int in Campaign.count():
@@ -342,25 +345,23 @@ func _build_main() -> void:
 		stage_brief.text = stage_brief_for(index)
 		stage_chosen.emit(index))
 	plan.add_child(stage_choices)
-	# Which gun stands on the mount. All five sit in one row so none are clipped
-	# off the card; the street behind the menu shows the one that is lit.
 	var names: Array = []
 	var outlines: Array = []
 	for id: String in Profile.GUNS:
 		var gun: WeaponData = gun_data(id)
-		names.append(Loc.t(gun.name_key + "_short"))
+		names.append(Loc.t(gun.name_key))
 		outlines.append(gun.icon)
-	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 0)
+	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 2)
 	gun_choices.chosen.connect(func(index: int) -> void:
 		gun_note.text = gun_note_for(Profile.GUNS[index])
 		gun_chosen.emit(Profile.GUNS[index]))
 	plan.add_child(gun_choices)
 	gun_note = _text(gun_note_for(String(Profile.setting("gun"))), 20, UITheme.MUTED, false)
-	# Room for two lines whichever gun is chosen, so the card does not jump when the choice changes.
 	gun_note.custom_minimum_size = Vector2(0.0, gun_note.get_line_height() * 2.0 + 4.0)
 	plan.add_child(gun_note)
-	play_button = UITheme.button(Loc.t("play"), func() -> void: play_requested.emit(), "accent", "ui_start")
+	play_button = UITheme.button(Loc.t("deploy"), func() -> void: play_requested.emit(), "accent", "ui_start")
 	plan.add_child(play_button)
+	plan.add_child(UITheme.button(Loc.t("back"), func() -> void: show_main(), "plain", "ui_back"))
 
 
 func _build_loading() -> void:

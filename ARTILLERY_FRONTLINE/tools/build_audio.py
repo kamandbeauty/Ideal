@@ -540,21 +540,53 @@ def base_set():
            + n * 0.35 * exp(-x * 60))
     render("critical", 0.7, lambda x, n, l, l2: sum(a * sin(2 * pi * f * x) * exp(-x * d) for f, a, d in [(1320, 0.45, 6), (1980, 0.3, 8), (2640, 0.18, 11)])
            + n * 0.08 * exp(-x * 90))
-    # The music loop uses integer frequencies only, so it repeats exactly at its length.
+    # The title theme is built by music_theme(): oscillators only, no noise bed.
+
+
+def music_theme():
+    """A looping bass bed for the title: sub, a walking bass and a dark pad.
+    Integer frequencies over 48 seconds so the loop meets itself. No noise,
+    no hats: the old hiss was the hat, and it read as a fault on a phone."""
+    seconds = 48.0
+    x = t(seconds)
+    # Four bars of twelve seconds. Roots are integer Hz so 48 s is a whole number of cycles.
     chords = [(55, 110, 165, 220), (44, 88, 132, 176), (49, 98, 147, 196), (41, 82, 123, 164)]
-
-    def theme(x, n, l, l2):
-        chord = chords[int(x // 12) % 4]
-        pad = sum(sin(2 * pi * f * x) for f in chord) * 0.05 * (0.75 + 0.25 * sin(2 * pi * x / 6))
-        bass = sin(2 * pi * chord[0] * x) * 0.22 * exp(-(x % 0.75) * 6)
-        kick = sin(2 * pi * 48 * (x % 1.5)) * 0.5 * exp(-(x % 1.5) * 9)
-        hat = n * 0.07 * exp(-(x % 0.375) * 60)
-        return pad + bass + kick + hat
-
-    render("music_theme", 48.0, theme)
+    out = np.zeros_like(x)
+    bar = 12.0
+    for index, chord in enumerate(chords):
+        start = int(index * bar * RATE)
+        end = int((index + 1) * bar * RATE)
+        clock = x[start:end]
+        beat = clock - index * bar
+        breathe = 0.78 + 0.22 * np.sin(2.0 * np.pi * clock / 6.0)
+        pad = np.zeros_like(clock)
+        for freq in chord:
+            pad += np.sin(2.0 * np.pi * freq * clock)
+        pad *= 0.042 * breathe
+        pulse = np.exp(-(beat % 0.75) * 5.2)
+        bass = np.sin(2.0 * np.pi * chord[0] * clock) * 0.36 * pulse
+        sub = np.sin(2.0 * np.pi * (chord[0] * 0.5) * clock) * 0.30 * (0.62 + 0.38 * pulse)
+        kick = np.sin(2.0 * np.pi * 42.0 * (beat % 1.5)) * 0.40 * np.exp(-(beat % 1.5) * 8.0)
+        out[start:end] = pad + bass + sub + kick
+    out = np.tanh(out * 1.12)
+    # Looping bed: do not fade the ends to zero (that would thump every 48 s).
+    samples = np.asarray(out, np.float64)
+    samples = samples - samples.mean()
+    top = np.abs(samples).max()
+    if top > 0:
+        samples = samples / top * 0.86
+    data = np.round(samples * 32767.0).astype("<i2")
+    os.makedirs(OUT, exist_ok=True)
+    with wave.open(os.path.join(OUT, "music_theme.wav"), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(RATE)
+        handle.writeframes(data.tobytes())
+    print("audio %-18s %.2fs" % ("music_theme", seconds))
 
 
 GROUPS = {
+    "theme": music_theme,
     "hmg": lambda: (hmg_shot(), hmg_tail()),
     "rotary": rotary_gun,
     "dry_fire": dry_fire,

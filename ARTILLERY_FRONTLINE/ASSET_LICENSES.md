@@ -33,7 +33,7 @@ the new original assets carry is the project owner's decision.
 
 | Asset | Origin | Licence |
 | --- | --- | --- |
-| `assets/audio/music_theme.mp3` | *Teeth In The Wire*, supplied for this project as the main theme | Project owner's recording |
+| `assets/audio/music_theme.wav` | Synthesized bass bed (`tools/build_audio.py`, oscillators only, no noise) | Original |
 | `assets/audio/wave_horde.wav` | Trimmed (16 s, mono 24 kHz) from [Freesound 111044](https://freesound.org/people/GaryQ/sounds/111044/) *Zombie group 2 (small)* by GaryQ | [CC0](https://creativecommons.org/publicdomain/zero/1.0/) |
 
 ## Third-party fonts

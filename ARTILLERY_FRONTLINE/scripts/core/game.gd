@@ -86,8 +86,8 @@ func next_stage() -> void:
 		start_match()
 
 
-## Puts another gun on the mount. It is the player's for every match from now on, and the title
-## screen, which looks out over the gun, shows it at once.
+## Puts another gun on the mount. It is the player's for every match from now on, and the armory,
+## which looks out over the gun, shows it at once.
 func choose_gun(id: String) -> void:
 	if not Profile.GUNS.has(id):
 		return

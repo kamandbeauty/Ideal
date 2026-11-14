@@ -50,7 +50,7 @@ func _approved_play(t: TestContext) -> void:
 		"held on a body the two guns do the same work to within a tenth (%.0f against %.0f a second)" % [
 			rotary.damage / rotary.fire_interval, gun.damage / gun.fire_interval])
 	t.check(Profile.GUNS.size() >= 4 and Profile.GUNS[0] == "twin_hmg" and Profile.DEFAULTS.settings.gun == "twin_hmg",
-		"a new player starts with the twin gun, and four or five kits stand on the title")
+		"a new player starts with the twin gun, and four or five kits stand on the mount")
 	for id: String in Profile.GUNS:
 		t.check(Defender.GUN_SCENES.has(id) and ResourceLoader.exists(String(Defender.GUN_SCENES[id])),
 			"%s has a scene on the mount" % id)
