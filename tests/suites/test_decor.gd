@@ -12,15 +12,12 @@ func test_every_business_has_four_stages() -> void:
 			node.free()
 
 
-func test_stages_add_more_props_as_they_grow() -> void:
-	var small := BusinessDecor.build_stage("gas_station", 2, Color.WHITE)
-	var big := BusinessDecor.build_stage("gas_station", 5, Color.WHITE)
-	check(
-		big.get_child_count() >= small.get_child_count(),
-		"a later stage should not be emptier"
-	)
-	small.free()
-	big.free()
+func test_every_stage_is_dressed() -> void:
+	for id in BusinessData.ids():
+		for stage in BusinessDecor.STAGE_LEVELS:
+			var node := BusinessDecor.build_stage(id, stage, Color.WHITE)
+			check(node.get_child_count() >= 2, "%s stage %d is too sparse" % [id, stage])
+			node.free()
 
 
 func test_emissive_props_register_for_night() -> void:
