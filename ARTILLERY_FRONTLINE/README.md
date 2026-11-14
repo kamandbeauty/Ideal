@@ -233,3 +233,14 @@ side, in any pose of any clip, without the engine.
 | 4 | HUD and menu polish, audio and visual polish | done |
 | 5 | Optimisation, clean-up, final verification | done |
 | 6 | The sight that draws in, new zombie models that limp, the six-barrel gun, the siege in three stages | done; not yet run on a phone |
+
+### Menu music
+
+The requested recording **Teeth In The Wire** is not included in this project.
+To use it, supply a recording licensed for distribution in the game as
+`assets/audio/teeth_in_the_wire.ogg` (or `.mp3` / `.wav`) and import/export the
+project again. The menu prefers that recording, loops it on the Music bus, and
+stops it when a match starts; returning to the main menu starts it again. Until
+then the original generated theme is used as a fallback. The music-volume
+setting controls either track. Do not commit or distribute the recording without
+permission from its rights holders.

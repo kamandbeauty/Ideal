@@ -181,6 +181,16 @@ def facade(b, node, origin, normal, length, floors, floor_h, ground_h, edge, rng
                     wall.opening(u0, v0, u1, v1, a0, b0, a1, b1, color, 0.25, "ember", (1, 1, 1), 0.85)
                 else:
                     wall.opening(u0, v0, u1, v1, a0, b0, a1, b1, color, 0.3, "interior", (1, 1, 1), soot)
+                if roll >= 0.1:
+                    # Thin masonry sills and recessed frames give the facade depth
+                    # without adding separate scene nodes or gameplay collision.
+                    trim = tuple(c * 0.72 for c in color)
+                    wall.b.box(node, "concrete", wall.p((a0 + a1) / 2, b0 - 0.07, -0.08),
+                               (a1 - a0 + 0.20, 0.12, 0.22), basis=wall.frame, color=trim)
+                    wall.b.box(node, "metal", wall.p((a0 + a1) / 2, (b0 + b1) / 2, 0.20),
+                               (0.055, b1 - b0, 0.07), basis=wall.frame, color=(0.3, 0.29, 0.26))
+                    wall.b.box(node, "metal", wall.p((a0 + a1) / 2, b0 + (b1 - b0) * 0.55, 0.20),
+                               (a1 - a0, 0.045, 0.07), basis=wall.frame, color=(0.3, 0.29, 0.26))
             elif max(left, right) > v0 + 1e-6:
                 vl = min(max(left, v0), v1)
                 vr = min(max(right, v0), v1)
@@ -612,10 +622,12 @@ CAR_PAINT = [
 
 
 def _wheel(b, node, centre, axis, radius, width, tire, hub, segments=12):
-    """Tyre plus a sunken rim, so a wreck is not a floating slab."""
+    """Tyre with an exposed rim and hub, so a wreck is not a floating slab."""
     axis = axis / np.linalg.norm(axis)
     b.cylinder(node, "metal", centre - axis * (width * 0.5), radius, width, segments, tire, axis=axis)
-    b.cylinder(node, "metal", centre - axis * (width * 0.22), radius * 0.58, width * 0.44, max(8, segments - 2), hub, axis=axis)
+    # Put the rim on the outside face, not buried inside the tyre.
+    b.cylinder(node, "metal", centre + axis * (width * 0.5 + 0.002), radius * 0.62, 0.018, max(8, segments - 2), hub, axis=axis)
+    b.cylinder(node, "metal", centre + axis * (width * 0.5 + 0.021), radius * 0.19, 0.012, 8, tire, axis=axis)
 
 
 def car(b, node, x, z, yaw, seed, kind="sedan", tint=None, burnt=True, collide=True):
@@ -649,10 +661,29 @@ def car(b, node, x, z, yaw, seed, kind="sedan", tint=None, burnt=True, collide=T
         if side > 0:
             corners = corners[::-1]
         b.quad(node, "interior", corners)
+        # B-pillar, window trim, door seams and handles make the silhouette
+        # readable even at the distance of the gunner's elevated camera.
+        b.box(node, "metal", origin + frame @ np.array([sx * 1.005, (0.92 + roof - 0.07) / 2, (z_back + z_front) / 2]),
+              (0.035, roof - 0.99, 0.085), yaw, chrome)
+        b.box(node, "metal", origin + frame @ np.array([sx * 1.005, 0.92, (z_back + z_front) / 2]),
+              (0.035, 0.055, z_front - z_back + 0.30), yaw, chrome)
+        for door_z in ((z_back + z_front) / 2, z_front + 0.3):
+            b.box(node, "metal", origin + frame @ np.array([sx * 1.005, 0.65, door_z]),
+                  (0.025, 0.47, 0.025), yaw, (0.08, 0.08, 0.07))
+        for handle_z in (z_back + 0.45, z_front - 0.35):
+            b.box(node, "metal", origin + frame @ np.array([sx * 1.01, 0.80, handle_z]),
+                  (0.04, 0.045, 0.17), yaw, chrome)
     # Bumpers, grille, light buckets.
     b.box(node, "metal", origin + frame @ np.array([0.0, 0.38, z_max + 0.04]), (width * 0.92, 0.22, 0.16), yaw, chrome)
     b.box(node, "metal", origin + frame @ np.array([0.0, 0.36, z_min - 0.04]), (width * 0.92, 0.2, 0.14), yaw, chrome)
     b.box(node, "metal", origin + frame @ np.array([0.0, 0.58, z_max - 0.02]), (width * 0.42, 0.28, 0.08), yaw, (0.08, 0.08, 0.08))
+    # Slats and number plates distinguish the front and rear of the wreck.
+    for y in (0.49, 0.56, 0.63, 0.70):
+        b.box(node, "metal", origin + frame @ np.array([0.0, y, z_max + 0.025]),
+              (width * 0.38, 0.025, 0.025), yaw, chrome)
+    for end_z in (z_max + 0.13, z_min - 0.12):
+        b.box(node, "marking", origin + frame @ np.array([0.0, 0.36, end_z]),
+              (0.40, 0.11, 0.025), yaw, (0.48, 0.46, 0.39) if not burnt else (0.2, 0.18, 0.15))
     lens = (0.55, 0.52, 0.42) if not burnt else (0.12, 0.1, 0.08)
     tail = (0.45, 0.08, 0.06) if not burnt else (0.18, 0.06, 0.05)
     for side in (-1, 1):
@@ -667,7 +698,7 @@ def car(b, node, x, z, yaw, seed, kind="sedan", tint=None, burnt=True, collide=T
         for end in (-1, 1):
             if burnt and rng.random() < 0.22:
                 continue
-            centre = origin + frame @ np.array([side * (width / 2 - 0.14), 0.32 - lift * 0.4, end * (length - 0.72)])
+            centre = origin + frame @ np.array([side * (width / 2 - 0.08), 0.32 - lift * 0.4, end * (length - 0.72)])
             axis = frame @ np.array([side * 1.0, 0.0, 0.0])
             _wheel(b, node, centre, axis, 0.32, 0.22, tire, hub)
     if collide:
@@ -705,7 +736,7 @@ def bus(b, node, x, z, yaw, roll=0.0):
     b.quad(node, "interior", screen)
     for dz in (-3.7, -1.2, 3.5):
         for sx in (-1, 1):
-            hub = centre + basis @ np.array([sx * (width / 2 - 0.28), -height / 2 + 0.12, dz])
+            hub = centre + basis @ np.array([sx * (width / 2 - 0.12), -height / 2 + 0.12, dz])
             axis = basis @ np.array([sx * 1.0, 0.0, 0.0])
             _wheel(b, node, hub, axis, 0.52, 0.32, (0.08, 0.08, 0.08), (0.2, 0.18, 0.16), 12)
     if rolled:

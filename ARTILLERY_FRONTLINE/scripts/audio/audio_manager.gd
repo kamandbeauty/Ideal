@@ -13,6 +13,8 @@ const CLIPS: Array[String] = [
 	"wave_clear", "wind", "music_theme", "wave_horde", "explosion_small", "grenade_throw", "grenade_bounce", "weapon_switch", "resupply", "boss_roar",
 	"boss_death", "body_fall", "ui_toggle", "ui_start", "ui_back", "victory", "defeat", "rotary_shot", "rotary_spin", "rotary_tail",
 ]
+## Optional licensed recordings are loaded only if supplied by the project owner.
+const OPTIONAL_CLIPS: Array[String] = ["teeth_in_the_wire"]
 ## Shortest gap between two starts of the same clip, in milliseconds.
 const MIN_GAP_MS: Dictionary = {
 	"impact_flesh": 45, "impact": 60, "impact_metal": 60, "headshot": 70, "zombie_groan_1": 160, "zombie_groan_2": 160,
@@ -66,7 +68,7 @@ func _ready() -> void:
 	# The headless driver mixes nothing; skipping playback keeps logic tests free of orphaned streams.
 	playback_enabled = DisplayServer.get_name() != "headless"
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	for id: String in CLIPS:
+	for id: String in CLIPS + OPTIONAL_CLIPS:
 		var stream: Resource = _load_clip(id)
 		if stream != null:
 			clips[id] = stream

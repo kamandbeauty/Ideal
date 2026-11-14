@@ -39,7 +39,7 @@ func _ready() -> void:
 	Events.match_finished.connect(_on_match_finished)
 	# The wind is part of the place, not of the score: it follows the effects volume, so turning the music off leaves it.
 	Sound.start_loop("wind", "Effects", -19.0)
-	Sound.start_loop("music_theme", "Music", -13.0)
+	_start_menu_music()
 	_load_level()
 	menus.show_main()
 	var arguments: PackedStringArray = OS.get_cmdline_user_args()
@@ -96,7 +96,20 @@ func choose_gun(id: String) -> void:
 		level.defender.mount_gun(id)
 
 
+## Prefer the licensed recording when supplied; keep the existing theme as a
+## fallback so the menu is not silent in builds without that asset.
+func _start_menu_music() -> void:
+	var track: String = "teeth_in_the_wire" if Sound.has_clip("teeth_in_the_wire") else "music_theme"
+	Sound.start_loop(track, "Music", -13.0)
+
+
+func _stop_menu_music() -> void:
+	Sound.stop_loop("teeth_in_the_wire")
+	Sound.stop_loop("music_theme")
+
+
 func start_match() -> void:
+	_stop_menu_music()
 	won_onward = false
 	get_tree().paused = false
 	Engine.time_scale = 1.0
@@ -148,6 +161,7 @@ func to_menu() -> void:
 	mode = Mode.MENU
 	hud.set_active(false)
 	Sound.silence_combat()
+	_start_menu_music()
 	_load_level()
 	menus.show_main()
 

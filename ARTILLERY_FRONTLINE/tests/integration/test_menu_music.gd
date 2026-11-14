@@ -1,0 +1,32 @@
+extends RefCounted
+## Menu track selection and transitions, without requiring the licensed song in the test tree.
+
+func run(t: TestContext) -> void:
+	Profile.persist = false
+	Sound.stop_loop("music_theme")
+	Sound.stop_loop("teeth_in_the_wire")
+	var original: Resource = Sound.clips.get("teeth_in_the_wire")
+	Sound.clips.erase("teeth_in_the_wire")
+	var game: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
+	t.tree.root.add_child(game)
+	await t.frames(2)
+	t.check(Sound.is_looping("music_theme"), "menu falls back to the shipped theme when the recording is absent")
+	t.check(not Sound.is_looping("teeth_in_the_wire"), "the unavailable recording is not playing")
+	game._stop_menu_music()
+	# A stand-in exercises the same AudioStream path as an imported recording.
+	Sound.clips["teeth_in_the_wire"] = Sound.clips["music_theme"]
+	game._start_menu_music()
+	t.check(Sound.is_looping("teeth_in_the_wire") and not Sound.is_looping("music_theme"), "the supplied recording is preferred")
+	t.equal((Sound.loops["teeth_in_the_wire"] as AudioStreamPlayer).bus, &"Music", "the recording follows the music-volume setting")
+	game.start_match()
+	t.check(not Sound.is_looping("teeth_in_the_wire"), "starting a match stops the menu track")
+	await t.frames(4)
+	game.to_menu()
+	t.check(Sound.is_looping("teeth_in_the_wire"), "returning to the main menu starts the track again")
+	game._stop_menu_music()
+	if original != null:
+		Sound.clips["teeth_in_the_wire"] = original
+	else:
+		Sound.clips.erase("teeth_in_the_wire")
+	game.queue_free()
+	await t.frames(2)
