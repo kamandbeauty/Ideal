@@ -1,6 +1,7 @@
 extends SceneTree
 
 const RigScene = preload("res://assets/models/ual-reference-rig.glb")
+const StandardRigScene = preload("res://assets/models/ual-standard-user-reference.glb")
 var failures := 0
 
 func _initialize() -> void:
@@ -60,6 +61,31 @@ func run_tests() -> void:
 						moved = true
 						break
 				check(moved, requested + " changes skeletal pose")
+	var standard := StandardRigScene.instantiate()
+	root.add_child(standard)
+	var standard_skeleton := find_type(standard, "Skeleton3D") as Skeleton3D
+	var standard_player := find_type(standard, "AnimationPlayer") as AnimationPlayer
+	check(standard_skeleton != null and standard_player != null, "user-provided standard library imports with rig and animations")
+	if standard_skeleton and standard_player:
+		check(standard_skeleton.get_bone_count() >= 50, "standard library includes humanoid skeleton")
+		check(standard_player.get_animation_list().size() >= 46, "full standard library clips import")
+		for clip in ["Jump_Start", "Jump_Land", "Roll", "Pistol_Aim_Down", "Pistol_Aim_Up"]:
+			check(standard_player.has_animation(clip), "standard library includes " + clip)
+		for clip in ["Jump_Start", "Jump_Land", "Roll"]:
+			if standard_player.has_animation(clip):
+				standard_player.play(clip)
+				standard_player.advance(0.0)
+				var before: Array[Transform3D] = []
+				for bone in range(standard_skeleton.get_bone_count()):
+					before.append(standard_skeleton.get_bone_pose(bone))
+				standard_player.advance(0.17)
+				var moved := false
+				for bone in range(standard_skeleton.get_bone_count()):
+					if not standard_skeleton.get_bone_pose(bone).is_equal_approx(before[bone]):
+						moved = true
+						break
+				check(moved, clip + " changes skeletal pose")
+	standard.queue_free()
 	model.queue_free()
 	await process_frame
 	print("Reference rig failures: ", failures)
