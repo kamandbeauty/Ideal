@@ -176,11 +176,12 @@ func _build_dunes() -> void:
 		dune.mesh = sphere
 		dune.material_override = material
 		var angle := TAU * float(i) / float(DUNE_COUNT) + _rng.randf_range(-0.2, 0.2)
-		var distance := _rng.randf_range(26.0, 42.0)
+		var distance := _rng.randf_range(31.0, 46.0)
 		dune.position = Vector3(cos(angle) * distance, -0.55, sin(angle) * distance)
 		var stretch := _rng.randf_range(9.0, 18.0)
 		dune.scale = Vector3(stretch, _rng.randf_range(1.6, 3.2), stretch * _rng.randf_range(0.6, 1.0))
 		dune.rotation_degrees.y = _rng.randf_range(0.0, 360.0)
+		dune.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(dune)
 
 
