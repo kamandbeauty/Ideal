@@ -1,7 +1,7 @@
 {
   "passed": false,
   "problems": [
-    "text keys nothing shows: weapon_bushmaster_short, weapon_dual_mauler_short, weapon_gilded_minigun_short, weapon_rotary_gun_short, weapon_twin_hmg_short"
+    "text keys nothing shows: choose_gun, choose_stage, weapon_bushmaster_short, weapon_dual_mauler_short, weapon_gilded_minigun_short, weapon_rotary_gun_short, weapon_twin_hmg_short"
   ],
   "counted": {
     "paths_checked": 172,
@@ -9,9 +9,9 @@
     "scenes": 13,
     "resources": 20,
     "assets": 97,
-    "asset_megabytes": 36.6,
+    "asset_megabytes": 35.0,
     "sounds": 47,
-    "text_keys": 111
+    "text_keys": 115
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
 }
