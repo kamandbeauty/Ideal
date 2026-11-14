@@ -239,7 +239,9 @@ func serialize() -> Dictionary:
 func apply_save(data: Dictionary) -> bool:
 	if int(data.get("version", 0)) != SAVE_VERSION:
 		return false
-	var saved_town := str(data.get("town", "desert"))
+	if not data.has("town"):
+		return false
+	var saved_town := str(data.get("town", ""))
 	if not TownData.has_town(saved_town):
 		return false
 	town_id = saved_town

@@ -22,14 +22,14 @@ Every business has the same skeleton so the UI can treat them uniformly:
 `base_price`, `base_capacity`, `base_demand`, `base_upkeep`, plus one cost per
 upgrade type. All six are defined in `scripts/core/business_data.gd`.
 
-| Business | Unlock | Price | Capacity | Demand/min | Upkeep/min | Upgrade | Branch | Manager |
+| Business | Unlock | Price/customer | Capacity | Demand/min | Upkeep/min | Upgrade | Branch | Manager |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| Gas station | free | 2.6 | 6 | 10 | 28 | 850 | 480 | 900 |
-| Restaurant | 1,400 | 3.4 | 5 | 9 | 34 | 980 | 520 | 1,000 |
-| Store | 1,100 | 2.0 | 8 | 8 | 22 | 760 | 420 | 800 |
-| Workshop | 2,000 | 4.2 | 3 | 5 | 40 | 1,250 | 620 | 1,200 |
-| Motel | 3,500 | 6.0 | 4 | 4 | 55 | 1,800 | 900 | 1,600 |
-| Car wash | 2,600 | 1.8 | 7 | 7 | 26 | 1,400 | 700 | 1,300 |
+| Gas station | free | 30 | 6 | 10 | 30 | 850 | 480 | 900 |
+| Restaurant | 1,400 | 40 | 5 | 9 | 36 | 980 | 520 | 1,000 |
+| Store | 1,100 | 25 | 8 | 8 | 24 | 760 | 420 | 800 |
+| Workshop | 2,000 | 60 | 3 | 5 | 45 | 1,250 | 620 | 1,200 |
+| Motel | 3,500 | 80 | 4 | 4 | 60 | 1,800 | 900 | 1,600 |
+| Car wash | 2,600 | 20 | 7 | 7 | 28 | 1,400 | 700 | 1,300 |
 
 ## Formulas
 
