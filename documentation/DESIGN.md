@@ -75,7 +75,8 @@ level and `0.25 × (capacity + speed + quality)/15` for its branches; the town's
 completion is the average over its six businesses. `is_complete()` is
 `completion() ≥ 0.999`, which needs all six businesses at level 5 with all three
 branches maxed. The HUD shows a progress bar under the resource bar and
-celebrates once when the town is finished — the hook for the next town.
+celebrates once when the town is finished, paying 25 gems and turning the meter
+gold; the flag is saved, so the reward is paid once per town.
 
 ## Presentation
 

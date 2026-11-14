@@ -168,6 +168,23 @@ func test_completion_tracks_progress() -> void:
 				town.upgrade_branch(id, branch)
 	almost(town.completion(), 1.0, "a fully upgraded town is complete", 0.001)
 	check(town.is_complete(), "is_complete agrees with completion")
+	check(town.completed, "finishing the town is recorded")
+	check(town.gems >= TownState.COMPLETION_GEMS, "finishing the town pays gems")
+
+
+func test_completion_reward_is_paid_once() -> void:
+	var town := TownState.new("desert")
+	town.cash = 100000000.0
+	for id in town.business_ids():
+		town.unlock_business(id)
+		while town.business(id).level < BusinessData.MAX_LEVEL:
+			town.upgrade_business(id)
+		for branch in BusinessData.BRANCHES:
+			while town.business(id).can_upgrade_branch(branch):
+				town.upgrade_branch(id, branch)
+	var gems := town.gems
+	town.advance(1.0)
+	equal(town.gems, gems, "the completion reward is not paid twice")
 
 
 func test_town_modifiers_apply() -> void:

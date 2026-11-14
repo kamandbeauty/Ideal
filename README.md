@@ -25,7 +25,8 @@ the next town on the highway unlocks.
 - **Touch first** — tap to manage, drag to pan, pinch to zoom; Q/E, R and the mouse
   wheel work on desktop too.
 - **Town completion meter** — opening all six businesses, maxing their levels and
-  branches fills a bar; a full bar means the town is ready for the next stop.
+  branches fills a bar; a full bar pays 25 gems, turns the meter gold and means
+  the town is ready for the next stop.
 - **Desert presentation** — textured sand with noise, dunes, scattered rocks and
   scrub, totem signs per business, three vehicle silhouettes with working wheels
   and lights, a vignette, and a short camera pull-in on load.

@@ -26,7 +26,6 @@ var _offline_layer: Control
 var _offline_body: Label
 var _completion_bar: ProgressBar
 var _completion_label: Label
-var _completion_announced := false
 var _stars: Array[ColorRect] = []
 var _save_button: Button
 var _menu_button: Button
@@ -146,6 +145,7 @@ func _build_top_area() -> void:
 	_completion_bar.add_theme_stylebox_override(
 		"fill", UiTheme.slim_style(UiTheme.GOOD, UiTheme.GOOD)
 	)
+	state.town_completed.connect(_on_town_completed)
 	progress.add_child(_completion_bar)
 
 	_completion_label = _label(14, UiTheme.TEXT, false)
@@ -408,10 +408,14 @@ func _refresh() -> void:
 
 	var progress := state.completion()
 	_completion_bar.value = progress * 100.0
-	_completion_label.text = App.t("hud.completion", [_num(round(progress * 100.0))])
-	if progress >= 0.999 and not _completion_announced:
-		_completion_announced = true
-		_show_toast(App.t("hud.town_complete"))
+	var percent := _num(round(progress * 100.0))
+	_completion_label.text = App.t(
+		"hud.completion_done" if state.completed else "hud.completion", [percent]
+	)
+	if state.completed:
+		_completion_bar.add_theme_stylebox_override(
+			"fill", UiTheme.slim_style(UiTheme.GOLD, UiTheme.GOLD)
+		)
 
 	for id in _cards:
 		_refresh_card(id)
@@ -564,6 +568,11 @@ func show_offline(seconds: float, earnings: float) -> void:
 func _on_card_pressed(id: String) -> void:
 	Sound.play("res://assets/audio/toggle.ogg", -12.0)
 	session.select_business(id)
+
+
+func _on_town_completed() -> void:
+	_show_toast(App.t("hud.town_complete"))
+	Sound.play("res://assets/audio/toggle.ogg", -6.0)
 
 
 func _on_close_panel() -> void:

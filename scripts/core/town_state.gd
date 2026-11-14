@@ -9,6 +9,7 @@ signal reputation_changed(reputation: float)
 signal business_changed(id: String)
 signal unlocked(id: String)
 signal gems_awarded(amount: int)
+signal town_completed
 
 const STARTING_CASH := 1500.0
 const FIRST_BUSINESS := "gas_station"
@@ -18,6 +19,7 @@ const SAVE_VERSION := 1
 const CUSTOMER_REPUTATION := 0.5
 const GEM_MILESTONES: Array[float] = [100.0, 300.0, 700.0, 1500.0]
 const GEM_REWARD := 5
+const COMPLETION_GEMS := 25
 
 var town_id := "desert"
 var cash := STARTING_CASH
@@ -26,6 +28,7 @@ var reputation := 0.0
 var customers := 0.0
 var elapsed := 0.0
 var gems_claimed := 0
+var completed := false
 var pending_offline_seconds := 0.0
 var businesses: Dictionary = {}
 
@@ -151,7 +154,17 @@ func advance(delta: float) -> void:
 		state.revenue_total += state.revenue_per_minute(traffic_now) * minutes
 
 	_check_gems()
+	_check_completion()
 	reputation_changed.emit(reputation)
+
+
+func _check_completion() -> void:
+	if completed or not is_complete():
+		return
+	completed = true
+	gems += COMPLETION_GEMS
+	town_completed.emit()
+	gems_awarded.emit(COMPLETION_GEMS)
 
 
 func _check_gems() -> void:
@@ -199,6 +212,7 @@ func unlock_business(id: String) -> bool:
 		return false
 	cash -= price
 	state.unlocked = true
+	_check_completion()
 	business_changed.emit(id)
 	unlocked.emit(id)
 	cash_changed.emit(cash)
@@ -214,6 +228,7 @@ func upgrade_business(id: String) -> bool:
 		return false
 	cash -= price
 	state.upgrade_level()
+	_check_completion()
 	business_changed.emit(id)
 	cash_changed.emit(cash)
 	return true
@@ -228,6 +243,7 @@ func upgrade_branch(id: String, branch: String) -> bool:
 		return false
 	cash -= price
 	state.upgrade_branch(branch)
+	_check_completion()
 	business_changed.emit(id)
 	cash_changed.emit(cash)
 	return true
@@ -242,6 +258,7 @@ func hire_manager(id: String) -> bool:
 		return false
 	cash -= price
 	state.hire_manager()
+	_check_completion()
 	business_changed.emit(id)
 	cash_changed.emit(cash)
 	return true
@@ -262,6 +279,7 @@ func serialize() -> Dictionary:
 		"customers": customers,
 		"elapsed": elapsed,
 		"gems_claimed": gems_claimed,
+		"completed": completed,
 		"businesses": entries,
 	}
 
@@ -301,6 +319,7 @@ func apply_save(data: Dictionary) -> bool:
 	customers = maxf(0.0, float(data.get("customers", 0.0)))
 	elapsed = maxf(0.0, float(data.get("elapsed", 0.0)))
 	gems_claimed = clampi(int(data.get("gems_claimed", 0)), 0, GEM_MILESTONES.size())
+	completed = bool(data.get("completed", false))
 	pending_offline_seconds = 0.0
 	changed.emit()
 	return true

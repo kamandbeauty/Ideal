@@ -111,6 +111,7 @@ const STRINGS := {
 	"hud.offline_claim": {"fa": "دریافت", "en": "Collect"},
 	"hud.manager_none": {"fa": "بدون مدیر", "en": "No manager"},
 	"hud.completion": {"fa": "تکمیل شهرک {0}٪", "en": "Town completion {0}%"},
+	"hud.completion_done": {"fa": "تکمیل شهرک {0}٪ · کامل", "en": "Town {0}% · complete"},
 	"hud.town_complete": {
 		"fa": "شهرک کامل شد؛ آمادهٔ شهر بعدی!",
 		"en": "Town complete — ready for the next stop!",
