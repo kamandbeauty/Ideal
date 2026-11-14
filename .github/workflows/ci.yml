@@ -1,0 +1,85 @@
+name: Project check
+
+# The engine is not available on every machine we work from, so this workflow
+# is the authoritative "does the project still import and run" gate: it imports
+# the project with the official editor, fails on any script or shader error, and
+# then boots the main scene headlessly.
+
+on:
+  push:
+    branches: ['arena/**']
+    paths:
+      - 'project.godot'
+      - 'scenes/**'
+      - 'scripts/**'
+      - 'assets/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-check-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2-stable
+  GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache verified Godot editor
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/godot-bin
+          key: godot-${{ env.GODOT_VERSION }}-linux-v1
+
+      - name: Install checksum-verified Godot
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/godot-bin
+          if [ ! -x ~/.local/godot-bin/godot ]; then
+            curl -fL --retry 5 --retry-all-errors --retry-delay 5 \
+              "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" \
+              -o "$RUNNER_TEMP/godot.zip"
+            echo "${GODOT_SHA256}  $RUNNER_TEMP/godot.zip" | sha256sum -c -
+            unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+            cp "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" ~/.local/godot-bin/godot
+            chmod +x ~/.local/godot-bin/godot
+          fi
+          echo "$HOME/.local/godot-bin" >> "$GITHUB_PATH"
+          ~/.local/godot-bin/godot --headless --version
+
+      - name: Import the project
+        run: |
+          set -euo pipefail
+          godot --headless --path . --editor --import > "$RUNNER_TEMP/import.log" 2>&1 || {
+            tail -200 "$RUNNER_TEMP/import.log"
+            exit 1
+          }
+          cat "$RUNNER_TEMP/import.log"
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' "$RUNNER_TEMP/import.log"; then
+            echo "::error::The engine reported errors while importing the project"
+            exit 1
+          fi
+
+      - name: Boot the main scene headlessly
+        run: |
+          set -euo pipefail
+          godot --headless --path . --quit-after 120 > "$RUNNER_TEMP/boot.log" 2>&1 || {
+            tail -200 "$RUNNER_TEMP/boot.log"
+            exit 1
+          }
+          cat "$RUNNER_TEMP/boot.log"
+          if grep -qE 'SCRIPT ERROR|Parse Error|Invalid call|Nonexistent function' "$RUNNER_TEMP/boot.log"; then
+            echo "::error::The game reported errors while running"
+            exit 1
+          fi

@@ -1,0 +1,28 @@
+# Godot caches and generated imports
+.godot/
+**/.godot/
+*.import
+**/.import/
+
+# Export/build products
+build/
+dist/
+*.tmp
+*.bak
+
+# Local toolchain (engine downloads, export templates)
+.toolchain/
+.ci-cache/
+
+# Android signing material
+*.keystore
+*.jks
+key.properties
+local.properties
+
+# Secrets and editor/OS noise
+.env
+.env.*
+.DS_Store
+__pycache__/
+*.pyc
