@@ -6,9 +6,9 @@
     "scripts": 50,
     "scenes": 13,
     "resources": 20,
-    "assets": 100,
+    "assets": 101,
     "asset_megabytes": 43.6,
-    "sounds": 48,
+    "sounds": 49,
     "text_keys": 112
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
