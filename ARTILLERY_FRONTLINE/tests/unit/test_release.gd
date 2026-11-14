@@ -167,7 +167,11 @@ func _settings(t: TestContext) -> void:
 	Graphics.apply_preference()
 
 	# Three sliders, three buses.
-	t.equal(Sound.clips.size(), Sound.CLIPS.size(), "every clip in the mixer's list was loaded (%d)" % Sound.clips.size())
+	for id: String in Sound.CLIPS:
+		t.check(Sound.has_clip(id), "required clip %s was loaded" % id)
+	for id: String in Sound.OPTIONAL_CLIPS:
+		var present: bool = ResourceLoader.exists(Sound.CLIP_DIR + id + ".wav") or ResourceLoader.exists(Sound.CLIP_DIR + id + ".mp3") or ResourceLoader.exists(Sound.CLIP_DIR + id + ".ogg")
+		t.equal(Sound.has_clip(id), present, "optional clip %s is loaded when present" % id)
 	t.check(AudioServer.get_bus_name(Sound.sfx_bus) == "Effects" and AudioServer.get_bus_name(Sound.music_bus) == "Music", "effects and music each have their bus")
 	Profile.set_setting("master_volume", 0.5)
 	t.near(AudioServer.get_bus_volume_db(0), linear_to_db(0.5), 0.01, "the master slider sets the master bus")
