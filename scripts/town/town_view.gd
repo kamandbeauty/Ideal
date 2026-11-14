@@ -23,12 +23,16 @@ var pips: Dictionary = {}
 var ring: MeshInstance3D
 var highlight_id := ""
 var _locked_material: StandardMaterial3D
+var _plot_points: Array[Vector2] = []
 var _rng := RandomNumberGenerator.new()
 
 
 func setup(town_state: TownState) -> void:
 	state = town_state
 	_rng.seed = SEED
+	_plot_points.clear()
+	for id in state.business_ids():
+		_plot_points.append(BusinessData.plot(id))
 	_locked_material = StandardMaterial3D.new()
 	_locked_material.albedo_color = Color(0.52, 0.5, 0.44, 0.6)
 	_locked_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -162,8 +166,7 @@ func _build_dunes() -> void:
 func _is_free_ground(point: Vector3) -> bool:
 	if absf(point.x) < ROAD_CORRIDOR and absf(point.z) < 24.0:
 		return false
-	for id in state.business_ids():
-		var plot := BusinessData.plot(id)
+	for plot in _plot_points:
 		if Vector2(point.x - plot.x, point.z - plot.y).length() < PLOT_RADIUS:
 			return false
 	return true
@@ -304,6 +307,18 @@ func _build_businesses() -> void:
 
 
 func _build_plot_ground(parent: Node3D) -> void:
+	var apron := MeshInstance3D.new()
+	apron.name = "Apron"
+	var apron_mesh := BoxMesh.new()
+	apron_mesh.size = Vector3(3.9, 0.08, 3.9)
+	apron.mesh = apron_mesh
+	apron.material_override = _sand_material(
+		TownData.ground_color(state.town_id).darkened(0.28)
+	)
+	apron.position.y = -0.01
+	apron.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(apron)
+
 	var path: String = BusinessData.MODELS["pavement"]
 	var scene: PackedScene = load(path)
 	if scene == null:
