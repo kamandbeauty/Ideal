@@ -6,6 +6,9 @@ func run(t: TestContext) -> void:
 	Sound.stop_loop("music_theme")
 	Sound.stop_loop("teeth_in_the_wire")
 	var original: Resource = Sound.clips.get("teeth_in_the_wire")
+	t.check(original is AudioStreamMP3, "the supplied menu recording is imported")
+	if original is AudioStream:
+		t.check((original as AudioStream).get_length() > 120.0, "the full recording is available")
 	Sound.clips.erase("teeth_in_the_wire")
 	var game: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	t.tree.root.add_child(game)

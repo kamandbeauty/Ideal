@@ -236,11 +236,9 @@ side, in any pose of any clip, without the engine.
 
 ### Menu music
 
-The requested recording **Teeth In The Wire** is not included in this project.
-To use it, supply a recording licensed for distribution in the game as
-`assets/audio/teeth_in_the_wire.ogg` (or `.mp3` / `.wav`) and import/export the
-project again. The menu prefers that recording, loops it on the Music bus, and
-stops it when a match starts; returning to the main menu starts it again. Until
-then the original generated theme is used as a fallback. The music-volume
-setting controls either track. Do not commit or distribute the recording without
-permission from its rights holders.
+The user-supplied **Teeth In The Wire** recording is at
+`assets/audio/teeth_in_the_wire.mp3`. It loops on the Music bus in the main
+menu, stops when a match starts, and starts again on return to the menu. The
+music-volume setting controls it. If the recording is removed, the original
+generated theme is used as a fallback. Verify the rights to distribute the
+recording before publishing the game.
