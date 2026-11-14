@@ -37,6 +37,7 @@ var _fill: DirectionalLight3D
 var _env: Environment
 var _sky_material: ProceduralSkyMaterial
 var _night_materials: Array[StandardMaterial3D] = []
+var _pool_materials: Array[StandardMaterial3D] = []
 var _stages: Dictionary = {}
 var _totem_materials: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
@@ -346,6 +347,7 @@ func _build_businesses() -> void:
 		add_child(node)
 
 		_build_plot_ground(node)
+		_build_light_pool(node, id)
 		_build_model(node, id)
 		_build_stages(node, id)
 		_build_totem(node, id)
@@ -383,6 +385,30 @@ func _build_plot_ground(parent: Node3D) -> void:
 	plot.scale = Vector3(3.4, 1.0, 3.4)
 	plot.position.y = 0.01
 	parent.add_child(plot)
+
+
+## A soft additive disc on the ground; its alpha follows the night factor.
+func _build_light_pool(parent: Node3D, id: String) -> void:
+	var pool := MeshInstance3D.new()
+	pool.name = "LightPool"
+	var disc := CylinderMesh.new()
+	disc.top_radius = 1.7
+	disc.bottom_radius = 1.9
+	disc.height = 0.02
+	disc.radial_segments = 20
+	pool.mesh = disc
+	var material := StandardMaterial3D.new()
+	var accent := BusinessData.accent(id)
+	material.albedo_color = Color(accent.r, accent.g, accent.b, 0.0)
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	pool.material_override = material
+	pool.position.y = 0.05
+	pool.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(pool)
+	_pool_materials.append(material)
 
 
 func _build_model(parent: Node3D, id: String) -> void:
@@ -717,10 +743,13 @@ func apply_time(t: float) -> void:
 			Color(0.05, 0.06, 0.1), night
 		)
 
-	var glow := 0.12 + 2.1 * night
+	var glow := 0.2 + 1.05 * night
 	for material in _night_materials:
 		material.emission_enabled = night > 0.08
 		material.emission_energy_multiplier = glow
+	for material in _pool_materials:
+		var tint := material.albedo_color
+		material.albedo_color = Color(tint.r, tint.g, tint.b, 0.34 * night)
 
 
 func set_selected(id: String) -> void:
