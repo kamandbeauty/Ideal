@@ -1,8 +1,8 @@
 {
-  "fingerprint": "9a0ba2d1a56f4565a5c86e260a2b8734c6f0b3d109c2ec6b8437fbe4d0d3a432",
+  "fingerprint": "5b6d86ae76c44b35e33a131d98b4b1635649f6373148b183ebdc41f9fc22623d",
   "preview_seconds": 24.564853,
   "output": "/home/user/Ideal/stickman-rowling/output/preview.mp4",
-  "output_sha256": "2626d008a2e17e6245d81993652de4299573a79ceb6e56d64a4489701ba534f6",
+  "output_sha256": "963f961ffd80cb94a360f4b82ba9a42087eba5067539b6735118010091a632c5",
   "original_voice_sha256": "4dd47f32484a0fd3f974395a9a0e8edd8a19d115669d35d2d0d70a930e0fcc8d",
   "original_voice_duration": 24.564853,
   "voice_rate": "unchanged; leading/trailing padding only",
@@ -39,8 +39,20 @@
       "sha256": "6c0219c727a50b76dba96c6582f346c31975e0a0f45b77518064b771a277b4bd"
     },
     {
+      "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-hug-b.png",
+      "sha256": "e7f7f644ab72ad4c04a96e0423e6ffbb96fbc11371b54d9dd4fe67ec3bcefe2a"
+    },
+    {
       "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-hug.png",
       "sha256": "f17aca1dbe13a27f1676a519320feabde57ac22e618c24beb47719bf01f7a87f"
+    },
+    {
+      "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-walk-b.png",
+      "sha256": "8b7b35a8b866c1d8ef55285656a0549331399cee468052af4b60103c0d3b025a"
+    },
+    {
+      "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-walk-c.png",
+      "sha256": "794e1894d369641844c7645d4c029c4378ae0580eb44edc763fdffdda7ed9abe"
     },
     {
       "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-walk.png",
@@ -102,678 +114,867 @@
   "local_motion": {
     "intervals": [
       {
-        "id": "woman1",
+        "id": "woman1-f00",
         "start": 0,
-        "end": 1.6,
-        "reason": "The mother, holding her baby and suitcase, walks away from the lit door across the whole shot as the narration says she left home and never came back",
-        "changed_pixels": 110146
+        "end": 0.316,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 70771
       },
       {
-        "id": "woman1",
-        "start": 1.6,
-        "end": 3.2,
-        "reason": "The mother, holding her baby and suitcase, walks away from the lit door across the whole shot as the narration says she left home and never came back",
-        "changed_pixels": 117979
+        "id": "woman1-f01",
+        "start": 0.316,
+        "end": 0.632,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 53930
       },
       {
-        "id": "woman1",
-        "start": 3.2,
-        "end": 4.8,
-        "reason": "The mother, holding her baby and suitcase, walks away from the lit door across the whole shot as the narration says she left home and never came back",
-        "changed_pixels": 112844
+        "id": "woman1-f02",
+        "start": 0.632,
+        "end": 0.947,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 67208
       },
       {
-        "id": "woman1",
-        "start": 4.8,
-        "end": 6.4,
-        "reason": "The mother, holding her baby and suitcase, walks away from the lit door across the whole shot as the narration says she left home and never came back",
-        "changed_pixels": 119016
+        "id": "woman1-f03",
+        "start": 0.947,
+        "end": 1.263,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 69316
       },
       {
-        "id": "woman1",
-        "start": 6.4,
+        "id": "woman1-f04",
+        "start": 1.263,
+        "end": 1.579,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 38098
+      },
+      {
+        "id": "woman1-f05",
+        "start": 1.579,
+        "end": 1.895,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 56533
+      },
+      {
+        "id": "woman1-f06",
+        "start": 1.895,
+        "end": 2.21,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 68540
+      },
+      {
+        "id": "woman1-f07",
+        "start": 2.21,
+        "end": 2.526,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 69869
+      },
+      {
+        "id": "woman1-f08",
+        "start": 2.526,
+        "end": 2.842,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 42837
+      },
+      {
+        "id": "woman1-f09",
+        "start": 2.842,
+        "end": 3.158,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 58862
+      },
+      {
+        "id": "woman1-f10",
+        "start": 3.158,
+        "end": 3.473,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 69609
+      },
+      {
+        "id": "woman1-f11",
+        "start": 3.473,
+        "end": 3.789,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 70295
+      },
+      {
+        "id": "woman1-f12",
+        "start": 3.789,
+        "end": 4.105,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 46991
+      },
+      {
+        "id": "woman1-f13",
+        "start": 4.105,
+        "end": 4.421,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 59803
+      },
+      {
+        "id": "woman1-f14",
+        "start": 4.421,
+        "end": 4.737,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 70593
+      },
+      {
+        "id": "woman1-f15",
+        "start": 4.737,
+        "end": 5.052,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 70592
+      },
+      {
+        "id": "woman1-f16",
+        "start": 5.052,
+        "end": 5.368,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 50617
+      },
+      {
+        "id": "woman1-f17",
+        "start": 5.368,
+        "end": 5.684,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 62726
+      },
+      {
+        "id": "woman1-f18",
+        "start": 5.684,
+        "end": 6,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 71453
+      },
+      {
+        "id": "woman1-f19",
+        "start": 6,
+        "end": 6.315,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 70665
+      },
+      {
+        "id": "woman1-f20",
+        "start": 6.315,
+        "end": 6.631,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 53684
+      },
+      {
+        "id": "woman1-f21",
+        "start": 6.631,
+        "end": 6.947,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 64489
+      },
+      {
+        "id": "woman1-f22",
+        "start": 6.947,
+        "end": 7.263,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 72080
+      },
+      {
+        "id": "woman1-f23",
+        "start": 7.263,
+        "end": 7.578,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 37638
+      },
+      {
+        "id": "woman1-f24",
+        "start": 7.578,
+        "end": 7.894,
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 56309
+      },
+      {
+        "id": "woman1-f25",
+        "start": 7.894,
         "end": 8.21,
-        "reason": "The mother, holding her baby and suitcase, walks away from the lit door across the whole shot as the narration says she left home and never came back",
-        "changed_pixels": 115478
+        "reason": "Frame-by-frame walk cycle: alternating stride, passing and opposite-stride poses move her legs while she crosses the street away from home",
+        "changed_pixels": 65758
       },
       {
         "id": "coin1",
         "start": 8.91,
-        "end": 9.56,
+        "end": 9.260000000000002,
         "reason": "A last coin drops beside the empty purse and later wobbles to a stop, acting out how little money she had",
-        "changed_pixels": 17044
+        "changed_pixels": 17053
       },
       {
         "id": "purse1",
         "start": 11.110000000000001,
-        "end": 11.610000000000001,
+        "end": 11.510000000000002,
         "reason": "The worn purse rocks once to show it is empty while the narration lists no proper money and no job",
-        "changed_pixels": 125340
+        "changed_pixels": 143378
       },
       {
         "id": "purse1",
-        "start": 11.610000000000001,
-        "end": 12.110000000000001,
+        "start": 11.510000000000002,
+        "end": 11.91,
         "reason": "The worn purse rocks once to show it is empty while the narration lists no proper money and no job",
-        "changed_pixels": 135346
+        "changed_pixels": 125344
       },
       {
         "id": "purse1",
-        "start": 12.110000000000001,
+        "start": 11.91,
+        "end": 12.31,
+        "reason": "The worn purse rocks once to show it is empty while the narration lists no proper money and no job",
+        "changed_pixels": 141596
+      },
+      {
+        "id": "purse1",
+        "start": 12.31,
         "end": 12.610000000000001,
         "reason": "The worn purse rocks once to show it is empty while the narration lists no proper money and no job",
-        "changed_pixels": 105466
+        "changed_pixels": 73531
       },
       {
-        "id": "coin1",
-        "start": 13.610000000000001,
+        "id": "coin2",
+        "start": 13.41,
+        "end": 13.760000000000002,
+        "reason": "A second tiny coin falls and bounces beside the purse, underlining that this is all the money left",
+        "changed_pixels": 7275
+      },
+      {
+        "id": "coin2",
+        "start": 13.760000000000002,
         "end": 14.010000000000002,
-        "reason": "A last coin drops beside the empty purse and later wobbles to a stop, acting out how little money she had",
-        "changed_pixels": 9848
+        "reason": "A second tiny coin falls and bounces beside the purse, underlining that this is all the money left",
+        "changed_pixels": 1715
       },
       {
-        "id": "coin1",
-        "start": 14.010000000000002,
-        "end": 14.510000000000002,
-        "reason": "A last coin drops beside the empty purse and later wobbles to a stop, acting out how little money she had",
-        "changed_pixels": 9848
+        "id": "coin2",
+        "start": 14.16,
+        "end": 14.31,
+        "reason": "A second tiny coin falls and bounces beside the purse, underlining that this is all the money left",
+        "changed_pixels": 3934
       },
       {
-        "id": "woman3",
+        "id": "woman3-f0",
         "start": 15.31,
-        "end": 16.41,
-        "reason": "Escaped and alone in the cold flat, the mother gently rocks and squeezes the baby closer while the narration explains she fled an abusive relationship",
-        "changed_pixels": 66985
+        "end": 15.96,
+        "reason": "Frame swap between holding and patting poses: the mother visibly pats and soothes the baby while gently bobbing",
+        "changed_pixels": 43969
       },
       {
-        "id": "woman3",
-        "start": 16.41,
-        "end": 17.51,
-        "reason": "Escaped and alone in the cold flat, the mother gently rocks and squeezes the baby closer while the narration explains she fled an abusive relationship",
-        "changed_pixels": 66546
+        "id": "woman3-f1",
+        "start": 15.96,
+        "end": 16.61,
+        "reason": "Frame swap between holding and patting poses: the mother visibly pats and soothes the baby while gently bobbing",
+        "changed_pixels": 45751
       },
       {
-        "id": "woman3",
-        "start": 17.51,
-        "end": 18.61,
-        "reason": "Escaped and alone in the cold flat, the mother gently rocks and squeezes the baby closer while the narration explains she fled an abusive relationship",
-        "changed_pixels": 66985
+        "id": "woman3-f2",
+        "start": 16.61,
+        "end": 17.26,
+        "reason": "Frame swap between holding and patting poses: the mother visibly pats and soothes the baby while gently bobbing",
+        "changed_pixels": 41604
       },
       {
-        "id": "woman3",
-        "start": 18.61,
-        "end": 19.61,
-        "reason": "Escaped and alone in the cold flat, the mother gently rocks and squeezes the baby closer while the narration explains she fled an abusive relationship",
-        "changed_pixels": 63160
+        "id": "woman3-f3",
+        "start": 17.26,
+        "end": 17.91,
+        "reason": "Frame swap between holding and patting poses: the mother visibly pats and soothes the baby while gently bobbing",
+        "changed_pixels": 45954
       },
       {
-        "id": "woman3",
-        "start": 19.61,
+        "id": "woman3-f4",
+        "start": 17.91,
+        "end": 18.560000000000002,
+        "reason": "Frame swap between holding and patting poses: the mother visibly pats and soothes the baby while gently bobbing",
+        "changed_pixels": 42910
+      },
+      {
+        "id": "woman3-f5",
+        "start": 18.560000000000002,
+        "end": 19.21,
+        "reason": "Frame swap between holding and patting poses: the mother visibly pats and soothes the baby while gently bobbing",
+        "changed_pixels": 41816
+      },
+      {
+        "id": "woman3-f6",
+        "start": 19.21,
+        "end": 19.86,
+        "reason": "Frame swap between holding and patting poses: the mother visibly pats and soothes the baby while gently bobbing",
+        "changed_pixels": 43705
+      },
+      {
+        "id": "woman3-f7",
+        "start": 19.86,
         "end": 20.51,
-        "reason": "Escaped and alone in the cold flat, the mother gently rocks and squeezes the baby closer while the narration explains she fled an abusive relationship",
-        "changed_pixels": 41229
+        "reason": "Frame swap between holding and patting poses: the mother visibly pats and soothes the baby while gently bobbing",
+        "changed_pixels": 43559
       },
       {
-        "id": "woman4",
+        "id": "woman4-f0",
         "start": 20.52,
-        "end": 21.82,
-        "reason": "Closeup on mother and daughter: she slowly rocks the sleeping baby as the narration says she had to care for her little girl alone",
-        "changed_pixels": 192797
+        "end": 21.192999999999998,
+        "reason": "Closeup frame swap: her hand pats the swaddled baby and her head tilts toward her as the narration says she cared for her alone",
+        "changed_pixels": 104673
       },
       {
-        "id": "woman4",
-        "start": 21.82,
-        "end": 23.12,
-        "reason": "Closeup on mother and daughter: she slowly rocks the sleeping baby as the narration says she had to care for her little girl alone",
-        "changed_pixels": 188901
+        "id": "woman4-f1",
+        "start": 21.192999999999998,
+        "end": 21.867,
+        "reason": "Closeup frame swap: her hand pats the swaddled baby and her head tilts toward her as the narration says she cared for her alone",
+        "changed_pixels": 108251
+      },
+      {
+        "id": "woman4-f2",
+        "start": 21.867,
+        "end": 22.54,
+        "reason": "Closeup frame swap: her hand pats the swaddled baby and her head tilts toward her as the narration says she cared for her alone",
+        "changed_pixels": 98878
       }
     ],
     "windows": [
       {
         "start": 0,
         "end": 2.25,
-        "id": "woman1",
-        "changed_pixels": 110146
+        "id": "woman1-f00",
+        "changed_pixels": 70771
       },
       {
         "start": 0.25,
         "end": 2.5,
-        "id": "woman1",
-        "changed_pixels": 107311
+        "id": "woman1-f00",
+        "changed_pixels": 32526
       },
       {
         "start": 0.5,
         "end": 2.75,
-        "id": "woman1",
-        "changed_pixels": 100742
+        "id": "woman1-f01",
+        "changed_pixels": 53930
       },
       {
         "start": 0.75,
         "end": 3,
-        "id": "woman1",
-        "changed_pixels": 90709
+        "id": "woman1-f02",
+        "changed_pixels": 67208
       },
       {
         "start": 1,
         "end": 3.25,
-        "id": "woman1",
-        "changed_pixels": 77119
+        "id": "woman1-f03",
+        "changed_pixels": 69316
       },
       {
         "start": 1.25,
         "end": 3.5,
-        "id": "woman1",
-        "changed_pixels": 59894
+        "id": "woman1-f03",
+        "changed_pixels": 1568
       },
       {
         "start": 1.5,
         "end": 3.75,
-        "id": "woman1",
-        "changed_pixels": 21346
+        "id": "woman1-f04",
+        "changed_pixels": 38098
       },
       {
         "start": 1.75,
         "end": 4,
-        "id": "woman1",
-        "changed_pixels": 117979
+        "id": "woman1-f05",
+        "changed_pixels": 56533
       },
       {
         "start": 2,
         "end": 4.25,
-        "id": "woman1",
-        "changed_pixels": 112588
+        "id": "woman1-f06",
+        "changed_pixels": 68540
       },
       {
         "start": 2.25,
         "end": 4.5,
-        "id": "woman1",
-        "changed_pixels": 102003
+        "id": "woman1-f07",
+        "changed_pixels": 69869
       },
       {
         "start": 2.5,
         "end": 4.75,
-        "id": "woman1",
-        "changed_pixels": 88997
+        "id": "woman1-f07",
+        "changed_pixels": 12003
       },
       {
         "start": 2.75,
         "end": 5,
-        "id": "woman1",
-        "changed_pixels": 72432
+        "id": "woman1-f08",
+        "changed_pixels": 42837
       },
       {
         "start": 3,
         "end": 5.25,
-        "id": "woman1",
-        "changed_pixels": 45793
+        "id": "woman1-f09",
+        "changed_pixels": 58862
       },
       {
         "start": 3.25,
         "end": 5.5,
-        "id": "woman1",
-        "changed_pixels": 112844
+        "id": "woman1-f10",
+        "changed_pixels": 69609
       },
       {
         "start": 3.5,
         "end": 5.75,
-        "id": "woman1",
-        "changed_pixels": 108918
+        "id": "woman1-f11",
+        "changed_pixels": 70295
       },
       {
         "start": 3.75,
         "end": 6,
-        "id": "woman1",
-        "changed_pixels": 101165
+        "id": "woman1-f11",
+        "changed_pixels": 19228
       },
       {
         "start": 4,
         "end": 6.25,
-        "id": "woman1",
-        "changed_pixels": 90235
+        "id": "woman1-f12",
+        "changed_pixels": 46991
       },
       {
         "start": 4.25,
         "end": 6.5,
-        "id": "woman1",
-        "changed_pixels": 75583
+        "id": "woman1-f13",
+        "changed_pixels": 59803
       },
       {
         "start": 4.5,
         "end": 6.75,
-        "id": "woman1",
-        "changed_pixels": 56112
+        "id": "woman1-f14",
+        "changed_pixels": 70593
       },
       {
         "start": 4.75,
         "end": 7,
-        "id": "woman1",
-        "changed_pixels": 9183
+        "id": "woman1-f15",
+        "changed_pixels": 70592
       },
       {
         "start": 5,
         "end": 7.25,
-        "id": "woman1",
-        "changed_pixels": 119016
+        "id": "woman1-f15",
+        "changed_pixels": 25663
       },
       {
         "start": 5.25,
         "end": 7.5,
-        "id": "woman1",
-        "changed_pixels": 112621
+        "id": "woman1-f16",
+        "changed_pixels": 50617
       },
       {
         "start": 5.5,
         "end": 7.75,
-        "id": "woman1",
-        "changed_pixels": 101046
+        "id": "woman1-f17",
+        "changed_pixels": 62726
       },
       {
         "start": 5.75,
         "end": 8,
-        "id": "woman1",
-        "changed_pixels": 87216
+        "id": "woman1-f18",
+        "changed_pixels": 71453
       },
       {
         "start": 6,
         "end": 8.25,
-        "id": "woman1",
-        "changed_pixels": 69409
+        "id": "woman1-f19",
+        "changed_pixels": 70665
       },
       {
         "start": 6.25,
         "end": 8.5,
-        "id": "woman1",
-        "changed_pixels": 36931
+        "id": "woman1-f19",
+        "changed_pixels": 32008
       },
       {
         "start": 6.5,
         "end": 8.75,
-        "id": "woman1",
-        "changed_pixels": 115478
+        "id": "woman1-f20",
+        "changed_pixels": 53684
       },
       {
         "start": 6.75,
         "end": 9,
-        "id": "woman1",
-        "changed_pixels": 111717
+        "id": "woman1-f21",
+        "changed_pixels": 64489
       },
       {
         "start": 7,
         "end": 9.25,
-        "id": "woman1",
-        "changed_pixels": 104131
+        "id": "woman1-f22",
+        "changed_pixels": 72080
       },
       {
         "start": 7.25,
         "end": 9.5,
-        "id": "woman1",
-        "changed_pixels": 94589
+        "id": "woman1-f22",
+        "changed_pixels": 1645
       },
       {
         "start": 7.5,
         "end": 9.75,
-        "id": "woman1",
-        "changed_pixels": 82894
+        "id": "woman1-f23",
+        "changed_pixels": 37638
       },
       {
         "start": 7.75,
         "end": 10,
-        "id": "woman1",
-        "changed_pixels": 67336
+        "id": "woman1-f24",
+        "changed_pixels": 56309
       },
       {
         "start": 8,
         "end": 10.25,
-        "id": "woman1",
-        "changed_pixels": 41425
+        "id": "woman1-f25",
+        "changed_pixels": 65758
       },
       {
         "start": 8.25,
         "end": 10.5,
         "id": "coin1",
-        "changed_pixels": 17044
+        "changed_pixels": 17053
       },
       {
         "start": 8.5,
         "end": 10.75,
         "id": "coin1",
-        "changed_pixels": 17044
+        "changed_pixels": 17053
       },
       {
         "start": 8.75,
         "end": 11,
         "id": "coin1",
-        "changed_pixels": 17044
+        "changed_pixels": 17053
       },
       {
         "start": 9,
         "end": 11.25,
         "id": "purse1",
-        "changed_pixels": 71267
+        "changed_pixels": 100981
       },
       {
         "start": 9.25,
         "end": 11.5,
         "id": "purse1",
-        "changed_pixels": 121199
+        "changed_pixels": 143253
       },
       {
         "start": 9.5,
         "end": 11.75,
         "id": "purse1",
-        "changed_pixels": 125340
+        "changed_pixels": 143378
       },
       {
         "start": 9.75,
         "end": 12,
         "id": "purse1",
-        "changed_pixels": 125340
+        "changed_pixels": 143378
       },
       {
         "start": 10,
         "end": 12.25,
         "id": "purse1",
-        "changed_pixels": 125340
+        "changed_pixels": 143378
       },
       {
         "start": 10.25,
         "end": 12.5,
         "id": "purse1",
-        "changed_pixels": 125340
+        "changed_pixels": 143378
       },
       {
         "start": 10.5,
         "end": 12.75,
         "id": "purse1",
-        "changed_pixels": 125340
+        "changed_pixels": 143378
       },
       {
         "start": 10.75,
         "end": 13,
         "id": "purse1",
-        "changed_pixels": 125340
+        "changed_pixels": 143378
       },
       {
         "start": 11,
         "end": 13.25,
         "id": "purse1",
-        "changed_pixels": 125340
+        "changed_pixels": 143378
       },
       {
         "start": 11.25,
         "end": 13.5,
         "id": "purse1",
-        "changed_pixels": 118397
+        "changed_pixels": 131356
       },
       {
         "start": 11.5,
         "end": 13.75,
         "id": "purse1",
-        "changed_pixels": 56093
+        "changed_pixels": 111
       },
       {
         "start": 11.75,
         "end": 14,
         "id": "purse1",
-        "changed_pixels": 135346
+        "changed_pixels": 125344
       },
       {
         "start": 12,
         "end": 14.25,
         "id": "purse1",
-        "changed_pixels": 74121
+        "changed_pixels": 141596
       },
       {
         "start": 12.25,
         "end": 14.5,
         "id": "purse1",
-        "changed_pixels": 105466
+        "changed_pixels": 52600
       },
       {
         "start": 12.5,
         "end": 14.75,
         "id": "purse1",
-        "changed_pixels": 43763
+        "changed_pixels": 73531
       },
       {
         "start": 12.75,
         "end": 15,
-        "id": "coin1",
-        "changed_pixels": 9848
+        "id": "coin2",
+        "changed_pixels": 7275
       },
       {
         "start": 13,
         "end": 15.25,
-        "id": "coin1",
-        "changed_pixels": 9848
+        "id": "coin2",
+        "changed_pixels": 7275
       },
       {
         "start": 13.25,
         "end": 15.5,
-        "id": "coin1",
-        "changed_pixels": 9848
+        "id": "coin2",
+        "changed_pixels": 7275
       },
       {
         "start": 13.5,
         "end": 15.75,
-        "id": "coin1",
-        "changed_pixels": 9848
+        "id": "coin2",
+        "changed_pixels": 7269
       },
       {
         "start": 13.75,
         "end": 16,
-        "id": "coin1",
-        "changed_pixels": 8752
+        "id": "coin2",
+        "changed_pixels": 1576
       },
       {
         "start": 14,
         "end": 16.25,
-        "id": "coin1",
-        "changed_pixels": 9848
+        "id": "coin2",
+        "changed_pixels": 1715
       },
       {
         "start": 14.25,
         "end": 16.5,
-        "id": "coin1",
-        "changed_pixels": 7867
+        "id": "coin2",
+        "changed_pixels": 3934
       },
       {
         "start": 14.5,
         "end": 16.75,
-        "id": "woman3",
-        "changed_pixels": 66985
+        "id": "woman3-f0",
+        "changed_pixels": 43969
       },
       {
         "start": 14.75,
         "end": 17,
-        "id": "woman3",
-        "changed_pixels": 66985
+        "id": "woman3-f0",
+        "changed_pixels": 43969
       },
       {
         "start": 15,
         "end": 17.25,
-        "id": "woman3",
-        "changed_pixels": 66985
+        "id": "woman3-f0",
+        "changed_pixels": 43969
       },
       {
         "start": 15.25,
         "end": 17.5,
-        "id": "woman3",
-        "changed_pixels": 66985
+        "id": "woman3-f0",
+        "changed_pixels": 43969
       },
       {
         "start": 15.5,
         "end": 17.75,
-        "id": "woman3",
-        "changed_pixels": 65008
+        "id": "woman3-f0",
+        "changed_pixels": 39846
       },
       {
         "start": 15.75,
         "end": 18,
-        "id": "woman3",
-        "changed_pixels": 56985
+        "id": "woman3-f0",
+        "changed_pixels": 21501
       },
       {
         "start": 16,
         "end": 18.25,
-        "id": "woman3",
-        "changed_pixels": 41453
+        "id": "woman3-f1",
+        "changed_pixels": 45751
       },
       {
         "start": 16.25,
         "end": 18.5,
-        "id": "woman3",
-        "changed_pixels": 16296
+        "id": "woman3-f1",
+        "changed_pixels": 36167
       },
       {
         "start": 16.5,
         "end": 18.75,
-        "id": "woman3",
-        "changed_pixels": 66546
+        "id": "woman3-f1",
+        "changed_pixels": 10176
       },
       {
         "start": 16.75,
         "end": 19,
-        "id": "woman3",
-        "changed_pixels": 60974
+        "id": "woman3-f2",
+        "changed_pixels": 41604
       },
       {
         "start": 17,
         "end": 19.25,
-        "id": "woman3",
-        "changed_pixels": 48582
+        "id": "woman3-f2",
+        "changed_pixels": 26548
       },
       {
         "start": 17.25,
         "end": 19.5,
-        "id": "woman3",
-        "changed_pixels": 27826
+        "id": "woman3-f3",
+        "changed_pixels": 45954
       },
       {
         "start": 17.5,
         "end": 19.75,
-        "id": "woman3",
-        "changed_pixels": 66985
+        "id": "woman3-f3",
+        "changed_pixels": 39451
       },
       {
         "start": 17.75,
         "end": 20,
-        "id": "woman3",
-        "changed_pixels": 63958
+        "id": "woman3-f3",
+        "changed_pixels": 17058
       },
       {
         "start": 18,
         "end": 20.25,
-        "id": "woman3",
-        "changed_pixels": 54705
+        "id": "woman3-f4",
+        "changed_pixels": 42910
       },
       {
         "start": 18.25,
         "end": 20.5,
-        "id": "woman3",
-        "changed_pixels": 37351
+        "id": "woman3-f4",
+        "changed_pixels": 30980
       },
       {
         "start": 18.5,
         "end": 20.75,
-        "id": "woman3",
-        "changed_pixels": 9355
+        "id": "woman3-f4",
+        "changed_pixels": 1272
       },
       {
         "start": 18.75,
         "end": 21,
-        "id": "woman3",
-        "changed_pixels": 63160
+        "id": "woman3-f5",
+        "changed_pixels": 41816
       },
       {
         "start": 19,
         "end": 21.25,
-        "id": "woman3",
-        "changed_pixels": 55085
+        "id": "woman3-f5",
+        "changed_pixels": 22779
       },
       {
         "start": 19.25,
         "end": 21.5,
-        "id": "woman3",
-        "changed_pixels": 38404
+        "id": "woman3-f6",
+        "changed_pixels": 43705
       },
       {
         "start": 19.5,
         "end": 21.75,
-        "id": "woman3",
-        "changed_pixels": 10054
+        "id": "woman3-f6",
+        "changed_pixels": 34683
       },
       {
         "start": 19.75,
         "end": 22,
-        "id": "woman3",
-        "changed_pixels": 41229
+        "id": "woman3-f6",
+        "changed_pixels": 9515
       },
       {
         "start": 20,
         "end": 22.25,
-        "id": "woman3",
-        "changed_pixels": 33187
+        "id": "woman3-f7",
+        "changed_pixels": 43559
       },
       {
         "start": 20.25,
         "end": 22.5,
-        "id": "woman3",
-        "changed_pixels": 17946
+        "id": "woman3-f7",
+        "changed_pixels": 27977
       },
       {
         "start": 20.5,
         "end": 22.75,
-        "id": "woman4",
-        "changed_pixels": 192797
+        "id": "woman4-f0",
+        "changed_pixels": 104673
       },
       {
         "start": 20.75,
         "end": 23,
-        "id": "woman4",
-        "changed_pixels": 186678
+        "id": "woman4-f0",
+        "changed_pixels": 88942
       },
       {
         "start": 21,
         "end": 23.25,
-        "id": "woman4",
-        "changed_pixels": 167934
+        "id": "woman4-f0",
+        "changed_pixels": 39548
       },
       {
         "start": 21.25,
         "end": 23.5,
-        "id": "woman4",
-        "changed_pixels": 133241
+        "id": "woman4-f1",
+        "changed_pixels": 108251
       },
       {
         "start": 21.5,
         "end": 23.75,
-        "id": "woman4",
-        "changed_pixels": 81330
+        "id": "woman4-f1",
+        "changed_pixels": 81285
       },
       {
         "start": 21.75,
         "end": 24,
-        "id": "woman4",
-        "changed_pixels": 3084
+        "id": "woman4-f1",
+        "changed_pixels": 17831
       },
       {
         "start": 22,
         "end": 24.25,
-        "id": "woman4",
-        "changed_pixels": 188901
+        "id": "woman4-f2",
+        "changed_pixels": 98878
       },
       {
         "start": 22.25,
         "end": 24.5,
-        "id": "woman4",
-        "changed_pixels": 172331
+        "id": "woman4-f2",
+        "changed_pixels": 62409
       },
       {
         "start": 22.314853,
         "end": 24.564853,
-        "id": "woman4",
-        "changed_pixels": 166126
+        "id": "woman4-f2",
+        "changed_pixels": 47735
       }
     ],
     "sample_step": 0.25,
@@ -790,76 +991,463 @@
     "shots": [
       {
         "id": "shot-0",
-        "sample_count": 49,
+        "sample_count": 111,
         "samples": [
           0,
           0.008333333333333333,
           0.03333333333333333,
           0.25,
+          0.2826666666666667,
+          0.316,
+          0.34933333333333333,
           0.5,
+          0.5986666666666667,
+          0.632,
+          0.6653333333333333,
           0.75,
+          0.9136666666666666,
+          0.947,
+          0.9803333333333333,
           1,
+          1.2296666666666665,
           1.25,
+          1.263,
+          1.2963333333333333,
           1.5,
-          1.5666666666666667,
-          1.6,
-          1.6333333333333335,
+          1.5456666666666665,
+          1.579,
+          1.6123333333333334,
           1.75,
+          1.8616666666666666,
+          1.895,
+          1.9283333333333335,
           2,
+          2.1766666666666667,
+          2.21,
+          2.243333333333333,
           2.25,
+          2.4926666666666666,
           2.5,
+          2.526,
+          2.559333333333333,
           2.75,
+          2.808666666666667,
+          2.842,
+          2.8753333333333333,
           3,
-          3.166666666666667,
-          3.2,
-          3.2333333333333334,
+          3.1246666666666667,
+          3.158,
+          3.191333333333333,
           3.25,
+          3.4396666666666667,
+          3.473,
           3.5,
+          3.506333333333333,
           3.75,
+          3.755666666666667,
+          3.789,
+          3.8223333333333334,
           4,
+          4.071666666666667,
+          4.105,
+          4.138333333333334,
           4.25,
+          4.387666666666667,
+          4.421,
+          4.4543333333333335,
           4.5,
+          4.703666666666667,
+          4.737,
           4.75,
-          4.766666666666667,
-          4.8,
-          4.833333333333333,
+          4.770333333333333,
           5,
+          5.018666666666666,
+          5.052,
+          5.085333333333333,
           5.25,
+          5.334666666666667,
+          5.368,
+          5.4013333333333335,
           5.5,
+          5.650666666666667,
+          5.684,
+          5.717333333333333,
           5.75,
+          5.966666666666667,
           6,
+          6.033333333333333,
           6.25,
-          6.366666666666667,
-          6.4,
-          6.433333333333334,
+          6.281666666666667,
+          6.315,
+          6.348333333333334,
           6.5,
+          6.597666666666667,
+          6.631,
+          6.664333333333333,
           6.75,
+          6.913666666666667,
+          6.947,
+          6.980333333333333,
           7,
+          7.229666666666667,
           7.25,
+          7.263,
+          7.296333333333333,
           7.5,
+          7.544666666666667,
+          7.578,
+          7.6113333333333335,
           7.75,
+          7.860666666666667,
+          7.894,
+          7.927333333333333,
           8,
           8.176666666666668,
           8.201666666666668
         ],
         "members": [
           {
-            "id": "woman1",
-            "eligible_samples": 49,
-            "observed_samples": 49,
+            "id": "woman1-f00",
+            "eligible_samples": 5,
+            "observed_samples": 5,
             "occluded_samples": 0,
             "occlusion_intervals": [],
             "first_visible": 0,
+            "last_visible": 0.2826666666666667,
+            "minimum_composition_pixels": 88569,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f01",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 0.316,
+            "last_visible": 0.5986666666666667,
+            "minimum_composition_pixels": 88146,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f02",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 0.632,
+            "last_visible": 0.9136666666666666,
+            "minimum_composition_pixels": 88720,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f03",
+            "eligible_samples": 5,
+            "observed_samples": 5,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 0.947,
+            "last_visible": 1.25,
+            "minimum_composition_pixels": 88124,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f04",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 1.263,
+            "last_visible": 1.5456666666666665,
+            "minimum_composition_pixels": 88510,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f05",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 1.579,
+            "last_visible": 1.8616666666666666,
+            "minimum_composition_pixels": 88099,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f06",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 1.895,
+            "last_visible": 2.1766666666666667,
+            "minimum_composition_pixels": 88669,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f07",
+            "eligible_samples": 5,
+            "observed_samples": 5,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 2.21,
+            "last_visible": 2.5,
+            "minimum_composition_pixels": 88087,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f08",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 2.526,
+            "last_visible": 2.808666666666667,
+            "minimum_composition_pixels": 88460,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f09",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 2.842,
+            "last_visible": 3.1246666666666667,
+            "minimum_composition_pixels": 88043,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f10",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 3.158,
+            "last_visible": 3.4396666666666667,
+            "minimum_composition_pixels": 88620,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f11",
+            "eligible_samples": 5,
+            "observed_samples": 5,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 3.473,
+            "last_visible": 3.755666666666667,
+            "minimum_composition_pixels": 88040,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f12",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 3.789,
+            "last_visible": 4.071666666666667,
+            "minimum_composition_pixels": 88424,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f13",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 4.105,
+            "last_visible": 4.387666666666667,
+            "minimum_composition_pixels": 88017,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f14",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 4.421,
+            "last_visible": 4.703666666666667,
+            "minimum_composition_pixels": 88583,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f15",
+            "eligible_samples": 5,
+            "observed_samples": 5,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 4.737,
+            "last_visible": 5.018666666666666,
+            "minimum_composition_pixels": 88015,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f16",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 5.052,
+            "last_visible": 5.334666666666667,
+            "minimum_composition_pixels": 88417,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f17",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 5.368,
+            "last_visible": 5.650666666666667,
+            "minimum_composition_pixels": 87995,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f18",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 5.684,
+            "last_visible": 5.966666666666667,
+            "minimum_composition_pixels": 88594,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f19",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 6,
+            "last_visible": 6.281666666666667,
+            "minimum_composition_pixels": 87994,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f20",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 6.315,
+            "last_visible": 6.597666666666667,
+            "minimum_composition_pixels": 88353,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f21",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 6.631,
+            "last_visible": 6.913666666666667,
+            "minimum_composition_pixels": 87973,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f22",
+            "eligible_samples": 5,
+            "observed_samples": 5,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 6.947,
+            "last_visible": 7.25,
+            "minimum_composition_pixels": 88538,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f23",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 7.263,
+            "last_visible": 7.544666666666667,
+            "minimum_composition_pixels": 87935,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f24",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 7.578,
+            "last_visible": 7.860666666666667,
+            "minimum_composition_pixels": 88340,
+            "regions": [
+              "r1-woman"
+            ]
+          },
+          {
+            "id": "woman1-f25",
+            "eligible_samples": 5,
+            "observed_samples": 5,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 7.894,
             "last_visible": 8.201666666666668,
-            "minimum_composition_pixels": 88337,
+            "minimum_composition_pixels": 87948,
             "regions": [
               "r1-woman"
             ]
           },
           {
             "id": "heading1",
-            "eligible_samples": 49,
-            "observed_samples": 49,
+            "eligible_samples": 111,
+            "observed_samples": 111,
             "occluded_samples": 0,
             "occlusion_intervals": [],
             "first_visible": 0,
@@ -873,7 +1461,7 @@
       },
       {
         "id": "shot-1",
-        "sample_count": 63,
+        "sample_count": 82,
         "samples": [
           8.218333333333334,
           8.46,
@@ -883,18 +1471,26 @@
           8.943333333333333,
           8.96,
           9.21,
+          9.226666666666668,
+          9.260000000000002,
+          9.293333333333335,
           9.46,
           9.526666666666667,
           9.56,
           9.593333333333334,
+          9.676666666666668,
           9.71,
-          9.726666666666668,
-          9.760000000000002,
-          9.793333333333335,
+          9.743333333333334,
+          9.856666666666667,
+          9.89,
+          9.923333333333334,
           9.96,
           9.976666666666668,
           10.010000000000002,
           10.043333333333335,
+          10.126666666666667,
+          10.16,
+          10.193333333333333,
           10.21,
           10.46,
           10.71,
@@ -904,15 +1500,18 @@
           11.143333333333334,
           11.21,
           11.46,
-          11.576666666666668,
-          11.610000000000001,
-          11.643333333333334,
+          11.476666666666668,
+          11.510000000000002,
+          11.543333333333335,
           11.71,
+          11.876666666666667,
+          11.91,
+          11.943333333333333,
           11.96,
-          12.076666666666668,
-          12.110000000000001,
-          12.143333333333334,
           12.21,
+          12.276666666666667,
+          12.31,
+          12.343333333333334,
           12.46,
           12.576666666666668,
           12.610000000000001,
@@ -920,20 +1519,28 @@
           12.71,
           12.96,
           13.21,
+          13.376666666666667,
+          13.41,
+          13.443333333333333,
           13.46,
-          13.576666666666668,
-          13.610000000000001,
-          13.643333333333334,
           13.71,
+          13.726666666666668,
+          13.760000000000002,
+          13.793333333333335,
           13.96,
           13.976666666666668,
           14.010000000000002,
           14.043333333333335,
+          14.126666666666667,
+          14.16,
+          14.193333333333333,
           14.21,
+          14.276666666666667,
+          14.31,
+          14.343333333333334,
+          14.426666666666668,
           14.46,
-          14.476666666666668,
-          14.510000000000002,
-          14.543333333333335,
+          14.493333333333334,
           14.71,
           14.96,
           15.21,
@@ -942,82 +1549,103 @@
         "members": [
           {
             "id": "purse1",
-            "eligible_samples": 63,
-            "observed_samples": 63,
+            "eligible_samples": 82,
+            "observed_samples": 82,
             "occluded_samples": 0,
             "occlusion_intervals": [],
             "first_visible": 8.218333333333334,
             "last_visible": 15.301666666666668,
-            "minimum_composition_pixels": 169156,
+            "minimum_composition_pixels": 166940,
             "regions": [
               "r2-purse"
             ]
           },
           {
             "id": "coin1",
-            "eligible_samples": 58,
-            "observed_samples": 58,
+            "eligible_samples": 77,
+            "observed_samples": 77,
             "occluded_samples": 0,
             "occlusion_intervals": [],
             "first_visible": 8.943333333333333,
             "last_visible": 15.301666666666668,
-            "minimum_composition_pixels": 8978,
+            "minimum_composition_pixels": 8953,
             "regions": [
               "r2-coin"
             ]
           },
           {
             "id": "heading2",
-            "eligible_samples": 63,
-            "observed_samples": 63,
+            "eligible_samples": 82,
+            "observed_samples": 82,
             "occluded_samples": 0,
             "occlusion_intervals": [],
             "first_visible": 8.218333333333334,
             "last_visible": 15.301666666666668,
-            "minimum_composition_pixels": 3165,
+            "minimum_composition_pixels": 3021,
             "regions": [
               "r2-heading"
+            ]
+          },
+          {
+            "id": "coin2",
+            "eligible_samples": 24,
+            "observed_samples": 24,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 13.443333333333333,
+            "last_visible": 15.301666666666668,
+            "minimum_composition_pixels": 3818,
+            "regions": [
+              "r2-coin2"
             ]
           }
         ]
       },
       {
         "id": "shot-2",
-        "sample_count": 38,
+        "sample_count": 46,
         "samples": [
           15.31,
           15.318333333333333,
           15.343333333333334,
           15.56,
           15.81,
+          15.926666666666668,
+          15.96,
+          15.993333333333334,
           16.060000000000002,
           16.310000000000002,
-          16.376666666666665,
-          16.41,
-          16.443333333333335,
           16.560000000000002,
+          16.576666666666664,
+          16.61,
+          16.643333333333334,
           16.810000000000002,
           17.060000000000002,
+          17.226666666666667,
+          17.26,
+          17.293333333333337,
           17.310000000000002,
-          17.476666666666667,
-          17.51,
-          17.543333333333337,
           17.560000000000002,
           17.810000000000002,
+          17.876666666666665,
+          17.91,
+          17.943333333333335,
           18.060000000000002,
           18.310000000000002,
+          18.526666666666667,
           18.560000000000002,
-          18.576666666666664,
-          18.61,
-          18.643333333333334,
+          18.593333333333337,
           18.810000000000002,
           19.060000000000002,
+          19.176666666666666,
+          19.21,
+          19.243333333333336,
           19.310000000000002,
           19.560000000000002,
-          19.576666666666664,
-          19.61,
-          19.643333333333334,
           19.810000000000002,
+          19.826666666666664,
+          19.86,
+          19.893333333333334,
           20.060000000000002,
           20.310000000000002,
           20.476666666666667,
@@ -1026,14 +1654,105 @@
         ],
         "members": [
           {
-            "id": "woman3",
-            "eligible_samples": 38,
-            "observed_samples": 38,
+            "id": "woman3-f0",
+            "eligible_samples": 6,
+            "observed_samples": 6,
             "occluded_samples": 0,
             "occlusion_intervals": [],
             "first_visible": 15.31,
-            "last_visible": 20.511666666666667,
-            "minimum_composition_pixels": 110937,
+            "last_visible": 15.926666666666668,
+            "minimum_composition_pixels": 110884,
+            "regions": [
+              "r3-woman"
+            ]
+          },
+          {
+            "id": "woman3-f1",
+            "eligible_samples": 7,
+            "observed_samples": 7,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 15.96,
+            "last_visible": 16.61,
+            "minimum_composition_pixels": 109276,
+            "regions": [
+              "r3-woman"
+            ]
+          },
+          {
+            "id": "woman3-f2",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 16.643333333333334,
+            "last_visible": 17.226666666666667,
+            "minimum_composition_pixels": 110884,
+            "regions": [
+              "r3-woman"
+            ]
+          },
+          {
+            "id": "woman3-f3",
+            "eligible_samples": 7,
+            "observed_samples": 7,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 17.26,
+            "last_visible": 17.91,
+            "minimum_composition_pixels": 109291,
+            "regions": [
+              "r3-woman"
+            ]
+          },
+          {
+            "id": "woman3-f4",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 17.943333333333335,
+            "last_visible": 18.526666666666667,
+            "minimum_composition_pixels": 110884,
+            "regions": [
+              "r3-woman"
+            ]
+          },
+          {
+            "id": "woman3-f5",
+            "eligible_samples": 5,
+            "observed_samples": 5,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 18.560000000000002,
+            "last_visible": 19.176666666666666,
+            "minimum_composition_pixels": 109258,
+            "regions": [
+              "r3-woman"
+            ]
+          },
+          {
+            "id": "woman3-f6",
+            "eligible_samples": 7,
+            "observed_samples": 7,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 19.21,
+            "last_visible": 19.86,
+            "minimum_composition_pixels": 110863,
+            "regions": [
+              "r3-woman"
+            ]
+          },
+          {
+            "id": "woman3-f7",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 19.893333333333334,
+            "last_visible": 20.476666666666667,
+            "minimum_composition_pixels": 109291,
             "regions": [
               "r3-woman"
             ]
@@ -1042,30 +1761,39 @@
       },
       {
         "id": "shot-3",
-        "sample_count": 28,
+        "sample_count": 37,
         "samples": [
           20.52,
           20.528333333333332,
           20.553333333333335,
           20.77,
           21.02,
+          21.159666666666663,
+          21.192999999999998,
+          21.226333333333333,
           21.27,
           21.52,
           21.77,
-          21.786666666666665,
-          21.82,
-          21.853333333333335,
+          21.833666666666666,
+          21.867,
+          21.900333333333336,
           22.02,
           22.27,
+          22.506666666666664,
           22.52,
+          22.54,
+          22.573333333333334,
           22.77,
           23.02,
-          23.086666666666666,
-          23.12,
-          23.153333333333336,
+          23.179666666666666,
+          23.213,
+          23.246333333333336,
           23.27,
           23.52,
           23.77,
+          23.853666666666665,
+          23.887,
+          23.920333333333335,
           24.02,
           24.27,
           24.52,
@@ -1075,14 +1803,79 @@
         ],
         "members": [
           {
-            "id": "woman4",
-            "eligible_samples": 28,
-            "observed_samples": 28,
+            "id": "woman4-f0",
+            "eligible_samples": 7,
+            "observed_samples": 7,
             "occluded_samples": 0,
             "occlusion_intervals": [],
             "first_visible": 20.52,
+            "last_visible": 21.192999999999998,
+            "minimum_composition_pixels": 337527,
+            "regions": [
+              "r4-woman"
+            ]
+          },
+          {
+            "id": "woman4-f1",
+            "eligible_samples": 5,
+            "observed_samples": 5,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 21.226333333333333,
+            "last_visible": 21.833666666666666,
+            "minimum_composition_pixels": 333325,
+            "regions": [
+              "r4-woman"
+            ]
+          },
+          {
+            "id": "woman4-f2",
+            "eligible_samples": 7,
+            "observed_samples": 7,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 21.867,
+            "last_visible": 22.54,
+            "minimum_composition_pixels": 337527,
+            "regions": [
+              "r4-woman"
+            ]
+          },
+          {
+            "id": "woman4-f3",
+            "eligible_samples": 4,
+            "observed_samples": 4,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 22.573333333333334,
+            "last_visible": 23.179666666666666,
+            "minimum_composition_pixels": 333324,
+            "regions": [
+              "r4-woman"
+            ]
+          },
+          {
+            "id": "woman4-f4",
+            "eligible_samples": 6,
+            "observed_samples": 6,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 23.213,
+            "last_visible": 23.853666666666665,
+            "minimum_composition_pixels": 337519,
+            "regions": [
+              "r4-woman"
+            ]
+          },
+          {
+            "id": "woman4-f5",
+            "eligible_samples": 8,
+            "observed_samples": 8,
+            "occluded_samples": 0,
+            "occlusion_intervals": [],
+            "first_visible": 23.887,
             "last_visible": 24.56,
-            "minimum_composition_pixels": 337389,
+            "minimum_composition_pixels": 333324,
             "regions": [
               "r4-woman"
             ]
@@ -1103,8 +1896,8 @@
     "status": "pending_independent_review",
     "style": "B2",
     "output": "/home/user/Ideal/stickman-rowling/output/preview.mp4",
-    "output_sha256": "2626d008a2e17e6245d81993652de4299573a79ceb6e56d64a4489701ba534f6",
-    "project_fingerprint": "9a0ba2d1a56f4565a5c86e260a2b8734c6f0b3d109c2ec6b8437fbe4d0d3a432",
+    "output_sha256": "963f961ffd80cb94a360f4b82ba9a42087eba5067539b6735118010091a632c5",
+    "project_fingerprint": "5b6d86ae76c44b35e33a131d98b4b1635649f6373148b183ebdc41f9fc22623d",
     "project_inputs": {
       "file": "/home/user/Ideal/stickman-rowling/project.json",
       "inputs": [
@@ -1133,8 +1926,20 @@
           "sha256": "6c0219c727a50b76dba96c6582f346c31975e0a0f45b77518064b771a277b4bd"
         },
         {
+          "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-hug-b.png",
+          "sha256": "e7f7f644ab72ad4c04a96e0423e6ffbb96fbc11371b54d9dd4fe67ec3bcefe2a"
+        },
+        {
           "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-hug.png",
           "sha256": "f17aca1dbe13a27f1676a519320feabde57ac22e618c24beb47719bf01f7a87f"
+        },
+        {
+          "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-walk-b.png",
+          "sha256": "8b7b35a8b866c1d8ef55285656a0549331399cee468052af4b60103c0d3b025a"
+        },
+        {
+          "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-walk-c.png",
+          "sha256": "794e1894d369641844c7645d4c029c4378ae0580eb44edc763fdffdda7ed9abe"
         },
         {
           "path": "/home/user/Ideal/stickman-rowling/assets/cut/woman-walk.png",
@@ -1194,7 +1999,7 @@
         }
       ]
     },
-    "plan_sha256": "381e423d50fa0f2c747ee2ad06a79433d281c6753b19f65f66f82aaaf846e24f",
+    "plan_sha256": "369a534b14ee4bad2a5f65979642b546b80970682e8ba253afe6dd4106dfefac",
     "scope": {
       "start": 0,
       "end": 24.564853
@@ -1246,7 +2051,7 @@
             "mid": 123,
             "end": 246
           },
-          "shot_sha256": "32ed57d35bc8b0435c82658ca769c0f6e1e36fa1a26a590957cfb3abde226c27"
+          "shot_sha256": "08dfc14c869137f04502a5b9c261ef0eb70c901908101651849a91c2deeda8da"
         },
         {
           "id": "shot-1",
@@ -1261,7 +2066,7 @@
             "mid": 353,
             "end": 459
           },
-          "shot_sha256": "5058c9eb3e5d05e0470fabd0b3c68e40dcb43562331177af5f5206699df9d5e4"
+          "shot_sha256": "f696450239647f404c265d2221d8871ab69afa987f95e53164587842f9d2e4b1"
         },
         {
           "id": "shot-2",
@@ -1276,7 +2081,7 @@
             "mid": 537,
             "end": 615
           },
-          "shot_sha256": "636a6a820b85cb79346af13d97d746ff81a7ca459c493c68eb629df05aba55d9"
+          "shot_sha256": "89af875d59453b258f013a65443c04a149f4ae465d09f352049c5f9179c251d1"
         },
         {
           "id": "shot-3",
@@ -1291,7 +2096,7 @@
             "mid": 676,
             "end": 736
           },
-          "shot_sha256": "d12b98752ed9714d5ca642ce44cec8fd7f8d0472b8c0341b276c3db3f211da0d"
+          "shot_sha256": "61ba30bee94494f4e91635ac054513f886c513089fbbe7c1a065c56991cf2797"
         }
       ],
       "caption_sha256": "689fc9847bf45d305ced25587bf9cbd363f47f36d743efe6eb5f7fb8d4e353da",
@@ -1344,7 +2149,32 @@
                 "id": "r1-woman",
                 "role": "actor",
                 "layer_ids": [
-                  "woman1"
+                  "woman1-f00",
+                  "woman1-f01",
+                  "woman1-f02",
+                  "woman1-f03",
+                  "woman1-f04",
+                  "woman1-f05",
+                  "woman1-f06",
+                  "woman1-f07",
+                  "woman1-f08",
+                  "woman1-f09",
+                  "woman1-f10",
+                  "woman1-f11",
+                  "woman1-f12",
+                  "woman1-f13",
+                  "woman1-f14",
+                  "woman1-f15",
+                  "woman1-f16",
+                  "woman1-f17",
+                  "woman1-f18",
+                  "woman1-f19",
+                  "woman1-f20",
+                  "woman1-f21",
+                  "woman1-f22",
+                  "woman1-f23",
+                  "woman1-f24",
+                  "woman1-f25"
                 ],
                 "region": {
                   "x": 150,
@@ -1398,10 +2228,10 @@
                   "coin1"
                 ],
                 "region": {
-                  "x": 700,
-                  "y": 420,
-                  "w": 380,
-                  "h": 700
+                  "x": 640,
+                  "y": 260,
+                  "w": 460,
+                  "h": 900
                 },
                 "intent": "Keep the coin's complete fall path from above the purse to its landing spot visible"
               },
@@ -1418,6 +2248,20 @@
                   "h": 180
                 },
                 "intent": "Dark ink Persian heading floats on clear paper above the purse"
+              },
+              {
+                "id": "r2-coin2",
+                "role": "prop",
+                "layer_ids": [
+                  "coin2"
+                ],
+                "region": {
+                  "x": 380,
+                  "y": 260,
+                  "w": 400,
+                  "h": 900
+                },
+                "intent": "Keep the second falling coin's full drop and bounce path beside the purse visible"
               }
             ]
           },
@@ -1432,7 +2276,14 @@
                 "id": "r3-woman",
                 "role": "actor",
                 "layer_ids": [
-                  "woman3"
+                  "woman3-f0",
+                  "woman3-f1",
+                  "woman3-f2",
+                  "woman3-f3",
+                  "woman3-f4",
+                  "woman3-f5",
+                  "woman3-f6",
+                  "woman3-f7"
                 ],
                 "region": {
                   "x": 120,
@@ -1455,7 +2306,12 @@
                 "id": "r4-woman",
                 "role": "actor",
                 "layer_ids": [
-                  "woman4"
+                  "woman4-f0",
+                  "woman4-f1",
+                  "woman4-f2",
+                  "woman4-f3",
+                  "woman4-f4",
+                  "woman4-f5"
                 ],
                 "region": {
                   "x": 100,
@@ -1594,7 +2450,7 @@
           1920
         ],
         "file": "shot-0-start.png",
-        "sha256": "78e7afdad41fc2f5350c995a9f5a167d0da97b947fcf5affbd9dab0d3e135a86"
+        "sha256": "b0f21e0a04ce6e88b8a677436d005269892e01619dc2d8dcfd67c9951403622b"
       },
       {
         "id": "shot-0-mid",
@@ -1610,7 +2466,7 @@
           1920
         ],
         "file": "shot-0-mid.png",
-        "sha256": "1f03a75310528faa742ae24104fff3f6b4ff61d7989ab223e8f273a58174f494"
+        "sha256": "88c8d423d4f5acabea2085dc1925447fc7ae05198236c9a295f55bad06166ef5"
       },
       {
         "id": "shot-0-end",
@@ -1626,7 +2482,7 @@
           1920
         ],
         "file": "shot-0-end.png",
-        "sha256": "11fef5ec1220c5f776fdb997f903b2b527a333571e28800859d1769a6119147b"
+        "sha256": "8272cad6ed02cd15a87c3f3f5428d8b847ca8504961460f6b04089d887806e4e"
       },
       {
         "id": "shot-0-continuous",
@@ -1644,7 +2500,7 @@
         ],
         "audio": "source",
         "file": "shot-0-continuous.mp4",
-        "sha256": "5194953ec59c9552b4543de20882821fec2edce61f449eeb0612007cce5ea631"
+        "sha256": "4fac4024191b8d53d30711963af352013c7b252c8fb9e36ee4964e816f6f7b81"
       },
       {
         "id": "shot-1-start",
@@ -1660,7 +2516,7 @@
           1920
         ],
         "file": "shot-1-start.png",
-        "sha256": "33faee7c9de5f5a8bbd3d100a6520e487cd161c559e777e610362927fcd4018b"
+        "sha256": "0d6e9e25c590b2deaacffcef8ead8d123a796444907d4b58f44755c59dfb97ce"
       },
       {
         "id": "shot-1-mid",
@@ -1676,7 +2532,7 @@
           1920
         ],
         "file": "shot-1-mid.png",
-        "sha256": "74f83334b86e0815fa30510c66cd8b90cdf1275798db15d7dfd9f08d09e8ede2"
+        "sha256": "3afd8c083b1391ff776ec8c8e7fdd26de454fd9b072fb4bbf89f5d290c6d0b2e"
       },
       {
         "id": "shot-1-end",
@@ -1692,7 +2548,7 @@
           1920
         ],
         "file": "shot-1-end.png",
-        "sha256": "ddc4002d65a2a9d2aa2d60fba70e305a356da52ba0f87b503b0e298b25d22cca"
+        "sha256": "f25bd72121e7f7eae4a35f88a528fd456c2fe2b967ccef932965071505a97911"
       },
       {
         "id": "shot-1-continuous",
@@ -1710,7 +2566,7 @@
         ],
         "audio": "source",
         "file": "shot-1-continuous.mp4",
-        "sha256": "8d224376269479844917a83c2162c3cbc116fa04eb3ae94a299c2e9252d095f8"
+        "sha256": "6a606a48f65b1ce2f4883e86711a44092f92ea6ea518b62b5e21208bb9b9b5f8"
       },
       {
         "id": "shot-2-start",
@@ -1726,7 +2582,7 @@
           1920
         ],
         "file": "shot-2-start.png",
-        "sha256": "e253d43aed1c37a9eb86a38501a0f60e5dfc7055ba3ad063c18f88b21191b38c"
+        "sha256": "7decb92b50a4c50960589e3b13e7c38422691d1a689c65af39a9d8dec14fb3ea"
       },
       {
         "id": "shot-2-mid",
@@ -1742,7 +2598,7 @@
           1920
         ],
         "file": "shot-2-mid.png",
-        "sha256": "8b1c2ff65e106fd225cff07259c57a1debc9b713d086726eeaf37cdd4fe6faed"
+        "sha256": "496b0cf508a9f602f62f85d3e0dbcf25ad8fbbf1468c9674b65b95a144117776"
       },
       {
         "id": "shot-2-end",
@@ -1758,7 +2614,7 @@
           1920
         ],
         "file": "shot-2-end.png",
-        "sha256": "18798263aaf469ea7aa5d9a2eeb6e0a0d5fd282d888cb6074a87a722179b7feb"
+        "sha256": "e854c43bf0abfb84e229e0aecb4377393a2bfd1ca3e0f00ac3e217df9dd94e6e"
       },
       {
         "id": "shot-2-continuous",
@@ -1776,7 +2632,7 @@
         ],
         "audio": "source",
         "file": "shot-2-continuous.mp4",
-        "sha256": "2349ed2bbc25ccd779381ffc7b7cd7b723e97d81d9cbcf08546dc7a271dbdd00"
+        "sha256": "a04cfb0fca4ff1628157a22ee18b51302f72f44f8b77458cf70851ef1712f5ee"
       },
       {
         "id": "shot-3-start",
@@ -1792,7 +2648,7 @@
           1920
         ],
         "file": "shot-3-start.png",
-        "sha256": "a2beb4584dbb7f3f775017ea555b37472c9328ee6a77a80c045898a6436bdc6b"
+        "sha256": "2a47d1204337c8d4ba7209b2418b71973d4b80a8448eb4851e22ac62d551d1c3"
       },
       {
         "id": "shot-3-mid",
@@ -1808,7 +2664,7 @@
           1920
         ],
         "file": "shot-3-mid.png",
-        "sha256": "ed32ae898b4d313892260b0f1177d80f15e02bd4039c65a7f43f4cd85b2bf38c"
+        "sha256": "c7f632418f57d2c02b3b6aa294bb00f130ddeb9a576263e065e9160e911552a5"
       },
       {
         "id": "shot-3-end",
@@ -1824,7 +2680,7 @@
           1920
         ],
         "file": "shot-3-end.png",
-        "sha256": "3efdc5f727eba1a27f6fe5361bd4d1a870d51de9aa9f3f9077f719499dd8b3f1"
+        "sha256": "05809c52cf6d2b4ea15a63ad0bdb574ec5f991393b8b6a54d34cfc750975c126"
       },
       {
         "id": "shot-3-continuous",
@@ -1842,7 +2698,7 @@
         ],
         "audio": "source",
         "file": "shot-3-continuous.mp4",
-        "sha256": "c1c0fa646632fac59459a74c0610ca4e83637d65033490124dbb9ccfc7dd108c"
+        "sha256": "2641d2f9b1b1ef9d4c4b55d60e5753b7017698e06b6d5ad34a0ec5b34c30056f"
       }
     ],
     "evidence_dir": "/home/user/Ideal/stickman-rowling/output/preview-reference",
