@@ -9,10 +9,9 @@ extends SceneTree
 
 const SUITES := [
 	"res://tests/suites/test_localization.gd",
-	"res://tests/suites/test_tower_data.gd",
-	"res://tests/suites/test_wave_data.gd",
-	"res://tests/suites/test_level_data.gd",
-	"res://tests/suites/test_game_state.gd",
+	"res://tests/suites/test_city_data.gd",
+	"res://tests/suites/test_roads.gd",
+	"res://tests/suites/test_city_state.gd",
 ]
 const REPORT_PATH := "res://documentation/qa/test-results.json"
 

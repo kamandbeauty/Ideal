@@ -1,7 +1,5 @@
 extends Node
 ## Global app state: language, saved progress, shared theme.
-##
-## Autoloaded as `App`, so every scene can call `App.t("key")`.
 
 signal language_changed(language: String)
 
@@ -9,7 +7,7 @@ const SETTINGS_PATH := "user://settings.cfg"
 const DEFAULT_LANGUAGE := "fa"
 
 var language: String = DEFAULT_LANGUAGE
-var best_wave: int = 0
+var best_population: int = 0
 var ui_theme: Theme
 
 
@@ -45,9 +43,9 @@ func layout_direction() -> int:
 	return Control.LAYOUT_DIRECTION_RTL if is_rtl() else Control.LAYOUT_DIRECTION_LTR
 
 
-func record_waves(waves_survived: int) -> void:
-	if waves_survived > best_wave:
-		best_wave = waves_survived
+func record_population(population: int) -> void:
+	if population > best_population:
+		best_population = population
 		_save_settings()
 
 
@@ -58,11 +56,11 @@ func _load_settings() -> void:
 	var saved_language := str(config.get_value("ui", "language", language))
 	if L10n.has_language(saved_language):
 		language = saved_language
-	best_wave = int(config.get_value("progress", "best_wave", 0))
+	best_population = int(config.get_value("progress", "best_population", 0))
 
 
 func _save_settings() -> void:
 	var config := ConfigFile.new()
 	config.set_value("ui", "language", language)
-	config.set_value("progress", "best_wave", best_wave)
+	config.set_value("progress", "best_population", best_population)
 	config.save(SETTINGS_PATH)

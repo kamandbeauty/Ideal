@@ -2,8 +2,8 @@ class_name L10n
 extends RefCounted
 ## Every player-facing string, in Persian and English.
 ##
-## The table is static so tests can check it without starting the game or the
-## `App` autoload. `App.t()` is the runtime entry point.
+## Static so tests can check the table without starting the game or the `App`
+## autoload. `App.t()` is the runtime entry point.
 
 const FALLBACK := "en"
 const LANGUAGES: Array[String] = ["fa", "en"]
@@ -11,85 +11,97 @@ const LANGUAGES: Array[String] = ["fa", "en"]
 const STRINGS := {
 	# --- Brand ---------------------------------------------------------------
 	"app.title": {"fa": "آیدیل", "en": "Ideal"},
-	"app.subtitle": {"fa": "دیده‌بان جزیره", "en": "Island Watch"},
+	"app.subtitle": {"fa": "شهرساز جزیره", "en": "Island City Builder"},
 
 	# --- Main menu -----------------------------------------------------------
-	"menu.play": {"fa": "شروع بازی", "en": "Play"},
-	"menu.best": {"fa": "بهترین موج: {0}", "en": "Best wave: {0}"},
+	"menu.play": {"fa": "شهر جدید", "en": "New city"},
+	"menu.continue": {"fa": "ادامهٔ شهر", "en": "Continue"},
+	"menu.best": {"fa": "بهترین جمعیت: {0}", "en": "Best population: {0}"},
 	"menu.quit": {"fa": "خروج", "en": "Quit"},
 	"menu.hint": {
-		"fa": "برج بساز، راه را ببند، هسته را نگه دار.",
-		"en": "Build towers, hold the path, keep the core alive.",
+		"fa": "جاده بکش، خانه بساز، شهر را آباد کن.",
+		"en": "Lay roads, build homes, grow the town.",
 	},
 	"menu.controls": {
-		"fa": "کشیدن: چرخش دوربین • دو انگشت: بزرگ‌نمایی • لمس: انتخاب",
-		"en": "Drag: orbit • Pinch: zoom • Tap: select",
+		"fa": "کشیدن: جابه‌جایی دوربین • دو انگشت: بزرگ‌نمایی • لمس: ساختن",
+		"en": "Drag: pan • Pinch: zoom • Tap: build",
 	},
 	"menu.language_target": {"fa": "English", "en": "فارسی"},
 
+	# --- Categories ----------------------------------------------------------
+	"category.road": {"fa": "جاده", "en": "Roads"},
+	"category.residential": {"fa": "مسکونی", "en": "Homes"},
+	"category.commercial": {"fa": "تجاری", "en": "Business"},
+	"category.nature": {"fa": "طبیعت", "en": "Nature"},
+	"category.civic": {"fa": "خدمات", "en": "Civic"},
+
+	# --- Structures ----------------------------------------------------------
+	"structure.road.name": {"fa": "جاده", "en": "Road"},
+	"structure.road.desc": {
+		"fa": "شبکهٔ شهر را به هم وصل می‌کند؛ هر ساختمان باید به جادهٔ متصل به شهرداری برسد.",
+		"en": "Connects the city; every building needs a road linked to the town hall.",
+	},
+	"structure.house_a.name": {"fa": "خانهٔ کوچک", "en": "Small house"},
+	"structure.house_a.desc": {"fa": "جا برای ۴ نفر", "en": "Room for 4 people"},
+	"structure.house_b.name": {"fa": "خانهٔ دوطبقه", "en": "Town house"},
+	"structure.house_b.desc": {"fa": "جا برای ۷ نفر", "en": "Room for 7 people"},
+	"structure.house_d.name": {"fa": "آپارتمان", "en": "Apartment"},
+	"structure.house_d.desc": {"fa": "جا برای ۱۵ نفر", "en": "Room for 15 people"},
+	"structure.shop.name": {"fa": "کارگاه", "en": "Workshop"},
+	"structure.shop.desc": {
+		"fa": "درآمد ثابت می‌دهد، کمی هم آلودگی دارد",
+		"en": "Steady income, a little pollution",
+	},
+	"structure.grass.name": {"fa": "چمن", "en": "Lawn"},
+	"structure.grass.desc": {"fa": "کمی رضایت", "en": "A little happiness"},
+	"structure.trees.name": {"fa": "درخت", "en": "Trees"},
+	"structure.trees.desc": {"fa": "رضایت بیشتر برای محله", "en": "More happiness nearby"},
+	"structure.tall_trees.name": {"fa": "درختان بلند", "en": "Tall trees"},
+	"structure.tall_trees.desc": {"fa": "بیشترین رضایت میان سبزه‌ها", "en": "The greenest choice"},
+	"structure.pavement.name": {"fa": "پیاده‌رو", "en": "Pavement"},
+	"structure.pavement.desc": {"fa": "کف‌سازی مرتب و کمی رضایت", "en": "Tidy ground, a little happiness"},
+	"structure.fountain.name": {"fa": "فواره", "en": "Fountain"},
+	"structure.fountain.desc": {"fa": "مرکز تفریح شهر", "en": "The heart of the park"},
+	"structure.town_hall.name": {"fa": "شهرداری", "en": "Town hall"},
+	"structure.town_hall.desc": {
+		"fa": "قلب شهر؛ جاده‌ها از اینجا باید شروع شوند.",
+		"en": "The heart of the town; roads must lead here.",
+	},
+
 	# --- HUD -----------------------------------------------------------------
-	"hud.gold": {"fa": "طلا", "en": "Gold"},
-	"hud.core": {"fa": "هسته", "en": "Core"},
-	"hud.wave": {"fa": "موج {0}/{1}", "en": "Wave {0}/{1}"},
-	"hud.speed": {"fa": "سرعت ×{0}", "en": "Speed ×{0}"},
-	"hud.pause": {"fa": "توقف", "en": "Pause"},
-	"hud.paused": {"fa": "بازی متوقف است", "en": "Game paused"},
-	"hud.resume": {"fa": "ادامه", "en": "Resume"},
-	"hud.quit": {"fa": "بازگشت به منو", "en": "Quit to menu"},
-	"hud.start_wave": {"fa": "شروع موج", "en": "Start wave"},
-	"hud.next_wave_in": {"fa": "موج بعدی: {0} ثانیه", "en": "Next wave in {0}s"},
-	"hud.wave_running": {"fa": "موج {0} در جریان است", "en": "Wave {0} incoming"},
-	"hud.victory": {"fa": "پیروزی", "en": "Victory"},
-	"hud.defeat": {"fa": "هسته سقوط کرد", "en": "The core has fallen"},
-	"hud.result_waves": {
-		"fa": "موج‌های پشت سر گذاشته: {0} از {1}",
-		"en": "Waves survived: {0} of {1}",
-	},
-	"hud.retry": {"fa": "تلاش دوباره", "en": "Try again"},
+	"hud.cash": {"fa": "طلا", "en": "Gold"},
+	"hud.population": {"fa": "جمعیت", "en": "People"},
+	"hud.income": {"fa": "درآمد", "en": "Income"},
+	"hud.happiness": {"fa": "رضایت", "en": "Happiness"},
+	"hud.next_goal": {"fa": "هدف بعدی: {0} نفر", "en": "Next goal: {0} people"},
+	"hud.all_goals": {"fa": "همهٔ هدف‌ها انجام شد", "en": "Every goal reached"},
+	"hud.milestone": {"fa": "{0} نفر شد! +{1} طلا", "en": "{0} people! +{1} gold"},
+	"hud.rotate": {"fa": "چرخش", "en": "Rotate"},
+	"hud.undo": {"fa": "واگرد", "en": "Undo"},
 	"hud.menu": {"fa": "منو", "en": "Menu"},
-	"hud.close": {"fa": "بستن", "en": "Close"},
-
-	# --- Building ------------------------------------------------------------
-	"build.title": {"fa": "ساخت برج", "en": "Build a tower"},
-	"build.choose": {"fa": "نوع برج را انتخاب کن", "en": "Choose a tower type"},
-	"build.upgrade": {"fa": "ارتقا ({0})", "en": "Upgrade ({0})"},
-	"build.max_level": {"fa": "بالاترین سطح", "en": "Max level"},
-	"build.sell": {"fa": "فروش (+{0})", "en": "Sell (+{0})"},
-	"build.level": {"fa": "سطح {0}", "en": "Level {0}"},
-	"build.damage": {"fa": "آسیب {0}", "en": "Damage {0}"},
-	"build.range": {"fa": "برد {0}", "en": "Range {0}"},
-	"build.rate": {"fa": "{0} شلیک در ثانیه", "en": "{0} shots/s"},
-	"build.no_gold": {"fa": "طلا کافی نیست", "en": "Not enough gold"},
-	"build.built": {"fa": "{0} ساخته شد", "en": "{0} built"},
-	"build.upgraded": {"fa": "{0} به سطح {1} رسید", "en": "{0} reached level {1}"},
-	"build.sold": {"fa": "برج فروخته شد (+{0} طلا)", "en": "Tower sold (+{0} gold)"},
-	"build.tap_pad": {
-		"fa": "برای ساخت، یک پایه را لمس کن",
-		"en": "Tap a build pad to raise a tower",
+	"hud.demolish": {"fa": "تخریب", "en": "Demolish"},
+	"hud.build": {"fa": "ساختن", "en": "Build"},
+	"hud.save": {"fa": "ذخیره", "en": "Save"},
+	"hud.saved": {"fa": "شهر ذخیره شد", "en": "City saved"},
+	"hud.hint": {
+		"fa": "یک ساختار را انتخاب کن، بعد روی زمین لمس کن.",
+		"en": "Pick a structure, then tap the ground.",
+	},
+	"hud.income_value": {"fa": "+{0} در ثانیه", "en": "+{0}/s"},
+	"hud.population_value": {"fa": "{0} / {1}", "en": "{0} / {1}"},
+	"hud.happiness_value": {"fa": "{0}٪", "en": "{0}%"},
+	"hud.road_needed": {
+		"fa": "این ساختمان به جادهٔ متصل به شهرداری نیاز دارد",
+		"en": "This building needs a road connected to the town hall",
 	},
 
-	# --- Towers --------------------------------------------------------------
-	"tower.sentry.name": {"fa": "نگهبان", "en": "Sentry"},
-	"tower.sentry.desc": {
-		"fa": "تیرانداز سریع و ارزان برای هدف‌های تک",
-		"en": "Fast, cheap single-target fire",
-	},
-	"tower.cannon.name": {"fa": "توپخانه", "en": "Cannon"},
-	"tower.cannon.desc": {
-		"fa": "گلولهٔ انفجاری برای جمع‌های فشرده",
-		"en": "Explosive shells for tight groups",
-	},
-	"tower.frost.name": {"fa": "سرمازا", "en": "Frost"},
-	"tower.frost.desc": {
-		"fa": "دشمنان را در محدوده کند می‌کند",
-		"en": "Chills nearby enemies to slow them",
-	},
-
-	# --- Waves and messages --------------------------------------------------
-	"wave.started": {"fa": "موج {0} شروع شد", "en": "Wave {0} started"},
-	"wave.cleared": {"fa": "موج {0} پاک شد؛ +{1} طلا", "en": "Wave {0} cleared; +{1} gold"},
-	"wave.bonus": {"fa": "شروع زودهنگام: +{0} طلا", "en": "Early start: +{0} gold"},
-	"info.leak": {"fa": "دشمن از خط گذشت؛ -{0} به هسته", "en": "An enemy got through; -{0} to the core"},
+	# --- Messages ------------------------------------------------------------
+	"msg.occupied": {"fa": "این زمین پر است", "en": "That ground is taken"},
+	"msg.no_cash": {"fa": "طلا کافی نیست", "en": "Not enough gold"},
+	"msg.built": {"fa": "{0} ساخته شد", "en": "{0} built"},
+	"msg.removed": {"fa": "{0} برداشته شد (+{1} طلا)", "en": "{0} removed (+{1} gold)"},
+	"msg.cannot_remove": {"fa": "شهرداری را نمی‌توان برداشت", "en": "The town hall stays"},
+	"msg.undo_empty": {"fa": "چیزی برای واگرد نیست", "en": "Nothing to undo"},
 }
 
 

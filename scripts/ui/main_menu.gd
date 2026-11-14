@@ -1,7 +1,8 @@
 extends Control
-## Title screen.
+## Title screen: new city, continue, language.
 
 signal play_requested
+signal continue_requested
 
 var _title: Label
 var _subtitle: Label
@@ -9,6 +10,7 @@ var _hint: Label
 var _controls: Label
 var _best: Label
 var _play: Button
+var _continue: Button
 var _language: Button
 var _quit: Button
 var _built := false
@@ -28,8 +30,8 @@ func _build() -> void:
 	_built = true
 
 	var gradient := Gradient.new()
-	gradient.set_color(0, Color(0.07, 0.11, 0.2))
-	gradient.set_color(1, Color(0.015, 0.02, 0.035))
+	gradient.set_color(0, Color(0.09, 0.16, 0.24))
+	gradient.set_color(1, Color(0.02, 0.03, 0.05))
 	var texture := GradientTexture2D.new()
 	texture.gradient = gradient
 	texture.fill_from = Vector2(0.0, 0.0)
@@ -53,11 +55,11 @@ func _build() -> void:
 	column.custom_minimum_size = Vector2(520, 0)
 	center.add_child(column)
 
-	_title = _make_label("", 76, UiTheme.TEXT)
+	_title = _make_label(76, UiTheme.TEXT)
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_title)
 
-	_subtitle = _make_label("", 26, UiTheme.ACCENT)
+	_subtitle = _make_label(26, UiTheme.ACCENT)
 	_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_subtitle)
 
@@ -65,7 +67,7 @@ func _build() -> void:
 	gap.custom_minimum_size = Vector2(0, 18)
 	column.add_child(gap)
 
-	_hint = _make_label("", 19, UiTheme.MUTED)
+	_hint = _make_label(19, UiTheme.MUTED)
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_hint)
 
@@ -73,20 +75,24 @@ func _build() -> void:
 	gap2.custom_minimum_size = Vector2(0, 22)
 	column.add_child(gap2)
 
-	_play = _make_button("", "PrimaryButton", Vector2(340, 76))
+	_play = _make_button(340, 76, "PrimaryButton")
 	_play.add_theme_font_size_override("font_size", 24)
 	_play.pressed.connect(func() -> void: play_requested.emit())
 	column.add_child(_play)
 
-	_language = _make_button("", "GhostButton", Vector2(240, 58))
+	_continue = _make_button(340, 62, "GhostButton")
+	_continue.pressed.connect(func() -> void: continue_requested.emit())
+	column.add_child(_continue)
+
+	_language = _make_button(240, 56, "GhostButton")
 	_language.pressed.connect(func() -> void: App.toggle_language())
 	column.add_child(_language)
 
-	_best = _make_label("", 18, UiTheme.GOLD)
+	_best = _make_label(18, UiTheme.GOLD)
 	_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_best)
 
-	_controls = _make_label("", 16, UiTheme.MUTED)
+	_controls = _make_label(16, UiTheme.MUTED)
 	_controls.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_controls.offset_left = 20
 	_controls.offset_top = -52
@@ -95,7 +101,7 @@ func _build() -> void:
 	_controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_controls)
 
-	_quit = _make_button("", "GhostButton", Vector2(140, 50))
+	_quit = _make_button(140, 50, "GhostButton")
 	_quit.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	_quit.offset_left = -156
 	_quit.offset_top = -74
@@ -105,20 +111,18 @@ func _build() -> void:
 	add_child(_quit)
 
 
-func _make_label(text: String, font_size: int, color: Color) -> Label:
+func _make_label(font_size: int, color: Color) -> Label:
 	var label := Label.new()
-	label.text = text
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
 
 
-func _make_button(text: String, variation: String, min_size: Vector2) -> Button:
+func _make_button(min_width: int, height: int, variation: String) -> Button:
 	var button := Button.new()
-	button.text = text
 	button.theme_type_variation = variation
-	button.custom_minimum_size = min_size
+	button.custom_minimum_size = Vector2(min_width, height)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.focus_mode = Control.FOCUS_NONE
 	return button
@@ -135,7 +139,9 @@ func _apply_language() -> void:
 	_hint.text = App.t("menu.hint")
 	_controls.text = App.t("menu.controls")
 	_play.text = App.t("menu.play")
+	_continue.text = App.t("menu.continue")
 	_language.text = App.t("menu.language_target")
 	_quit.text = App.t("menu.quit")
-	_best.text = App.t("menu.best", [App.best_wave])
+	_best.text = App.t("menu.best", [App.best_population])
+	_continue.visible = CityState.save_exists()
 	_quit.visible = not OS.has_feature("mobile")

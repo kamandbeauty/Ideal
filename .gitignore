@@ -10,6 +10,10 @@ dist/
 *.tmp
 *.bak
 
+# Screenshots produced by the smoke play-through in CI
+documentation/qa/*.png
+documentation/qa/*.log
+
 # Local toolchain (engine downloads, export templates)
 .toolchain/
 .ci-cache/

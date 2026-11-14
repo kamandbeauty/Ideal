@@ -14,6 +14,7 @@ on:
       - 'scripts/**'
       - 'assets/**'
       - 'tests/**'
+      - 'tools/**'
       - 'documentation/**'
       - '.github/workflows/ci.yml'
   pull_request:
@@ -80,6 +81,32 @@ jobs:
             echo "::error::The test run reported script errors"
             exit 1
           fi
+
+      - name: Software-rendered play-through with screenshots
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri
+          xvfb-run -a -s '-screen 0 1440x810x24' \
+            godot --path . --rendering-method gl_compatibility --resolution 1440x810 \
+            res://tools/smoke.tscn > "$RUNNER_TEMP/smoke.log" 2>&1 || true
+          cat "$RUNNER_TEMP/smoke.log"
+          if grep -qE 'SCRIPT ERROR|Parse Error|Invalid call|Nonexistent function' "$RUNNER_TEMP/smoke.log"; then
+            echo "::error::The play-through reported script errors"
+            exit 1
+          fi
+          grep -q 'SMOKE OK' "$RUNNER_TEMP/smoke.log" || {
+            echo "::error::The play-through did not finish"
+            exit 1
+          }
+          test -s documentation/qa/02-city-fa.png
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: documentation/qa/*.png
+          if-no-files-found: ignore
 
       - name: Boot the main scene headlessly
         run: |

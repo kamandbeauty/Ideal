@@ -1,8 +1,8 @@
 extends Node
-## Switches between the title screen and a run of the game.
+## Switches between the title screen and a city session.
 
 const MENU_SCENE := preload("res://scenes/ui/main_menu.tscn")
-const BATTLE_SCENE := preload("res://scenes/game/battle.tscn")
+const CITY_SCENE := preload("res://scenes/city/city.tscn")
 
 var _current: Node
 
@@ -14,14 +14,24 @@ func _ready() -> void:
 func show_menu() -> void:
 	var menu = MENU_SCENE.instantiate()
 	_replace(menu)
-	menu.play_requested.connect(start_battle)
+	menu.play_requested.connect(start_new_city)
+	menu.continue_requested.connect(start_continue)
 
 
-func start_battle() -> void:
-	var battle = BATTLE_SCENE.instantiate()
-	_replace(battle)
-	battle.exit_requested.connect(show_menu)
-	battle.retry_requested.connect(start_battle)
+func start_new_city() -> void:
+	CityState.delete_save()
+	_start_city(false)
+
+
+func start_continue() -> void:
+	_start_city(true)
+
+
+func _start_city(load_save: bool) -> void:
+	var city = CITY_SCENE.instantiate()
+	city.load_from_file = load_save
+	_replace(city)
+	city.exit_requested.connect(show_menu)
 
 
 func _replace(next: Node) -> void:
