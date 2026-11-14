@@ -2,7 +2,7 @@ class_name IsometricCamera
 extends Node3D
 ## Fixed-angle isometric rig: quarter turns, pinch/wheel zoom and drag panning.
 
-const PITCH := 42.0
+const PITCH := 39.0
 const ZOOM_MIN := 9.0
 const ZOOM_MAX := 48.0
 const ZOOM_STEP := 0.9

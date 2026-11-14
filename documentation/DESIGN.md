@@ -81,7 +81,8 @@ gold; the flag is saved, so the reward is paid once per town.
 ## Presentation
 
 - **Lighting** — one shadow-casting warm sun, a cool sky fill, ACES tonemapping
-  at 0.92 exposure, sky lighting at 0.42, and depth fog that fades the dunes.
+  at 0.84 exposure with a small saturation lift, sky lighting at 0.46, and depth
+  fog that fades the dunes.
 - **Ground** — a 150×150 plane with a seamless sand noise texture, ring-shaped
   dunes at the horizon, and MultiMesh scatters of rocks, dry shrubs and trees
   that skip the road corridor and every plot.

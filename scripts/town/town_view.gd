@@ -74,9 +74,12 @@ func _build_environment() -> void:
 	sky.sky_material = sky_material
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.42
+	env.ambient_light_energy = 0.46
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 0.92
+	env.tonemap_exposure = 0.84
+	env.adjustment_enabled = true
+	env.adjustment_saturation = 1.12
+	env.adjustment_contrast = 1.04
 	# Depth haze: it separates the dunes from the play area and costs nothing.
 	env.fog_enabled = true
 	env.fog_light_color = TownData.ground_color(state.town_id).lightened(0.35)
@@ -89,7 +92,7 @@ func _build_environment() -> void:
 
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
-	sun.light_energy = 0.95
+	sun.light_energy = 0.88
 	sun.light_color = Color(1.0, 0.92, 0.78)
 	sun.rotation_degrees = Vector3(-50, -38, 0)
 	sun.shadow_enabled = true
