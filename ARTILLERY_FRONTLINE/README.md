@@ -234,6 +234,15 @@ side, in any pose of any clip, without the engine.
 | 5 | Optimisation, clean-up, final verification | done |
 | 6 | The sight that draws in, new zombie models that limp, the six-barrel gun, the siege in three stages | done; not yet run on a phone |
 
+### Startup and loading
+
+The app icon and engine splash use the shield emblem. At startup the game
+shows a full-screen city illustration, emblem and localized loading status;
+the level resource is loaded in a worker after the screen has painted, then
+the level is instantiated on the main thread. The progress bar tracks these
+stages and the same artwork covers the transition into a match. Headless
+logic tests skip the presentation delay.
+
 ### Menu music
 
 The user-supplied **Teeth In The Wire** recording is at

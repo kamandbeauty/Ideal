@@ -15,7 +15,13 @@ build time or at run time.
 | `resources/levels/city_siege_layout.tres` | `tools/build_city.py` | Routes and attack places, from the same numbers as the mesh |
 | `assets/textures/world/*.jpg`, `*_n.png`, `sky_dusk.jpg` | `tools/build_textures.py` | Tiling surfaces with normal maps, and the sky panorama |
 | `assets/audio/*.wav` (synthesized clips) | `tools/build_audio.py` | Synthesized from oscillators and filtered noise: the guns and the tail of a burst, the six-barrel gun's motor running up, its paired report and its run-down, strikes, voices, the rocket launch, both explosions, the boss's roar and death, a body falling, the interface sounds, the victory and defeat stings, and the wind bed |
-| `assets/textures/icon.png` | `tools/build_icon.py` | App icon |
+| `assets/textures/icon.png` | `tools/build_icon.py` | App icon derived from the generated shield emblem |
+
+## Generated branding artwork
+
+The shield emblem (`assets/textures/branding/emblem.png`) and city loading art
+(`assets/textures/branding/loading_city.png`) were generated for this project
+with Arena's image generation tool. The app icon is derived from the emblem.
 
 ## Carried over from the earlier project
 

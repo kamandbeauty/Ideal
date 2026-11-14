@@ -54,6 +54,11 @@ var inset_override := Vector2(-1.0, -1.0)
 var built_view := Vector2.ZERO
 var built_margins := Vector2.ZERO
 var layout_check: float = 0.0
+## Values survive a screen rebuild on a language or viewport change.
+var loading_progress: float = 0.0
+var loading_message: String = "loading_world"
+var loading_bar: ProgressBar
+var loading_status: Label
 
 
 func _ready() -> void:
@@ -118,6 +123,8 @@ func _clear() -> void:
 	gun_choices = null
 	gun_note = null
 	play_button = null
+	loading_bar = null
+	loading_status = null
 	for child: Node in holder.get_children():
 		holder.remove_child(child)
 		child.queue_free()
@@ -150,7 +157,7 @@ func _show(name: String, fade_in: bool = true) -> void:
 			dim.color = Color(0.05, 0.01, 0.01, 0.72) if not result_victory else Color(0.01, 0.035, 0.02, 0.66)
 			_build_result()
 		"loading":
-			dim.color = Color(0.02, 0.02, 0.025, 0.82)
+			dim.color = Color(0.02, 0.02, 0.025, 1.0)
 			_build_loading()
 	if fade != null and fade.is_valid():
 		fade.kill()
@@ -189,9 +196,22 @@ func show_result(victory: bool, stats: Dictionary, record: bool = false, onward:
 	_show("result")
 
 
-## Covers the street while the next match is instantiated, so the hitch is not a frozen title.
-func show_loading() -> void:
-	_show("loading")
+## Covers the scene during startup and while the next match is instantiated.
+func show_loading(startup: bool = false) -> void:
+	loading_progress = 0.0
+	loading_message = "loading_world" if startup else "loading_deploy"
+	_show("loading", false)
+
+
+## The bar follows resource loading and scene setup; it does not invent a percentage.
+func set_loading_progress(value: float, message: String = "") -> void:
+	loading_progress = clampf(value, 0.0, 1.0)
+	if message != "":
+		loading_message = message
+	if is_instance_valid(loading_bar):
+		loading_bar.value = loading_progress * 100.0
+	if is_instance_valid(loading_status):
+		loading_status.text = Loc.t(loading_message)
 
 
 # -- Building blocks -----------------------------------------------------------------
@@ -365,8 +385,58 @@ func _build_arsenal() -> void:
 
 
 func _build_loading() -> void:
-	var column: VBoxContainer = _panel(480.0)
-	column.add_child(_heading(Loc.t("get_ready"), 56, UITheme.AMBER))
+	# Full-bleed key art is behind a restrained veil; all text remains live,
+	# localised and inside the device's safe margins rather than baked into art.
+	var art := TextureRect.new()
+	art.name = "LoadingArt"
+	art.texture = load("res://assets/textures/branding/loading_city.png")
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(art)
+	var veil := ColorRect.new()
+	veil.color = Color(0.015, 0.02, 0.025, 0.42)
+	veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(veil)
+	var frame: MarginContainer = _frame(16.0)
+	var column := VBoxContainer.new()
+	column.name = "LoadingContent"
+	column.custom_minimum_size = Vector2(minf(520.0, built_view.x - built_margins.x - built_margins.y - 32.0), 0.0)
+	column.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	column.add_theme_constant_override("separation", 5)
+	frame.add_child(column)
+	var emblem := TextureRect.new()
+	emblem.name = "LoadingEmblem"
+	emblem.texture = load("res://assets/textures/branding/emblem.png")
+	emblem.custom_minimum_size = Vector2(210.0, 210.0)
+	emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	emblem.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	emblem.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(emblem)
+	column.add_child(UITheme.outline(_heading(Loc.t("title"), 72, UITheme.TEXT), 5))
+	column.add_child(_heading(Loc.t("subtitle"), 27, UITheme.AMBER))
+	column.add_child(_text(Loc.t("tagline"), 22, UITheme.TEXT))
+	column.add_child(_spacer(28))
+	loading_status = _heading(Loc.t(loading_message), 22, UITheme.TEXT)
+	loading_status.name = "LoadingStatus"
+	column.add_child(loading_status)
+	loading_bar = ProgressBar.new()
+	loading_bar.name = "LoadingProgress"
+	loading_bar.custom_minimum_size = Vector2(0.0, 8.0)
+	loading_bar.min_value = 0.0
+	loading_bar.max_value = 100.0
+	loading_bar.value = loading_progress * 100.0
+	loading_bar.show_percentage = false
+	loading_bar.fill_mode = ProgressBar.FILL_BEGIN_TO_END
+	loading_bar.add_theme_stylebox_override("background", UITheme.box(Color(0.08, 0.09, 0.10, 0.95), Color(0.65, 0.57, 0.42, 0.5), 2, 1, 0))
+	loading_bar.add_theme_stylebox_override("fill", UITheme.box(UITheme.AMBER, UITheme.AMBER, 2, 0, 0))
+	column.add_child(loading_bar)
+	column.add_child(_spacer(6))
+	column.add_child(_text(Loc.t("loading_hint"), 18, UITheme.MUTED))
 
 
 ## What a stage holds, in a line: its number, its waves and how many zombies it fields.

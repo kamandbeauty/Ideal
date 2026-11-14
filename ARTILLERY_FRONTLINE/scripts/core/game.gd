@@ -40,7 +40,49 @@ func _ready() -> void:
 	# The wind is part of the place, not of the score: it follows the effects volume, so turning the music off leaves it.
 	Sound.start_loop("wind", "Effects", -19.0)
 	_start_menu_music()
-	_load_level()
+	menus.show_loading(true)
+	_startup()
+
+
+## Paint the loading screen before touching the heavy level. Resource loading
+## happens on a worker; instantiation and prewarming still happen on the main
+## thread, after the player has already seen what the game is doing.
+func _startup() -> void:
+	if DisplayServer.get_name() == "headless":
+		# Logic suites need no presentation delay or renderer.
+		_load_level()
+		_finish_startup()
+		return
+	var began: int = Time.get_ticks_msec()
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var packed: PackedScene = null
+	var error: Error = ResourceLoader.load_threaded_request(LEVEL_SCENE, "PackedScene")
+	if error == OK:
+		while true:
+			var progress: Array = []
+			var state: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(LEVEL_SCENE, progress)
+			if not progress.is_empty():
+				menus.set_loading_progress(float(progress[0]) * 0.8)
+			if state == ResourceLoader.THREAD_LOAD_LOADED:
+				packed = ResourceLoader.load_threaded_get(LEVEL_SCENE) as PackedScene
+				break
+			if state == ResourceLoader.THREAD_LOAD_FAILED or state == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+				break
+			await get_tree().process_frame
+	# Fall back to the normal loader if the worker could not start or failed.
+	menus.set_loading_progress(0.85, "loading_prepare")
+	await get_tree().process_frame
+	_load_level(packed)
+	menus.set_loading_progress(1.0)
+	await get_tree().process_frame
+	var left: float = 0.9 - float(Time.get_ticks_msec() - began) / 1000.0
+	if left > 0.0:
+		await get_tree().create_timer(left).timeout
+	_finish_startup()
+
+
+func _finish_startup() -> void:
 	menus.show_main()
 	var arguments: PackedStringArray = OS.get_cmdline_user_args()
 	if arguments.has("--autostart"):
@@ -52,14 +94,16 @@ func _ready() -> void:
 		add_child(driver)
 
 
-func _load_level() -> void:
+func _load_level(packed: PackedScene = null) -> void:
 	if level != null and is_instance_valid(level):
 		hud.bind(null)
 		level.queue_free()
 	# Whatever happened to the profile meanwhile, a stage that is not open is never laid.
 	stage = clampi(stage, 0, Campaign.open_stages(int(Profile.data.stats.stages_cleared)) - 1)
 	menus.stage = stage
-	level = (load(LEVEL_SCENE) as PackedScene).instantiate()
+	if packed == null:
+		packed = load(LEVEL_SCENE) as PackedScene
+	level = packed.instantiate()
 	level.stage = stage
 	level.wave_set = Campaign.waves(stage)
 	level.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -118,7 +162,10 @@ func start_match() -> void:
 	# Let the loading screen paint before the hitch of instantiating the street.
 	await get_tree().process_frame
 	await get_tree().process_frame
+	menus.set_loading_progress(0.65, "loading_prepare")
+	await get_tree().process_frame
 	_load_level()
+	menus.set_loading_progress(1.0)
 	menus.hide_all()
 	hud.set_active(true)
 	level.begin_match()

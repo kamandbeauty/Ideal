@@ -613,6 +613,14 @@ func _run() -> void:
 	var canvas: Vector2 = get_viewport().get_visible_rect().size
 	check(canvas.is_equal_approx(Vector2(1440.0, 810.0)), "the canvas is 1440 x 810 on a 16:9 screen (%s)" % str(canvas))
 	check(game.menus.screen == "main", "the game opens on the main menu")
+	# Reopen the same startup screen for an inspectable capture at a known progress.
+	game.menus.show_loading(true)
+	game.menus.set_loading_progress(0.55)
+	await frames(3)
+	_check_menu("startup loading", Vector2.ZERO)
+	await shot("00-startup-loading", "screen")
+	game.menus.show_main()
+	await frames(3)
 	await shot("01-menu-fa", "screen")
 	Profile.set_setting("language", "en")
 	await frames(3)
