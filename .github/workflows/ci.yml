@@ -68,8 +68,10 @@ jobs:
             exit 1
           }
           cat "$RUNNER_TEMP/import.log"
-          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' "$RUNNER_TEMP/import.log"; then
-            echo "::error::The engine reported errors while importing the project"
+          if grep -nE 'SCRIPT ERROR|Parse Error|Failed to load script|SHADER ERROR|Shader Error' "$RUNNER_TEMP/import.log" > "$RUNNER_TEMP/import-errors.txt"; then
+            head -20 "$RUNNER_TEMP/import-errors.txt" | while IFS= read -r line; do
+              echo "::error title=Import::${line:0:900}"
+            done
             exit 1
           fi
 
@@ -91,8 +93,10 @@ jobs:
             godot --path . --rendering-method gl_compatibility --resolution 1440x810 \
             res://tools/smoke.tscn > "$RUNNER_TEMP/smoke.log" 2>&1 || true
           cat "$RUNNER_TEMP/smoke.log"
-          if grep -qE 'SCRIPT ERROR|Parse Error|Invalid call|Nonexistent function' "$RUNNER_TEMP/smoke.log"; then
-            echo "::error::The play-through reported script errors"
+          if grep -nE 'SCRIPT ERROR|Parse Error|Invalid call|Nonexistent function' "$RUNNER_TEMP/smoke.log" > "$RUNNER_TEMP/smoke-errors.txt"; then
+            head -15 "$RUNNER_TEMP/smoke-errors.txt" | while IFS= read -r line; do
+              echo "::error title=Play-through::${line:0:900}"
+            done
             exit 1
           fi
           grep -q 'SMOKE OK' "$RUNNER_TEMP/smoke.log" || {
