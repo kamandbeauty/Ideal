@@ -379,6 +379,10 @@ func _build_toast() -> void:
 	_toast = _label(17, UiTheme.TEXT, true)
 	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_toast.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	# A long manager message wraps instead of stretching the pill across the
+	# screen and sliding under the detail panel.
+	_toast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_toast.custom_minimum_size = Vector2(480, 0)
 	_toast_panel.add_child(_toast)
 
 
