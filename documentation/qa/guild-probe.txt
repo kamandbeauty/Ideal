@@ -1,17 +1,17 @@
-hero_parts=13 hero_meshes=72 hero_visible=72 hero_pos=(1.9, -727.652, 1.5) cast=5 stack=5 control=62
-hero in_tree=true visible=true pos=(1.9, -727.652, 1.5) rot_y=-0.244 children=2
+hero_parts=13 hero_meshes=72 hero_visible=72 hero_pos=(1.9, 0.00002, 1.5) cast=5 stack=5 control=62
+hero in_tree=true visible=true pos=(1.9, 0.00002, 1.5) rot_y=-0.244 children=2
 rig parts=13 body_children=1
-  part leg_l visible=true meshes=6 global=(1.798119, -726.752, 1.474598)
-  part leg_r visible=true meshes=6 global=(2.001881, -726.752, 1.525402)
-  part torso visible=true meshes=16 global=(1.9, -726.672, 1.5)
-  part arm_l visible=true meshes=8 global=(1.662277, -726.192, 1.440729)
-  part fore_l visible=true meshes=6 global=(1.737271, -726.2714, 1.139948)
-  part hand_l visible=true meshes=4 global=(1.792805, -726.4943, 0.917213)
-  part arm_r visible=true meshes=8 global=(2.137722, -726.192, 1.559271)
-  part fore_r visible=true meshes=6 global=(2.062729, -726.2714, 1.860052)
-  part hand_r visible=true meshes=4 global=(1.988103, -726.1863, 2.159363)
-  part head visible=true meshes=1 global=(1.897581, -725.912, 1.509703)
-  part cape visible=true meshes=1 global=(1.941127, -726.452, 1.33505)
-  part stack_anchor visible=true meshes=10 global=(1.812908, -726.492, 1.849306)
-  part money_anchor visible=true meshes=0 global=(1.958479, -726.632, 1.926826)
-stack kind=money total=5 visible=5 global=(1.812908, -726.612, 1.849306)
+  part leg_l visible=true meshes=6 global=(1.798119, 0.90002, 1.474598)
+  part leg_r visible=true meshes=6 global=(2.001881, 0.90002, 1.525402)
+  part torso visible=true meshes=16 global=(1.9, 0.98002, 1.5)
+  part arm_l visible=true meshes=8 global=(1.662277, 1.46002, 1.440729)
+  part fore_l visible=true meshes=6 global=(1.737271, 1.380603, 1.139948)
+  part hand_l visible=true meshes=4 global=(1.792805, 1.157657, 0.917213)
+  part arm_r visible=true meshes=8 global=(2.137722, 1.46002, 1.559271)
+  part fore_r visible=true meshes=6 global=(2.062729, 1.380603, 1.860052)
+  part hand_r visible=true meshes=4 global=(1.988103, 1.465712, 2.159363)
+  part head visible=true meshes=1 global=(1.897581, 1.74002, 1.509703)
+  part cape visible=true meshes=1 global=(1.941127, 1.20002, 1.33505)
+  part stack_anchor visible=true meshes=10 global=(1.812908, 1.16002, 1.849306)
+  part money_anchor visible=true meshes=0 global=(1.958479, 1.02002, 1.926826)
+stack kind=money total=5 visible=5 global=(1.812908, 1.04002, 1.849306)
