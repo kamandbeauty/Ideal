@@ -41,6 +41,7 @@ var stage: int = 0
 var stage_brief: Label
 var stage_choices: MenuWidgets.Choices
 var neighborhood_button: Button
+var hospital_button: Button
 var gun_choices: MenuWidgets.Choices
 var gun_note: Label
 var gun_preview: WeaponPreview
@@ -134,6 +135,7 @@ func _clear() -> void:
 	stage_brief = null
 	stage_choices = null
 	neighborhood_button = null
+	hospital_button = null
 	gun_choices = null
 	gun_note = null
 	gun_preview = null
@@ -417,6 +419,7 @@ func _build_main() -> void:
 ## Three real stage choices, not decorative map pins: locked stages stay locked.
 func _build_campaign() -> void:
 	_background("res://assets/textures/branding/design_map.png")
+	var map_art: TextureRect = holder.get_child(holder.get_child_count() - 1) as TextureRect
 	_zone(UITheme.button(Loc.t("back"), show_main, "plain", "ui_back"), Rect2(0.01, 0.01, 0.16, 0.11), "CampaignBack")
 	_zone(UITheme.outline(_text(Loc.t("choose_neighborhood"), 20, UITheme.TEXT, false), 3), Rect2(0.03, 0.17, 0.31, 0.05), "MapPrompt")
 	_zone(UITheme.outline(_text(Loc.t("choose_stage"), 20, UITheme.TEXT, false), 3), Rect2(0.03, 0.25, 0.31, 0.05), "StagePrompt")
@@ -438,15 +441,26 @@ func _build_campaign() -> void:
 	for index: int in stage_choices.buttons.size():
 		var button: Button = stage_choices.buttons[index]
 		stage_choices.remove_child(button)
-		_zone(button, Rect2(0.62 - 0.12 * index, 0.40 + 0.13 * index, 0.11, 0.12), "MapStage%d" % (index + 1))
+		_zone(button, Rect2(0.62 - 0.12 * (index % 3), 0.40 + 0.13 * (index % 3), 0.11, 0.12), "MapStage%d" % (index + 1))
 		button.visible = false
 	stage_choices.visible = false
 	neighborhood_button = UITheme.button(Loc.t("neighborhood_city"), func() -> void:
+		map_art.texture = load("res://assets/textures/branding/design_map.png")
+		if stage >= 3:
+			stage_choices._choose(0)
 		stage_choices.visible = true
-		for button: Button in stage_choices.buttons:
-			button.visible = true
+		for index: int in stage_choices.buttons.size():
+			stage_choices.buttons[index].visible = index < 3
 		stage_brief.text = stage_brief_for(stage), "accent")
 	_zone(neighborhood_button, Rect2(0.57, 0.18, 0.30, 0.11), "Neighborhood")
+	hospital_button = UITheme.button(Loc.t("neighborhood_hospital"), func() -> void:
+		map_art.texture = load("res://assets/textures/branding/hospital_district.png")
+		stage_choices._choose(3)
+		stage_choices.visible = true
+		for index: int in stage_choices.buttons.size():
+			stage_choices.buttons[index].visible = index == 3
+		stage_brief.text = stage_brief_for(stage), "accent")
+	_zone(hospital_button, Rect2(0.03, 0.36, 0.27, 0.11), "HospitalNeighborhood")
 	var info := _plate()
 	_zone(info, Rect2(0.68, 0.66, 0.30, 0.31), "MissionBrief")
 	var details := _column()

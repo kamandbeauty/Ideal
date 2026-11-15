@@ -585,6 +585,30 @@ func _second_stage() -> void:
 		"stages stay open when the career preview is restored")
 
 
+## A real start from the hospital district, plus a view of the new battlefield.
+func _hospital_stage() -> void:
+	game.to_menu()
+	await frames(4)
+	game.menus.show_campaign()
+	await frames(2)
+	game.menus.hospital_button.pressed.emit()
+	await frames(3)
+	check(game.stage == 3 and game.menus.stage_choices.buttons[3].visible, "the hospital map selects the fourth stage")
+	await shot("43-hospital-map", "screen")
+	game.start_match()
+	await frames(5)
+	level = game.level
+	check(level.stage == 3 and level.geometry.name == "Geometry" and level.geometry.find_child("HospitalMain", true, false) != null,
+		"stage four loads the actual hospital scene")
+	check(level.wave_set == Campaign.waves(3) and level.horde.layout == level.layout, "the hospital has its own waves and routes")
+	await frames(8)
+	await shot("44-hospital-stage", "play")
+	simulate(20.0)
+	await frames(6)
+	check(level.horde.spawned_total > 0, "the fourth stage sends attackers")
+	await shot("45-hospital-attack", "play")
+
+
 func _aim_at(point: Vector3) -> void:
 	var wanted: Vector2 = level.defender.aim_for(point)
 	level.defender.aim.set_aim(wanted.x, wanted.y)
@@ -953,6 +977,7 @@ func _run() -> void:
 	await _six_barrels()
 	await _weapon_visual_review()
 	await _second_stage()
+	await _hospital_stage()
 
 	var render: Dictionary = Graphics.snapshot()
 	check(String(render.tier) == PICTURE_TIER and is_equal_approx(float(render.scale), float(Graphics.PROFILES[PICTURE_TIER].scale)),

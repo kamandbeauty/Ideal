@@ -230,8 +230,8 @@ func _sieges(t: TestContext) -> void:
 			t.equal(int(stats.stage), stage, "stage %d: and say which stage it was" % (stage + 1))
 			t.equal(int(stats.wave_overall), waves + count, "stage %d: its last wave is wave %d of the siege" % [stage + 1, waves + count])
 			t.equal(int(stats.special_kills), result.killed - int(result.by_type.get(&"walker", 0)), "stage %d: and everything tougher than a walker" % (stage + 1))
-			if stage == stages - 1:
-				t.equal(int(stats.bosses), 1, "the boss is among the kills of the last stage")
+			if stage == 2:
+				t.equal(int(stats.bosses), 1, "the city boss is among the kills of stage three")
 		waves += count
 		killed += result.killed
 		entered += result.entered
@@ -244,7 +244,7 @@ func _sieges(t: TestContext) -> void:
 	t.equal(killed + entered, total, "every zombie of the siege was accounted for")
 	if strong.size() == stages:
 		var first: Dictionary = strong[0]
-		var last: Dictionary = strong[stages - 1]
+		var last: Dictionary = strong[2]
 		t.equal(first.wave_count, 3, "the first stage is three waves")
 		t.check(first.time > 60.0 and first.time < 240.0, "and lasts one to four minutes (%.0f s)" % first.time)
 		t.check(int(first.by_type.get(&"brute", 0)) == 0 and first.boss_seen_at < 0.0, "with no brute and no boss in it")

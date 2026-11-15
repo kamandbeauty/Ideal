@@ -41,7 +41,7 @@ func physics_frames(count: int = 1) -> void:
 ## autoloads exist, and the game scripts need those to compile.)
 func make_level(stage: int = 0) -> Node:
 	tree.root.get_node("Profile").persist = false
-	var level: Node = (load("res://scenes/levels/city_siege.tscn") as PackedScene).instantiate()
+	var level: Node = (load(Campaign.scene(stage)) as PackedScene).instantiate()
 	if stage > 0:
 		level.set("stage", stage)
 		level.set("wave_set", load("res://resources/waves/stage_%d_waves.tres" % (stage + 1)))

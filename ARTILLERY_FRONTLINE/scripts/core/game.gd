@@ -102,8 +102,10 @@ func _load_level(packed: PackedScene = null) -> void:
 	# Whatever happened to the profile meanwhile, a stage that is not open is never laid.
 	stage = clampi(stage, 0, Campaign.open_stages(int(Profile.data.stats.stages_cleared)) - 1)
 	menus.stage = stage
-	if packed == null:
-		packed = load(LEVEL_SCENE) as PackedScene
+	var scene_path: String = Campaign.scene(stage)
+	# Startup may have prefetched the city, but a saved stage can be elsewhere.
+	if packed == null or scene_path != LEVEL_SCENE:
+		packed = load(scene_path) as PackedScene
 	level = packed.instantiate()
 	level.stage = stage
 	level.wave_set = Campaign.waves(stage)
