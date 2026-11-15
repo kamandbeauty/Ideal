@@ -82,8 +82,11 @@ func _build_environment() -> void:
 	sky.sky_material = sky_material
 	_sky_material = sky_material
 	env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.32
+	# Explicit ambient colour: sky-sourced ambient turns everything navy once
+	# the sky goes dark, which killed the night palette.
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_color = TownData.sky_color(state.town_id).lightened(0.4)
+	env.ambient_light_energy = 0.38
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
 	env.tonemap_exposure = 0.66
 	env.adjustment_enabled = true
@@ -775,9 +778,10 @@ func apply_time(t: float) -> void:
 		_fill.light_energy = 0.12 + 0.12 * day
 		_fill.light_color = Color(0.45, 0.55, 0.85).lerp(Color(0.66, 0.78, 1.0), day)
 	if _env != null:
-		_env.ambient_light_energy = 0.66 - 0.32 * day
-		var ambient := Color(0.86, 0.92, 1.0).lerp(Color(1.0, 0.78, 0.62), dusk * 0.8)
-		ambient = ambient.lerp(Color(0.38, 0.47, 0.7), night)
+		_env.ambient_light_energy = 0.64 - 0.26 * day
+		var ambient := Color(0.78, 0.86, 1.0)
+		ambient = ambient.lerp(Color(1.0, 0.8, 0.64), dusk * 0.8)
+		ambient = ambient.lerp(Color(0.4, 0.48, 0.72), night)
 		_env.ambient_light_color = ambient
 		_env.fog_light_color = sand.lightened(0.3).lerp(Color(0.14, 0.18, 0.32), night)
 		_env.fog_density = 0.0038 + 0.0012 * night
