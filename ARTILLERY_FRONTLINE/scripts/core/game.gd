@@ -297,8 +297,13 @@ func go_back() -> bool:
 	elif menus.screen == "upgrade":
 		menus._show("equipment")
 	elif menus.screen == "equipment":
-		menus.show_arsenal()
-	elif menus.screen == "arsenal" or menus.screen == "campaign":
+		if menus.equipment_return == "arsenal":
+			menus.show_arsenal()
+		else:
+			menus.show_main()
+	elif menus.screen == "arsenal":
+		menus.show_campaign()
+	elif menus.screen == "campaign":
 		menus.show_main()
 	elif menus.screen == "loading":
 		return true

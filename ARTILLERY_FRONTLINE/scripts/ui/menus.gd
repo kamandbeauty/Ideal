@@ -2,9 +2,8 @@ class_name Menus
 extends CanvasLayer
 ## Title, armory, settings, pause and result screens. Ordinary Controls: these
 ## are the only places where taps go through Godot's GUI instead of the touch
-## router. Every screen is laid out for the reading direction of the language
-## in use. Buttons are 88 canvas units high and choice buttons 84 (7.4 and
-## 7.0 mm on a 6.5-inch phone). PLAY opens the armory; the armory starts the match.
+## router. The spatial layout stays left-to-right in both languages.
+## Deployment goes through the campaign map, then the weapon selection.
 
 signal play_requested
 signal resume_requested
@@ -46,10 +45,13 @@ var metro_button: Button
 var gun_choices: MenuWidgets.Choices
 var gun_note: Label
 var gun_preview: WeaponPreview
+var weapon_photo: TextureRect
 var gun_preview_name: Label
 var gun_stats: Label
 var equipment_choices: MenuWidgets.Choices
 var equipment_id: String = "twin_hmg"
+var equipment_group: String = "guns"
+var equipment_return: String = "main"
 var equipment_summary: Label
 var wallet_label: Label
 var upgrade_button: Button
@@ -141,6 +143,7 @@ func _clear() -> void:
 	gun_choices = null
 	gun_note = null
 	gun_preview = null
+	weapon_photo = null
 	gun_preview_name = null
 	gun_stats = null
 	equipment_choices = null
@@ -214,6 +217,8 @@ func show_arsenal() -> void:
 
 
 func show_equipment() -> void:
+	equipment_return = "arsenal" if screen == "arsenal" else "main"
+	equipment_group = "guns"
 	equipment_id = String(Profile.setting("gun"))
 	_show("equipment")
 
@@ -388,15 +393,15 @@ func _column() -> VBoxContainer:
 
 func _build_main() -> void:
 	_background("res://assets/textures/branding/design_battlefield.png")
-	var title := UITheme.outline(_heading(Loc.t("title"), 68, UITheme.TEXT), 5)
+	var title := UITheme.outline(_heading("LAST WALL", 68, UITheme.TEXT), 5)
+	title.add_theme_font_override("font", load("res://assets/fonts/Rajdhani-SemiBold.ttf"))
 	_zone(title, Rect2(0.61, 0.01, 0.36, 0.12), "MainTitle")
 	var buttons := _column()
 	buttons.add_theme_constant_override("separation", 12)
 	_zone(buttons, Rect2(0.68, 0.23, 0.29, 0.62), "MainActions")
-	play_button = UITheme.button(Loc.t("play"), show_arsenal, "accent", "ui_start")
+	play_button = UITheme.button(Loc.t("play"), show_campaign, "accent", "ui_start")
 	play_button.name = "MainPlay"
 	buttons.add_child(play_button)
-	buttons.add_child(UITheme.button(Loc.t("campaign_map"), show_campaign))
 	buttons.add_child(UITheme.button(Loc.t("armory"), show_equipment))
 	buttons.add_child(UITheme.button(Loc.t("settings"), func() -> void: show_settings("main")))
 	for button: Button in buttons.get_children():
@@ -480,7 +485,7 @@ func _build_campaign() -> void:
 	details.add_child(_heading(Loc.t("mission_brief"), 23, UITheme.AMBER))
 	stage_brief = _text(stage_brief_for(stage), 21, UITheme.TEXT)
 	details.add_child(stage_brief)
-	details.add_child(UITheme.button(Loc.t("armory"), show_arsenal, "accent", "ui_start"))
+	details.add_child(UITheme.button(Loc.t("select_weapon"), show_arsenal, "accent", "ui_start"))
 
 
 # -- Armory ----------------------------------------------------------------------------
@@ -489,18 +494,21 @@ func _build_campaign() -> void:
 func _build_arsenal() -> void:
 	_background("res://assets/textures/branding/design_workshop.png")
 	_zone(UITheme.outline(_heading(Loc.t("armory"), 40, UITheme.TEXT), 4), Rect2(0.25, 0.01, 0.50, 0.07), "ArsenalTitle")
-	_zone(UITheme.button(Loc.t("back"), show_main, "plain", "ui_back"), Rect2(0.84, 0.01, 0.14, 0.11), "ArsenalBack")
+	_zone(UITheme.button(Loc.t("back"), show_campaign, "plain", "ui_back"), Rect2(0.84, 0.01, 0.14, 0.11), "ArsenalBack")
 	var gallery := _column()
 	gallery.add_child(UITheme.outline(_heading(Loc.t("weapon_preview"), 20, UITheme.TEXT), 3))
 	_zone(gallery, Rect2(0.02, 0.13, 0.54, 0.78), "ArsenalGallery")
-	gun_preview = WeaponPreview.new()
-	gun_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	gallery.add_child(gun_preview)
+	weapon_photo = TextureRect.new()
+	weapon_photo.name = "WeaponPhoto"
+	weapon_photo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	weapon_photo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	weapon_photo.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	gallery.add_child(weapon_photo)
 	gun_preview_name = UITheme.outline(_heading(Loc.t(gun_data(String(Profile.setting("gun"))).name_key), 30, UITheme.TEXT), 3)
 	gallery.add_child(gun_preview_name)
 	gun_stats = UITheme.outline(_text(gun_stats_for(String(Profile.setting("gun"))), 20, UITheme.TEXT), 3)
 	gallery.add_child(gun_stats)
-	gun_preview.show_weapon(String(Profile.setting("gun")))
+	_show_weapon_photo(String(Profile.setting("gun")))
 	var card := _plate()
 	_zone(card, Rect2(0.60, 0.13, 0.38, 0.84), "ArsenalControls")
 	var plan := _column()
@@ -525,6 +533,8 @@ func _build_arsenal() -> void:
 		stage_brief.text = stage_brief_for(index)
 		stage_chosen.emit(index))
 	plan.add_child(stage_choices)
+	# Stage is chosen on the map; this internal selection stays hidden here.
+	stage_choices.visible = false
 	var names: Array = []
 	var outlines: Array = []
 	for id: String in Profile.GUNS:
@@ -540,7 +550,7 @@ func _build_arsenal() -> void:
 		gun_note.text = gun_note_for(Profile.GUNS[index])
 		gun_preview_name.text = Loc.t(gun_data(Profile.GUNS[index]).name_key)
 		gun_stats.text = gun_stats_for(Profile.GUNS[index])
-		gun_preview.show_weapon(Profile.GUNS[index])
+		_show_weapon_photo(Profile.GUNS[index])
 		gun_chosen.emit(Profile.GUNS[index]))
 	plan.add_child(gun_choices)
 	gun_note = _text(gun_note_for(String(Profile.setting("gun"))), 16, UITheme.TEXT)
@@ -552,6 +562,12 @@ func _build_arsenal() -> void:
 	play_button = UITheme.button(Loc.t("deploy"), func() -> void: play_requested.emit(), "accent", "ui_start")
 	plan.add_child(play_button)
 	plan.add_child(UITheme.button(Loc.t("equipment_upgrades"), show_equipment))
+
+
+## One static, compressed render per gun: no extra 3D world on this screen.
+func _show_weapon_photo(id: String) -> void:
+	if weapon_photo != null:
+		weapon_photo.texture = load("res://assets/textures/branding/weapons/stand_%s.jpg" % id)
 
 
 func _add_weapon_thumbnails(choices: MenuWidgets.Choices, ids: Array, image_height: float = 40.0) -> void:
@@ -575,12 +591,22 @@ func _add_weapon_thumbnails(choices: MenuWidgets.Choices, ids: Array, image_heig
 ## Equipment workshop: all five mounted guns plus the equipped RPG and grenade.
 func _build_equipment() -> void:
 	_background("res://assets/textures/branding/design_workshop.png")
-	_zone(UITheme.button(Loc.t("back"), show_arsenal, "plain", "ui_back"), Rect2(0.01, 0.01, 0.16, 0.11), "EquipmentBack")
+	_zone(UITheme.button(Loc.t("back"), func() -> void:
+		if equipment_return == "arsenal":
+			show_arsenal()
+		else:
+			show_main(), "plain", "ui_back"), Rect2(0.01, 0.01, 0.16, 0.11), "EquipmentBack")
 	_zone(UITheme.outline(_heading(Loc.t("equipment_upgrades"), 42, UITheme.TEXT), 4), Rect2(0.25, 0.01, 0.55, 0.09), "EquipmentTitle")
 	wallet_label = UITheme.outline(_heading(Loc.t("coin_balance", [Loc.number(int(Profile.data.economy.coins))]), 24, UITheme.AMBER, false), 3)
 	_zone(wallet_label, Rect2(0.01, 0.14, 0.20, 0.08), "EquipmentBalance")
 	_zone(UITheme.outline(_text(Loc.t("select_equipment"), 20, UITheme.TEXT, false), 3), Rect2(0.01, 0.25, 0.20, 0.06), "EquipmentPrompt")
 	_zone(UITheme.outline(_text(Loc.t("select_equipment_hint"), 17, UITheme.TEXT, false), 3), Rect2(0.01, 0.32, 0.20, 0.15), "EquipmentHint")
+	_zone(UITheme.button(Loc.t("machine_guns"), func() -> void:
+		equipment_group = "guns"
+		_show("equipment"), "accent" if equipment_group == "guns" else "plain"), Rect2(0.23, 0.12, 0.32, 0.10), "MachineGunsTab")
+	_zone(UITheme.button(Loc.t("explosives"), func() -> void:
+		equipment_group = "explosives"
+		_show("equipment"), "accent" if equipment_group == "explosives" else "plain"), Rect2(0.58, 0.12, 0.36, 0.10), "ExplosivesTab")
 	var labels: Array = []
 	var icons: Array = []
 	for id: String in Profile.EQUIPMENT:
@@ -607,9 +633,12 @@ func _build_equipment() -> void:
 	for index: int in equipment_choices.buttons.size():
 		var button: Button = equipment_choices.buttons[index]
 		equipment_choices.remove_child(button)
-		var col: int = index if index < 3 else index - 3
-		var row: int = 0 if index < 3 else 1
-		_zone(button, Rect2(0.23 + 0.175 * col, 0.18 + 0.34 * row, 0.17, 0.29), "EquipmentCard%d" % index)
+		var active: bool = (index < Profile.GUNS.size()) == (equipment_group == "guns")
+		var position_in_group: int = index if index < Profile.GUNS.size() else index - Profile.GUNS.size()
+		var col: int = position_in_group % 3
+		var row: int = position_in_group / 3
+		_zone(button, Rect2(0.23 + 0.22 * col, 0.26 + 0.34 * row, 0.20, 0.29), "EquipmentCard%d" % index)
+		button.visible = active
 
 
 func _build_upgrade() -> void:
@@ -634,7 +663,9 @@ func _build_upgrade() -> void:
 	equipment_summary.clip_text = true
 	equipment_summary.custom_minimum_size.y = 60.0
 	plan.add_child(equipment_summary)
-	plan.add_child(_spacer(20))
+	if Profile.GUNS.has(equipment_id):
+		plan.add_child(UITheme.button(Loc.t("equip"), func() -> void:
+			gun_chosen.emit(equipment_id)))
 	upgrade_button = UITheme.button("", func() -> void:
 		if Profile.buy_upgrade(equipment_id):
 			_refresh_equipment(false), "accent")
@@ -658,7 +689,9 @@ func _refresh_equipment(rebuild_preview: bool) -> void:
 func _build_loading() -> void:
 	_background("res://assets/textures/branding/design_battlefield.png")
 	holder.get_child(holder.get_child_count() - 1).name = "LoadingArt"
-	_zone(UITheme.outline(_heading(Loc.t("title"), 72, UITheme.TEXT), 5), Rect2(0.23, 0.02, 0.54, 0.12), "LoadingTitle")
+	var title := UITheme.outline(_heading("LAST WALL", 72, UITheme.TEXT), 5)
+	title.add_theme_font_override("font", load("res://assets/fonts/Rajdhani-SemiBold.ttf"))
+	_zone(title, Rect2(0.23, 0.02, 0.54, 0.12), "LoadingTitle")
 	var column := _column()
 	_zone(column, Rect2(0.20, 0.76, 0.60, 0.22), "LoadingContent")
 	loading_bar = ProgressBar.new()

@@ -567,7 +567,7 @@ func _refresh_values() -> void:
 		wave_label.text = Loc.t("wave", [wave_index + 1, wave_total])
 	else:
 		wave_label.text = Loc.t("get_ready")
-	wave_pips.set_state(wave_total, wave_index if intermission_left < 0.0 else -1, waves_cleared, Loc.is_rtl())
+	wave_pips.set_state(wave_total, wave_index if intermission_left < 0.0 else -1, waves_cleared, false)
 
 
 ## Colours a label only when the colour is new. Setting an override again, even to the same colour,

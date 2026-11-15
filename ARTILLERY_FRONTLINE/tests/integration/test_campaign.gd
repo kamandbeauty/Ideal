@@ -18,10 +18,7 @@ func _button(menus: Menus, text: String) -> Button:
 ## PLAY on the title opens the armory; DEPLOY there starts the match.
 func _open_armory(menus: Menus) -> void:
 	if menus.screen != "arsenal":
-		if menus.play_button != null:
-			menus.play_button.pressed.emit()
-		else:
-			menus.show_arsenal()
+		menus.show_arsenal()
 
 
 func _begin(menus: Menus) -> void:
@@ -100,7 +97,12 @@ func run(t: TestContext) -> void:
 	t.check(menus.screen == "main" and menus.play_button != null and menus.gun_choices == null, "the title offers PLAY, not the guns")
 	menus.play_button.pressed.emit()
 	await t.frames(2)
-	t.check(menus.screen == "arsenal" and menus.stage_choices != null, "PLAY opens the armory")
+	t.check(menus.screen == "campaign", "PLAY opens the map")
+	menus.neighborhood_button.pressed.emit()
+	menus.stage_choices.buttons[0].pressed.emit()
+	menus.show_arsenal()
+	await t.frames(2)
+	t.check(menus.screen == "arsenal" and menus.stage_choices != null, "map proceeds to weapon selection")
 	t.equal(menus.stage_choices.buttons.size(), stages, "one choice for each")
 	t.equal(game.stage, 0, "a new player starts at the first")
 	t.equal(menus.stage_choices.selected, 0, "which is the one lit")

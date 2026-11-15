@@ -38,7 +38,7 @@ func run(t: TestContext) -> void:
 	t.equal(Loc.percent(0.5), "۵۰٪", "Persian percent")
 	t.equal(Loc.clock(125.0), "۲:۰۵", "Persian clock")
 	t.check(Loc.is_rtl(), "Persian is right-to-left")
-	t.check(Loc.t("title") != english.title, "Persian has its own title")
+	t.equal(Loc.t("title"), english.title, "the game title remains in English")
 
 	# Every message the game can raise has text.
 	for kind: String in ["gate_attack", "wall_attack", "gate_half", "gate_critical", "wall_half", "wall_critical", "gate_destroyed", "wall_breached"]:

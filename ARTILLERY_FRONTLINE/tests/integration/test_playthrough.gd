@@ -9,7 +9,8 @@ extends RefCounted
 func _start_stage(menus: Menus) -> void:
 	if menus.play_button != null:
 		menus.play_button.pressed.emit()
-	# Home START may open the arsenal first; START there begins the stage.
+	if menus.screen == "campaign":
+		menus.show_arsenal()
 	if menus.screen == "arsenal" and menus.play_button != null:
 		menus.play_button.pressed.emit()
 
