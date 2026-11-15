@@ -21,6 +21,7 @@ func _numbers(t: TestContext) -> void:
 	t.near(tan(deg_to_rad(aim.fov_degrees) * 0.5) / tan(deg_to_rad(drawn) * 0.5), aim.zoom_factor, 0.0001,
 		"drawn in, everything on the screen is %.1f times as large (a field of %.1f degrees)" % [aim.zoom_factor, drawn])
 	t.check(drawn > 12.0 and drawn < 25.0, "that is a gunner's sight, not a telescope (%.1f degrees)" % drawn)
+	t.check(aim.zoom_max_factor > aim.zoom_factor and is_equal_approx(aim.zoom_max_factor, 6.0), "the adjustable sight reaches six times magnification")
 	t.check(aim.zoom_time > 0.0 and aim.zoom_time <= 0.3, "it glides in, in a fraction of a second (%.2f s)" % aim.zoom_time)
 
 
@@ -44,6 +45,17 @@ func _on_the_gun(t: TestContext) -> void:
 	t.near(defender.magnification(), aim.zoom_factor, 0.0001, "the street is %.1f times closer" % aim.zoom_factor)
 	t.near(defender.camera.fov, aim.fov_at(aim.zoom_factor), 0.001, "through a field of view of %.1f degrees" % aim.fov_at(aim.zoom_factor))
 	t.near(defender.aim_scale(), 1.0 / aim.zoom_factor, 0.0001, "and a turn of the gun is worth that much more on the screen")
+	var aim_before: Vector3 = defender.aim_direction()
+	defender.set_zoom_strength(100.0)
+	t.near(defender.zoom_strength, 6.0, 0.001, "magnification is capped at six times")
+	defender._process(aim.zoom_time)
+	t.near(defender.magnification(), 6.0, 0.001, "the sight smoothly reaches its new limit")
+	t.near(defender.camera.fov, aim.fov_at(6.0), 0.001, "the camera actually narrows further")
+	t.near(defender.aim_scale(), 1.0 / 6.0, 0.0001, "aim sensitivity follows the stronger zoom")
+	t.check(defender.aim_direction().is_equal_approx(aim_before), "adjusting zoom does not move the aim")
+	defender.set_zoom_strength(-100.0)
+	defender._process(aim.zoom_time)
+	t.near(defender.magnification(), aim.zoom_factor, 0.001, "the slider is bounded below by the default zoom")
 
 	# The same travel of the finger moves the picture as far as ever: the gun turns less.
 	var sensitivity: float = float(Profile.setting("sensitivity"))
@@ -144,12 +156,39 @@ func _on_the_hud(t: TestContext) -> void:
 	t.check(hud.scope.visible and hud.scope.modulate.a > 0.9, "the edges of the picture darken")
 	t.near(hud.crosshair.zoom, 1.0, 0.001, "and the cross grows its long hairs")
 	t.near(defender.camera.fov, defender.aim_settings.fov_at(defender.aim_settings.zoom_factor), 0.01, "the picture is the drawn-in one")
+	# The rail claims a finger of its own; dragging it must not aim or interrupt fire.
+	t.check(hud.zoom_slider.visible and hud.zoom_slider.size.x >= UITheme.TOUCH, "the zoom rail appears with a thumb-sized target")
+	var rail: Rect2 = hud.zoom_slider.get_global_rect()
+	var bottom := Vector2(rail.get_center().x, rail.end.y - HudWidgets.ZoomSlider.BOTTOM_PAD)
+	var top := Vector2(rail.get_center().x, rail.position.y + HudWidgets.ZoomSlider.TOP_PAD)
+	var yaw_before: float = defender.aim.target_yaw
+	hud.touch_down(6, bottom)
+	t.equal(String(hud.fingers[6]), "zoom_slider", "touching the rail captures the zoom finger")
+	hud.touch_down(7, hud.fire_button.center())
+	hud.touch_drag(6, top - bottom)
+	t.near(defender.zoom_strength, 6.0, 0.001, "dragging up reaches the maximum magnification")
+	t.near(defender.aim.target_yaw, yaw_before, 0.001, "dragging zoom does not turn the gun")
+	t.check(defender.touch_fire, "the other thumb can keep firing while adjusting zoom")
+	hud.touch_up(7)
+	hud.touch_drag(6, Vector2(0.0, 500.0))
+	t.near(defender.zoom_strength, defender.aim_settings.zoom_factor, 0.001, "dragging down clamps at the minimum")
+	hud.touch_drag(6, Vector2(0.0, -20.0))
+	t.check(defender.zoom_strength > defender.aim_settings.zoom_factor, "reversing direction responds immediately after the limit")
+	hud.touch_up(6)
+	defender.set_zoom_strength(defender.aim_settings.zoom_factor)
+	var wheel := InputEventMouseButton.new()
+	wheel.button_index = MOUSE_BUTTON_WHEEL_UP
+	wheel.pressed = true
+	hud._input(wheel)
+	t.near(defender.zoom_strength, defender.aim_settings.zoom_factor + 0.25, 0.001, "the mouse wheel also adjusts zoom")
+	defender.set_zoom_strength(defender.aim_settings.zoom_factor)
 	# Firing with one thumb while the other holds the sight button down.
 	hud.touch_down(4, hud.zoom_button.center())
 	t.check(not defender.zoomed, "a second tap lets it out")
 	hud.touch_up(4)
 	await _settle(t, defender)
 	t.check(not hud.zoom_button.lit and not hud.scope.visible and is_zero_approx(hud.crosshair.zoom), "and the HUD is as before")
+	t.check(not hud.zoom_slider.visible, "the rail is hidden when zoom is off")
 	# Keyboard and mouse, for a desktop run.
 	var key := InputEventKey.new()
 	key.physical_keycode = KEY_Z

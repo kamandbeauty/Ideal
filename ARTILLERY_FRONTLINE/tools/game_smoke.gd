@@ -437,6 +437,13 @@ func _sight() -> void:
 	check(game.hud.zoom_button.lit and game.hud.scope.visible, "the HUD shows that the sight is in")
 	notes["sight"] = {"magnification": defender.aim_settings.zoom_factor, "field_of_view": snappedf(drawn, 0.1), "naked_field_of_view": snappedf(naked, 0.1)}
 	await shot("30-sight-drawn-in")
+	var rail: Rect2 = game.hud.zoom_slider.get_global_rect()
+	game.hud.touch_down(9, Vector2(rail.get_center().x, rail.position.y + HudWidgets.ZoomSlider.TOP_PAD))
+	game.hud.touch_up(9)
+	await frames(20)
+	check(absf(defender.magnification() - defender.aim_settings.zoom_max_factor) < 0.05,
+		"the adjustable zoom reaches the higher magnification")
+	await shot("30a-sight-maximum-zoom")
 	game.hud.touch_down(3, game.hud.zoom_button.center())
 	game.hud.touch_up(3)
 	glide = 0

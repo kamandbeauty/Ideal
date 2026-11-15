@@ -116,7 +116,7 @@ const TEXT: Dictionary = {
 		"gun_note_rotary_gun": "A storm of light rounds: %s a second, %s to a belt. Takes a moment to spin up.",
 		"gun_note_bushmaster": "One long barrel, a hard hit. %s a second, %s to a belt.",
 		"gun_note_gilded_minigun": "The six-barrel, gilded, even hungrier. %s a second, %s to a belt.",
-		"hint_zoom": "The glass button brings the street closer",
+		"hint_zoom": "Tap the glass, then drag the slider to zoom",
 	},
 	"fa": {
 		"title": "آخرین دیوار",
@@ -230,7 +230,7 @@ const TEXT: Dictionary = {
 		"gun_note_rotary_gun": "رگبار گلولهٔ سبک: %s گلوله در ثانیه، نوار %s‌تایی. کمی طول می‌کشد تا راه بیفتد.",
 		"gun_note_bushmaster": "یک لولهٔ بلند، ضربهٔ سخت. %s گلوله در ثانیه، نوار %s‌تایی.",
 		"gun_note_gilded_minigun": "شش‌لول طلایی، گرسنه‌تر. %s گلوله در ثانیه، نوار %s‌تایی.",
-		"hint_zoom": "دکمهٔ ذره‌بین، خیابان را نزدیک می‌آورد",
+		"hint_zoom": "ذره‌بین را بزنید و دستگیره را برای زوم بکشید",
 	},
 }
 

@@ -711,3 +711,41 @@ class BannerBand:
 				PackedColorArray([faint, line, line, faint]))
 			draw_polygon(PackedVector2Array([Vector2(w * 0.5, y), Vector2(w, y), Vector2(w, y + 2.0), Vector2(w * 0.5, y + 2.0)]),
 				PackedColorArray([line, faint, faint, line]))
+
+
+## A thumb-sized vertical rail, shown only while looking through the sight.
+## The HUD owns input, so dragging this never becomes an aim drag.
+class ZoomSlider extends Control:
+	const TOP_PAD: float = 52.0
+	const BOTTOM_PAD: float = 27.0
+	var fraction: float = 0.0
+	var magnification: float = 2.5
+
+	func _init() -> void:
+		size = Vector2(88.0, 196.0)
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	func set_value(value: float, strength: float) -> void:
+		value = clampf(value, 0.0, 1.0)
+		if not is_equal_approx(fraction, value) or not is_equal_approx(magnification, strength):
+			fraction = value
+			magnification = strength
+			queue_redraw()
+
+	func fraction_at(point: Vector2) -> float:
+		var local_y: float = point.y - get_global_rect().position.y
+		return clampf((size.y - BOTTOM_PAD - local_y) / (size.y - TOP_PAD - BOTTOM_PAD), 0.0, 1.0)
+
+	func _draw() -> void:
+		HudWidgets.draw_plate(self, Rect2(Vector2.ZERO, size), Color(0.025, 0.03, 0.035, 0.88), UITheme.LINE, 8.0)
+		var x: float = size.x * 0.5
+		var top := Vector2(x, TOP_PAD)
+		var bottom := Vector2(x, size.y - BOTTOM_PAD)
+		var knob: Vector2 = bottom.lerp(top, fraction)
+		draw_line(top, bottom, Color(0.55, 0.55, 0.52, 0.8), 5.0, true)
+		draw_line(bottom, knob, UITheme.AMBER, 5.0, true)
+		draw_circle(knob, 21.0, UITheme.INK)
+		draw_arc(knob, 19.0, 0.0, TAU, 32, UITheme.AMBER, 3.0, true)
+		draw_line(knob + Vector2(-8.0, 0.0), knob + Vector2(8.0, 0.0), UITheme.TEXT, 3.0, true)
+		draw_string(UITheme.font(true), Vector2(0.0, 23.0), "%.1fx" % magnification,
+			HORIZONTAL_ALIGNMENT_CENTER, size.x, 20, UITheme.TEXT)

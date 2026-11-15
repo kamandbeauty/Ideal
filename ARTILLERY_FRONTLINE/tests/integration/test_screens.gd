@@ -183,6 +183,28 @@ func run(t: TestContext) -> void:
 		t.check(hud.weapon_slots[0].size.y >= 76.0 and hud.weapon_slots[0].size.x >= 150.0, "%s: a weapon card is a thumb wide and high" % shape[1])
 		t.check(hud.crosshair.get_global_rect().get_center().is_equal_approx(view * 0.5), "%s: the sight is in the middle of the screen" % shape[1])
 
+	# With zoom active, the adjustable rail stays inside each safe layout and
+	# clear of the round controls for either hand.
+	level.defender.set_zoom(true, true)
+	for shape: Array in SHAPES:
+		root.size = shape[0]
+		for left_handed: bool in [false, true]:
+			Profile.set_setting("left_handed", left_handed)
+			await t.frames(2)
+			var view: Vector2 = hud.get_viewport().get_visible_rect().size
+			var margins: Vector2 = Hud.margins_for(view, hud.safe_insets(view))
+			var rail: Rect2 = hud.zoom_slider.get_global_rect()
+			t.check(hud.zoom_slider.visible and rail.position.x >= margins.x and rail.end.x <= view.x - margins.y and rail.position.y >= 0.0 and rail.end.y <= view.y,
+				"%s zoom rail is inside the safe area for either hand" % shape[1])
+			t.equal(hud.role_at(rail.get_center()), "zoom_slider", "the visible rail captures a touch")
+			for button: HudWidgets.RoundButton in [hud.fire_button, hud.reload_button, hud.grenade_button, hud.pause_button, hud.zoom_button]:
+				var center: Vector2 = button.center()
+				var nearest := Vector2(clampf(center.x, rail.position.x, rail.end.x), clampf(center.y, rail.position.y, rail.end.y))
+				t.check(nearest.distance_to(center) > button.radius, "%s zoom rail clears %s" % [shape[1], button.kind])
+	level.defender.set_zoom(false, true)
+	Profile.set_setting("left_handed", false)
+	await t.frames(2)
+
 	# Cut-outs, on the 20:9 phone: left, right, and with the controls changed over for a left hand.
 	root.size = Vector2i(1800, 810)
 	Profile.set_setting("language", "fa")

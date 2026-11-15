@@ -38,6 +38,8 @@ extends Resource
 @export_group("Zoom")
 ## How many times closer the street looks with the sight drawn in.
 @export_range(1.0, 6.0, 0.1) var zoom_factor: float = 2.5
+## The sight can be adjusted continuously from the default to this magnification.
+@export_range(1.0, 10.0, 0.1) var zoom_max_factor: float = 6.0
 ## Seconds the sight takes to draw in or out.
 @export_range(0.0, 1.0, 0.01) var zoom_time: float = 0.14
 

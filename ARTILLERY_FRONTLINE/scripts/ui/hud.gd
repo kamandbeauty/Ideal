@@ -34,6 +34,7 @@ var level: CityLevel
 var defender: Defender
 var active: bool = false
 var fingers: Dictionary = {}
+var zoom_drags: Dictionary = {}
 var root: Control
 var crosshair: HudWidgets.Crosshair
 var defense_plate: HudWidgets.Plate
@@ -68,6 +69,7 @@ var pause_button: HudWidgets.RoundButton
 var grenade_button: HudWidgets.RoundButton
 ## Draws the sight in and lets it out again; lit while it is in.
 var zoom_button: HudWidgets.RoundButton
+var zoom_slider: HudWidgets.ZoomSlider
 var grenade_badge: HudWidgets.Badge
 var grenade_label: Label
 var boss_plate: HudWidgets.Plate
@@ -274,6 +276,10 @@ func _build() -> void:
 	zoom_button = HudWidgets.RoundButton.new("zoom", 46.0)
 	for button: Control in [fire_button, reload_button, pause_button, grenade_button, zoom_button]:
 		root.add_child(button)
+	zoom_slider = HudWidgets.ZoomSlider.new()
+	zoom_slider.name = "ZoomSlider"
+	zoom_slider.visible = false
+	root.add_child(zoom_slider)
 	grenade_badge = HudWidgets.Badge.new()
 	grenade_badge.size = Vector2(40, 40)
 	root.add_child(grenade_badge)
@@ -312,6 +318,9 @@ func bind(siege: CityLevel) -> void:
 	level = siege
 	defender = siege.defender if siege else null
 	fingers.clear()
+	zoom_drags.clear()
+	if zoom_slider:
+		zoom_slider.visible = false
 	_build_slots()
 	if defender != null and not defender.loadout_changed.is_connected(_on_loadout_changed):
 		defender.loadout_changed.connect(_on_loadout_changed)
@@ -374,6 +383,7 @@ func set_active(enabled: bool) -> void:
 
 func _release_all() -> void:
 	fingers.clear()
+	zoom_drags.clear()
 	if fire_button:
 		fire_button.set_held(false)
 		reload_button.set_held(false)
@@ -453,6 +463,8 @@ func _layout() -> void:
 	# The sight button stands over FIRE: the thumb that fires reaches it by straightening.
 	var zoom_center := fire_center + Vector2(-8.0 * side, -160.0)
 	zoom_button.position = zoom_center - zoom_button.size * 0.5
+	# Keep the rail away from the edge threat arrows, the crosshair and thumb buttons.
+	zoom_slider.position = zoom_center + Vector2(-190.0 * side, -240.0) - Vector2(zoom_slider.size.x * 0.5, 0.0)
 	grenade_badge.position = grenade_center + Vector2(40.0 * side, -40.0) - grenade_badge.size * 0.5
 	_fit(grenade_label, Rect2(grenade_badge.position, grenade_badge.size))
 	_fit(reload_label, Rect2(middle - 220.0, view.y * 0.5 + 52.0, 440.0, 34.0))
@@ -665,6 +677,7 @@ func _process(delta: float) -> void:
 	_update_arrows()
 	# The drawn-in sight: its button stays lit, the edges of the picture darken, the hairs grow long.
 	zoom_button.set_lit(defender.zoomed)
+	_sync_zoom_slider()
 	crosshair.set_zoom(defender.zoom)
 	scope.visible = defender.zoom > 0.01
 	scope.modulate.a = defender.zoom
@@ -928,6 +941,26 @@ func _on_explosion(_at: Vector3, _radius: float, killed: int) -> void:
 		show_feedback(Loc.t("feedback_multi", [killed]), UITheme.RED)
 
 
+func _sync_zoom_slider() -> void:
+	if zoom_slider == null:
+		return
+	zoom_slider.visible = active and defender != null and is_instance_valid(defender) and defender.zoomed
+	if zoom_slider.visible:
+		var low: float = defender.aim_settings.zoom_factor
+		var high: float = maxf(low, defender.aim_settings.zoom_max_factor)
+		var fraction: float = (defender.zoom_strength - low) / (high - low) if high > low else 0.0
+		zoom_slider.set_value(fraction, defender.zoom_strength)
+
+
+func _adjust_zoom_at(point: Vector2) -> void:
+	if defender == null or not defender.zoomed:
+		return
+	var low: float = defender.aim_settings.zoom_factor
+	var high: float = maxf(low, defender.aim_settings.zoom_max_factor)
+	defender.set_zoom_strength(lerpf(low, high, zoom_slider.fraction_at(point)))
+	_sync_zoom_slider()
+
+
 # -- Touch router ------------------------------------------------------------------
 func _input(event: InputEvent) -> void:
 	if not active or defender == null or not is_instance_valid(defender):
@@ -953,12 +986,20 @@ func _input(event: InputEvent) -> void:
 				defender.throw_grenade()
 			KEY_Z:
 				defender.toggle_zoom()
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
-		defender.toggle_zoom()
+				_sync_zoom_slider()
+	elif event is InputEventMouseButton and event.pressed:
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			defender.toggle_zoom()
+			_sync_zoom_slider()
+		elif defender.zoomed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+			defender.set_zoom_strength(defender.zoom_strength + (0.25 if event.button_index == MOUSE_BUTTON_WHEEL_UP else -0.25))
+			_sync_zoom_slider()
 
 
 ## Role of a finger that has just landed at `point` (canvas coordinates).
 func role_at(point: Vector2) -> String:
+	if defender != null and defender.zoomed and zoom_slider.visible and zoom_slider.get_global_rect().has_point(point):
+		return "zoom_slider"
 	if pause_button.contains(point, 1.4):
 		return "pause"
 	if fire_button.contains(point):
@@ -994,6 +1035,10 @@ func touch_down(index: int, point: Vector2) -> void:
 			pause_pressed.emit()
 		"zoom":
 			defender.toggle_zoom()
+			_sync_zoom_slider()
+		"zoom_slider":
+			zoom_drags[index] = point
+			_adjust_zoom_at(point)
 		_:
 			if role.begins_with("weapon_"):
 				defender.select_weapon(int(role.trim_prefix("weapon_")))
@@ -1003,7 +1048,13 @@ func touch_drag(index: int, relative: Vector2) -> void:
 	if not active:
 		return
 	var role: String = fingers.get(index, "")
-	if role == "aim" or role == "fire":
+	if role == "zoom_slider" and zoom_drags.has(index):
+		var cursor: Vector2 = zoom_drags[index]
+		var box: Rect2 = zoom_slider.get_global_rect()
+		cursor.y = clampf(cursor.y + relative.y, box.position.y + HudWidgets.ZoomSlider.TOP_PAD, box.end.y - HudWidgets.ZoomSlider.BOTTOM_PAD)
+		zoom_drags[index] = cursor
+		_adjust_zoom_at(cursor)
+	elif role == "aim" or role == "fire":
 		drag_total += relative
 		defender.add_drag(relative)
 
@@ -1011,6 +1062,7 @@ func touch_drag(index: int, relative: Vector2) -> void:
 func touch_up(index: int) -> void:
 	var role: String = fingers.get(index, "")
 	fingers.erase(index)
+	zoom_drags.erase(index)
 	if role == "fire" and not fingers.values().has("fire"):
 		fire_button.set_held(false)
 		defender.set_fire(false)

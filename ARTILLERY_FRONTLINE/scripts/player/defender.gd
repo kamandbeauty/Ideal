@@ -47,6 +47,9 @@ var punch: float = 0.0
 var zoomed: bool = false
 ## 0 = the naked eye, 1 = the sight fully drawn in.
 var zoom: float = 0.0
+## Chosen and smoothly displayed magnification while the sight is in.
+var zoom_strength: float = 2.5
+var zoom_strength_current: float = 2.5
 ## The pools the weapons fire into, kept for a gun that is mounted later.
 var bullet_pool: BulletPool
 var rocket_pool: RocketPool
@@ -60,6 +63,8 @@ func _ready() -> void:
 		aim_settings = AimSettings.new()
 	if grenade_data == null:
 		grenade_data = GrenadeData.new()
+	zoom_strength = aim_settings.zoom_factor
+	zoom_strength_current = zoom_strength
 	aim = AimController.new(aim_settings)
 	frame = Node3D.new()
 	frame.name = "Frame"
@@ -157,9 +162,17 @@ func toggle_zoom() -> bool:
 	return true
 
 
+## Adjust only while the player is looking through the sight. Clamp external
+## inputs too, and keep the selection when the sight is temporarily put away.
+func set_zoom_strength(value: float) -> void:
+	if not input_enabled or not zoomed:
+		return
+	zoom_strength = clampf(value, aim_settings.zoom_factor, maxf(aim_settings.zoom_factor, aim_settings.zoom_max_factor))
+
+
 ## How many times closer the street looks right now: 1 with the naked eye.
 func magnification() -> float:
-	return lerpf(1.0, aim_settings.zoom_factor, smoothstep(0.0, 1.0, zoom))
+	return lerpf(1.0, zoom_strength_current, smoothstep(0.0, 1.0, zoom))
 
 
 ## The field of view the eye has right now, in degrees, without the jolt of a shot.
@@ -365,6 +378,8 @@ func _process(delta: float) -> void:
 	var goal: float = 1.0 if zoomed else 0.0
 	if zoom != goal:
 		zoom = goal if aim_settings.zoom_time <= 0.0 else move_toward(zoom, goal, delta / aim_settings.zoom_time)
+	var span: float = maxf(aim_settings.zoom_max_factor - aim_settings.zoom_factor, 0.0)
+	zoom_strength_current = zoom_strength if aim_settings.zoom_time <= 0.0 else move_toward(zoom_strength_current, zoom_strength, span * delta / aim_settings.zoom_time)
 	shake = shake.lerp(Vector3.ZERO, 1.0 - exp(-18.0 * delta))
 	punch = lerpf(punch, 0.0, 1.0 - exp(-9.0 * delta))
 	if punch < 0.01:
