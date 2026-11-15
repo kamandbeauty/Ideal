@@ -545,8 +545,8 @@ func _second_stage() -> void:
 	game.menus.show_arsenal()
 	await frames(2)
 	var choices: MenuWidgets.Choices = game.menus.stage_choices
-	check(int(Profile.data.stats.stages_cleared) == 1 and not choices.is_locked(1) and choices.is_locked(2),
-		"with the first stage won the armory shows the second open and the third still locked")
+	check(int(Profile.data.stats.stages_cleared) == 1 and not choices.is_locked(1) and not choices.is_locked(2),
+		"all stages remain available after the first win")
 	choices.buttons[1].pressed.emit()
 	await frames(4)
 	check(game.stage == 1 and game.menus.stage_choices.selected == 1, "a tap picks the second stage")
@@ -581,8 +581,8 @@ func _second_stage() -> void:
 	level = game.level
 	game.menus.show_arsenal()
 	await frames(2)
-	check(game.stage == 0 and level.stage == 0 and game.menus.stage_choices.is_locked(1),
-		"with that win taken back the second stage is locked again and the first is the one laid behind the menu")
+	check(game.stage == 1 and level.stage == 1 and not game.menus.stage_choices.is_locked(1),
+		"stages stay open when the career preview is restored")
 
 
 func _aim_at(point: Vector3) -> void:
@@ -657,6 +657,15 @@ func _run() -> void:
 	await frames(4)
 	check(game.menus.screen == "campaign" and game.menus.stage_choices != null, "the campaign map offers stage choices")
 	await shot("41-campaign-map", "screen")
+	game.menus.show_arsenal()
+	await frames(2)
+	game.menus.show_equipment()
+	await frames(3)
+	for id: String in ["rpg_launcher", "frag_grenade"]:
+		game.menus.equipment_choices.buttons[Profile.EQUIPMENT.find(id)].pressed.emit()
+		await frames(4)
+		check(game.menus.gun_preview.displayed_id == id, "workshop shows " + id)
+		await shot("42-equipment-" + id, "screen")
 	game.menus.show_main()
 	await frames(2)
 	Profile.set_setting("language", "en")

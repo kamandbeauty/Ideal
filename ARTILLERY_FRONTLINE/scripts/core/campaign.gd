@@ -19,8 +19,8 @@ static func waves(stage: int) -> WaveSet:
 
 
 ## How many stages may be started by a player who has won `cleared` of them: those, and the next.
-static func open_stages(cleared: int) -> int:
-	return clampi(cleared + 1, 1, STAGES.size())
+static func open_stages(_cleared: int) -> int:
+	return STAGES.size()
 
 
 ## The stage and the wave in it (both counted from 1) of the `overall`-th wave of the whole siege.

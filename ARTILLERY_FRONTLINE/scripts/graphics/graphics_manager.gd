@@ -94,7 +94,7 @@ func resolve_tier(preference: String) -> String:
 		return preference
 	if auto_tier != "":
 		return auto_tier
-	return "medium" if OS.has_feature("mobile") else "high"
+	return "low" if OS.has_feature("mobile") else "high"
 
 
 ## Called whenever a setting changes. Only a change of the quality setting does anything: moving a
@@ -125,6 +125,15 @@ func forget() -> void:
 	scale_changes = 0
 	tier_changes = 0
 	monitor.reset()
+
+
+## On phones, cap simultaneously drawn enemies, not the number in the wave.
+## Queued enemies still spawn as space opens; desktop and explicit high remain unchanged.
+static func crowd_cap(tier_name: String, mobile: bool, wave_cap: int) -> int:
+	if not mobile:
+		return wave_cap
+	var cap: int = 26 if tier_name == "low" else (38 if tier_name == "medium" else wave_cap)
+	return mini(wave_cap, cap)
 
 
 func profile() -> Dictionary:

@@ -18,6 +18,10 @@ const DEFAULTS: Dictionary = {
 		"screen_shake": true,
 		"gun": "twin_hmg",
 	},
+	"economy": {
+		"coins": 0,
+		"upgrades": {"twin_hmg": 0, "rotary_gun": 0, "dual_mauler": 0, "bushmaster": 0, "gilded_minigun": 0, "rpg_launcher": 0, "frag_grenade": 0},
+	},
 	"stats": {
 		"matches": 0,
 		"victories": 0,
@@ -31,6 +35,8 @@ const QUALITY_CHOICES: Array[String] = ["auto", "low", "medium", "high"]
 const LANGUAGES: Array[String] = ["fa", "en"]
 ## The guns that can stand on the mount; the player picks one before a match.
 const GUNS: Array[String] = ["twin_hmg", "rotary_gun", "dual_mauler", "bushmaster", "gilded_minigun"]
+const EQUIPMENT: Array[String] = ["twin_hmg", "rotary_gun", "dual_mauler", "bushmaster", "gilded_minigun", "rpg_launcher", "frag_grenade"]
+const MAX_UPGRADE: int = 5
 
 var save_path: String = "user://lastwall_v1.json"
 ## Tests switch persistence off so they never touch a real save.
@@ -64,6 +70,9 @@ func _credit_old_career(stored: Dictionary) -> void:
 	var cleared: int = Campaign.place_of(int(data.stats.best_wave)).x - 1
 	if int(data.stats.victories) > 0:
 		cleared = Campaign.count()
+	data.economy.coins = clampi(int(data.economy.coins), 0, 100000000)
+	for id: String in EQUIPMENT:
+		data.economy.upgrades[id] = clampi(int(data.economy.upgrades[id]), 0, MAX_UPGRADE)
 	data.stats.stages_cleared = clampi(cleared, 0, Campaign.count())
 
 
@@ -107,8 +116,41 @@ func set_setting(key: String, value: Variant, persist_now: bool = true) -> void:
 	Events.settings_changed.emit()
 
 
+## A replay pays again; defeat pays nothing. Stage is bounded to valid values.
+static func reward_for(stats: Dictionary) -> int:
+	if not bool(stats.get("victory", false)):
+		return 0
+	return 100 + 50 * clampi(int(stats.get("stage", 0)), 0, Campaign.count() - 1)
+
+
+func upgrade_level(id: String) -> int:
+	return int(data.economy.upgrades.get(id, 0)) if EQUIPMENT.has(id) else 0
+
+
+func upgrade_cost(id: String) -> int:
+	if not EQUIPMENT.has(id) or upgrade_level(id) >= MAX_UPGRADE:
+		return 0
+	return 100 * (upgrade_level(id) + 1)
+
+
+## Save the balance and level together. Failed storage must not grant a free upgrade.
+func buy_upgrade(id: String) -> bool:
+	var cost: int = upgrade_cost(id)
+	if cost <= 0 or int(data.economy.coins) < cost:
+		return false
+	data.economy.coins -= cost
+	data.economy.upgrades[id] += 1
+	if not save():
+		data.economy.coins += cost
+		data.economy.upgrades[id] -= 1
+		return false
+	changed.emit()
+	return true
+
+
 func record_match(stats: Dictionary) -> void:
 	var totals: Dictionary = data.stats
+	data.economy.coins = mini(100000000, int(data.economy.coins) + reward_for(stats))
 	totals.matches += 1
 	if stats.get("victory", false):
 		totals.victories += 1

@@ -7,6 +7,7 @@ var viewport: SubViewport
 var stand: Node3D
 var camera: Camera3D
 var weapon: Weapon
+var displayed_model: Node3D
 var displayed_id: String = ""
 
 
@@ -47,23 +48,29 @@ func _ready() -> void:
 
 
 func show_weapon(id: String) -> void:
-	if not Profile.GUNS.has(id) or stand == null:
+	if not Profile.EQUIPMENT.has(id) or stand == null:
 		return
-	if is_instance_valid(weapon):
-		stand.remove_child(weapon)
-		weapon.queue_free()
-	weapon = (load("res://scenes/weapons/%s.tscn" % id) as PackedScene).instantiate() as Weapon
-	stand.add_child(weapon)
-	weapon.readiness = 1.0
-	weapon._pose()
-	weapon.set_process(false)
-	weapon.set_physics_process(false)
+	if is_instance_valid(displayed_model):
+		stand.remove_child(displayed_model)
+		displayed_model.queue_free()
+	weapon = null
+	if id == "frag_grenade":
+		displayed_model = (load("res://assets/models/weapons/frag_grenade.glb") as PackedScene).instantiate() as Node3D
+	else:
+		weapon = (load("res://scenes/weapons/%s.tscn" % id) as PackedScene).instantiate() as Weapon
+		displayed_model = weapon
+	stand.add_child(displayed_model)
+	if weapon != null:
+		weapon.readiness = 1.0
+		weapon._pose()
+		weapon.set_process(false)
+		weapon.set_physics_process(false)
 	displayed_id = id
 	# Combine visible model geometry in the weapon's coordinates; hide ephemeral
 	# flashes and particles and frame the real model, not hard-coded dimensions.
 	var bounds := AABB()
 	var first := true
-	for node: Node in weapon.get_node("Model").find_children("*", "MeshInstance3D", true, false):
+	for node: Node in displayed_model.find_children("*", "MeshInstance3D", true, false):
 		var mesh := node as MeshInstance3D
 		if mesh.mesh == null or not mesh.is_visible_in_tree():
 			continue
@@ -78,7 +85,7 @@ func show_weapon(id: String) -> void:
 				material.emission = material.albedo_color
 				material.emission_energy_multiplier = 0.18
 				mesh.set_surface_override_material(surface, material)
-		var part: AABB = (weapon.global_transform.affine_inverse() * mesh.global_transform) * mesh.get_aabb()
+		var part: AABB = (displayed_model.global_transform.affine_inverse() * mesh.global_transform) * mesh.get_aabb()
 		bounds = part if first else bounds.merge(part)
 		first = false
 	var center: Vector3 = bounds.get_center()

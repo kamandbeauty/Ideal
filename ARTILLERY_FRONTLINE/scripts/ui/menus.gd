@@ -45,6 +45,13 @@ var gun_note: Label
 var gun_preview: WeaponPreview
 var gun_preview_name: Label
 var gun_stats: Label
+var equipment_choices: MenuWidgets.Choices
+var equipment_id: String = "twin_hmg"
+var equipment_summary: Label
+var wallet_label: Label
+var upgrade_button: Button
+var reward_label: Label
+var ad_button: Button
 ## The title (and loading) START control. Playthrough taps this rather than searching labels.
 var play_button: Button
 ## What the pause screen says about the match in progress: wave, waves, wall, gate.
@@ -130,6 +137,12 @@ func _clear() -> void:
 	gun_preview = null
 	gun_preview_name = null
 	gun_stats = null
+	equipment_choices = null
+	equipment_summary = null
+	wallet_label = null
+	upgrade_button = null
+	reward_label = null
+	ad_button = null
 	play_button = null
 	loading_bar = null
 	loading_status = null
@@ -155,6 +168,9 @@ func _show(name: String, fade_in: bool = true) -> void:
 		"arsenal":
 			dim.color = Color(0.02, 0.02, 0.028, 0.62)
 			_build_arsenal()
+		"equipment":
+			dim.color = Color(0.02, 0.02, 0.028, 0.80)
+			_build_equipment()
 		"campaign":
 			dim.color = Color(0.02, 0.02, 0.028, 1.0)
 			_build_campaign()
@@ -186,6 +202,11 @@ func show_main() -> void:
 
 func show_arsenal() -> void:
 	_show("arsenal")
+
+
+func show_equipment() -> void:
+	equipment_id = String(Profile.setting("gun"))
+	_show("equipment")
 
 
 func show_campaign() -> void:
@@ -479,7 +500,15 @@ func _build_arsenal() -> void:
 	plan.add_child(gun_note)
 	play_button = UITheme.button(Loc.t("deploy"), func() -> void: play_requested.emit(), "accent", "ui_start")
 	plan.add_child(play_button)
-	plan.add_child(UITheme.button(Loc.t("back"), func() -> void: show_main(), "plain", "ui_back"))
+	var bottom := HBoxContainer.new()
+	bottom.add_theme_constant_override("separation", 8)
+	var equipment: Button = UITheme.button(Loc.t("equipment_upgrades"), show_equipment)
+	equipment.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom.add_child(equipment)
+	var back: Button = UITheme.button(Loc.t("back"), func() -> void: show_main(), "plain", "ui_back")
+	back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom.add_child(back)
+	plan.add_child(bottom)
 	var showcase := PanelContainer.new()
 	showcase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	showcase.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -498,6 +527,77 @@ func _build_arsenal() -> void:
 	gun_stats = _text(gun_stats_for(String(Profile.setting("gun"))), 20, UITheme.TEXT)
 	gallery.add_child(gun_stats)
 	gun_preview.show_weapon(String(Profile.setting("gun")))
+
+
+## Equipment workshop: all five mounted guns plus the equipped RPG and grenade.
+func _build_equipment() -> void:
+	var frame: MarginContainer = _frame(20.0)
+	var layout := HBoxContainer.new()
+	layout.add_theme_constant_override("separation", 16)
+	layout.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	frame.add_child(layout)
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(660, 0)
+	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	layout.add_child(card)
+	var plan := VBoxContainer.new()
+	plan.add_theme_constant_override("separation", 6)
+	card.add_child(plan)
+	plan.add_child(_heading(Loc.t("equipment_upgrades"), 34, CYAN))
+	wallet_label = _heading("", 23, UITheme.AMBER)
+	plan.add_child(wallet_label)
+	var labels: Array = []
+	var icons: Array = []
+	for id: String in Profile.EQUIPMENT:
+		if id == "frag_grenade":
+			labels.append(Loc.t("grenade"))
+			icons.append("grenade")
+		else:
+			var item: WeaponData = gun_data(id)
+			labels.append(Loc.t(item.name_key))
+			icons.append(item.icon)
+	equipment_choices = MenuWidgets.Choices.new(labels, maxi(Profile.EQUIPMENT.find(equipment_id), 0), icons, 2)
+	equipment_choices.accent = CYAN
+	equipment_choices.dark_selection = true
+	equipment_choices.select(equipment_choices.selected)
+	equipment_choices.chosen.connect(func(index: int) -> void:
+		equipment_id = Profile.EQUIPMENT[index]
+		_refresh_equipment(true))
+	plan.add_child(equipment_choices)
+	upgrade_button = UITheme.button("", func() -> void:
+		if Profile.buy_upgrade(equipment_id):
+			_refresh_equipment(true), "accent")
+	plan.add_child(upgrade_button)
+	plan.add_child(UITheme.button(Loc.t("back"), show_arsenal, "plain", "ui_back"))
+	var showcase := PanelContainer.new()
+	showcase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	showcase.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	showcase.add_theme_stylebox_override("panel", UITheme.box(Color(0.035, 0.055, 0.06, 0.98), Color(CYAN, 0.42), 2, 1, 18))
+	layout.add_child(showcase)
+	var gallery := VBoxContainer.new()
+	gallery.add_theme_constant_override("separation", 10)
+	showcase.add_child(gallery)
+	gallery.add_child(_heading(Loc.t("weapon_preview"), 22, UITheme.MUTED))
+	gun_preview = WeaponPreview.new()
+	gun_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	gallery.add_child(gun_preview)
+	gun_preview_name = _heading("", 30, CYAN)
+	gallery.add_child(gun_preview_name)
+	equipment_summary = _text("", 22, UITheme.TEXT)
+	gallery.add_child(equipment_summary)
+	_refresh_equipment(true)
+
+
+func _refresh_equipment(rebuild_preview: bool) -> void:
+	var level: int = Profile.upgrade_level(equipment_id)
+	var cost: int = Profile.upgrade_cost(equipment_id)
+	wallet_label.text = Loc.t("coin_balance", [Loc.number(int(Profile.data.economy.coins))])
+	gun_preview_name.text = Loc.t("grenade") if equipment_id == "frag_grenade" else Loc.t(gun_data(equipment_id).name_key)
+	equipment_summary.text = Loc.t("upgrade_details", [Loc.number(level), Loc.number(Profile.MAX_UPGRADE), Loc.number(level * 12)])
+	upgrade_button.text = Loc.t("upgrade_max") if cost == 0 else Loc.t("upgrade_cost", [Loc.number(cost)])
+	upgrade_button.disabled = cost == 0 or int(Profile.data.economy.coins) < cost
+	if rebuild_preview:
+		gun_preview.show_weapon(equipment_id)
 
 
 func _build_loading() -> void:
@@ -614,6 +714,22 @@ func _build_result() -> void:
 	if not result_victory and int(result_stats.get("wave", 0)) > 0:
 		story += "  " + Loc.t("fell_in_wave", [int(result_stats.get("stage", 0)) + 1, int(result_stats.wave)])
 	column.add_child(_text(story, 24, UITheme.TEXT))
+	if result_victory:
+		var reward := HBoxContainer.new()
+		reward.add_theme_constant_override("separation", 14)
+		column.add_child(reward)
+		reward_label = _heading("", 30, UITheme.AMBER)
+		reward_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		reward.add_child(reward_label)
+		var earned: int = int(result_stats.get("coins_earned", Profile.reward_for(result_stats)))
+		var countup: Tween = reward_label.create_tween()
+		countup.tween_method(func(amount: float) -> void:
+			if is_instance_valid(reward_label):
+				reward_label.text = Loc.t("coins_won", [Loc.number(int(round(amount)))]), 0.0, float(earned), 1.1)
+		ad_button = UITheme.button(Loc.t("double_ad_unavailable"), func() -> void: pass)
+		ad_button.disabled = true
+		ad_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		reward.add_child(ad_button)
 	if result_record:
 		column.add_child(_heading(Loc.t("new_record"), 24, UITheme.AMBER))
 	column.add_child(MenuWidgets.Rule.new(8.0))

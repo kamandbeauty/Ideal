@@ -55,7 +55,7 @@ func _physics_process(delta: float) -> void:
 		Phase.SPAWNING:
 			clock += delta
 			var wave: WaveData = wave_set.waves[index]
-			while not queue.is_empty() and queue[0][0] <= clock and horde.alive_count() < wave.max_alive:
+			while not queue.is_empty() and queue[0][0] <= clock and horde.alive_count() < Graphics.crowd_cap(Graphics.tier, OS.has_feature("mobile"), wave.max_alive):
 				_spawn(queue.pop_front())
 			if queue.is_empty():
 				phase = Phase.CLEARING

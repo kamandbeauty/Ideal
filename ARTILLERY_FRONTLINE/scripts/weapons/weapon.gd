@@ -32,6 +32,14 @@ const GUN_FINISH: Texture2D = preload("res://assets/textures/weapons/gunmetal.pn
 func _ready() -> void:
 	if data == null:
 		data = WeaponData.new()
+	# Never mutate shared .tres resources: upgrades apply to this weapon instance.
+	var level: int = Profile.upgrade_level(String(data.id))
+	if level > 0:
+		data = data.duplicate(true) as WeaponData
+		data.damage *= 1.0 + 0.12 * level
+		if data.explosion != null:
+			data.explosion = data.explosion.duplicate(true) as ExplosionData
+			data.explosion.damage *= 1.0 + 0.12 * level
 	state = WeaponState.new(data)
 	state.reload_started.connect(_on_reload_started)
 	state.reload_finished.connect(_on_reload_finished)

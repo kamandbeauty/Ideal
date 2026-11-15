@@ -92,7 +92,7 @@ func prepare_for(wave: WaveData) -> void:
 	if wave == null:
 		return
 	for type_id: StringName in types:
-		var missing: int = mini(wave.count_of(type_id), wave.max_alive) - int(built.get(type_id, 0))
+		var missing: int = mini(wave.count_of(type_id), Graphics.crowd_cap(Graphics.tier, OS.has_feature("mobile"), wave.max_alive)) - int(built.get(type_id, 0))
 		for index: int in maxi(missing, 0):
 			pending.append(type_id)
 

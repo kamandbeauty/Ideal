@@ -63,6 +63,11 @@ func _ready() -> void:
 		aim_settings = AimSettings.new()
 	if grenade_data == null:
 		grenade_data = GrenadeData.new()
+	var grenade_level: int = Profile.upgrade_level("frag_grenade")
+	if grenade_level > 0 and grenade_data.explosion != null:
+		grenade_data = grenade_data.duplicate(true) as GrenadeData
+		grenade_data.explosion = grenade_data.explosion.duplicate(true) as ExplosionData
+		grenade_data.explosion.damage *= 1.0 + 0.12 * grenade_level
 	zoom_strength = aim_settings.zoom_factor
 	zoom_strength_current = zoom_strength
 	aim = AimController.new(aim_settings)

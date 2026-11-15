@@ -34,7 +34,7 @@ func _ready() -> void:
 	menus.stage_chosen.connect(select_stage)
 	menus.next_requested.connect(next_stage)
 	menus.gun_chosen.connect(choose_gun)
-	stage = Campaign.open_stages(int(Profile.data.stats.stages_cleared)) - 1
+	stage = mini(int(Profile.data.stats.stages_cleared), Campaign.count() - 1)
 	menus.stage = stage
 	Events.match_finished.connect(_on_match_finished)
 	# Stop any ambience left by a previous scene before the title is displayed.
@@ -223,6 +223,8 @@ func to_menu() -> void:
 func _on_match_finished(victory: bool, stats: Dictionary) -> void:
 	if mode != Mode.PLAYING and mode != Mode.PAUSED:
 		return
+	stats = stats.duplicate(true)
+	stats["coins_earned"] = Profile.reward_for(stats)
 	last_stats = stats
 	mode = Mode.RESULT
 	Sound.stop_loop("wind")
@@ -249,6 +251,8 @@ func go_back() -> bool:
 			resume()
 	elif menus.screen == "settings":
 		menus.show_main()
+	elif menus.screen == "equipment":
+		menus.show_arsenal()
 	elif menus.screen == "arsenal" or menus.screen == "campaign":
 		menus.show_main()
 	elif menus.screen == "loading":

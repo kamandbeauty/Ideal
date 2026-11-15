@@ -277,12 +277,14 @@ func run(t: TestContext) -> void:
 		var view: Vector2 = menus.get_viewport().get_visible_rect().size
 		for language: String in Profile.LANGUAGES:
 			Profile.set_setting("language", language)
-			for screen: String in ["main", "arsenal", "campaign", "settings", "pause", "result"]:
+			for screen: String in ["main", "arsenal", "equipment", "campaign", "settings", "pause", "result"]:
 				match screen:
 					"main":
 						menus.show_main()
 					"arsenal":
 						menus.show_arsenal()
+					"equipment":
+						menus.show_equipment()
 					"campaign":
 						menus.show_campaign()
 					"settings":
