@@ -54,10 +54,15 @@ func show_weapon(id: String) -> void:
 		stand.remove_child(displayed_model)
 		displayed_model.queue_free()
 	weapon = null
-	if id == "frag_grenade":
+	if Profile.GRENADES.has(id):
 		displayed_model = (load("res://assets/models/weapons/frag_grenade.glb") as PackedScene).instantiate() as Node3D
+		if id == "blast_grenade":
+			displayed_model.scale = Vector3(1.2, 1.35, 1.2)
 	else:
-		weapon = (load("res://scenes/weapons/%s.tscn" % id) as PackedScene).instantiate() as Weapon
+		var scene_id: String = "rpg_launcher" if Profile.LAUNCHERS.has(id) else id
+		weapon = (load("res://scenes/weapons/%s.tscn" % scene_id) as PackedScene).instantiate() as Weapon
+		if Profile.LAUNCHERS.has(id):
+			weapon.data = Profile.launcher_data(id)
 		displayed_model = weapon
 	stand.add_child(displayed_model)
 	if weapon != null:

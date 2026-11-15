@@ -30,24 +30,15 @@ func _setup_materials() -> void:
 
 func _build_hospital() -> void:
 	_box("HospitalGround", Vector3(0, -0.25, -77), Vector3(150, 0.5, 190), "road", true)
-	# The emergency building stands behind the entry routes, not across them.
-	_box("HospitalMain", Vector3(0, 13, -151), Vector3(76, 26, 15), "wall", true)
-	_box("HospitalRoof", Vector3(0, 26.5, -151), Vector3(78, 1, 17), "trim")
-	_box("HospitalEntry", Vector3(0, 4.2, -141.8), Vector3(28, 8.4, 5), "trim")
-	_box("EmergencySign", Vector3(0, 19.5, -143.25), Vector3(18, 6, 0.35), "white")
-	_box("MedicalCrossVertical", Vector3(0, 19.5, -143.0), Vector3(1.6, 4.2, 0.16), "red")
-	_box("MedicalCrossHorizontal", Vector3(0, 19.5, -142.9), Vector3(4.2, 1.6, 0.16), "red")
+	# The gun is on the roof of the near hospital, not on a wall looking at it.
+	# The roof ends just forward of the mount; it does not cover the firing lanes.
+	_box("HospitalMain", Vector3(0, 1.9, 5), Vector3(31, 3.8, 16), "wall", true)
+	_box("HospitalRoof", Vector3(0, 3.95, 5), Vector3(32, 0.1, 16), "concrete")
+	_box("HospitalRoofEdge", Vector3(0, 4.08, -2.95), Vector3(30, 0.16, 0.35), "trim")
+	# A ruined city block on the far side of the road frames the approach.
+	_box("CityBlockWest", Vector3(-25, 12, -150), Vector3(26, 24, 14), "wall", true)
+	_box("CityBlockEast", Vector3(25, 12, -150), Vector3(26, 24, 14), "concrete", true)
 	_windows()
-	# Weathered entrance canopy and structural features, all clear of paths.
-	_box("EntranceCanopy", Vector3(0, 9.0, -138.8), Vector3(31, 0.7, 9), "concrete")
-	for x: float in [-13.5, 13.5]:
-		_box("CanopyPillar%s" % x, Vector3(x, 4.3, -135.0), Vector3(1, 8.6, 1), "concrete")
-	for x: float in [-30.0, -22.0, 22.0, 30.0]:
-		_box("FacadeColumn%s" % x, Vector3(x, 12, -143.35), Vector3(0.55, 23, 0.6), "concrete")
-	for y: float in [4.5, 10.0, 15.3, 20.6]:
-		_box("FacadeSill%s" % y, Vector3(0, y, -143.32), Vector3(73, 0.4, 0.5), "concrete")
-	_box("EntranceDoors", Vector3(0, 3.0, -139.15), Vector3(10, 6.0, 0.15), "glass")
-	_box("EntranceDoorMullion", Vector3(0, 3.0, -139.02), Vector3(0.35, 6, 0.15), "trim")
 	# Two damaged wings frame the forecourt without blocking the avenue.
 	_box("WestClinic", Vector3(-39, 7.5, -95), Vector3(14, 15, 38), "concrete", true)
 	_box("EastClinic", Vector3(39, 7.5, -95), Vector3(14, 15, 38), "concrete", true)
@@ -78,9 +69,19 @@ func _build_shared_defenses() -> void:
 	_wall_segment("WestWallNear", -16.8, -12.0, 22.0)
 	_wall_segment("EastWallFar", 16.65, -35.25, 25.5)
 	_wall_segment("EastWallNear", 16.65, -7.0, 17.0)
-	_box("WallPatch", Vector3(-16.8, 1.9, -26.5), Vector3(0.6, 3.8, 7), "concrete")
-	_box("GateLeafA", Vector3(16.65, 2.1, -20.75), Vector3(0.4, 4.2, 3.5), "trim")
-	_box("GateLeafB", Vector3(16.65, 2.1, -17.25), Vector3(0.4, 4.2, 3.5), "trim")
+	# The two attack targets are hospital doors in the near wings. CityLevel
+	# owns their collision plates, so a breach still removes the matching plate.
+	_box("WallPatch", Vector3(-16.8, 1.9, -26.5), Vector3(0.6, 3.8, 7), "glass")
+	_box("GateLeafA", Vector3(16.65, 2.1, -20.75), Vector3(0.4, 4.2, 3.5), "glass")
+	_box("GateLeafB", Vector3(16.65, 2.1, -17.25), Vector3(0.4, 4.2, 3.5), "glass")
+	for side: int in [-1, 1]:
+		var x: float = side * 16.65
+		var z: float = -26.5 if side < 0 else -19.0
+		_box("DoorHeader%d" % side, Vector3(x, 4.5, z), Vector3(0.8, 0.6, 8), "white")
+		_box("DoorCrossV%d" % side, Vector3(x - side * 0.45, 4.5, z), Vector3(0.1, 0.46, 0.2), "red")
+		_box("DoorCrossH%d" % side, Vector3(x - side * 0.46, 4.5, z), Vector3(0.1, 0.18, 0.7), "red")
+		for offset: float in [-3.7, 3.7]:
+			_box("DoorFrame%d_%s" % [side, offset], Vector3(x, 2.0, z + offset), Vector3(0.8, 4.0, 0.35), "trim")
 
 func _textured(key: String, texture_name: String, scale: Vector3) -> void:
 	var material: StandardMaterial3D = materials[key]

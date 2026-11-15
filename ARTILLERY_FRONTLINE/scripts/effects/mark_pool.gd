@@ -86,6 +86,14 @@ static func texture_for(kind: String) -> Texture2D:
 			for lobe: Array in lobes:
 				edge += sin(angle * float(lobe[0]) + float(lobe[1])) * float(lobe[2])
 			var alpha: float = 1.0 - smoothstep(edge - soft, edge, offset.length())
+			if kind == "blood":
+				# Irregular clots and a few smaller satellite spatters; deterministic,
+				# generated once and shared by the whole pooled batch.
+				var grain: float = 0.82 + 0.18 * sin(float(x) * 1.7 + sin(float(y) * 2.4))
+				var droplet: float = 0.0
+				for spot: Vector3 in [Vector3(-0.74, -0.38, 0.09), Vector3(0.72, 0.35, 0.075), Vector3(0.30, -0.82, 0.06), Vector3(-0.60, 0.70, 0.055)]:
+					droplet = maxf(droplet, 1.0 - smoothstep(spot.z * 0.7, spot.z, offset.distance_to(Vector2(spot.x, spot.y))))
+				alpha = maxf(alpha * grain, droplet * 0.88)
 			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
 	image.generate_mipmaps()
 	var texture: ImageTexture = ImageTexture.create_from_image(image)

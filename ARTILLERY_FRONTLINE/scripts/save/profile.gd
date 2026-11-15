@@ -17,10 +17,12 @@ const DEFAULTS: Dictionary = {
 		"show_fps": false,
 		"screen_shake": true,
 		"gun": "twin_hmg",
+		"launcher": "rpg_launcher",
+		"grenade": "frag_grenade",
 	},
 	"economy": {
 		"coins": 0,
-		"upgrades": {"twin_hmg": 0, "rotary_gun": 0, "dual_mauler": 0, "bushmaster": 0, "gilded_minigun": 0, "rpg_launcher": 0, "frag_grenade": 0},
+		"upgrades": {"twin_hmg": 0, "rotary_gun": 0, "dual_mauler": 0, "bushmaster": 0, "gilded_minigun": 0, "rpg_launcher": 0, "frag_grenade": 0, "heavy_rpg": 0, "blast_grenade": 0},
 	},
 	"stats": {
 		"matches": 0,
@@ -35,7 +37,9 @@ const QUALITY_CHOICES: Array[String] = ["auto", "low", "medium", "high"]
 const LANGUAGES: Array[String] = ["fa", "en"]
 ## The guns that can stand on the mount; the player picks one before a match.
 const GUNS: Array[String] = ["twin_hmg", "rotary_gun", "dual_mauler", "bushmaster", "gilded_minigun"]
-const EQUIPMENT: Array[String] = ["twin_hmg", "rotary_gun", "dual_mauler", "bushmaster", "gilded_minigun", "rpg_launcher", "frag_grenade"]
+const LAUNCHERS: Array[String] = ["rpg_launcher", "heavy_rpg"]
+const GRENADES: Array[String] = ["frag_grenade", "blast_grenade"]
+const EQUIPMENT: Array[String] = ["twin_hmg", "rotary_gun", "dual_mauler", "bushmaster", "gilded_minigun", "rpg_launcher", "frag_grenade", "heavy_rpg", "blast_grenade"]
 const MAX_UPGRADE: int = 5
 
 var save_path: String = "user://lastwall_v1.json"
@@ -84,7 +88,14 @@ func _sanitize() -> void:
 		settings.quality = "auto"
 	if not GUNS.has(settings.gun):
 		settings.gun = GUNS[0]
+	if not LAUNCHERS.has(settings.launcher):
+		settings.launcher = LAUNCHERS[0]
+	if not GRENADES.has(settings.grenade):
+		settings.grenade = GRENADES[0]
 	data.stats.stages_cleared = clampi(int(data.stats.stages_cleared), 0, Campaign.count())
+	data.economy.coins = clampi(int(data.economy.coins), 0, 100000000)
+	for id: String in EQUIPMENT:
+		data.economy.upgrades[id] = clampi(int(data.economy.upgrades[id]), 0, MAX_UPGRADE)
 	settings.sensitivity = clampf(settings.sensitivity, 0.3, 2.5)
 	for key: String in ["master_volume", "sfx_volume", "music_volume"]:
 		settings[key] = clampf(settings[key], 0.0, 1.0)
@@ -129,6 +140,38 @@ static func reward_for(stats: Dictionary) -> int:
 	var wall_bonus: int = roundi(40.0 * clampf(float(stats.get("wall_left", 0.0)), 0.0, 1.0)) if won else 0
 	var base: int = 100 + 50 * clampi(int(stats.get("stage", 0)), 0, Campaign.count() - 1) if won else 0
 	return base + kills * 2 + headshots * 2 + waves * 10 + accuracy_bonus + wall_bonus
+
+
+## The alternate loadouts are independent copies, never mutations of shared resources.
+func launcher_data(id: String) -> WeaponData:
+	var base: WeaponData = load("res://resources/weapons/rpg_launcher.tres")
+	if id != "heavy_rpg":
+		return base
+	var variant: WeaponData = base.duplicate(true) as WeaponData
+	variant.id = &"heavy_rpg"
+	variant.name_key = "heavy_rpg"
+	variant.damage = 330.0
+	variant.reload_time = 4.2
+	variant.reserve = 2
+	variant.explosion = base.explosion.duplicate(true) as ExplosionData
+	variant.explosion.damage = 290.0
+	variant.explosion.radius = 6.8
+	return variant
+
+
+func grenade_variant(id: String, base: GrenadeData) -> GrenadeData:
+	if id != "blast_grenade":
+		return base
+	var variant: GrenadeData = base.duplicate(true) as GrenadeData
+	variant.id = &"blast_grenade"
+	variant.name_key = "blast_grenade"
+	variant.carried = 2
+	variant.capacity = 4
+	variant.cooldown = 1.4
+	variant.explosion = base.explosion.duplicate(true) as ExplosionData
+	variant.explosion.damage = 310.0
+	variant.explosion.radius = 6.4
+	return variant
 
 
 func upgrade_level(id: String) -> int:

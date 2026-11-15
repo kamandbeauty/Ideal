@@ -392,7 +392,7 @@ func _column() -> VBoxContainer:
 
 
 func _build_main() -> void:
-	_background("res://assets/textures/branding/design_battlefield.png")
+	_background("res://assets/textures/branding/tehran_main.jpg")
 	var title := UITheme.outline(_heading("LAST WALL", 68, UITheme.TEXT), 5)
 	title.add_theme_font_override("font", load("res://assets/fonts/Rajdhani-SemiBold.ttf"))
 	_zone(title, Rect2(0.61, 0.01, 0.36, 0.12), "MainTitle")
@@ -610,11 +610,11 @@ func _build_equipment() -> void:
 	var labels: Array = []
 	var icons: Array = []
 	for id: String in Profile.EQUIPMENT:
-		if id == "frag_grenade":
-			labels.append(Loc.t("grenade"))
+		if Profile.GRENADES.has(id):
+			labels.append(Loc.t("grenade" if id == "frag_grenade" else "blast_grenade"))
 			icons.append("grenade")
 		else:
-			var item: WeaponData = gun_data(id)
+			var item: WeaponData = Profile.launcher_data(id) if Profile.LAUNCHERS.has(id) else gun_data(id)
 			labels.append(Loc.t(item.name_key))
 			icons.append(item.icon)
 	equipment_choices = MenuWidgets.Choices.new(labels, maxi(Profile.EQUIPMENT.find(equipment_id), 0), icons, 4)
@@ -663,9 +663,13 @@ func _build_upgrade() -> void:
 	equipment_summary.clip_text = true
 	equipment_summary.custom_minimum_size.y = 60.0
 	plan.add_child(equipment_summary)
-	if Profile.GUNS.has(equipment_id):
-		plan.add_child(UITheme.button(Loc.t("equip"), func() -> void:
-			gun_chosen.emit(equipment_id)))
+	plan.add_child(UITheme.button(Loc.t("equip"), func() -> void:
+		if Profile.GUNS.has(equipment_id):
+			gun_chosen.emit(equipment_id)
+		elif Profile.LAUNCHERS.has(equipment_id):
+			Profile.set_setting("launcher", equipment_id)
+		elif Profile.GRENADES.has(equipment_id):
+			Profile.set_setting("grenade", equipment_id)))
 	upgrade_button = UITheme.button("", func() -> void:
 		if Profile.buy_upgrade(equipment_id):
 			_refresh_equipment(false), "accent")
@@ -678,7 +682,11 @@ func _refresh_equipment(rebuild_preview: bool) -> void:
 	var level: int = Profile.upgrade_level(equipment_id)
 	var cost: int = Profile.upgrade_cost(equipment_id)
 	wallet_label.text = Loc.t("coin_balance", [Loc.number(int(Profile.data.economy.coins))])
-	gun_preview_name.text = Loc.t("grenade") if equipment_id == "frag_grenade" else Loc.t(gun_data(equipment_id).name_key)
+	if Profile.GRENADES.has(equipment_id):
+		gun_preview_name.text = Loc.t("grenade" if equipment_id == "frag_grenade" else "blast_grenade")
+	else:
+		var item: WeaponData = Profile.launcher_data(equipment_id) if Profile.LAUNCHERS.has(equipment_id) else gun_data(equipment_id)
+		gun_preview_name.text = Loc.t(item.name_key)
 	equipment_summary.text = Loc.t("upgrade_details", [Loc.number(level), Loc.number(Profile.MAX_UPGRADE), Loc.number(level * 12)])
 	upgrade_button.text = Loc.t("upgrade_max") if cost == 0 else Loc.t("upgrade_cost", [Loc.number(cost)])
 	upgrade_button.disabled = cost == 0 or int(Profile.data.economy.coins) < cost

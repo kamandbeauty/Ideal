@@ -32,6 +32,9 @@ const GUN_FINISH: Texture2D = preload("res://assets/textures/weapons/gunmetal.pn
 func _ready() -> void:
 	if data == null:
 		data = WeaponData.new()
+	# Scene-authored launcher is replaced by the selected combat loadout.
+	if data.id == &"rpg_launcher" and get_parent() is Defender:
+		data = Profile.launcher_data(String(Profile.setting("launcher")))
 	# Never mutate shared .tres resources: upgrades apply to this weapon instance.
 	var level: int = Profile.upgrade_level(String(data.id))
 	if level > 0:

@@ -32,6 +32,10 @@ func _build() -> void:
 	var dark := Color(0.04, 0.04, 0.042)
 	_kit_box(holder, Vector3(0.0, 0.05, -0.12), Vector3(0.04, 0.018, 0.12), steel, 0.85, 0.32)
 	_kit_box(holder, Vector3(0.0, 0.07, -0.18), Vector3(0.012, 0.04, 0.012), dark, 0.3, 0.7)
+	if data.id == &"heavy_rpg":
+		# Distinguishing heavy-tube reinforcement and top sight.
+		_kit_box(holder, Vector3(0.0, 0.0, -0.16), Vector3(0.085, 0.085, 0.055), Color(0.22, 0.17, 0.09), 0.5, 0.6)
+		_kit_box(holder, Vector3(0.0, 0.11, -0.12), Vector3(0.025, 0.035, 0.10), dark, 0.4, 0.65)
 	rest = Transform3D(Basis.from_euler(Vector3(deg_to_rad(REST_ANGLES.x), deg_to_rad(REST_ANGLES.y), deg_to_rad(REST_ANGLES.z))),
 		REST_POSITION)
 

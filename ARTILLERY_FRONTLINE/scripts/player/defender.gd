@@ -63,7 +63,8 @@ func _ready() -> void:
 		aim_settings = AimSettings.new()
 	if grenade_data == null:
 		grenade_data = GrenadeData.new()
-	var grenade_level: int = Profile.upgrade_level("frag_grenade")
+	grenade_data = Profile.grenade_variant(String(Profile.setting("grenade")), grenade_data)
+	var grenade_level: int = Profile.upgrade_level(String(grenade_data.id))
 	if grenade_level > 0 and grenade_data.explosion != null:
 		grenade_data = grenade_data.duplicate(true) as GrenadeData
 		grenade_data.explosion = grenade_data.explosion.duplicate(true) as ExplosionData

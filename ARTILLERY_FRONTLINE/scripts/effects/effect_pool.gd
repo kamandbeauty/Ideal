@@ -7,9 +7,9 @@ extends Node3D
 
 const KINDS: Dictionary = {
 	"blood": {"count": 12, "amount": 10, "life": 0.45, "speed": Vector2(1.8, 5.0), "spread": 38.0, "gravity": -9.0,
-		"size": Vector2(0.1, 0.24), "color": Color(0.36, 0.02, 0.02, 0.95), "grow": 1.6, "additive": false},
+		"size": Vector2(0.045, 0.13), "color": Color(0.30, 0.012, 0.009, 0.96), "grow": 1.0, "additive": false},
 	"gore": {"count": 6, "amount": 18, "life": 0.6, "speed": Vector2(2.5, 6.5), "spread": 60.0, "gravity": -9.0,
-		"size": Vector2(0.14, 0.34), "color": Color(0.42, 0.03, 0.02, 0.95), "grow": 1.8, "additive": false},
+		"size": Vector2(0.06, 0.19), "color": Color(0.34, 0.015, 0.01, 0.96), "grow": 1.0, "additive": false},
 	"dust": {"count": 12, "amount": 8, "life": 0.75, "speed": Vector2(0.8, 2.6), "spread": 45.0, "gravity": -0.8,
 		"size": Vector2(0.3, 0.65), "color": Color(0.56, 0.53, 0.48, 0.55), "grow": 2.6, "additive": false},
 	"spark": {"count": 8, "amount": 9, "life": 0.28, "speed": Vector2(5.0, 12.0), "spread": 50.0, "gravity": -9.8,
@@ -65,7 +65,7 @@ func _ready() -> void:
 		# Without this the billboard discards each particle's scale and draws every quad at full size.
 		material.billboard_keep_scale = true
 		material.vertex_color_use_as_albedo = true
-		material.albedo_texture = soft_dot()
+		material.albedo_texture = MarkPool.texture_for("blood") if kind == "blood" or kind == "gore" else soft_dot()
 		material.disable_receive_shadows = true
 		if spec.additive:
 			material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD

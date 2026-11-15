@@ -113,6 +113,9 @@ func throw_from(origin: Vector3, velocity: Vector3, data: GrenadeData) -> int:
 	active_count += 1
 	thrown += 1
 	nodes[slot].position = origin
+	# The blast variant has a larger, elongated casing; this resets when a
+	# pool slot later carries the standard fragmentation grenade.
+	nodes[slot].scale = Vector3(1.2, 1.35, 1.2) * MODEL_SCALE if data.id == &"blast_grenade" else Vector3.ONE * MODEL_SCALE
 	nodes[slot].visible = true
 	trails[slot].global_position = origin
 	trails[slot].restart()
