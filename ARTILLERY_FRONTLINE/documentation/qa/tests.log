@@ -31,21 +31,21 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
   test_playthrough               38 checks
   test_scenes                    68 checks
   test_screens                  458 checks
-    undefended: first blow 33s, gate fell 76s, wall breached 85s, spawned 16, entered 8
-    stage 1, strong gunner (240 dps, explosives): victory after 112 s, waves at [4, 33, 85], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 14, wall 100%, gate 100%, 0 rockets, 0 grenades
-    stage 2, strong gunner (240 dps, explosives): victory after 166 s, waves at [4, 62, 119], killed 136 of 136 ({ &"brute": 10, &"walker": 64, &"runner": 62 }), entered 0, peak alive 24, wall 100%, gate 100%, 7 rockets, 0 grenades
-    stage 3, strong gunner (240 dps, explosives): victory after 151 s, waves at [4, 71], killed 115 of 115 ({ &"brute": 12, &"walker": 64, &"runner": 38, &"boss": 1 }), entered 0, peak alive 28, wall 100%, gate 86%, 6 rockets, 1 grenades, boss up 78 s to 137 s
-    stage 1, average gunner (150 dps, explosives): victory after 106 s, waves at [4, 33, 79], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 16, wall 100%, gate 100%, 0 rockets, 0 grenades
-    stage 2, average gunner (150 dps, explosives): victory after 183 s, waves at [4, 69, 127], killed 136 of 136 ({ &"brute": 10, &"walker": 64, &"runner": 62 }), entered 0, peak alive 23, wall 100%, gate 100%, 7 rockets, 0 grenades
-    stage 3, average gunner (150 dps, explosives): victory after 192 s, waves at [4, 73], killed 114 of 115 ({ &"walker": 64, &"brute": 12, &"runner": 37, &"boss": 1 }), entered 1, peak alive 29, wall 91%, gate 0% (fell at 183 s), 6 rockets, 1 grenades, boss up 80 s to 187 s
-    stage 1, modest gunner (110 dps, explosives): victory after 115 s, waves at [4, 33, 84], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 17, wall 100%, gate 100%, 0 rockets, 0 grenades
-    stage 2, modest gunner (110 dps, explosives): victory after 190 s, waves at [4, 67, 133], killed 136 of 136 ({ &"brute": 10, &"walker": 64, &"runner": 62 }), entered 0, peak alive 28, wall 100%, gate 100%, 7 rockets, 0 grenades
-    stage 3, modest gunner (110 dps, explosives): victory after 220 s, waves at [4, 88], killed 114 of 115 ({ &"brute": 12, &"walker": 64, &"runner": 38 }), entered 1, peak alive 35, wall 27%, gate 0% (fell at 198 s), 6 rockets, 2 grenades, boss up 95 s to 207 s
-    stage 1, weak gunner (90 dps, explosives): victory after 113 s, waves at [4, 33, 80], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 17, wall 100%, gate 100%, 0 rockets, 0 grenades
-    stage 2, weak gunner (90 dps, explosives): victory after 204 s, waves at [4, 67, 135], killed 136 of 136 ({ &"brute": 10, &"walker": 64, &"runner": 62 }), entered 0, peak alive 28, wall 100%, gate 100%, 7 rockets, 1 grenades
-    stage 3, weak gunner (90 dps, explosives): victory after 240 s, waves at [4, 101], killed 114 of 115 ({ &"brute": 12, &"walker": 64, &"runner": 38 }), entered 1, peak alive 39, wall 6%, gate 0% (fell at 215 s), 6 rockets, 2 grenades, boss up 107 s to 223 s
-    stage 1, poor gunner (60 dps, guns only): victory after 126 s, waves at [4, 34, 80], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 20, wall 100%, gate 100%, 0 rockets, 0 grenades
-    stage 2, poor gunner (60 dps, guns only): defeat after 223 s, waves at [4, 74, 189], killed 87 of 136 ({ &"brute": 7, &"walker": 55, &"runner": 25 }), entered 10, peak alive 39, wall 0%, gate 0% (fell at 172 s), 0 rockets, 0 grenades
+    undefended: first blow 27s, gate fell 78s, wall breached 86s, spawned 16, entered 8
+    stage 1, strong gunner (240 dps, explosives): victory after 110 s, waves at [4, 33, 83], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 14, wall 100%, gate 100%, 0 rockets, 0 grenades
+    stage 2, strong gunner (240 dps, explosives): victory after 175 s, waves at [4, 69, 129], killed 136 of 136 ({ &"brute": 10, &"walker": 64, &"runner": 62 }), entered 0, peak alive 22, wall 100%, gate 100%, 7 rockets, 0 grenades
+    stage 3, strong gunner (240 dps, explosives): victory after 146 s, waves at [4, 66], killed 115 of 115 ({ &"brute": 12, &"walker": 64, &"runner": 38, &"boss": 1 }), entered 0, peak alive 28, wall 100%, gate 87%, 6 rockets, 0 grenades, boss up 73 s to 134 s
+    stage 1, average gunner (150 dps, explosives): victory after 109 s, waves at [4, 33, 82], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 16, wall 100%, gate 100%, 0 rockets, 0 grenades
+    stage 2, average gunner (150 dps, explosives): victory after 181 s, waves at [4, 66, 125], killed 136 of 136 ({ &"brute": 10, &"walker": 64, &"runner": 62 }), entered 0, peak alive 23, wall 100%, gate 100%, 7 rockets, 0 grenades
+    stage 3, average gunner (150 dps, explosives): victory after 178 s, waves at [4, 72], killed 115 of 115 ({ &"walker": 64, &"brute": 12, &"runner": 38, &"boss": 1 }), entered 0, peak alive 30, wall 84%, gate 0%, 6 rockets, 4 grenades, boss up 78 s to 165 s
+    stage 1, modest gunner (110 dps, explosives): victory after 113 s, waves at [4, 33, 84], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 18, wall 100%, gate 100%, 0 rockets, 0 grenades
+    stage 2, modest gunner (110 dps, explosives): victory after 182 s, waves at [4, 66, 125], killed 136 of 136 ({ &"brute": 10, &"walker": 64, &"runner": 62 }), entered 0, peak alive 27, wall 100%, gate 100%, 7 rockets, 0 grenades
+    stage 3, modest gunner (110 dps, explosives): victory after 214 s, waves at [4, 85], killed 114 of 115 ({ &"brute": 12, &"walker": 64, &"runner": 38 }), entered 1, peak alive 35, wall 28%, gate 0% (fell at 200 s), 6 rockets, 2 grenades, boss up 92 s to 208 s
+    stage 1, weak gunner (90 dps, explosives): victory after 107 s, waves at [4, 33, 78], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 18, wall 100%, gate 100%, 1 rockets, 0 grenades
+    stage 2, weak gunner (90 dps, explosives): victory after 198 s, waves at [4, 69, 131], killed 136 of 136 ({ &"brute": 10, &"walker": 64, &"runner": 62 }), entered 0, peak alive 32, wall 100%, gate 100%, 7 rockets, 0 grenades
+    stage 3, weak gunner (90 dps, explosives): victory after 233 s, waves at [4, 94], killed 114 of 115 ({ &"brute": 12, &"walker": 64, &"runner": 38 }), entered 1, peak alive 37, wall 25%, gate 0% (fell at 216 s), 6 rockets, 3 grenades, boss up 100 s to 225 s
+    stage 1, poor gunner (60 dps, guns only): victory after 129 s, waves at [4, 34, 83], killed 74 of 74 ({ &"walker": 56, &"runner": 18 }), entered 0, peak alive 20, wall 100%, gate 100%, 0 rockets, 0 grenades
+    stage 2, poor gunner (60 dps, guns only): defeat after 160 s, waves at [4, 74], killed 65 of 136 ({ &"walker": 43, &"brute": 5, &"runner": 17 }), entered 0, peak alive 42, wall 0%, gate 18%, 0 rockets, 0 grenades
   test_siege                     70 checks
   test_sight                     67 checks
   test_specials                 122 checks
