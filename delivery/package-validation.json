@@ -1,7 +1,7 @@
 {
   "LastWall-arm64.apk": {
-    "bytes": 67607868,
-    "sha256": "bf47cdff3798a48469e16a07ebe1443149d3a1eb608e1dd2ba3c486029e3392e",
+    "bytes": 68386330,
+    "sha256": "5c57149fad7a3206d9ee29dc63a8e73a1b41e769712156138160ab11938c3e59",
     "package": "com.studiojavid.zombiesiege",
     "arm64": true,
     "min_sdk": "24",
@@ -18,12 +18,12 @@
       "lib/arm64-v8a/libc++_shared.so",
       "lib/arm64-v8a/libgodot_android.so"
     ],
-    "project_files_packed": 214,
+    "project_files_packed": 215,
     "project_files_missing": []
   },
   "LastWall-compatibility.apk": {
-    "bytes": 67607868,
-    "sha256": "f7de7a459b9ee031b89a3e296c2850d3b393ba4027e4aef56315d029b4baae6f",
+    "bytes": 68386330,
+    "sha256": "a085e0d97830e9afd9927a6be26bc3a3ec19819cf12d7599da50ffc3de3d55dc",
     "package": "com.studiojavid.zombiesiege.compatibility",
     "arm64": true,
     "min_sdk": "24",
@@ -40,7 +40,7 @@
       "lib/arm64-v8a/libc++_shared.so",
       "lib/arm64-v8a/libgodot_android.so"
     ],
-    "project_files_packed": 214,
+    "project_files_packed": 215,
     "project_files_missing": []
   },
   "problems": [],
