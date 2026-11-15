@@ -8,6 +8,8 @@ name: Android APK
 #     gh run download <run-id> -n roadstop-apk
 on:
   workflow_dispatch:
+  push:
+    branches: [arena/82a11100-ideal]
 permissions:
   contents: read
 env:
@@ -16,6 +18,9 @@ env:
 
 jobs:
   apk:
+    # Runs when dispatched, or when a commit asks for it with [apk] in the
+    # message, so ordinary pushes never pay for a template download.
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[apk]')
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
