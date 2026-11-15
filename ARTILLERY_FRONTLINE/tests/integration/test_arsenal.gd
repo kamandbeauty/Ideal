@@ -293,6 +293,7 @@ func _the_choice(t: TestContext) -> void:
 			outlined += 1
 	t.equal(outlined, Profile.GUNS.size(), "each is shown by its outline over its name")
 	t.equal(menus.gun_note.text, Menus.gun_note_for("twin_hmg"), "with a line on what the lit one is good for")
+	t.check(menus.gun_preview != null and menus.gun_preview.displayed_id == "twin_hmg" and menus.gun_preview.weapon is TwinHmg, "the armory shows the real selected weapon in its studio")
 	t.check(game.level.defender.weapon is TwinHmg, "and the gun behind the menu is that one")
 	var card_height: float = (menus.gun_note.get_parent().get_parent() as Control).size.y
 	var rotary_at: int = Profile.GUNS.find("rotary_gun")
@@ -301,6 +302,7 @@ func _the_choice(t: TestContext) -> void:
 	await t.frames(3)
 	t.equal(String(Profile.setting("gun")), "rotary_gun", "a tap on the other gun makes it the player's")
 	t.equal(menus.gun_choices.selected, rotary_at, "it is the one lit now")
+	t.check(menus.gun_preview.displayed_id == "rotary_gun" and menus.gun_preview.weapon is RotaryGun, "the preview follows the selected weapon")
 	t.equal(menus.gun_note.text, Menus.gun_note_for("rotary_gun"), "the line under the choice describes it")
 	t.near((menus.gun_note.get_parent().get_parent() as Control).size.y, card_height, 0.5, "and the card does not change its size for it")
 	t.check(game.level.defender.weapon is RotaryGun, "the street behind the armory shows it on the mount at once")

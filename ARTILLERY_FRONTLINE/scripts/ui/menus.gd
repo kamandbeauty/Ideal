@@ -40,6 +40,8 @@ var stage_brief: Label
 var stage_choices: MenuWidgets.Choices
 var gun_choices: MenuWidgets.Choices
 var gun_note: Label
+var gun_preview: WeaponPreview
+var gun_preview_name: Label
 ## The title (and loading) START control. Playthrough taps this rather than searching labels.
 var play_button: Button
 ## What the pause screen says about the match in progress: wave, waves, wall, gate.
@@ -122,6 +124,8 @@ func _clear() -> void:
 	stage_choices = null
 	gun_choices = null
 	gun_note = null
+	gun_preview = null
+	gun_preview_name = null
 	play_button = null
 	loading_bar = null
 	loading_status = null
@@ -299,12 +303,15 @@ func _disarm() -> void:
 ## A poster over the street: the name of the game and the button that opens the armory.
 func _build_main() -> void:
 	var frame: MarginContainer = _frame(26.0)
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(TITLE_WIDTH, 0.0)
+	card.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	card.add_theme_stylebox_override("panel", UITheme.box(Color(0.025, 0.035, 0.04, 0.92), UITheme.LINE, 8, 1, 30))
+	frame.add_child(card)
 	var column := VBoxContainer.new()
-	column.custom_minimum_size = Vector2(TITLE_WIDTH, 0.0)
-	column.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	column.add_theme_constant_override("separation", 12)
-	frame.add_child(column)
+	card.add_child(column)
 	column.add_child(MenuWidgets.Stripes.new())
 	column.add_child(_heading(Loc.t("title"), 92, UITheme.AMBER))
 	column.add_child(_heading(Loc.t("subtitle"), 30, UITheme.TEXT))
@@ -338,12 +345,16 @@ func _build_main() -> void:
 ## the menu shows the gun that is lit.
 func _build_arsenal() -> void:
 	var frame: MarginContainer = _frame(20.0)
+	var layout := HBoxContainer.new()
+	layout.add_theme_constant_override("separation", 18)
+	layout.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	frame.add_child(layout)
 	var card := PanelContainer.new()
 	card.custom_minimum_size = Vector2(ARMORY_WIDTH, 0.0)
-	card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	card.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	card.add_theme_stylebox_override("panel", UITheme.box(Color(0.03, 0.032, 0.038, 0.88), UITheme.LINE, 10, 1, 18))
-	frame.add_child(card)
+	layout.add_child(card)
 	var plan := VBoxContainer.new()
 	plan.add_theme_constant_override("separation", 6)
 	card.add_child(plan)
@@ -374,6 +385,8 @@ func _build_arsenal() -> void:
 	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 2)
 	gun_choices.chosen.connect(func(index: int) -> void:
 		gun_note.text = gun_note_for(Profile.GUNS[index])
+		gun_preview_name.text = Loc.t(gun_data(Profile.GUNS[index]).name_key)
+		gun_preview.show_weapon(Profile.GUNS[index])
 		gun_chosen.emit(Profile.GUNS[index]))
 	plan.add_child(gun_choices)
 	gun_note = _text(gun_note_for(String(Profile.setting("gun"))), 20, UITheme.MUTED, false)
@@ -382,6 +395,22 @@ func _build_arsenal() -> void:
 	play_button = UITheme.button(Loc.t("deploy"), func() -> void: play_requested.emit(), "accent", "ui_start")
 	plan.add_child(play_button)
 	plan.add_child(UITheme.button(Loc.t("back"), func() -> void: show_main(), "plain", "ui_back"))
+	var showcase := PanelContainer.new()
+	showcase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	showcase.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	showcase.add_theme_stylebox_override("panel", UITheme.box(Color(0.025, 0.035, 0.04, 0.94), UITheme.LINE, 8, 1, 18))
+	layout.add_child(showcase)
+	var gallery := VBoxContainer.new()
+	gallery.add_theme_constant_override("separation", 10)
+	showcase.add_child(gallery)
+	gallery.add_child(_heading(Loc.t("weapon_preview"), 22, UITheme.MUTED))
+	gallery.add_child(MenuWidgets.Rule.new(4.0))
+	gun_preview = WeaponPreview.new()
+	gun_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	gallery.add_child(gun_preview)
+	gun_preview_name = _heading(Loc.t(gun_data(String(Profile.setting("gun"))).name_key), 30, UITheme.AMBER)
+	gallery.add_child(gun_preview_name)
+	gun_preview.show_weapon(String(Profile.setting("gun")))
 
 
 func _build_loading() -> void:

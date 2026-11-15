@@ -37,6 +37,9 @@ func _ready() -> void:
 	stage = Campaign.open_stages(int(Profile.data.stats.stages_cleared)) - 1
 	menus.stage = stage
 	Events.match_finished.connect(_on_match_finished)
+	# Stop any ambience left by a previous scene before the title is displayed.
+	Sound.stop_loop("wind")
+	Sound.silence_combat()
 	_start_menu_music()
 	menus.show_loading(true)
 	_startup()

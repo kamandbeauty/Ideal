@@ -11,6 +11,8 @@ func run(t: TestContext) -> void:
 	if original is AudioStream:
 		t.check((original as AudioStream).get_length() > 120.0, "the full recording is available")
 	Sound.clips.erase("teeth_in_the_wire")
+	# Reopening the game must clean up even a wind loop left by a prior scene.
+	Sound.start_loop("wind", "Effects", -28.0, 0.0)
 	var game: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	t.tree.root.add_child(game)
 	await t.frames(2)

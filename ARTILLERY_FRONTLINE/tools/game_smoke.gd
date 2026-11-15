@@ -462,6 +462,11 @@ func _six_barrels() -> void:
 	await frames(2)
 	check(game.menus.screen == "arsenal" and game.menus.gun_choices != null and game.menus.gun_choices.buttons.size() == Profile.GUNS.size(),
 		"the armory offers the guns")
+	for i: int in Profile.GUNS.size():
+		game.menus.gun_choices.buttons[i].pressed.emit()
+		await frames(4)
+		check(game.menus.gun_preview.displayed_id == Profile.GUNS[i], "the armory previews " + Profile.GUNS[i])
+		await shot("40-armory-" + Profile.GUNS[i], "screen")
 	game.menus.gun_choices.buttons[1].pressed.emit()
 	await frames(4)
 	check(String(Profile.setting("gun")) == "rotary_gun" and level.defender.weapon is RotaryGun, "a tap on the six-barrel gun stands it on the mount behind the menu")
