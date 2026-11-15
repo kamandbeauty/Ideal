@@ -9,12 +9,6 @@ const LIMIT := 17.0
 const WALK_SPEED_MIN := 0.5
 const WALK_SPEED_MAX := 1.05
 
-const COUNT := 10
-const SIDEWALK_X: Array[float] = [-1.5, 1.5]
-const LIMIT := 17.0
-const WALK_SPEED_MIN := 0.5
-const WALK_SPEED_MAX := 1.05
-
 var agents: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
 var _phase := 0.0
