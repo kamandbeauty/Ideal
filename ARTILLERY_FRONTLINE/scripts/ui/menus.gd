@@ -587,16 +587,16 @@ func _build_upgrade() -> void:
 	plan.add_theme_constant_override("separation", 18)
 	card.add_child(plan)
 	gun_preview_name = _heading("", 30, UITheme.TEXT)
-	gun_preview_name.custom_minimum_size.y = 48.0
+	gun_preview_name.custom_minimum_size.y = 72.0
 	plan.add_child(gun_preview_name)
 	wallet_label = _heading("", 24, UITheme.AMBER)
-	wallet_label.custom_minimum_size.y = 42.0
+	wallet_label.custom_minimum_size.y = 60.0
 	plan.add_child(wallet_label)
 	plan.add_child(_spacer(20))
 	equipment_summary = _text("", 21, UITheme.TEXT)
 	equipment_summary.autowrap_mode = TextServer.AUTOWRAP_OFF
 	equipment_summary.clip_text = true
-	equipment_summary.custom_minimum_size.y = 48.0
+	equipment_summary.custom_minimum_size.y = 60.0
 	plan.add_child(equipment_summary)
 	plan.add_child(_spacer(20))
 	upgrade_button = UITheme.button("", func() -> void:
