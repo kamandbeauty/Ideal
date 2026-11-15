@@ -1,5 +1,5 @@
 {
-  "checks": 149,
+  "checks": 150,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -67,12 +67,7 @@
       "34-title-second-stage.png"
     ]
   },
-  "failures": [
-    "with the first stage won the armory shows the second open and the third still locked",
-    "a tap picks the second stage",
-    "PLAY starts the second stage on its own 3 waves",
-    "under a banner that names the stage (مرحلهٔ ۱  ·  موج ۱)"
-  ],
+  "failures": [],
   "kinds": {
     "play": [
       "05-match-start.png",
@@ -139,32 +134,32 @@
   "notes": {
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
-    "blast_kills": 12,
-    "boss_reached_gate_after_s": 57.0,
-    "defeat_time_s": 176.3,
+    "blast_kills": 13,
+    "boss_reached_gate_after_s": 50.0,
+    "defeat_time_s": 174.7,
     "gate_attackers": 6,
-    "gate_fell_after_s": 9.0,
-    "gate_left_with_boss": 0.53,
+    "gate_fell_after_s": 15.0,
+    "gate_left_with_boss": 0.85,
     "grenade_kills": 7,
     "hits": 3,
     "kills": 1,
     "peak_load": {
       "alive": 56,
-      "draw_calls": 442,
-      "fps": 6.2,
+      "draw_calls": 444,
+      "fps": 6.1,
       "nodes": 1057,
       "orphan_nodes": 0,
-      "primitives": 414080,
+      "primitives": 414696,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 98.4,
+      "static_memory_mb": 98.5,
       "striking": 32,
       "texture_memory_mb": 63.3,
       "tier": "medium",
       "video_memory_mb": 82.2,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 167.87,
-      "worst_physics_tick_ms_in_a_second": 0.86,
+      "worst_frame_ms_in_a_second": 165.14,
+      "worst_physics_tick_ms_in_a_second": 0.98,
       "zombie_nodes": 56
     },
     "phone_20x9": {
@@ -205,11 +200,11 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 379,
-      "fps": 6.0,
+      "draw_calls": 369,
+      "fps": 6.1,
       "nodes": 901,
       "orphan_nodes": 0,
-      "primitives": 277952,
+      "primitives": 277820,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 104.8,
@@ -217,10 +212,10 @@
       "tier": "medium",
       "video_memory_mb": 79.8
     },
-    "rocket_kills": 5,
+    "rocket_kills": 6,
     "second_stage": {
-      "alive_20s_into_its_first_wave": 15,
-      "brutes_among_them": 0,
+      "alive_20s_into_its_first_wave": 28,
+      "brutes_among_them": 2,
       "opened_by": "a first-stage win the driver wrote into the profile",
       "waves": 3,
       "zombies": 136
@@ -231,7 +226,7 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 52.7,
+    "sight_target_m": 57.7,
     "six_barrel_kills": 2,
     "six_barrel_shots": 31,
     "stage_held_preview": {
@@ -298,7 +293,7 @@
       810
     ]
   },
-  "passed": false,
+  "passed": true,
   "renderer": "gl_compatibility",
   "scope": "Software-rendered desktop run of the real game; not an Android device run",
   "screenshots": [
