@@ -7,12 +7,12 @@ extends Node3D
 ## income the business already books - so the flow can never change the balance
 ## of the game, it only shows it.
 
-const MAX_AGENTS := 8
+const MAX_AGENTS := 7
 const DRIVE_SPEED := 3.4
 const WALK_SPEED := 1.2
 const SPAWN_MIN := 1.6
 const SPAWN_MAX := 4.2
-const QUEUE_EXTRA := 2
+const QUEUE_EXTRA := 1
 const ROAD_REACH := 17.0
 
 var agents: Array[Dictionary] = []
@@ -46,8 +46,8 @@ func _plot_spot(id: String) -> Dictionary:
 	return {
 		"center_z": plot.y,
 		"to_road": to_road,
-		"car_x": plot.x + to_road * 2.35,
-		"person_x": plot.x + to_road * 1.85,
+		"car_x": plot.x + to_road * 2.7,
+		"person_x": plot.x + to_road * 1.95,
 		"door": Vector3(plot.x + to_road * 1.15, 0, plot.y + 0.45),
 	}
 
@@ -115,8 +115,8 @@ func _draw_bays(id: String, slots: int) -> void:
 	for i in slots:
 		var z := _car_slot_z(id, i)
 		for side in [-1.0, 1.0]:
-			_bay_mark(root, paint, Vector3(x + 0.55 * side, 0.075, z), Vector3(0.05, 0.02, 2.15))
-			_bay_mark(root, paint, Vector3(x, 0.075, z + 1.07 * side), Vector3(1.15, 0.02, 0.05))
+			_bay_mark(root, paint, Vector3(x, 0.075, z + 0.62 * side), Vector3(2.0, 0.02, 0.055))
+			_bay_mark(root, paint, Vector3(x + 1.0 * side, 0.075, z), Vector3(0.055, 0.02, 1.2))
 
 
 func _bay_mark(root: Node3D, paint: StandardMaterial3D, at: Vector3, size: Vector3) -> void:
@@ -273,6 +273,17 @@ func _exit_car(agent: Dictionary) -> void:
 	add_child(person)
 	agent["person"] = person
 	agent["phase"] = "board"
+
+	# Nose the car in towards the shop so the parked row reads as a forecourt
+	# and never as a traffic jam.
+	var to_road := float(spot["to_road"])
+	var facing := 90.0 * to_road
+	if facing < 0.0:
+		facing += 360.0
+	var tween := create_tween()
+	tween.tween_property(car, "rotation_degrees:y", facing, 0.5).set_trans(
+		Tween.TRANS_SINE
+	)
 
 
 func _walk(agent: Dictionary, delta: float, target: Vector3) -> bool:
