@@ -1,0 +1,117 @@
+name: Android APK
+
+# Builds a debug-signed, arm64 APK you can install on a phone and keeps it as a
+# downloadable artifact. Manual on purpose: it downloads the export templates
+# and the Android SDK, so it should not run on every push.
+#
+#     gh workflow run apk.yml
+#     gh run download <run-id> -n roadstop-apk
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  GODOT_VERSION: 4.7.2-stable
+  GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+
+jobs:
+  apk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache verified Godot editor
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/godot-bin
+          key: godot-${{ env.GODOT_VERSION }}-linux-v1
+
+      - name: Cache export templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates
+          key: templates-${{ env.GODOT_VERSION }}-v1
+
+      - name: Install checksum-verified Godot
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.local/godot-bin
+          if [ ! -x ~/.local/godot-bin/godot ]; then
+            curl -fL --retry 5 --retry-all-errors --retry-delay 5 \
+              "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip" \
+              -o "$RUNNER_TEMP/godot.zip"
+            echo "${GODOT_SHA256}  $RUNNER_TEMP/godot.zip" | sha256sum -c -
+            unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+            cp "$RUNNER_TEMP/godot/Godot_v${GODOT_VERSION}_linux.x86_64" ~/.local/godot-bin/godot
+            chmod +x ~/.local/godot-bin/godot
+          fi
+          echo "$HOME/.local/godot-bin" >> "$GITHUB_PATH"
+          ~/.local/godot-bin/godot --headless --version
+
+      - name: Install export templates
+        run: |
+          set -euo pipefail
+          short="${GODOT_VERSION%-stable}"
+          target="$HOME/.local/share/godot/export_templates/${short}.stable"
+          mkdir -p "$target"
+          if [ ! -f "$target/android_debug.apk" ]; then
+            curl -fL --retry 5 --retry-all-errors --retry-delay 5 \
+              "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz" \
+              -o "$RUNNER_TEMP/templates.tpz"
+            rm -rf "$RUNNER_TEMP/templates"
+            mkdir -p "$RUNNER_TEMP/templates"
+            unzip -q "$RUNNER_TEMP/templates.tpz" -d "$RUNNER_TEMP/templates"
+            cp -r "$RUNNER_TEMP/templates/templates/." "$target/"
+          fi
+          ls "$target" | head -20
+          test -f "$target/android_debug.apk"
+
+      - name: Install Android SDK tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            openjdk-17-jdk-headless unzip zip
+          echo "ANDROID_HOME=$HOME/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> "$GITHUB_ENV"
+          mkdir -p "$HOME/android-sdk/cmdline-tools"
+          if [ ! -x "$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
+            curl -fL --retry 5 --retry-all-errors --retry-delay 5 \
+              "https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip" \
+              -o "$RUNNER_TEMP/cmdline-tools.zip"
+            unzip -q "$RUNNER_TEMP/cmdline-tools.zip" -d "$RUNNER_TEMP/cmdline-tools"
+            mv "$RUNNER_TEMP/cmdline-tools/cmdline-tools" "$HOME/android-sdk/cmdline-tools/latest"
+          fi
+          yes | "$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platform-tools" "build-tools;34.0.0" "platforms;android-34" > /dev/null
+          echo "$HOME/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          echo "$HOME/android-sdk/build-tools/34.0.0" >> "$GITHUB_PATH"
+          keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android 2>/dev/null || \
+            keytool -genkey -v -keystore "$HOME/.android/debug.keystore" -storepass android \
+              -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+
+      - name: Import the project
+        run: |
+          set -euo pipefail
+          godot --headless --path . --editor --import > /tmp/import.log 2>&1 || {
+            tail -160 /tmp/import.log; exit 1; }
+          if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' /tmp/import.log; then exit 1; fi
+
+      - name: Export the APK
+        run: |
+          set -euo pipefail
+          mkdir -p delivery build
+          godot --headless --path . --export-debug "Android APK" delivery/RoadstopTycoon.apk \
+            > /tmp/export.log 2>&1 || { tail -200 /tmp/export.log; exit 1; }
+          tail -40 /tmp/export.log
+          ls -lh delivery/
+          test -s delivery/RoadstopTycoon.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: roadstop-apk
+          path: delivery/RoadstopTycoon.apk
+          if-no-files-found: error
