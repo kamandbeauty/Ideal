@@ -926,6 +926,7 @@ func _run() -> void:
 	await frames(3)
 	check(not game.menus.result_onward, "after the last stage there is nothing to go on to")
 	_check_menu("victory_preview", Vector2.ZERO)
+	await get_tree().create_timer(1.3).timeout
 	await shot("23-victory-preview", "preview")
 	# An earlier stage won: the result screen leads on to the next.
 	var held: Dictionary = _victory_figures(0)
@@ -934,6 +935,7 @@ func _run() -> void:
 	await frames(3)
 	check(game.menus.result_onward, "after an earlier stage the result screen offers the next")
 	_check_menu("stage_held_preview", Vector2.ZERO)
+	await get_tree().create_timer(1.3).timeout
 	await shot("33-stage-held-preview", "preview")
 	game.to_menu()
 	await frames(6)

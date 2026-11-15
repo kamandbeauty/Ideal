@@ -1,7 +1,7 @@
 class_name Campaign
 extends RefCounted
 ## The siege as the player meets it: a few short stages on the same wall, each
-## a set of waves, each opened by winning the one before it.
+## a set of waves, all available from the start.
 
 const STAGES: Array[String] = [
 	"res://resources/waves/stage_1_waves.tres",
@@ -18,7 +18,7 @@ static func waves(stage: int) -> WaveSet:
 	return load(STAGES[clampi(stage, 0, STAGES.size() - 1)]) as WaveSet
 
 
-## How many stages may be started by a player who has won `cleared` of them: those, and the next.
+## All stages are available regardless of the saved number of wins.
 static func open_stages(_cleared: int) -> int:
 	return STAGES.size()
 

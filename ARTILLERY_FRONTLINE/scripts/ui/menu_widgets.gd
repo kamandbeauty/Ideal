@@ -195,7 +195,7 @@ class Choices:
 			buttons.append(button)
 			var glyph: Glyph = null
 			if index < icons.size() and String(icons[index]) != "":
-				glyph = Glyph.new(String(icons[index]), 84.0)
+				glyph = Glyph.new(String(icons[index]), 34.0 if String(icons[index]) == "grenade" else 84.0)
 				glyph.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 				glyph.offset_top = 4.0
 				glyph.offset_bottom = GLYPH_STRIP

@@ -718,9 +718,12 @@ func _build_result() -> void:
 		var reward := HBoxContainer.new()
 		reward.add_theme_constant_override("separation", 14)
 		column.add_child(reward)
+		var prize := PanelContainer.new()
+		prize.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		prize.add_theme_stylebox_override("panel", UITheme.box(Color(0.16, 0.12, 0.035, 0.95), UITheme.AMBER, 6, 1, 12))
+		reward.add_child(prize)
 		reward_label = _heading("", 30, UITheme.AMBER)
-		reward_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		reward.add_child(reward_label)
+		prize.add_child(reward_label)
 		var earned: int = int(result_stats.get("coins_earned", Profile.reward_for(result_stats)))
 		var countup: Tween = reward_label.create_tween()
 		countup.tween_method(func(amount: float) -> void:

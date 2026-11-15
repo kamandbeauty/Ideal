@@ -89,7 +89,8 @@ func show_weapon(id: String) -> void:
 		bounds = part if first else bounds.merge(part)
 		first = false
 	var center: Vector3 = bounds.get_center()
-	var extent: float = maxf(bounds.size.length(), 1.0)
+	var extent: float = maxf(bounds.size.length(), 0.04)
+	camera.near = maxf(0.005, extent * 0.02)
 	camera.position = center + Vector3(1.35, 0.95, 1.6).normalized() * extent * 2.5
 	camera.look_at(center, Vector3.UP)
 	camera.size = extent * 1.15

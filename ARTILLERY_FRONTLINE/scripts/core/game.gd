@@ -116,7 +116,7 @@ func _load_level(packed: PackedScene = null) -> void:
 		level.defender.mount_gun(chosen)
 
 
-## Picks the stage PLAY will start. A stage that is still locked is refused.
+## Picks the stage PLAY will start; invalid stage numbers are refused.
 func select_stage(index: int) -> bool:
 	if index < 0 or index >= Campaign.open_stages(int(Profile.data.stats.stages_cleared)):
 		return false

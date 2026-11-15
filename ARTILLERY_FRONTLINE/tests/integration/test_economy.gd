@@ -44,6 +44,7 @@ func run(t: TestContext) -> void:
 	menus.equipment_choices.buttons[Profile.EQUIPMENT.find("frag_grenade")].pressed.emit()
 	await t.frames(2)
 	t.equal(menus.gun_preview.displayed_id, "frag_grenade", "grenade has a model preview")
+	t.check(menus.gun_preview.camera.size < 0.7, "the small grenade fills the preview rather than appearing as a speck")
 	menus.show_result(true, {"victory": true, "stage": 0, "coins_earned": 100})
 	await t.frames(2)
 	t.check(menus.reward_label != null and menus.ad_button != null and menus.ad_button.disabled, "an unavailable rewarded ad cannot pay coins")
