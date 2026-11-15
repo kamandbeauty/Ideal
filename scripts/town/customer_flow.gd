@@ -7,7 +7,7 @@ extends Node3D
 ## income the business already books - so the flow can never change the balance
 ## of the game, it only shows it.
 
-const MAX_AGENTS := 10
+const MAX_AGENTS := 8
 const DRIVE_SPEED := 3.4
 const WALK_SPEED := 1.2
 const SPAWN_MIN := 1.6
@@ -46,8 +46,8 @@ func _plot_spot(id: String) -> Dictionary:
 	return {
 		"center_z": plot.y,
 		"to_road": to_road,
-		"car_x": plot.x + to_road * 2.15,
-		"person_x": plot.x + to_road * 1.75,
+		"car_x": plot.x + to_road * 2.35,
+		"person_x": plot.x + to_road * 1.85,
 		"door": Vector3(plot.x + to_road * 1.15, 0, plot.y + 0.45),
 	}
 
@@ -115,8 +115,8 @@ func _draw_bays(id: String, slots: int) -> void:
 	for i in slots:
 		var z := _car_slot_z(id, i)
 		for side in [-1.0, 1.0]:
-			_bay_mark(root, paint, Vector3(x + 0.52 * side, 0.075, z), Vector3(0.05, 0.02, 1.9))
-			_bay_mark(root, paint, Vector3(x, 0.075, z + 0.95 * side), Vector3(1.09, 0.02, 0.05))
+			_bay_mark(root, paint, Vector3(x + 0.55 * side, 0.075, z), Vector3(0.05, 0.02, 2.15))
+			_bay_mark(root, paint, Vector3(x, 0.075, z + 1.07 * side), Vector3(1.15, 0.02, 0.05))
 
 
 func _bay_mark(root: Node3D, paint: StandardMaterial3D, at: Vector3, size: Vector3) -> void:
@@ -175,7 +175,7 @@ func _service_time(id: String) -> float:
 
 func _car_slot_z(id: String, index: int) -> float:
 	var spot: Dictionary = _spots[id]
-	return float(spot["center_z"]) + 1.35 - 1.3 * float(index)
+	return float(spot["center_z"]) + 1.5 - 1.45 * float(index)
 
 
 func _person_slot(id: String, index: int) -> Vector3:
