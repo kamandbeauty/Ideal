@@ -39,7 +39,7 @@ static func enamel(color: Color) -> StandardMaterial3D:
 
 
 ## A neon tube: bright at night, a coloured stripe by day.
-static func neon(color: Color, energy: float = 2.4) -> StandardMaterial3D:
+static func neon(color: Color, energy: float = 1.5) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.roughness = 0.4
@@ -106,7 +106,7 @@ static func awning(
 		var bulb := box(
 			root, Vector3(0.08, 0.08, 0.08),
 			Vector3(depth * 0.3, -0.22, -width * 0.32 + width * 0.32 * float(i)),
-			neon(NEON_CREAM, 1.6)
+			neon(NEON_CREAM, 1.1)
 		)
 		bulb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		night.append(bulb.material_override)
@@ -118,7 +118,7 @@ static func awning(
 static func roof_neon(
 	parent: Node3D, at: Vector3, width: float, to_road: float, color: Color, night: Array
 ) -> void:
-	var material := neon(color, 2.8)
+	var material := neon(color, 1.6)
 	for i in 2:
 		var tube := box(
 			parent, Vector3(0.05, 0.05, width),

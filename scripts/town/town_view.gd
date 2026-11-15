@@ -612,7 +612,7 @@ func _build_totem(parent: Node3D, id: String) -> void:
 	totem.add_child(lamp)
 
 	# Neon outline: two short uprights and a cap, bright at night.
-	var neon_material := RetroStyle.neon(RetroStyle.NEON_RED, 3.0)
+	var neon_material := RetroStyle.neon(RetroStyle.NEON_RED, 1.7)
 	for side in [-1.0, 1.0]:
 		RetroStyle.box(
 			totem, Vector3(0.045, 0.66, 0.05),
@@ -874,7 +874,7 @@ func apply_time(t: float) -> void:
 		_sun.light_energy = 0.46 + 0.58 * day + 0.14 * dusk
 		# Warm light owns the horizon, blue moonlight only takes over after sunset.
 		var sun_color := Color(1.0, 0.95, 0.86).lerp(Color(1.0, 0.52, 0.26), dusk)
-		sun_color = sun_color.lerp(Color(0.62, 0.72, 1.0), night * 0.78)
+		sun_color = sun_color.lerp(Color(0.72, 0.76, 0.95), night * 0.62)
 		_sun.light_color = sun_color
 	if _fill != null:
 		_fill.light_energy = 0.12 + 0.12 * day
@@ -883,7 +883,7 @@ func apply_time(t: float) -> void:
 		_env.ambient_light_energy = 0.64 - 0.26 * day
 		var ambient := Color(0.78, 0.86, 1.0)
 		ambient = ambient.lerp(Color(1.0, 0.8, 0.64), dusk * 0.8)
-		ambient = ambient.lerp(Color(0.4, 0.48, 0.72), night)
+		ambient = ambient.lerp(Color(0.42, 0.45, 0.62), night)
 		_env.ambient_light_color = ambient
 		_env.fog_light_color = sand.lightened(0.3).lerp(Color(0.14, 0.18, 0.32), night)
 		_env.fog_density = 0.0038 + 0.0012 * night
