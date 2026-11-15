@@ -1,10 +1,6 @@
 {
-  "passed": false,
-  "problems": [
-    "nothing uses: addons/AdmobPlugin/AdmobPlugin.gd, addons/AdmobPlugin/InlineAdaptiveBanner.gd",
-    "text keys nothing shows: choose_gun, choose_stage, weapon_bushmaster_short, weapon_dual_mauler_short, weapon_gilded_minigun_short, weapon_rotary_gun_short, weapon_twin_hmg_short",
-    "debug output left in: addons/GMPShared/GmpLogger.gd:17"
-  ],
+  "passed": true,
+  "problems": [],
   "counted": {
     "paths_checked": 177,
     "scripts": 78,
@@ -13,7 +9,7 @@
     "assets": 97,
     "asset_megabytes": 35.0,
     "sounds": 47,
-    "text_keys": 115
+    "text_keys": 108
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
 }
