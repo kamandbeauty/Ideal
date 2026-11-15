@@ -341,6 +341,9 @@ func _build_main() -> void:
 	brand.add_child(_heading(Loc.t("subtitle"), 22, UITheme.AMBER))
 	var totals: Dictionary = Profile.data.stats
 	if int(totals.matches) > 0:
+		if int(totals.best_wave) > 0:
+			var place: Vector2i = Campaign.place_of(int(totals.best_wave))
+			brand.add_child(_text(Loc.t("best_run", [place.x, place.y]), 18, UITheme.TEXT))
 		brand.add_child(_text(Loc.t("career", [int(totals.matches), int(totals.victories), int(totals.kills)]), 18, UITheme.MUTED))
 	var open_space := Control.new()
 	open_space.size_flags_vertical = Control.SIZE_EXPAND_FILL
