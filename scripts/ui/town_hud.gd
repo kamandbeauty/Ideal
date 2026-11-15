@@ -839,6 +839,12 @@ func collect_offline() -> void:
 
 func _show_toast(message: String) -> void:
 	_toast.text = message
+	# Keep the toast clear of the detail panel: slide it to the free half.
+	var shift := 0.0
+	if _panel != null and _panel.visible:
+		shift = (_panel.size.x * 0.5 + 40.0) * (-1.0 if App.is_rtl() else 1.0)
+	_toast_panel.offset_left = -260.0 + shift
+	_toast_panel.offset_right = 260.0 + shift
 	_toast_panel.visible = true
 	_toast_timer = 2.6
 
