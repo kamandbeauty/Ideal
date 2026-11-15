@@ -207,6 +207,18 @@ const STRINGS := {
 	"msg.manager_hired": {"fa": "{0}: {1}", "en": "{0}: {1}"},
 	"msg.branch_upgraded": {"fa": "{0}: {1} سطح {2}", "en": "{0}: {1} level {2}"},
 	"msg.save_ok": {"fa": "شهرک ذخیره شد", "en": "Town saved"},
+	"msg.auto_level": {
+		"fa": "مدیر {0} آن را به سطح {1} رساند",
+		"en": "The manager took {0} to level {1}",
+	},
+	"msg.auto_branch": {
+		"fa": "مدیر {0}، {1} را به سطح {2} رساند",
+		"en": "The manager raised {0}'s {1} to level {2}",
+	},
+	"msg.auto_rank": {
+		"fa": "مدیر {0} به رتبهٔ {1} ارتقا یافت",
+		"en": "The manager at {0} rose to rank {1}",
+	},
 }
 
 

@@ -30,6 +30,7 @@ var buildings: Dictionary = {}
 var pips: Dictionary = {}
 var ring: MeshInstance3D
 var highlight_id := ""
+var staff: TownStaff
 var _locked_material: StandardMaterial3D
 var _plot_points: Array[Vector2] = []
 var _sun: DirectionalLight3D
@@ -61,6 +62,10 @@ func setup(town_state: TownState) -> void:
 	_build_road()
 	_build_businesses()
 	_build_ring()
+	staff = TownStaff.new()
+	staff.name = "Staff"
+	add_child(staff)
+	staff.setup(state)
 	refresh_all()
 
 
@@ -653,6 +658,8 @@ func refresh_all() -> void:
 
 
 func refresh_business(id: String) -> void:
+	if staff != null:
+		staff.refresh_business(id)
 	var node: Node3D = buildings.get(id)
 	if node == null:
 		return

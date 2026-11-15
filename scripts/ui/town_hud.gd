@@ -731,6 +731,10 @@ func hide_business() -> void:
 	_panel.visible = false
 
 
+func show_message(text: String) -> void:
+	_show_toast(text)
+
+
 func show_offline(seconds: float, earnings: float) -> void:
 	var total := int(maxf(seconds, 0.0))
 	_offline_body.text = App.t("hud.offline_body", [

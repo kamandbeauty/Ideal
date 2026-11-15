@@ -24,6 +24,7 @@ var _levels: Dictionary = {}
 var _coin_timer := 0.0
 var _coin_index := 0
 var _event_timer := 75.0
+var _auto_timer := 6.0
 var _last_event_id := ""
 var _events_rng := RandomNumberGenerator.new()
 var _zoom_from := 30.0
@@ -94,6 +95,11 @@ func _process(delta: float) -> void:
 			var event_id := TownEvents.pick(_events_rng, _last_event_id)
 			if state.start_event(event_id):
 				_last_event_id = event_id
+	_auto_timer -= delta
+	if _auto_timer <= 0.0:
+		_auto_timer = 5.0
+		_auto_upgrade()
+
 	_autosave += delta
 	if _autosave >= AUTOSAVE_SECONDS:
 		_autosave = 0.0
@@ -134,6 +140,39 @@ func _on_business_changed(id: String) -> void:
 	if business.level > previous:
 		view.sparkle(id)
 		_focus_camera(id)
+
+
+## Managers buy the cheapest sensible upgrade themselves, always leaving a cash
+## reserve behind. The player still owns the big decisions.
+func _auto_upgrade() -> void:
+	var step := AutoUpgrade.apply(state)
+	if step.is_empty() or hud == null:
+		return
+	var id := String(step["id"])
+	var business = state.business(id)
+	view.refresh_business(id)
+	view.sparkle(id)
+	var message := ""
+	match String(step["kind"]):
+		AutoUpgrade.KIND_BRANCH:
+			message = App.t("msg.auto_branch", [
+				App.t("business.%s.name" % id),
+				App.t("branch.%s" % String(step["branch"])),
+				App.format_number(float(step["branch_level"])),
+			])
+		AutoUpgrade.KIND_MANAGER:
+			message = App.t("msg.auto_rank", [
+				App.t("business.%s.name" % id),
+				App.t("manager.rank.%d" % int(step["manager_rank"])),
+			])
+		_:
+			message = App.t("msg.auto_level", [
+				App.t("business.%s.name" % id),
+				App.format_number(float(step["level"])),
+			])
+	if message.is_empty():
+		message = App.t("msg.upgraded", [App.t("business.%s.name" % id), business.level])
+	hud.show_message(message)
 
 
 func _pop_income() -> void:
