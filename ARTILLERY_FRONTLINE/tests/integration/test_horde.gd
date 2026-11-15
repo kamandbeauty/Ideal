@@ -175,9 +175,27 @@ func run(t: TestContext) -> void:
 		t.check(phases.size() >= int(kind[1]) / 2, "the crowd starts out of step (%d phases)" % phases.size())
 		horde.clear()
 
-	# First entry in the camera frustum requests one voice, not one every tick.
+	# A real camera and a wall high above the level isolate sight and occlusion.
+	t.check(horde.camera == level.defender.camera, "the horde uses the player's camera")
+	var camera := Camera3D.new()
+	level.add_child(camera)
+	camera.position = Vector3(0.0, 200.0, 0.0)
+	camera.make_current()
+	horde.camera = camera
+	horde.seen_voice_left = 100.0
+	horde.groan_left = 100.0
+	var wall := StaticBody3D.new()
+	wall.collision_layer = Layers.WORLD
+	wall.collision_mask = 0
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(4.0, 4.0, 1.0)
+	shape.shape = box
+	wall.add_child(shape)
+	level.add_child(wall)
+	wall.position = Vector3(0.0, 200.0, -5.0)
+	await t.physics_frames(2)
 	var visible_zombie: Zombie = horde.spawn(&"walker", "ring_right", "gate")
-	var camera: Camera3D = level.defender.camera
 	var eye: Vector3 = camera.global_position
 	var forward_view: Vector3 = -camera.global_basis.z.normalized()
 	var height: Vector3 = Vector3.UP * visible_zombie.data.height() * 0.7
@@ -186,6 +204,9 @@ func run(t: TestContext) -> void:
 	var before: int = Sound.started
 	t.check(not horde._announce_visible() and Sound.started == before, "a zombie behind the camera is not announced")
 	visible_zombie.global_position = eye + forward_view * 10.0 - height
+	t.check(not horde._announce_visible() and Sound.started == before, "a zombie hidden by a wall is not announced")
+	wall.queue_free()
+	await t.physics_frames(2)
 	t.check(horde._announce_visible() and visible_zombie.seen_announced and Sound.started == before + 1, "first visible zombie requests a voice")
 	t.check(not horde._announce_visible() and Sound.started == before + 1, "remaining in view does not repeat the announcement")
 	horde.clear()

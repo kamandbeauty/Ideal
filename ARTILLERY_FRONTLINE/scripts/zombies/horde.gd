@@ -33,6 +33,7 @@ var corpse_limit: int = 18
 var groan_left: float = 2.0
 ## Limit first-seen voices to one at a time, even when a crowd enters view.
 var seen_voice_left: float = 0.0
+var seen_scan_index: int = 0
 var camera: Camera3D
 ## The boss on the field, if one is alive.
 var boss: Zombie = null
@@ -194,8 +195,8 @@ func _physics_process(delta: float) -> void:
 		var type_id: StringName = pending.pop_back()
 		pooled[type_id].append(_create(types[type_id]))
 	seen_voice_left -= delta
-	if seen_voice_left <= 0.0 and _announce_visible():
-		seen_voice_left = 0.65
+	if seen_voice_left <= 0.0:
+		seen_voice_left = 0.65 if _announce_visible() else 0.25
 	groan_left -= delta
 	if groan_left <= 0.0:
 		groan_left = rng.randf_range(0.35, 1.15)
@@ -204,16 +205,26 @@ func _physics_process(delta: float) -> void:
 			_groan()
 
 
-## First time a living zombie enters the player's camera frustum. A single
-## voice per interval and the existing mixer limit keep large crowds bounded.
+## First time a living zombie enters the camera view without a wall in the way.
+## A round-robin scan and four raycasts per check bound cost for large hordes.
 func _announce_visible() -> bool:
-	if camera == null or not is_instance_valid(camera) or not camera.is_inside_tree():
+	if camera == null or not is_instance_valid(camera) or not camera.is_inside_tree() or active.is_empty():
 		return false
-	for zombie: Zombie in active:
+	var checked: int = 0
+	var rays: int = 0
+	while checked < active.size() and rays < 4:
+		seen_scan_index = posmod(seen_scan_index, active.size())
+		var zombie: Zombie = active[seen_scan_index]
+		seen_scan_index += 1
+		checked += 1
 		if not zombie.alive or zombie.seen_announced or not zombie.is_visible_in_tree():
 			continue
 		var at: Vector3 = zombie.global_position + Vector3.UP * zombie.data.height() * 0.7
 		if not camera.is_position_in_frustum(at):
+			continue
+		rays += 1
+		var query := PhysicsRayQueryParameters3D.create(camera.global_position, at, Layers.WORLD)
+		if not get_world_3d().direct_space_state.intersect_ray(query).is_empty():
 			continue
 		if Sound.play_variant_at("zombie_groan", 3, at, 7.0 + zombie.data.voice_volume_db,
 				rng.randf_range(0.85, 1.12) * zombie.data.voice_pitch):
