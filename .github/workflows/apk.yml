@@ -150,10 +150,16 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          notes='Debug-signed arm64 build of Roadstop Tycoon (شهر کویر). Download RoadstopTycoon.apk, allow installs from this source, then open the file. Version 0.9.0, built from '
-          if ! gh release view apk-latest > /dev/null 2>&1; then
-            gh release create apk-latest --title "Roadstop Tycoon — phone build" \
-              --target "$SHA" --latest=false --notes "${notes}$SHA"
+          notes=$(printf '%s\n\n%s\n%s\n' \
+            "Debug-signed arm64 build of Roadstop Tycoon — شهر کویر, version 0.9.0." \
+            "Install: open this page on the phone, download RoadstopTycoon.apk," \
+            "allow \"install unknown apps\" for your browser, then open the file.")
+          notes="$notes"$'\n'"Built from $SHA."
+          if ! gh release view roadstop-apk > /dev/null 2>&1; then
+            gh release create roadstop-apk --title "Roadstop Tycoon — phone build" \
+              --target "$SHA" --latest=false --notes "$notes"
+          else
+            gh release edit roadstop-apk --notes "$notes"
           fi
-          gh release upload apk-latest delivery/RoadstopTycoon.apk --clobber
-          gh release view apk-latest --json url -q .url
+          gh release upload roadstop-apk delivery/RoadstopTycoon.apk --clobber
+          gh release view roadstop-apk --json url -q .url

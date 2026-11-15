@@ -135,10 +135,10 @@ message contains `[apk]`:
 gh workflow run apk.yml                # or: git commit -m "... [apk]"
 ```
 
-The finished `RoadstopTycoon.apk` is published on the rolling `apk-latest`
+The finished `RoadstopTycoon.apk` is published on the rolling `roadstop-apk`
 release, so it downloads as a single file on a phone:
 
-<https://github.com/kamandbeauty/Ideal/releases/tag/apk-latest>
+<https://github.com/kamandbeauty/Ideal/releases/tag/roadstop-apk>
 
 To install: download the APK, allow "install unknown apps" for the browser or
 file manager, open the file, and accept the Play Protect prompt (the build is
