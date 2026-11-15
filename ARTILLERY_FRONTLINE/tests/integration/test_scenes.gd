@@ -114,7 +114,14 @@ func run(t: TestContext) -> void:
 		"the figure on the street wears its painted skin")
 	var walk_rng := RandomNumberGenerator.new()
 	walk_rng.seed = 7
-	t.equal(zombie._pick_look(walk_rng), 0, "a life never wears the extra white figures")
+	t.equal(zombie._pick_look(walk_rng), 0, "test mode can disable extra figures")
+	zombie._use_look(1)
+	zombie._paint_look(1, walk_rng)
+	t.check(zombie.look_index == 1 and zombie.anim.has_animation("walk_clean") and zombie.anim.has_animation("run_clean"), "the extra model has animated walk and run")
+	t.check(zombie.body_mesh != null and zombie.body_mesh.material_override != null and (zombie.body_mesh.material_override as StandardMaterial3D).albedo_texture != null, "the extra figure has its own assigned texture")
+	t.check(zombie.head_area.get_parent() is BoneAttachment3D, "the extra model keeps a bone-following head target")
+	zombie._use_look(0)
+	zombie._sleep()
 	zombie.running = false
 	t.equal(zombie._pick_walk(walk_rng), "walk_clean", "walking chooses the even-legged walk")
 	zombie.running = true

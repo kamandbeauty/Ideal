@@ -163,6 +163,7 @@ func detonate(at: Vector3, data: ExplosionData, direct: Zombie = null, direct_da
 				if effects and gore < GORE_PER_BLAST:
 					gore += 1
 					effects.burst("gore", zombie.global_position + Vector3(0.0, 1.0, 0.0), Vector3.UP)
+					effects.burst("blood_mist", zombie.global_position + Vector3(0.0, 1.0, 0.0), Vector3.UP)
 	if data.structure_damage > 0.0 and defense != null and layout != null:
 		_damage_structures(at, data)
 	kills += killed

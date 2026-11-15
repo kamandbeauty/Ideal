@@ -161,6 +161,8 @@ func _resolve(slot: int, hit: Dictionary, velocity: Vector3) -> bool:
 		var lethal: bool = zombie.take_hit(amount, head, at, velocity.normalized())
 		if effects:
 			effects.burst("gore" if (head or lethal) else "blood", at, -velocity.normalized())
+			if head or lethal:
+				effects.burst("blood_mist", at, -velocity.normalized())
 		Sound.play_at("headshot" if head else "impact_flesh", at, -6.0, randf_range(0.9, 1.12))
 		Events.zombie_hit.emit(at, head, lethal)
 		if pierce[slot] <= 0:

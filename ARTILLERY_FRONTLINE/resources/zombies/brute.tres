@@ -1,7 +1,10 @@
-[gd_resource type="Resource" script_class="ZombieData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="ZombieData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/zombies/zombie_data.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/zombies/zombie_brute.tscn" id="2"]
+
+[ext_resource type="PackedScene" path="res://assets/models/zombies/zombie_bloat.glb" id="3"]
+[ext_resource type="PackedScene" path="res://assets/models/zombies/zombie_boomer.glb" id="4"]
 
 [resource]
 script = ExtResource("1")
@@ -9,9 +12,9 @@ id = &"brute"
 name_key = "zombie_brute"
 scene = ExtResource("2")
 skins = 2
-extra_looks = Array[PackedScene]([])
+extra_looks = Array[PackedScene]([ExtResource("3"), ExtResource("4")])
 extra_look_health = PackedFloat32Array()
-extra_look_scale = PackedFloat32Array()
+extra_look_scale = PackedFloat32Array(0.95, 0.95)
 prewarm = 4
 is_boss = false
 max_health = 520.0

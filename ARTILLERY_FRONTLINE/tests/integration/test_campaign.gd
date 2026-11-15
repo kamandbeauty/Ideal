@@ -251,6 +251,7 @@ func run(t: TestContext) -> void:
 	last = Campaign.waves(3)
 	t.check(level.stage == 3 and level.layout == load("res://resources/levels/hospital_layout.tres") and level.wave_set == last, "the next stage loads hospital layout and waves")
 	t.check(level.geometry.find_child("HospitalMain", true, false) != null, "the hospital has its own geometry")
+	t.check(level.geometry.find_child("HospitalRoof", true, false) != null and level.geometry.find_child("ClinicCanopy-1", true, false) != null, "hospital has a rooftop and detailed entrance canopy")
 	_end(game, true, last.waves.size())
 	await t.frames(2)
 	for index: int in range(4, stages):
@@ -262,6 +263,9 @@ func run(t: TestContext) -> void:
 		t.check(level.stage == index and level.wave_set == last, "next loads stage %d with its waves" % (index + 1))
 		if index >= 6:
 			t.check(level.geometry.find_child("TunnelEnd", true, false) != null, "the metro stage has its own scenery")
+			t.check(level.geometry.find_child("SandbagLine", true, false) != null and level.geometry.find_child("FiringPlatform", true, false) != null, "metro gunner stands behind a full sandbag line")
+			t.check(level.geometry.find_child("GateLeafA", true, false) != null and level.geometry.find_child("WallPatch", true, false) != null, "metro doors coincide with the two attack targets")
+			t.check(level.environment.background_mode == Environment.BG_COLOR and level.geometry.find_child("TunnelLeft", true, false) != null, "metro is enclosed with a deep dark tunnel")
 		_end(game, true, last.waves.size())
 		await t.frames(2)
 	t.check(menus.result_victory and not menus.result_onward and not game.won_onward, "winning the ninth ends the current campaign")

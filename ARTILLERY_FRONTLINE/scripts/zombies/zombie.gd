@@ -12,9 +12,8 @@ const KNOCK_TIME: float = 0.38
 const ROCK_LIMIT: float = 7.0
 ## A heading this close to the goal (in radians, a thirtieth of a degree) counts as reached.
 const FACING_SLACK: float = 0.0006
-## Extra character meshes (bloat, boomer, gibberling) read white in play: their
-## GLBs drop embedded textures. They are not mixed into the horde.
-static var mix_extras: bool = false
+## Extra looks are instantiated lazily and use explicitly assigned atlases.
+static var mix_extras: bool = true
 
 var data: ZombieData
 var horde: Horde
@@ -73,6 +72,8 @@ var look_index: int = 0
 var gait_lean := Vector3.ZERO
 ## Playback variation on top of the selected gait's speed-matched rate.
 var gait_rate: float = 1.0
+var gait_phase: float = 0.0
+var gait_sway: float = 0.0
 
 
 func _ready() -> void:
@@ -115,9 +116,16 @@ func _register_look(look: Node3D) -> void:
 	_set_look_active(looks.size() - 1, false)
 
 
-func _ensure_look(_index: int) -> void:
-	# Extra character meshes are the white figures. They are never instanced.
-	pass
+func _ensure_look(index: int) -> void:
+	if data == null:
+		return
+	while looks.size() <= index and looks.size() - 1 < data.extra_looks.size():
+		var packed: PackedScene = data.extra_looks[looks.size() - 1]
+		if packed == null:
+			return
+		var extra: Node3D = packed.instantiate() as Node3D
+		add_child(extra)
+		_register_look(extra)
 
 
 func _set_look_active(index: int, on: bool) -> void:
@@ -295,6 +303,8 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	scale = Vector3(bulk * rng.randf_range(0.93, 1.07), bulk * rng.randf_range(0.90, 1.12), bulk)
 	gait_lean = Vector3(rng.randf_range(-0.02, 0.08), rng.randf_range(-0.04, 0.04), rng.randf_range(-0.06, 0.06))
 	gait_rate = rng.randf_range(0.88, 1.12)
+	gait_phase = rng.randf_range(0.0, TAU)
+	gait_sway = rng.randf_range(0.008, 0.035)
 	_apply_rock()
 	position = path[0] if path.size() > 0 else Vector3.ZERO
 	if path.size() > 1:
@@ -312,15 +322,21 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 		anim.advance(0.0)
 
 
-func _pick_look(_rng: RandomNumberGenerator) -> int:
-	# The extra figures are the white bodies. They stay out of the street.
-	return 0
+func _pick_look(rng: RandomNumberGenerator) -> int:
+	if data == null or not mix_extras or data.extra_looks.is_empty() or rng.randf() >= 0.28:
+		return 0
+	return 1 + rng.randi_range(0, data.extra_looks.size() - 1)
 
 
-func _paint_look(_chosen: int, rng: RandomNumberGenerator) -> void:
+func _paint_look(chosen: int, rng: RandomNumberGenerator) -> void:
 	if looks.is_empty() or look_index < 0 or look_index >= looks.size() or data == null:
 		return
-	var skin: Material = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % maxi(data.skins, 1))
+	var skin: Material
+	if chosen > 0 and chosen - 1 < data.extra_looks.size():
+		var name: String = data.extra_looks[chosen - 1].resource_path.get_file().get_basename().trim_prefix("zombie_")
+		skin = MaterialLibrary.extra_skin(name)
+	else:
+		skin = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % maxi(data.skins, 1))
 	var look: Node = looks[look_index]
 	if look is MeshInstance3D:
 		(look as MeshInstance3D).material_override = skin
@@ -471,6 +487,11 @@ func _walk(delta: float, pace: float) -> bool:
 		path_index += 1
 		return path_index >= path.size()
 	position += offset / distance * step
+	# Subtle body sway gives each shambler a different weight and cadence;
+	# skeletal footfall still determines leg placement and head hitboxes follow.
+	if model != null and speed > 0.0 and rock == Vector2.ZERO:
+		gait_phase += delta * speed / maxf(gait_stride_speed, 0.1) * TAU
+		model.rotation = gait_lean + Vector3(sin(gait_phase * 2.0) * gait_sway * 0.35, 0.0, sin(gait_phase) * gait_sway)
 	facing_goal = atan2(offset.x, offset.z)
 	_turn(delta)
 	return false

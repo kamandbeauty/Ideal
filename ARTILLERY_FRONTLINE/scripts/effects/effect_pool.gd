@@ -10,6 +10,10 @@ const KINDS: Dictionary = {
 		"size": Vector2(0.045, 0.13), "color": Color(0.30, 0.012, 0.009, 0.96), "grow": 1.0, "additive": false},
 	"gore": {"count": 6, "amount": 18, "life": 0.6, "speed": Vector2(2.5, 6.5), "spread": 60.0, "gravity": -9.0,
 		"size": Vector2(0.06, 0.19), "color": Color(0.34, 0.015, 0.01, 0.96), "grow": 1.0, "additive": false},
+	# Separate translucent mist from the heavier falling droplets. Both reuse
+	# small fixed pools and are reduced by the existing mobile quality governor.
+	"blood_mist": {"count": 8, "amount": 7, "life": 0.28, "speed": Vector2(0.6, 2.0), "spread": 45.0, "gravity": -2.0,
+		"size": Vector2(0.12, 0.25), "color": Color(0.25, 0.012, 0.008, 0.32), "grow": 1.4, "additive": false, "detail": true},
 	"dust": {"count": 12, "amount": 8, "life": 0.75, "speed": Vector2(0.8, 2.6), "spread": 45.0, "gravity": -0.8,
 		"size": Vector2(0.3, 0.65), "color": Color(0.56, 0.53, 0.48, 0.55), "grow": 2.6, "additive": false},
 	"spark": {"count": 8, "amount": 9, "life": 0.28, "speed": Vector2(5.0, 12.0), "spread": 50.0, "gravity": -9.8,

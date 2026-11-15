@@ -165,6 +165,13 @@ func _build_environment() -> void:
 	environment.adjustment_saturation = 1.06
 	environment.glow_enabled = false
 	environment.glow_intensity = 0.5
+	if geometry.has_method("is_underground") and geometry.is_underground():
+		environment.background_mode = Environment.BG_COLOR
+		environment.background_color = Color(0.018, 0.022, 0.025)
+		environment.ambient_light_color = Color(0.35, 0.39, 0.38)
+		environment.ambient_light_energy = 0.45
+		environment.fog_light_color = Color(0.11, 0.12, 0.12)
+		environment.fog_density = 0.007
 	environment.glow_bloom = 0.08
 	environment.glow_hdr_threshold = 1.1
 	var world := WorldEnvironment.new()
@@ -177,7 +184,7 @@ func _build_sun() -> void:
 	sun = DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.light_color = Color(1.0, 0.86, 0.7)
-	sun.light_energy = 1.75
+	sun.light_energy = 0.8 if geometry.has_method("is_underground") and geometry.is_underground() else 1.75
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_max_distance = 85.0

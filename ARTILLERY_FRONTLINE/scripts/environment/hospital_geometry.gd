@@ -24,7 +24,7 @@ func _setup_materials() -> void:
 	materials["rubber"] = _material(Color(0.055, 0.055, 0.055))
 	_textured("road", "asphalt", Vector3(35, 35, 1))
 	_textured("concrete", "concrete", Vector3(4, 3, 1))
-	_textured("wall", "plaster", Vector3(8, 4, 1))
+	_textured("wall", "hospital_facade_detail", Vector3(4, 2, 1))
 	_textured("trim", "metal", Vector3(4, 2, 1))
 
 
@@ -62,6 +62,23 @@ func _build_hospital() -> void:
 		_box("ClinicSign%d" % side, Vector3(side * 39, 13.0, -75.8), Vector3(5.4, 1.4, 0.2), "white")
 		_box("ClinicCrossV%d" % side, Vector3(side * 39, 13.0, -75.65), Vector3(0.45, 1.1, 0.12), "red")
 		_box("ClinicCrossH%d" % side, Vector3(side * 39, 13.0, -75.60), Vector3(1.2, 0.4, 0.12), "red")
+	# A weathered entrance canopy, pillars, signage and medical clutter along
+	# the shoulders: all decoration stays out of zombie navigation lanes.
+	for side: int in [-1, 1]:
+		var cx: float = side * 39.0
+		_box("ClinicCanopy%d" % side, Vector3(cx, 4.1, -74.0), Vector3(13.5, 0.45, 4), "trim")
+		for shift: float in [-5.0, 5.0]:
+			_box("CanopySupport%d_%s" % [side, shift], Vector3(cx + shift, 2, -72.5), Vector3(0.3, 4, 0.3), "trim")
+		_box("ClinicDoors%d" % side, Vector3(cx, 1.8, -75.75), Vector3(4.2, 3.6, 0.15), "glass")
+		_box("ClinicDoorDivider%d" % side, Vector3(cx, 1.8, -75.62), Vector3(0.15, 3.6, 0.15), "trim")
+		_box("ClinicStep%d" % side, Vector3(cx, 0.12, -73.5), Vector3(9, 0.24, 3), "concrete")
+		_box("MedicalCart%d" % side, Vector3(side * 25.5, 0.85, -87), Vector3(2.4, 1.5, 1.5), "trim")
+		_box("MedicalCartTop%d" % side, Vector3(side * 25.5, 1.65, -87), Vector3(2.5, 0.1, 1.6), "white")
+		_box("ClinicBarrier%d" % side, Vector3(side * 28.5, 0.7, -62), Vector3(3.5, 1.4, 0.4), "concrete")
+		for lamp_index: int in 3:
+			var lamp_z: float = -58.0 - lamp_index * 17.0
+			_box("LampPost%d_%d" % [side, lamp_index], Vector3(side * 29, 3.7, lamp_z), Vector3(0.22, 7.4, 0.22), "trim")
+			_box("LampHead%d_%d" % [side, lamp_index], Vector3(side * 28.2, 7.5, lamp_z), Vector3(1.8, 0.2, 0.55), "white")
 	# Two ambulances frame the battlefield, away from the walkable center lanes.
 	_ambulance(Vector3(-22.0, 0, -70), "WestAmbulance")
 	_ambulance(Vector3(22.0, 0, -70), "EastAmbulance")
