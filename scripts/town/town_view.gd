@@ -31,6 +31,7 @@ var pips: Dictionary = {}
 var ring: MeshInstance3D
 var highlight_id := ""
 var staff: TownStaff
+var _centre_line: StandardMaterial3D
 var _locked_material: StandardMaterial3D
 var _plot_points: Array[Vector2] = []
 var _sun: DirectionalLight3D
@@ -311,18 +312,20 @@ func _build_road() -> void:
 	asphalt.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(asphalt)
 
+	# The 1950s highway look: a solid double yellow centre line with white
+	# edges, instead of modern white dashes.
+	if _centre_line == null:
+		_centre_line = RetroStyle.matte(RetroStyle.MUSTARD, 0.7)
+	for side in [-1.0, 1.0]:
+		var centre := MeshInstance3D.new()
+		var centre_mesh := BoxMesh.new()
+		centre_mesh.size = Vector3(0.09, 0.012, length)
+		centre.mesh = centre_mesh
+		centre.material_override = _centre_line
+		centre.position = Vector3(0.11 * side, 0.062, 0)
+		centre.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(centre)
 	var paint := _paint_material()
-	var dash_z := -length * 0.5 + 1.0
-	while dash_z < length * 0.5 - 0.6:
-		var dash := MeshInstance3D.new()
-		var dash_mesh := BoxMesh.new()
-		dash_mesh.size = Vector3(0.09, 0.012, 0.8)
-		dash.mesh = dash_mesh
-		dash.material_override = paint
-		dash.position = Vector3(0, 0.062, dash_z)
-		dash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		add_child(dash)
-		dash_z += 1.9
 
 	for side in [-1.0, 1.0]:
 		var edge := MeshInstance3D.new()
@@ -408,6 +411,7 @@ func _build_businesses() -> void:
 		_build_plot_ground(node)
 		_build_light_pool(node, id)
 		_build_model(node, id)
+		_build_retro_features(node, id)
 		_build_stages(node, id)
 		_build_totem(node, id)
 		_build_pips(node, id)
@@ -484,6 +488,28 @@ func _build_model(parent: Node3D, id: String) -> void:
 	parent.add_child(model)
 
 
+## The chosen direction: a chrome skirt, a candy-striped awning over the
+## road-facing wall and a neon tube along the roof edge.
+func _build_retro_features(parent: Node3D, id: String) -> void:
+	var plot := BusinessData.plot(id)
+	var to_road := -signf(plot.x)
+	if to_road == 0.0:
+		to_road = -1.0
+	var accent := BusinessData.accent(id)
+	var night: Array[StandardMaterial3D] = []
+
+	RetroStyle.chrome_skirt(parent, Vector3(0, 0.09, 0), Vector3(2.7, 0.1, 2.7), night)
+	var awning := RetroStyle.awning(
+		parent, Vector3(1.42 * to_road, 1.18, 0.35), 2.3, 0.7, to_road, night
+	)
+	awning.rotation_degrees.y = 0.0
+	RetroStyle.roof_neon(parent, Vector3(1.24 * to_road, 2.32, 0.2), 2.1, to_road, accent, night)
+	var second: Color = RetroStyle.NEON_TEAL if accent != RetroStyle.TURQUOISE else RetroStyle.NEON_RED
+	RetroStyle.roof_neon(parent, Vector3(1.24 * to_road, 1.98, 0.2), 2.1, to_road, second, night)
+	for material in night:
+		_night_materials.append(material)
+
+
 func _build_stages(parent: Node3D, id: String) -> void:
 	var list: Array[Node3D] = []
 	for stage in BusinessDecor.STAGE_LEVELS:
@@ -506,35 +532,73 @@ func _build_totem(parent: Node3D, id: String) -> void:
 	totem.position = Vector3(1.45 * to_road, 0, 1.55)
 	parent.add_child(totem)
 
+	# Googie roadside sign: a tall chrome pylon, a cream board frame, and a
+	# neon ring that switches on after sunset.
 	var post := MeshInstance3D.new()
 	post.name = "Post"
-	var post_mesh := BoxMesh.new()
-	post_mesh.size = Vector3(0.09, 1.6, 0.09)
+	var post_mesh := CylinderMesh.new()
+	post_mesh.top_radius = 0.05
+	post_mesh.bottom_radius = 0.07
+	post_mesh.height = 2.35
+	post_mesh.radial_segments = 10
 	post.mesh = post_mesh
-	post.material_override = _sand_material(Color(0.22, 0.24, 0.28))
-	post.position.y = 0.8
+	post.material_override = RetroStyle.enamel(RetroStyle.CHROME)
+	post.position.y = 1.18
 	totem.add_child(post)
+
+	for side in [-1.0, 1.0]:
+		var fin := MeshInstance3D.new()
+		var fin_mesh := BoxMesh.new()
+		fin_mesh.size = Vector3(0.5, 0.05, 0.05)
+		fin.mesh = fin_mesh
+		fin.material_override = RetroStyle.enamel(RetroStyle.CHERRY)
+		fin.position = Vector3(0.22 * side, 2.16, 0)
+		fin.rotation_degrees.z = -24.0 * side
+		totem.add_child(fin)
+
+	var frame := MeshInstance3D.new()
+	var frame_mesh := BoxMesh.new()
+	frame_mesh.size = Vector3(1.2, 0.72, 0.08)
+	frame.mesh = frame_mesh
+	frame.material_override = RetroStyle.matte(RetroStyle.CREAM, 0.6)
+	frame.position.y = 1.68
+	totem.add_child(frame)
 
 	var board := MeshInstance3D.new()
 	board.name = "Board"
 	var board_mesh := BoxMesh.new()
-	board_mesh.size = Vector3(0.95, 0.5, 0.07)
+	board_mesh.size = Vector3(1.05, 0.58, 0.1)
 	board.mesh = board_mesh
-	board.position.y = 1.62
+	board.position = Vector3(0, 1.68, 0.02)
 	var board_material := StandardMaterial3D.new()
-	board_material.roughness = 0.6
+	board_material.roughness = 0.5
 	board.material_override = board_material
 	totem.add_child(board)
 
 	var lamp := MeshInstance3D.new()
 	lamp.name = "Lamp"
 	var lamp_mesh := BoxMesh.new()
-	lamp_mesh.size = Vector3(0.7, 0.16, 0.05)
+	lamp_mesh.size = Vector3(0.85, 0.13, 0.06)
 	lamp.mesh = lamp_mesh
-	lamp.position = Vector3(0, 1.22, 0.05)
+	lamp.position = Vector3(0, 1.34, 0.06)
 	var lamp_material := StandardMaterial3D.new()
 	lamp.material_override = lamp_material
 	totem.add_child(lamp)
+
+	# Neon outline: two short uprights and a cap, bright at night.
+	var neon_material := RetroStyle.neon(RetroStyle.NEON_RED, 3.0)
+	for side in [-1.0, 1.0]:
+		RetroStyle.box(
+			totem, Vector3(0.045, 0.66, 0.05),
+			Vector3(0.64 * side, 1.68, 0.06), neon_material
+		).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	RetroStyle.box(
+		totem, Vector3(1.32, 0.045, 0.05), Vector3(0, 2.06, 0.06), neon_material
+	).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	RetroStyle.box(
+		totem, Vector3(1.32, 0.045, 0.05), Vector3(0, 1.3, 0.06), neon_material
+	).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_night_materials.append(neon_material)
 
 	_totem_materials[id] = {"board": board_material, "lamp": lamp_material}
 	_night_materials.append(board_material)
@@ -810,7 +874,8 @@ func apply_time(t: float) -> void:
 	var glow := 0.2 + 1.05 * night
 	for material in _night_materials:
 		material.emission_enabled = night > 0.08
-		material.emission_energy_multiplier = glow
+		var boost := float(material.get_meta("night_energy", 1.0))
+		material.emission_energy_multiplier = glow * boost
 	for material in _pool_materials:
 		var tint := material.albedo_color
 		material.albedo_color = Color(tint.r, tint.g, tint.b, 0.34 * night)

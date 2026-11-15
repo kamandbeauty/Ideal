@@ -11,7 +11,7 @@ const TOWNS := {
 		"income": 1.0,
 		"cost": 1.0,
 		"reputation_required": 0.0,
-		"ground": Color(0.71, 0.53, 0.31),
+		"ground": Color(0.76, 0.53, 0.29),
 		"sky_top": Color(0.29, 0.51, 0.83),
 		"businesses": [
 			"gas_station", "restaurant", "store", "workshop", "motel", "car_wash"

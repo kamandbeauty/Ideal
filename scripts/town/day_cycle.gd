@@ -5,7 +5,7 @@ extends Node
 ## inside budget.
 
 const DAY_SECONDS := 720.0
-const START_TIME := 0.2
+const START_TIME := 0.29
 
 var time := START_TIME
 var _view: TownView

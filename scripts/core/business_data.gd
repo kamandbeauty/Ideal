@@ -26,7 +26,7 @@ const MODELS := {
 const BUSINESSES := {
 	"gas_station": {
 		"model": "building-garage",
-		"accent": Color(0.98, 0.62, 0.24),
+		"accent": Color(0.78, 0.2, 0.2),
 		"plot": Vector2(-5.0, 6.0),
 		"unlock_cost": 0.0,
 		"base_price": 30.0,
@@ -39,7 +39,7 @@ const BUSINESSES := {
 	},
 	"restaurant": {
 		"model": "building-small-a",
-		"accent": Color(0.95, 0.45, 0.4),
+		"accent": Color(0.93, 0.71, 0.24),
 		"plot": Vector2(5.0, 6.0),
 		"unlock_cost": 1400.0,
 		"base_price": 40.0,
@@ -52,7 +52,7 @@ const BUSINESSES := {
 	},
 	"store": {
 		"model": "building-small-b",
-		"accent": Color(0.45, 0.72, 0.96),
+		"accent": Color(0.14, 0.55, 0.55),
 		"plot": Vector2(5.0, 0.0),
 		"unlock_cost": 1100.0,
 		"base_price": 25.0,
@@ -65,7 +65,7 @@ const BUSINESSES := {
 	},
 	"workshop": {
 		"model": "building-small-c",
-		"accent": Color(0.7, 0.75, 0.8),
+		"accent": Color(0.8, 0.83, 0.86),
 		"plot": Vector2(-5.0, 0.0),
 		"unlock_cost": 2000.0,
 		"base_price": 60.0,
@@ -78,7 +78,7 @@ const BUSINESSES := {
 	},
 	"motel": {
 		"model": "building-small-d",
-		"accent": Color(0.85, 0.55, 0.9),
+		"accent": Color(0.72, 0.18, 0.2),
 		"plot": Vector2(-5.0, -6.0),
 		"unlock_cost": 3500.0,
 		"base_price": 80.0,
@@ -91,7 +91,7 @@ const BUSINESSES := {
 	},
 	"car_wash": {
 		"model": "building-garage",
-		"accent": Color(0.35, 0.85, 0.8),
+		"accent": Color(0.2, 0.67, 0.66),
 		"plot": Vector2(5.0, -6.0),
 		"unlock_cost": 2600.0,
 		"base_price": 20.0,
