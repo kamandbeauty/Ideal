@@ -18,11 +18,11 @@ const SEED := 20251114
 const PROP_MODELS: Array[String] = ["grass-trees", "grass-trees-tall"]
 const PARKED_CARS := [
 	{"id": "gas_station", "offset": Vector3(1.85, 0, -1.25), "yaw": 92.0,
-		"color": Color(0.82, 0.28, 0.24)},
+		"color": Color(0.78, 0.2, 0.2)},
 	{"id": "motel", "offset": Vector3(-1.85, 0, 1.15), "yaw": -88.0,
-		"color": Color(0.26, 0.46, 0.8)},
+		"color": Color(0.24, 0.66, 0.66)},
 	{"id": "store", "offset": Vector3(1.8, 0, 1.3), "yaw": 6.0,
-		"color": Color(0.9, 0.78, 0.32)},
+		"color": Color(0.93, 0.71, 0.24)},
 ]
 
 var state: TownState
@@ -32,6 +32,7 @@ var ring: MeshInstance3D
 var highlight_id := ""
 var staff: TownStaff
 var _centre_line: StandardMaterial3D
+var _retro_model_material: StandardMaterial3D
 var _locked_material: StandardMaterial3D
 var _plot_points: Array[Vector2] = []
 var _sun: DirectionalLight3D
@@ -486,10 +487,35 @@ func _build_model(parent: Node3D, id: String) -> void:
 	model.scale = Vector3.ONE * BUSINESS_SCALE
 	model.position.y = 0.05
 	parent.add_child(model)
+	_repaint_retro(model)
 
 
 ## The chosen direction: a chrome skirt, a candy-striped awning over the
 ## road-facing wall and a neon tube along the roof edge.
+## Repaints a kit model with the retro palette atlas: the same UV layout, a
+## 1950s set of colours, so cream walls sit under cherry and teal roofs.
+func _retro_atlas() -> StandardMaterial3D:
+	if _retro_model_material != null:
+		return _retro_model_material
+	var material := StandardMaterial3D.new()
+	var texture: Texture2D = load("res://assets/models/Textures/colormap-retro.png")
+	if texture != null:
+		material.albedo_texture = texture
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	material.roughness = 0.85
+	material.metallic = 0.0
+	_retro_model_material = material
+	return material
+
+
+func _repaint_retro(node: Node) -> void:
+	var material := _retro_atlas()
+	for child in node.get_children():
+		if child is MeshInstance3D:
+			(child as MeshInstance3D).material_override = material
+		_repaint_retro(child)
+
+
 func _build_retro_features(parent: Node3D, id: String) -> void:
 	var plot := BusinessData.plot(id)
 	var to_road := -signf(plot.x)
