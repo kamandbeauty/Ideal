@@ -272,6 +272,13 @@ func run(t: TestContext) -> void:
 	t.equal(effects.pool_size(), pool_size, "the effect pool did not grow")
 	t.equal(marks.get_child_count(), mark_nodes, "nor the marks")
 	t.equal(level.get_child_count(), level_nodes + 8, "only eight static gate fragments were added")
+	level.defense.apply_damage("wall", 100000.0, level.layout.patch_center)
+	t.check(level.over and level.horde.fallen.has("wall"), "wall defeat opens a route into the city")
+	var rushing: int = 0
+	for zombie: Zombie in level.horde.active:
+		if zombie.alive and zombie.target == "wall" and zombie.state == Zombie.State.BREACH:
+			rushing += 1
+	t.check(rushing > 0, "the defeat sequence includes attackers entering through the breach")
 	await t.discard(level)
 	Profile.reset()
 	Graphics.apply_preference()

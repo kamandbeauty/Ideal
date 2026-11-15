@@ -913,6 +913,8 @@ func _run() -> void:
 		await frames(1)
 		guard += 1
 	check(game.mode != 3, "the breach is in view before the result screen covers it")
+	await get_tree().create_timer(1.2, false, false, true).timeout
+	check(level.horde.alive_count() > 0, "attackers remain visible during the final breach")
 	await shot("21-wall-breached", "staged")
 	guard = 0
 	while game.mode != 3 and guard < 1500:

@@ -538,6 +538,17 @@ func _on_wall_breached() -> void:
 	Sound.play("alarm", -3.0)
 	defender.jolt(2.2)
 	horde.open_breach("wall")
+	# The defeat sequence looks at the break even if the player was aiming away.
+	defender.aim.target_yaw = -33.0
+	defender.aim.target_pitch = -7.0
+	# A small final assault guarantees that the breach is readable even when the
+	# previous attackers had already crossed the gate. Stay inside the phone cap.
+	var room: int = maxi(0, Graphics.crowd_cap(Graphics.tier, OS.has_feature("mobile"), 56) - horde.alive_count())
+	for index: int in mini(3, room):
+		var attacker: Zombie = horde.spawn(&"walker", "ring_left", "wall")
+		if attacker != null:
+			attacker.position = layout.patch_center + Vector3(3.2 + 0.8 * index, -layout.patch_center.y, -1.1 + 1.1 * index)
+			attacker.enter_breach(layout.breach_path("wall", (float(index) - 1.0) * 0.5))
 	if not gate_broken_visual:
 		_on_gate_destroyed()
 	Engine.time_scale = 0.8
