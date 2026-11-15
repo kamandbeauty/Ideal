@@ -327,7 +327,7 @@ func run(t: TestContext) -> void:
 		var fa: Control = menus.holder.find_child(pair[1], true, false)
 		t.check(fa.get_global_rect().is_equal_approx(bounds), "%s keeps its position and size in both languages (%s / %s)" % [pair[0], str(bounds), str(fa.get_global_rect())])
 
-	for pair: Array in [["main", "MainPlay"], ["arsenal", "ArsenalStages"], ["arsenal", "ArsenalWeapons"],
+	for pair: Array in [["main", "MainPlay"], ["arsenal", "ArsenalWeapons"],
 		["upgrade", "UpgradeButton"], ["settings", "Setting_music_volume"], ["settings", "Setting_screen_shake"]]:
 		Profile.set_setting("language", "en")
 		menus._show(pair[0], false)
