@@ -8,6 +8,12 @@ const STAGES: Array[String] = [
 	"res://resources/waves/stage_2_waves.tres",
 	"res://resources/waves/stage_3_waves.tres",
 	"res://resources/waves/stage_4_waves.tres",
+	"res://resources/waves/stage_5_waves.tres",
+	"res://resources/waves/stage_6_waves.tres",
+	"res://resources/waves/stage_7_waves.tres",
+	"res://resources/waves/stage_8_waves.tres",
+	"res://resources/waves/stage_9_waves.tres",
+
 ]
 
 
@@ -21,7 +27,11 @@ static func waves(stage: int) -> WaveSet:
 
 ## Each district supplies its own real 3D scene; unbuilt hospital stages are not advertised.
 static func scene(stage: int) -> String:
-	return "res://scenes/levels/hospital_siege.tscn" if stage == 3 else "res://scenes/levels/city_siege.tscn"
+	if stage >= 6:
+		return "res://scenes/levels/metro_siege.tscn"
+	if stage >= 3:
+		return "res://scenes/levels/hospital_siege.tscn"
+	return "res://scenes/levels/city_siege.tscn"
 
 
 ## All stages are available regardless of the saved number of wins.

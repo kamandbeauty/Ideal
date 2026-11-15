@@ -8,7 +8,14 @@ func run(t: TestContext) -> void:
 	SaveManager.remove(Profile.save_path)
 	Profile.persist = true
 	Profile.reset()
-	t.equal(Profile.reward_for({"victory": false, "stage": 0}), 0, "defeat pays no coins")
+	t.equal(Profile.reward_for({"victory": false, "stage": 0}), 0, "a loss with no activity pays nothing")
+	var play: Dictionary = {"victory": false, "kills": 20, "headshots": 5, "shots": 100, "hits": 50, "waves_cleared": 1}
+	t.equal(Profile.reward_for(play), 75, "a loss still rewards kills, headshots, accuracy and waves")
+	var better: Dictionary = play.duplicate()
+	better["victory"] = true
+	better["wall_left"] = 0.75
+	t.equal(Profile.reward_for(better), 205, "victory and the wall add to the performance bonus")
+	t.check(Profile.reward_for(better) > Profile.reward_for(play), "a better outcome earns more")
 	t.equal(Profile.reward_for({"victory": true, "stage": 0}), 100, "stage one pays 100")
 	t.equal(Profile.reward_for({"victory": true, "stage": 2}), 200, "stage three pays 200")
 	Profile.record_match({"victory": false, "stage": 0})
@@ -54,6 +61,9 @@ func run(t: TestContext) -> void:
 		menus.equipment_choices.buttons[Profile.EQUIPMENT.find(id)].pressed.emit()
 		await t.frames(2)
 		t.check(menus.screen == "upgrade" and menus.gun_preview.displayed_id == id and menus.upgrade_button != null, "individual upgrade page for " + id)
+	menus.show_result(false, {"victory": false, "coins_earned": 75})
+	await t.frames(2)
+	t.check(menus.reward_label != null and menus.ad_button == null, "a defeat displays its earned performance coins")
 	menus.show_result(true, {"victory": true, "stage": 0, "coins_earned": 100})
 	await t.frames(2)
 	t.check(menus.reward_label != null and menus.ad_button != null and menus.ad_button.disabled, "an unavailable rewarded ad cannot pay coins")

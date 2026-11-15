@@ -101,7 +101,7 @@ func run(t: TestContext) -> void:
 
 ## The siege is played a stage at a time. The first is three waves; each later one opens as hard as the wave it starts with.
 func _stages(t: TestContext) -> void:
-	t.equal(Campaign.count(), 4, "the siege includes the hospital stage")
+	t.equal(Campaign.count(), 9, "three districts each have three stages")
 	var first: WaveSet = Campaign.waves(0)
 	t.equal(first.waves.size(), 3, "the first stage is three waves")
 	t.equal(first.waves_before, 0, "and starts the siege")
@@ -127,10 +127,14 @@ func _stages(t: TestContext) -> void:
 	var hospital_waves: WaveSet = Campaign.waves(3)
 	t.check(Campaign.scene(3).ends_with("hospital_siege.tscn") and Campaign.scene(2).ends_with("city_siege.tscn"), "the fourth stage selects its own scene")
 	t.equal(hospital_waves.waves_before, 8, "hospital follows the original eight waves")
-	for wave: WaveData in hospital_waves.waves:
-		for group: SpawnGroup in wave.groups:
-			for route: String in group.routes:
-				t.check(hospital.has_route(route), "hospital wave route exists: " + route)
+	var metro: LevelLayout = load("res://resources/levels/metro_layout.tres")
+	for stage: int in range(3, 9):
+		var layout: LevelLayout = hospital if stage < 6 else metro
+		t.check(Campaign.scene(stage).contains("hospital") if stage < 6 else Campaign.scene(stage).contains("metro"), "stage has the right district scene")
+		for wave: WaveData in Campaign.waves(stage).waves:
+			for group: SpawnGroup in wave.groups:
+				for route: String in group.routes:
+					t.check(layout.has_route(route), "district wave route exists: " + route)
 	t.equal(Campaign.open_stages(0), Campaign.count(), "a new player may start any stage")
 	t.equal(Campaign.open_stages(1), Campaign.count(), "all stages remain available")
 	t.equal(Campaign.open_stages(Campaign.count()), Campaign.count(), "and nothing opens past the last")

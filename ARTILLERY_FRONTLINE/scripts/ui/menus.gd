@@ -42,6 +42,7 @@ var stage_brief: Label
 var stage_choices: MenuWidgets.Choices
 var neighborhood_button: Button
 var hospital_button: Button
+var metro_button: Button
 var gun_choices: MenuWidgets.Choices
 var gun_note: Label
 var gun_preview: WeaponPreview
@@ -136,6 +137,7 @@ func _clear() -> void:
 	stage_choices = null
 	neighborhood_button = null
 	hospital_button = null
+	metro_button = null
 	gun_choices = null
 	gun_note = null
 	gun_preview = null
@@ -455,12 +457,22 @@ func _build_campaign() -> void:
 	_zone(neighborhood_button, Rect2(0.57, 0.18, 0.30, 0.11), "Neighborhood")
 	hospital_button = UITheme.button(Loc.t("neighborhood_hospital"), func() -> void:
 		map_art.texture = load("res://assets/textures/branding/hospital_district.png")
-		stage_choices._choose(3)
+		if stage < 3 or stage >= 6:
+			stage_choices._choose(3)
 		stage_choices.visible = true
 		for index: int in stage_choices.buttons.size():
-			stage_choices.buttons[index].visible = index == 3
+			stage_choices.buttons[index].visible = index >= 3 and index < 6
 		stage_brief.text = stage_brief_for(stage), "accent")
 	_zone(hospital_button, Rect2(0.03, 0.36, 0.27, 0.11), "HospitalNeighborhood")
+	metro_button = UITheme.button(Loc.t("neighborhood_metro"), func() -> void:
+		map_art.texture = load("res://assets/textures/branding/metro_district.png")
+		if stage < 6 or stage >= 9:
+			stage_choices._choose(6)
+		stage_choices.visible = true
+		for index: int in stage_choices.buttons.size():
+			stage_choices.buttons[index].visible = index >= 6 and index < 9
+		stage_brief.text = stage_brief_for(stage), "accent")
+	_zone(metro_button, Rect2(0.03, 0.50, 0.27, 0.11), "MetroNeighborhood")
 	var info := _plate()
 	_zone(info, Rect2(0.68, 0.66, 0.30, 0.31), "MissionBrief")
 	var details := _column()
@@ -503,6 +515,9 @@ func _build_arsenal() -> void:
 	plan.add_child(stage_brief)
 	stage_choices = MenuWidgets.Choices.new(stages, stage)
 	stage_choices.name = "ArsenalStages"
+	# The map changes district; the armory only shows its three stage choices.
+	for index: int in stage_choices.buttons.size():
+		stage_choices.buttons[index].visible = index / 3 == stage / 3
 	for index: int in range(open, Campaign.count()):
 		stage_choices.lock(index)
 	stage_choices.chosen.connect(func(index: int) -> void:
@@ -736,14 +751,14 @@ func _build_result() -> void:
 	prize.add_child(prize_column)
 	if result_record:
 		prize_column.add_child(_heading(Loc.t("new_record"), 22, UITheme.AMBER))
+	reward_label = _heading("", 30, UITheme.AMBER)
+	prize_column.add_child(reward_label)
+	var earned: int = int(result_stats.get("coins_earned", Profile.reward_for(result_stats)))
+	var countup: Tween = reward_label.create_tween()
+	countup.tween_method(func(amount: float) -> void:
+		if is_instance_valid(reward_label):
+			reward_label.text = Loc.t("coins_won", [Loc.number(int(round(amount)))]), 0.0, float(earned), 1.1)
 	if result_victory:
-		reward_label = _heading("", 30, UITheme.AMBER)
-		prize_column.add_child(reward_label)
-		var earned: int = int(result_stats.get("coins_earned", Profile.reward_for(result_stats)))
-		var countup: Tween = reward_label.create_tween()
-		countup.tween_method(func(amount: float) -> void:
-			if is_instance_valid(reward_label):
-				reward_label.text = Loc.t("coins_won", [Loc.number(int(round(amount)))]), 0.0, float(earned), 1.1)
 		ad_button = UITheme.button(Loc.t("double_ad_unavailable"), func() -> void: pass)
 		ad_button.disabled = true
 		ad_button.add_theme_font_size_override("font_size", UITheme.font_size(17))

@@ -116,11 +116,19 @@ func set_setting(key: String, value: Variant, persist_now: bool = true) -> void:
 	Events.settings_changed.emit()
 
 
-## A replay pays again; defeat pays nothing. Stage is bounded to valid values.
+## The base is paid for victory; combat and cleared waves earn a bounded
+## performance bonus even on defeat. A zero-action loss earns nothing.
 static func reward_for(stats: Dictionary) -> int:
-	if not bool(stats.get("victory", false)):
-		return 0
-	return 100 + 50 * clampi(int(stats.get("stage", 0)), 0, Campaign.count() - 1)
+	var won: bool = bool(stats.get("victory", false))
+	var kills: int = clampi(int(stats.get("kills", 0)), 0, 150)
+	var headshots: int = clampi(int(stats.get("headshots", 0)), 0, mini(kills, 50))
+	var waves: int = clampi(int(stats.get("waves_cleared", 0)), 0, 10)
+	var shots: int = maxi(int(stats.get("shots", 0)), 0)
+	var hits: int = clampi(int(stats.get("hits", 0)), 0, shots)
+	var accuracy_bonus: int = roundi(30.0 * float(hits) / float(shots)) if shots > 0 else 0
+	var wall_bonus: int = roundi(40.0 * clampf(float(stats.get("wall_left", 0.0)), 0.0, 1.0)) if won else 0
+	var base: int = 100 + 50 * clampi(int(stats.get("stage", 0)), 0, Campaign.count() - 1) if won else 0
+	return base + kills * 2 + headshots * 2 + waves * 10 + accuracy_bonus + wall_bonus
 
 
 func upgrade_level(id: String) -> int:

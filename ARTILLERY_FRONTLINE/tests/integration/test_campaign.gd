@@ -67,7 +67,7 @@ func run(t: TestContext) -> void:
 	var menus: Menus = game.menus
 	var hud: Hud = game.hud
 	var stages: int = Campaign.count()
-	t.equal(stages, 4, "the siege includes four stages")
+	t.equal(stages, 9, "three districts each include three stages")
 
 	# The tactical map exposes the same stage progression as the armory.
 	menus.show_campaign()
@@ -79,7 +79,9 @@ func run(t: TestContext) -> void:
 	t.check(Loc.t("choose_stage") != "choose_stage", "the map heading is localized")
 	t.check(not menus.stage_choices.is_locked(1) and not menus.stage_choices.is_locked(2), "all stages are open on the map")
 	menus.hospital_button.pressed.emit()
-	t.check(game.stage == 3 and menus.stage_choices.buttons[3].visible and not menus.stage_choices.buttons[0].visible, "hospital district offers its one ready stage")
+	t.check(game.stage == 3 and menus.stage_choices.buttons[3].visible and menus.stage_choices.buttons[5].visible and not menus.stage_choices.buttons[0].visible, "hospital district offers stages four to six")
+	menus.metro_button.pressed.emit()
+	t.check(game.stage == 6 and menus.stage_choices.buttons[6].visible and menus.stage_choices.buttons[8].visible and not menus.stage_choices.buttons[3].visible, "metro district offers stages seven to nine")
 	menus.neighborhood_button.pressed.emit()
 	t.check(game.stage == 0 and not menus.stage_choices.buttons[3].visible, "city district restores its own stage pins")
 	menus.stage_choices._choose(1)
@@ -249,31 +251,42 @@ func run(t: TestContext) -> void:
 	t.check(level.geometry.find_child("HospitalMain", true, false) != null, "the hospital has its own geometry")
 	_end(game, true, last.waves.size())
 	await t.frames(2)
-	t.check(menus.result_victory and not menus.result_onward and not game.won_onward, "winning the hospital ends the siege")
+	for index: int in range(4, stages):
+		t.check(menus.result_onward, "a later stage follows")
+		_button(menus, Loc.t("next_stage")).pressed.emit()
+		await t.frames(4)
+		level = game.level
+		last = Campaign.waves(index)
+		t.check(level.stage == index and level.wave_set == last, "next loads stage %d with its waves" % (index + 1))
+		if index >= 6:
+			t.check(level.geometry.find_child("TunnelEnd", true, false) != null, "the metro stage has its own scenery")
+		_end(game, true, last.waves.size())
+		await t.frames(2)
+	t.check(menus.result_victory and not menus.result_onward and not game.won_onward, "winning the ninth ends the current campaign")
 	t.check(_has_text(menus, Loc.t("victory_title")) and _button(menus, Loc.t("next_stage")) == null, "with the victory screen, and no next stage to go to")
 	t.equal(int(Profile.data.stats.stages_cleared), stages, "every stage is won")
 	t.equal(int(Profile.data.stats.best_wave), Campaign.total_waves(), "and the record is the last wave of the siege")
 	_button(menus, Loc.t("main_menu")).pressed.emit()
 	await t.frames(3)
-	t.check(_has_text(menus, Loc.t("best_run", [4, last.waves.size()])), "and the record as the last wave of the last stage")
+	t.check(_has_text(menus, Loc.t("best_run", [stages, last.waves.size()])), "and the record as the last wave of the last stage")
 	_open_armory(menus)
 	await t.frames(2)
 	var locked: int = 0
 	for index: int in stages:
 		if menus.stage_choices.is_locked(index):
 			locked += 1
-	t.check(locked == 0 and menus.stage_choices.selected == 3, "the armory shows all four open, the last one lit")
+	t.check(locked == 0 and menus.stage_choices.selected == stages - 1, "the armory shows the last stage lit")
 	# A profile that loses its progress under a running game (a save wiped from outside) cannot leave a locked stage playable.
 	Profile.reset()
 	Profile.set_setting("language", "en")
 	_begin(menus)
 	await t.frames(4)
-	t.check(game.stage == 3 and game.level.stage == 3, "all stages remain available after resetting the profile")
+	t.check(game.stage == stages - 1 and game.level.stage == stages - 1, "all stages remain available after resetting the profile")
 	game.to_menu()
 	await t.frames(3)
 	_open_armory(menus)
 	await t.frames(2)
-	t.check(menus.stage_choices.selected == 3 and not menus.stage_choices.is_locked(1), "the armory keeps all stages open")
+	t.check(menus.stage_choices.selected == stages - 1 and not menus.stage_choices.is_locked(1), "the armory keeps all stages open")
 	game.queue_free()
 	await t.frames(2)
 

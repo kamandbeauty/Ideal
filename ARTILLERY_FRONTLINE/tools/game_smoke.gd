@@ -609,6 +609,25 @@ func _hospital_stage() -> void:
 	await shot("45-hospital-attack", "play")
 
 
+func _metro_stage() -> void:
+	game.to_menu()
+	await frames(4)
+	game.menus.show_campaign()
+	await frames(2)
+	game.menus.metro_button.pressed.emit()
+	await frames(3)
+	check(game.stage == 6 and game.menus.stage_choices.buttons[8].visible, "the metro map offers stages seven to nine")
+	await shot("46-metro-map", "screen")
+	game.start_match()
+	await frames(6)
+	level = game.level
+	check(level.stage == 6 and level.geometry.find_child("TunnelEnd", true, false) != null, "the metro scene is loaded")
+	simulate(20.0)
+	await frames(6)
+	check(level.horde.spawned_total > 0, "the metro sends attackers")
+	await shot("47-metro-attack", "play")
+
+
 func _aim_at(point: Vector3) -> void:
 	var wanted: Vector2 = level.defender.aim_for(point)
 	level.defender.aim.set_aim(wanted.x, wanted.y)
@@ -978,6 +997,7 @@ func _run() -> void:
 	await _weapon_visual_review()
 	await _second_stage()
 	await _hospital_stage()
+	await _metro_stage()
 
 	var render: Dictionary = Graphics.snapshot()
 	check(String(render.tier) == PICTURE_TIER and is_equal_approx(float(render.scale), float(Graphics.PROFILES[PICTURE_TIER].scale)),

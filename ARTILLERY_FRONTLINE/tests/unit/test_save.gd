@@ -78,8 +78,9 @@ func run(t: TestContext) -> void:
 	Profile.record_match({"victory": true, "stage": 2, "wave": 2, "wave_overall": 8, "kills": 115})
 	t.equal(int(Profile.data.stats.stages_cleared), 3, "the original three stages are credited")
 	Profile.record_match({"victory": true, "stage": 3, "wave": 3, "wave_overall": 11, "kills": 141})
-	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "the fourth stage is credited after victory")
-	Profile.record_match({"victory": true, "stage": 3, "wave": 3, "wave_overall": 11, "kills": 141})
+	t.equal(int(Profile.data.stats.stages_cleared), 4, "the fourth stage is credited after victory")
+	for stage: int in range(4, Campaign.count()):
+		Profile.record_match({"victory": true, "stage": stage, "wave": 3, "wave_overall": Campaign.waves(stage).waves_before + 3, "kills": 100})
 	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "and there is nothing past the last")
 
 	# A save written before there were stages: the waves its player already got through are not asked for again.
