@@ -109,9 +109,23 @@ func _draw_bays(id: String, slots: int) -> void:
 	add_child(root)
 	_bay_roots[id] = root
 
-	var paint := VehicleMesh.paint(Color(0.93, 0.93, 0.89), 0.8)
 	var spot: Dictionary = _spots[id]
 	var x := float(spot["car_x"])
+	var first := _car_slot_z(id, 0)
+	var last := _car_slot_z(id, slots - 1)
+
+	# The paved forecourt between the road and the plot, so parked cars sit on
+	# tarmac with painted bays instead of floating on the walkway.
+	var slab := MeshInstance3D.new()
+	var slab_mesh := BoxMesh.new()
+	slab_mesh.size = Vector3(1.4, 0.03, absf(first - last) + 1.5)
+	slab.mesh = slab_mesh
+	slab.material_override = VehicleMesh.paint(Color(0.33, 0.34, 0.37), 0.95)
+	slab.position = Vector3(x, 0.045, (first + last) * 0.5)
+	slab.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(slab)
+
+	var paint := VehicleMesh.paint(Color(0.93, 0.93, 0.89), 0.8)
 	for i in slots:
 		var z := _car_slot_z(id, i)
 		for side in [-1.0, 1.0]:
