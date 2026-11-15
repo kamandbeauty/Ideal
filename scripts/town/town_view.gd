@@ -41,6 +41,8 @@ var _env: Environment
 var _sky_material: ProceduralSkyMaterial
 var _night_materials: Array[StandardMaterial3D] = []
 var _pool_materials: Array[StandardMaterial3D] = []
+var _halo_materials: Array[StandardMaterial3D] = []
+var _plot_lights: Dictionary = {}
 var _stages: Dictionary = {}
 var _totem_materials: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
@@ -490,50 +492,19 @@ func _build_model(parent: Node3D, id: String) -> void:
 	_repaint_retro(model)
 
 
-## The chosen direction: a chrome skirt, a candy-striped awning over the
-## road-facing wall and a neon tube along the roof edge.
-## Repaints a kit model with the retro palette atlas: the same UV layout, a
-## 1950s set of colours, so cream walls sit under cherry and teal roofs.
-func _retro_atlas() -> StandardMaterial3D:
-	if _retro_model_material != null:
-		return _retro_model_material
-	var material := StandardMaterial3D.new()
-	var texture: Texture2D = load("res://assets/models/Textures/colormap-retro.png")
-	if texture != null:
-		material.albedo_texture = texture
-		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
-	material.roughness = 0.85
-	material.metallic = 0.0
-	_retro_model_material = material
-	return material
-
-
-func _repaint_retro(node: Node) -> void:
-	var material := _retro_atlas()
-	for child in node.get_children():
-		if child is MeshInstance3D:
-			(child as MeshInstance3D).material_override = material
-		_repaint_retro(child)
-
-
+## The chosen direction, delegated to `RetroDressing`: chrome skirting, a
+## striped awning, roof neon, lit windows and one warm interior light per plot.
 func _build_retro_features(parent: Node3D, id: String) -> void:
 	var plot := BusinessData.plot(id)
 	var to_road := -signf(plot.x)
 	if to_road == 0.0:
 		to_road = -1.0
-	var accent := BusinessData.accent(id)
-	var night: Array[StandardMaterial3D] = []
-
-	RetroStyle.chrome_skirt(parent, Vector3(0, 0.09, 0), Vector3(2.7, 0.1, 2.7), night)
-	var awning := RetroStyle.awning(
-		parent, Vector3(1.22 * to_road, 1.16, 0.3), 2.05, 0.62, to_road, night
-	)
-	awning.rotation_degrees.y = 0.0
-	RetroStyle.roof_neon(parent, Vector3(1.24 * to_road, 2.32, 0.2), 2.1, to_road, accent, night)
-	var second: Color = RetroStyle.NEON_TEAL if accent != RetroStyle.TURQUOISE else RetroStyle.NEON_RED
-	RetroStyle.roof_neon(parent, Vector3(1.24 * to_road, 1.98, 0.2), 2.1, to_road, second, night)
-	for material in night:
+	var dressing := RetroDressing.dress(parent, id, to_road)
+	for material in dressing["night"]:
 		_night_materials.append(material)
+	for material in dressing["halo"]:
+		_halo_materials.append(material)
+	_plot_lights[id] = dressing["light"]
 
 
 func _build_stages(parent: Node3D, id: String) -> void:
@@ -552,83 +523,11 @@ func _build_stages(parent: Node3D, id: String) -> void:
 ## A roadside totem: post, glowing board in the business colour. Locked plots
 ## show an empty lot with a pale board until the player buys in.
 func _build_totem(parent: Node3D, id: String) -> void:
-	var totem := Node3D.new()
-	totem.name = "Totem"
 	var to_road := -signf(BusinessData.plot(id).x)
-	totem.position = Vector3(1.45 * to_road, 0, 1.55)
-	parent.add_child(totem)
-
-	# Googie roadside sign: a tall chrome pylon, a cream board frame, and a
-	# neon ring that switches on after sunset.
-	var post := MeshInstance3D.new()
-	post.name = "Post"
-	var post_mesh := CylinderMesh.new()
-	post_mesh.top_radius = 0.05
-	post_mesh.bottom_radius = 0.07
-	post_mesh.height = 2.35
-	post_mesh.radial_segments = 10
-	post.mesh = post_mesh
-	post.material_override = RetroStyle.enamel(RetroStyle.CHROME)
-	post.position.y = 1.18
-	totem.add_child(post)
-
-	for side in [-1.0, 1.0]:
-		var fin := MeshInstance3D.new()
-		var fin_mesh := BoxMesh.new()
-		fin_mesh.size = Vector3(0.5, 0.05, 0.05)
-		fin.mesh = fin_mesh
-		fin.material_override = RetroStyle.enamel(RetroStyle.CHERRY)
-		fin.position = Vector3(0.22 * side, 2.16, 0)
-		fin.rotation_degrees.z = -24.0 * side
-		totem.add_child(fin)
-
-	var frame := MeshInstance3D.new()
-	var frame_mesh := BoxMesh.new()
-	frame_mesh.size = Vector3(1.2, 0.72, 0.08)
-	frame.mesh = frame_mesh
-	frame.material_override = RetroStyle.matte(RetroStyle.CREAM, 0.6)
-	frame.position.y = 1.68
-	totem.add_child(frame)
-
-	var board := MeshInstance3D.new()
-	board.name = "Board"
-	var board_mesh := BoxMesh.new()
-	board_mesh.size = Vector3(1.05, 0.58, 0.1)
-	board.mesh = board_mesh
-	board.position = Vector3(0, 1.68, 0.02)
-	var board_material := StandardMaterial3D.new()
-	board_material.roughness = 0.5
-	board.material_override = board_material
-	totem.add_child(board)
-
-	var lamp := MeshInstance3D.new()
-	lamp.name = "Lamp"
-	var lamp_mesh := BoxMesh.new()
-	lamp_mesh.size = Vector3(0.85, 0.13, 0.06)
-	lamp.mesh = lamp_mesh
-	lamp.position = Vector3(0, 1.34, 0.06)
-	var lamp_material := StandardMaterial3D.new()
-	lamp.material_override = lamp_material
-	totem.add_child(lamp)
-
-	# Neon outline: two short uprights and a cap, bright at night.
-	var neon_material := RetroStyle.neon(RetroStyle.NEON_RED, 1.7)
-	for side in [-1.0, 1.0]:
-		RetroStyle.box(
-			totem, Vector3(0.045, 0.66, 0.05),
-			Vector3(0.64 * side, 1.68, 0.06), neon_material
-		).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	RetroStyle.box(
-		totem, Vector3(1.32, 0.045, 0.05), Vector3(0, 2.06, 0.06), neon_material
-	).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	RetroStyle.box(
-		totem, Vector3(1.32, 0.045, 0.05), Vector3(0, 1.3, 0.06), neon_material
-	).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_night_materials.append(neon_material)
-
-	_totem_materials[id] = {"board": board_material, "lamp": lamp_material}
-	_night_materials.append(board_material)
-	_night_materials.append(lamp_material)
+	var night: Array[StandardMaterial3D] = []
+	_totem_materials[id] = RetroDressing.draw_totem(parent, to_road, night)
+	for material in night:
+		_night_materials.append(material)
 
 
 func _build_pips(parent: Node3D, id: String) -> void:
@@ -905,6 +804,15 @@ func apply_time(t: float) -> void:
 	for material in _pool_materials:
 		var tint := material.albedo_color
 		material.albedo_color = Color(tint.r, tint.g, tint.b, 0.34 * night)
+	for material in _halo_materials:
+		var halo := material.albedo_color
+		material.albedo_color = Color(halo.r, halo.g, halo.b, 0.22 * night)
+	for id in _plot_lights.keys():
+		var light: OmniLight3D = _plot_lights[id]
+		var business := state.business(id)
+		var open := business != null and business.unlocked
+		light.visible = open and night > 0.2
+		light.light_energy = 1.5 * clampf(night * 1.4, 0.0, 1.0)
 
 
 func set_selected(id: String) -> void:
