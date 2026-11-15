@@ -31,9 +31,13 @@ jobs:
             "https://github.com/godot-sdk-integrations/godot-admob/releases/download/v7.0/AdmobPlugin-Android-v7.0.zip" \
             -o "$RUNNER_TEMP/admob-plugin.zip"
           echo "ce38b75aeb4bb870fda8b74e1513d807696d8485d237c263b7b7a9613493aee8  $RUNNER_TEMP/admob-plugin.zip" | sha256sum -c -
-          unzip -q -o "$RUNNER_TEMP/admob-plugin.zip" -d "$PROJECT"
+          mkdir -p "$RUNNER_TEMP/admob-plugin" "$PROJECT/addons"
+          unzip -q -o "$RUNNER_TEMP/admob-plugin.zip" -d "$RUNNER_TEMP/admob-plugin"
+          # The official release archive stores the Godot plugin under res/addons/.
+          cp -R "$RUNNER_TEMP/admob-plugin/res/addons/." "$PROJECT/addons/"
           test -s "$PROJECT/addons/AdmobPlugin/plugin.cfg"
           test -s "$PROJECT/addons/AdmobPlugin/bin/release/AdmobPlugin-release.aar"
+          test -s "$PROJECT/addons/GMPShared/GmpLogger.gd"
       - name: Cache verified Godot editor
         uses: actions/cache@v4
         with:
@@ -114,9 +118,13 @@ jobs:
             "https://github.com/godot-sdk-integrations/godot-admob/releases/download/v7.0/AdmobPlugin-Android-v7.0.zip" \
             -o "$RUNNER_TEMP/admob-plugin.zip"
           echo "ce38b75aeb4bb870fda8b74e1513d807696d8485d237c263b7b7a9613493aee8  $RUNNER_TEMP/admob-plugin.zip" | sha256sum -c -
-          unzip -q -o "$RUNNER_TEMP/admob-plugin.zip" -d "$PROJECT"
+          mkdir -p "$RUNNER_TEMP/admob-plugin" "$PROJECT/addons"
+          unzip -q -o "$RUNNER_TEMP/admob-plugin.zip" -d "$RUNNER_TEMP/admob-plugin"
+          # The official release archive stores the Godot plugin under res/addons/.
+          cp -R "$RUNNER_TEMP/admob-plugin/res/addons/." "$PROJECT/addons/"
           test -s "$PROJECT/addons/AdmobPlugin/plugin.cfg"
           test -s "$PROJECT/addons/AdmobPlugin/bin/release/AdmobPlugin-release.aar"
+          test -s "$PROJECT/addons/GMPShared/GmpLogger.gd"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
