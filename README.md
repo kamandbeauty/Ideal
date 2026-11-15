@@ -103,6 +103,7 @@ ranks ×2. A branch may never be ahead of the building's level.
 | `06-offline-fa.jpg` | offline income report |
 | `07-town-complete.jpg` | the completion cinematic and banner |
 | `08-town-en.jpg` | English HUD and panel |
+| `09-customers.jpg` | close-up of the queue and the service slots |
 
 ## Project layout
 

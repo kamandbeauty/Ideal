@@ -79,6 +79,15 @@ func _run() -> void:
 	await _settle(18)
 	await _capture("08-town-en")
 
+	# Close on the busiest plot so the queue itself is on the record.
+	App.set_language("fa")
+	_town.day_cycle.set_time(0.3)
+	_town.select_business("gas_station")
+	await _settle(6)
+	_town.deselect()
+	await _settle(400)
+	await _capture("09-customers")
+
 	print("SMOKE OK")
 	get_tree().quit(0)
 
