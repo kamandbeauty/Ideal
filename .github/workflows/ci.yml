@@ -105,7 +105,7 @@ jobs:
             kill -0 "$smoke_pid" 2>/dev/null || break
             sleep 1
             if [ $((i % 15)) -eq 0 ]; then
-              last=$(grep -a 'SMOKE' "$RUNNER_TEMP/smoke.log" | tail -1 | tr '\n' ' ' | cut -c1-800)
+              last=$( (grep -a 'SMOKE' "$RUNNER_TEMP/smoke.log" | tail -1 | tr '\n' ' ' | cut -c1-800) || true )
               echo "::notice title=play-through-${i}s::${last}"
             fi
           done
