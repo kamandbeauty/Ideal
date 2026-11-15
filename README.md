@@ -125,12 +125,32 @@ ranks ×2. A branch may never be ahead of the building's level.
 | `assets/` | Kenney models and audio, Vazirmatn font (see `ATTRIBUTION.md`) |
 | `documentation/DESIGN.md` | design notes, numbers, save format, roadmap |
 
+## Android build
+
+`.github/workflows/apk.yml` builds a debug-signed arm64 APK (preset "Android APK",
+package `com.roadstop.tycoon`, version 0.9.0). It runs on demand or when a commit
+message contains `[apk]`:
+
+```bash
+gh workflow run apk.yml                # or: git commit -m "... [apk]"
+```
+
+The finished `RoadstopTycoon.apk` is published on the rolling `apk-latest`
+release, so it downloads as a single file on a phone:
+
+<https://github.com/kamandbeauty/Ideal/releases/tag/apk-latest>
+
+To install: download the APK, allow "install unknown apps" for the browser or
+file manager, open the file, and accept the Play Protect prompt (the build is
+debug-signed, not from the Play Store). Every CI run also keeps the same file as
+the `roadstop-apk` artifact.
+
 ## Next milestones
 
 1. World map for the five towns (forest, mountain, coast, highway) with
    reputation gates.
 2. Managers as visible characters and timed contracts instead of a flat purchase.
 3. Staff behind the counter and managers as visible characters.
-4. Android export presets, signed APK/AAB, and an on-device performance pass.
+4. Release-signed AAB for the Play Store, and an on-device performance pass.
 
 Licences for the art, audio and fonts are listed in [`ATTRIBUTION.md`](ATTRIBUTION.md).
