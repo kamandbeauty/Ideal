@@ -23,6 +23,9 @@ const PAINTS: Array[Color] = [
 ]
 
 const WHEEL_RADIUS := 0.16
+## The kit city is built at roughly one unit = one metre; vehicles shrink a
+## little so a bus never outsizes a shop.
+const SIZE_SCALE := 0.78
 
 
 static func spec(kind: String) -> Dictionary:
@@ -175,7 +178,8 @@ static func build(kind: String, color: Color) -> Node3D:
 			wheels.append(pivot)
 
 	car.set_meta("wheels", wheels)
-	car.set_meta("length", length)
+	car.set_meta("length", length * SIZE_SCALE)
+	car.scale = Vector3.ONE * SIZE_SCALE
 	return car
 
 
