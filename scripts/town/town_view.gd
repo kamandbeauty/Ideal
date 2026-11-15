@@ -492,6 +492,30 @@ func _build_model(parent: Node3D, id: String) -> void:
 	_repaint_retro(model)
 
 
+## Repaints a kit model with the retro palette atlas: the same UV layout, a
+## 1950s set of colours, so cream walls sit under cherry and teal roofs.
+func _retro_atlas() -> StandardMaterial3D:
+	if _retro_model_material != null:
+		return _retro_model_material
+	var material := StandardMaterial3D.new()
+	var texture: Texture2D = load("res://assets/models/Textures/colormap-retro.png")
+	if texture != null:
+		material.albedo_texture = texture
+		material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	material.roughness = 0.85
+	material.metallic = 0.0
+	_retro_model_material = material
+	return material
+
+
+func _repaint_retro(node: Node) -> void:
+	var material := _retro_atlas()
+	for child in node.get_children():
+		if child is MeshInstance3D:
+			(child as MeshInstance3D).material_override = material
+		_repaint_retro(child)
+
+
 ## The chosen direction, delegated to `RetroDressing`: chrome skirting, a
 ## striped awning, roof neon, lit windows and one warm interior light per plot.
 func _build_retro_features(parent: Node3D, id: String) -> void:
