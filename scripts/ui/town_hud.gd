@@ -497,6 +497,7 @@ func _on_language_changed(_language: String) -> void:
 func tick(delta: float) -> void:
 	if _toast_timer > 0.0:
 		_toast_timer -= delta
+		_place_toast()
 		if _toast_timer <= 0.0:
 			_toast_panel.visible = false
 	_refresh_timer += delta
@@ -839,14 +840,21 @@ func collect_offline() -> void:
 
 func _show_toast(message: String) -> void:
 	_toast.text = message
-	# Keep the toast clear of the detail panel: slide it to the free half.
-	var shift := 0.0
-	if _panel != null and _panel.visible:
-		shift = (_panel.size.x * 0.5 + 40.0) * (-1.0 if App.is_rtl() else 1.0)
-	_toast_panel.offset_left = -260.0 + shift
-	_toast_panel.offset_right = 260.0 + shift
+	_place_toast()
 	_toast_panel.visible = true
 	_toast_timer = 2.6
+
+
+## Keeps the toast clear of the detail panel by sliding it to the free half,
+## whichever side the layout put the panel on.
+func _place_toast() -> void:
+	var shift := 0.0
+	if _panel != null and _panel.visible:
+		var panel_center := _panel.position.x + _panel.size.x * 0.5
+		var side := 1.0 if panel_center < size.x * 0.5 else -1.0
+		shift = (_panel.size.x * 0.5 + 40.0) * side
+	_toast_panel.offset_left = -260.0 + shift
+	_toast_panel.offset_right = 260.0 + shift
 
 
 func _business_name(id: String) -> String:
