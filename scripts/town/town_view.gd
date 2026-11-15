@@ -288,26 +288,54 @@ func _first_mesh(node: Node) -> Mesh:
 # --- Road and traffic ------------------------------------------------------
 
 func _build_road() -> void:
-	var plain: PackedScene = load(BusinessData.MODELS["road-straight"])
-	var lit: PackedScene = load(BusinessData.MODELS["road-straight-lightposts"])
 	var pavement: PackedScene = load(BusinessData.MODELS["pavement"])
+	var length := ROAD_STEP * ROAD_SEGMENTS
+
+	# Our own asphalt: the kit piece is a pale texture that washed the whole
+	# frame out, so the road is a dark slab we can paint ourselves.
+	var asphalt := MeshInstance3D.new()
+	asphalt.name = "Asphalt"
+	var slab := BoxMesh.new()
+	slab.size = Vector3(ROAD_WIDTH, 0.06, length)
+	asphalt.mesh = slab
+	asphalt.material_override = _flat_material(Color(0.14, 0.15, 0.18), 0.98)
+	asphalt.position = Vector3(0, 0.03, 0)
+	asphalt.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(asphalt)
+
+	var paint := _paint_material()
+	var dash_z := -length * 0.5 + 1.0
+	while dash_z < length * 0.5 - 0.6:
+		var dash := MeshInstance3D.new()
+		var dash_mesh := BoxMesh.new()
+		dash_mesh.size = Vector3(0.09, 0.012, 0.8)
+		dash.mesh = dash_mesh
+		dash.material_override = paint
+		dash.position = Vector3(0, 0.062, dash_z)
+		dash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(dash)
+		dash_z += 1.9
+
+	for side in [-1.0, 1.0]:
+		var edge := MeshInstance3D.new()
+		var edge_mesh := BoxMesh.new()
+		edge_mesh.size = Vector3(0.07, 0.012, length)
+		edge.mesh = edge_mesh
+		edge.material_override = paint
+		edge.position = Vector3(1.36 * side, 0.062, 0)
+		edge.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(edge)
 
 	for i in ROAD_SEGMENTS:
 		var z := -ROAD_STEP * (ROAD_SEGMENTS - 1) * 0.5 + i * ROAD_STEP
-		var source: PackedScene = lit if i % 3 == 0 else plain
-		if source != null:
-			var piece: Node3D = source.instantiate()
-			piece.position = Vector3(0, 0, z)
-			piece.scale = Vector3(ROAD_WIDTH, 1.0, ROAD_STEP)
-			add_child(piece)
 		if i % 3 == 0:
 			for side in [-1.0, 1.0]:
-				_lamp(Vector3(1.62 * side, 2.1, z))
+				_lamp(Vector3(2.15 * side, 2.1, z))
 		if pavement != null:
 			for side in [-1.0, 1.0]:
 				var walk: Node3D = pavement.instantiate()
-				walk.position = Vector3(1.4 * side, 0.01, z)
-				walk.scale = Vector3(1.6, 1.0, ROAD_STEP)
+				walk.position = Vector3(2.45 * side, 0.01, z)
+				walk.scale = Vector3(1.9, 1.0, ROAD_STEP)
 				add_child(walk)
 
 	var traffic := Traffic.new()
@@ -317,6 +345,23 @@ func _build_road() -> void:
 	var pedestrians := Pedestrians.new()
 	pedestrians.name = "Pedestrians"
 	add_child(pedestrians)
+
+
+func _flat_material(tint: Color, roughness: float) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = tint
+	material.roughness = roughness
+	material.metallic = 0.0
+	material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+	return material
+
+
+func _paint_material() -> StandardMaterial3D:
+	var material := _flat_material(Color(0.9, 0.9, 0.87), 0.7)
+	material.emission_enabled = true
+	material.emission = Color(0.55, 0.55, 0.52)
+	material.emission_energy_multiplier = 0.22
+	return material
 
 
 func _lamp(position: Vector3) -> void:
