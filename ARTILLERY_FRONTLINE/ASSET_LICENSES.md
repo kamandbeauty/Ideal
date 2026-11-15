@@ -107,7 +107,7 @@ remain synthesized. No source assets are fetched during a rebuild.
 - `zombie_distress`, `zombie_scream`: zombie-12 and zombie-17 from the same
   pack, via [Cornfield](https://github.com/OsanGen/cornfields/blob/main/assets/audio/sources.json).
 - `rifle_shot`: AK-47 near recording from [The Free Firearm Sound Library](https://opengameart.org/content/the-free-firearm-sound-library).
-- `cannon_blast`, `firework_blast`: rubberduck's [25 CC0 bang / firework SFX](https://opengameart.org/content/25-cc0-bang-firework-sfx).
+- `field_blast`, `firework_blast`: rubberduck's [25 CC0 bang / firework SFX](https://opengameart.org/content/25-cc0-bang-firework-sfx).
   These and the rifle clip are pre-cut/mastered recordings from
   [smokeem](https://github.com/mrellcrane/smokeem/tree/claude/smoke-em-design-setup-ftlkqp/src/audio/samples);
   its explosion clips also include synthesized sub-bass. The game further

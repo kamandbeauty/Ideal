@@ -637,7 +637,7 @@ def recorded_rotary():
 
 def recorded_explosives():
     explosives()  # Retain the rocket motor, throw, bounce, and interface cues.
-    write("explosion", recorded("cannon_blast", 0.93), 0.94)
+    write("explosion", recorded("field_blast", 0.93), 0.94)
     write("explosion_small", recorded("firework_blast", 1.08), 0.9)
 
 
