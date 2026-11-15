@@ -69,7 +69,6 @@ func _ready() -> void:
 		hud.show_offline(Game.offline_seconds, state.offline_earnings(Game.offline_seconds))
 
 	state.event_started.connect(_on_event_started)
-	state.tip_collected.connect(_on_tip)
 	App.settings_changed.connect(_on_settings_changed)
 	_start_music()
 	_claim_daily()
