@@ -526,8 +526,8 @@ func _weapon_visual_review() -> void:
 		await frames(3)
 		check(level.defender.gun_id() == id, "%s stands on the mount for visual review" % id)
 		await shot("39-weapon-" + id)
-	game.to_menu()
-	await frames(3)
+	# Leave the match alive: _second_stage builds victory figures from its defender
+	# before returning to the menu itself.
 
 
 ## The stage after the first. The driver has not won the first stage under rendering, so it writes that win
