@@ -836,7 +836,7 @@ func apply_time(t: float) -> void:
 		var business := state.business(id)
 		var open := business != null and business.unlocked
 		light.visible = open and night > 0.2
-		light.light_energy = 1.5 * clampf(night * 1.4, 0.0, 1.0)
+		light.light_energy = 1.25 * clampf(night * 1.4, 0.0, 1.0)
 
 
 func set_selected(id: String) -> void:

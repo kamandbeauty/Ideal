@@ -29,7 +29,7 @@ static func dress(parent: Node3D, id: String, to_road: float) -> Dictionary:
 
 ## Two rows of warm panes on the road-facing wall.
 static func _windows(parent: Node3D, to_road: float, night: Array[StandardMaterial3D]) -> void:
-	var material := RetroStyle.neon(Color(1.0, 0.83, 0.52), 1.25)
+	var material := RetroStyle.neon(Color(1.0, 0.82, 0.5), 1.05)
 	for row in 2:
 		for i in 3:
 			var pane := MeshInstance3D.new()
