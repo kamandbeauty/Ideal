@@ -309,17 +309,25 @@ def build_grenade():
     materials(b)
     body = "Body"
     up = (0.0, 1.0, 0.0)
-    stations = [(-0.046, 0.012), (-0.036, 0.024), (-0.016, 0.031), (0.006, 0.031), (0.026, 0.024), (0.038, 0.014)]
-    for index in range(len(stations) - 1):
-        y0, r0 = stations[index]
-        y1, r1 = stations[index + 1]
-        shade = 0.82 if index % 2 else 1.0
-        b.cylinder(body, "Weapon olive", (0.0, y0, 0.0), r0, y1 - y0, segments=12, color=(shade, shade, shade), top_radius=r1,
-                   caps=index == 0, axis=up)
-    b.cylinder(body, "Weapon steel", (0.0, 0.038, 0.0), 0.012, 0.022, segments=10, axis=up)
-    b.box(body, "Weapon edge", (0.0, 0.062, 0.006), (0.012, 0.006, 0.03))
-    b.box(body, "Weapon edge", (0.0, 0.02, 0.032), (0.012, 0.075, 0.004), basis=rot_x(-9.0))
-    b.cylinder(body, "Weapon edge", (-0.02, 0.05, 0.0), 0.011, 0.003, segments=10, axis=(1.0, 0.0, 0.0))
+    # Smooth cast body, painted identification stripe and a proper hollow pull ring.
+    # Detail remains on one mesh per material, keeping the in-game pool inexpensive.
+    b.blob(body, "Weapon olive", (0.0, -0.005, 0.0), (0.031, 0.043, 0.031), segments=28, rings=18, squash=2.0)
+    b.cylinder(body, "Warhead band", (0.0, -0.009, 0.0), 0.0312, 0.0025, segments=28, axis=up, caps=False)
+    b.cylinder(body, "Weapon steel", (0.0, 0.037, 0.0), 0.013, 0.005, segments=24, axis=up)
+    b.cylinder(body, "Weapon edge", (0.0, 0.042, 0.0), 0.011, 0.016, segments=24, axis=up)
+    b.cylinder(body, "Weapon grip", (0.0, 0.056, 0.0), 0.012, 0.003, segments=24, axis=up)
+    # A spoon hugs the body; a hinge and split safety pin hold it in place.
+    b.box(body, "Weapon edge", (0.0, 0.059, 0.006), (0.017, 0.006, 0.035))
+    b.box(body, "Weapon edge", (0.0, 0.018, 0.032), (0.016, 0.074, 0.003), basis=rot_x(-8.0))
+    b.cylinder(body, "Weapon steel", (-0.015, 0.052, 0.0), 0.0045, 0.029, segments=16, axis=(1.0, 0.0, 0.0))
+    ring_center = np.array([-0.020, 0.055, -0.004])
+    ring_radius = 0.012
+    points = [ring_center + np.array([0.0, math.cos(a) * ring_radius, math.sin(a) * ring_radius])
+              for a in np.linspace(0.0, math.tau, 25)]
+    for start, end in zip(points, points[1:]):
+        direction = end - start
+        b.cylinder(body, "Weapon edge", start, 0.0013, float(np.linalg.norm(direction)), segments=7,
+                   axis=direction, caps=False)
     size, report = b.export(os.path.join(OUT, "frag_grenade.glb"), "FragGrenade")
     return "frag_grenade.glb", size, b.triangle_count(), report
 
