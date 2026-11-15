@@ -14,9 +14,9 @@ extends Node3D
 
 const STYLES := {
 	"guildmaster": {
-		"coat": Color(0.15, 0.18, 0.42),
-		"trim": Color(0.93, 0.76, 0.38),
-		"pants": Color(0.11, 0.12, 0.2),
+		"coat": Color(0.23, 0.27, 0.6),
+		"trim": Color(0.94, 0.78, 0.4),
+		"pants": Color(0.15, 0.16, 0.26),
 		"skin": Color(0.96, 0.82, 0.72),
 		"hair": Color(0.12, 0.11, 0.17),
 		"accent": Color(0.33, 0.86, 0.87),
