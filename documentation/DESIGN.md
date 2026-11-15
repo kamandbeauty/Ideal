@@ -115,6 +115,22 @@ One event runs at a time; `traffic()` and `net_per_minute()` apply the factors,
 so capacity, customers, reputation and offline income all follow. The HUD shows
 a timed chip and toasts the start and the end.
 
+## Customer flow
+
+Each unlocked business owns a `ServiceQueue` and up to ten visible customers in
+total:
+
+| Rule | Value |
+| --- | --- |
+| Service slots | `1 + floor((level - 1) * 0.75)`, capped at 4 |
+| Line limit | slots + 2 (the next traveller drives past) |
+| Service time | 2.5–9 s, so a slot turns over while you watch |
+| Vehicle mix | car, SUV, pickup, truck, bus, camper × 10 paints |
+| Ticket shown | `net_per_minute / served_per_minute` |
+
+The flow is cosmetic: it never changes cash, and the "+amount" is the same money
+the business already books.
+
 ## Presentation
 
 - **Lighting** — one shadow-casting warm sun, a cool sky fill, ACES tonemapping
@@ -210,7 +226,11 @@ new town starts.
 | `scenes/ui/main_menu.tscn` → `scripts/ui/main_menu.gd` | title, new/continue, language |
 | `scenes/town/town.tscn` → `scripts/town/town.gd` | simulation tick, input, autosave, HUD wiring |
 | `scripts/town/town_view.gd` | ground, road, plots, buildings, selection ring, tap picking |
-| `scripts/town/traffic.gd` | cosmetic cars looping on the highway |
+| `scripts/town/traffic.gd` | ten highway vehicles looping on the road |
+| `scripts/town/customer_flow.gd` | customers: drive in, queue, get served, pay, leave |
+| `scripts/town/vehicle_mesh.gd` | six vehicle silhouettes and ten paint variants |
+| `scripts/town/person_mesh.gd` | the shared character rig and its walk/idle/carry poses |
+| `scripts/core/service_queue.gd` | capacity rule for the queue (slots, line, overflow) |
 | `scripts/town/isometric_camera.gd` | fixed pitch, quarter turns, pinch/wheel zoom, panning |
 | `scripts/ui/town_hud.gd` | resource bar, business cards, detail panel, offline report |
 | `scripts/core/game.gd` (autoload) | current town, save/continue, offline claim |
@@ -223,8 +243,10 @@ new town starts.
 - Compatibility renderer (`gl_compatibility`), no SSAO/SSIL, one shadow-casting
   directional light, simple box cars, six buildings, no per-frame allocations in
   the simulation loop.
-- The economy is statistical: traffic is not simulated per customer, so more cars
-  never cost more CPU.
+- The economy is statistical: the customer flow is presentation only, capped at
+  ten vehicles on screen, so it never feeds back into income.
+- Vehicles and people are boxes on pivots: one `StandardMaterial3D` per colour,
+  no textures, no per-frame allocations in the queue step.
 
 ## Roadmap
 
@@ -238,7 +260,7 @@ new town starts.
 
 ## Test coverage
 
-`tests/run_tests.gd` runs four suites headlessly:
+`tests/run_tests.gd` runs seven suites headlessly:
 
 - `test_localization` — both languages complete, placeholders substitute, every
   business/town/branch/manager rank is named.
@@ -248,6 +270,11 @@ new town starts.
   gems and the offline cap.
 - `test_save` — round trip, rejected saves, clamping, unknown ids, file I/O and
   the backup fallback.
+- `test_decor` — every decor stage exists and only uses real props.
+- `test_missions_events` — the mission chain, rewards, event multipliers and the
+  event catalogue.
+- `test_customer_flow` — service slots, line overflow, promotion order and the
+  vehicle catalogue.
 - `test_decor` — all four visual stages build for every business, lit props
   register their materials, and the day cycle's sun and phases are correct.
 - `test_missions_events` — the chain runs from the first upgrade to a finished

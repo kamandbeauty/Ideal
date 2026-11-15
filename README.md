@@ -34,8 +34,13 @@ the next town on the highway unlocks.
   canopy, awnings and terraces, shop windows, a lift and tyres, a balcony and a
   pool, wash arches and brushes. Upgrading pops the new stage in with a sparkle
   and a short camera lean.
-- **A living stop** — ten travellers walk the sidewalks with a small leg
-  animation, traffic loops the highway, and income pops as floating coins.
+- **A living stop** — real customers drive in, park beside their business, get
+  out, wait in a line that shrinks as service slots free up, hand over cash with
+  a floating "+amount", walk back to their car and drive off. Ten highway
+  vehicles in six silhouettes (car, SUV, pickup, truck, bus, camper) keep the
+  road busy, and people who find the line full drive straight past.
+- **Ten pedestrians** stroll the sidewalks with a leg and arm swing, and income
+  still pops as floating coins.
 - **Guided missions** — a single next objective at the top of the screen, from
   the first upgrade to opening all six businesses and finishing the town, each
   paying cash or gems when claimed.
@@ -104,7 +109,7 @@ ranks ×2. A branch may never be ahead of the building's level.
 | Path | Contents |
 | --- | --- |
 | `scripts/core/` | data (`business_data`, `town_data`), simulation (`business_state`, `town_state`), `save_manager`, autoloads (`app`, `game`, `sound`, `l10n`) |
-| `scripts/town/` | 3D view, isometric camera, traffic, scene controller |
+| `scripts/town/` | 3D view, isometric camera, traffic, customer flow, person and vehicle meshes, scene controller |
 | `scripts/ui/` | HUD, detail panel, menu, theme |
 | `tests/` | headless suites run by `tests/run_tests.gd` |
 | `tools/smoke.gd` | scripted play-through that saves screenshots |
@@ -116,7 +121,7 @@ ranks ×2. A branch may never be ahead of the building's level.
 1. World map for the five towns (forest, mountain, coast, highway) with
    reputation gates.
 2. Managers as visible characters and timed contracts instead of a flat purchase.
-3. Missions and a first-time flow.
+3. Staff behind the counter and managers as visible characters.
 4. Android export presets, signed APK/AAB, and an on-device performance pass.
 
 Licences for the art, audio and fonts are listed in [`ATTRIBUTION.md`](ATTRIBUTION.md).

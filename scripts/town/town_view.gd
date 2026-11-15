@@ -349,6 +349,11 @@ func _build_road() -> void:
 	pedestrians.name = "Pedestrians"
 	add_child(pedestrians)
 
+	var customers := CustomerFlow.new()
+	customers.name = "Customers"
+	customers.setup(state)
+	add_child(customers)
+
 
 func _flat_material(tint: Color, roughness: float) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
