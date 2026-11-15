@@ -76,8 +76,10 @@ func run(t: TestContext) -> void:
 	t.equal(int(Profile.data.stats.best_wave), 5, "and an earlier stage won again does not lower it")
 	Profile.record_match({"victory": true, "stage": 1, "wave": 3, "wave_overall": 6, "kills": 136})
 	Profile.record_match({"victory": true, "stage": 2, "wave": 2, "wave_overall": 8, "kills": 115})
-	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "the stages open one after another")
-	Profile.record_match({"victory": true, "stage": 2, "wave": 2, "wave_overall": 8, "kills": 115})
+	t.equal(int(Profile.data.stats.stages_cleared), 3, "the original three stages are credited")
+	Profile.record_match({"victory": true, "stage": 3, "wave": 3, "wave_overall": 11, "kills": 141})
+	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "the fourth stage is credited after victory")
+	Profile.record_match({"victory": true, "stage": 3, "wave": 3, "wave_overall": 11, "kills": 141})
 	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "and there is nothing past the last")
 
 	# A save written before there were stages: the waves its player already got through are not asked for again.
@@ -89,7 +91,7 @@ func run(t: TestContext) -> void:
 	Profile.adopt({"stats": {"matches": 9, "victories": 0, "best_wave": 7, "kills": 900, "headshots": 80}})
 	t.equal(int(Profile.data.stats.stages_cleared), 2, "one that reached wave 7 has two stages behind it")
 	Profile.adopt({"stats": {"matches": 9, "victories": 1, "best_wave": 8, "kills": 900, "headshots": 80}})
-	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "one that had won the siege has every stage open")
+	t.equal(int(Profile.data.stats.stages_cleared), 3, "a pre-stage victory credits the original siege, not the new hospital")
 	Profile.adopt({"stats": {"matches": 9, "victories": 4, "best_wave": 3, "kills": 300, "headshots": 20, "stages_cleared": 1}})
 	t.equal(int(Profile.data.stats.stages_cleared), 1, "a save that already counts stages is taken at its word")
 	Profile.adopt({"stats": {"stages_cleared": 99}, "settings": {"gun": "pea_shooter"}})

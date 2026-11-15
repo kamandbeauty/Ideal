@@ -62,14 +62,14 @@ func adopt(stored: Dictionary) -> void:
 
 ## A save from before the siege was cut into stages only knows how far its player got through the
 ## eight waves in one go. Nobody is sent back to the start for that: every stage that lay wholly
-## behind the best wave reached is open, and all of them for a player who had already won.
+## behind the best wave reached is open, and the original three for a player who had already won.
 func _credit_old_career(stored: Dictionary) -> void:
 	var old: Variant = stored.get("stats")
 	if not (old is Dictionary) or (old as Dictionary).is_empty() or (old as Dictionary).has("stages_cleared"):
 		return
 	var cleared: int = Campaign.place_of(int(data.stats.best_wave)).x - 1
 	if int(data.stats.victories) > 0:
-		cleared = Campaign.count()
+		cleared = mini(3, Campaign.count())
 	data.economy.coins = clampi(int(data.economy.coins), 0, 100000000)
 	for id: String in EQUIPMENT:
 		data.economy.upgrades[id] = clampi(int(data.economy.upgrades[id]), 0, MAX_UPGRADE)
