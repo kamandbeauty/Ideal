@@ -20,6 +20,8 @@ var state
 var _queues: Dictionary = {}
 var _timers: Dictionary = {}
 var _spots: Dictionary = {}
+var _bays: Dictionary = {}
+var _bay_roots: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var _next_id := 1
 var _swing := 0.0
@@ -76,6 +78,8 @@ func _tick_business(id: String, delta: float) -> void:
 		queue.clear()
 		return
 	queue.configure(slots, slots + QUEUE_EXTRA)
+	if int(_bays.get(id, -1)) != slots:
+		_draw_bays(id, slots)
 
 	# Anyone who finished their service pays here.
 	for finished in queue.tick(delta):
@@ -92,6 +96,38 @@ func _tick_business(id: String, delta: float) -> void:
 		0.8, 1.25
 	)
 	_spawn(id)
+
+
+## Painted service bays on the apron: capacity is something you can see grow.
+func _draw_bays(id: String, slots: int) -> void:
+	_bays[id] = slots
+	var old: Node3D = _bay_roots.get(id)
+	if old != null:
+		old.queue_free()
+	var root := Node3D.new()
+	root.name = "Bays_" + id
+	add_child(root)
+	_bay_roots[id] = root
+
+	var paint := VehicleMesh.paint(Color(0.93, 0.93, 0.89), 0.8)
+	var spot: Dictionary = _spots[id]
+	var x := float(spot["car_x"])
+	for i in slots:
+		var z := _car_slot_z(id, i)
+		for side in [-1.0, 1.0]:
+			_bay_mark(root, paint, Vector3(x + 0.52 * side, 0.075, z), Vector3(0.05, 0.02, 1.9))
+			_bay_mark(root, paint, Vector3(x, 0.075, z + 0.95 * side), Vector3(1.09, 0.02, 0.05))
+
+
+func _bay_mark(root: Node3D, paint: StandardMaterial3D, at: Vector3, size: Vector3) -> void:
+	var mark := MeshInstance3D.new()
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	mark.mesh = mesh
+	mark.material_override = paint
+	mark.position = at
+	mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mark)
 
 
 func _spawn(id: String) -> void:

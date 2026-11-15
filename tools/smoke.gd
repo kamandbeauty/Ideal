@@ -83,9 +83,9 @@ func _run() -> void:
 	App.set_language("fa")
 	_town.day_cycle.set_time(0.3)
 	_town.select_business("gas_station")
-	await _settle(6)
+	await _settle(90)
 	_town.deselect()
-	await _settle(400)
+	await _settle(320)
 	await _capture("09-customers")
 
 	print("SMOKE OK")
