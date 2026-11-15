@@ -951,26 +951,29 @@ def clips(sculpt):
         stride = 0.95 if running else 0.72
         lift = 0.17 if running else 0.09
         stance = 0.45 if running else 0.60
+        heavy = sculpt.spec["name"] in ("brute", "boss")
         def pose(t, duration):
             ph = t / duration
             ly, lz = step(ph, stride, lift, stance)
             ry, rz = step(ph + 0.5, stride, lift, stance)
             beat = math.sin(tau * ph)
-            lean = 22.0 if running else 12.0
+            lean = (20.0 if running else 16.0) if heavy else (22.0 if running else 12.0)
+            sway = 1.65 if heavy else 1.0
+            impact = max(0.0, math.cos(2 * tau * ph))
             return {
-                "hips": (0.018 * beat, -0.055 + 0.016 * math.cos(2 * tau * ph), 0.0),
-                "hips_rot": (lean * 0.4, 5.0 * beat, -3.0 * beat),
-                "spine": (lean * 0.35, -3.0 * beat, 2.0 * beat),
-                "chest": (lean * 0.35, -4.0 * beat, 1.5 * beat),
-                "neck": (-4.0, 2.0 * beat, 2.0),
-                "head": (-5.0, 3.0 * beat, 3.0),
+                "hips": (0.026 * sway * beat, -0.045 - 0.025 * impact * sway, 0.0),
+                "hips_rot": (lean * 0.4, 5.0 * beat, -4.0 * sway * beat),
+                "spine": (lean * 0.35, -3.0 * beat, 2.5 * sway * beat),
+                "chest": (lean * 0.35 + 2.0 * impact, -4.0 * beat, 2.5 * sway * beat),
+                "neck": (-4.0, 2.0 * beat, 3.0 if heavy else 2.0),
+                "head": (-7.0 + 2.5 * math.sin(tau * ph - 0.6), 3.0 * beat, 7.0 if heavy else 3.0),
                 "foot_L": foot["L"] + np.array([0.0, ly, lz]),
                 "foot_R": foot["R"] + np.array([0.0, ry, rz]),
                 "toe_L": (0.0, -0.25 - ly * 5.0, 1.0),
                 "toe_R": (0.0, -0.25 - ry * 5.0, 1.0),
                 "knee_L": (0.12, 0.0, 1.0), "knee_R": (-0.12, 0.0, 1.0),
-                "hand_L": shoulder["L"] + np.array([0.02, -0.22, 0.30 - 0.07 * beat]),
-                "hand_R": shoulder["R"] + np.array([-0.03, -0.35, 0.18 + 0.07 * beat]),
+                "hand_L": shoulder["L"] + np.array([0.02, -0.35 if heavy else -0.22, (0.18 if heavy else 0.30) - 0.12 * beat]),
+                "hand_R": shoulder["R"] + np.array([-0.03, -0.42 if heavy else -0.35, (0.12 if heavy else 0.18) + 0.12 * beat]),
                 "wrist_L": (18.0, 0.0, 8.0), "wrist_R": (12.0, 0.0, -10.0),
             }
         return pose

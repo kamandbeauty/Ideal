@@ -251,6 +251,8 @@ func go_back() -> bool:
 			resume()
 	elif menus.screen == "settings":
 		menus.show_main()
+	elif menus.screen == "upgrade":
+		menus._show("equipment")
 	elif menus.screen == "equipment":
 		menus.show_arsenal()
 	elif menus.screen == "arsenal" or menus.screen == "campaign":

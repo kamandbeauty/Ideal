@@ -40,6 +40,7 @@ var result_onward: bool = false
 var stage: int = 0
 var stage_brief: Label
 var stage_choices: MenuWidgets.Choices
+var neighborhood_button: Button
 var gun_choices: MenuWidgets.Choices
 var gun_note: Label
 var gun_preview: WeaponPreview
@@ -132,6 +133,7 @@ func _clear() -> void:
 	armed = null
 	stage_brief = null
 	stage_choices = null
+	neighborhood_button = null
 	gun_choices = null
 	gun_note = null
 	gun_preview = null
@@ -171,6 +173,9 @@ func _show(name: String, fade_in: bool = true) -> void:
 		"equipment":
 			dim.color = Color(0.02, 0.02, 0.028, 0.80)
 			_build_equipment()
+		"upgrade":
+			dim.color = Color(0.02, 0.02, 0.028, 0.80)
+			_build_upgrade()
 		"campaign":
 			dim.color = Color(0.02, 0.02, 0.028, 1.0)
 			_build_campaign()
@@ -207,6 +212,10 @@ func show_arsenal() -> void:
 func show_equipment() -> void:
 	equipment_id = String(Profile.setting("gun"))
 	_show("equipment")
+
+
+func show_upgrade() -> void:
+	_show("upgrade")
 
 
 func show_campaign() -> void:
@@ -407,8 +416,14 @@ func _build_campaign() -> void:
 	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	middle.add_child(map)
-	map.add_child(_heading(Loc.t("choose_stage"), 28, UITheme.AMBER))
+	map.add_child(_heading(Loc.t("choose_neighborhood"), 28, UITheme.AMBER))
+	neighborhood_button = UITheme.button(Loc.t("neighborhood_city"), func() -> void:
+		stage_choices.visible = true
+		stage_brief.text = stage_brief_for(stage), "accent")
+	neighborhood_button.custom_minimum_size.x = 450
+	map.add_child(neighborhood_button)
 	map.add_child(_spacer(28))
+	map.add_child(_heading(Loc.t("choose_stage"), 23, UITheme.TEXT))
 	var names: Array = []
 	var open: int = Campaign.open_stages(int(Profile.data.stats.stages_cleared))
 	for index: int in Campaign.count():
@@ -426,6 +441,7 @@ func _build_campaign() -> void:
 		stage_brief.text = stage_brief_for(index)
 		stage_chosen.emit(index))
 	map.add_child(stage_choices)
+	stage_choices.visible = false
 	var info := PanelContainer.new()
 	info.custom_minimum_size = Vector2(360, 0)
 	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -446,6 +462,7 @@ func _build_campaign() -> void:
 ## After PLAY: pick the stage and the gun, then go to the wall. The street behind
 ## the menu shows the gun that is lit.
 func _build_arsenal() -> void:
+	_background("res://assets/textures/branding/armory_workbench.png", Color(0.8, 0.85, 0.88))
 	var frame: MarginContainer = _frame(20.0)
 	var layout := HBoxContainer.new()
 	layout.add_theme_constant_override("separation", 18)
@@ -485,6 +502,7 @@ func _build_arsenal() -> void:
 		names.append(Loc.t(gun.name_key))
 		outlines.append(gun.icon)
 	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 2)
+	_add_weapon_thumbnails(gun_choices, Profile.GUNS)
 	gun_choices.accent = CYAN
 	gun_choices.dark_selection = true
 	gun_choices.select(gun_choices.selected)
@@ -529,8 +547,28 @@ func _build_arsenal() -> void:
 	gun_preview.show_weapon(String(Profile.setting("gun")))
 
 
+## Still images captured from the actual in-game models, rather than generic silhouettes.
+func _add_weapon_thumbnails(choices: MenuWidgets.Choices, ids: Array) -> void:
+	for index: int in ids.size():
+		var path: String = "res://assets/textures/branding/weapons/%s.png" % ids[index]
+		if not ResourceLoader.exists(path):
+			continue
+		if choices.glyphs[index] != null:
+			choices.glyphs[index].visible = false
+		var image := TextureRect.new()
+		image.texture = load(path)
+		image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		image.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+		image.offset_top = 2.0
+		image.offset_bottom = MenuWidgets.Choices.GLYPH_STRIP
+		choices.buttons[index].add_child(image)
+
+
 ## Equipment workshop: all five mounted guns plus the equipped RPG and grenade.
 func _build_equipment() -> void:
+	_background("res://assets/textures/branding/armory_workbench.png", Color(0.8, 0.85, 0.88))
 	var frame: MarginContainer = _frame(20.0)
 	var layout := HBoxContainer.new()
 	layout.add_theme_constant_override("separation", 16)
@@ -557,17 +595,15 @@ func _build_equipment() -> void:
 			labels.append(Loc.t(item.name_key))
 			icons.append(item.icon)
 	equipment_choices = MenuWidgets.Choices.new(labels, maxi(Profile.EQUIPMENT.find(equipment_id), 0), icons, 2)
+	equipment_choices.allow_reselect = true
+	_add_weapon_thumbnails(equipment_choices, Profile.EQUIPMENT)
 	equipment_choices.accent = CYAN
 	equipment_choices.dark_selection = true
 	equipment_choices.select(equipment_choices.selected)
 	equipment_choices.chosen.connect(func(index: int) -> void:
 		equipment_id = Profile.EQUIPMENT[index]
-		_refresh_equipment(true))
+		show_upgrade())
 	plan.add_child(equipment_choices)
-	upgrade_button = UITheme.button("", func() -> void:
-		if Profile.buy_upgrade(equipment_id):
-			_refresh_equipment(true), "accent")
-	plan.add_child(upgrade_button)
 	plan.add_child(UITheme.button(Loc.t("back"), show_arsenal, "plain", "ui_back"))
 	var showcase := PanelContainer.new()
 	showcase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -585,6 +621,44 @@ func _build_equipment() -> void:
 	gallery.add_child(gun_preview_name)
 	equipment_summary = _text("", 22, UITheme.TEXT)
 	gallery.add_child(equipment_summary)
+	gun_preview_name.text = Loc.t("select_equipment")
+	equipment_summary.text = Loc.t("select_equipment_hint")
+	gun_preview.show_weapon(equipment_id)
+	wallet_label.text = Loc.t("coin_balance", [Loc.number(int(Profile.data.economy.coins))])
+
+
+func _build_upgrade() -> void:
+	_background("res://assets/textures/branding/armory_workbench.png", Color(0.8, 0.85, 0.88))
+	var frame: MarginContainer = _frame(20.0)
+	var layout := HBoxContainer.new()
+	layout.add_theme_constant_override("separation", 18)
+	frame.add_child(layout)
+	var card := PanelContainer.new()
+	card.custom_minimum_size.x = 600
+	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	layout.add_child(card)
+	var plan := VBoxContainer.new()
+	plan.add_theme_constant_override("separation", 20)
+	card.add_child(plan)
+	plan.add_child(_heading(Loc.t("equipment_upgrades"), 34, CYAN))
+	gun_preview_name = _heading("", 30, UITheme.TEXT)
+	plan.add_child(gun_preview_name)
+	wallet_label = _heading("", 23, UITheme.AMBER)
+	plan.add_child(wallet_label)
+	equipment_summary = _text("", 25, UITheme.TEXT)
+	plan.add_child(equipment_summary)
+	upgrade_button = UITheme.button("", func() -> void:
+		if Profile.buy_upgrade(equipment_id):
+			_refresh_equipment(false), "accent")
+	plan.add_child(upgrade_button)
+	plan.add_child(UITheme.button(Loc.t("back"), func() -> void: _show("equipment"), "plain", "ui_back"))
+	var showcase := PanelContainer.new()
+	showcase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	showcase.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	showcase.add_theme_stylebox_override("panel", UITheme.box(Color(0.035, 0.055, 0.06, 0.88), Color(CYAN, 0.42), 2, 1, 18))
+	layout.add_child(showcase)
+	gun_preview = WeaponPreview.new()
+	showcase.add_child(gun_preview)
 	_refresh_equipment(true)
 
 

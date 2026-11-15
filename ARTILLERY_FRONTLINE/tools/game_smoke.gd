@@ -655,6 +655,8 @@ func _run() -> void:
 	await shot("01-menu-fa", "screen")
 	game.menus.show_campaign()
 	await frames(4)
+	game.menus.neighborhood_button.pressed.emit()
+	await frames(2)
 	check(game.menus.screen == "campaign" and game.menus.stage_choices != null, "the campaign map offers stage choices")
 	await shot("41-campaign-map", "screen")
 	game.menus.show_arsenal()
@@ -662,6 +664,8 @@ func _run() -> void:
 	game.menus.show_equipment()
 	await frames(3)
 	for id: String in ["rpg_launcher", "frag_grenade"]:
+		game.menus.show_equipment()
+		await frames(2)
 		game.menus.equipment_choices.buttons[Profile.EQUIPMENT.find(id)].pressed.emit()
 		await frames(4)
 		check(game.menus.gun_preview.displayed_id == id, "workshop shows " + id)

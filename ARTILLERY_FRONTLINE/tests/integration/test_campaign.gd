@@ -72,6 +72,9 @@ func run(t: TestContext) -> void:
 	# The tactical map exposes the same stage progression as the armory.
 	menus.show_campaign()
 	await t.frames(2)
+	t.check(not menus.stage_choices.visible and menus.neighborhood_button != null, "stages wait for neighborhood selection")
+	menus.neighborhood_button.pressed.emit()
+	t.check(menus.stage_choices.visible, "neighborhood opens its stages")
 	t.check(menus.screen == "campaign" and menus.stage_choices.buttons.size() == stages, "the map offers the real campaign stages")
 	t.check(Loc.t("choose_stage") != "choose_stage", "the map heading is localized")
 	t.check(not menus.stage_choices.is_locked(1) and not menus.stage_choices.is_locked(2), "all stages are open on the map")
@@ -80,6 +83,7 @@ func run(t: TestContext) -> void:
 	Profile.data.stats.stages_cleared = 1
 	menus.show_campaign()
 	await t.frames(2)
+	menus.neighborhood_button.pressed.emit()
 	menus.stage_choices.buttons[1].pressed.emit()
 	t.equal(game.stage, 1, "the map selects an unlocked stage")
 	t.equal(menus.stage_brief.text, Menus.stage_brief_for(1), "the mission brief follows the selected stage")

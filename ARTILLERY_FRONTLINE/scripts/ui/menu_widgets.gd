@@ -166,6 +166,7 @@ class Choices:
 	var glyphs: Array[Glyph] = []
 	var locked: Array[int] = []
 	var selected: int = -1
+	var allow_reselect: bool = false
 	var accent: Color = UITheme.AMBER
 	var dark_selection: bool = false
 	var corner_radius: int = 6
@@ -247,7 +248,7 @@ class Choices:
 		return locked.has(index)
 
 	func _choose(index: int) -> void:
-		if index == selected or locked.has(index):
+		if (index == selected and not allow_reselect) or locked.has(index):
 			return
 		select(index)
 		Sound.play("ui_toggle", -9.0)

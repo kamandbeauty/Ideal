@@ -16,7 +16,7 @@ var stage: int = 0
 ## The low sun is straight behind the gunner: whatever he looks at is lit from
 ## his side, and neither wall arm throws its shadow over the attackers.
 const SUN_TRAVEL := Vector3(0.0, -0.62, -0.78)
-const DEFEAT_DELAY: float = 3.4
+const DEFEAT_DELAY: float = 6.0
 const VICTORY_DELAY: float = 2.2
 
 var geometry: Node3D
@@ -41,6 +41,7 @@ var idle_view: bool = true
 var clock: float = 0.0
 var end_left: float = -1.0
 var end_victory: bool = false
+var gate_broken_visual: bool = false
 var gate_leaves: Array[Node3D] = []
 var gate_rest: Array[float] = []
 var gate_shake: float = 0.0
@@ -391,7 +392,7 @@ func _process(delta: float) -> void:
 		defender.aim.target_yaw = sin(clock * 0.16) * 30.0
 		defender.aim.target_pitch = -5.0 + sin(clock * 0.11) * 2.5
 	gate_shake = move_toward(gate_shake, 0.0, delta * 5.0)
-	if not defense.gate_destroyed:
+	if not gate_broken_visual:
 		for index: int in gate_leaves.size():
 			var wobble: float = sin(clock * 68.0 + float(index) * 1.7) * deg_to_rad(gate_shake)
 			gate_leaves[index].rotation.y = gate_rest[index] + wobble
@@ -477,13 +478,31 @@ func _on_struck(target: String, at: Vector3, amount: float) -> void:
 
 
 func _on_gate_destroyed() -> void:
+	if gate_broken_visual:
+		return
+	gate_broken_visual = true
 	gate_body.collision_layer = 0
 	gate_shake = 0.0
-	var swing: Array[float] = [104.0, -104.0]
-	for index: int in gate_leaves.size():
-		var tween: Tween = create_tween()
-		tween.tween_property(gate_leaves[index], "rotation:y", gate_rest[index] + deg_to_rad(swing[index % 2]), 0.6) \
-			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# Replace the intact doors with a handful of light, non-physical fragments.
+	# They travel outward from the court and settle without rigid-body simulation.
+	for leaf: Node3D in gate_leaves:
+		leaf.visible = false
+	var metal := StandardMaterial3D.new()
+	metal.albedo_color = Color(0.22, 0.20, 0.16)
+	metal.metallic = 0.45
+	metal.roughness = 0.8
+	var shard_mesh := BoxMesh.new()
+	shard_mesh.size = Vector3(0.16, 0.8, 1.05)
+	shard_mesh.material = metal
+	for index: int in 8:
+		var shard := MeshInstance3D.new()
+		shard.name = "GateFragment%d" % index
+		shard.mesh = shard_mesh
+		shard.position = layout.gate_center + Vector3(0, -1.1 + float(index % 3) * 0.8, -2.7 + float(index) * 0.75)
+		add_child(shard)
+		var tween: Tween = create_tween().set_parallel(true)
+		tween.tween_property(shard, "position", shard.position + Vector3(1.2 + 0.24 * index, -shard.position.y + 0.16, (float(index) - 3.5) * 0.18), 1.1).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(shard, "rotation", Vector3(0.3 * index, 0.4 * index, 1.2 + 0.1 * index), 1.1)
 	var center: Vector3 = layout.gate_center
 	# The leaves burst inward, away from the court: splinters and dust go the same way.
 	var inward := Vector3(signf(center.x), 0.45, 0.0).normalized()
@@ -519,9 +538,9 @@ func _on_wall_breached() -> void:
 	Sound.play("alarm", -3.0)
 	defender.jolt(2.2)
 	horde.open_breach("wall")
-	if not defense.gate_destroyed:
-		horde.open_breach("gate")
-	Engine.time_scale = 0.5
+	if not gate_broken_visual:
+		_on_gate_destroyed()
+	Engine.time_scale = 0.8
 	end_victory = false
 	end_left = DEFEAT_DELAY
 

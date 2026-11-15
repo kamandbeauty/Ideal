@@ -31,9 +31,6 @@ def main():
     for kind, spec in SPECS.items():
         path = PROJECT / 'assets/models/zombies' / ('zombie_' + kind + '.glb')
         doc, blob = decode(path.read_bytes())
-        if {'walk_clean', 'run_clean'}.issubset({a['name'] for a in doc['animations']}):
-            print(path.name, 'already has clean gaits; skipped')
-            continue
         sculpt = Sculpt(spec)
         animator = Animator(sculpt)
         nodes = {n.get('name'): i for i, n in enumerate(doc['nodes'])}

@@ -266,10 +266,12 @@ func run(t: TestContext) -> void:
 	level.defense.apply_damage("gate", 100000.0, level.layout.gate_center)
 	t.check(level.defense.gate_destroyed and effects.bursts - bursts >= 5, "the gate goes in smoke, sparks, splinters and dust (%d bursts)" % (effects.bursts - bursts))
 
-	# Nothing was created for any of it.
+	t.check(level.gate_broken_visual and not level.gate_leaves[0].visible and level.gate_body.collision_layer == 0, "broken doors disappear and no longer block shots")
+	t.equal(level.find_children("GateFragment*", "MeshInstance3D", false, false).size(), 8, "the gate leaves visible lightweight fragments")
+	# The particle and mark pools stay fixed; only the eight gate fragments are added once.
 	t.equal(effects.pool_size(), pool_size, "the effect pool did not grow")
 	t.equal(marks.get_child_count(), mark_nodes, "nor the marks")
-	t.equal(level.get_child_count(), level_nodes, "nor the level")
+	t.equal(level.get_child_count(), level_nodes + 8, "only eight static gate fragments were added")
 	await t.discard(level)
 	Profile.reset()
 	Graphics.apply_preference()
