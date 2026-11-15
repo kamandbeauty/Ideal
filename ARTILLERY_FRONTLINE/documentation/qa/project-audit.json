@@ -9,7 +9,7 @@
     "assets": 104,
     "asset_megabytes": 48.7,
     "sounds": 49,
-    "text_keys": 116
+    "text_keys": 117
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
 }
