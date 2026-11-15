@@ -1,0 +1,88 @@
+{
+  "checks": 1699,
+  "engine": "4.7.2-stable (official)",
+  "failures": [],
+  "methods": 102,
+  "passed": true,
+  "suites": [
+    {
+      "checks": 660,
+      "failures": 0,
+      "methods": 6,
+      "name": "test_localization"
+    },
+    {
+      "checks": 193,
+      "failures": 0,
+      "methods": 6,
+      "name": "test_business_data"
+    },
+    {
+      "checks": 61,
+      "failures": 0,
+      "methods": 17,
+      "name": "test_economy"
+    },
+    {
+      "checks": 37,
+      "failures": 0,
+      "methods": 6,
+      "name": "test_save"
+    },
+    {
+      "checks": 63,
+      "failures": 0,
+      "methods": 5,
+      "name": "test_decor"
+    },
+    {
+      "checks": 107,
+      "failures": 0,
+      "methods": 6,
+      "name": "test_missions_events"
+    },
+    {
+      "checks": 35,
+      "failures": 0,
+      "methods": 6,
+      "name": "test_customer_flow"
+    },
+    {
+      "checks": 18,
+      "failures": 0,
+      "methods": 5,
+      "name": "test_auto_upgrade"
+    },
+    {
+      "checks": 73,
+      "failures": 0,
+      "methods": 10,
+      "name": "test_profile"
+    },
+    {
+      "checks": 28,
+      "failures": 0,
+      "methods": 8,
+      "name": "test_daily_and_tips"
+    },
+    {
+      "checks": 292,
+      "failures": 0,
+      "methods": 10,
+      "name": "test_guild_locale"
+    },
+    {
+      "checks": 72,
+      "failures": 0,
+      "methods": 9,
+      "name": "test_guild_rig"
+    },
+    {
+      "checks": 60,
+      "failures": 0,
+      "methods": 8,
+      "name": "test_guild_player"
+    }
+  ],
+  "timestamp": "2026-11-15T23:47:27"
+}
