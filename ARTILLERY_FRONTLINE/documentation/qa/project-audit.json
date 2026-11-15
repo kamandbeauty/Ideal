@@ -1,15 +1,12 @@
 {
-  "passed": false,
-  "problems": [
-    "assets nothing asks for: assets/audio/RELOAD-CREDIT.md",
-    "assets/audio/RELOAD-CREDIT.md was never imported (no .import beside it)"
-  ],
+  "passed": true,
+  "problems": [],
   "counted": {
     "paths_checked": 240,
     "scripts": 53,
     "scenes": 15,
     "resources": 28,
-    "assets": 115,
+    "assets": 114,
     "asset_megabytes": 57.9,
     "sounds": 49,
     "text_keys": 130
