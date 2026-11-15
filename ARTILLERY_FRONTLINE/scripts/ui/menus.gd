@@ -55,6 +55,7 @@ var equipment_return: String = "main"
 var equipment_summary: Label
 var wallet_label: Label
 var upgrade_button: Button
+var equip_button: Button
 var reward_label: Label
 var ad_button: Button
 ## The title (and loading) START control. Playthrough taps this rather than searching labels.
@@ -150,6 +151,7 @@ func _clear() -> void:
 	equipment_summary = null
 	wallet_label = null
 	upgrade_button = null
+	equip_button = null
 	reward_label = null
 	ad_button = null
 	play_button = null
@@ -663,13 +665,16 @@ func _build_upgrade() -> void:
 	equipment_summary.clip_text = true
 	equipment_summary.custom_minimum_size.y = 60.0
 	plan.add_child(equipment_summary)
-	plan.add_child(UITheme.button(Loc.t("equip"), func() -> void:
+	equip_button = UITheme.button(Loc.t("equip"), func() -> void:
 		if Profile.GUNS.has(equipment_id):
 			gun_chosen.emit(equipment_id)
 		elif Profile.LAUNCHERS.has(equipment_id):
 			Profile.set_setting("launcher", equipment_id)
 		elif Profile.GRENADES.has(equipment_id):
-			Profile.set_setting("grenade", equipment_id)))
+			Profile.set_setting("grenade", equipment_id)
+		_refresh_equipment(false))
+	equip_button.name = "EquipButton"
+	plan.add_child(equip_button)
 	upgrade_button = UITheme.button("", func() -> void:
 		if Profile.buy_upgrade(equipment_id):
 			_refresh_equipment(false), "accent")
@@ -687,6 +692,10 @@ func _refresh_equipment(rebuild_preview: bool) -> void:
 	else:
 		var item: WeaponData = Profile.launcher_data(equipment_id) if Profile.LAUNCHERS.has(equipment_id) else gun_data(equipment_id)
 		gun_preview_name.text = Loc.t(item.name_key)
+	var setting_key: String = "gun" if Profile.GUNS.has(equipment_id) else ("launcher" if Profile.LAUNCHERS.has(equipment_id) else "grenade")
+	var equipped: bool = String(Profile.setting(setting_key)) == equipment_id
+	equip_button.text = Loc.t("equipped") if equipped else Loc.t("equip")
+	equip_button.disabled = equipped
 	equipment_summary.text = Loc.t("upgrade_details", [Loc.number(level), Loc.number(Profile.MAX_UPGRADE), Loc.number(level * 12)])
 	upgrade_button.text = Loc.t("upgrade_max") if cost == 0 else Loc.t("upgrade_cost", [Loc.number(cost)])
 	upgrade_button.disabled = cost == 0 or int(Profile.data.economy.coins) < cost

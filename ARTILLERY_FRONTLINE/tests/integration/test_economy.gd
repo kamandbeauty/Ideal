@@ -79,6 +79,19 @@ func run(t: TestContext) -> void:
 	t.equal(menus.screen, "upgrade", "selecting equipment opens its own upgrade page")
 	t.equal(menus.gun_preview.displayed_id, "frag_grenade", "grenade has a model preview")
 	t.check(menus.gun_preview.camera.size < 0.7, "the small grenade fills the preview rather than appearing as a speck")
+	menus.equipment_id = "heavy_rpg"
+	menus.show_upgrade()
+	await t.frames(2)
+	t.check(not menus.equip_button.disabled, "an alternative launcher can be equipped")
+	menus.equip_button.pressed.emit()
+	t.check(String(Profile.setting("launcher")) == "heavy_rpg" and menus.equip_button.disabled, "equip button selects the launcher and confirms the selection")
+	menus.equipment_id = "blast_grenade"
+	menus.show_upgrade()
+	await t.frames(2)
+	menus.equip_button.pressed.emit()
+	t.check(String(Profile.setting("grenade")) == "blast_grenade" and menus.equip_button.disabled, "equip button selects the grenade")
+	Profile.set_setting("launcher", "rpg_launcher")
+	Profile.set_setting("grenade", "frag_grenade")
 	for id: String in Profile.EQUIPMENT:
 		menus.show_equipment()
 		await t.frames(2)

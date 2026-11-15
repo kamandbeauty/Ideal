@@ -78,6 +78,7 @@ static func texture_for(kind: String) -> Texture2D:
 	var lobes: Array = [[3.0, 0.9, 0.13], [5.0, 2.4, 0.09], [9.0, 4.1, 0.05]] if kind == "blood" else [[5.0, 0.4, 0.05]]
 	var reach: float = 0.66 if kind == "blood" else 0.8
 	var soft: float = 0.16 if kind == "blood" else 0.55
+	var droplets: Array[Vector3] = [Vector3(-0.74, -0.38, 0.09), Vector3(0.72, 0.35, 0.075), Vector3(0.30, -0.82, 0.06), Vector3(-0.60, 0.70, 0.055)]
 	for y: int in size:
 		for x: int in size:
 			var offset := Vector2((float(x) + 0.5) / float(size) * 2.0 - 1.0, (float(y) + 0.5) / float(size) * 2.0 - 1.0)
@@ -91,7 +92,7 @@ static func texture_for(kind: String) -> Texture2D:
 				# generated once and shared by the whole pooled batch.
 				var grain: float = 0.82 + 0.18 * sin(float(x) * 1.7 + sin(float(y) * 2.4))
 				var droplet: float = 0.0
-				for spot: Vector3 in [Vector3(-0.74, -0.38, 0.09), Vector3(0.72, 0.35, 0.075), Vector3(0.30, -0.82, 0.06), Vector3(-0.60, 0.70, 0.055)]:
+				for spot: Vector3 in droplets:
 					droplet = maxf(droplet, 1.0 - smoothstep(spot.z * 0.7, spot.z, offset.distance_to(Vector2(spot.x, spot.y))))
 				alpha = maxf(alpha * grain, droplet * 0.88)
 			image.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))

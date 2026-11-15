@@ -39,6 +39,13 @@ func _build_hospital() -> void:
 	_box("CityBlockWest", Vector3(-25, 12, -150), Vector3(26, 24, 14), "wall", true)
 	_box("CityBlockEast", Vector3(25, 12, -150), Vector3(26, 24, 14), "concrete", true)
 	_windows()
+	for side: int in [-1, 1]:
+		var cx: float = side * 25.0
+		_box("CityCornice%d" % side, Vector3(cx, 24.1, -150), Vector3(27, 0.5, 15), "trim")
+		for floor_index: int in 4:
+			_box("CitySill%d_%d" % [side, floor_index], Vector3(cx, 3.0 + floor_index * 5.2, -142.8), Vector3(25, 0.28, 0.25), "trim")
+		for col: int in 3:
+			_box("CityColumn%d_%d" % [side, col], Vector3(cx - 9 + col * 9, 12, -142.82), Vector3(0.35, 23, 0.25), "concrete")
 	# Two damaged wings frame the forecourt without blocking the avenue.
 	_box("WestClinic", Vector3(-39, 7.5, -95), Vector3(14, 15, 38), "concrete", true)
 	_box("EastClinic", Vector3(39, 7.5, -95), Vector3(14, 15, 38), "concrete", true)
@@ -48,6 +55,13 @@ func _build_hospital() -> void:
 		for index: int in 5:
 			_box("ClinicWindow%d_%d" % [side, index], Vector3(side * 31.85, 10, -110 + index * 6), Vector3(0.2, 2.4, 2.7), "glass")
 		_box("ClinicRoof%d" % side, Vector3(side * 39, 15.2, -95), Vector3(15, 0.6, 39), "trim")
+		# Front glazing and medical signs face the rooftop.
+		for floor_index: int in 2:
+			for col: int in 3:
+				_box("ClinicFront%d_%d_%d" % [side, floor_index, col], Vector3(side * 39 + (col - 1) * 3.7, 5.2 + floor_index * 5.3, -75.9), Vector3(2.4, 2.3, 0.18), "glass")
+		_box("ClinicSign%d" % side, Vector3(side * 39, 13.0, -75.8), Vector3(5.4, 1.4, 0.2), "white")
+		_box("ClinicCrossV%d" % side, Vector3(side * 39, 13.0, -75.65), Vector3(0.45, 1.1, 0.12), "red")
+		_box("ClinicCrossH%d" % side, Vector3(side * 39, 13.0, -75.60), Vector3(1.2, 0.4, 0.12), "red")
 	# Two ambulances frame the battlefield, away from the walkable center lanes.
 	_ambulance(Vector3(-22.0, 0, -70), "WestAmbulance")
 	_ambulance(Vector3(22.0, 0, -70), "EastAmbulance")
@@ -133,10 +147,14 @@ func _windows() -> void:
 	var multi := MultiMesh.new()
 	multi.transform_format = MultiMesh.TRANSFORM_3D
 	multi.mesh = mesh
-	multi.instance_count = 33
-	for floor_index: int in 3:
-		for col: int in 11:
-			multi.set_instance_transform(floor_index * 11 + col, Transform3D(Basis.IDENTITY, Vector3(-32.0 + col * 6.4, 7.0 + floor_index * 5.3, -143.35)))
+	multi.instance_count = 48
+	for side_index: int in 2:
+		var center: float = -25.0 if side_index == 0 else 25.0
+		for floor_index: int in 4:
+			for col: int in 6:
+				var x: float = center - 10.0 + col * 4.0
+				var index: int = side_index * 24 + floor_index * 6 + col
+				multi.set_instance_transform(index, Transform3D(Basis.IDENTITY, Vector3(x, 4.6 + floor_index * 5.2, -142.84)))
 	windows.multimesh = multi
 	windows.material_override = materials["glass"]
 	add_child(windows)
