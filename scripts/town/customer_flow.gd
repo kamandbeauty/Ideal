@@ -16,6 +16,7 @@ const QUEUE_EXTRA := 1
 const ROAD_REACH := 17.0
 
 var agents: Array[Dictionary] = []
+var max_agents := MAX_AGENTS
 var state
 var _queues: Dictionary = {}
 var _timers: Dictionary = {}
@@ -85,7 +86,7 @@ func _tick_business(id: String, delta: float) -> void:
 	for finished in queue.tick(delta):
 		_paid(id, int(finished))
 
-	if agents.size() >= MAX_AGENTS:
+	if agents.size() >= max_agents:
 		return
 	_timers[id] = float(_timers[id]) - delta
 	if float(_timers[id]) > 0.0:

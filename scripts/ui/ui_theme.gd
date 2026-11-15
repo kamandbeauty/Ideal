@@ -21,6 +21,21 @@ const FONT_BOLD := "res://assets/fonts/Vazirmatn-Bold.ttf"
 const FONT_TITLE := "res://assets/fonts/Vazirmatn-Black.ttf"
 
 
+## The soft dark edge that keeps the HUD readable over a bright desert.
+static func vignette_texture() -> GradientTexture2D:
+	var gradient := Gradient.new()
+	gradient.set_color(0, Color(1, 1, 1, 0.0))
+	gradient.set_color(1, Color(0.02, 0.03, 0.06, 0.5))
+	var texture := GradientTexture2D.new()
+	texture.gradient = gradient
+	texture.fill = GradientTexture2D.FILL_RADIAL
+	texture.fill_from = Vector2(0.5, 0.5)
+	texture.fill_to = Vector2(1.05, 0.5)
+	texture.width = 256
+	texture.height = 256
+	return texture
+
+
 static func build() -> Theme:
 	var theme := Theme.new()
 	var regular: Font = load(FONT_REGULAR)

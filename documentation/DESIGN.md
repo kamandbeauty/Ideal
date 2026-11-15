@@ -87,13 +87,18 @@ customers, unlocked businesses, completion):
 | # | Mission | Goal | Reward |
 | --- | --- | --- | --- |
 | 1 | First upgrade | 1 upgrade | 250 coins |
-| 2 | The roadside kitchen | open the restaurant | 400 coins |
+| 2 | The roadside shelf | open the store (1,100 — the cheapest) | 450 coins |
 | 3 | Level three | any business at level 3 | 600 coins |
 | 4 | First manager | hire one manager | 800 coins |
-| 5 | Specialise | buy any branch | 500 coins |
-| 6 | Regulars | 500 customers served | 1,000 coins |
-| 7 | Full house | all six businesses open | 2,000 coins |
-| 8 | Complete stop | 100 % completion | 25 gems |
+| 5 | The roadside kitchen | open the restaurant | 900 coins |
+| 6 | Specialise | buy any branch | 700 coins |
+| 7 | Regulars | 500 customers served | 1,000 coins |
+| 8 | Full house | all six businesses open | 2,000 coins |
+| 9 | Complete stop | 100 % completion | 25 gems |
+
+The order follows the prices, not the fiction: with the starting 1,500 the store is
+always affordable first, so the chain never asks for something the player cannot
+buy yet (`tools/balance_report.py` shows the curve).
 
 The HUD shows one mission pill with progress and a claim button; the step and
 the counters are saved, and claiming is refused twice.
@@ -241,7 +246,12 @@ world map.
 
 ```json
 {
-  "version": 1,
+  "version": 2,
+  "active": "desert",
+  "streak": 3,
+  "bonus_day": 20347,
+  "towns": {
+    "desert": {
   "town": "desert",
   "cash": 1234.5,
   "gems": 10,
@@ -255,8 +265,14 @@ world map.
      "capacity": 1, "speed": 0, "quality": 2, "manager": 1,
      "customers": 400.0, "revenue": 1200.0}
   ]
+    }
+  }
 }
 ```
+
+A version 1 file (a single town at the top level) is still read: `Profile`
+wraps it into a one-town profile, so the world map did not invalidate anyone's
+progress.
 
 Loading validates the version and the town id, drops unknown businesses, clamps
 levels and branches into range, and re-opens the gas station if a save somehow
@@ -283,6 +299,69 @@ new town starts.
 | `scripts/core/save_manager.gd` | file I/O, backup rotation, validation |
 | `scripts/core/l10n.gd` | every string in Persian and English |
 
+## World map and profile
+
+`Profile` owns every town, the active one and the daily streak; one profile is one
+save file. `Profile.reputation()` is the **best** reputation of any town, and that
+is what the world map compares against `TownData.reputation_required()`:
+
+| Town | Traffic | Income | Cost | Gate |
+| --- | --- | --- | --- | --- |
+| Desert | ×1.00 | ×1.00 | ×1.00 | — |
+| Forest | ×0.85 | ×1.20 | ×1.10 | 600 |
+| Mountain | ×0.90 | ×1.30 | ×1.25 | 1,400 |
+| Coast | ×1.15 | ×1.25 | ×1.20 | 2,600 |
+| Highway | ×1.40 | ×1.40 | ×1.40 | 4,200 |
+
+Travelling saves the town you leave, switches the profile's active town and lets
+`main.gd` rebuild the town scene; every town keeps its own businesses, cash,
+reputation and completion, while the profile keeps the streak and the visited set.
+Offline income is summed over every town that has a manager, with a per-town
+breakdown in the report.
+
+## Player-driven income
+
+Two systems give the player something to do between upgrades, both bounded so the
+idle economy stays the source of truth:
+
+- **Tips** — tapping the business you already have open pays
+  `max(5, net/second × 2)` once every 6 seconds per building
+  (`TownState.TIP_COOLDOWN` / `TIP_SECONDS`). The cooldown is the balance knob: at
+  3 s/3 s the town finished in 121 minutes instead of 162, which made tapping
+  better than upgrading; at 2 s/6 s it is 145 minutes, so a habit of tapping is
+  worth about 10 % of a play-through.
+- **Gem rush hour** — five gems start the `holiday` event (traffic ×1.5,
+  income ×1.2, 120 s). Refused while another event runs, so gems stay a decision.
+
+## Daily chest
+
+`DailyBonus` is pure math over the day index: `multiplier = 1 + 0.35 (streak − 1)`
+capped at streak 7, `cash = max(net/min, 40) × 2.5 min × multiplier`, plus one gem
+every third day. Missing a day resets the streak to 1. The chest is opened
+automatically on the first launch of the day, with a toast, a coin sound and a
+vibration — the reward for coming back, not a chore.
+
+## Graphics presets
+
+| Preset | Customers | Walkers | Night lights | FPS cap |
+| --- | --- | --- | --- | --- |
+| Low | 3 | 4 | 0 | 30 |
+| Medium | 5 | 7 | 3 | 60 |
+| High | 7 | 10 | 6 | free |
+
+The simulation is identical in all three; only dressing changes. Volume sliders,
+vibration and the preset are stored in `user://settings.cfg` by `App`.
+
+## Audio
+
+`tools/build_audio.py` renders everything with numpy and writes OGG Vorbis:
+three loops (menu 80 bpm, day 96 bpm, night 84 bpm with a pad) built on electric
+piano, upright bass, brushed snare, tambourine and vibraphone voices, plus fifteen
+one-shots. Tails are folded back over the loop start so a loop joins without a
+click (measured seam < 0.01). `sound.gd` plays named sounds (`play("coin")`),
+cross-fades the music over 1.1 s, follows the day cycle between the day and night
+loops, and caps the total shipped audio at ~728 KB.
+
 ## Performance notes
 
 - Verified against a **POCO X5 Pro / 60 FPS** target rather than a desktop.
@@ -298,17 +377,18 @@ new town starts.
 
 1. **Vertical slice (this build)** — desert town, six businesses, three branches,
    managers, offline income, saving, FA/EN, smoke screenshots.
-2. World map and the remaining four towns with their own scenery and business
-   mixes.
-3. Managers as characters with contracts and traits; staff for the workshop.
-4. Missions, daily objectives and a first-time flow.
+2. ~~World map and the remaining four towns~~ (done: `Profile`, `world_map.gd`,
+   reputation gates 0 / 600 / 1400 / 2600 / 4200).
+3. Managers as timed contracts with traits, instead of a flat purchase.
+4. ~~Missions, daily objectives and a first-time flow~~ (done: the mission chain,
+   the daily chest with its streak and the tap-for-tip loop).
 5. ~~Android export preset and a downloadable debug APK~~ (done: preset
    "Android APK", `.github/workflows/apk.yml`, rolling `roadstop-apk` release).
    Remaining: release signing/AAB and an on-device performance pass.
 
 ## Test coverage
 
-`tests/run_tests.gd` runs eight suites headlessly:
+`tests/run_tests.gd` runs ten suites headlessly:
 
 - `test_localization` — both languages complete, placeholders substitute, every
   business/town/branch/manager rank is named.
@@ -318,19 +398,29 @@ new town starts.
   gems and the offline cap.
 - `test_save` — round trip, rejected saves, clamping, unknown ids, file I/O and
   the backup fallback.
-- `test_decor` — every decor stage exists and only uses real props.
-- `test_missions_events` — the mission chain, rewards, event multipliers and the
-  event catalogue.
-- `test_customer_flow` — service slots, line overflow, promotion order and the
-  vehicle catalogue.
-- `test_auto_upgrade` — the manager's cheapest-first rule, the cash reserve and
-  maxed businesses going quiet.
 - `test_decor` — all four visual stages build for every business, lit props
   register their materials, and the day cycle's sun and phases are correct.
 - `test_missions_events` — the chain runs from the first upgrade to a finished
   town, rewards pay once, every mission and event is translated, and event
   multipliers and timers behave.
+- `test_customer_flow` — service slots, line overflow, promotion order and the
+  vehicle catalogue.
+- `test_auto_upgrade` — the manager's cheapest-first rule, the cash reserve and
+  maxed businesses going quiet.
+- `test_profile` — the five towns, shared reputation, travel gates, the version 1
+  save migration, offline income across towns and the daily streak.
+- `test_daily_and_tips` — the streak curve and gem cadence, the tip cooldown and
+  its cap, the next-goal query and the gem-funded rush hour.
 
 `tools/smoke.gd` then boots the real scenes with a software renderer and captures
 the menu (FA/EN), the town, the detail panel, a turned and a zoomed camera, the
-offline report and the English HUD.
+offline report, the English HUD, the customer queue, the world map and the crew.
+
+## Reproducing the numbers
+
+```bash
+python3 tools/balance_report.py --minutes 300        # play-through curve
+python3 tools/balance_report.py --minutes 300 --tap 6  # with tips every 6 s
+python3 tools/build_audio.py                         # regenerate the soundtrack
+python3 tools/build_icons.py                          # regenerate the icons
+```

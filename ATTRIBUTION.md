@@ -16,10 +16,23 @@ Files taken from the kit and kept in this project:
 | --- | --- |
 | `assets/models/*.glb` | roads, buildings, grass, trees, pavement, fountain |
 | `assets/models/Textures/colormap.png` | shared colour texture for the models |
-| `assets/audio/*.ogg` | ambience, placement, removal, rotate and toggle sounds |
+| `assets/audio/placement-*.ogg`, `removal-*.ogg`, `rotate.ogg`, `toggle.ogg` | build/UI sounds kept from the kit |
 
 The game code in `scripts/`, the map layout and the user interface were written
 for this project and are not part of the starter kit.
+
+## Music, sound effects and icon — generated for this project
+
+Nothing in the soundtrack is licensed from anywhere: it is synthesised from
+scratch by [`tools/build_audio.py`](tools/build_audio.py) (numpy + libsndfile),
+so the files in `assets/audio/music/`, `assets/audio/sfx/` and
+`assets/audio/ambience.ogg` are original works released with this repository.
+Re-run the script to regenerate or retune them.
+
+The launcher icon is generated artwork: the 1024 px master is
+`assets/icons/source-icon.png`, and [`tools/build_icons.py`](tools/build_icons.py)
+derives every shipped size (project icon, legacy launcher icon, Android adaptive
+foreground and background) from it.
 
 ## Vazirmatn font
 

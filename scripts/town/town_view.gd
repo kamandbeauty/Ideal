@@ -358,10 +358,12 @@ func _build_road() -> void:
 
 	var pedestrians := Pedestrians.new()
 	pedestrians.name = "Pedestrians"
+	pedestrians.set_count(Quality.pedestrian_count(App.quality))
 	add_child(pedestrians)
 
 	var customers := CustomerFlow.new()
 	customers.name = "Customers"
+	customers.max_agents = Quality.agent_cap(App.quality)
 	customers.setup(state)
 	add_child(customers)
 
@@ -528,7 +530,12 @@ func _build_retro_features(parent: Node3D, id: String) -> void:
 		_night_materials.append(material)
 	for material in dressing["halo"]:
 		_halo_materials.append(material)
-	_plot_lights[id] = dressing["light"]
+	# The graphics preset decides how many plots may own a real light; the rest
+	# keep their emissive windows and halo, which cost nothing.
+	if _plot_lights.size() >= Quality.light_budget(App.quality):
+		(dressing["light"] as OmniLight3D).queue_free()
+	else:
+		_plot_lights[id] = dressing["light"]
 
 
 func _build_stages(parent: Node3D, id: String) -> void:

@@ -45,6 +45,11 @@ var _close_button: Button
 var _offline_title: Label
 var _toast_panel: PanelContainer
 var _toast: Label
+var _boost_button: Button
+var _map_button: Button
+var _settings_button: Button
+var _world_map
+var _settings
 
 var _toast_timer := 0.0
 var _refresh_timer := 0.0
@@ -60,7 +65,7 @@ func setup(session_node: Node) -> void:
 	_build()
 	_apply_language()
 	_refresh()
-	_show_toast(App.t("hud.hint"))
+	_show_hint()
 	App.language_changed.connect(_on_language_changed)
 
 
@@ -72,22 +77,13 @@ func _build() -> void:
 	_build_toast()
 	_build_offline()
 	_build_completion()
+	_build_overlays()
 
 
 func _build_vignette() -> void:
-	var gradient := Gradient.new()
-	gradient.set_color(0, Color(1, 1, 1, 0.0))
-	gradient.set_color(1, Color(0.02, 0.03, 0.06, 0.5))
-	var texture := GradientTexture2D.new()
-	texture.gradient = gradient
-	texture.fill = GradientTexture2D.FILL_RADIAL
-	texture.fill_from = Vector2(0.5, 0.5)
-	texture.fill_to = Vector2(1.05, 0.5)
-	texture.width = 256
-	texture.height = 256
 	var vignette := TextureRect.new()
 	vignette.name = "Vignette"
-	vignette.texture = texture
+	vignette.texture = UiTheme.vignette_texture()
 	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	vignette.stretch_mode = TextureRect.STRETCH_SCALE
 	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -126,6 +122,18 @@ func _build_top_area() -> void:
 	row.add_child(_gems_label)
 	_reputation_label = _label(20, UiTheme.GOOD, true)
 	row.add_child(_reputation_label)
+
+	_boost_button = _button("hud.boost", "GhostButton", 116, 44)
+	_boost_button.pressed.connect(_on_boost)
+	row.add_child(_boost_button)
+
+	_map_button = _button("hud.map", "GhostButton", 96, 44)
+	_map_button.pressed.connect(_on_map)
+	row.add_child(_map_button)
+
+	_settings_button = _button("hud.settings", "GhostButton", 110, 44)
+	_settings_button.pressed.connect(_on_settings)
+	row.add_child(_settings_button)
 
 	_save_button = _button("hud.save", "GhostButton", 96, 44)
 	_save_button.pressed.connect(_on_save)
@@ -215,6 +223,57 @@ func _build_top_area() -> void:
 	_mission_claim.add_theme_font_size_override("font_size", 14)
 	_mission_claim.pressed.connect(_on_claim_mission)
 	mission_box.add_child(_mission_claim)
+
+
+## The world map and the settings sheet live above the HUD, hidden until asked
+## for, so the town itself never has to know about them.
+func _build_overlays() -> void:
+	_world_map = load("res://scripts/ui/world_map.gd").new()
+	_world_map.name = "WorldMap"
+	_world_map.visible = false
+	_world_map.connect("travel_requested", _on_travel)
+	add_child(_world_map)
+
+	_settings = load("res://scripts/ui/settings_panel.gd").new()
+	_settings.name = "Settings"
+	_settings.visible = false
+	add_child(_settings)
+
+
+func _on_boost() -> void:
+	if state.buy_boost():
+		Sound.play("event", -4.0)
+		App.tap(35)
+		_show_toast(App.t("msg.boost"))
+	else:
+		Sound.play("deny", -12.0)
+	_refresh()
+
+
+## First toast: always the closest thing the player can actually do next.
+func _show_hint() -> void:
+	var goal := state.next_locked()
+	if goal.is_empty():
+		_show_toast(App.t("hud.hint"))
+		return
+	_show_toast(App.t("hud.next_goal", [
+		App.t("business.%s.name" % str(goal["id"])), _money(float(goal["price"]))
+	]))
+
+
+func _on_map() -> void:
+	Sound.play("click", -12.0)
+	_world_map.open()
+
+
+func _on_settings() -> void:
+	Sound.play("click", -12.0)
+	_settings.open()
+
+
+func _on_travel(town_id: String) -> void:
+	_world_map.close()
+	session.travel_to(town_id)
 
 
 func _build_cards() -> void:
@@ -477,6 +536,9 @@ func _apply_language() -> void:
 	_complete_button.text = App.t("hud.complete_continue")
 	_save_button.text = App.t("hud.save")
 	_menu_button.text = App.t("hud.menu")
+	_map_button.text = App.t("hud.map")
+	_boost_button.text = App.t("hud.boost", [App.format_number(float(TownState.BOOST_GEMS))])
+	_settings_button.text = App.t("hud.settings")
 	_close_button.text = App.t("hud.close")
 	_offline_title.text = App.t("hud.offline_title")
 	_mission_claim.text = App.t("mission.claim")
@@ -524,6 +586,8 @@ func _refresh() -> void:
 	_reputation_label.text = "%s %s" % [
 		App.t("hud.reputation"), _num(int(state.reputation))
 	]
+	if _boost_button != null:
+		_boost_button.disabled = not state.can_boost()
 
 	var progress := state.completion()
 	_completion_bar.value = progress * 100.0
@@ -593,7 +657,7 @@ func _on_claim_mission() -> void:
 	var result := state.claim_mission()
 	if result.is_empty():
 		return
-	Sound.play("res://assets/audio/toggle.ogg", -6.0)
+	Sound.play("mission", -5.0)
 	var parts: Array[String] = []
 	if float(result["reward"]) > 0.0:
 		parts.append(App.t("mission.reward_coins", [_num(float(result["reward"]))]))
@@ -752,7 +816,10 @@ func show_offline(seconds: float, earnings: float) -> void:
 # --- Buttons ---------------------------------------------------------------
 
 func _on_card_pressed(id: String) -> void:
-	Sound.play("res://assets/audio/toggle.ogg", -12.0)
+	if id == selected_id:
+		if session.collect_tip(id) > 0.0:
+			return
+	Sound.play("click", -14.0)
 	session.select_business(id)
 
 
@@ -770,9 +837,11 @@ func _on_upgrade() -> void:
 	if business == null:
 		return
 	if state.upgrade_business(selected_id):
-		Sound.play("res://assets/audio/placement-*.ogg", -8.0)
+		Sound.play("upgrade", -8.0)
+		App.tap(20)
 		_show_toast(App.t("msg.upgraded", [_business_name(selected_id), business.level]))
 	else:
+		Sound.play("deny", -12.0)
 		_show_toast(App.t("msg.no_cash"))
 	_refresh()
 
@@ -782,13 +851,15 @@ func _on_branch(branch: String) -> void:
 	if business == null:
 		return
 	if state.upgrade_branch(selected_id, branch):
-		Sound.play("res://assets/audio/placement-*.ogg", -8.0)
+		Sound.play("upgrade", -9.0)
+		App.tap(18)
 		_show_toast(App.t("msg.branch_upgraded", [
 			_business_name(selected_id),
 			App.t("branch.%s" % branch),
 			business.branch_level(branch),
 		]))
 	else:
+		Sound.play("deny", -12.0)
 		_show_toast(App.t("msg.no_cash"))
 	_refresh()
 
@@ -798,25 +869,30 @@ func _on_manager() -> void:
 	if business == null:
 		return
 	if state.hire_manager(selected_id):
-		Sound.play("res://assets/audio/toggle.ogg", -6.0)
+		Sound.play("hire", -6.0)
+		App.tap(30)
 		_show_toast(App.t("msg.manager_hired", [
 			_business_name(selected_id), App.t("manager.rank.%d" % business.manager_rank)
 		]))
 	else:
+		Sound.play("deny", -12.0)
 		_show_toast(App.t("msg.no_cash"))
 	_refresh()
 
 
 func _on_unlock() -> void:
 	if state.unlock_business(selected_id):
-		Sound.play("res://assets/audio/placement-*.ogg", -6.0)
+		Sound.play("build", -5.0)
+		App.tap(30)
 		_show_toast(App.t("msg.unlocked", [_business_name(selected_id)]))
 	else:
+		Sound.play("deny", -12.0)
 		_show_toast(App.t("msg.no_cash"))
 	_refresh()
 
 
 func _on_save() -> void:
+	Sound.play("click", -12.0)
 	session.save_now()
 	_show_toast(App.t("msg.save_ok"))
 
@@ -828,7 +904,8 @@ func _on_menu() -> void:
 func show_completion_banner() -> void:
 	_complete_layer.visible = true
 	_complete_layer.move_to_front()
-	Sound.play("res://assets/audio/placement-*.ogg", -5.0)
+	Sound.play("complete", -4.0)
+	App.tap(60)
 
 
 func collect_offline() -> void:

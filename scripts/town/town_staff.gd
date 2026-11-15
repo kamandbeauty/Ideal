@@ -62,6 +62,15 @@ func _build(id: String, business) -> void:
 	)
 	staff.rotation_degrees.y = 90.0 * to_road
 	root.add_child(staff)
+	# An apron in the business colour: the staff belongs to the building, not to
+	# a generic crowd, and at a glance the plot reads as "someone works here".
+	var apron := MeshInstance3D.new()
+	var apron_mesh := BoxMesh.new()
+	apron_mesh.size = Vector3(0.31, 0.4, 0.05)
+	apron.mesh = apron_mesh
+	apron.position = Vector3(0, 0.62, -0.15 * to_road)
+	apron.material_override = PersonMesh.flat(BusinessData.accent(id))
+	staff.add_child(apron)
 
 	var manager: Node3D = null
 	if business.manager_rank > 0:

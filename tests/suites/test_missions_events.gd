@@ -7,6 +7,8 @@ func _focus(town: TownState, id: String) -> void:
 		"first_upgrade":
 			if town.upgrades_total == 0:
 				town.upgrade_business("gas_station")
+		"open_store":
+			town.unlock_business("store")
 		"open_restaurant":
 			town.unlock_business("restaurant")
 		"reach_level_three":

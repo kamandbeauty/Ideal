@@ -89,6 +89,25 @@ func _run() -> void:
 	await _settle(360)
 	await _capture("09-customers")
 
+	# The world map, with one town behind the player and the route ahead locked.
+	Game.profile.travel("forest")
+	Game.profile.travel("desert")
+	var map_node := _town.hud.get_node("WorldMap")
+	map_node.call("open")
+	await _settle(12)
+	await _capture("10-world-map")
+	map_node.call("close")
+	await _settle(4)
+
+	# The crew: staff at the door and a manager patrolling the restaurant plot.
+	_town.deselect()
+	_town.day_cycle.set_time(0.5)
+	var restaurant := BusinessData.plot("restaurant")
+	_town.camera_rig.focus_on(Vector3(restaurant.x, 0, restaurant.y))
+	_town.camera_rig.zoom_by(0.55)
+	await _settle(150)
+	await _capture("11-staff")
+
 	print("SMOKE OK")
 	get_tree().quit(0)
 
@@ -105,7 +124,7 @@ func _boost_town(town) -> void:
 		state.upgrade_branch(id, "capacity")
 		state.upgrade_branch(id, "quality")
 		state.hire_manager(id)
-	state.reputation = 310.0
+	state.reputation = 1500.0
 	state.advance(0.05)
 	var mission := state.mission_progress()
 	if not mission.is_empty() and bool(mission["ready"]):

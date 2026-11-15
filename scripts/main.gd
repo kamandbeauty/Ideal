@@ -12,6 +12,7 @@ func _ready() -> void:
 
 
 func show_menu() -> void:
+	Sound.play_music("menu")
 	var menu = MENU_SCENE.instantiate()
 	_replace(menu)
 	menu.play_requested.connect(start_new_game)
@@ -32,6 +33,13 @@ func _start_town() -> void:
 	var town = TOWN_SCENE.instantiate()
 	_replace(town)
 	town.exit_requested.connect(show_menu)
+	# Travelling rebuilds the scene, which is the cheapest honest way to swap a
+	# whole town: new ground, new economy, same profile.
+	town.travel_requested.connect(_on_travel)
+
+
+func _on_travel(_town_id: String) -> void:
+	_start_town.call_deferred()
 
 
 func _replace(next: Node) -> void:

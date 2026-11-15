@@ -13,6 +13,9 @@ var _play: Button
 var _continue: Button
 var _language: Button
 var _quit: Button
+var _settings_button: Button
+var _settings
+var _icon: TextureRect
 var _built := false
 
 
@@ -24,6 +27,7 @@ func _ready() -> void:
 		_build()
 	_apply_language()
 	App.language_changed.connect(_on_language_changed)
+	Sound.play_music("menu")
 
 
 func _build() -> void:
@@ -55,6 +59,15 @@ func _build() -> void:
 	column.custom_minimum_size = Vector2(560, 0)
 	center.add_child(column)
 
+	_icon = TextureRect.new()
+	_icon.texture = load("res://assets/icons/launcher_192.png")
+	_icon.custom_minimum_size = Vector2(132, 132)
+	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(_icon)
+
 	_title = _make_label(72, UiTheme.TEXT)
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_title)
@@ -85,9 +98,23 @@ func _build() -> void:
 	_continue.pressed.connect(func() -> void: continue_requested.emit())
 	column.add_child(_continue)
 
-	_language = _make_button(240, 56, "GhostButton")
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 12)
+	column.add_child(buttons)
+
+	_language = _make_button(200, 56, "GhostButton")
 	_language.pressed.connect(func() -> void: App.toggle_language())
-	column.add_child(_language)
+	buttons.add_child(_language)
+
+	_settings_button = _make_button(160, 56, "GhostButton")
+	_settings_button.pressed.connect(_on_settings)
+	buttons.add_child(_settings_button)
+
+	_settings = load("res://scripts/ui/settings_panel.gd").new()
+	_settings.name = "Settings"
+	_settings.visible = false
+	add_child(_settings)
 
 	_best = _make_label(18, UiTheme.GOLD)
 	_best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -129,6 +156,11 @@ func _make_button(min_width: int, height: int, variation: String) -> Button:
 	return button
 
 
+func _on_settings() -> void:
+	Sound.play("click", -12.0)
+	_settings.open()
+
+
 func _on_language_changed(_language: String) -> void:
 	layout_direction = App.layout_direction()
 	_apply_language()
@@ -142,6 +174,7 @@ func _apply_language() -> void:
 	_play.text = App.t("menu.new_game")
 	_continue.text = App.t("menu.continue")
 	_language.text = App.t("menu.language_target")
+	_settings_button.text = App.t("hud.settings")
 	_quit.text = App.t("menu.quit")
 	_best.text = App.t("menu.record", [App.format_number(float(App.best_reputation))])
 	_continue.visible = Game.has_save()

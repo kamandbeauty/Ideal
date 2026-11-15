@@ -10,14 +10,20 @@ const WALK_SPEED_MIN := 0.5
 const WALK_SPEED_MAX := 1.05
 
 var agents: Array[Dictionary] = []
+var count := COUNT
 var _rng := RandomNumberGenerator.new()
 var _phase := 0.0
 
 
 func _ready() -> void:
 	_rng.seed = 901
-	for i in COUNT:
+	for i in count:
 		_spawn(i)
+
+
+## Graphics preset hook: fewer walkers on a weak phone (or on battery saver).
+func set_count(value: int) -> void:
+	count = clampi(value, 0, COUNT + 8)
 
 
 func _spawn(index: int) -> void:

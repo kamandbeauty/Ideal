@@ -130,6 +130,11 @@ const STRINGS := {
 		"fa": "یک کسب‌وکار را یک سطح ارتقا بده.",
 		"en": "Put one level into any business.",
 	},
+	"mission.open_store.title": {"fa": "قفسهٔ جاده", "en": "The roadside shelf"},
+	"mission.open_store.desc": {
+		"fa": "فروشگاه را باز کن: ارزان‌ترین قدم بعدی و اولین درآمد پایداری که داری",
+		"en": "Open the store: the cheapest next step and your first steady income",
+	},
 	"mission.open_restaurant.title": {"fa": "آشپزخانهٔ بین‌راهی", "en": "The roadside kitchen"},
 	"mission.open_restaurant.desc": {
 		"fa": "رستوران را باز کن تا مسافران غذا بخورند.",
@@ -215,6 +220,60 @@ const STRINGS := {
 	"msg.auto_branch": {
 		"fa": "مدیر: {0} · {1} {2}",
 		"en": "Manager: {0} · {1} {2}",
+	},
+	# --- World map, settings and the daily chest ----------------------------
+	"hud.map": {"fa": "نقشه", "en": "Map"},
+	"hud.settings": {"fa": "تنظیمات", "en": "Settings"},
+	"map.title": {"fa": "جادهٔ شهرک‌ها", "en": "The roadside route"},
+	"map.subtitle": {
+		"fa": "اعتبار تو: {0} — با بالا رفتن اعتبار، شهرک بعدی باز می‌شود",
+		"en": "Your reputation: {0} — it opens the next town",
+	},
+	"map.summary": {
+		"fa": "شهرک‌های در اختیار: {0} · درآمد کل {1} در دقیقه",
+		"en": "Towns owned: {0} · {1}/min total",
+	},
+	"map.rates": {"fa": "درآمد {0}٪ · ترافیک {1}٪", "en": "Income {0}% · Traffic {1}%"},
+	"map.progress": {"fa": "تکمیل {0}٪ · سطح {1}", "en": "{0}% done · level {1}"},
+	"map.unvisited": {"fa": "هنوز نرفته‌ای", "en": "Not visited yet"},
+	"map.here": {"fa": "اینجا هستی", "en": "You are here"},
+	"map.travel": {"fa": "سفر", "en": "Travel"},
+	"map.locked": {"fa": "قفل · {0} اعتبار (تو: {1})", "en": "Locked · {0} rep (you: {1})"},
+	"settings.title": {"fa": "تنظیمات", "en": "Settings"},
+	"settings.music": {"fa": "موسیقی", "en": "Music"},
+	"settings.sfx": {"fa": "جلوه‌های صوتی", "en": "Sound effects"},
+	"settings.haptics": {"fa": "لرزش", "en": "Vibration"},
+	"settings.quality": {"fa": "کیفیت گرافیک", "en": "Graphics"},
+	"settings.quality.low": {"fa": "سبک (باتری)", "en": "Low (battery)"},
+	"settings.quality.medium": {"fa": "متوسط", "en": "Medium"},
+	"settings.quality.high": {"fa": "بالا", "en": "High"},
+	"settings.on": {"fa": "روشن", "en": "On"},
+	"settings.off": {"fa": "خاموش", "en": "Off"},
+	"hud.boost": {"fa": "⚡ {0} الماس", "en": "⚡ {0} gems"},
+	"msg.boost": {
+		"fa": "شتاب ساعت شلوغی! درآمد و ترافیک بالا رفت",
+		"en": "Rush hour boost! More traffic, more income",
+	},
+	"hud.next_goal": {
+		"fa": "هدف بعدی: {0} با {1} سکه — روی ساختمان بزن تا مدیریتش کنی",
+		"en": "Next goal: {0} for {1} — tap a building to manage it",
+	},
+	"msg.night": {"fa": "شب شد — چراغ‌ها روشن", "en": "Night falls — the lights come on"},
+	"msg.morning": {"fa": "صبح شد — روز تازه", "en": "Morning — a new day"},
+	"msg.daily": {
+		"fa": "🎁 پاداش روزانه: {0} سکه · {1} روز پیاپی (×{2})",
+		"en": "🎁 Daily chest: {0} cash · {1}-day streak (x{2})",
+	},
+	"msg.daily_gems": {"fa": "🎁 {0} الماس هم گرفتی", "en": "🎁 plus {0} gems"},
+	"msg.tip": {"fa": "+{0} انعام", "en": "+{0} tip"},
+	"msg.travel": {"fa": "به {0} رسیدی", "en": "Arrived in {0}"},
+	"msg.travel_locked": {
+		"fa": "این شهرک به {0} اعتبار نیاز دارد",
+		"en": "That town needs {0} reputation",
+	},
+	"msg.streak_lost": {
+		"fa": "زنجیره از نو شروع شد",
+		"en": "The streak starts again"
 	},
 	"msg.auto_rank": {
 		"fa": "مدیر: {0} · {1}",

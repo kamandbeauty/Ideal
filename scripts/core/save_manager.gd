@@ -1,6 +1,10 @@
 class_name SaveManager
 extends RefCounted
 ## Versioned JSON saves with a backup copy, written to `user://saves/`.
+##
+## The file holds a whole profile (every town, the active one, the daily streak).
+## A version 1 file - a single town - is still read and wrapped, so nobody loses
+## progress when the world map arrives.
 
 const SAVE_DIR := "user://saves"
 const SAVE_PATH := "user://saves/profile_01.json"
@@ -11,11 +15,20 @@ static func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH) or FileAccess.file_exists(BACKUP_PATH)
 
 
-static func save(town: TownState) -> bool:
-	if town == null:
+## Accepts a `Profile` (the normal case) or a bare `TownState`, which the tests
+## and the older call sites still use.
+static func save(value) -> bool:
+	var profile: Profile = null
+	if value is Profile:
+		profile = value as Profile
+	elif value is TownState:
+		profile = Profile.new()
+		profile.towns = {value.town_id: value}
+		profile.active_town = value.town_id
+	if profile == null:
 		return false
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(SAVE_DIR))
-	var payload := town.serialize()
+	var payload := profile.serialize()
 	payload["last_seen"] = int(Time.get_unix_time_from_system())
 	var text := JSON.stringify(payload)
 
@@ -26,24 +39,32 @@ static func save(town: TownState) -> bool:
 	return _write(SAVE_PATH, text)
 
 
-static func load_town() -> TownState:
+static func load_profile() -> Profile:
 	var data := _read(SAVE_PATH)
 	if data.is_empty():
 		data = _read(BACKUP_PATH)
 	if data.is_empty():
 		return null
-	if not TownData.has_town(str(data.get("town", ""))):
-		return null
 
-	var town := TownState.new(str(data["town"]))
-	if not town.apply_save(data):
+	var profile := Profile.new()
+	if not profile.apply_save(data):
 		return null
 
 	var last_seen := int(data.get("last_seen", 0))
 	if last_seen > 0:
 		var away := float(Time.get_unix_time_from_system()) - float(last_seen)
-		town.pending_offline_seconds = town.offline_seconds_capped(away)
-	return town
+		for id in profile.towns:
+			(profile.towns[id] as TownState).pending_offline_seconds = \
+				(profile.towns[id] as TownState).offline_seconds_capped(away)
+	return profile
+
+
+## Kept for the tests and for anything that only cares about the open town.
+static func load_town() -> TownState:
+	var profile := load_profile()
+	if profile == null:
+		return null
+	return profile.active()
 
 
 static func delete() -> void:

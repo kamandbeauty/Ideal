@@ -10,10 +10,13 @@ the next town on the highway unlocks.
 
 ## What is in this vertical slice
 
-- **One playable town** (desert) on a 3D isometric map: highway with moving cars,
-  six plots, six businesses.
-- **Six businesses** — gas station, restaurant, store, workshop, motel, car wash —
-  each with 5 levels, 3 upgrade branches (capacity / speed / quality) and 4
+- **Five towns on one world map** — desert, forest, mountain, coast and the
+  central highway, each with its own ground and sky palette, its own traffic and
+  income multipliers and its own reputation gate (0 / 600 / 1400 / 2600 / 4200).
+  Everything you own is one profile; travelling saves the town you leave and the
+  managed businesses in every town keep earning while you are away.
+- **Six businesses per town** — gas station, restaurant, store, workshop, motel,
+  car wash — each with 5 levels, 3 upgrade branches (capacity / speed / quality) and 4
   manager ranks.
 - **Idle economy** — cash, reputation, gems, per-minute profit shown live.
 - **Offline income** — managed businesses keep earning for up to 8 hours away,
@@ -56,8 +59,29 @@ the next town on the highway unlocks.
   and power cuts appear at random, last under two minutes and visibly change
   traffic and income while they run.
 - **Day and night** — a 12-minute cycle moves the sun, sky, fog and ambient
-  light; at dusk and night the totem boards, canopy strips, pools and street
-  lamps really light up, and the completion sequence pulls the camera back.
+  light; at dusk and night the totem boards, canopy strips and warm windows light
+  up, one small interior light per open plot, and the completion sequence pulls
+  the camera back.
+- **A real soundtrack** — three synthesised loops (menu, day, night, cross-faded
+  as the sun moves) and fifteen sound effects, all generated from scratch by
+  `tools/build_audio.py`: no licensed audio, and the whole audio folder is 728 KB.
+- **Haptics and juice** — every purchase, tip, gem and completion has its own
+  sound, a short vibration and a floating number.
+- **Tap to serve** — tapping the business you already have open pays a tip worth
+  two seconds of its income, once every six seconds. Measured effect: the desert
+  town finishes in 145 minutes with tips instead of 162 without.
+- **The daily chest** — the first launch of the day pays a chest that scales with
+  the town's income and grows by 35 % per consecutive day (capped at 7 days, a gem
+  every third day). It is the reason to come back tomorrow.
+- **Gems buy a rush hour** — five gems start a guaranteed holiday event (traffic
+  ×1.5, income ×1.2 for two minutes), so the premium currency is a decision
+  instead of a score.
+- **Graphics presets** — low, medium and high change how many customers, walkers
+  and night lights the town spends, plus a 30/60/free FPS cap, without touching
+  the simulation. Also music, effects and vibration sliders, saved to
+  `user://settings.cfg`.
+- **A launcher icon** — a retro roadside pylon at night, generated once and
+  derived to every Android size by `tools/build_icons.py`.
 
 ## Controls
 
@@ -112,23 +136,29 @@ ranks ×2. A branch may never be ahead of the building's level.
 | `07-town-complete.jpg` | the completion cinematic and banner |
 | `08-town-en.jpg` | English HUD and panel |
 | `09-customers.jpg` | close-up of the queue and the service slots |
+| `10-world-map.jpg` | the world map with the route and the locked towns |
+| `11-staff.jpg` | staff at the door and a manager on patrol |
+| `icon.png` | the launcher icon |
 
 ## Project layout
 
 | Path | Contents |
 | --- | --- |
-| `scripts/core/` | data (`business_data`, `town_data`), simulation (`business_state`, `town_state`), `save_manager`, autoloads (`app`, `game`, `sound`, `l10n`) |
+| `scripts/core/` | data (`business_data`, `town_data`, `mission_data`), simulation (`business_state`, `town_state`, `profile`), `save_manager`, `daily_bonus`, `quality`, autoloads (`app`, `game`, `sound`, `l10n`) |
 | `scripts/town/` | 3D view, isometric camera, traffic, customer flow, staff and managers, person and vehicle meshes, scene controller |
-| `scripts/ui/` | HUD, detail panel, menu, theme |
+| `scripts/ui/` | HUD, detail panel, menu, world map, settings sheet, theme |
 | `tests/` | headless suites run by `tests/run_tests.gd` |
 | `tools/smoke.gd` | scripted play-through that saves screenshots |
+| `tools/build_audio.py` | synthesises the music and every sound effect |
+| `tools/build_icons.py` | derives the launcher icons from the source artwork |
+| `tools/balance_report.py` | mirrors the economy and prints the play-through curve |
 | `assets/` | Kenney models and audio, Vazirmatn font (see `ATTRIBUTION.md`) |
 | `documentation/DESIGN.md` | design notes, numbers, save format, roadmap |
 
 ## Android build
 
 `.github/workflows/apk.yml` builds a debug-signed arm64 APK (preset "Android APK",
-package `com.roadstop.tycoon`, version 0.9.0). It runs on demand or when a commit
+package `com.roadstop.tycoon`, version 1.0.0). It runs on demand or when a commit
 message contains `[apk]`:
 
 ```bash
@@ -147,10 +177,10 @@ the `roadstop-apk` artifact.
 
 ## Next milestones
 
-1. World map for the five towns (forest, mountain, coast, highway) with
-   reputation gates.
-2. Managers as visible characters and timed contracts instead of a flat purchase.
-3. Staff behind the counter and managers as visible characters.
-4. Release-signed AAB for the Play Store, and an on-device performance pass.
+1. Time-limited manager contracts and traits instead of a flat purchase.
+2. Release-signed AAB for the Play Store (the current build is debug-signed).
+3. An on-device performance pass with a debug FPS panel.
+4. Text scale, safe-area insets and the remaining items in
+   [`documentation/REVIEW.md`](documentation/REVIEW.md).
 
 Licences for the art, audio and fonts are listed in [`ATTRIBUTION.md`](ATTRIBUTION.md).

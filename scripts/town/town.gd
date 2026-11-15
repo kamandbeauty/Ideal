@@ -2,10 +2,12 @@ extends Node3D
 ## Runs one town: the 3D view, the camera, the HUD and the idle simulation.
 
 signal exit_requested
+signal travel_requested(town_id: String)
 
 const HUD_SCENE := preload("res://scenes/ui/town_hud.tscn")
 const AUTOSAVE_SECONDS := 20.0
 const TAP_SLOP := 14.0
+const TIP_LABEL_SECONDS := 1.1
 
 var state: TownState
 var view: TownView
@@ -21,6 +23,7 @@ var _drag_distance := 0.0
 var _touches: Dictionary = {}
 var _pinch_distance := 0.0
 var _levels: Dictionary = {}
+var _music_night := false
 var _coin_timer := 0.0
 var _coin_index := 0
 var _event_timer := 75.0
@@ -61,8 +64,15 @@ func _ready() -> void:
 	add_child(hud)
 	hud.setup(self)
 
-	if Game.offline_seconds > 0.0:
+	if Game.offline_seconds > 0.0 and state.offline_earnings(Game.offline_seconds) > 0.0:
+		# Managers are what earn while the player sleeps: a zero report is noise.
 		hud.show_offline(Game.offline_seconds, state.offline_earnings(Game.offline_seconds))
+
+	state.event_started.connect(_on_event_started)
+	state.tip_collected.connect(_on_tip)
+	App.settings_changed.connect(_on_settings_changed)
+	_start_music()
+	_claim_daily()
 
 
 func _intro_camera() -> void:
@@ -104,6 +114,7 @@ func _process(delta: float) -> void:
 	if _autosave >= AUTOSAVE_SECONDS:
 		_autosave = 0.0
 		Game.save_game()
+	_tick_music()
 	if hud != null:
 		hud.tick(delta)
 
@@ -112,6 +123,68 @@ func _exit_tree() -> void:
 	if state != null:
 		App.record_reputation(int(state.reputation))
 		Game.save_game()
+
+
+# --- Atmosphere ------------------------------------------------------------
+
+func _start_music() -> void:
+	_music_night = day_cycle.is_night()
+	Sound.play_music("night" if _music_night else "day")
+	Sound.start_ambience()
+
+
+## The soundtrack follows the sun: bright walking bass by day, mellow minor at
+## night. It is the cheapest way to make the loop feel like it has a clock.
+func _tick_music() -> void:
+	var night := day_cycle.is_night()
+	if night == _music_night:
+		return
+	_music_night = night
+	Sound.play_music("night" if night else "day")
+	if hud != null:
+		hud.show_message(App.t("msg.night" if night else "msg.morning"))
+
+
+func _on_event_started(id: String) -> void:
+	Sound.play("event", -6.0)
+	App.tap(20)
+	if hud != null:
+		hud.show_message(App.t(TownEvents.name_key(id)))
+
+
+## The first chest of the day is opened for the player, with the ceremony of a
+## toast and a coin burst: it is the reason to open the app again tomorrow.
+func _claim_daily() -> void:
+	if Game.profile == null or not Game.profile.bonus_ready():
+		return
+	var chest := Game.profile.claim_daily()
+	if chest.is_empty():
+		return
+	var message := App.t("msg.daily", [
+		App.format_number(float(chest["cash"])),
+		App.format_number(float(chest["streak"])),
+		"%.1f" % float(chest["multiplier"]),
+	])
+	if int(chest["gems"]) > 0:
+		message += " · " + App.t("msg.daily_gems", [App.format_number(float(chest["gems"]))])
+		Sound.play("gem", -4.0)
+	if hud != null:
+		hud.show_message(message)
+	Sound.play("cash", -4.0)
+	App.tap(40)
+	hud.refresh()
+	Game.save_game()
+
+
+func _on_settings_changed() -> void:
+	if view == null:
+		return
+	var customers := view.get_node_or_null("Customers")
+	if customers != null:
+		customers.set("max_agents", Quality.agent_cap(App.quality))
+	var walkers := view.get_node_or_null("Pedestrians")
+	if walkers != null:
+		walkers.call("set_count", Quality.pedestrian_count(App.quality))
 
 
 # --- Selection -------------------------------------------------------------
@@ -240,6 +313,21 @@ func claim_offline() -> Dictionary:
 	return report
 
 
+func travel_to(town_id: String) -> bool:
+	if not Game.travel_to(town_id):
+		if hud != null:
+			hud.show_message(App.t("msg.travel_locked", [
+				App.format_number(TownData.reputation_required(town_id))
+			]))
+		Sound.play("deny", -10.0)
+		return false
+	App.record_reputation(int(state.reputation))
+	if hud != null:
+		hud.show_message(App.t("msg.travel", [App.t("town.%s" % town_id)]))
+	travel_requested.emit(town_id)
+	return true
+
+
 func leave_to_menu() -> void:
 	Game.save_game()
 	App.record_reputation(int(state.reputation))
@@ -345,11 +433,35 @@ func _tap(screen_point: Vector2) -> void:
 	var id := view.select_at(camera_rig.camera, screen_point)
 	if id.is_empty():
 		deselect()
-	else:
-		select_business(id)
+		return
+	if id == selected_id:
+		collect_tip(id)
+		return
+	select_business(id)
+
+
+## Tapping the building you already have open pays its tip. It is the little
+## "yes, I touched the town" moment that turns watching into playing.
+func collect_tip(id: String) -> float:
+	var amount := state.collect_tip(id)
+	if amount <= 0.0:
+		Sound.play("deny", -18.0)
+		return 0.0
+	view.pop_income(id, amount)
+	Sound.play("coin", -7.0)
+	App.tap(18)
+	if hud != null:
+		hud.refresh()
+	return amount
 
 
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		# A phone can be killed while paused: never rely on the 20 s autosave.
+		if state != null:
+			Game.save_game()
+			App.record_reputation(int(state.reputation))
+		return
 	if what == NOTIFICATION_WM_GO_BACK_REQUEST:
 		if selected_id.is_empty():
 			leave_to_menu()

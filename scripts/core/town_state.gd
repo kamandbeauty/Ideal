@@ -13,6 +13,7 @@ signal town_completed
 signal mission_claimed(index: int)
 signal event_started(id: String)
 signal event_ended(id: String)
+signal tip_collected(id: String, amount: float)
 
 const STARTING_CASH := 1500.0
 const FIRST_BUSINESS := "gas_station"
@@ -23,6 +24,10 @@ const CUSTOMER_REPUTATION := 0.5
 const GEM_MILESTONES: Array[float] = [100.0, 300.0, 700.0, 1500.0]
 const GEM_REWARD := 5
 const COMPLETION_GEMS := 25
+const TIP_COOLDOWN := 6.0
+const TIP_SECONDS := 2.0
+const BOOST_GEMS := 5
+const BOOST_EVENT := "holiday"
 
 var town_id := "desert"
 var cash := STARTING_CASH
@@ -40,6 +45,8 @@ var active_event := ""
 var event_time_left := 0.0
 var pending_offline_seconds := 0.0
 var businesses: Dictionary = {}
+
+var _tip_clock: Dictionary = {}
 
 
 func _init(id: String = "desert") -> void:
@@ -162,13 +169,65 @@ func advance(delta: float) -> void:
 		state.customers_total += state.served_per_minute(traffic_now) * minutes
 		state.revenue_total += state.revenue_per_minute(traffic_now) * minutes
 
+	for id in _tip_clock:
+		_tip_clock[id] = float(_tip_clock[id]) + delta
 	_tick_event(delta)
 	_check_gems()
 	_check_completion()
 	reputation_changed.emit(reputation)
 
 
+# --- Player interaction ----------------------------------------------------
+
+## A tap on a business that is already running pays a small tip. It is the only
+## income the player creates by hand - capped by a per-building cooldown, so
+## tapping is a habit worth forming, never a substitute for upgrading.
+func collect_tip(id: String) -> float:
+	var state := business(id)
+	if state == null or not state.unlocked:
+		return 0.0
+	if float(_tip_clock.get(id, TIP_COOLDOWN)) < TIP_COOLDOWN:
+		return 0.0
+	_tip_clock[id] = 0.0
+	var amount := maxf(5.0, state.net_per_second(traffic()) * TIP_SECONDS)
+	cash += amount
+	cash_changed.emit(cash)
+	tip_collected.emit(id, amount)
+	return amount
+
+
+func tip_ready(id: String) -> bool:
+	return float(_tip_clock.get(id, TIP_COOLDOWN)) >= TIP_COOLDOWN
+
+
+func tip_ratio(id: String) -> float:
+	return clampf(float(_tip_clock.get(id, TIP_COOLDOWN)) / TIP_COOLDOWN, 0.0, 1.0)
+
+
+## The cheapest business that is still closed - the always-visible "next goal".
+func next_locked() -> Dictionary:
+	var best: Dictionary = {}
+	for id in business_ids():
+		var state: BusinessState = businesses[id]
+		if state.unlocked:
+			continue
+		var price := BusinessData.unlock_cost(id) * cost_scale()
+		if best.is_empty() or price < float(best["price"]):
+			best = {"id": id, "price": price}
+	return best
+
+
+## Every town that has already been finished, for the world map's trophy line.
+func is_town_complete() -> bool:
+	return completed
+
+
 # --- Missions --------------------------------------------------------------
+
+func _is_open(id: String) -> bool:
+	var state := business(id)
+	return state != null and state.unlocked
+
 
 func _max_level() -> int:
 	var best := 1
@@ -189,11 +248,11 @@ func mission_progress() -> Dictionary:
 		"first_upgrade":
 			current = float(upgrades_total)
 			goal = 1.0
+		"open_store":
+			current = 1.0 if _is_open("store") else 0.0
+			goal = 1.0
 		"open_restaurant":
-			current = (
-				1.0 if businesses.has("restaurant") and businesses["restaurant"].unlocked
-				else 0.0
-			)
+			current = 1.0 if _is_open("restaurant") else 0.0
 			goal = 1.0
 		"reach_level_three":
 			current = float(_max_level())
@@ -246,6 +305,20 @@ func event_traffic() -> float:
 
 func event_income() -> float:
 	return TownEvents.income(active_event)
+
+
+## Gems had no sink, so they were a score with no decision behind it. Five gems
+## now buy a guaranteed rush hour: the shortest possible "spend or save" choice.
+func can_boost() -> bool:
+	return gems >= BOOST_GEMS and active_event.is_empty() and not is_complete()
+
+
+func buy_boost() -> bool:
+	if not can_boost() or not start_event(BOOST_EVENT):
+		return false
+	gems -= BOOST_GEMS
+	changed.emit()
+	return true
 
 
 func start_event(id: String) -> bool:
@@ -446,5 +519,6 @@ func apply_save(data: Dictionary) -> bool:
 	active_event = ""
 	event_time_left = 0.0
 	pending_offline_seconds = 0.0
+	_tip_clock.clear()
 	changed.emit()
 	return true

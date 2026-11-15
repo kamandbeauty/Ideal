@@ -16,6 +16,8 @@ const SUITES := [
 	"res://tests/suites/test_missions_events.gd",
 	"res://tests/suites/test_customer_flow.gd",
 	"res://tests/suites/test_auto_upgrade.gd",
+	"res://tests/suites/test_profile.gd",
+	"res://tests/suites/test_daily_and_tips.gd",
 ]
 const REPORT_PATH := "res://documentation/qa/test-results.json"
 
