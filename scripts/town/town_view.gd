@@ -526,7 +526,7 @@ func _build_retro_features(parent: Node3D, id: String) -> void:
 
 	RetroStyle.chrome_skirt(parent, Vector3(0, 0.09, 0), Vector3(2.7, 0.1, 2.7), night)
 	var awning := RetroStyle.awning(
-		parent, Vector3(1.42 * to_road, 1.18, 0.35), 2.3, 0.7, to_road, night
+		parent, Vector3(1.22 * to_road, 1.16, 0.3), 2.05, 0.62, to_road, night
 	)
 	awning.rotation_degrees.y = 0.0
 	RetroStyle.roof_neon(parent, Vector3(1.24 * to_road, 2.32, 0.2), 2.1, to_road, accent, night)
