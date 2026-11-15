@@ -116,6 +116,23 @@ func _run() -> void:
 	settings_node.call("close")
 	await _settle(4)
 
+	# The guild slice: the procedural rig, the follow camera and a carry stack
+	# that is literally the number of items in the hands.
+	_town.queue_free()
+	await _settle(6)
+	var probe := GuildProbe.new()
+	add_child(probe)
+	await _settle(26)
+	await _capture("13-guild-lineup")
+	probe.set_demo_pose("carry", 4)
+	await _settle(20)
+	await _capture("14-guild-carry")
+	probe.set_demo_money(240.0, "deposit")
+	await _settle(20)
+	await _capture("15-guild-deposit")
+	probe.queue_free()
+	await _settle(4)
+
 	print("SMOKE OK")
 	get_tree().quit(0)
 
