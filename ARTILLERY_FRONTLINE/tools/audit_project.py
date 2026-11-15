@@ -25,6 +25,7 @@ report_path = pathlib.Path(sys.argv[2]) if len(sys.argv) > 2 else None
 NOT_SHIPPED = ("tests", "tools", "documentation", ".godot", "android")
 TEXT = (".gd", ".tscn", ".tres", ".godot", ".cfg", ".gdshader")
 SIDECARS = (".import", ".uid")
+VENDOR_PREFIXES = ("addons/AdmobPlugin/", "addons/GMPShared/")
 problems = []
 notes = {}
 
@@ -35,6 +36,10 @@ def rel(path):
 
 def shipped(path):
     return rel(path).split("/")[0] not in NOT_SHIPPED
+
+
+def is_vendor(path):
+    return rel(path).startswith(VENDOR_PREFIXES)
 
 
 files = [p for p in root.rglob("*") if p.is_file() and ".godot" not in p.relative_to(root).parts]
@@ -106,6 +111,8 @@ project_file = texts[root / "project.godot"]
 unused = []
 for path in game_files:
     if path.suffix == ".gd":
+        if is_vendor(path):
+            continue
         text = texts[path]
         name = re.search(r"^class_name\s+(\w+)", text, re.M)
         needles = ["res://" + rel(path)]
@@ -179,7 +186,7 @@ notes["text_keys"] = len(keys.get("en", set()))
 # 6. Nothing printed for debugging in the game scripts.
 noisy = []
 for path, text in game_texts.items():
-    if path.suffix != ".gd":
+    if path.suffix != ".gd" or is_vendor(path):
         continue
     for number, line in enumerate(text.splitlines(), 1):
         code = line.split("#", 1)[0]
