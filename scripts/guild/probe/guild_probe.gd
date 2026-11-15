@@ -84,6 +84,44 @@ func describe() -> String:
 	]
 
 
+## A full dump of the player rig, written next to the captures so a missing mesh
+## can be diagnosed from the repo instead of guessed at.
+func hero_report() -> String:
+	var lines: Array[String] = []
+	lines.append("hero in_tree=%s visible=%s pos=%s rot_y=%.3f children=%d" % [
+		str(hero.is_inside_tree()),
+		str(hero.visible),
+		str(hero.global_position),
+		hero.rotation.y,
+		hero.get_child_count(),
+	])
+	if hero.character == null:
+		lines.append("hero.character is NULL")
+		return "\n".join(lines)
+	lines.append("rig parts=%d body_children=%d" % [
+		hero.character.parts.size(),
+		hero.character.get_child_count(),
+	])
+	for part_name in hero.character.parts:
+		var node := hero.character.parts[part_name] as Node3D
+		if node == null:
+			lines.append("  part %s: not a Node3D" % str(part_name))
+			continue
+		lines.append("  part %s visible=%s meshes=%d global=%s" % [
+			str(part_name),
+			str(node.visible),
+			node.find_children("*", "MeshInstance3D", true, false).size(),
+			str(node.global_position),
+		])
+	lines.append("stack kind=%s total=%d visible=%d global=%s" % [
+		hero.carry_stack.kind,
+		hero.carry_stack.total,
+		hero.carry_stack.visible_count(),
+		str(hero.carry_stack.global_position),
+	])
+	return "\n".join(lines)
+
+
 func _process(delta: float) -> void:
 	_animate_hero(delta)
 	if follow_hero and camera_rig != null:

@@ -134,6 +134,7 @@ func _run() -> void:
 	await _settle(20)
 	await _capture("15-guild-deposit")
 	print("SMOKE: " + probe.describe())
+	_write_probe_report(probe.describe() + "\n" + probe.hero_report())
 	probe.queue_free()
 	await _settle(4)
 
@@ -173,6 +174,18 @@ func _max_town(town) -> void:
 			while state.business(id).can_upgrade_branch(branch):
 				state.upgrade_branch(id, branch)
 	state.advance(0.2)
+
+
+## Diagnostics with the screenshots: a missing mesh is then readable from the
+## repository, not only from the CI log.
+func _write_probe_report(text: String) -> void:
+	var file := FileAccess.open("res://documentation/qa/guild-probe.txt", FileAccess.WRITE)
+	if file == null:
+		printerr("SMOKE: could not write the probe report")
+		return
+	file.store_string(text + "\n")
+	file.close()
+	print("SMOKE: wrote the probe report")
 
 
 func _settle(frames: int) -> void:

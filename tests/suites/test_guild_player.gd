@@ -83,12 +83,14 @@ func test_locomotion_and_pose() -> void:
 
 func test_player_builds_with_its_stack() -> void:
 	var player := GuildPlayer.new()
+	player.ensure_look()
 	check(player.state != null, "the player owns a state")
 	check(player.character != null, "the player owns a rig")
 	check(player.carry_stack != null, "the player owns a visible stack")
 	equal(player.carry_stack.get_parent(), player.character.stack_anchor(), "the stack rides the hands anchor")
 	player.state.carry = 3
 	player.character.animate(0.016, 1.4, player.animation_pose())
+	player.character.animate(0.016, 0.0, "idle")
 	player._on_state_changed()
 	equal(player.carry_stack.visible_count(), 3, "three items are drawn for three in hand")
 	check(player.interact("pickup"), "interaction is allowed")

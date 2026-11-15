@@ -25,6 +25,21 @@ var camera_yaw := 0.0
 func _init() -> void:
 	name = "GuildPlayer"
 	state = GuildPlayerState.new()
+	state.changed.connect(_on_state_changed)
+	floor_snap_length = 0.35
+	floor_max_angle = deg_to_rad(50.0)
+
+
+func _ready() -> void:
+	ensure_look()
+
+
+## Builds the rig, the visible stack and the collision capsule exactly once. It
+## runs on `_ready` (and on demand from tests) so the body is always fully inside
+## the tree before its meshes are created.
+func ensure_look() -> void:
+	if character != null:
+		return
 	character = GuildCharacter.new("guildmaster", true)
 	add_child(character)
 	carry_stack = GuildCarryStack.new()
@@ -32,10 +47,7 @@ func _init() -> void:
 	if anchor != null:
 		anchor.add_child(carry_stack)
 		carry_stack.position = Vector3(0.0, -0.12, 0.0)
-	floor_snap_length = 0.35
-	floor_max_angle = deg_to_rad(50.0)
 	_build_collision()
-	state.changed.connect(_on_state_changed)
 
 
 func _build_collision() -> void:
@@ -52,7 +64,8 @@ func _build_collision() -> void:
 func _physics_process(delta: float) -> void:
 	state.tick(delta)
 	_apply_movement(delta)
-	character.animate(delta, Vector2(velocity.x, velocity.z).length(), animation_pose())
+	if character != null:
+		character.animate(delta, Vector2(velocity.x, velocity.z).length(), animation_pose())
 
 
 ## Left stick (or WASD), in the -1..1 range. Y is forward.
@@ -109,5 +122,10 @@ func _apply_movement(delta: float) -> void:
 
 func _on_state_changed() -> void:
 	if carry_stack == null:
+		ensure_look()
+	if carry_stack == null:
 		return
-	carry_stack.show_items(state.carry)
+	if carry_stack.kind == "money":
+		carry_stack.show_money(state.money)
+	else:
+		carry_stack.show_items(state.carry)

@@ -127,10 +127,22 @@ jobs:
         if: github.event_name == 'push'
         run: |
           set -euo pipefail
+          # Keep the play-through log in the repository: the CI log itself is not
+          # always reachable from where we review, and a missing mesh or a shader
+          # warning must be readable next to the screenshot it produced.
+          if [ -f "$RUNNER_TEMP/smoke.log" ]; then
+            cp "$RUNNER_TEMP/smoke.log" documentation/qa/smoke.log
+          fi
           if git status --porcelain documentation/qa/preview | grep -q .; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add documentation/qa/preview
+            if [ -f documentation/qa/guild-probe.txt ]; then
+              git add documentation/qa/guild-probe.txt
+            fi
+            if [ -f documentation/qa/smoke.log ]; then
+              git add documentation/qa/smoke.log
+            fi
             git commit -m "chore: refresh play-through previews [skip ci]"
             git push
           fi
