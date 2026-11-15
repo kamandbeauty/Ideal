@@ -22,6 +22,10 @@ build time or at run time.
 The shield emblem (`assets/textures/branding/emblem.png`) and city loading art
 (`assets/textures/branding/loading_city.png`) were generated for this project
 with Arena's image generation tool. The app icon is derived from the emblem.
+The menu character artwork (`assets/textures/branding/menu_scene.png`) and
+tactical map background (`assets/textures/branding/campaign_map.png`) were
+also generated for this project using Arena's image generation tool; the
+user-provided reference screenshots are not included in the game.
 
 ## Carried over from the earlier project
 

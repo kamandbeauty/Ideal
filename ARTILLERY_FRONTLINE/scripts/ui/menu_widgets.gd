@@ -164,6 +164,8 @@ class Choices:
 	var glyphs: Array[Glyph] = []
 	var locked: Array[int] = []
 	var selected: int = -1
+	var accent: Color = UITheme.AMBER
+	var dark_selection: bool = false
 
 	func _init(labels: Array = [], start: int = 0, icons: Array = [], wrap_after: int = 0) -> void:
 		# One row unless the caller asks to wrap (the title's five guns).
@@ -203,9 +205,9 @@ class Choices:
 		for place: int in buttons.size():
 			var button: Button = buttons[place]
 			var lit: bool = place == index
-			var back: Color = UITheme.AMBER.darkened(0.1) if lit else UITheme.PLATE
-			var rim: Color = UITheme.AMBER.lightened(0.25) if lit else UITheme.LINE
-			var ink: Color = Color(0.08, 0.06, 0.03) if lit else UITheme.TEXT
+			var back: Color = (Color(0.08, 0.16, 0.18) if dark_selection else accent.darkened(0.1)) if lit else UITheme.PLATE
+			var rim: Color = accent.lightened(0.15) if lit else UITheme.LINE
+			var ink: Color = (accent.lightened(0.5) if dark_selection else Color(0.08, 0.06, 0.03)) if lit else UITheme.TEXT
 			if locked.has(place):
 				back = Color(0.085, 0.088, 0.092, 0.8)
 				rim = Color(0.34, 0.33, 0.3, 0.5)

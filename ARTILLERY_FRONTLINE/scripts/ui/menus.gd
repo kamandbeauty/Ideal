@@ -22,7 +22,8 @@ const FADE_TIME: float = 0.16
 const CONFIRM_TIME: float = 3.0
 ## Width of the title poster and of the armory column.
 const TITLE_WIDTH: float = 640.0
-const ARMORY_WIDTH: float = 720.0
+const ARMORY_WIDTH: float = 660.0
+const CYAN := Color(0.19, 0.78, 0.84)
 
 var screen: String = ""
 var came_from: String = "main"
@@ -42,6 +43,7 @@ var gun_choices: MenuWidgets.Choices
 var gun_note: Label
 var gun_preview: WeaponPreview
 var gun_preview_name: Label
+var gun_stats: Label
 ## The title (and loading) START control. Playthrough taps this rather than searching labels.
 var play_button: Button
 ## What the pause screen says about the match in progress: wave, waves, wall, gate.
@@ -126,6 +128,7 @@ func _clear() -> void:
 	gun_note = null
 	gun_preview = null
 	gun_preview_name = null
+	gun_stats = null
 	play_button = null
 	loading_bar = null
 	loading_status = null
@@ -151,6 +154,9 @@ func _show(name: String, fade_in: bool = true) -> void:
 		"arsenal":
 			dim.color = Color(0.02, 0.02, 0.028, 0.62)
 			_build_arsenal()
+		"campaign":
+			dim.color = Color(0.02, 0.02, 0.028, 1.0)
+			_build_campaign()
 		"settings":
 			dim.color = Color(0.02, 0.02, 0.025, 0.74)
 			_build_settings()
@@ -179,6 +185,10 @@ func show_main() -> void:
 
 func show_arsenal() -> void:
 	_show("arsenal")
+
+
+func show_campaign() -> void:
+	_show("campaign")
 
 
 func show_pause(status: Dictionary = {}) -> void:
@@ -300,44 +310,107 @@ func _disarm() -> void:
 
 
 # -- Title -----------------------------------------------------------------------------
-## A poster over the street: the name of the game and the button that opens the armory.
+## Cinematic key art with a compact top identity and an accessible bottom action bar.
+func _background(path: String, tint: Color = Color.WHITE) -> void:
+	var art := TextureRect.new()
+	art.name = "MenuBackdrop"
+	art.texture = load(path)
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	art.modulate = tint
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	holder.add_child(art)
+
+
 func _build_main() -> void:
-	var frame: MarginContainer = _frame(26.0)
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(TITLE_WIDTH, 0.0)
-	card.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	card.add_theme_stylebox_override("panel", UITheme.box(Color(0.025, 0.035, 0.04, 0.92), UITheme.LINE, 8, 1, 30))
-	frame.add_child(card)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
-	card.add_child(column)
-	column.add_child(MenuWidgets.Stripes.new())
-	column.add_child(_heading(Loc.t("title"), 92, UITheme.AMBER))
-	column.add_child(_heading(Loc.t("subtitle"), 30, UITheme.TEXT))
-	column.add_child(_text(Loc.t("tagline"), 24, UITheme.MUTED))
-	column.add_child(_spacer(14))
-	play_button = UITheme.button(Loc.t("play"), func() -> void: show_arsenal(), "accent", "ui_start")
-	column.add_child(play_button)
-	column.add_child(_spacer(6))
-	var pair := HBoxContainer.new()
-	pair.add_theme_constant_override("separation", 10)
-	var settings_button: Button = UITheme.button(Loc.t("settings"), func() -> void: show_settings("main"))
-	settings_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var language_button: Button = UITheme.button("English" if Loc.language == "fa" else "فارسی", _toggle_language)
-	language_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	pair.add_child(settings_button)
-	pair.add_child(language_button)
-	column.add_child(pair)
+	_background("res://assets/textures/branding/menu_scene.png", Color(0.8, 0.8, 0.8))
+	var frame: MarginContainer = _frame(14.0)
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", 10)
+	frame.add_child(page)
+	var identity := PanelContainer.new()
+	identity.custom_minimum_size = Vector2(420, 0)
+	identity.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	identity.add_theme_stylebox_override("panel", UITheme.box(Color(0.015, 0.02, 0.025, 0.8), Color(0.65, 0.57, 0.39, 0.6), 2, 1, 18))
+	page.add_child(identity)
+	var brand := VBoxContainer.new()
+	brand.add_theme_constant_override("separation", 0)
+	identity.add_child(brand)
+	brand.add_child(_heading(Loc.t("title"), 48, UITheme.TEXT))
+	brand.add_child(_heading(Loc.t("subtitle"), 22, UITheme.AMBER))
 	var totals: Dictionary = Profile.data.stats
 	if int(totals.matches) > 0:
-		var record: String = ""
-		if int(totals.best_wave) > 0:
-			var place: Vector2i = Campaign.place_of(int(totals.best_wave))
-			record = Loc.t("best_run", [place.x, place.y])
-		var career: String = Loc.t("career", [int(totals.matches), int(totals.victories), int(totals.kills)])
-		column.add_child(_text(record + ("\n" if record != "" else "") + career, 20, UITheme.TEXT))
-	column.add_child(_text(Loc.t("version", [Loc.number(String(ProjectSettings.get_setting("application/config/version", "")))]), 20, UITheme.MUTED))
+		brand.add_child(_text(Loc.t("career", [int(totals.matches), int(totals.victories), int(totals.kills)]), 18, UITheme.MUTED))
+	var open_space := Control.new()
+	open_space.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	open_space.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	page.add_child(open_space)
+	var actions := HBoxContainer.new()
+	actions.add_theme_constant_override("separation", 10)
+	page.add_child(actions)
+	var settings_button: Button = UITheme.button(Loc.t("settings"), func() -> void: show_settings("main"))
+	var language_button: Button = UITheme.button("English" if Loc.language == "fa" else "فارسی", _toggle_language)
+	var campaign_button: Button = UITheme.button(Loc.t("campaign_map"), show_campaign)
+	play_button = UITheme.button(Loc.t("play"), show_arsenal, "accent", "ui_start")
+	for button: Button in [settings_button, language_button, campaign_button, play_button]:
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		actions.add_child(button)
+
+
+# -- Campaign map ----------------------------------------------------------------------
+## Three real stage choices, not decorative map pins: locked stages stay locked.
+func _build_campaign() -> void:
+	_background("res://assets/textures/branding/campaign_map.png", Color(0.65, 0.67, 0.68))
+	var frame: MarginContainer = _frame(16.0)
+	var page := VBoxContainer.new()
+	page.add_theme_constant_override("separation", 14)
+	frame.add_child(page)
+	var header := HBoxContainer.new()
+	page.add_child(header)
+	var heading := _heading(Loc.t("campaign_map"), 36, UITheme.TEXT, false)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(heading)
+	var back: Button = UITheme.button(Loc.t("back"), show_main, "plain", "ui_back")
+	back.custom_minimum_size.x = 220
+	header.add_child(back)
+	var middle := HBoxContainer.new()
+	middle.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	middle.add_theme_constant_override("separation", 20)
+	page.add_child(middle)
+	var map := VBoxContainer.new()
+	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	map.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	middle.add_child(map)
+	map.add_child(_heading(Loc.t("choose_stage"), 28, UITheme.AMBER))
+	map.add_child(_spacer(28))
+	var names: Array = []
+	var open: int = Campaign.open_stages(int(Profile.data.stats.stages_cleared))
+	for index: int in Campaign.count():
+		names.append(Loc.t("stage_n", [index + 1]))
+	stage = clampi(stage, 0, open - 1)
+	stage_choices = MenuWidgets.Choices.new(names, stage)
+	for index: int in range(open, Campaign.count()):
+		stage_choices.lock(index)
+	stage_choices.chosen.connect(func(index: int) -> void:
+		stage = index
+		stage_brief.text = stage_brief_for(index)
+		stage_chosen.emit(index))
+	map.add_child(stage_choices)
+	var info := PanelContainer.new()
+	info.custom_minimum_size = Vector2(360, 0)
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	info.add_theme_stylebox_override("panel", UITheme.box(Color(0.025, 0.03, 0.032, 0.93), UITheme.LINE, 2, 1, 22))
+	middle.add_child(info)
+	var details := VBoxContainer.new()
+	details.add_theme_constant_override("separation", 20)
+	info.add_child(details)
+	details.add_child(_heading(Loc.t("mission_brief"), 28, UITheme.AMBER))
+	stage_brief = _text(stage_brief_for(stage), 24, UITheme.TEXT)
+	details.add_child(stage_brief)
+	details.add_child(_text(Loc.t("tagline"), 21, UITheme.MUTED))
+	var next: Button = UITheme.button(Loc.t("armory"), show_arsenal, "accent", "ui_start")
+	details.add_child(next)
 
 
 # -- Armory ----------------------------------------------------------------------------
@@ -358,8 +431,8 @@ func _build_arsenal() -> void:
 	var plan := VBoxContainer.new()
 	plan.add_theme_constant_override("separation", 6)
 	card.add_child(plan)
-	plan.add_child(MenuWidgets.Stripes.new())
-	plan.add_child(_heading(Loc.t("armory"), 36, UITheme.AMBER))
+	plan.add_child(_heading(Loc.t("armory"), 36, CYAN))
+	plan.add_child(MenuWidgets.Rule.new(4.0))
 	var totals: Dictionary = Profile.data.stats
 	var open: int = Campaign.open_stages(int(totals.stages_cleared))
 	var stages: Array = []
@@ -383,9 +456,13 @@ func _build_arsenal() -> void:
 		names.append(Loc.t(gun.name_key))
 		outlines.append(gun.icon)
 	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 2)
+	gun_choices.accent = CYAN
+	gun_choices.dark_selection = true
+	gun_choices.select(gun_choices.selected)
 	gun_choices.chosen.connect(func(index: int) -> void:
 		gun_note.text = gun_note_for(Profile.GUNS[index])
 		gun_preview_name.text = Loc.t(gun_data(Profile.GUNS[index]).name_key)
+		gun_stats.text = gun_stats_for(Profile.GUNS[index])
 		gun_preview.show_weapon(Profile.GUNS[index])
 		gun_chosen.emit(Profile.GUNS[index]))
 	plan.add_child(gun_choices)
@@ -398,7 +475,7 @@ func _build_arsenal() -> void:
 	var showcase := PanelContainer.new()
 	showcase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	showcase.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	showcase.add_theme_stylebox_override("panel", UITheme.box(Color(0.09, 0.115, 0.12, 0.97), UITheme.LINE, 8, 1, 18))
+	showcase.add_theme_stylebox_override("panel", UITheme.box(Color(0.035, 0.055, 0.06, 0.98), Color(CYAN, 0.42), 2, 1, 18))
 	layout.add_child(showcase)
 	var gallery := VBoxContainer.new()
 	gallery.add_theme_constant_override("separation", 10)
@@ -408,8 +485,10 @@ func _build_arsenal() -> void:
 	gun_preview = WeaponPreview.new()
 	gun_preview.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	gallery.add_child(gun_preview)
-	gun_preview_name = _heading(Loc.t(gun_data(String(Profile.setting("gun"))).name_key), 30, UITheme.AMBER)
+	gun_preview_name = _heading(Loc.t(gun_data(String(Profile.setting("gun"))).name_key), 30, CYAN)
 	gallery.add_child(gun_preview_name)
+	gun_stats = _text(gun_stats_for(String(Profile.setting("gun"))), 20, UITheme.TEXT)
+	gallery.add_child(gun_stats)
 	gun_preview.show_weapon(String(Profile.setting("gun")))
 
 
@@ -476,6 +555,12 @@ static func stage_brief_for(index: int) -> String:
 
 static func gun_data(id: String) -> WeaponData:
 	return load("res://resources/weapons/%s.tres" % id) as WeaponData
+
+
+## Readouts are taken from the selected gun's real combat data.
+static func gun_stats_for(id: String) -> String:
+	var data: WeaponData = gun_data(id)
+	return Loc.t("weapon_specs", [Loc.number(int(data.damage)), Loc.number(int(round(1.0 / data.fire_interval))), Loc.number(data.magazine_size)])
 
 
 ## One line on what a gun is good for, with its rate of fire and the length of its belt taken from its numbers.
@@ -582,6 +667,7 @@ func _stat_column(rows: Array) -> VBoxContainer:
 func _build_settings() -> void:
 	var column: VBoxContainer = _panel(1200.0)
 	column.add_child(_heading(Loc.t("settings"), 36, UITheme.TEXT))
+	column.add_child(MenuWidgets.Rule.new(4.0))
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override("separation", 52)
 	var controls: VBoxContainer = _group("group_controls")

@@ -69,6 +69,22 @@ func run(t: TestContext) -> void:
 	var stages: int = Campaign.count()
 	t.equal(stages, 3, "the siege is fought in three stages")
 
+	# The tactical map exposes the same stage progression as the armory.
+	menus.show_campaign()
+	await t.frames(2)
+	t.check(menus.screen == "campaign" and menus.stage_choices.buttons.size() == stages, "the map offers the real campaign stages")
+	t.check(menus.stage_choices.is_locked(1) and menus.stage_choices.is_locked(2), "locked stages stay locked on the map")
+	menus.stage_choices._choose(1)
+	t.equal(game.stage, 0, "the map cannot select a locked stage")
+	Profile.data.stats.stages_cleared = 1
+	menus.show_campaign()
+	await t.frames(2)
+	menus.stage_choices.buttons[1].pressed.emit()
+	t.equal(game.stage, 1, "the map selects an unlocked stage")
+	t.equal(menus.stage_brief.text, Menus.stage_brief_for(1), "the mission brief follows the selected stage")
+	Profile.data.stats.stages_cleared = 0
+	game.select_stage(0)
+	t.check(game.go_back() and menus.screen == "main", "back leaves the map for the title")
 	# A new player: PLAY opens the armory, where one stage is open and the others wait under a padlock.
 	t.check(menus.screen == "main" and menus.play_button != null and menus.gun_choices == null, "the title offers PLAY, not the guns")
 	menus.play_button.pressed.emit()

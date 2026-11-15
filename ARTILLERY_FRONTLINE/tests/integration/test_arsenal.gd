@@ -304,6 +304,7 @@ func _the_choice(t: TestContext) -> void:
 	t.equal(menus.gun_choices.selected, rotary_at, "it is the one lit now")
 	t.check(menus.gun_preview.displayed_id == "rotary_gun" and menus.gun_preview.weapon is RotaryGun, "the preview follows the selected weapon")
 	t.equal(menus.gun_note.text, Menus.gun_note_for("rotary_gun"), "the line under the choice describes it")
+	t.equal(menus.gun_stats.text, Menus.gun_stats_for("rotary_gun"), "the real weapon stats follow the selection")
 	t.near((menus.gun_note.get_parent().get_parent() as Control).size.y, card_height, 0.5, "and the card does not change its size for it")
 	t.check(game.level.defender.weapon is RotaryGun, "the street behind the armory shows it on the mount at once")
 	t.check(hud.weapon_slots.size() == 2 and hud.weapon_slots[0].icon == "rotary" and hud.weapon_slots[1].icon == "launcher", "and the HUD's cards are drawn for it")

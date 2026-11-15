@@ -249,7 +249,7 @@ func go_back() -> bool:
 			resume()
 	elif menus.screen == "settings":
 		menus.show_main()
-	elif menus.screen == "arsenal":
+	elif menus.screen == "arsenal" or menus.screen == "campaign":
 		menus.show_main()
 	elif menus.screen == "loading":
 		return true
