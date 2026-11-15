@@ -1,7 +1,7 @@
 {
   "passed": false,
   "problems": [
-    "text keys nothing shows: campaign_map"
+    "assets nothing asks for: assets/textures/branding/campaign_map.png"
   ],
   "counted": {
     "paths_checked": 242,
@@ -11,7 +11,7 @@
     "assets": 119,
     "asset_megabytes": 58.4,
     "sounds": 49,
-    "text_keys": 134
+    "text_keys": 133
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
 }
