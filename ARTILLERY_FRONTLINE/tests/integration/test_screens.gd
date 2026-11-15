@@ -327,6 +327,18 @@ func run(t: TestContext) -> void:
 		var fa: Control = menus.holder.find_child(pair[1], true, false)
 		t.check(fa.get_global_rect().is_equal_approx(bounds), "%s keeps its position and size in both languages (%s / %s)" % [pair[0], str(bounds), str(fa.get_global_rect())])
 
+	for pair: Array in [["main", "MainPlay"], ["arsenal", "ArsenalStages"], ["arsenal", "ArsenalWeapons"],
+		["upgrade", "UpgradeButton"], ["settings", "Setting_music_volume"], ["settings", "Setting_screen_shake"]]:
+		Profile.set_setting("language", "en")
+		menus._show(pair[0], false)
+		await t.frames(2)
+		var en: Control = menus.holder.find_child(pair[1], true, false)
+		var bounds: Rect2 = en.get_global_rect()
+		Profile.set_setting("language", "fa")
+		await t.frames(2)
+		var fa: Control = menus.holder.find_child(pair[1], true, false)
+		t.check(fa.get_global_rect().is_equal_approx(bounds), "%s controls retain their positions (%s / %s)" % [pair[1], str(bounds), str(fa.get_global_rect())])
+
 	# The title is a poster: the name of the game and PLAY. Guns wait in the armory.
 	for career: bool in [false, true]:
 		Profile.data.stats.matches = 12 if career else 0
@@ -402,14 +414,14 @@ func run(t: TestContext) -> void:
 	t.check(invert_row.toggle.pressed, "and the switch shows it")
 	invert_row.toggle.flip()
 	t.equal(Profile.setting("invert_y"), false, "a tap on the switch itself flips it back")
-	# In Persian a row reads from the right: its name is to the right of its control.
-	t.check(invert_row.get_child(0).get_global_rect().position.x > invert_row.toggle.get_global_rect().position.x, "in Persian the name stands to the right of the switch")
+	# Persian text keeps its script direction, but controls do not change places.
+	t.check(invert_row.get_child(0).get_global_rect().position.x < invert_row.toggle.get_global_rect().position.x, "the Persian switch stays at the approved position")
 	Profile.set_setting("language", "en")
 	await t.frames(2)
 	for control: Control in _visible_controls(menus.holder):
 		if control is MenuWidgets.Row and (control as MenuWidgets.Row).toggle != null:
 			t.check(control.get_child(0).get_global_rect().position.x < (control as MenuWidgets.Row).toggle.get_global_rect().position.x,
-				"in English it stands to the left")
+				"the English switch stays in the same place")
 			break
 	Profile.set_setting("language", "fa")
 	await t.frames(2)

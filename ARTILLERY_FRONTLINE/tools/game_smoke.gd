@@ -663,6 +663,7 @@ func _run() -> void:
 	await frames(2)
 	game.menus.show_equipment()
 	await frames(3)
+	await shot("42-equipment-selection-fa", "screen")
 	for id: String in ["rpg_launcher", "frag_grenade"]:
 		game.menus.show_equipment()
 		await frames(2)

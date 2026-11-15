@@ -390,6 +390,7 @@ func _build_main() -> void:
 	buttons.add_theme_constant_override("separation", 12)
 	_zone(buttons, Rect2(0.68, 0.23, 0.29, 0.62), "MainActions")
 	play_button = UITheme.button(Loc.t("play"), show_arsenal, "accent", "ui_start")
+	play_button.name = "MainPlay"
 	buttons.add_child(play_button)
 	buttons.add_child(UITheme.button(Loc.t("campaign_map"), show_campaign))
 	buttons.add_child(UITheme.button(Loc.t("armory"), show_equipment))
@@ -486,6 +487,7 @@ func _build_arsenal() -> void:
 	stage_brief = _text(stage_brief_for(stage), 19, UITheme.TEXT)
 	plan.add_child(stage_brief)
 	stage_choices = MenuWidgets.Choices.new(stages, stage)
+	stage_choices.name = "ArsenalStages"
 	for index: int in range(open, Campaign.count()):
 		stage_choices.lock(index)
 	stage_choices.chosen.connect(func(index: int) -> void:
@@ -500,6 +502,7 @@ func _build_arsenal() -> void:
 		names.append(Loc.t(gun.name_key))
 		outlines.append(gun.icon)
 	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 2)
+	gun_choices.name = "ArsenalWeapons"
 	_add_weapon_thumbnails(gun_choices, Profile.GUNS)
 	gun_choices.dark_selection = true
 	gun_choices.select(gun_choices.selected)
@@ -592,6 +595,7 @@ func _build_upgrade() -> void:
 	upgrade_button = UITheme.button("", func() -> void:
 		if Profile.buy_upgrade(equipment_id):
 			_refresh_equipment(false), "accent")
+	upgrade_button.name = "UpgradeButton"
 	plan.add_child(upgrade_button)
 	_refresh_equipment(true)
 
@@ -798,7 +802,8 @@ func _group(key: String) -> VBoxContainer:
 
 func _row(key: String) -> MenuWidgets.Row:
 	var row := MenuWidgets.Row.new()
-	row.layout_direction = Control.LAYOUT_DIRECTION_RTL if Loc.is_rtl() else Control.LAYOUT_DIRECTION_LTR
+	row.name = "Setting_" + key
+	row.layout_direction = Control.LAYOUT_DIRECTION_LTR  # Same control positions for both translations.
 	var label: Label = UITheme.label(Loc.t(key), 20, UITheme.TEXT, false)
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
