@@ -19,6 +19,7 @@ func run(t: TestContext) -> void:
 	t.equal(ProjectSettings.get_setting("application/config/name"), "LAST WALL: Zombie Siege", "the project carries the new name")
 	var main_scene: String = ProjectSettings.get_setting("application/run/main_scene")
 	t.check(ResourceLoader.exists(main_scene), "the main scene exists")
+	t.check(not bool(ProjectSettings.get_setting("application/boot_splash/show_image")), "the engine splash image is disabled")
 	for autoload: String in ["Events", "Profile", "Sound", "Graphics"]:
 		t.check(t.tree.root.has_node(autoload), "autoload %s is running" % autoload)
 	t.equal(int(ProjectSettings.get_setting("display/window/handheld/orientation")), 4, "the game is locked to sensor landscape")

@@ -229,7 +229,7 @@ func _on_the_hud(t: TestContext) -> void:
 	t.check(told and Loc.TEXT.en.has("hint_zoom") and Loc.TEXT.fa.has("hint_zoom"), "the hints of the first minute mention the sight, in both languages")
 	Engine.time_scale = 1.0
 	game.to_menu()
-	await t.frames(2)
+	await t.frames(5)
 	root.size = old_size
 	game.queue_free()
 	await t.frames(2)

@@ -483,7 +483,7 @@ func run(t: TestContext) -> void:
 
 	Profile.reset()
 	game.to_menu()
-	await t.frames(2)
+	await t.frames(5)
 	root.size = old_size
 	await t.frames(2)
 	game.queue_free()

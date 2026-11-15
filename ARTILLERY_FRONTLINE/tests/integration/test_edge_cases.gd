@@ -315,7 +315,7 @@ func _controls(t: TestContext) -> void:
 	t.check(Graphics.warmup > 0.5, "and the quality governor does not judge the frame that spans the time away")
 	t.check(game.go_back() and game.mode == 1, "the back button takes the match up again")
 	game.to_menu()
-	await t.frames(2)
+	await t.frames(5)
 	game.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	t.check(game.mode == 0 and not t.tree.paused, "on the title screen there is nothing to pause")
 	game.start_match()

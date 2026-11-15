@@ -186,7 +186,7 @@ func run(t: TestContext) -> void:
 
 	# The other machine gun: chosen on the arsenal, then fired.
 	game.to_menu()
-	await t.frames(3)
+	await t.frames(5)
 	t.check(game.mode == game.Mode.MENU, "MAIN MENU returns to the title")
 	game.choose_gun("rotary_gun")
 	t.equal(String(Profile.setting("gun")), "rotary_gun", "the six-barrel is saved")
@@ -199,7 +199,7 @@ func run(t: TestContext) -> void:
 
 	# Nobody shoots: the horde reaches the gate and the wall takes damage.
 	game.to_menu()
-	await t.frames(3)
+	await t.frames(5)
 	game.select_stage(0)
 	_start_stage(game.menus)
 	await t.frames(4)

@@ -95,7 +95,8 @@ func _ready() -> void:
 	horde.marks = marks
 	explosions.setup(horde, defense, effects, defender, layout)
 	for data: ZombieData in zombie_types:
-		horde.prewarm(data.id)
+		var first_count: int = wave_set.waves[0].count_of(data.id) if wave_set and not wave_set.waves.is_empty() else 0
+		horde.prewarm(data.id, initial_prewarm_count(data.prewarm, first_count, OS.has_feature("mobile")))
 	director = WaveDirector.new()
 	director.name = "WaveDirector"
 	director.wave_set = wave_set
@@ -121,6 +122,12 @@ func _ready() -> void:
 	Events.boss_fell.connect(_on_boss_fell)
 	stats.waves_total = director.wave_count()
 	apply_quality(Graphics.tier, Graphics.profile())
+
+
+## On mobile, prebuild only enough of each type for the opening burst. The
+## director fills the rest one per physics tick during the opening countdown.
+static func initial_prewarm_count(normal: int, first_wave: int, mobile: bool) -> int:
+	return mini(normal, mini(first_wave, 8)) if mobile else normal
 
 
 func _exit_tree() -> void:

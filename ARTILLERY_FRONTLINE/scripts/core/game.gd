@@ -4,8 +4,6 @@ extends Node
 
 enum Mode { MENU, PLAYING, PAUSED, RESULT }
 
-const LEVEL_SCENE: String = "res://scenes/levels/city_siege.tscn"
-
 var mode: Mode = Mode.MENU
 var level: CityLevel
 var hud: Hud
@@ -15,6 +13,8 @@ var last_stats: Dictionary = {}
 var stage: int = 0
 ## The match just finished was won and there is a stage after it.
 var won_onward: bool = false
+## Prevent duplicate deploys or menu returns from racing during a transition.
+var transitioning: bool = false
 
 
 func _ready() -> void:
@@ -45,45 +45,67 @@ func _ready() -> void:
 	_startup()
 
 
-## Paint the loading screen before touching the heavy level. Resource loading
-## happens on a worker; instantiation and prewarming still happen on the main
-## thread, after the player has already seen what the game is doing.
+## Load the actual selected district, not the city regardless of saved stage.
+## Loading and scene setup happen behind an already painted screen. The
+## progress bar tracks the threaded resource phase; preparation is a separate
+## step because instantiating nodes must happen on the main thread.
 func _startup() -> void:
+	transitioning = true
 	if DisplayServer.get_name() == "headless":
-		# Logic suites need no presentation delay or renderer.
 		_load_level()
+		transitioning = false
 		_finish_startup()
 		return
-	var began: int = Time.get_ticks_msec()
+	var ok: bool = await _prepare_level()
+	transitioning = false
+	if ok:
+		_finish_startup()
+	else:
+		menus.show_main()
+
+
+func _prepare_level() -> bool:
+	# Two frames ensure the loading screen is rendered before setup can block.
 	await get_tree().process_frame
 	await get_tree().process_frame
+	var path: String = Campaign.scene(stage)
 	var packed: PackedScene = null
-	var error: Error = ResourceLoader.load_threaded_request(LEVEL_SCENE, "PackedScene")
-	if error == OK:
-		while true:
-			var progress: Array = []
-			var state: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(LEVEL_SCENE, progress)
-			if not progress.is_empty():
-				menus.set_loading_progress(float(progress[0]) * 0.8)
-			if state == ResourceLoader.THREAD_LOAD_LOADED:
-				packed = ResourceLoader.load_threaded_get(LEVEL_SCENE) as PackedScene
-				break
-			if state == ResourceLoader.THREAD_LOAD_FAILED or state == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
-				break
-			await get_tree().process_frame
-	# Fall back to the normal loader if the worker could not start or failed.
+	if DisplayServer.get_name() == "headless":
+		packed = load(path) as PackedScene
+	else:
+		var error: Error = ResourceLoader.load_threaded_request(path, "PackedScene", true)
+		if error == OK:
+			while true:
+				var progress: Array = []
+				var state: ResourceLoader.ThreadLoadStatus = ResourceLoader.load_threaded_get_status(path, progress)
+				if not progress.is_empty():
+					menus.set_loading_progress(float(progress[0]) * 0.8)
+				if state == ResourceLoader.THREAD_LOAD_LOADED:
+					packed = ResourceLoader.load_threaded_get(path) as PackedScene
+					break
+				if state == ResourceLoader.THREAD_LOAD_FAILED or state == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+					break
+				await get_tree().process_frame
+		if packed == null:
+			packed = load(path) as PackedScene
+	if packed == null:
+		push_error("Could not load level: " + path)
+		return false
 	menus.set_loading_progress(0.85, "loading_prepare")
-	await get_tree().process_frame
+	# Free the old scene before constructing a new one to avoid keeping two
+	# zombie pools and worlds alive together on memory-constrained devices.
+	if level != null and is_instance_valid(level):
+		hud.bind(null)
+		level.queue_free()
+		level = null
+		await get_tree().process_frame
 	_load_level(packed)
 	menus.set_loading_progress(1.0)
-	await get_tree().process_frame
-	var left: float = 0.9 - float(Time.get_ticks_msec() - began) / 1000.0
-	if left > 0.0:
-		await get_tree().create_timer(left).timeout
-	_finish_startup()
+	return true
 
 
 func _finish_startup() -> void:
+	_set_menu_world_idle()
 	menus.show_main()
 	var arguments: PackedStringArray = OS.get_cmdline_user_args()
 	if arguments.has("--autostart"):
@@ -103,8 +125,7 @@ func _load_level(packed: PackedScene = null) -> void:
 	stage = clampi(stage, 0, Campaign.open_stages(int(Profile.data.stats.stages_cleared)) - 1)
 	menus.stage = stage
 	var scene_path: String = Campaign.scene(stage)
-	# Startup may have prefetched the city, but a saved stage can be elsewhere.
-	if packed == null or scene_path != LEVEL_SCENE:
+	if packed == null:
 		packed = load(scene_path) as PackedScene
 	level = packed.instantiate()
 	level.stage = stage
@@ -120,6 +141,8 @@ func _load_level(packed: PackedScene = null) -> void:
 
 ## Picks the stage PLAY will start; invalid stage numbers are refused.
 func select_stage(index: int) -> bool:
+	if transitioning:
+		return false
 	if index < 0 or index >= Campaign.open_stages(int(Profile.data.stats.stages_cleared)):
 		return false
 	stage = index
@@ -156,6 +179,10 @@ func _stop_menu_music() -> void:
 
 
 func start_match() -> void:
+	if transitioning:
+		return
+	transitioning = true
+	mode = Mode.MENU
 	_stop_menu_music()
 	Sound.stop_loop("wind")
 	won_onward = false
@@ -163,23 +190,22 @@ func start_match() -> void:
 	Engine.time_scale = 1.0
 	hud.set_active(false)
 	menus.show_loading()
-	# Let the loading screen paint before the hitch of instantiating the street.
-	await get_tree().process_frame
-	await get_tree().process_frame
-	menus.set_loading_progress(0.65, "loading_prepare")
-	await get_tree().process_frame
-	_load_level()
-	menus.set_loading_progress(1.0)
+	var ok: bool = await _prepare_level()
+	transitioning = false
+	if not ok:
+		mode = Mode.MENU
+		_start_menu_music()
+		menus.show_main()
+		return
 	menus.hide_all()
 	hud.set_active(true)
 	level.begin_match()
 	mode = Mode.PLAYING
-	# Wind is gameplay ambience, not part of the menu music.
 	Sound.start_loop("wind", "Effects", -28.0)
 
 
 func pause() -> void:
-	if mode != Mode.PLAYING or (level and level.over):
+	if transitioning or mode != Mode.PLAYING or (level and level.over):
 		return
 	mode = Mode.PAUSED
 	Sound.stop_loop("wind")
@@ -207,9 +233,11 @@ func resume() -> void:
 
 
 func to_menu() -> void:
-	# Back from a stage that was won, the title screen offers the next one.
+	if transitioning:
+		return
 	if won_onward:
 		select_stage(stage + 1)
+	transitioning = true
 	won_onward = false
 	get_tree().paused = false
 	Engine.time_scale = 1.0
@@ -218,8 +246,20 @@ func to_menu() -> void:
 	hud.set_active(false)
 	Sound.silence_combat()
 	_start_menu_music()
-	_load_level()
+	menus.show_loading()
+	var ok: bool = await _prepare_level()
+	transitioning = false
+	if ok:
+		_set_menu_world_idle()
 	menus.show_main()
+
+
+## The approved menus have opaque backgrounds and a separate weapon preview.
+## Keeping the hidden 3D world alive behind them wastes GPU and CPU on phones.
+func _set_menu_world_idle() -> void:
+	if level != null and is_instance_valid(level):
+		level.visible = false
+		level.process_mode = Node.PROCESS_MODE_DISABLED
 
 
 func _on_match_finished(victory: bool, stats: Dictionary) -> void:
@@ -237,6 +277,7 @@ func _on_match_finished(victory: bool, stats: Dictionary) -> void:
 	Profile.record_match(stats)
 	won_onward = victory and stage + 1 < Campaign.count()
 	Sound.silence_combat()
+	_set_menu_world_idle()
 	menus.show_result(victory, stats, record, won_onward)
 	Sound.play("victory" if victory else "defeat", -5.0)
 

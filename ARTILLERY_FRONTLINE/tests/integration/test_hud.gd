@@ -161,7 +161,7 @@ func run(t: TestContext) -> void:
 	t.check(game.mode == 1 and game.level != level and game.level.running, "RESTART builds a fresh level")
 	t.near(game.level.defense.wall_fraction(), 1.0, 0.0001, "the new match starts with an intact wall")
 	game.to_menu()
-	await t.frames(2)
+	await t.frames(5)
 	t.check(game.mode == 0 and menus.screen == "main" and not hud.active, "MAIN MENU returns to the title")
 	t.tree.paused = false
 	Profile.reset()

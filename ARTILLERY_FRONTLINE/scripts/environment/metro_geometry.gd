@@ -4,13 +4,10 @@ extends "res://scripts/environment/hospital_geometry.gd"
 ## lanes are always clear to shoot; the inherited barricades are physical.
 
 func _ready() -> void:
-	super._ready()
-	for child: Node in get_children():
-		var n: String = child.name
-		if n.begins_with("Hospital") or n.begins_with("Emergency") or n.begins_with("Medical") or n.begins_with("Entrance") or n.begins_with("Canopy") or n.begins_with("Facade") or n.begins_with("WestClinic") or n.begins_with("EastClinic") or n.begins_with("Clinic") or n.begins_with("WestAmbulance") or n.begins_with("EastAmbulance"):
-			remove_child(child)
-			child.free()
-	# Replace the inherited ground before placing the rails and ceiling.
+	# Build only the shared defenses and this district; do not instantiate and
+	# discard an entire hospital on each trip into the subway.
+	_setup_materials()
+	_build_shared_defenses()
 	_box("MetroFloor", Vector3(0, -0.25, -77), Vector3(150, 0.5, 190), "concrete", true)
 	_box("TunnelEnd", Vector3(0, 10, -136), Vector3(78, 20, 3), "concrete", true)
 	_box("TunnelOpening", Vector3(0, 7, -134.4), Vector3(21, 14, 0.2), "rubber")

@@ -12,8 +12,7 @@ config/use_custom_user_dir=true
 config/custom_user_dir_name="LastWall"
 config/features=PackedStringArray("4.7", "Mobile")
 boot_splash/bg_color=Color(0.04, 0.04, 0.045, 1)
-boot_splash/show_image=true
-boot_splash/image="res://assets/textures/icon.png"
+boot_splash/show_image=false
 config/icon="res://assets/textures/icon.png"
 
 [autoload]

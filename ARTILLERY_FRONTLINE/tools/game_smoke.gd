@@ -58,6 +58,16 @@ func frames(count: int) -> void:
 		await get_tree().process_frame
 
 
+## Transitions are genuinely asynchronous, and take longer on some machines.
+func wait_transition() -> void:
+	var frames_waited: int = 0
+	while game.transitioning and frames_waited < 1200:
+		await get_tree().process_frame
+		frames_waited += 1
+	check(not game.transitioning, "the transition finishes without getting stuck")
+	await get_tree().process_frame
+
+
 func shot(shot_name: String, kind: String = "play") -> void:
 	assert(KINDS.has(kind))
 	if DisplayServer.get_name() == "headless":
@@ -277,7 +287,7 @@ func _other_screens() -> void:
 		await frames(2)
 
 		game.start_match()
-		await frames(6)
+		await wait_transition()
 		level = game.level
 		check(level != null and level.running, "a second match starts on the 20:9 screen")
 		level.defender.aim.set_aim(40.0, -8.5)
@@ -321,7 +331,7 @@ func _other_screens() -> void:
 	if tablet:
 		if game.mode != 1:
 			game.start_match()
-			await frames(6)
+			await wait_transition()
 			level = game.level
 			simulate(30.0)
 		await frames(4)
@@ -334,7 +344,7 @@ func _other_screens() -> void:
 		await frames(2)
 	if game.mode != 0:
 		game.to_menu()
-		await frames(6)
+		await wait_transition()
 	if tablet:
 		_check_menu("tablet_4x3_menu", Vector2.ZERO)
 		await shot("28-tablet-4x3-menu", "screen")
@@ -349,7 +359,7 @@ func _other_screens() -> void:
 ## ran this, not to a phone; under a software renderer the frame time is the renderer's, not the game's.
 func _peak_load() -> void:
 	game.start_match()
-	await frames(4)
+	await wait_transition()
 	level = game.level
 	level.director.stop()
 	var last_stage: WaveSet = Campaign.waves(Campaign.count() - 1)
@@ -391,7 +401,7 @@ func _peak_load() -> void:
 	game.hud.touch_up(40)
 	check(int(sample.orphan_nodes) == 0, "no node has been left outside the scene tree (%d)" % int(sample.orphan_nodes))
 	game.to_menu()
-	await frames(4)
+	await wait_transition()
 	level = game.level
 
 
@@ -473,7 +483,7 @@ func _six_barrels() -> void:
 	_check_menu("title_six_barrel", Vector2.ZERO)
 	await shot("31-title-six-barrel", "screen")
 	game.start_match()
-	await frames(6)
+	await wait_transition()
 	level = game.level
 	var gun := level.defender.weapon as RotaryGun
 	check(level.running and gun != null, "the match is fought with it")
@@ -506,7 +516,7 @@ func _six_barrels() -> void:
 		check(level.stats.shots - fired >= 20, "a second and a half on the trigger, the run-up included, is more than twenty rounds (%d)" % (level.stats.shots - fired))
 		check(victim != null and level.stats.kills > kills, "and it kills at the gate")
 	game.to_menu()
-	await frames(6)
+	await wait_transition()
 	level = game.level
 	# Back to the gun a new player has.
 	game.menus.show_arsenal()
@@ -520,7 +530,7 @@ func _six_barrels() -> void:
 ## featured in the play-through. The shots are visual evidence, not device tests.
 func _weapon_visual_review() -> void:
 	game.start_match()
-	await frames(6)
+	await wait_transition()
 	level = game.level
 	level.director.stop()
 	level.defender.aim.set_aim(0.0, -5.0)
@@ -541,7 +551,7 @@ func _second_stage() -> void:
 	var career: Dictionary = (Profile.data.stats as Dictionary).duplicate(true)
 	Profile.record_match(_victory_figures(0))
 	game.to_menu()
-	await frames(4)
+	await wait_transition()
 	game.menus.show_arsenal()
 	await frames(2)
 	var choices: MenuWidgets.Choices = game.menus.stage_choices
@@ -553,7 +563,7 @@ func _second_stage() -> void:
 	_check_menu("title_second_stage", Vector2.ZERO)
 	await shot("34-title-second-stage", "preview")
 	game.start_match()
-	await frames(6)
+	await wait_transition()
 	level = game.level
 	var waves: WaveSet = Campaign.waves(1)
 	check(level.running and level.stage == 1 and level.director.wave_count() == waves.waves.size(), "PLAY starts the second stage on its own %d waves" % waves.waves.size())
@@ -577,7 +587,7 @@ func _second_stage() -> void:
 	# The profile goes back to what the play-through itself earned.
 	Profile.data.stats = career
 	game.to_menu()
-	await frames(4)
+	await wait_transition()
 	level = game.level
 	game.menus.show_arsenal()
 	await frames(2)
@@ -588,7 +598,7 @@ func _second_stage() -> void:
 ## A real start from the hospital district, plus a view of the new battlefield.
 func _hospital_stage() -> void:
 	game.to_menu()
-	await frames(4)
+	await wait_transition()
 	game.menus.show_campaign()
 	await frames(2)
 	game.menus.hospital_button.pressed.emit()
@@ -596,7 +606,7 @@ func _hospital_stage() -> void:
 	check(game.stage == 3 and game.menus.stage_choices.buttons[3].visible, "the hospital map selects the fourth stage")
 	await shot("43-hospital-map", "screen")
 	game.start_match()
-	await frames(5)
+	await wait_transition()
 	level = game.level
 	check(level.stage == 3 and level.geometry.name == "Geometry" and level.geometry.find_child("HospitalMain", true, false) != null,
 		"stage four loads the actual hospital scene")
@@ -611,7 +621,7 @@ func _hospital_stage() -> void:
 
 func _metro_stage() -> void:
 	game.to_menu()
-	await frames(4)
+	await wait_transition()
 	game.menus.show_campaign()
 	await frames(2)
 	game.menus.metro_button.pressed.emit()
@@ -619,7 +629,7 @@ func _metro_stage() -> void:
 	check(game.stage == 6 and game.menus.stage_choices.buttons[8].visible, "the metro map offers stages seven to nine")
 	await shot("46-metro-map", "screen")
 	game.start_match()
-	await frames(6)
+	await wait_transition()
 	level = game.level
 	check(level.stage == 6 and level.geometry.find_child("TunnelEnd", true, false) != null, "the metro scene is loaded")
 	simulate(20.0)
@@ -729,7 +739,7 @@ func _run() -> void:
 	await frames(2)
 
 	game.start_match()
-	await frames(6)
+	await wait_transition()
 	level = game.level
 	check(level != null and level.running, "a match is running after DEFEND")
 	check(game.hud.active, "the HUD is active in play")
@@ -988,7 +998,7 @@ func _run() -> void:
 	await get_tree().create_timer(1.3).timeout
 	await shot("33-stage-held-preview", "preview")
 	game.to_menu()
-	await frames(6)
+	await wait_transition()
 	check(game.menus.screen == "main", "MAIN MENU returns to the title")
 
 	await _other_screens()

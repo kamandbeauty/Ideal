@@ -7,6 +7,12 @@ var materials: Dictionary = {}
 
 
 func _ready() -> void:
+	_setup_materials()
+	_build_hospital()
+	_build_shared_defenses()
+
+
+func _setup_materials() -> void:
 	materials["concrete"] = _material(Color(0.52, 0.53, 0.50))
 	materials["wall"] = _material(Color(0.68, 0.69, 0.64))
 	materials["trim"] = _material(Color(0.29, 0.34, 0.34))
@@ -20,6 +26,9 @@ func _ready() -> void:
 	_textured("concrete", "concrete", Vector3(4, 3, 1))
 	_textured("wall", "plaster", Vector3(8, 4, 1))
 	_textured("trim", "metal", Vector3(4, 2, 1))
+
+
+func _build_hospital() -> void:
 	_box("HospitalGround", Vector3(0, -0.25, -77), Vector3(150, 0.5, 190), "road", true)
 	# The emergency building stands behind the entry routes, not across them.
 	_box("HospitalMain", Vector3(0, 13, -151), Vector3(76, 26, 15), "wall", true)
@@ -48,14 +57,6 @@ func _ready() -> void:
 		for index: int in 5:
 			_box("ClinicWindow%d_%d" % [side, index], Vector3(side * 31.85, 10, -110 + index * 6), Vector3(0.2, 2.4, 2.7), "glass")
 		_box("ClinicRoof%d" % side, Vector3(side * 39, 15.2, -95), Vector3(15, 0.6, 39), "trim")
-	# Defenses line the sides of the court with actual openings at gate and patch.
-	_wall_segment("WestWallFar", -16.8, -39.0, 18.0)
-	_wall_segment("WestWallNear", -16.8, -12.0, 22.0)
-	_wall_segment("EastWallFar", 16.65, -35.25, 25.5)
-	_wall_segment("EastWallNear", 16.65, -7.0, 17.0)
-	_box("WallPatch", Vector3(-16.8, 1.9, -26.5), Vector3(0.6, 3.8, 7), "concrete")
-	_box("GateLeafA", Vector3(16.65, 2.1, -20.75), Vector3(0.4, 4.2, 3.5), "trim")
-	_box("GateLeafB", Vector3(16.65, 2.1, -17.25), Vector3(0.4, 4.2, 3.5), "trim")
 	# Two ambulances frame the battlefield, away from the walkable center lanes.
 	_ambulance(Vector3(-22.0, 0, -70), "WestAmbulance")
 	_ambulance(Vector3(22.0, 0, -70), "EastAmbulance")
@@ -70,6 +71,16 @@ func _ready() -> void:
 		for index: int in 4:
 			_box("Debris%d_%d" % [side, index], Vector3(side * (24.0 + index * 1.4), 0.3, -50 - index * 8), Vector3(2.2, 0.6, 1.4), "concrete")
 
+
+func _build_shared_defenses() -> void:
+	# Defenses line the sides of the court with actual openings at gate and patch.
+	_wall_segment("WestWallFar", -16.8, -39.0, 18.0)
+	_wall_segment("WestWallNear", -16.8, -12.0, 22.0)
+	_wall_segment("EastWallFar", 16.65, -35.25, 25.5)
+	_wall_segment("EastWallNear", 16.65, -7.0, 17.0)
+	_box("WallPatch", Vector3(-16.8, 1.9, -26.5), Vector3(0.6, 3.8, 7), "concrete")
+	_box("GateLeafA", Vector3(16.65, 2.1, -20.75), Vector3(0.4, 4.2, 3.5), "trim")
+	_box("GateLeafB", Vector3(16.65, 2.1, -17.25), Vector3(0.4, 4.2, 3.5), "trim")
 
 func _textured(key: String, texture_name: String, scale: Vector3) -> void:
 	var material: StandardMaterial3D = materials[key]

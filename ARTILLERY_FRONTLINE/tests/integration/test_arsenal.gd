@@ -322,7 +322,7 @@ func _the_choice(t: TestContext) -> void:
 	t.check(level.defender.weapon is RotaryGun, "the gun is not swapped under the gunner in the middle of a match")
 	t.equal(String(Profile.setting("gun")), "twin_hmg", "though the choice is noted")
 	game.to_menu()
-	await t.frames(3)
+	await t.frames(5)
 	t.check(game.level.defender.weapon is TwinHmg, "back on the title the noted gun stands on the mount")
 	menus.show_arsenal()
 	await t.frames(2)
