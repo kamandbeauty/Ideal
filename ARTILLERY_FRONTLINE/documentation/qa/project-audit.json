@@ -1,11 +1,13 @@
 {
   "passed": false,
   "problems": [
-    "text keys nothing shows: choose_gun, choose_stage, weapon_bushmaster_short, weapon_dual_mauler_short, weapon_gilded_minigun_short, weapon_rotary_gun_short, weapon_twin_hmg_short"
+    "nothing uses: addons/AdmobPlugin/AdmobPlugin.gd, addons/AdmobPlugin/InlineAdaptiveBanner.gd",
+    "text keys nothing shows: choose_gun, choose_stage, weapon_bushmaster_short, weapon_dual_mauler_short, weapon_gilded_minigun_short, weapon_rotary_gun_short, weapon_twin_hmg_short",
+    "debug output left in: addons/GMPShared/GmpLogger.gd:17"
   ],
   "counted": {
-    "paths_checked": 172,
-    "scripts": 50,
+    "paths_checked": 177,
+    "scripts": 78,
     "scenes": 13,
     "resources": 20,
     "assets": 97,
