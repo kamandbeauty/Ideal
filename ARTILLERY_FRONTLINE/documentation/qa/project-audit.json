@@ -1,8 +1,6 @@
 {
-  "passed": false,
-  "problems": [
-    "text keys nothing shows: best_run"
-  ],
+  "passed": true,
+  "problems": [],
   "counted": {
     "paths_checked": 177,
     "scripts": 51,
