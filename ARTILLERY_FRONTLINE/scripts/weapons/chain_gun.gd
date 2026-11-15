@@ -56,17 +56,24 @@ func _build() -> void:
 
 
 func _dress_chain() -> void:
-	var steel := Color(0.08, 0.078, 0.07)
-	var dark := Color(0.03, 0.032, 0.03)
-	var brass := Color(0.6, 0.46, 0.18)
-	_kit_box(pivot, Vector3(0.0, 0.2, -0.2), Vector3(0.048, 0.016, 0.42), steel, 0.9, 0.26)
-	_kit_box(pivot, Vector3(0.0, 0.245, -0.42), Vector3(0.014, 0.055, 0.016), dark, 0.35, 0.7)
-	_kit_box(pivot, Vector3(0.0, 0.12, 0.08), Vector3(0.11, 0.06, 0.2), steel, 0.86, 0.32)
-	_kit_box(pivot, Vector3(0.06, 0.04, -0.05), Vector3(0.04, 0.05, 0.24), dark, 0.2, 0.82)
-	for z: float in [-0.7, -1.15, -1.6]:
-		_kit_collar(pivot, Vector3(0.0, -0.02, z), 0.027, 0.034, dark)
-	_kit_cyl(pivot, Vector3(0.0, 0.16, -0.1), 0.01, 0.024, brass, 0.9, 0.3)
-	_kit_collar(pivot, Vector3(0.0, -0.02, -1.67), 0.028, 0.036, steel)
+	var steel := Color(0.105, 0.11, 0.10)
+	var dark := Color(0.035, 0.038, 0.035)
+	# The model's rear rail ends before the front post, and its underside sits
+	# above the receiver. A single bracket reaches both, instead of a second
+	# free-floating rail above the gun.
+	var seat := _kit_box(pivot, Vector3(0.0, 0.087, -0.10), Vector3(0.04, 0.044, 0.39), steel, 0.78, 0.52)
+	seat.name = "SightRailSeat"
+	var ribs: Array = []
+	for z: float in [-0.23, -0.14, -0.05, 0.04]:
+		ribs.append([Vector3(0.0, 0.111, z), Vector3(0.052, 0.006, 0.018)])
+	for side: float in [-1.0, 1.0]:
+		for z: float in [-0.20, 0.0, 0.20]:
+			ribs.append([Vector3(side * 0.081, 0.015, z), Vector3(0.008, 0.024, 0.022)])
+	_kit_boxes(pivot, "ReceiverDetails", ribs, dark, 0.72, 0.60)
+	# The barrel runs on y=-.02 with radius .04: collars are centered on
+	# that axis and leave an open bore, with no parts beyond the muzzle.
+	for z: float in [-0.70, -1.15, -1.58]:
+		_kit_collar(pivot, Vector3(0.0, -0.02, z), 0.039, 0.046, steel)
 
 
 func _build_flash() -> void:

@@ -25,6 +25,8 @@ var since_shot: float = 10.0
 var dry_cooldown: float = 0.0
 var rng := RandomNumberGenerator.new()
 var sight_query := PhysicsRayQueryParameters3D.new()
+## One small shared texture for the metal and painted receiver surfaces.
+const GUN_FINISH: Texture2D = preload("res://assets/textures/weapons/gunmetal.png")
 
 
 func _ready() -> void:
@@ -50,6 +52,7 @@ func _build() -> void:
 func _enrich_surfaces(root: Node) -> void:
 	if root == null:
 		return
+	var machine_gun: bool = data != null and data.kind == "bullet"
 	for node: Node in root.find_children("*", "MeshInstance3D", true, false):
 		var mesh: MeshInstance3D = node
 		if mesh.mesh == null:
@@ -79,6 +82,12 @@ func _enrich_surfaces(root: Node) -> void:
 				dressed.clearcoat_enabled = true
 				dressed.clearcoat = 0.45
 				dressed.clearcoat_roughness = 0.18
+			elif machine_gun:
+				# Brushed, worn metal rather than a mirror-bright plastic block.
+				dressed.metallic = maxf(dressed.metallic, 0.72)
+				dressed.roughness = clampf(dressed.roughness, 0.42, 0.68)
+				dressed.metallic_specular = 0.48
+				dressed.clearcoat_enabled = false
 			else:
 				dressed.metallic = maxf(dressed.metallic, 0.88)
 				dressed.roughness = clampf(dressed.roughness * 0.55, 0.18, 0.42)
@@ -86,6 +95,12 @@ func _enrich_surfaces(root: Node) -> void:
 				dressed.clearcoat_enabled = true
 				dressed.clearcoat = 0.28
 				dressed.clearcoat_roughness = 0.22
+			if machine_gun and (n.contains("steel") or n.contains("edge") or n.contains("olive") or n.contains("tan")):
+				# These GLBs have little or no UV data: object-space triplanar
+				# projection follows each moving part, without UV seams.
+				dressed.albedo_texture = GUN_FINISH
+				dressed.uv1_triplanar = true
+				dressed.uv1_scale = Vector3(3.0, 3.0, 3.0)
 			dressed.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 			mesh.set_surface_override_material(index, dressed)
 	_apply_finish(root, String(data.id) if data else "")
@@ -108,7 +123,7 @@ func _apply_finish(root: Node, id: String) -> void:
 				"dual_mauler":
 					dressed.albedo_color = dressed.albedo_color * Color(0.58, 0.42, 0.26)
 					dressed.metallic = minf(1.0, dressed.metallic + 0.06)
-					dressed.roughness = clampf(dressed.roughness * 0.9, 0.16, 0.45)
+					dressed.roughness = clampf(dressed.roughness * 0.9, 0.32, 0.6)
 				"gilded_minigun":
 					dressed.albedo_color = dressed.albedo_color * Color(0.95, 0.72, 0.22)
 					dressed.metallic = 0.96
@@ -144,6 +159,24 @@ func _kit_box(parent: Node3D, at: Vector3, size: Vector3, color: Color, metal: f
 	var mesh := MeshInstance3D.new()
 	mesh.mesh = box
 	mesh.position = at
+	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mesh)
+	return mesh
+
+
+## Batches small box details of a single finish into one mesh/draw call. These
+## are fixed to their mechanical parent and share its recoil or traverse.
+func _kit_boxes(parent: Node3D, name: String, pieces: Array, color: Color, metal: float = 0.75, rough: float = 0.55) -> MeshInstance3D:
+	var builder := SurfaceTool.new()
+	builder.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for piece: Array in pieces:
+		var box := BoxMesh.new()
+		box.size = piece[1]
+		builder.append_from(box, 0, Transform3D(Basis.IDENTITY, piece[0]))
+	var mesh := MeshInstance3D.new()
+	mesh.name = name
+	mesh.mesh = builder.commit()
+	mesh.material_override = _steel(color, metal, rough)
 	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(mesh)
 	return mesh

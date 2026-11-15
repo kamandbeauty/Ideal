@@ -80,31 +80,31 @@ func _build() -> void:
 
 
 func _dress_twin() -> void:
-	# Hardware the gunner sees: a sight ladder, cooling slots, muzzle brakes,
-	# feed chutes and a few rivets so the kit is not a smooth toy.
-	var steel := Color(0.08, 0.082, 0.086)
-	var dark := Color(0.028, 0.03, 0.032)
-	var brass := Color(0.62, 0.46, 0.18)
-	_kit_box(pivot, Vector3(0.0, 0.11, 0.42), Vector3(0.038, 0.014, 0.58), steel, 0.92, 0.26)
-	_kit_box(pivot, Vector3(0.0, 0.148, 0.62), Vector3(0.05, 0.02, 0.05), steel, 0.9, 0.24)
-	_kit_box(pivot, Vector3(0.0, 0.175, 0.62), Vector3(0.01, 0.046, 0.012), dark, 0.35, 0.7)
-	_kit_box(pivot, Vector3(0.0, 0.12, 0.18), Vector3(0.12, 0.04, 0.16), steel, 0.88, 0.3)
-	for side: float in [-1.0, 1.0]:
-		_kit_box(pivot, Vector3(side * 0.09, 0.02, 0.28), Vector3(0.03, 0.05, 0.22), dark, 0.2, 0.8)
-		_kit_cyl(pivot, Vector3(side * 0.055, 0.09, 0.5), 0.007, 0.018, brass, 0.9, 0.3)
+	# Each front sight is part of the recoiling barrel assembly. Its original
+	# foot starts at y=.037 while the barrel radius is .032: the clamp bridges
+	# that visible gap instead of suspending the sight above the tube.
+	var steel := Color(0.095, 0.10, 0.105)
+	var dark := Color(0.035, 0.038, 0.04)
+	var brass := Color(0.52, 0.37, 0.12)
 	for recoiler: Node3D in recoilers:
-		for i: int in 8:
-			var z: float = 0.28 + float(i) * 0.15
-			_kit_box(recoiler, Vector3(0.0, 0.03, z), Vector3(0.058, 0.007, 0.03), dark, 0.15, 0.86)
-		_kit_box(recoiler, Vector3(0.0, 0.042, 1.55), Vector3(0.016, 0.055, 0.018), steel, 0.9, 0.22)
-		_kit_collar(recoiler, Vector3(0.0, 0.0, 1.62), 0.026, 0.033, dark)
-		_kit_box(recoiler, Vector3(0.0, -0.02, 0.55), Vector3(0.02, 0.016, 0.7), steel, 0.85, 0.32)
-	if data and String(data.id) == "dual_mauler":
-		# A drum and heavier brakes so this twin is not the same kit as the HMG.
-		_kit_cyl(pivot, Vector3(0.0, 0.2, 0.22), 0.07, 0.09, brass, 0.92, 0.28)
-		_kit_box(pivot, Vector3(0.0, 0.16, 0.22), Vector3(0.16, 0.05, 0.16), brass, 0.88, 0.32)
-		for recoiler: Node3D in recoilers:
-			_kit_collar(recoiler, Vector3(0.0, 0.0, 1.7), 0.03, 0.04, brass)
+		var seat := _kit_box(recoiler, Vector3(0.0, 0.034, 1.50), Vector3(0.056, 0.022, 0.075), steel, 0.78, 0.52)
+		seat.name = "FrontSightSeat"
+		# Small receiver seams, cover hinges and fasteners lie on the existing
+		# receiver instead of floating between the two independently recoiling guns.
+		var parts: Array = []
+		for side: float in [-1.0, 1.0]:
+			parts.append([Vector3(side * 0.104, 0.03, 0.03), Vector3(0.012, 0.05, 0.42)])
+			for z: float in [-0.14, 0.06, 0.24]:
+				parts.append([Vector3(side * 0.112, 0.03, z), Vector3(0.008, 0.018, 0.018)])
+		_kit_boxes(recoiler, "ReceiverDetails", parts, dark, 0.72, 0.62)
+		# Bands near the breech fit the existing .032 m barrel, leaving the bore clear.
+		for z: float in [1.06, 1.26]:
+			_kit_collar(recoiler, Vector3(0.0, 0.0, z), 0.031, 0.037, steel)
+		if data and String(data.id) == "dual_mauler":
+			_kit_collar(recoiler, Vector3(0.0, 0.0, 1.70), 0.051, 0.059, brass)
+			_kit_boxes(recoiler, "MaulerTrim", [
+				[Vector3(0.0, 0.145, 0.02), Vector3(0.11, 0.012, 0.26)],
+				[Vector3(0.0, 0.148, 0.23), Vector3(0.11, 0.012, 0.04)]], brass, 0.8, 0.42)
 
 
 func _build_flash(muzzle: Node3D) -> void:

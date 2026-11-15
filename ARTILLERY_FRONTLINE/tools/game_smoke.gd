@@ -511,6 +511,25 @@ func _six_barrels() -> void:
 	check(String(Profile.setting("gun")) == "twin_hmg" and level.defender.weapon is TwinHmg, "the twin gun goes back on the mount")
 
 
+## Review all five actual loadouts from the gunner's view, not just the two
+## featured in the play-through. The shots are visual evidence, not device tests.
+func _weapon_visual_review() -> void:
+	game.start_match()
+	await frames(6)
+	level = game.level
+	level.director.stop()
+	level.defender.aim.set_aim(0.0, -5.0)
+	level.defender._apply_aim()
+	for id: String in Profile.GUNS:
+		if level.defender.gun_id() != id:
+			level.defender.mount_gun(id)
+		await frames(3)
+		check(level.defender.gun_id() == id, "%s stands on the mount for visual review" % id)
+		await shot("39-weapon-" + id)
+	game.to_menu()
+	await frames(3)
+
+
 ## The stage after the first. The driver has not won the first stage under rendering, so it writes that win
 ## into the profile itself; what the title screen and the match then show is the game's own doing.
 func _second_stage() -> void:
@@ -903,6 +922,7 @@ func _run() -> void:
 	await _other_screens()
 	await _peak_load()
 	await _six_barrels()
+	await _weapon_visual_review()
 	await _second_stage()
 
 	var render: Dictionary = Graphics.snapshot()

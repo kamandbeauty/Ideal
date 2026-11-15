@@ -75,22 +75,24 @@ func _build() -> void:
 
 
 func _dress_rotary() -> void:
-	var steel := Color(0.075, 0.078, 0.082)
-	var dark := Color(0.03, 0.032, 0.034)
-	var brass := Color(0.7, 0.52, 0.2)
-	_kit_box(pivot, Vector3(0.0, 0.22, -0.15), Vector3(0.046, 0.016, 0.48), steel, 0.92, 0.24)
-	_kit_box(pivot, Vector3(0.0, 0.258, -0.32), Vector3(0.014, 0.05, 0.016), dark, 0.4, 0.65)
-	_kit_box(pivot, Vector3(0.0, 0.14, 0.12), Vector3(0.16, 0.08, 0.22), steel, 0.88, 0.3)
-	_kit_box(pivot, Vector3(0.08, 0.05, 0.05), Vector3(0.05, 0.07, 0.28), dark, 0.2, 0.8)
-	# The barrel clamp belongs to the spinning rotor, centered on its axis.
-	# Its open ring cannot plug the six bores or remain fixed as they spin.
+	var steel := Color(0.095, 0.10, 0.105)
+	var dark := Color(0.035, 0.038, 0.04)
+	var gold := Color(0.66, 0.47, 0.12)
+	# The model's own sight sits on the housing at y=.10; the old decorative
+	# rail was at y=.22, floating above it. This seat meets the real rail.
+	var seat := _kit_box(pivot, Vector3(0.0, 0.108, -0.08), Vector3(0.05, 0.018, 0.34), steel, 0.78, 0.52)
+	seat.name = "SightRailSeat"
+	var ribs: Array = []
+	for z: float in [-0.20, -0.12, -0.04, 0.04]:
+		ribs.append([Vector3(0.0, 0.119, z), Vector3(0.054, 0.006, 0.018)])
+	_kit_boxes(pivot, "SightRailDetails", ribs, dark, 0.7, 0.58)
+	# This collar belongs to the spinning rotor, not the stationary receiver.
 	_kit_collar(rotor, Vector3(0.0, 0.0, -0.95), 0.094, 0.102, dark)
-	_kit_cyl(pivot, Vector3(0.0, 0.18, -0.05), 0.012, 0.03, brass, 0.92, 0.28)
 	if data and String(data.id) == "gilded_minigun":
-		var gold := Color(0.84, 0.62, 0.18)
 		_kit_collar(rotor, Vector3(0.0, 0.0, -1.17), 0.096, 0.105, gold)
-		_kit_box(pivot, Vector3(0.0, 0.24, -0.08), Vector3(0.05, 0.022, 0.36), gold, 0.94, 0.2)
-		_kit_cyl(pivot, Vector3(0.0, 0.2, -0.05), 0.014, 0.034, gold, 0.96, 0.16)
+		_kit_boxes(pivot, "GildedTrim", [
+			[Vector3(-0.17, 0.06, 0.02), Vector3(0.012, 0.045, 0.19)],
+			[Vector3(0.17, 0.06, 0.02), Vector3(0.012, 0.045, 0.19)]], gold, 0.82, 0.4)
 
 
 func _build_flash() -> void:
