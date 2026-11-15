@@ -382,7 +382,6 @@ func _build_toast() -> void:
 	# A long manager message wraps instead of stretching the pill across the
 	# screen and sliding under the detail panel.
 	_toast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_toast.custom_minimum_size = Vector2(480, 0)
 	_toast_panel.add_child(_toast)
 
 
