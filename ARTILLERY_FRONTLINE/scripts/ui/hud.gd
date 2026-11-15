@@ -346,6 +346,9 @@ func bind(siege: CityLevel) -> void:
 		_show_boss(false)
 	banner_left = 0.0
 	banner_hold = false
+	banner.modulate.a = 0.0
+	sub_banner.modulate.a = 0.0
+	banner_band.modulate.a = 0.0
 	intermission_left = -1.0
 	gate_struck = 10.0
 	wall_struck = 10.0

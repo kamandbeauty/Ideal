@@ -16,6 +16,10 @@ func _ready() -> void:
 	materials["white"] = _material(Color(0.78, 0.79, 0.74))
 	materials["yellow"] = _material(Color(0.82, 0.63, 0.24))
 	materials["rubber"] = _material(Color(0.055, 0.055, 0.055))
+	_textured("road", "asphalt", Vector3(35, 35, 1))
+	_textured("concrete", "concrete", Vector3(4, 3, 1))
+	_textured("wall", "plaster", Vector3(8, 4, 1))
+	_textured("trim", "metal", Vector3(4, 2, 1))
 	_box("HospitalGround", Vector3(0, -0.25, -77), Vector3(150, 0.5, 190), "road", true)
 	# The emergency building stands behind the entry routes, not across them.
 	_box("HospitalMain", Vector3(0, 13, -151), Vector3(76, 26, 15), "wall", true)
@@ -25,11 +29,25 @@ func _ready() -> void:
 	_box("MedicalCrossVertical", Vector3(0, 19.5, -143.0), Vector3(1.6, 4.2, 0.16), "red")
 	_box("MedicalCrossHorizontal", Vector3(0, 19.5, -142.9), Vector3(4.2, 1.6, 0.16), "red")
 	_windows()
+	# Weathered entrance canopy and structural features, all clear of paths.
+	_box("EntranceCanopy", Vector3(0, 9.0, -138.8), Vector3(31, 0.7, 9), "concrete")
+	for x: float in [-13.5, 13.5]:
+		_box("CanopyPillar%s" % x, Vector3(x, 4.3, -135.0), Vector3(1, 8.6, 1), "concrete")
+	for x: float in [-30.0, -22.0, 22.0, 30.0]:
+		_box("FacadeColumn%s" % x, Vector3(x, 12, -143.35), Vector3(0.55, 23, 0.6), "concrete")
+	for y: float in [4.5, 10.0, 15.3, 20.6]:
+		_box("FacadeSill%s" % y, Vector3(0, y, -143.32), Vector3(73, 0.4, 0.5), "concrete")
+	_box("EntranceDoors", Vector3(0, 3.0, -139.15), Vector3(10, 6.0, 0.15), "glass")
+	_box("EntranceDoorMullion", Vector3(0, 3.0, -139.02), Vector3(0.35, 6, 0.15), "trim")
 	# Two damaged wings frame the forecourt without blocking the avenue.
 	_box("WestClinic", Vector3(-39, 7.5, -95), Vector3(14, 15, 38), "concrete", true)
 	_box("EastClinic", Vector3(39, 7.5, -95), Vector3(14, 15, 38), "concrete", true)
 	_box("WestClinicStripe", Vector3(-31.9, 7, -95), Vector3(0.2, 1.2, 36), "red")
 	_box("EastClinicStripe", Vector3(31.9, 7, -95), Vector3(0.2, 1.2, 36), "red")
+	for side: int in [-1, 1]:
+		for index: int in 5:
+			_box("ClinicWindow%d_%d" % [side, index], Vector3(side * 31.85, 10, -110 + index * 6), Vector3(0.2, 2.4, 2.7), "glass")
+		_box("ClinicRoof%d" % side, Vector3(side * 39, 15.2, -95), Vector3(15, 0.6, 39), "trim")
 	# Defenses line the sides of the court with actual openings at gate and patch.
 	_wall_segment("WestWallFar", -16.8, -39.0, 18.0)
 	_wall_segment("WestWallNear", -16.8, -12.0, 22.0)
@@ -44,7 +62,20 @@ func _ready() -> void:
 	for index: int in 8:
 		_box("RoadMark%d" % index, Vector3(0, 0.02, -58.0 - index * 9.0), Vector3(0.25, 0.04, 4.2), "yellow")
 	for index: int in 4:
-		_box("QuarantineBlock%d" % index, Vector3(-14.0 + index * 9.0, 0.5, -49), Vector3(2.5, 1.0, 0.5), "concrete")
+		var x: float = -14.0 + index * 9.0
+		_box("QuarantineBlock%d" % index, Vector3(x, 0.5, -49), Vector3(2.5, 1.0, 0.5), "concrete")
+		_box("QuarantineWarning%d" % index, Vector3(x, 0.7, -48.7), Vector3(2.2, 0.28, 0.1), "yellow")
+	# Small wreckage around the shoulders, not across the firing lanes.
+	for side: int in [-1, 1]:
+		for index: int in 4:
+			_box("Debris%d_%d" % [side, index], Vector3(side * (24.0 + index * 1.4), 0.3, -50 - index * 8), Vector3(2.2, 0.6, 1.4), "concrete")
+
+
+func _textured(key: String, texture_name: String, scale: Vector3) -> void:
+	var material: StandardMaterial3D = materials[key]
+	material.albedo_texture = load("res://assets/textures/world/" + texture_name + ".jpg")
+	material.uv1_scale = scale
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 
 
 func _material(color: Color, metallic: float = 0.0) -> StandardMaterial3D:
