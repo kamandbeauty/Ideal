@@ -269,22 +269,25 @@ func _build_arms(coat: Color, skin: Color, trim: Color) -> void:
 
 
 func _build_head(skin: Color, hair: Color, accent: Color) -> void:
-	_part(_body, _cylinder(0.052, 0.06, 0.1), skin, Vector3(0.0, 1.575, 0.0))
-	var head := _part(_body, _sphere(0.155, 0.33), skin, Vector3(0.0, 1.74, 0.01), "head")
-	head.scale = Vector3(1.0, 1.0, 0.94)
+	_part(_body, _cylinder(0.05, 0.058, 0.1), skin, Vector3(0.0, 1.56, 0.0))
+	# Anime proportions: a slightly oversized head makes the small figures read as
+	# characters rather than as pawns at the game's camera distance.
+	var head := _part(_body, _sphere(0.172, 0.38), skin, Vector3(0.0, 1.77, 0.012), "head")
+	head.scale = Vector3(1.0, 1.02, 0.95)
 
-	var cap := _part(_body, _hemisphere(0.168, 0.19), hair, Vector3(0.0, 1.78, 0.005))
-	cap.scale = Vector3(1.02, 1.0, 1.04)
-	_part(_body, _box(Vector3(0.3, 0.075, 0.1)), hair, Vector3(0.0, 1.85, 0.115))
+	var cap := _part(_body, _hemisphere(0.186, 0.21), hair, Vector3(0.0, 1.81, 0.004))
+	cap.scale = Vector3(1.02, 1.0, 1.05)
+	_part(_body, _box(Vector3(0.32, 0.09, 0.12)), hair, Vector3(0.0, 1.9, 0.12))
 	for side in [-1.0, 1.0]:
-		_part(_body, _box(Vector3(0.055, 0.24, 0.08)), hair, Vector3(0.15 * side, 1.72, -0.01))
+		_part(_body, _box(Vector3(0.06, 0.3, 0.1)), hair, Vector3(0.163 * side, 1.74, -0.02))
+	_part(_body, _box(Vector3(0.3, 0.22, 0.08)), hair, Vector3(0.0, 1.68, -0.14))
 
 	for side in [-1.0, 1.0]:
-		var eye := _part(_body, _box(Vector3(0.045, 0.075, 0.02)), accent, Vector3(0.062 * side, 1.73, 0.148))
-		eye.material_override = GuildMaterials.glow(accent, 1.1)
+		var eye := _part(_body, _box(Vector3(0.058, 0.09, 0.02)), accent, Vector3(0.066 * side, 1.75, 0.163))
+		eye.material_override = GuildMaterials.glow(accent, 1.15)
 
 	if bool(palette["hood"]):
-		var hood := _part(_body, _sphere(0.2, 0.32), palette["coat"], Vector3(0.0, 1.79, -0.02), "hood")
+		var hood := _part(_body, _sphere(0.215, 0.34), palette["coat"], Vector3(0.0, 1.82, -0.02), "hood")
 		hood.scale = Vector3(1.0, 0.95, 1.02)
 		hood.rotation.x = -0.12
 

@@ -8,7 +8,7 @@ extends RefCounted
 ## in `gl_compatibility` on Android, so the look is identical on phone and in CI.
 
 const OUTLINE_COLOR := Color(0.045, 0.035, 0.08)
-const OUTLINE_WIDTH := 0.014
+const OUTLINE_WIDTH := 0.021
 
 
 ## The base surface: chalky, matte, no highlights fighting the silhouette.

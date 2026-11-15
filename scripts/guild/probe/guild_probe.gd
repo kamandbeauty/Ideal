@@ -10,11 +10,11 @@ extends Node3D
 ## navigation, spawn points) is Phase 2's next slice.
 
 const CAST: Array[String] = ["warrior", "mage", "archer", "rogue", "knight"]
-const FLOOR_COLOR := Color(0.11, 0.12, 0.19)
+const FLOOR_COLOR := Color(0.085, 0.09, 0.15)
 const STONE := Color(0.34, 0.35, 0.47)
 const WOOD := Color(0.31, 0.22, 0.17)
 const GOLD := Color(0.92, 0.76, 0.38)
-const RUG := Color(0.21, 0.15, 0.36)
+const RUG := Color(0.18, 0.12, 0.31)
 
 var hero: GuildPlayer
 var control_rig: GuildCharacter
@@ -61,9 +61,11 @@ func focus_hero() -> void:
 	if camera_rig == null:
 		return
 	camera_rig.distance = GuildPlayerCamera.MIN_DISTANCE
-	camera_rig.pitch = 30.0
-	camera_rig.yaw = 14.0
-	camera_rig.focus_on(Vector3(hero.position.x, 1.08, hero.position.z))
+	camera_rig.pitch = 27.0
+	camera_rig.yaw = 16.0
+	if camera_rig.camera != null:
+		camera_rig.camera.fov = 36.0
+	camera_rig.focus_on(Vector3(hero.position.x, 1.02, hero.position.z))
 
 
 ## A one-line health check of the rig, mirrored into the CI log.
@@ -150,7 +152,7 @@ func _build_lighting() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.9
+	env.ambient_light_energy = 0.42
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
 	env.fog_light_color = Color(0.22, 0.2, 0.36)
@@ -162,11 +164,27 @@ func _build_lighting() -> void:
 	key.name = "Key"
 	key.rotation_degrees = Vector3(-42.0, 34.0, 0.0)
 	key.light_color = Color(1.0, 0.94, 0.84)
-	key.light_energy = 1.7
+	key.light_energy = 1.55
 	key.shadow_enabled = true
 	key.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
 	key.directional_shadow_max_distance = 30.0
 	add_child(key)
+
+	# Two more directions: a cool fill so the shadow side never goes black, and a
+	# gold rim from behind, which is what makes cel-shaded characters pop.
+	var fill := DirectionalLight3D.new()
+	fill.name = "Fill"
+	fill.rotation_degrees = Vector3(-28.0, -62.0, 0.0)
+	fill.light_color = Color(0.55, 0.68, 1.0)
+	fill.light_energy = 0.65
+	add_child(fill)
+
+	var rim_light := DirectionalLight3D.new()
+	rim_light.name = "RimLight"
+	rim_light.rotation_degrees = Vector3(-14.0, 196.0, 0.0)
+	rim_light.light_color = Color(1.0, 0.82, 0.5)
+	rim_light.light_energy = 1.3
+	add_child(rim_light)
 
 	var rim := OmniLight3D.new()
 	rim.name = "Rim"
@@ -345,9 +363,11 @@ func _build_camera() -> void:
 	camera_rig.name = "CameraRig"
 	camera_rig.yaw = 20.0
 	camera_rig.pitch = 33.0
-	camera_rig.distance = 10.4
+	camera_rig.distance = 9.6
 	add_child(camera_rig)
-	camera_rig.focus_on(Vector3(0.35, 1.15, 0.45))
+	if camera_rig.camera != null:
+		camera_rig.camera.fov = 44.0
+	camera_rig.focus_on(Vector3(0.2, 1.1, 0.55))
 	var env: Environment = get_meta("environment") as Environment
 	if camera_rig.camera != null and env != null:
 		camera_rig.camera.environment = env
