@@ -111,6 +111,12 @@ jobs:
           done
           wait "$smoke_pid" || true
           cat "$RUNNER_TEMP/smoke.log"
+          # Mirror the rig diagnostics and any engine complaint into annotations:
+          # they are readable from where we review, unlike the raw job log.
+          (grep -aE 'SMOKE: (probe|hero|part|stack)' "$RUNNER_TEMP/smoke.log" || true) | head -30 \
+            | while IFS= read -r line; do echo "::notice title=rig::${line:0:900}"; done
+          (grep -aE 'ERROR|WARNING|Shader' "$RUNNER_TEMP/smoke.log" || true) | head -12 \
+            | while IFS= read -r line; do echo "::warning title=engine::${line:0:900}"; done
           if grep -nE 'SCRIPT ERROR|Parse Error|Invalid call|Nonexistent function' "$RUNNER_TEMP/smoke.log" > "$RUNNER_TEMP/smoke-errors.txt"; then
             head -15 "$RUNNER_TEMP/smoke-errors.txt" | while IFS= read -r line; do
               echo "::error title=Play-through::${line:0:900}"
@@ -124,27 +130,30 @@ jobs:
           test -s documentation/qa/02-town-fa.png
 
       - name: Publish play-through previews
+        # Publishing stills is a convenience, never the gate: a push that loses a
+        # race must not turn a green play-through into a red check.
         if: github.event_name == 'push'
+        continue-on-error: true
         run: |
-          set -euo pipefail
+          set -uo pipefail
           # Keep the play-through log in the repository: the CI log itself is not
           # always reachable from where we review, and a missing mesh or a shader
           # warning must be readable next to the screenshot it produced.
           if [ -f "$RUNNER_TEMP/smoke.log" ]; then
-            cp "$RUNNER_TEMP/smoke.log" documentation/qa/smoke.log
+            cp "$RUNNER_TEMP/smoke.log" documentation/qa/smoke.log || true
           fi
-          if git status --porcelain documentation/qa/preview | grep -q .; then
+          changed=$(git status --porcelain documentation/qa || true)
+          if [ -n "$changed" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add documentation/qa/preview
-            if [ -f documentation/qa/guild-probe.txt ]; then
-              git add documentation/qa/guild-probe.txt
+            git add documentation/qa || true
+            if git commit -m "chore: refresh play-through previews [skip ci]"; then
+              git push || echo "::warning title=publish::the previews could not be pushed"
+            else
+              echo "::notice title=publish::nothing new to publish"
             fi
-            if [ -f documentation/qa/smoke.log ]; then
-              git add documentation/qa/smoke.log
-            fi
-            git commit -m "chore: refresh play-through previews [skip ci]"
-            git push
+          else
+            echo "::notice title=publish::previews unchanged"
           fi
 
       - uses: actions/upload-artifact@v4
