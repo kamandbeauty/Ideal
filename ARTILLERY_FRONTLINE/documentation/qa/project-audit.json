@@ -1,15 +1,17 @@
 {
-  "passed": true,
-  "problems": [],
+  "passed": false,
+  "problems": [
+    "text keys nothing shows: best_run"
+  ],
   "counted": {
-    "paths_checked": 175,
+    "paths_checked": 177,
     "scripts": 51,
     "scenes": 13,
     "resources": 20,
-    "assets": 102,
-    "asset_megabytes": 43.7,
+    "assets": 104,
+    "asset_megabytes": 48.7,
     "sounds": 49,
-    "text_keys": 113
+    "text_keys": 116
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
 }
