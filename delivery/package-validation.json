@@ -1,7 +1,7 @@
 {
   "LastWall-arm64.apk": {
-    "bytes": 62363106,
-    "sha256": "79081d95cc1b2e32ee8f1a0a653e78015947ba7fe167f3999db4362021cf1f58",
+    "bytes": 62395874,
+    "sha256": "fd3e69402e6f1a101ab32e5a4a68b998c049d70a495b5eb256192c07e1058d6b",
     "package": "com.studiojavid.zombiesiege",
     "arm64": true,
     "min_sdk": "24",
@@ -22,8 +22,8 @@
     "project_files_missing": []
   },
   "LastWall-compatibility.apk": {
-    "bytes": 62363106,
-    "sha256": "9c60876e09eb1a17dd11e6b1f58ce2eda5cef3e834f141249d8b94ece8230720",
+    "bytes": 62395874,
+    "sha256": "2d303d7b6a6f2e05b0eda82a11a95aad2bdf4d5c21ea74caf76ec4fecf608618",
     "package": "com.studiojavid.zombiesiege.compatibility",
     "arm64": true,
     "min_sdk": "24",
