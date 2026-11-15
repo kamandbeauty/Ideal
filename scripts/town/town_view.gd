@@ -83,26 +83,26 @@ func _build_environment() -> void:
 	_sky_material = sky_material
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.46
+	env.ambient_light_energy = 0.38
 	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 0.84
+	env.tonemap_exposure = 0.88
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.12
-	env.adjustment_contrast = 1.04
+	env.adjustment_saturation = 1.18
+	env.adjustment_contrast = 1.08
 	# Depth haze: it separates the dunes from the play area and costs nothing.
 	env.fog_enabled = true
-	env.fog_light_color = TownData.ground_color(state.town_id).lightened(0.35)
-	env.fog_light_energy = 0.7
-	env.fog_density = 0.0045
-	env.fog_sky_affect = 0.15
-	env.fog_aerial_perspective = 0.25
+	env.fog_light_color = TownData.ground_color(state.town_id).lightened(0.1)
+	env.fog_light_energy = 0.5
+	env.fog_density = 0.0022
+	env.fog_sky_affect = 0.12
+	env.fog_aerial_perspective = 0.1
 	world.environment = env
 	_env = env
 	add_child(world)
 
 	var sun := DirectionalLight3D.new()
 	sun.name = "Sun"
-	sun.light_energy = 0.88
+	sun.light_energy = 1.06
 	sun.light_color = Color(1.0, 0.92, 0.78)
 	sun.rotation_degrees = Vector3(-50, -38, 0)
 	sun.shadow_enabled = true
@@ -721,16 +721,16 @@ func apply_time(t: float) -> void:
 		_sun.rotation_degrees = Vector3(
 			-(12.0 + 68.0 * day), -40.0 + 360.0 * t, 0
 		)
-		_sun.light_energy = 0.26 + 0.72 * day + 0.12 * dusk
+		_sun.light_energy = 0.26 + 0.86 * day + 0.14 * dusk
 		# Warm light owns the horizon, blue moonlight only takes over after sunset.
 		var sun_color := Color(1.0, 0.95, 0.86).lerp(Color(1.0, 0.52, 0.26), dusk)
 		sun_color = sun_color.lerp(Color(0.55, 0.66, 1.0), night * 0.85)
 		_sun.light_color = sun_color
 	if _fill != null:
-		_fill.light_energy = 0.14 + 0.12 * day
+		_fill.light_energy = 0.12 + 0.12 * day
 		_fill.light_color = Color(0.45, 0.55, 0.85).lerp(Color(0.66, 0.78, 1.0), day)
 	if _env != null:
-		_env.ambient_light_energy = 0.34 + 0.16 * day
+		_env.ambient_light_energy = 0.34 + 0.05 * day
 		var ambient := Color(0.86, 0.92, 1.0).lerp(Color(1.0, 0.78, 0.62), dusk * 0.8)
 		ambient = ambient.lerp(Color(0.32, 0.4, 0.62), night)
 		_env.ambient_light_color = ambient
