@@ -1,5 +1,5 @@
 {
-  "checks": 140,
+  "checks": 149,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -28,6 +28,11 @@
       "26-phone-20x9-left-handed.png",
       "27-tablet-4x3-play.png",
       "32-six-barrel-firing.png",
+      "39-weapon-twin_hmg.png",
+      "39-weapon-rotary_gun.png",
+      "39-weapon-dual_mauler.png",
+      "39-weapon-bushmaster.png",
+      "39-weapon-gilded_minigun.png",
       "10-rocket-away.png"
     ],
     "manually_staged_scenes": [
@@ -62,7 +67,12 @@
       "34-title-second-stage.png"
     ]
   },
-  "failures": [],
+  "failures": [
+    "with the first stage won the armory shows the second open and the third still locked",
+    "a tap picks the second stage",
+    "PLAY starts the second stage on its own 3 waves",
+    "under a banner that names the stage (مرحلهٔ ۱  ·  موج ۱)"
+  ],
   "kinds": {
     "play": [
       "05-match-start.png",
@@ -80,7 +90,12 @@
       "25-phone-20x9-play.png",
       "26-phone-20x9-left-handed.png",
       "27-tablet-4x3-play.png",
-      "32-six-barrel-firing.png"
+      "32-six-barrel-firing.png",
+      "39-weapon-twin_hmg.png",
+      "39-weapon-rotary_gun.png",
+      "39-weapon-dual_mauler.png",
+      "39-weapon-bushmaster.png",
+      "39-weapon-gilded_minigun.png"
     ],
     "preview": [
       "23-victory-preview.png",
@@ -124,32 +139,32 @@
   "notes": {
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
-    "blast_kills": 13,
+    "blast_kills": 12,
     "boss_reached_gate_after_s": 57.0,
-    "defeat_time_s": 176.1,
-    "gate_attackers": 5,
+    "defeat_time_s": 176.3,
+    "gate_attackers": 6,
     "gate_fell_after_s": 9.0,
-    "gate_left_with_boss": 0.55,
+    "gate_left_with_boss": 0.53,
     "grenade_kills": 7,
     "hits": 3,
     "kills": 1,
     "peak_load": {
       "alive": 56,
-      "draw_calls": 479,
-      "fps": 4.7,
-      "nodes": 1079,
+      "draw_calls": 442,
+      "fps": 6.2,
+      "nodes": 1057,
       "orphan_nodes": 0,
-      "primitives": 420722,
+      "primitives": 414080,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 98.7,
-      "striking": 30,
-      "texture_memory_mb": 63.2,
+      "static_memory_mb": 98.4,
+      "striking": 32,
+      "texture_memory_mb": 63.3,
       "tier": "medium",
-      "video_memory_mb": 82.1,
+      "video_memory_mb": 82.2,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 223.17,
-      "worst_physics_tick_ms_in_a_second": 0.9,
+      "worst_frame_ms_in_a_second": 167.87,
+      "worst_physics_tick_ms_in_a_second": 0.86,
       "zombie_nodes": 56
     },
     "phone_20x9": {
@@ -190,22 +205,22 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 390,
-      "fps": 4.5,
-      "nodes": 923,
+      "draw_calls": 379,
+      "fps": 6.0,
+      "nodes": 901,
       "orphan_nodes": 0,
-      "primitives": 277644,
+      "primitives": 277952,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 104.9,
-      "texture_memory_mb": 62.1,
+      "static_memory_mb": 104.8,
+      "texture_memory_mb": 62.2,
       "tier": "medium",
-      "video_memory_mb": 79.7
+      "video_memory_mb": 79.8
     },
-    "rocket_kills": 6,
+    "rocket_kills": 5,
     "second_stage": {
-      "alive_20s_into_its_first_wave": 28,
-      "brutes_among_them": 2,
+      "alive_20s_into_its_first_wave": 15,
+      "brutes_among_them": 0,
       "opened_by": "a first-stage win the driver wrote into the profile",
       "waves": 3,
       "zombies": 136
@@ -216,8 +231,8 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 55.3,
-    "six_barrel_kills": 1,
+    "sight_target_m": 52.7,
+    "six_barrel_kills": 2,
     "six_barrel_shots": 31,
     "stage_held_preview": {
       "accuracy": 0.469594594594595,
@@ -283,7 +298,7 @@
       810
     ]
   },
-  "passed": true,
+  "passed": false,
   "renderer": "gl_compatibility",
   "scope": "Software-rendered desktop run of the real game; not an Android device run",
   "screenshots": [
@@ -324,6 +339,11 @@
     "29-peak-crowd.png",
     "31-title-six-barrel.png",
     "32-six-barrel-firing.png",
+    "39-weapon-twin_hmg.png",
+    "39-weapon-rotary_gun.png",
+    "39-weapon-dual_mauler.png",
+    "39-weapon-bushmaster.png",
+    "39-weapon-gilded_minigun.png",
     "34-title-second-stage.png",
     "35-second-stage-begins.png"
   ]
