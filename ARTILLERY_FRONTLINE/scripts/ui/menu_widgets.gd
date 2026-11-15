@@ -166,6 +166,7 @@ class Choices:
 	var glyphs: Array[Glyph] = []
 	var locked: Array[int] = []
 	var selected: int = -1
+	var glyph_strip: float = GLYPH_STRIP
 	var allow_reselect: bool = false
 	var accent: Color = UITheme.AMBER
 	var dark_selection: bool = false
@@ -209,7 +210,7 @@ class Choices:
 		for place: int in buttons.size():
 			var button: Button = buttons[place]
 			var lit: bool = place == index
-			var back: Color = (Color(0.08, 0.16, 0.18) if dark_selection else accent.darkened(0.1)) if lit else UITheme.PLATE
+			var back: Color = (Color(0.22, 0.15, 0.07) if dark_selection else accent.darkened(0.1)) if lit else UITheme.PLATE
 			var rim: Color = accent.lightened(0.15) if lit else UITheme.LINE
 			var ink: Color = (accent.lightened(0.5) if dark_selection else Color(0.08, 0.06, 0.03)) if lit else UITheme.TEXT
 			if locked.has(place):
@@ -220,7 +221,7 @@ class Choices:
 				var style: StyleBoxFlat = UITheme.box(back, rim, corner_radius, 1, 12)
 				if glyphs[place] != null:
 					# The name sits under its outline.
-					style.content_margin_top = GLYPH_STRIP
+					style.content_margin_top = glyph_strip
 					style.content_margin_bottom = 4.0
 				button.add_theme_stylebox_override(key, style)
 			for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color"]:

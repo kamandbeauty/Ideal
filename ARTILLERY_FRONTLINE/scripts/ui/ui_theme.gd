@@ -151,9 +151,9 @@ static func paint_button(node: Button, look: String) -> void:
 		node.remove_theme_color_override(key)
 	var tone: Color = AMBER if look == "accent" else RED
 	if look == "accent" or look == "danger":
-		node.add_theme_stylebox_override("normal", box(tone.darkened(0.12), tone.lightened(0.25), 6, 1, 24))
-		node.add_theme_stylebox_override("hover", box(tone, Color.WHITE, 6, 1, 24))
-		node.add_theme_stylebox_override("pressed", box(tone.darkened(0.35), tone, 6, 2, 24))
-		var ink: Color = Color(0.08, 0.06, 0.03) if look == "accent" else Color(1.0, 0.97, 0.94)
+		node.add_theme_stylebox_override("normal", box(Color(0.18, 0.13, 0.07, 0.96) if look == "accent" else tone.darkened(0.12), tone.lightened(0.25), 2, 2, 24))
+		node.add_theme_stylebox_override("hover", box(tone.darkened(0.55) if look == "accent" else tone, Color.WHITE, 2, 2, 24))
+		node.add_theme_stylebox_override("pressed", box(tone.darkened(0.35), tone, 2, 2, 24))
+		var ink: Color = Color(1.0, 0.97, 0.90)
 		for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			node.add_theme_color_override(key, ink)

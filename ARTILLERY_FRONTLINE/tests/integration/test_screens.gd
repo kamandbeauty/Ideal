@@ -308,8 +308,24 @@ func run(t: TestContext) -> void:
 						small.append("%s %s" % [control.get_class(), str(control.size)])
 				t.check(not pressables.is_empty() and small.is_empty(), "%s: all %d controls are thumb-sized (%s)" % [label, pressables.size(), str(small)])
 				t.check(_overlaps(pressables).is_empty(), "%s: no two controls overlap" % label)
-				t.equal(menus.holder.layout_direction, Control.LAYOUT_DIRECTION_RTL if language == "fa" else Control.LAYOUT_DIRECTION_LTR,
-					"%s: laid out in the reading direction" % label)
+				t.equal(menus.holder.layout_direction, Control.LAYOUT_DIRECTION_LTR,
+					"%s: approved composition stays in the same position" % label)
+
+	# The approved layout does not mirror when the language changes.
+	root.size = Vector2i(1440, 810)
+	await t.frames(2)
+	for pair: Array in [["main", "MainActions"], ["arsenal", "ArsenalControls"], ["equipment", "EquipmentCards"],
+		["upgrade", "UpgradeDetails"], ["campaign", "Neighborhood"], ["settings", "SettingsPanel"],
+		["pause", "PausePanel"], ["result", "ResultStats"], ["loading", "LoadingContent"]]:
+		Profile.set_setting("language", "en")
+		menus._show(pair[0], false)
+		await t.frames(2)
+		var en: Control = menus.holder.find_child(pair[1], true, false)
+		var bounds: Rect2 = en.get_global_rect()
+		Profile.set_setting("language", "fa")
+		await t.frames(2)
+		var fa: Control = menus.holder.find_child(pair[1], true, false)
+		t.check(fa.get_global_rect().is_equal_approx(bounds), "%s keeps its position and size in both languages" % pair[0])
 
 	# The title is a poster: the name of the game and PLAY. Guns wait in the armory.
 	for career: bool in [false, true]:
