@@ -3,6 +3,7 @@ extends RefCounted
 
 func run(t: TestContext) -> void:
 	Profile.persist = false
+	Sound.stop_loop("wind")
 	Sound.stop_loop("music_theme")
 	Sound.stop_loop("teeth_in_the_wire")
 	var original: Resource = Sound.clips.get("teeth_in_the_wire")
@@ -13,6 +14,7 @@ func run(t: TestContext) -> void:
 	var game: Node = (load("res://scenes/main.tscn") as PackedScene).instantiate()
 	t.tree.root.add_child(game)
 	await t.frames(2)
+	t.check(not Sound.is_looping("wind"), "the startup menu has no wind ambience")
 	t.check(Sound.is_looping("music_theme"), "menu falls back to the shipped theme when the recording is absent")
 	t.check(not Sound.is_looping("teeth_in_the_wire"), "the unavailable recording is not playing")
 	game._stop_menu_music()
@@ -24,7 +26,14 @@ func run(t: TestContext) -> void:
 	game.start_match()
 	t.check(not Sound.is_looping("teeth_in_the_wire"), "starting a match stops the menu track")
 	await t.frames(4)
+	t.check(Sound.is_looping("wind"), "wind remains available during the match")
+	t.equal((Sound.loops["wind"] as AudioStreamPlayer).bus, &"Effects", "gameplay wind follows the effects volume")
+	game.pause()
+	t.check(not Sound.is_looping("wind"), "the pause menu has no wind")
+	game.resume()
+	t.check(Sound.is_looping("wind"), "resuming restores gameplay wind")
 	game.to_menu()
+	t.check(not Sound.is_looping("wind"), "returning to the menu stops the wind")
 	t.check(Sound.is_looping("teeth_in_the_wire"), "returning to the main menu starts the track again")
 	game._stop_menu_music()
 	if original != null:

@@ -37,8 +37,6 @@ func _ready() -> void:
 	stage = Campaign.open_stages(int(Profile.data.stats.stages_cleared)) - 1
 	menus.stage = stage
 	Events.match_finished.connect(_on_match_finished)
-	# The wind is part of the place, not of the score: it follows the effects volume, so turning the music off leaves it.
-	Sound.start_loop("wind", "Effects", -19.0)
 	_start_menu_music()
 	menus.show_loading(true)
 	_startup()
@@ -154,6 +152,7 @@ func _stop_menu_music() -> void:
 
 func start_match() -> void:
 	_stop_menu_music()
+	Sound.stop_loop("wind")
 	won_onward = false
 	get_tree().paused = false
 	Engine.time_scale = 1.0
@@ -170,12 +169,15 @@ func start_match() -> void:
 	hud.set_active(true)
 	level.begin_match()
 	mode = Mode.PLAYING
+	# Wind is gameplay ambience, not part of the menu music.
+	Sound.start_loop("wind", "Effects", -19.0)
 
 
 func pause() -> void:
 	if mode != Mode.PLAYING or (level and level.over):
 		return
 	mode = Mode.PAUSED
+	Sound.stop_loop("wind")
 	hud.set_active(false)
 	get_tree().paused = true
 	menus.show_pause(match_status())
@@ -194,6 +196,7 @@ func resume() -> void:
 		return
 	mode = Mode.PLAYING
 	get_tree().paused = false
+	Sound.start_loop("wind", "Effects", -19.0)
 	menus.hide_all()
 	hud.set_active(true)
 
@@ -206,6 +209,7 @@ func to_menu() -> void:
 	get_tree().paused = false
 	Engine.time_scale = 1.0
 	mode = Mode.MENU
+	Sound.stop_loop("wind")
 	hud.set_active(false)
 	Sound.silence_combat()
 	_start_menu_music()
@@ -218,6 +222,7 @@ func _on_match_finished(victory: bool, stats: Dictionary) -> void:
 		return
 	last_stats = stats
 	mode = Mode.RESULT
+	Sound.stop_loop("wind")
 	get_tree().paused = false
 	hud.set_active(false)
 	# A first match always beats "nothing"; only a later one can be called a record.
