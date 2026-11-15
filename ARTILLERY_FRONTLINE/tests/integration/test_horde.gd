@@ -31,7 +31,8 @@ func run(t: TestContext) -> void:
 	t.check(zombie.slot != null and zombie.slot.line == "gate" and zombie.slot.row == 0, "it has claimed a front place at the gate")
 	t.equal(zombie.body_area.collision_layer, Layers.ZOMBIE_BODY, "its body can be hit")
 	t.equal(zombie.head_area.collision_layer, Layers.ZOMBIE_HEAD, "its head can be hit")
-	t.check(zombie.speed > walker.speed * 0.8 and zombie.speed < walker.speed * 1.2, "its speed is the type's speed within the variance")
+	var pace_factor: float = 1.35 if zombie.running else 1.0
+	t.check(zombie.speed > walker.speed * pace_factor * 0.85 and zombie.speed < walker.speed * pace_factor * 1.15, "its speed matches its selected walk or run")
 	var distance: float = layout.route_length("ring_right", "right") + (layout.mouths.right.position as Vector3).distance_to(zombie.slot.position)
 	var took: float = _until(t, level, 150.0, func() -> bool: return zombie.state == Zombie.State.ATTACK)
 	t.equal(zombie.state, Zombie.State.ATTACK, "it reaches the gate and attacks")
@@ -82,7 +83,7 @@ func run(t: TestContext) -> void:
 	for member: Zombie in squad:
 		gaits[member.walk_clip] = true
 		leans["%.2f" % member.gait_lean.x] = true
-	t.check(gaits.size() >= 2, "walkers in a crowd do not all limp the same way (%s)" % str(gaits.keys()))
+	t.check(gaits.size() >= 2, "walkers in a crowd choose both walking and running (%s)" % str(gaits.keys()))
 	t.check(leans.size() >= 2, "and they do not all lean the same")
 	_until(t, level, 200.0, func() -> bool:
 		for member: Zombie in squad:
@@ -154,28 +155,41 @@ func run(t: TestContext) -> void:
 	t.equal(horde.alive_count(), 0, "clear resets the count")
 	t.check(horde.lines.lines.gate.open and horde.lines.occupied() == 0, "clear reopens and empties the places")
 
-	# No two in a crowd need limp alike: each zombie takes one of its model's walks for this life, at its own point in the stride.
-	for kind: Array in [[&"walker", 24, 4, 3], [&"runner", 16, 2, 2]]:
+	# Every type uses two even-legged gaits with independent stride phases.
+	for kind: Array in [[&"walker", 24], [&"runner", 24], [&"brute", 24], [&"boss", 24]]:
 		var taken: Dictionary = {}
 		var phases: Dictionary = {}
-		var strangers: int = 0
-		var lame_left: int = 0
+		var wrong: int = 0
 		for index: int in int(kind[1]):
 			var member: Zombie = horde.spawn(kind[0], "avenue_left" if index % 2 == 0 else "ring_right", "any")
-			if not member.walk_clips.has(member.walk_clip) or member.current_clip != member.walk_clip or member.anim.current_animation != member.walk_clip:
-				strangers += 1
-			if member.walk_clip.ends_with("_m"):
-				lame_left += 1
+			var wanted: String = "run_clean" if member.running else "walk_clean"
+			if member.walk_clip != wanted or member.current_clip != wanted or member.anim.current_animation != wanted:
+				wrong += 1
+			if index == 0:
+				t.equal(member.walk_clips.size(), 2, "a %s has an even walk and run" % kind[0])
+				t.check(member.anim.get_animation(wanted).loop_mode == Animation.LOOP_LINEAR, "the chosen gait loops")
 			taken[member.walk_clip] = true
 			phases[snappedf(member.anim.current_animation_position, 0.01)] = true
-			if index == 0:
-				if member.look_index == 0:
-					t.equal(member.walk_clips.size(), int(kind[2]), "a %s has %d walks to choose from" % [kind[0], kind[2]])
-				else:
-					t.check(member.walk_clips.size() >= 2, "an extra look still has walks to limp with")
-		t.equal(strangers, 0, "every %s sets out on one of the walks its model has" % kind[0])
-		t.check(taken.size() >= int(kind[3]), "%d of them walk in at least %d different ways (%s)" % [kind[1], kind[3], str(taken.keys())])
-		t.check(lame_left > 0 and lame_left < int(kind[1]), "some are lame in the left leg and some in the right (%d of %d in the left)" % [lame_left, kind[1]])
-		t.check(phases.size() >= int(kind[1]) / 2, "and they are out of step with each other (%d different points in the stride)" % phases.size())
+		t.equal(wrong, 0, "every %s uses the selected clean gait" % kind[0])
+		t.equal(taken.size(), 2, "%s randomly walk or run" % kind[0])
+		t.check(phases.size() >= int(kind[1]) / 2, "the crowd starts out of step (%d phases)" % phases.size())
 		horde.clear()
+
+	# First entry in the camera frustum requests one voice, not one every tick.
+	var visible_zombie: Zombie = horde.spawn(&"walker", "ring_right", "gate")
+	var camera: Camera3D = level.defender.camera
+	var eye: Vector3 = camera.global_position
+	var forward_view: Vector3 = -camera.global_basis.z.normalized()
+	var height: Vector3 = Vector3.UP * visible_zombie.data.height() * 0.7
+	visible_zombie.global_position = eye - forward_view * 10.0 - height
+	Sound.last_start.clear()
+	var before: int = Sound.started
+	t.check(not horde._announce_visible() and Sound.started == before, "a zombie behind the camera is not announced")
+	visible_zombie.global_position = eye + forward_view * 10.0 - height
+	t.check(horde._announce_visible() and visible_zombie.seen_announced and Sound.started == before + 1, "first visible zombie requests a voice")
+	t.check(not horde._announce_visible() and Sound.started == before + 1, "remaining in view does not repeat the announcement")
+	horde.clear()
+	var reused: Zombie = horde.spawn(&"walker", "ring_right", "gate")
+	t.check(reused == visible_zombie and not reused.seen_announced, "pool reuse resets first-sighting state")
+	horde.clear()
 	await t.discard(level)

@@ -5,8 +5,8 @@ Every model is original and procedural: a signed-distance sculpt is meshed,
 reduced to a mobile triangle budget, unwrapped, painted from the sculpt
 (material layers, cloth folds, wounds, grime, blood, ambient occlusion),
 skinned to an 18-bone skeleton and exported as binary glTF with its animation
-clips. Every kind limps: its walk is authored lame in one leg, and a mirrored
-copy of each walk is written beside it so that a crowd is not lame in step.
+clips. Legacy limping clips are retained for compatibility; the game uses
+new even-legged walk and run clips, with independent phases per zombie.
 
     python3 tools/build_zombies.py [--only walker] [--draft]
 
@@ -945,6 +945,36 @@ def clips(sculpt):
             "wrist_R": (12.0, 0.0, -14.0),
         }
 
+    def even_gait(running):
+        # Both feet follow the same step, exactly half a cycle apart. Arms
+        # retain an uneven undead reach, but neither leg drags or limps.
+        stride = 0.95 if running else 0.72
+        lift = 0.17 if running else 0.09
+        stance = 0.45 if running else 0.60
+        def pose(t, duration):
+            ph = t / duration
+            ly, lz = step(ph, stride, lift, stance)
+            ry, rz = step(ph + 0.5, stride, lift, stance)
+            beat = math.sin(tau * ph)
+            lean = 22.0 if running else 12.0
+            return {
+                "hips": (0.018 * beat, -0.055 + 0.016 * math.cos(2 * tau * ph), 0.0),
+                "hips_rot": (lean * 0.4, 5.0 * beat, -3.0 * beat),
+                "spine": (lean * 0.35, -3.0 * beat, 2.0 * beat),
+                "chest": (lean * 0.35, -4.0 * beat, 1.5 * beat),
+                "neck": (-4.0, 2.0 * beat, 2.0),
+                "head": (-5.0, 3.0 * beat, 3.0),
+                "foot_L": foot["L"] + np.array([0.0, ly, lz]),
+                "foot_R": foot["R"] + np.array([0.0, ry, rz]),
+                "toe_L": (0.0, -0.25 - ly * 5.0, 1.0),
+                "toe_R": (0.0, -0.25 - ry * 5.0, 1.0),
+                "knee_L": (0.12, 0.0, 1.0), "knee_R": (-0.12, 0.0, 1.0),
+                "hand_L": shoulder["L"] + np.array([0.02, -0.22, 0.30 - 0.07 * beat]),
+                "hand_R": shoulder["R"] + np.array([-0.03, -0.35, 0.18 + 0.07 * beat]),
+                "wrist_L": (18.0, 0.0, 8.0), "wrist_R": (12.0, 0.0, -10.0),
+            }
+        return pose
+
     def hobble(style):
         """A lame walk at a hurry. The right leg is the bad one: it takes the weight for a moment, the body
         drops and lurches over it, and it is dragged after (or swung round stiff). The sound leg does the
@@ -1189,6 +1219,8 @@ def clips(sculpt):
         walks[clip + "_m"] = (mirrored(walks[clip][0]), walks[clip][1], True)
     return {
         **walks,
+        "walk_clean": (even_gait(False), 0.85, True),
+        "run_clean": (even_gait(True), 0.54, True),
         "idle": (idle, 2.4, True),
         "attack": (slam if sculpt.spec.get("attack", "claw") == "slam" else attack, 1.1, True),
         "hit": (hit, 0.42, False),

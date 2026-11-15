@@ -90,6 +90,7 @@ func _ready() -> void:
 	horde.name = "Horde"
 	add_child(horde)
 	horde.setup(layout, defense, effects, zombie_types)
+	horde.camera = defender.camera
 	horde.marks = marks
 	explosions.setup(horde, defense, effects, defender, layout)
 	for data: ZombieData in zombie_types:

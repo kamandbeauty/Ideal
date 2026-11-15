@@ -3,7 +3,7 @@ extends RefCounted
 ## between them the ones the design promises.
 
 const IDS: Array[String] = ["walker", "runner", "brute", "boss"]
-const CLIPS: Array[String] = ["walk", "walk_m", "idle", "attack", "hit", "hit_chest", "hit_head", "death_back", "death_front"]
+const CLIPS: Array[String] = ["walk_clean", "run_clean", "idle", "attack", "hit", "hit_chest", "hit_head", "death_back", "death_front"]
 
 
 func run(t: TestContext) -> void:
@@ -38,16 +38,12 @@ func run(t: TestContext) -> void:
 			if player == null or not player.has_animation(clip):
 				missing.append(clip)
 		t.check(missing.is_empty(), "%s has every clip (%s)" % [id, str(missing)])
-		if player != null and player.has_animation("walk") and player.has_animation("walk_m"):
-			# Every kind drags a leg, and the mirrored walk drags the other one. (A clip only poses a model that is in the tree.)
+		if player != null and player.has_animation("walk_clean") and player.has_animation("run_clean"):
 			t.tree.root.add_child(model)
-			var limp: Dictionary = _limp(skeleton, player, "walk")
-			var mirrored: Dictionary = _limp(skeleton, player, "walk_m")
-			t.check(limp.right < limp.left * 0.9, "%s limps: the right foot is lifted less than the left (%.3f m against %.3f m)" % [
-				id, limp.right, limp.left])
-			t.check(mirrored.left < mirrored.right * 0.9, "the mirrored %s walk is lame in the other leg (%.3f m against %.3f m)" % [
-				id, mirrored.left, mirrored.right])
-			t.near(player.get_animation("walk_m").length, player.get_animation("walk").length, 0.001, "and takes as long")
+			for clip: String in ["walk_clean", "run_clean"]:
+				var steps: Dictionary = _limp(skeleton, player, clip)
+				t.check(steps.left > 0.02 and steps.right > 0.02, "%s %s lifts both feet" % [id, clip])
+				t.check(absf(steps.left - steps.right) < maxf(steps.left, steps.right) * 0.3, "%s %s has balanced leg lift (%.3f, %.3f)" % [id, clip, steps.left, steps.right])
 		var tallest: float = 0.0
 		var triangles: int = 0
 		for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
@@ -58,10 +54,6 @@ func run(t: TestContext) -> void:
 			id, tallest, data.height()])
 		t.check(triangles > 3000 and triangles < 6500, "%s is detailed, and stays inside the mobile triangle budget (%d)" % [id, triangles])
 		model.free()
-	var walker_model: Node3D = (load("res://assets/models/zombies/zombie_walker.glb") as PackedScene).instantiate()
-	var walker_player: AnimationPlayer = walker_model.find_child("AnimationPlayer", true, false)
-	t.check(walker_player.has_animation("walk_b") and walker_player.has_animation("walk_b_m"), "the walker has a second way of limping, and its mirror")
-	walker_model.free()
 
 	var walker: ZombieData = types.walker
 	var runner: ZombieData = types.runner

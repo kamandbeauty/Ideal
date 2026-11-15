@@ -45,10 +45,13 @@ var knock_left: float = 0.0
 var retry_left: float = 0.0
 var facing_goal: float = 0.0
 var current_clip: String = ""
-## Every walk the model brings (lame in one leg, lame in the other, and whatever variations its kind has),
-## and the one this zombie has for this life.
+## The two even-legged locomotion clips and the one selected for this life.
 var walk_clips: Array[String] = []
-var walk_clip: String = "walk"
+var walk_clip: String = "walk_clean"
+var running: bool = false
+var gait_stride_speed: float = 1.0
+## Reset on every pooled life; the horde announces first entry into view.
+var seen_announced: bool = false
 ## The figure itself, under this node; a hit tips it for a moment without moving the zombie.
 var model: Node3D
 ## Degrees the figure is tipped right now: (backwards, sideways).
@@ -68,7 +71,7 @@ var head_areas: Array[Area3D] = []
 var look_index: int = 0
 ## Extra lean this figure was born with, in radians, so a crowd does not stand alike.
 var gait_lean := Vector3.ZERO
-## Playback of the walk, on top of speed / stride_speed.
+## Playback variation on top of the selected gait's speed-matched rate.
 var gait_rate: float = 1.0
 
 
@@ -100,7 +103,7 @@ func _register_look(look: Node3D) -> void:
 		break
 	if player:
 		for clip: String in player.get_animation_list():
-			if clip.begins_with("walk") or clip in LOOPING:
+			if _walk_name(clip) in ["walk_clean", "run_clean"] or clip in LOOPING:
 				if player.has_animation(clip):
 					player.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
 		player.playback_default_blend_time = 0.18
@@ -152,7 +155,7 @@ func _use_look(index: int) -> void:
 	walk_clips.clear()
 	if anim:
 		for clip: String in anim.get_animation_list():
-			if _walk_name(clip).begins_with("walk"):
+			if _walk_name(clip) in ["walk_clean", "run_clean"]:
 				walk_clips.append(clip)
 		walk_clips.sort()
 
@@ -270,7 +273,14 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 			size_mul = data.extra_look_scale[extra]
 	health = data.max_health * health_scale * health_mul
 	full_health = health
-	speed = data.speed * speed_scale * (1.0 + rng.randf_range(-data.speed_variance, data.speed_variance))
+	# Each life walks or runs, independently of the type; runners still retain
+	# their distinct faster baseline, and larger types remain slower overall.
+	running = rng.randf() < (0.75 if data.id == &"runner" else 0.35)
+	var pace_factor: float = (1.0 if running else 0.75) if data.id == &"runner" else (1.35 if running else 1.0)
+	speed = data.speed * speed_scale * pace_factor * (1.0 + rng.randf_range(-data.speed_variance, data.speed_variance))
+	var model_scale: float = {&"walker": 1.0, &"runner": 0.97, &"brute": 1.35, &"boss": 1.9}.get(data.id, 1.0)
+	gait_stride_speed = model_scale * (0.95 / (0.45 * 0.54) if running else 0.72 / (0.60 * 0.85))
+	seen_announced = false
 	alive = true
 	state = State.ADVANCE
 	timer = 0.0
@@ -294,9 +304,9 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	_paint_look(chosen, rng)
 	visible = true
 	_set_hittable(true)
-	# Each life picks a limp (which leg, and how broken) and a point in the stride, so a crowd does not march.
+	# Choose the matching even-legged gait and a random stride phase.
 	walk_clip = _pick_walk(rng)
-	_play(walk_clip, speed / data.stride_speed * gait_rate, 0.0)
+	_play(walk_clip, speed / gait_stride_speed * gait_rate, 0.0)
 	if anim and anim.has_animation(walk_clip):
 		anim.seek(rng.randf() * anim.get_animation(walk_clip).length, true)
 		anim.advance(0.0)
@@ -320,23 +330,13 @@ func _paint_look(_chosen: int, rng: RandomNumberGenerator) -> void:
 		body_mesh.material_override = skin
 
 
-func _pick_walk(rng: RandomNumberGenerator) -> String:
-	if walk_clips.is_empty():
-		return "walk"
-	var broken: Array[String] = []
-	var regular: Array[String] = []
+func _pick_walk(_rng: RandomNumberGenerator) -> String:
+	var wanted: String = "run_clean" if running else "walk_clean"
 	for clip: String in walk_clips:
-		if _walk_name(clip).begins_with("walk_b"):
-			broken.append(clip)
-		else:
-			regular.append(clip)
-	# Most of the small horde shuffles. A hard limp is the exception.
-	var pool: Array[String] = regular
-	if not broken.is_empty() and rng.randf() < 0.12:
-		pool = broken
-	if pool.is_empty():
-		pool = walk_clips
-	return pool[rng.randi() % pool.size()]
+		if _walk_name(clip) == wanted:
+			return clip
+	# Compatibility for a model without the new clips.
+	return "walk"
 
 
 func _play(clip: String, rate: float = 1.0, blend: float = -1.0) -> void:
@@ -365,7 +365,7 @@ func fall_back(point: Vector3) -> void:
 	court_index = 0
 	state = State.ADVANCE
 	retry_left = 0.3
-	_play(walk_clip, speed / data.stride_speed * gait_rate)
+	_play(walk_clip, speed / gait_stride_speed * gait_rate)
 
 
 ## Sends the zombie to a (new) standing place.
@@ -378,7 +378,7 @@ func assign_slot(claimed: AttackLines.Slot) -> void:
 		path_index = 1
 		court_index = 0
 		state = State.ADVANCE
-		_play(walk_clip, speed / data.stride_speed * gait_rate)
+		_play(walk_clip, speed / gait_stride_speed * gait_rate)
 	elif path.size() > 0:
 		path[path.size() - 1] = claimed.position
 
@@ -398,7 +398,7 @@ func enter_breach(route: PackedVector3Array) -> void:
 	path_index = 1
 	court_index = 0
 	state = State.BREACH
-	_play(walk_clip, speed * 1.25 / data.stride_speed * gait_rate)
+	_play(walk_clip, speed * 1.25 / gait_stride_speed * gait_rate)
 
 
 func tick(delta: float) -> void:
@@ -529,9 +529,9 @@ func _hit_clip(headshot: bool) -> String:
 func _resume_clip() -> void:
 	match state:
 		State.ADVANCE:
-			_play(walk_clip, speed / data.stride_speed * gait_rate)
+			_play(walk_clip, speed / gait_stride_speed * gait_rate)
 		State.BREACH:
-			_play(walk_clip, speed * 1.25 / data.stride_speed * gait_rate)
+			_play(walk_clip, speed * 1.25 / gait_stride_speed * gait_rate)
 		State.ATTACK:
 			_play_attack()
 		State.WAIT:

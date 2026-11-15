@@ -170,7 +170,7 @@ func start_match() -> void:
 	level.begin_match()
 	mode = Mode.PLAYING
 	# Wind is gameplay ambience, not part of the menu music.
-	Sound.start_loop("wind", "Effects", -19.0)
+	Sound.start_loop("wind", "Effects", -28.0)
 
 
 func pause() -> void:
@@ -196,7 +196,7 @@ func resume() -> void:
 		return
 	mode = Mode.PLAYING
 	get_tree().paused = false
-	Sound.start_loop("wind", "Effects", -19.0)
+	Sound.start_loop("wind", "Effects", -28.0)
 	menus.hide_all()
 	hud.set_active(true)
 

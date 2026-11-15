@@ -28,6 +28,7 @@ func run(t: TestContext) -> void:
 	await t.frames(4)
 	t.check(Sound.is_looping("wind"), "wind remains available during the match")
 	t.equal((Sound.loops["wind"] as AudioStreamPlayer).bus, &"Effects", "gameplay wind follows the effects volume")
+	t.near((Sound.loops["wind"] as AudioStreamPlayer).volume_db, -28.0, 0.01, "gameplay wind is quieter")
 	game.pause()
 	t.check(not Sound.is_looping("wind"), "the pause menu has no wind")
 	game.resume()

@@ -97,9 +97,9 @@ func run(t: TestContext) -> void:
 	t.check(not zombie.visible and zombie.state == Zombie.State.POOLED, "pooled zombies are hidden and idle")
 	t.check(zombie.skeleton != null and zombie.skeleton.get_bone_count() == 18, "the zombie has its 18-bone skeleton")
 	t.check(zombie.body_mesh != null and zombie.body_mesh.skin != null, "the zombie mesh is skinned")
-	for clip: String in ["walk", "walk_m", "walk_b", "walk_b_m", "idle", "attack", "hit", "death_back", "death_front"]:
+	for clip: String in ["walk_clean", "run_clean", "idle", "attack", "hit", "death_back", "death_front"]:
 		t.check(zombie.anim.has_animation(clip), "the zombie has the %s clip" % clip)
-	t.equal(zombie.walk_clips.size(), 4, "a walker has four ways of limping to choose from")
+	t.equal(zombie.walk_clips.size(), 2, "a walker has an even-legged walk and run")
 	for clip: String in zombie.walk_clips:
 		t.equal(zombie.anim.get_animation(clip).loop_mode, Animation.LOOP_LINEAR, "%s loops" % clip)
 	t.equal(zombie.anim.get_animation("death_back").loop_mode, Animation.LOOP_NONE, "death does not loop")
@@ -115,11 +115,10 @@ func run(t: TestContext) -> void:
 	var walk_rng := RandomNumberGenerator.new()
 	walk_rng.seed = 7
 	t.equal(zombie._pick_look(walk_rng), 0, "a life never wears the extra white figures")
-	var limping: int = 0
-	for _i: int in 200:
-		if zombie._walk_name(zombie._pick_walk(walk_rng)).begins_with("walk_b"):
-			limping += 1
-	t.check(limping > 5 and limping < 50, "most walkers shuffle; a few still limp (%d of 200)" % limping)
+	zombie.running = false
+	t.equal(zombie._pick_walk(walk_rng), "walk_clean", "walking chooses the even-legged walk")
+	zombie.running = true
+	t.equal(zombie._pick_walk(walk_rng), "run_clean", "running chooses the even-legged run")
 
 	# Spawn points are out of the gunner's sight.
 	var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state

@@ -31,6 +31,9 @@ var health_scale: float = 1.0
 var speed_scale: float = 1.0
 var corpse_limit: int = 18
 var groan_left: float = 2.0
+## Limit first-seen voices to one at a time, even when a crowd enters view.
+var seen_voice_left: float = 0.0
+var camera: Camera3D
 ## The boss on the field, if one is alive.
 var boss: Zombie = null
 var kills_by_type: Dictionary = {}
@@ -141,6 +144,7 @@ func spawn(type_id: StringName, route: String, target: String = "gate") -> Zombi
 	spawned_total += 1
 	if data.spawn_sound != "":
 		Sound.play(data.spawn_sound, data.voice_volume_db)
+		zombie.seen_announced = true
 	if data.is_boss:
 		boss = zombie
 		Events.boss_appeared.emit(zombie)
@@ -189,6 +193,9 @@ func _physics_process(delta: float) -> void:
 	if not pending.is_empty():
 		var type_id: StringName = pending.pop_back()
 		pooled[type_id].append(_create(types[type_id]))
+	seen_voice_left -= delta
+	if seen_voice_left <= 0.0 and _announce_visible():
+		seen_voice_left = 0.65
 	groan_left -= delta
 	if groan_left <= 0.0:
 		groan_left = rng.randf_range(0.35, 1.15)
@@ -197,13 +204,31 @@ func _physics_process(delta: float) -> void:
 			_groan()
 
 
+## First time a living zombie enters the player's camera frustum. A single
+## voice per interval and the existing mixer limit keep large crowds bounded.
+func _announce_visible() -> bool:
+	if camera == null or not is_instance_valid(camera) or not camera.is_inside_tree():
+		return false
+	for zombie: Zombie in active:
+		if not zombie.alive or zombie.seen_announced or not zombie.is_visible_in_tree():
+			continue
+		var at: Vector3 = zombie.global_position + Vector3.UP * zombie.data.height() * 0.7
+		if not camera.is_position_in_frustum(at):
+			continue
+		if Sound.play_variant_at("zombie_groan", 3, at, 7.0 + zombie.data.voice_volume_db,
+				rng.randf_range(0.85, 1.12) * zombie.data.voice_pitch):
+			zombie.seen_announced = true
+			return true
+	return false
+
+
 func _groan() -> void:
 	if living <= 0 or active.is_empty():
 		return
 	var zombie: Zombie = active[rng.randi() % active.size()]
 	if zombie.alive:
 		var clip: String = "zombie_attack" if zombie.state == Zombie.State.ATTACK else "zombie_groan"
-		Sound.play_variant_at(clip, 2 if clip == "zombie_attack" else 3, zombie.position + Vector3(0.0, zombie.data.height() * 0.85, 0.0),
+		Sound.play_variant_at(clip, 2 if clip == "zombie_attack" else 3, zombie.global_position + Vector3(0.0, zombie.data.height() * 0.85, 0.0),
 			7.0 + zombie.data.voice_volume_db, rng.randf_range(0.85, 1.12) * zombie.data.voice_pitch)
 
 
