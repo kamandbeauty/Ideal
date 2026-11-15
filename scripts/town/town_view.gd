@@ -711,7 +711,7 @@ func apply_time(t: float) -> void:
 	var elevation := sin(t * TAU)
 	var day := clampf(elevation, 0.0, 1.0)
 	var night := clampf(-elevation * 2.6, 0.0, 1.0)
-	var dusk := clampf(1.0 - absf(elevation) * 3.4, 0.0, 1.0)
+	var dusk := clampf(1.0 - absf(elevation) * 2.6, 0.0, 1.0)
 	var sand := TownData.ground_color(state.town_id)
 	var sky_day := TownData.sky_color(state.town_id)
 
@@ -722,9 +722,8 @@ func apply_time(t: float) -> void:
 			-(12.0 + 68.0 * day), -40.0 + 360.0 * t, 0
 		)
 		_sun.light_energy = 0.26 + 0.72 * day
-		var sun_color := Color(0.62, 0.72, 1.0)
-		sun_color = sun_color.lerp(Color(1.0, 0.58, 0.32), dusk * 0.9)
-		sun_color = sun_color.lerp(Color(1.0, 0.94, 0.84), day)
+		var sun_color := Color(0.62, 0.72, 1.0).lerp(Color(1.0, 0.94, 0.84), day)
+		sun_color = sun_color.lerp(Color(1.0, 0.5, 0.24), dusk * 0.85)
 		_sun.light_color = sun_color
 	if _fill != null:
 		_fill.light_energy = 0.16 + 0.12 * day

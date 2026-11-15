@@ -175,16 +175,11 @@ func _build_top_area() -> void:
 	_event_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_event_pill.add_child(_event_label)
 
-	var mission_row := HBoxContainer.new()
-	mission_row.name = "Mission"
-	mission_row.add_theme_constant_override("separation", 10)
-	mission_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(mission_row)
-
 	_mission_pill = PanelContainer.new()
+	_mission_pill.name = "Mission"
 	_mission_pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_mission_pill.add_theme_stylebox_override("panel", UiTheme.pill_style())
-	mission_row.add_child(_mission_pill)
+	progress.add_child(_mission_pill)
 
 	var mission_box := HBoxContainer.new()
 	mission_box.add_theme_constant_override("separation", 10)
@@ -194,9 +189,13 @@ func _build_top_area() -> void:
 	mission_text.add_theme_constant_override("separation", 0)
 	mission_box.add_child(mission_text)
 
-	_mission_title = _label(14, UiTheme.TEXT, true)
+	_mission_title = _label(13, UiTheme.TEXT, true)
+	_mission_title.clip_text = true
+	_mission_title.custom_minimum_size = Vector2(172, 0)
 	mission_text.add_child(_mission_title)
-	_mission_progress = _label(12, UiTheme.MUTED, false)
+	_mission_progress = _label(11, UiTheme.MUTED, false)
+	_mission_progress.clip_text = true
+	_mission_progress.custom_minimum_size = Vector2(172, 0)
 	mission_text.add_child(_mission_progress)
 
 	_mission_bar = ProgressBar.new()
@@ -212,7 +211,7 @@ func _build_top_area() -> void:
 	)
 	mission_box.add_child(_mission_bar)
 
-	_mission_claim = _button("mission.claim", "PrimaryButton", 96, 34)
+	_mission_claim = _button("mission.claim", "PrimaryButton", 82, 32)
 	_mission_claim.add_theme_font_size_override("font_size", 14)
 	_mission_claim.pressed.connect(_on_claim_mission)
 	mission_box.add_child(_mission_claim)
@@ -291,14 +290,14 @@ func _build_panel() -> void:
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
 	_panel.offset_left = -432
 	_panel.offset_right = -12
-	_panel.offset_top = 152
+	_panel.offset_top = 140
 	_panel.offset_bottom = -150
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_panel.visible = false
 	add_child(_panel)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
+	column.add_theme_constant_override("separation", 6)
 	_panel.add_child(column)
 
 	var header := HBoxContainer.new()
@@ -310,11 +309,11 @@ func _build_panel() -> void:
 	_close_button.pressed.connect(_on_close_panel)
 	header.add_child(_close_button)
 
-	_panel_desc = _label(14, UiTheme.MUTED, false)
+	_panel_desc = _label(13, UiTheme.MUTED, false)
 	_panel_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_panel_desc)
 
-	_panel_stats = _label(15, UiTheme.TEXT, false)
+	_panel_stats = _label(14, UiTheme.TEXT, false)
 	column.add_child(_panel_stats)
 
 	var stars_row := HBoxContainer.new()
@@ -336,7 +335,7 @@ func _build_panel() -> void:
 		var button := Button.new()
 		button.theme_type_variation = "Button"
 		button.focus_mode = Control.FOCUS_NONE
-		button.custom_minimum_size = Vector2(0, 58)
+		button.custom_minimum_size = Vector2(0, 52)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.clip_text = true
 		button.add_theme_font_size_override("font_size", 13)
@@ -351,16 +350,16 @@ func _build_panel() -> void:
 	_manager_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_manager_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_manager_row.add_child(_manager_label)
-	_manager_button = _button("hud.hire_manager", "Button", 150, 46)
+	_manager_button = _button("hud.hire_manager", "Button", 150, 44)
 	_manager_button.pressed.connect(_on_manager)
 	_manager_row.add_child(_manager_button)
 
-	_unlock_button = _button("hud.unlock", "PrimaryButton", 0, 54)
+	_unlock_button = _button("hud.unlock", "PrimaryButton", 0, 48)
 	_unlock_button.add_theme_font_size_override("font_size", 18)
 	_unlock_button.pressed.connect(_on_unlock)
 	column.add_child(_unlock_button)
 
-	_upgrade_button = _button("hud.upgrade", "PrimaryButton", 0, 54)
+	_upgrade_button = _button("hud.upgrade", "PrimaryButton", 0, 48)
 	_upgrade_button.add_theme_font_size_override("font_size", 18)
 	_upgrade_button.pressed.connect(_on_upgrade)
 	column.add_child(_upgrade_button)
@@ -554,10 +553,16 @@ func _refresh_mission() -> void:
 	_mission_title.text = "%s · %s" % [
 		App.t("mission.title"), App.t("mission.%s.title" % id)
 	]
+	var reward_parts: Array[String] = []
+	if float(mission["reward"]) > 0.0:
+		reward_parts.append(App.t("mission.reward_coins", [_num(float(mission["reward"]))]))
+	if int(mission["gems"]) > 0:
+		reward_parts.append(App.t("mission.reward_gems", [_num(int(mission["gems"]))]))
 	_mission_progress.text = "%s · %s" % [
 		App.t("mission.progress", [_num(minf(current, goal)), _num(goal)]),
-		App.t("mission.%s.desc" % id),
+		", ".join(reward_parts),
 	]
+	_mission_progress.tooltip_text = App.t("mission.%s.desc" % id)
 	_mission_bar.value = round(clampf(current / goal, 0.0, 1.0) * 100.0)
 	_mission_claim.visible = bool(mission["ready"])
 	_mission_claim.disabled = not bool(mission["ready"])
