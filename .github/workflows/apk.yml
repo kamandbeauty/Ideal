@@ -123,13 +123,18 @@ jobs:
 
       - name: Export the APK
         run: |
-          set -euo pipefail
-          mkdir -p delivery build
-          godot --headless --path . --export-debug "Android APK" delivery/RoadstopTycoon.apk \
-            > /tmp/export.log 2>&1 || { tail -200 /tmp/export.log; exit 1; }
-          tail -40 /tmp/export.log
+          set -uo pipefail
+          mkdir -p delivery
+          godot --headless --verbose --path . --export-debug "Android APK" \
+            delivery/RoadstopTycoon.apk > /tmp/export.log 2>&1
+          status=$?
+          tail -60 /tmp/export.log
+          if [ "$status" -ne 0 ] || [ ! -s delivery/RoadstopTycoon.apk ]; then
+            grep -iE 'error|failed|missing|sdk|keystore|apksigner|no such' /tmp/export.log \
+              | tail -12 | while IFS= read -r line; do echo "::error title=export::$line"; done
+            exit 1
+          fi
           ls -lh delivery/
-          test -s delivery/RoadstopTycoon.apk
 
       - uses: actions/upload-artifact@v4
         with:
