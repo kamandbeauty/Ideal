@@ -4,7 +4,7 @@ name: LAST WALL
 # Android packages. Evidence and the APK are committed back to the branch.
 on:
   push:
-    branches: [arena/64301cf7-ideal]
+    branches: [feature/last-wall-admob]
     paths: ['ARTILLERY_FRONTLINE/**', '!ARTILLERY_FRONTLINE/documentation/**', '!ARTILLERY_FRONTLINE/**/*.md', '.github/workflows/last-wall.yml']
   workflow_dispatch:
 permissions:
@@ -17,13 +17,23 @@ env:
   GODOT_VERSION: 4.7.2-stable
   GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
   PROJECT: ARTILLERY_FRONTLINE
-  SESSION_BRANCH: arena/64301cf7-ideal
+  SESSION_BRANCH: feature/last-wall-admob
 jobs:
   validate:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Install pinned Godot AdMob plugin v7.0
+        run: |
+          set -euo pipefail
+          curl -fL --retry 5 --retry-all-errors --retry-delay 5 \
+            "https://github.com/godot-sdk-integrations/godot-admob/releases/download/v7.0/AdmobPlugin-Android-v7.0.zip" \
+            -o "$RUNNER_TEMP/admob-plugin.zip"
+          echo "ce38b75aeb4bb870fda8b74e1513d807696d8485d237c263b7b7a9613493aee8  $RUNNER_TEMP/admob-plugin.zip" | sha256sum -c -
+          unzip -q -o "$RUNNER_TEMP/admob-plugin.zip" -d "$PROJECT"
+          test -s "$PROJECT/addons/AdmobPlugin/plugin.cfg"
+          test -s "$PROJECT/addons/AdmobPlugin/bin/release/AdmobPlugin-release.aar"
       - name: Cache verified Godot editor
         uses: actions/cache@v4
         with:
@@ -97,6 +107,16 @@ jobs:
     timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
+      - name: Install pinned Godot AdMob plugin v7.0
+        run: |
+          set -euo pipefail
+          curl -fL --retry 5 --retry-all-errors --retry-delay 5 \
+            "https://github.com/godot-sdk-integrations/godot-admob/releases/download/v7.0/AdmobPlugin-Android-v7.0.zip" \
+            -o "$RUNNER_TEMP/admob-plugin.zip"
+          echo "ce38b75aeb4bb870fda8b74e1513d807696d8485d237c263b7b7a9613493aee8  $RUNNER_TEMP/admob-plugin.zip" | sha256sum -c -
+          unzip -q -o "$RUNNER_TEMP/admob-plugin.zip" -d "$PROJECT"
+          test -s "$PROJECT/addons/AdmobPlugin/plugin.cfg"
+          test -s "$PROJECT/addons/AdmobPlugin/bin/release/AdmobPlugin-release.aar"
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -170,7 +190,7 @@ jobs:
           # have passed; this folder is the runner's working copy.
           rm -rf delivery && mkdir -p delivery
           export_one() {
-            if godot --headless --path "$PROJECT" "$EXPORT_MODE" "$1" "res://../delivery/$2" > "$3" 2>&1 && [ -s "delivery/$2" ]; then
+            if godot --headless --path "$PROJECT" --install-android-build-template "$EXPORT_MODE" "$1" "res://../delivery/$2" > "$3" 2>&1 && [ -s "delivery/$2" ]; then
               echo "$EXPORT_MODE" > "$RUNNER_TEMP/mode-$2"
               return 0
             fi

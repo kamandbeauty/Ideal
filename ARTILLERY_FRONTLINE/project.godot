@@ -22,6 +22,7 @@ Events="*res://scripts/core/event_bus.gd"
 Profile="*res://scripts/save/profile.gd"
 Sound="*res://scripts/audio/audio_manager.gd"
 Graphics="*res://scripts/graphics/graphics_manager.gd"
+Ads="*res://scripts/ads/ads_manager.gd"
 
 [display]
 
@@ -85,3 +86,7 @@ gdscript/warnings/untyped_declaration=0
 gdscript/warnings/unsafe_property_access=0
 gdscript/warnings/unsafe_method_access=0
 gdscript/warnings/unsafe_call_argument=0
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/AdmobPlugin/plugin.cfg")

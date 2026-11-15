@@ -90,18 +90,26 @@ func _android(t: TestContext) -> void:
 		t.check(bool(presets.get_value(options, "architectures/arm64-v8a", false)) and not bool(presets.get_value(options, "architectures/armeabi-v7a", true))
 			and not bool(presets.get_value(options, "architectures/x86", true)) and not bool(presets.get_value(options, "architectures/x86_64", true)),
 			"%s builds for ARM64 and nothing else" % label)
-		var asked: Array[String] = []
+		var allowed_permissions: Array[String] = ["permissions/internet", "permissions/access_network_state"]
+		var unexpected_permissions: Array[String] = []
+		var enabled_permissions: Array[String] = []
 		for key: String in presets.get_section_keys(options):
 			if not key.begins_with("permissions/"):
 				continue
 			var value: Variant = presets.get_value(options, key)
 			if (value is bool and value) or (value is PackedStringArray and not (value as PackedStringArray).is_empty()):
-				asked.append(key)
-		t.check(asked.is_empty(), "%s asks for no Android permission (%s)" % [label, str(asked)])
+				enabled_permissions.append(key)
+				if not allowed_permissions.has(key):
+					unexpected_permissions.append(key)
+		t.check(unexpected_permissions.is_empty(), "%s asks only for the two network permissions required by ads (%s)" % [label, str(unexpected_permissions)])
+		t.check(enabled_permissions.has("permissions/internet"), "%s can reach AdMob servers" % label)
+		t.check(enabled_permissions.has("permissions/access_network_state"), "%s can inspect network connectivity" % label)
 		t.equal(int(presets.get_value(options, "package/app_category", -1)), 2, "%s is declared as a game, not as some other kind of app" % label)
 		t.check(bool(presets.get_value(options, "screen/immersive_mode", false)), "%s hides the system bars" % label)
 		t.check(not bool(presets.get_value(options, "user_data_backup/allow", true)), "%s keeps the save out of cloud backups" % label)
-		t.check(not bool(presets.get_value(options, "gradle_build/use_gradle_build", true)), "%s uses the stock template, whose floor is Android 7.0" % label)
+		t.check(bool(presets.get_value(options, "gradle_build/use_gradle_build", false)), "%s uses Gradle to package the native AdMob plugin" % label)
+		t.equal(String(presets.get_value(options, "gradle_build/min_sdk", "")), "24", "%s keeps Android 7.0 as the minimum API" % label)
+		t.equal(String(presets.get_value(options, "gradle_build/target_sdk", "")), "36", "%s targets Android API 36" % label)
 		t.check(bool(presets.get_value(options, "package/signed", false)), "%s is signed" % label)
 		t.equal(String(presets.get_value(options, "version/name", "")), version, "%s carries the project's version" % label)
 		t.check(int(presets.get_value(options, "version/code", 0)) >= 6, "%s has a version code above every earlier build" % label)
@@ -112,6 +120,11 @@ func _android(t: TestContext) -> void:
 	t.equal(String(presets.get_value("preset.1.options", "package/unique_name", "")), "com.studiojavid.zombiesiege.compatibility",
 		"the compatibility package uses a distinct id so both can be installed")
 	t.check(bool(ProjectSettings.get_setting("display/window/energy_saving/keep_screen_on")), "the screen stays on during a siege")
+	var admob_config := ConfigFile.new()
+	t.equal(admob_config.load("res://addons/AdmobPlugin/android_export.cfg"), OK, "the AdMob export config loads")
+	t.equal(bool(admob_config.get_value("General", "is_real", true)), false, "the checked-in build uses test ads only")
+	t.equal(String(admob_config.get_value("Debug", "app_id", "")), "ca-app-pub-3940256099942544~3347511713", "the AdMob app ID is Google's official test ID")
+	t.check(FileAccess.file_exists("res://addons/AdmobPlugin/bin/release/AdmobPlugin-release.aar"), "the pinned native AdMob release library is installed")
 	t.equal(int(ProjectSettings.get_setting("physics/common/physics_ticks_per_second")), 60, "the simulation runs 60 ticks a second")
 	t.check(not bool(ProjectSettings.get_setting("audio/driver/enable_input")), "the microphone is never opened")
 	t.check(not ProjectSettings.has_setting("application/run/max_fps") or int(ProjectSettings.get_setting("application/run/max_fps")) == 0,

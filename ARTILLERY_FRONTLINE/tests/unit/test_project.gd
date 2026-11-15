@@ -19,7 +19,7 @@ func run(t: TestContext) -> void:
 	t.equal(ProjectSettings.get_setting("application/config/name"), "LAST WALL: Zombie Siege", "the project carries the new name")
 	var main_scene: String = ProjectSettings.get_setting("application/run/main_scene")
 	t.check(ResourceLoader.exists(main_scene), "the main scene exists")
-	for autoload: String in ["Events", "Profile", "Sound", "Graphics"]:
+	for autoload: String in ["Events", "Profile", "Sound", "Graphics", "Ads"]:
 		t.check(t.tree.root.has_node(autoload), "autoload %s is running" % autoload)
 	t.equal(int(ProjectSettings.get_setting("display/window/handheld/orientation")), 4, "the game is locked to sensor landscape")
 	t.equal(int(ProjectSettings.get_setting("display/window/size/viewport_width")), 1440, "reference canvas is 1440 wide")
@@ -37,7 +37,9 @@ func run(t: TestContext) -> void:
 	t.equal(String(presets.get_value("preset.1.options", "package/unique_name")), "com.studiojavid.zombiesiege.compatibility",
 		"the compatibility package can sit beside it")
 	t.check(bool(presets.get_value("preset.0.options", "architectures/arm64-v8a")), "the APK is built for ARM64")
-	t.check(not bool(presets.get_value("preset.0.options", "permissions/internet")), "the game asks for no network permission")
+	t.check(bool(presets.get_value("preset.0.options", "permissions/internet")), "AdMob can reach its ad servers")
+	t.check(bool(presets.get_value("preset.0.options", "permissions/access_network_state")), "AdMob can inspect network connectivity")
+	t.check(bool(presets.get_value("preset.0.options", "gradle_build/use_gradle_build")), "the Android export uses Gradle for the native AdMob plugin")
 	t.check(String(presets.get_value("preset.0", "exclude_filter")).contains("tools/*"), "development tools are not exported")
 	var zombie_source: String = FileAccess.get_file_as_string("res://scripts/zombies/zombie.gd")
 	t.check(not zombie_source.contains("Graphics."), "zombie.gd does not name the Graphics autoload (the headless runner may compile it before autoloads exist)")

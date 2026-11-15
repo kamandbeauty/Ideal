@@ -98,12 +98,15 @@ for name, (metadata_file, manifest_file, package_id) in PACKAGES.items():
     expect(found_id == package_id, "%s: package id is '%s', expected '%s'" % (name, found_id, package_id))
     expect(min_sdk == "24", "%s: minimum Android API is '%s', expected 24" % (name, min_sdk))
     expect(target_sdk == "36", "%s: target Android API is '%s', expected 36" % (name, target_sdk))
-    expect("android.permission.INTERNET" not in metadata and "android.permission.INTERNET" not in manifest, "%s: offline game requests INTERNET" % name)
+    expect("android.permission.INTERNET" in metadata and "android.permission.INTERNET" in manifest, "%s: AdMob INTERNET permission is missing" % name)
     expect("screenOrientation" in manifest, "%s: activity orientation attribute missing" % name)
     expect(landscape, "%s: the activity is not locked to landscape (screenOrientation=%d)" % (name, orientation_value))
     permissions = sorted(set(re.findall(r"uses-permission(?:-sdk-\d+)?: name='([^']+)'", metadata))
                          | set(re.findall(r"E: uses-permission[^\n]*\n\s*A: [^\n]*?=\"([^\"]+)\"", manifest)))
-    expect(not permissions, "%s: an offline game needs no permission, yet it asks for %s" % (name, ", ".join(permissions)))
+    allowed_permissions = {"android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "com.google.android.gms.permission.AD_ID"}
+    unexpected_permissions = sorted(set(permissions) - allowed_permissions)
+    expect(not unexpected_permissions, "%s: unexpected Android permissions: %s" % (name, ", ".join(unexpected_permissions)))
+    expect("android.permission.ACCESS_NETWORK_STATE" in permissions, "%s: ACCESS_NETWORK_STATE permission is missing" % name)
     category = attribute(manifest, "appCategory")
     is_game = attribute(manifest, "isGame")
     expect(category == "0" and is_game == "true", "%s: not declared as a game (appCategory=%s, isGame=%s)" % (name, category, is_game))
@@ -122,7 +125,7 @@ for name, (metadata_file, manifest_file, package_id) in PACKAGES.items():
         "target_sdk": target_sdk,
         "landscape": landscape,
         "screen_orientation": orientation_value,
-        "no_internet_permission": "android.permission.INTERNET" not in metadata,
+        "network_permissions_present": "android.permission.INTERNET" in metadata and "android.permission.ACCESS_NETWORK_STATE" in metadata,
         "permissions": permissions,
         "declared_as_game": category == "0" and is_game == "true",
         "build": "debug template (debuggable)" if debuggable else "release template (not debuggable)",
