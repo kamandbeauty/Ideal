@@ -1,15 +1,13 @@
 {
-  "passed": false,
-  "problems": [
-    "assets nothing asks for: assets/textures/branding/campaign_map.png"
-  ],
+  "passed": true,
+  "problems": [],
   "counted": {
     "paths_checked": 242,
     "scripts": 53,
     "scenes": 15,
     "resources": 28,
-    "assets": 119,
-    "asset_megabytes": 58.4,
+    "assets": 118,
+    "asset_megabytes": 55.9,
     "sounds": 49,
     "text_keys": 133
   },
