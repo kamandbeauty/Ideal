@@ -82,10 +82,10 @@ func _run() -> void:
 	# Close on the busiest plot so the queue itself is on the record.
 	App.set_language("fa")
 	_town.day_cycle.set_time(0.3)
-	_town.select_business("gas_station")
-	await _settle(90)
-	_town.deselect()
-	await _settle(320)
+	var gas_plot := BusinessData.plot("gas_station")
+	_town.camera_rig.focus_on(Vector3(gas_plot.x, 0, gas_plot.y))
+	_town.camera_rig.zoom_by(0.72)
+	await _settle(360)
 	await _capture("09-customers")
 
 	print("SMOKE OK")
