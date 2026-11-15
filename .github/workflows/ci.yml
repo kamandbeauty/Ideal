@@ -129,6 +129,21 @@ jobs:
           }
           test -s documentation/qa/02-town-fa.png
 
+      - name: Report the guild rig
+        # Annotations have their own budget per step, so the rig report gets a step
+        # of its own instead of competing with the progress notices.
+        if: always()
+        run: |
+          set -uo pipefail
+          if [ -f documentation/qa/guild-probe.txt ]; then
+            head -24 documentation/qa/guild-probe.txt \
+              | while IFS= read -r line; do echo "::notice title=probe::${line:0:900}"; done
+          fi
+          if [ -f "$RUNNER_TEMP/smoke.log" ]; then
+            (grep -aE 'SMOKE: (probe|hero)' "$RUNNER_TEMP/smoke.log" || true) | head -8 \
+              | while IFS= read -r line; do echo "::notice title=rig::${line:0:900}"; done
+          fi
+
       - name: Publish play-through previews
         # Publishing stills is a convenience, never the gate: a push that loses a
         # race must not turn a green play-through into a red check.

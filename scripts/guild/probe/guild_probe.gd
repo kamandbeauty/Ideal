@@ -188,6 +188,18 @@ func _build_lighting() -> void:
 
 
 func _build_floor() -> void:
+	# A real collider, not just a picture: the player is a CharacterBody3D and the
+	# first capture proved that without a floor it simply falls out of the world.
+	var body := StaticBody3D.new()
+	body.name = "FloorBody"
+	var collider := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(44.0, 1.0, 44.0)
+	collider.shape = box
+	collider.position = Vector3(0.0, -0.5, 0.0)
+	body.add_child(collider)
+	add_child(body)
+
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(44.0, 44.0)
 	var floor_mesh := MeshInstance3D.new()
@@ -304,8 +316,7 @@ func _build_props() -> void:
 
 func _build_cast() -> void:
 	hero = GuildPlayer.new()
-	hero.set_physics_process(false)
-	hero.position = Vector3(1.9, 0.0, 1.5)
+	hero.position = Vector3(1.9, 0.05, 1.5)
 	hero.rotation.y = deg_to_rad(-14.0)
 	add_child(hero)
 
