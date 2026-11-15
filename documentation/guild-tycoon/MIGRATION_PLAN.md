@@ -106,6 +106,8 @@ const ITEMS := {
   mission_id, ends_at}`.
 * **Mission**: `{id, rank, duration_s, success_p, loot: [{item_id, qty_min, qty_max,
   weight}], fee}`.
+* **Language** (`GuildLocale`, `scripts/guild/app/guild_locale.gd`): English base
+  table + Persian text-only overrides, Latin numbers, fixed LTR layout (ADR-002).
 * **Save v3**: `{version: 3, gold, warehouse, reserved, orders, adventurers,
   dispatch, upgrades, day, streak, last_seen}` + `SaveManager` migration chain
   `v1 → v2 → v3` (v1 = Roadstop single town, v2 = profile, v3 = guild). Migration
@@ -182,8 +184,15 @@ the same numbers.
 Portrait, thumb-reachable: top bar (gold, reputation, warehouse meter, active
 customers, active missions), bottom-left joystick, bottom-right action button, right
 column for the shop/mission buttons and settings. Panels slide from the right and
-never cover the joystick or the action button. RTL via `App.layout_direction()`.
-Typography: Vazirmatn (already bundled) + generated fantasy UI art.
+never cover the joystick or the action button.
+
+**Language policy (ADR-002):** the UI is authored in English and never mirrors.
+Persian replaces words only - `GuildLocale.layout_direction()` is always LTR,
+`alignment()` is always left, and numbers stay Latin with thousands separators in
+both languages, so no panel, meter or button ever changes size or position when the
+language changes. `tests/suites/test_guild_locale.gd` enforces a full override
+table, identical placeholders and an unchanging layout. Typography: Vazirmatn
+(already bundled, shapes Persian correctly) + generated fantasy UI art.
 
 ---
 

@@ -8,6 +8,17 @@ the next town on the highway unlocks.
 بازی مدیریتی و آیدل برای اندروید: شهرک‌های بین‌راهی را می‌سازی، کسب‌وکارها را
 ارتقا می‌دهی، مدیر استخدام می‌کنی و حتی وقتی بازی بسته است درآمد می‌گیری.
 
+## Guild Tycoon (work in progress)
+
+A second game is being built in this repository: **Guild Tycoon**, a fantasy shop
+and adventurer-dispatch tycoon. It lives in its own namespaces
+(`scripts/guild/`, `scenes/guild/`, `data/guild/`) so Roadstop keeps working while
+the new loop is built. Start with
+[`documentation/guild-tycoon/AUDIT.md`](documentation/guild-tycoon/AUDIT.md) and
+[`MIGRATION_PLAN.md`](documentation/guild-tycoon/MIGRATION_PLAN.md); decisions are in
+[`DECISIONS.md`](documentation/guild-tycoon/DECISIONS.md). Its UI is English-first:
+Persian replaces words only, and the layout never mirrors (ADR-002).
+
 ## What is in this vertical slice
 
 - **Five towns on one world map** — desert, forest, mountain, coast and the
