@@ -70,8 +70,9 @@ func _metro_defenses() -> void:
 
 func _sandbags() -> void:
 	# Repeated sack geometry is batched: two staggered rows, one draw call.
-	var mesh := BoxMesh.new()
-	mesh.size = Vector3(1.4, 0.48, 0.75)
+	var mesh := CapsuleMesh.new()
+	mesh.radius = 0.27
+	mesh.height = 1.4
 	mesh.material = materials["sandbag"]
 	var batch := MultiMesh.new()
 	batch.transform_format = MultiMesh.TRANSFORM_3D
@@ -80,7 +81,7 @@ func _sandbags() -> void:
 	for row: int in 2:
 		for col: int in 22:
 			var x: float = -14.7 + col * 1.4 + 0.35 * row
-			batch.set_instance_transform(row * 22 + col, Transform3D(Basis.IDENTITY, Vector3(x, 4.18 + row * 0.42, -3.8)))
+			batch.set_instance_transform(row * 22 + col, Transform3D(Basis(Vector3.FORWARD, PI * 0.5), Vector3(x, 4.18 + row * 0.42, -3.8)))
 	var instance := MultiMeshInstance3D.new()
 	instance.name = "SandbagLine"
 	instance.multimesh = batch

@@ -168,8 +168,8 @@ func _build_environment() -> void:
 	if geometry.has_method("is_underground") and geometry.is_underground():
 		environment.background_mode = Environment.BG_COLOR
 		environment.background_color = Color(0.018, 0.022, 0.025)
-		environment.ambient_light_color = Color(0.35, 0.39, 0.38)
-		environment.ambient_light_energy = 0.45
+		environment.ambient_light_color = Color(0.48, 0.49, 0.46)
+		environment.ambient_light_energy = 0.85
 		environment.fog_light_color = Color(0.11, 0.12, 0.12)
 		environment.fog_density = 0.007
 	environment.glow_bloom = 0.08
@@ -184,7 +184,7 @@ func _build_sun() -> void:
 	sun = DirectionalLight3D.new()
 	sun.name = "Sun"
 	sun.light_color = Color(1.0, 0.86, 0.7)
-	sun.light_energy = 0.8 if geometry.has_method("is_underground") and geometry.is_underground() else 1.75
+	sun.light_energy = 1.1 if geometry.has_method("is_underground") and geometry.is_underground() else 1.75
 	sun.shadow_enabled = true
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_max_distance = 85.0
@@ -363,7 +363,9 @@ func _build_ash() -> void:
 
 func apply_quality(_tier: String, settings: Dictionary) -> void:
 	if sun:
-		sun.shadow_enabled = settings.shadows
+		# A ceiling shadows the entire underground scene from the outdoor sun.
+		# Use unshadowed fill indoors; the portal itself remains dark.
+		sun.shadow_enabled = settings.shadows and not (geometry.has_method("is_underground") and geometry.is_underground())
 		sun.directional_shadow_max_distance = settings.shadow_distance
 	if environment:
 		# Turning glow on at runtime on the mobile renderer tears or blacks the picture.
