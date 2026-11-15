@@ -41,6 +41,8 @@ func run(t: TestContext) -> void:
 	menus.show_equipment()
 	await t.frames(2)
 	t.equal(menus.equipment_choices.buttons.size(), Profile.EQUIPMENT.size(), "the workshop includes guns, launcher and grenade")
+	var cards: Array[Button] = menus.equipment_choices.buttons
+	t.check(is_equal_approx(cards[0].position.y, cards[2].position.y) and cards[3].position.y > cards[2].position.y and is_equal_approx(cards[3].position.y, cards[6].position.y), "the workshop has three cards above four, as in the concept")
 	menus.equipment_choices.buttons[Profile.EQUIPMENT.find("frag_grenade")].pressed.emit()
 	await t.frames(2)
 	t.equal(menus.screen, "upgrade", "selecting equipment opens its own upgrade page")

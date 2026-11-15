@@ -574,6 +574,13 @@ func _build_equipment() -> void:
 		equipment_id = Profile.EQUIPMENT[index]
 		show_upgrade())
 	_zone(equipment_choices, Rect2(0.23, 0.18, 0.74, 0.74), "EquipmentCards")
+	# Match the concept: three cards on the first row, four on the second.
+	for index: int in equipment_choices.buttons.size():
+		var button: Button = equipment_choices.buttons[index]
+		equipment_choices.remove_child(button)
+		var col: int = index if index < 3 else index - 3
+		var row: int = 0 if index < 3 else 1
+		_zone(button, Rect2(0.23 + 0.175 * col, 0.18 + 0.34 * row, 0.17, 0.29), "EquipmentCard%d" % index)
 
 
 func _build_upgrade() -> void:
