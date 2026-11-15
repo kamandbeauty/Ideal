@@ -106,6 +106,11 @@ func _six_barrels(t: TestContext) -> void:
 		"first among the weapons, with the launcher beside it")
 	t.check(gun.bullets == level.bullets and gun.effects == level.effects and gun.camera == defender.camera, "wired to the pools and to the gunner's eye")
 	t.check(gun.rotor != null and gun.muzzle != null and gun.port != null and gun.pivot != null, "its model has a rotor, a muzzle and an ejection port")
+	var clamp := gun.rotor.get_node_or_null("OpenCollar") as MeshInstance3D
+	t.check(clamp != null and clamp.mesh is TorusMesh, "the open barrel clamp turns with the rotor")
+	if clamp:
+		t.near(clamp.position.x, 0.0, 0.0001, "the clamp is centered on the rotor axis")
+		t.near(clamp.position.y, 0.0, 0.0001, "the clamp does not drift off the rotor axis")
 	t.equal(gun.state.ammo, 500, "a full belt of 500 is loaded")
 	var data: WeaponData = gun.data
 

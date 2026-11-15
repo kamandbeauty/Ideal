@@ -91,3 +91,24 @@ run time; the extra character meshes are converted copies under
   code have not been copied into the public project; an exported game is
   allowed under its licence. The existing pooled, quality-scaled effects stay
   in place pending a suitable distribution and performance review.
+
+## Recorded combat and creature audio
+
+The local source recordings under `tools/audio_sources/` are CC0 1.0 and are
+excluded from Godot import/export by `.gdignore`. `tools/build_audio.py`
+downmixes, resamples to 24 kHz mono and peak-normalizes them, with pitch and
+short fades. The boss voices use slowed zombie vocals; the rotary report
+layers two shortened rifle transients 40 ms apart. The motor and some tails
+remain synthesized. No source assets are fetched during a rebuild.
+
+- `zombie_near`, `zombie_attack`, `zombie_die`: artisticdude's [Zombies Sound
+  Pack](https://opengameart.org/content/zombies-sound-pack), via
+  [Shadow Zombie](https://github.com/Bristy-Mony/Shadow-Zombie-Survival-Game/tree/main/public/assets/audio).
+- `zombie_distress`, `zombie_scream`: zombie-12 and zombie-17 from the same
+  pack, via [Cornfield](https://github.com/OsanGen/cornfields/blob/main/assets/audio/sources.json).
+- `rifle_shot`: AK-47 near recording from [The Free Firearm Sound Library](https://opengameart.org/content/the-free-firearm-sound-library).
+- `cannon_blast`, `firework_blast`: rubberduck's [25 CC0 bang / firework SFX](https://opengameart.org/content/25-cc0-bang-firework-sfx).
+  These and the rifle clip are pre-cut/mastered recordings from
+  [smokeem](https://github.com/mrellcrane/smokeem/tree/claude/smoke-em-design-setup-ftlkqp/src/audio/samples);
+  its explosion clips also include synthesized sub-bass. The game further
+  resamples and adjusts them as above.

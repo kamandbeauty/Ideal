@@ -64,9 +64,9 @@ func _dress_chain() -> void:
 	_kit_box(pivot, Vector3(0.0, 0.12, 0.08), Vector3(0.11, 0.06, 0.2), steel, 0.86, 0.32)
 	_kit_box(pivot, Vector3(0.06, 0.04, -0.05), Vector3(0.04, 0.05, 0.24), dark, 0.2, 0.82)
 	for z: float in [-0.7, -1.15, -1.6]:
-		_kit_cyl(pivot, Vector3(0.0, 0.02, z), 0.032, 0.022, dark, 0.4, 0.6, "z")
+		_kit_collar(pivot, Vector3(0.0, -0.02, z), 0.027, 0.034, dark)
 	_kit_cyl(pivot, Vector3(0.0, 0.16, -0.1), 0.01, 0.024, brass, 0.9, 0.3)
-	_kit_cyl(pivot, Vector3(0.0, 0.0, -1.85), 0.026, 0.05, steel, 0.88, 0.25, "z")
+	_kit_collar(pivot, Vector3(0.0, -0.02, -1.67), 0.028, 0.036, steel)
 
 
 func _build_flash() -> void:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Synthesize the game's sound effects. Every clip is generated from
-oscillators and filtered noise; nothing is sampled or downloaded.
+"""Build the game's sound effects from synthesis and licensed recordings.
+The source recordings and their provenance live in tools/audio_sources.
 
     python3 tools/build_audio.py                 the siege clips: guns, explosives, zombies, wall, signals, interface
     python3 tools/build_audio.py --base          also re-render the base set (slow: pure Python)
@@ -585,19 +585,75 @@ def music_theme():
     print("audio %-18s %.2fs" % ("music_theme", seconds))
 
 
+# Selected CC0 field recordings replace the synthetic combat and creature
+# voices. Sources are stored locally so a normal rebuild remains reproducible.
+def recorded(name, speed=1.0):
+    from scipy.io import wavfile
+    from fractions import Fraction
+    source = os.path.join(PROJECT, "tools", "audio_sources", name + ".wav")
+    rate, data = wavfile.read(source)
+    scale = 2.0 ** (8 * data.dtype.itemsize - 1)
+    data = data.astype(np.float64) / scale
+    if data.ndim == 2:
+        data = data.mean(axis=1)
+    ratio = Fraction(RATE / (rate * speed)).limit_denominator(10000)
+    return signal.resample_poly(data, ratio.numerator, ratio.denominator)
+
+
+def recorded_zombies():
+    for name, source, speed in (
+        ("zombie_groan_1", "zombie_near", 0.95),
+        ("zombie_groan_2", "zombie_distress", 0.88),
+        ("zombie_groan_3", "zombie_scream", 0.92),
+        ("zombie_attack_1", "zombie_attack", 1.0),
+        ("zombie_attack_2", "zombie_distress", 1.12),
+        ("zombie_death_1", "zombie_die", 1.0),
+        ("zombie_death_2", "zombie_scream", 0.85),
+    ):
+        write(name, recorded(source, speed), 0.8)
+
+
+def recorded_giants():
+    write("boss_roar", recorded("zombie_scream", 0.63), 0.9)
+    write("boss_death", recorded("zombie_die", 0.68), 0.9)
+
+
+def recorded_hmg():
+    write("hmg_shot", recorded("rifle_shot", 0.91), 0.9)
+    hmg_tail()
+
+
+def recorded_rotary():
+    rotary_gun()  # Keep the synthesized motor and burst tail.
+    # Two recorded transients spaced to match two rounds at 25 Hz, not a
+    # full burst superimposed on every other game shot.
+    single = recorded("rifle_shot", 1.08)[:int(RATE * 0.12)].copy()
+    single *= np.linspace(1.0, 0.0, len(single)) ** 1.3
+    shots = np.zeros(int(RATE * 0.20))
+    place(shots, single, 0.0)
+    place(shots, single * 0.9, 0.04)
+    write("rotary_shot", shots, 0.88)
+
+
+def recorded_explosives():
+    explosives()  # Retain the rocket motor, throw, bounce, and interface cues.
+    write("explosion", recorded("cannon_blast", 0.93), 0.94)
+    write("explosion_small", recorded("firework_blast", 1.08), 0.9)
+
+
 GROUPS = {
     "theme": music_theme,
-    "hmg": lambda: (hmg_shot(), hmg_tail()),
-    "rotary": rotary_gun,
+    "hmg": recorded_hmg,
+    "rotary": recorded_rotary,
     "dry_fire": dry_fire,
     "headshot": headshot,
     "mechanics": mechanics,
-    "zombies": zombies,
-    "giants": giants,
+    "zombies": recorded_zombies,
+    "giants": recorded_giants,
     "bodies": bodies,
     "defenses": defenses,
     "signals": signals,
-    "explosives": explosives,
+    "explosives": recorded_explosives,
     "interface": interface,
     "endings": endings,
     "wind": wind_bed,

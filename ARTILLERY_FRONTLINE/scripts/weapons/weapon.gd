@@ -170,6 +170,24 @@ func _kit_cyl(parent: Node3D, at: Vector3, radius: float, height: float, color: 
 	return mesh
 
 
+## An open metal collar around a bore, rather than a capped cylinder across it.
+func _kit_collar(parent: Node3D, at: Vector3, inner: float, outer: float, color: Color) -> MeshInstance3D:
+	var ring := TorusMesh.new()
+	ring.inner_radius = inner
+	ring.outer_radius = outer
+	ring.rings = 16
+	ring.ring_segments = 6
+	ring.material = _steel(color, 0.88, 0.3)
+	var mesh := MeshInstance3D.new()
+	mesh.name = "OpenCollar"
+	mesh.mesh = ring
+	mesh.position = at
+	mesh.rotation_degrees.x = 90.0
+	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(mesh)
+	return mesh
+
+
 ## Places the model for the current readiness, recoil and reload.
 func _pose() -> void:
 	pass
