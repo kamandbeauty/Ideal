@@ -325,7 +325,7 @@ func run(t: TestContext) -> void:
 		Profile.set_setting("language", "fa")
 		await t.frames(2)
 		var fa: Control = menus.holder.find_child(pair[1], true, false)
-		t.check(fa.get_global_rect().is_equal_approx(bounds), "%s keeps its position and size in both languages" % pair[0])
+		t.check(fa.get_global_rect().is_equal_approx(bounds), "%s keeps its position and size in both languages (%s / %s)" % [pair[0], str(bounds), str(fa.get_global_rect())])
 
 	# The title is a poster: the name of the game and PLAY. Guns wait in the armory.
 	for career: bool in [false, true]:

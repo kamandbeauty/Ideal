@@ -358,10 +358,16 @@ func _background(path: String, tint: Color = Color.WHITE) -> void:
 func _zone(node: Control, rect: Rect2, element_name: String = "") -> void:
 	if element_name != "":
 		node.name = element_name
-	holder.add_child(node)
+	# Zone labels are single-line and clipped to the approved rectangle; their
+	# autowrap minimum must not be measured at zero width before placement.
+	if node is Label:
+		node.autowrap_mode = TextServer.AUTOWRAP_OFF
+		node.clip_text = true
+		node.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	var available := Vector2(built_view.x - built_margins.x - built_margins.y - 32.0, built_view.y - 32.0)
 	node.position = Vector2(built_margins.x + 16.0, 16.0) + rect.position * available
 	node.size = rect.size * available
+	holder.add_child(node)
 
 
 func _plate() -> PanelContainer:
@@ -504,7 +510,10 @@ func _build_arsenal() -> void:
 		gun_preview.show_weapon(Profile.GUNS[index])
 		gun_chosen.emit(Profile.GUNS[index]))
 	plan.add_child(gun_choices)
-	gun_note = _text(gun_note_for(String(Profile.setting("gun"))), 18, UITheme.TEXT)
+	gun_note = _text(gun_note_for(String(Profile.setting("gun"))), 16, UITheme.TEXT)
+	gun_note.autowrap_mode = TextServer.AUTOWRAP_OFF
+	gun_note.clip_text = true
+	gun_note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	plan.add_child(gun_note)
 	play_button = UITheme.button(Loc.t("deploy"), func() -> void: play_requested.emit(), "accent", "ui_start")
 	plan.add_child(play_button)
@@ -723,10 +732,12 @@ func _stat_column(rows: Array) -> VBoxContainer:
 	column.add_theme_constant_override("separation", 2)
 	for row: Array in rows:
 		var line := HBoxContainer.new()
-		var name_label: Label = UITheme.label(Loc.t(row[0]), 24, UITheme.MUTED, true)
+		var name_label: Label = UITheme.label(Loc.t(row[0]), 19, UITheme.MUTED, true)
+		name_label.clip_text = true
+		name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		var value_label: Label = UITheme.label(row[1], 30, UITheme.TEXT, true)
+		var value_label: Label = UITheme.label(row[1], 23, UITheme.TEXT, true)
 		value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		value_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		line.add_child(name_label)
