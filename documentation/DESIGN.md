@@ -131,6 +131,31 @@ total:
 The flow is cosmetic: it never changes cash, and the "+amount" is the same money
 the business already books.
 
+## Staff and managers
+
+`TownStaff` puts a real character on every plot:
+
+| Who | Where | What they do |
+| --- | --- | --- |
+| Staff | at the door, facing the road | a two-handed work loop, small body bob |
+| Manager | `manager_rank ≥ 1` | hi-vis vest, cap and clipboard; patrols the forecourt |
+
+Managers also run the business. `AutoUpgrade` runs every five seconds:
+
+1. Collect every upgrade a **managed** business could still buy (level,
+   branch, manager rank).
+2. Sort by price.
+3. Buy the cheapest one that leaves `max(150, 90 s of income)` in the till.
+4. Toast what happened and sparkle the building.
+
+So a manager never spends the money the player is saving for the next business,
+but an idle town keeps improving itself instead of standing still.
+
+| Script | Role |
+| --- | --- |
+| `scripts/town/town_staff.gd` | staff and manager characters on every plot |
+| `scripts/core/auto_upgrade.gd` | the manager's shopping rule and cash reserve |
+
 ## Presentation
 
 - **Lighting** — one shadow-casting warm sun, a cool sky fill, ACES tonemapping
@@ -230,6 +255,7 @@ new town starts.
 | `scripts/town/customer_flow.gd` | customers: drive in, queue, get served, pay, leave |
 | `scripts/town/vehicle_mesh.gd` | six vehicle silhouettes and ten paint variants |
 | `scripts/town/person_mesh.gd` | the shared character rig and its walk/idle/carry poses |
+| `scripts/town/town_staff.gd` | workers at every door and managers on patrol |
 | `scripts/core/service_queue.gd` | capacity rule for the queue (slots, line, overflow) |
 | `scripts/town/isometric_camera.gd` | fixed pitch, quarter turns, pinch/wheel zoom, panning |
 | `scripts/ui/town_hud.gd` | resource bar, business cards, detail panel, offline report |
@@ -260,7 +286,7 @@ new town starts.
 
 ## Test coverage
 
-`tests/run_tests.gd` runs seven suites headlessly:
+`tests/run_tests.gd` runs eight suites headlessly:
 
 - `test_localization` — both languages complete, placeholders substitute, every
   business/town/branch/manager rank is named.
@@ -275,6 +301,8 @@ new town starts.
   event catalogue.
 - `test_customer_flow` — service slots, line overflow, promotion order and the
   vehicle catalogue.
+- `test_auto_upgrade` — the manager's cheapest-first rule, the cash reserve and
+  maxed businesses going quiet.
 - `test_decor` — all four visual stages build for every business, lit props
   register their materials, and the day cycle's sun and phases are correct.
 - `test_missions_events` — the chain runs from the first upgrade to a finished

@@ -41,6 +41,12 @@ the next town on the highway unlocks.
   road busy, and people who find the line full drive straight past.
 - **Ten pedestrians** stroll the sidewalks with a leg and arm swing, and income
   still pops as floating coins.
+- **Staff you can see** — every opened business has a worker at its door with a
+  working loop, and a hired manager patrols the plot in a hi-vis vest and a cap.
+- **Managers that act** — a managed business spends the takings on its own
+  cheapest sensible upgrade (level, branch or rank) every few seconds, always
+  keeping a cash reserve of about 90 seconds of income, and toasts what it
+  bought. Turn a town idle and it keeps improving itself.
 - **Guided missions** — a single next objective at the top of the screen, from
   the first upgrade to opening all six businesses and finishing the town, each
   paying cash or gems when claimed.
@@ -110,7 +116,7 @@ ranks ×2. A branch may never be ahead of the building's level.
 | Path | Contents |
 | --- | --- |
 | `scripts/core/` | data (`business_data`, `town_data`), simulation (`business_state`, `town_state`), `save_manager`, autoloads (`app`, `game`, `sound`, `l10n`) |
-| `scripts/town/` | 3D view, isometric camera, traffic, customer flow, person and vehicle meshes, scene controller |
+| `scripts/town/` | 3D view, isometric camera, traffic, customer flow, staff and managers, person and vehicle meshes, scene controller |
 | `scripts/ui/` | HUD, detail panel, menu, theme |
 | `tests/` | headless suites run by `tests/run_tests.gd` |
 | `tools/smoke.gd` | scripted play-through that saves screenshots |
