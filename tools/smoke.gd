@@ -108,6 +108,14 @@ func _run() -> void:
 	await _settle(150)
 	await _capture("11-staff")
 
+	# The settings sheet, so the sliders and the presets are on the record too.
+	var settings_node: Node = _town.hud.get_node("Settings")
+	settings_node.call("open")
+	await _settle(10)
+	await _capture("12-settings")
+	settings_node.call("close")
+	await _settle(4)
+
 	print("SMOKE OK")
 	get_tree().quit(0)
 

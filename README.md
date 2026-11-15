@@ -138,6 +138,7 @@ ranks ×2. A branch may never be ahead of the building's level.
 | `09-customers.jpg` | close-up of the queue and the service slots |
 | `10-world-map.jpg` | the world map with the route and the locked towns |
 | `11-staff.jpg` | staff at the door and a manager on patrol |
+| `12-settings.jpg` | the settings sheet: volumes, vibration, graphics preset |
 | `icon.png` | the launcher icon |
 
 ## Project layout

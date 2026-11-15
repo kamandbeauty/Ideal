@@ -9,12 +9,14 @@ signal travel_requested(town_id: String)
 signal closed
 
 const ROAD := Color(0.42, 0.36, 0.3, 0.85)
+## Normalised positions on the map area. They are spread so a 214 px card never
+## covers its neighbour, on a 960-wide preview and on a tablet.
 const SPOTS := {
-	"desert": Vector2(0.14, 0.74),
-	"forest": Vector2(0.35, 0.6),
-	"mountain": Vector2(0.54, 0.72),
-	"coast": Vector2(0.73, 0.52),
-	"highway": Vector2(0.88, 0.3),
+	"desert": Vector2(0.13, 0.76),
+	"forest": Vector2(0.34, 0.62),
+	"mountain": Vector2(0.32, 0.22),
+	"coast": Vector2(0.6, 0.6),
+	"highway": Vector2(0.84, 0.24),
 }
 
 var _map: Control
@@ -69,7 +71,7 @@ func refresh() -> void:
 
 func _build() -> void:
 	var scrim := ColorRect.new()
-	scrim.color = Color(0.02, 0.03, 0.05, 0.9)
+	scrim.color = Color(0.02, 0.03, 0.05, 0.975)
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(scrim)
@@ -131,7 +133,7 @@ func _build() -> void:
 func _build_node(id: String) -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.name = "Node_" + id
-	panel.custom_minimum_size = Vector2(214, 0)
+	panel.custom_minimum_size = Vector2(206, 0)
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	var style := UiTheme.panel_style()
 	style.border_color = TownData.ground_color(id).lightened(0.25)
