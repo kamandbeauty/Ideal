@@ -1,15 +1,17 @@
 {
-  "passed": true,
-  "problems": [],
+  "passed": false,
+  "problems": [
+    "text keys nothing shows: campaign_map"
+  ],
   "counted": {
-    "paths_checked": 239,
+    "paths_checked": 242,
     "scripts": 53,
     "scenes": 15,
     "resources": 28,
-    "assets": 114,
-    "asset_megabytes": 57.9,
+    "assets": 119,
+    "asset_megabytes": 58.4,
     "sounds": 49,
-    "text_keys": 130
+    "text_keys": 134
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
 }
