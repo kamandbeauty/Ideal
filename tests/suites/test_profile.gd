@@ -22,6 +22,17 @@ func test_a_new_profile_starts_in_the_desert_only() -> void:
 	almost(profile.reputation(), 0.0, "no reputation yet")
 
 
+func test_every_town_opens_with_its_cheapest_business() -> void:
+	for id in TownData.ORDER:
+		var town := TownState.new(id)
+		var opener := TownState.opening_business(id)
+		check(not opener.is_empty(), "%s should have an opening business" % id)
+		equal(town.unlocked_ids().size(), 1, "%s opens exactly one business" % id)
+		check(town.business(opener).unlocked, "%s opens its cheapest business" % id)
+		check(town.net_per_minute() > 0.0, "%s must earn from the first second" % id)
+	equal(TownState.FIRST_BUSINESS, TownState.opening_business("desert"), "the desert still opens its pumps")
+
+
 func test_reputation_is_the_best_of_every_town() -> void:
 	var profile := Profile.new()
 	profile.towns["forest"] = _rich_town("forest", 700.0, 5000.0)
@@ -60,7 +71,7 @@ func test_profile_round_trip_keeps_every_town() -> void:
 	profile.towns["desert"].reputation = 900.0
 	profile.travel("forest")
 	profile.towns["forest"].cash = 5000.0
-	profile.towns["forest"].upgrade_business("gas_station")
+	profile.towns["forest"].upgrade_business("store")
 	profile.towns["forest"].cash = 555.0
 	profile.streak = 3
 	profile.bonus_day = 400
@@ -72,7 +83,7 @@ func test_profile_round_trip_keeps_every_town() -> void:
 	equal(loaded.active_town, "forest", "the active town survives")
 	equal(loaded.town_ids().size(), 2, "both towns survive")
 	almost(loaded.towns["desert"].cash, 1234.0, "the desert cash survives")
-	equal(loaded.towns["forest"].business("gas_station").level, 2, "levels survive")
+	equal(loaded.towns["forest"].business("store").level, 2, "levels survive")
 	almost(loaded.towns["forest"].cash, 555.0, "the forest cash survives")
 	equal(loaded.streak, 3, "the streak survives")
 	almost(loaded.reputation(), 900.0, "reputation is restored")
@@ -109,7 +120,7 @@ func test_offline_pays_every_managed_town_once() -> void:
 	var profile := Profile.new()
 	profile.towns["desert"].hire_manager("gas_station")
 	profile.towns["forest"] = _rich_town("forest", 700.0, 5000.0)
-	profile.towns["forest"].hire_manager("gas_station")
+	profile.towns["forest"].hire_manager("store")
 
 	var report := profile.claim_offline(3600.0)
 	check(float(report["earnings"]) > 0.0, "managed towns pay offline")

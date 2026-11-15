@@ -51,9 +51,24 @@ var _tip_clock: Dictionary = {}
 
 func _init(id: String = "desert") -> void:
 	town_id = id if TownData.has_town(id) else "desert"
+	var opener := opening_business(town_id)
 	for business_id in TownData.businesses(town_id):
-		var state := BusinessState.new(str(business_id), str(business_id) == FIRST_BUSINESS)
+		var state := BusinessState.new(str(business_id), str(business_id) == opener)
 		businesses[str(business_id)] = state
+
+
+## The business a town opens with: the cheapest one it has. Not every town has a
+## gas station - the forest has no pumps - so "the first one is free" must follow
+## the prices, otherwise a new town arrives with nothing open and no income.
+static func opening_business(town_id: String) -> String:
+	var best := ""
+	var best_cost := INF
+	for id in TownData.businesses(town_id):
+		var cost := BusinessData.unlock_cost(str(id))
+		if cost < best_cost:
+			best_cost = cost
+			best = str(id)
+	return best
 
 
 # --- Queries ---------------------------------------------------------------
@@ -499,8 +514,9 @@ func apply_save(data: Dictionary) -> bool:
 			if businesses.has(id):
 				businesses[id].apply_save(entry)
 
-	if businesses.has(FIRST_BUSINESS):
-		businesses[FIRST_BUSINESS].unlocked = true
+	var opener := opening_business(town_id)
+	if businesses.has(opener):
+		(businesses[opener] as BusinessState).unlocked = true
 	elif not businesses.is_empty():
 		var fallback: BusinessState = businesses.values()[0]
 		fallback.unlocked = true
