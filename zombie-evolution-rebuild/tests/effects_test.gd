@@ -36,6 +36,24 @@ func run_tests() -> void:
 	check(level.hero.muzzle_flash.mesh is QuadMesh and level.hero.muzzle_flash.material_override.albedo_texture is Texture2D, "muzzle flash uses the imported starburst texture")
 	level.hero.update_animation(0.2, false)
 	check(not level.hero.muzzle_flash.visible, "muzzle flash expires")
+	var brute = null
+	for enemy in level.enemies:
+		if enemy.role == "brute":
+			brute = enemy
+			break
+	check(brute != null, "stage brute exists for burst test")
+	if brute:
+		var expected: Vector3 = brute.global_position + Vector3.UP
+		var before_kills: int = level.kills
+		brute.apply_damage(brute.health + 1.0)
+		var burst = level.get_node_or_null("BossDeathBurst")
+		check(burst != null, "brute defeat creates Pyrolux burst")
+		check(level.kills == before_kills + 1 and not level.enemies.has(brute), "brute defeat still updates gameplay once")
+		if burst:
+			check(burst.global_position.is_equal_approx(expected) and burst.is_playing(), "burst plays at boss position")
+			check(burst.free_when_done and not burst.light_enabled and burst.quality == 1, "burst is bounded and uses low quality without a dynamic light")
+			await create_timer(2.5).timeout
+			check(not is_instance_valid(burst), "one-shot Pyrolux burst cleans up")
 	var bus := AudioServer.get_bus_index("Master")
 	var preferences = root.get_node("Preferences")
 	var was_enabled: bool = preferences.sound_enabled

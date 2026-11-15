@@ -5,6 +5,7 @@ const CharacterScript = preload("res://scripts/level/character.gd")
 const GateScript = preload("res://scripts/level/gates.gd")
 const HudScript = preload("res://scripts/level/hud.gd")
 const SoundScript = preload("res://scripts/level/sound_effects.gd")
+const BossBurstScene = preload("res://addons/pyrolux_fx/presets/3d/explosion_grenade.tscn")
 const END_Z := 165.0
 const WALK_SPEED := 1.7
 @export_range(0.05, 2.0, 0.01) var fire_interval := 0.14
@@ -327,6 +328,26 @@ func on_character_defeated(actor) -> void:
 		enemies.erase(actor)
 		kills += 1
 		coins += 5
+		if actor.role == "brute":
+			show_boss_burst(actor.global_position + Vector3.UP)
+
+# A single cosmetic burst on boss defeat; it does not apply area damage.
+func show_boss_burst(location: Vector3) -> void:
+	var burst = BossBurstScene.instantiate()
+	burst.name = "BossDeathBurst"
+	burst.style = 1 # Air burst: no floor scorch or ground dust.
+	burst.radius = 0.45
+	burst.quality = 1 # Low quality for mobile.
+	burst.fireball = 8
+	burst.smoke = 8
+	burst.sparks = 12
+	burst.debris = 0
+	burst.smoke_time = 0.7
+	burst.shockwave = false
+	burst.light_enabled = false
+	burst.free_when_done = true
+	add_child(burst)
+	burst.global_position = location
 
 func finish(win: bool) -> void:
 	if not running:
