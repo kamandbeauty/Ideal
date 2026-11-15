@@ -122,32 +122,32 @@
   "notes": {
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
-    "blast_kills": 14,
-    "boss_reached_gate_after_s": 70.5,
-    "defeat_time_s": 192.1,
+    "blast_kills": 12,
+    "boss_reached_gate_after_s": 55.5,
+    "defeat_time_s": 170.4,
     "gate_attackers": 3,
-    "gate_fell_after_s": 12.0,
-    "gate_left_with_boss": 0.7,
-    "grenade_kills": 8,
+    "gate_fell_after_s": 8.0,
+    "gate_left_with_boss": 0.51,
+    "grenade_kills": 7,
     "hits": 3,
     "kills": 1,
     "peak_load": {
       "alive": 56,
-      "draw_calls": 449,
-      "fps": 6.4,
+      "draw_calls": 465,
+      "fps": 6.3,
       "nodes": 1078,
       "orphan_nodes": 0,
-      "primitives": 408902,
+      "primitives": 434094,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 98.2,
+      "static_memory_mb": 98.5,
       "striking": 32,
       "texture_memory_mb": 63.2,
       "tier": "medium",
       "video_memory_mb": 82.1,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 160.76,
-      "worst_physics_tick_ms_in_a_second": 0.87,
+      "worst_frame_ms_in_a_second": 163.61,
+      "worst_physics_tick_ms_in_a_second": 1.03,
       "zombie_nodes": 56
     },
     "phone_20x9": {
@@ -188,19 +188,19 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 388,
+      "draw_calls": 390,
       "fps": 6.2,
       "nodes": 922,
       "orphan_nodes": 0,
-      "primitives": 272786,
+      "primitives": 277682,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 104.5,
+      "static_memory_mb": 104.8,
       "texture_memory_mb": 62.1,
       "tier": "medium",
       "video_memory_mb": 79.7
     },
-    "rocket_kills": 6,
+    "rocket_kills": 5,
     "second_stage": {
       "alive_20s_into_its_first_wave": 28,
       "brutes_among_them": 2,
@@ -214,8 +214,8 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 56.3,
-    "six_barrel_kills": 2,
+    "sight_target_m": 57.0,
+    "six_barrel_kills": 3,
     "six_barrel_shots": 31,
     "stage_held_preview": {
       "accuracy": 0.469594594594595,
@@ -275,7 +275,7 @@
       "waves_cleared": 2,
       "waves_total": 2
     },
-    "wall_fell_after_s": 4.0,
+    "wall_fell_after_s": 2.0,
     "window": [
       1440,
       810
