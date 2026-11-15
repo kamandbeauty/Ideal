@@ -92,7 +92,7 @@ func _run() -> void:
 	# The world map, with one town behind the player and the route ahead locked.
 	Game.profile.travel("forest")
 	Game.profile.travel("desert")
-	var map_node := _town.hud.get_node("WorldMap")
+	var map_node: Node = _town.hud.get_node("WorldMap")
 	map_node.call("open")
 	await _settle(12)
 	await _capture("10-world-map")
