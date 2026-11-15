@@ -32,16 +32,16 @@ func request(id: int, duration: float) -> String:
 ## Advances every customer that currently holds a service slot and returns the
 ## ids that just paid and left.
 func tick(delta: float) -> Array[int]:
+	# Only the customers who already held a slot this frame are advanced: anyone
+	# promoted by a completed service starts their timer on the next tick.
 	var done: Array[int] = []
-	var i := 0
-	while i < mini(capacity, _entries.size()):
+	var serving := mini(capacity, _entries.size())
+	for i in range(serving - 1, -1, -1):
 		var entry: Dictionary = _entries[i]
 		entry["remaining"] = float(entry["remaining"]) - delta
 		if float(entry["remaining"]) <= 0.0:
 			done.append(int(entry["id"]))
 			_entries.remove_at(i)
-			continue
-		i += 1
 	return done
 
 
