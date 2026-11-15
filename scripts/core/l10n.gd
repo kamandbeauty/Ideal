@@ -100,6 +100,7 @@ const STRINGS := {
 	"hud.branch": {"fa": "{0} · سطح {1}", "en": "{0} · Lv {1}"},
 	"hud.branch_state": {"fa": "سطح {0} · {1}", "en": "Lv {0} · {1}"},
 	"hud.hire_manager": {"fa": "استخدام ({0})", "en": "Hire ({0})"},
+	"hud.promote_manager": {"fa": "ارتقای مدیر ({0})", "en": "Promote ({0})"},
 	"hud.manager_max": {"fa": "مدیر ارشد", "en": "Senior manager"},
 	"hud.unlock": {"fa": "باز کردن ({0})", "en": "Unlock ({0})"},
 	"hud.locked": {"fa": "بسته", "en": "Locked"},

@@ -695,7 +695,8 @@ func _refresh_panel() -> void:
 
 	_manager_label.text = App.t("manager.rank.%d" % business.manager_rank)
 	if business.can_hire_manager():
-		_manager_button.text = App.t("hud.hire_manager", [
+		var manager_key := "hud.hire_manager" if business.manager_rank <= 0 else "hud.promote_manager"
+		_manager_button.text = App.t(manager_key, [
 			_money(business.manager_cost() * state.cost_scale())
 		])
 		_manager_button.disabled = not state.can_afford(
