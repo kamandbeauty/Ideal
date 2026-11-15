@@ -136,6 +136,16 @@ jobs:
           fi
           ls -lh delivery/
 
+      - name: Inspect the APK
+        run: |
+          set -euo pipefail
+          APK=delivery/RoadstopTycoon.apk
+          BADGING=$("$ANDROID_HOME/build-tools/34.0.0/aapt2" dump badging "$APK")
+          echo "$BADGING" | grep -E "^(package|sdkVersion|targetSdkVersion|application-label|native-code|launchable-activity)" || true
+          summary=$(echo "$BADGING" | grep -E "^(package|sdkVersion|targetSdkVersion|native-code)" | tr '\n' '|')
+          summary="$summary size=$(du -h "$APK" | cut -f1)"
+          echo "::notice title=apk::$summary"
+
       - uses: actions/upload-artifact@v4
         with:
           name: roadstop-apk
