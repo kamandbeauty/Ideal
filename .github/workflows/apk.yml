@@ -123,28 +123,15 @@ jobs:
 
       - name: Export the APK
         run: |
-          set -uo pipefail
+          status=0
           mkdir -p delivery
-          godot --headless --verbose --path . --export-debug "Android APK" \
-            delivery/RoadstopTycoon.apk > /tmp/export.log 2>&1
-          status=$?
-          tail -60 /tmp/export.log
-          if [ "$status" -ne 0 ] || [ ! -s delivery/RoadstopTycoon.apk ]; then
-            echo "export status=$status"
-            grep -iE 'error|failed|missing|sdk|keystore|apksigner|no such' /tmp/export.log \
-              | tail -12 | while IFS= read -r line; do echo "::error title=export::$line"; done
-            {
-              echo "status=$status"
-              echo "--- delivery ---"
-              ls -la delivery || true
-              echo "--- export log ---"
-              cat /tmp/export.log
-            } > documentation/qa/apk-export.log
-            git config user.name "roadstop-bot"
-            git config user.email "roadstop-bot@users.noreply.github.com"
-            git add -f documentation/qa/apk-export.log
-            git commit -m "ci: record the APK export log [skip ci]" || true
-            git push origin "HEAD:${GITHUB_REF_NAME}" || true
+          godot --headless --path . --export-debug "Android APK" delivery/RoadstopTycoon.apk \
+            > /tmp/export.log 2>&1 || status=$?
+          echo "::notice title=export-status::godot exited with $status"
+          ls -la delivery || true
+          if [ ! -s delivery/RoadstopTycoon.apk ]; then
+            msg=$(tail -25 /tmp/export.log | tr '\n' '|' | cut -c1-3500)
+            echo "::error title=export-log::$msg"
             exit 1
           fi
           ls -lh delivery/
