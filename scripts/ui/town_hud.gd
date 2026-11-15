@@ -853,8 +853,8 @@ func _show_toast(message: String) -> void:
 func _place_toast() -> void:
 	var shift := 0.0
 	if _panel != null and _panel.visible:
-		# The panel is drawn on the left in Persian and on the right in English.
-		var side := 1.0 if App.is_rtl() else -1.0
+		# In RTL the HUD mirrors local X, so a positive shift moves the pill left.
+		var side := -1.0 if App.is_rtl() else 1.0
 		shift = (_panel.size.x * 0.5 + 40.0) * side
 	_toast_panel.offset_left = -260.0 + shift
 	_toast_panel.offset_right = 260.0 + shift
