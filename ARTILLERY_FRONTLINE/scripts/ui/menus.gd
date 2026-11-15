@@ -24,6 +24,7 @@ const CONFIRM_TIME: float = 3.0
 const TITLE_WIDTH: float = 640.0
 const ARMORY_WIDTH: float = 660.0
 const CYAN := Color(0.19, 0.78, 0.84)
+const SETTINGS_GREEN := Color(0.55, 0.92, 0.18)
 
 var screen: String = ""
 var came_from: String = "main"
@@ -393,6 +394,10 @@ func _build_campaign() -> void:
 		names.append(Loc.t("stage_n", [index + 1]))
 	stage = clampi(stage, 0, open - 1)
 	stage_choices = MenuWidgets.Choices.new(names, stage)
+	stage_choices.custom_minimum_size.x = 720.0
+	stage_choices.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stage_choices.corner_radius = 36
+	stage_choices.select(stage)
 	for index: int in range(open, Campaign.count()):
 		stage_choices.lock(index)
 	stage_choices.chosen.connect(func(index: int) -> void:
@@ -690,6 +695,8 @@ func _build_settings() -> void:
 	for choice: String in Profile.QUALITY_CHOICES:
 		qualities.append(Loc.t("quality_" + choice))
 	var quality := MenuWidgets.Choices.new(qualities, Profile.QUALITY_CHOICES.find(String(Profile.setting("quality"))))
+	quality.accent = SETTINGS_GREEN
+	quality.select(quality.selected)
 	quality.chosen.connect(func(index: int) -> void: Profile.set_setting("quality", Profile.QUALITY_CHOICES[index]))
 	sound.add_child(quality)
 	sound.add_child(_check_row("show_fps"))
@@ -700,7 +707,7 @@ func _build_settings() -> void:
 
 
 func _group_title(key: String) -> Label:
-	var title: Label = UITheme.label(Loc.t(key), 22, UITheme.AMBER, true)
+	var title: Label = UITheme.label(Loc.t(key), 22, SETTINGS_GREEN, true)
 	title.custom_minimum_size = Vector2(0.0, 34.0)
 	title.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	return title
@@ -732,8 +739,9 @@ func _readout(key: String, value: float) -> String:
 func _slider_row(key: String, low: float, high: float, step: float) -> MenuWidgets.Row:
 	var row: MenuWidgets.Row = _row(key)
 	var slider := MenuWidgets.SlideBar.new(low, high, step, Profile.setting(key))
+	slider.accent = SETTINGS_GREEN
 	slider.custom_minimum_size = Vector2(250.0, 72.0)
-	var readout: Label = UITheme.label(_readout(key, slider.value), 24, UITheme.AMBER, true)
+	var readout: Label = UITheme.label(_readout(key, slider.value), 24, SETTINGS_GREEN, true)
 	readout.custom_minimum_size = Vector2(76.0, 0.0)
 	readout.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	readout.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -753,6 +761,7 @@ func _slider_row(key: String, low: float, high: float, step: float) -> MenuWidge
 func _check_row(key: String) -> MenuWidgets.Row:
 	var row: MenuWidgets.Row = _row(key)
 	var toggle := MenuWidgets.Switch.new(bool(Profile.setting(key)))
+	toggle.accent = SETTINGS_GREEN
 	toggle.toggled.connect(func(pressed: bool) -> void: Profile.set_setting(key, pressed))
 	row.toggle = toggle
 	row.add_child(toggle)
@@ -763,6 +772,8 @@ func _check_row(key: String) -> MenuWidgets.Row:
 func _choice_row(key: String, labels: Array, selected: int, action: Callable, width: float) -> MenuWidgets.Row:
 	var row: MenuWidgets.Row = _row(key)
 	var choices := MenuWidgets.Choices.new(labels, selected)
+	choices.accent = SETTINGS_GREEN
+	choices.select(choices.selected)
 	choices.custom_minimum_size = Vector2(width, 0.0)
 	choices.chosen.connect(action)
 	row.add_child(choices)

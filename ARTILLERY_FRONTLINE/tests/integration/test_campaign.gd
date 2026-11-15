@@ -73,6 +73,7 @@ func run(t: TestContext) -> void:
 	menus.show_campaign()
 	await t.frames(2)
 	t.check(menus.screen == "campaign" and menus.stage_choices.buttons.size() == stages, "the map offers the real campaign stages")
+	t.check(Loc.t("choose_stage") != "choose_stage", "the map heading is localized")
 	t.check(menus.stage_choices.is_locked(1) and menus.stage_choices.is_locked(2), "locked stages stay locked on the map")
 	menus.stage_choices._choose(1)
 	t.equal(game.stage, 0, "the map cannot select a locked stage")

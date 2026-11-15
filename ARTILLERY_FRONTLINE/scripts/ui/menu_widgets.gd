@@ -13,6 +13,7 @@ class Switch:
 	const TRACK := Vector2(88.0, 42.0)
 
 	var pressed: bool = false
+	var accent: Color = UITheme.AMBER
 	## Where the knob is drawn: slides from 0 (off) to 1 (on).
 	var knob: float = 0.0
 
@@ -49,7 +50,7 @@ class Switch:
 		var rtl: bool = is_layout_rtl()
 		var origin := Vector2(0.0 if rtl else size.x - TRACK.x, (size.y - TRACK.y) * 0.5)
 		var radius: float = TRACK.y * 0.5
-		var track: Color = Color(0.16, 0.165, 0.17, 0.95).lerp(UITheme.AMBER.darkened(0.25), knob)
+		var track: Color = Color(0.16, 0.165, 0.17, 0.95).lerp(accent.darkened(0.25), knob)
 		draw_circle(origin + Vector2(radius, radius), radius, track, true, -1.0, true)
 		draw_circle(origin + Vector2(TRACK.x - radius, radius), radius, track, true, -1.0, true)
 		draw_rect(Rect2(origin + Vector2(radius, 0.0), Vector2(TRACK.x - radius * 2.0, TRACK.y)), track)
@@ -71,6 +72,7 @@ class SlideBar:
 	var step: float = 0.05
 	var value: float = 0.0
 	var dragging: bool = false
+	var accent: Color = UITheme.AMBER
 
 	func _init(low: float = 0.0, high: float = 1.0, by: float = 0.05, start: float = 0.0) -> void:
 		min_value = low
@@ -121,9 +123,9 @@ class SlideBar:
 		draw_line(Vector2(from, y), Vector2(to, y), Color(0.0, 0.0, 0.0, 0.7), 10.0)
 		draw_circle(Vector2(from, y), 5.0, Color(0.0, 0.0, 0.0, 0.7))
 		draw_circle(Vector2(to, y), 5.0, Color(0.0, 0.0, 0.0, 0.7))
-		draw_line(Vector2(to if rtl else from, y), Vector2(at, y), UITheme.AMBER, 6.0)
+		draw_line(Vector2(to if rtl else from, y), Vector2(at, y), accent, 6.0)
 		draw_circle(Vector2(at, y), 22.0 if dragging else 18.0, Color(0.97, 0.95, 0.9), true, -1.0, true)
-		draw_arc(Vector2(at, y), 22.0 if dragging else 18.0, 0.0, TAU, 32, UITheme.AMBER, 3.0, true)
+		draw_arc(Vector2(at, y), 22.0 if dragging else 18.0, 0.0, TAU, 32, accent, 3.0, true)
 
 
 class Glyph:
@@ -166,6 +168,7 @@ class Choices:
 	var selected: int = -1
 	var accent: Color = UITheme.AMBER
 	var dark_selection: bool = false
+	var corner_radius: int = 6
 
 	func _init(labels: Array = [], start: int = 0, icons: Array = [], wrap_after: int = 0) -> void:
 		# One row unless the caller asks to wrap (the title's five guns).
@@ -213,7 +216,7 @@ class Choices:
 				rim = Color(0.34, 0.33, 0.3, 0.5)
 				ink = Color(UITheme.MUTED, 0.55)
 			for key: String in ["normal", "hover", "pressed", "disabled"]:
-				var style: StyleBoxFlat = UITheme.box(back, rim, 6, 1, 12)
+				var style: StyleBoxFlat = UITheme.box(back, rim, corner_radius, 1, 12)
 				if glyphs[place] != null:
 					# The name sits under its outline.
 					style.content_margin_top = GLYPH_STRIP
