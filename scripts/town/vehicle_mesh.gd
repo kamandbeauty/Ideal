@@ -20,17 +20,6 @@ const PAINTS: Array[Color] = [
 	Color(0.16, 0.2, 0.24),   # black
 	Color(0.86, 0.64, 0.42),  # copper
 	Color(0.6, 0.66, 0.5),    # avocado
-] = [
-	Color(0.82, 0.24, 0.22),
-	Color(0.22, 0.4, 0.78),
-	Color(0.9, 0.74, 0.24),
-	Color(0.88, 0.88, 0.9),
-	Color(0.26, 0.6, 0.42),
-	Color(0.55, 0.38, 0.72),
-	Color(0.95, 0.55, 0.2),
-	Color(0.2, 0.22, 0.26),
-	Color(0.36, 0.72, 0.74),
-	Color(0.72, 0.3, 0.45),
 ]
 
 const WHEEL_RADIUS := 0.16
