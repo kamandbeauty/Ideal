@@ -59,7 +59,7 @@ static func candidates(state) -> Array[Dictionary]:
 static func next_step(state) -> Dictionary:
 	if state == null:
 		return {}
-	var budget := state.cash - reserve(state)
+	var budget: float = float(state.cash) - reserve(state)
 	if budget <= 0.0:
 		return {}
 	for candidate in candidates(state):

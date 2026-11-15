@@ -56,7 +56,7 @@ func _build(id: String, business) -> void:
 	root.name = "Crew_" + id
 	add_child(root)
 
-	var staff := PersonMesh.build(int(absf(float(hash(id))) % 5.0))
+	var staff := PersonMesh.build(absi(hash(id)) % 5)
 	staff.position = Vector3(
 		plot.x + to_road * WORK_SPOT.x, 0.0, plot.y + WORK_SPOT.z
 	)
@@ -65,7 +65,7 @@ func _build(id: String, business) -> void:
 
 	var manager: Node3D = null
 	if business.manager_rank > 0:
-		manager = _build_manager(int(absf(float(hash(id + "m"))) % 5.0))
+		manager = _build_manager(absi(hash(id + "m")) % 5)
 		manager.position = Vector3(
 			plot.x + to_road * MANAGER_SPOT.x, 0.0, plot.y + MANAGER_SPOT.z
 		)
