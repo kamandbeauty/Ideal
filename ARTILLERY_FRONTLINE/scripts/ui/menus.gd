@@ -485,6 +485,7 @@ func _build_arsenal() -> void:
 		stages.append(Loc.t("stage_n", [index + 1]))
 	stage = clampi(stage, 0, open - 1)
 	stage_brief = _text(stage_brief_for(stage), 19, UITheme.TEXT)
+	stage_brief.custom_minimum_size.y = 40.0
 	plan.add_child(stage_brief)
 	stage_choices = MenuWidgets.Choices.new(stages, stage)
 	stage_choices.name = "ArsenalStages"
@@ -517,6 +518,7 @@ func _build_arsenal() -> void:
 	gun_note.autowrap_mode = TextServer.AUTOWRAP_OFF
 	gun_note.clip_text = true
 	gun_note.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	gun_note.custom_minimum_size.y = 32.0
 	plan.add_child(gun_note)
 	play_button = UITheme.button(Loc.t("deploy"), func() -> void: play_requested.emit(), "accent", "ui_start")
 	plan.add_child(play_button)
@@ -585,11 +587,16 @@ func _build_upgrade() -> void:
 	plan.add_theme_constant_override("separation", 18)
 	card.add_child(plan)
 	gun_preview_name = _heading("", 30, UITheme.TEXT)
+	gun_preview_name.custom_minimum_size.y = 48.0
 	plan.add_child(gun_preview_name)
 	wallet_label = _heading("", 24, UITheme.AMBER)
+	wallet_label.custom_minimum_size.y = 42.0
 	plan.add_child(wallet_label)
 	plan.add_child(_spacer(20))
-	equipment_summary = _text("", 25, UITheme.TEXT)
+	equipment_summary = _text("", 21, UITheme.TEXT)
+	equipment_summary.autowrap_mode = TextServer.AUTOWRAP_OFF
+	equipment_summary.clip_text = true
+	equipment_summary.custom_minimum_size.y = 48.0
 	plan.add_child(equipment_summary)
 	plan.add_child(_spacer(20))
 	upgrade_button = UITheme.button("", func() -> void:
@@ -787,7 +794,7 @@ func _build_settings() -> void:
 
 func _group_title(key: String) -> Label:
 	var title: Label = UITheme.label(Loc.t(key), 22, UITheme.AMBER, true)
-	title.custom_minimum_size = Vector2(0.0, 34.0)
+	title.custom_minimum_size = Vector2(0.0, 45.0)
 	title.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	return title
 
