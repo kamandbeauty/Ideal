@@ -49,11 +49,12 @@ func test_the_reserve_grows_with_income() -> void:
 	var poor := TownState.new("desert")
 	poor.cash = 0.0
 	var rich := TownState.new("desert")
-	rich.cash = 0.0
+	rich.cash = 500000.0
 	for id in rich.business_ids():
 		rich.unlock_business(id)
 		for i in 4:
 			rich.upgrade_business(id)
+	rich.cash = 0.0
 	check(
 		AutoUpgrade.reserve(rich) > AutoUpgrade.reserve(poor),
 		"a busier town keeps a bigger cushion"
@@ -69,6 +70,8 @@ func test_a_finished_business_is_left_alone() -> void:
 	for branch in BusinessData.BRANCHES:
 		while business.can_upgrade_branch(branch):
 			town.upgrade_branch("gas_station", branch)
+	while business.can_hire_manager():
+		town.hire_manager("gas_station")
 	for option in AutoUpgrade.candidates(town):
 		check(String(option["id"]) != "gas_station", "a maxed business has nothing to buy")
 	check(AutoUpgrade.apply(town).is_empty(), "so the manager stops spending")
