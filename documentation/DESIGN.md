@@ -302,7 +302,9 @@ new town starts.
    mixes.
 3. Managers as characters with contracts and traits; staff for the workshop.
 4. Missions, daily objectives and a first-time flow.
-5. Android export presets, signed APK/AAB and an on-device performance pass.
+5. ~~Android export preset and a downloadable debug APK~~ (done: preset
+   "Android APK", `.github/workflows/apk.yml`, rolling `roadstop-apk` release).
+   Remaining: release signing/AAB and an on-device performance pass.
 
 ## Test coverage
 
