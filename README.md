@@ -27,9 +27,11 @@ the next town on the highway unlocks.
 - **Town completion meter** — opening all six businesses, maxing their levels and
   branches fills a bar; a full bar pays 25 gems, turns the meter gold and means
   the town is ready for the next stop.
-- **Desert presentation** — textured sand with noise, dunes, scattered rocks and
-  scrub, totem signs per business, three vehicle silhouettes with working wheels
-  and lights, a vignette, and a short camera pull-in on load.
+- **Retro 1950s look** — the chosen art direction: cream walls under cherry and
+  teal roofs, chrome skirting, candy-striped awnings, a neon tube along every
+  roof edge, googie pylon signs, a double yellow line down the highway and a
+  ten-colour retro car park. The kit models are repainted through a recoloured
+  palette atlas, so the detail survives the palette change.
 - **Visible growth** — every business adds real props at levels 2–5: pumps and a
   canopy, awnings and terraces, shop windows, a lift and tyres, a balcony and a
   pool, wash arches and brushes. Upgrading pops the new stage in with a sparkle

@@ -15,3 +15,7 @@ chosen before any modelling or material work starts.
 The vertical slice is built from the Kenney city-builder kit plus primitive
 props, so a choice changes the palette, the materials, the roof/sign shapes and
 the prop set - not the whole model library.
+
+**Chosen: B - Retro 50s (pure, no mix).** Implemented in 0.9.0: recoloured
+palette atlas for the kit models, chrome skirting, candy-striped awnings, roof
+neon, googie pylon signs, double yellow centre line and a retro vehicle palette.
