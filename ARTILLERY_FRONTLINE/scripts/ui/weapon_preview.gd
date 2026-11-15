@@ -28,17 +28,17 @@ func _ready() -> void:
 	settings.background_color = Color(0.055, 0.067, 0.072)
 	settings.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	settings.ambient_light_color = Color(0.74, 0.79, 0.83)
-	settings.ambient_light_energy = 0.8
+	settings.ambient_light_energy = 1.15
 	environment.environment = settings
 	stand.add_child(environment)
 	var key := DirectionalLight3D.new()
 	key.rotation_degrees = Vector3(-38, -32, 0)
-	key.light_energy = 1.5
+	key.light_energy = 2.0
 	stand.add_child(key)
 	var fill := DirectionalLight3D.new()
 	fill.rotation_degrees = Vector3(-20, 145, 0)
 	fill.light_color = Color(0.65, 0.77, 1.0)
-	fill.light_energy = 0.7
+	fill.light_energy = 1.0
 	stand.add_child(fill)
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
@@ -67,6 +67,17 @@ func show_weapon(id: String) -> void:
 		var mesh := node as MeshInstance3D
 		if mesh.mesh == null or not mesh.is_visible_in_tree():
 			continue
+		# In an isolated studio there is no city to reflect in metal. Give only
+		# this preview a soft fill so black/gilded variants remain legible.
+		for surface: int in mesh.mesh.get_surface_count():
+			var source: Material = mesh.get_active_material(surface)
+			if source is StandardMaterial3D:
+				var material: StandardMaterial3D = source.duplicate()
+				material.metallic *= 0.35
+				material.emission_enabled = true
+				material.emission = material.albedo_color
+				material.emission_energy_multiplier = 0.18
+				mesh.set_surface_override_material(surface, material)
 		var part: AABB = (weapon.global_transform.affine_inverse() * mesh.global_transform) * mesh.get_aabb()
 		bounds = part if first else bounds.merge(part)
 		first = false

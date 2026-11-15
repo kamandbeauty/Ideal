@@ -398,7 +398,7 @@ func _build_arsenal() -> void:
 	var showcase := PanelContainer.new()
 	showcase.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	showcase.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	showcase.add_theme_stylebox_override("panel", UITheme.box(Color(0.025, 0.035, 0.04, 0.94), UITheme.LINE, 8, 1, 18))
+	showcase.add_theme_stylebox_override("panel", UITheme.box(Color(0.09, 0.115, 0.12, 0.97), UITheme.LINE, 8, 1, 18))
 	layout.add_child(showcase)
 	var gallery := VBoxContainer.new()
 	gallery.add_theme_constant_override("separation", 10)
