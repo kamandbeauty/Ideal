@@ -357,7 +357,7 @@ func _flat_material(tint: Color, roughness: float) -> StandardMaterial3D:
 
 
 func _paint_material() -> StandardMaterial3D:
-	var material := _flat_material(Color(0.9, 0.9, 0.87), 0.7)
+	var material := _flat_material(Color(0.82, 0.82, 0.79), 0.7)
 	material.emission_enabled = true
 	material.emission = Color(0.55, 0.55, 0.52)
 	material.emission_energy_multiplier = 0.22
@@ -766,18 +766,18 @@ func apply_time(t: float) -> void:
 		_sun.rotation_degrees = Vector3(
 			-(12.0 + 68.0 * day), -40.0 + 360.0 * t, 0
 		)
-		_sun.light_energy = 0.34 + 0.70 * day + 0.14 * dusk
+		_sun.light_energy = 0.46 + 0.58 * day + 0.14 * dusk
 		# Warm light owns the horizon, blue moonlight only takes over after sunset.
 		var sun_color := Color(1.0, 0.95, 0.86).lerp(Color(1.0, 0.52, 0.26), dusk)
-		sun_color = sun_color.lerp(Color(0.55, 0.66, 1.0), night * 0.85)
+		sun_color = sun_color.lerp(Color(0.62, 0.72, 1.0), night * 0.78)
 		_sun.light_color = sun_color
 	if _fill != null:
 		_fill.light_energy = 0.12 + 0.12 * day
 		_fill.light_color = Color(0.45, 0.55, 0.85).lerp(Color(0.66, 0.78, 1.0), day)
 	if _env != null:
-		_env.ambient_light_energy = 0.42 - 0.10 * day
+		_env.ambient_light_energy = 0.66 - 0.32 * day
 		var ambient := Color(0.86, 0.92, 1.0).lerp(Color(1.0, 0.78, 0.62), dusk * 0.8)
-		ambient = ambient.lerp(Color(0.32, 0.4, 0.62), night)
+		ambient = ambient.lerp(Color(0.38, 0.47, 0.7), night)
 		_env.ambient_light_color = ambient
 		_env.fog_light_color = sand.lightened(0.3).lerp(Color(0.14, 0.18, 0.32), night)
 		_env.fog_density = 0.0038 + 0.0012 * night
