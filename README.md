@@ -36,6 +36,12 @@ the next town on the highway unlocks.
   and a short camera lean.
 - **A living stop** — ten travellers walk the sidewalks with a small leg
   animation, traffic loops the highway, and income pops as floating coins.
+- **Guided missions** — a single next objective at the top of the screen, from
+  the first upgrade to opening all six businesses and finishing the town, each
+  paying cash or gems when claimed.
+- **Roadside events** — rush hour, holidays, rain, breakdowns, a local festival
+  and power cuts appear at random, last under two minutes and visibly change
+  traffic and income while they run.
 - **Day and night** — a 12-minute cycle moves the sun, sky, fog and ambient
   light; at dusk and night the totem boards, canopy strips, pools and street
   lamps really light up, and the completion sequence pulls the camera back.

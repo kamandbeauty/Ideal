@@ -10,6 +10,9 @@ signal business_changed(id: String)
 signal unlocked(id: String)
 signal gems_awarded(amount: int)
 signal town_completed
+signal mission_claimed(index: int)
+signal event_started(id: String)
+signal event_ended(id: String)
 
 const STARTING_CASH := 1500.0
 const FIRST_BUSINESS := "gas_station"
@@ -29,6 +32,12 @@ var customers := 0.0
 var elapsed := 0.0
 var gems_claimed := 0
 var completed := false
+var mission_step := 0
+var upgrades_total := 0
+var branches_total := 0
+var managers_hired := 0
+var active_event := ""
+var event_time_left := 0.0
 var pending_offline_seconds := 0.0
 var businesses: Dictionary = {}
 
@@ -43,7 +52,7 @@ func _init(id: String = "desert") -> void:
 # --- Queries ---------------------------------------------------------------
 
 func traffic() -> float:
-	return TownData.traffic(town_id)
+	return TownData.traffic(town_id) * event_traffic()
 
 
 func income_multiplier() -> float:
@@ -80,7 +89,7 @@ func net_per_minute() -> float:
 		var state: BusinessState = businesses[id]
 		if state.unlocked:
 			total += state.net_per_minute(traffic())
-	return total * income_multiplier()
+	return total * income_multiplier() * event_income()
 
 
 func net_per_second() -> float:
@@ -153,9 +162,111 @@ func advance(delta: float) -> void:
 		state.customers_total += state.served_per_minute(traffic_now) * minutes
 		state.revenue_total += state.revenue_per_minute(traffic_now) * minutes
 
+	_tick_event(delta)
 	_check_gems()
 	_check_completion()
 	reputation_changed.emit(reputation)
+
+
+# --- Missions --------------------------------------------------------------
+
+func _max_level() -> int:
+	var best := 1
+	for id in business_ids():
+		best = maxi(best, businesses[id].level)
+	return best
+
+
+## The mission the player is on, with its measured progress.
+func mission_progress() -> Dictionary:
+	var mission := MissionData.at(mission_step)
+	if mission.is_empty():
+		return {}
+	var id := str(mission["id"])
+	var current := 0.0
+	var goal := 1.0
+	match id:
+		"first_upgrade":
+			current = float(upgrades_total)
+			goal = 1.0
+		"open_restaurant":
+			current = (
+				1.0 if businesses.has("restaurant") and businesses["restaurant"].unlocked
+				else 0.0
+			)
+			goal = 1.0
+		"reach_level_three":
+			current = float(_max_level())
+			goal = 3.0
+		"hire_manager":
+			current = float(managers_hired)
+			goal = 1.0
+		"buy_branch":
+			current = float(branches_total)
+			goal = 1.0
+		"serve_customers":
+			current = customers
+			goal = 500.0
+		"open_all":
+			current = float(unlocked_ids().size())
+			goal = float(businesses.size())
+		"complete_town":
+			current = 1.0 if completed else 0.0
+			goal = 1.0
+	return {
+		"id": id,
+		"index": mission_step,
+		"current": current,
+		"goal": goal,
+		"ready": current >= goal,
+		"reward": float(mission.get("reward", 0.0)),
+		"gems": int(mission.get("gems", 0)),
+	}
+
+
+func claim_mission() -> Dictionary:
+	var progress := mission_progress()
+	if progress.is_empty() or not bool(progress["ready"]):
+		return {}
+	cash += float(progress["reward"])
+	gems += int(progress["gems"])
+	var index := mission_step
+	mission_step += 1
+	cash_changed.emit(cash)
+	mission_claimed.emit(index)
+	changed.emit()
+	return progress
+
+
+# --- Events ----------------------------------------------------------------
+
+func event_traffic() -> float:
+	return TownEvents.traffic(active_event)
+
+
+func event_income() -> float:
+	return TownEvents.income(active_event)
+
+
+func start_event(id: String) -> bool:
+	if not TownEvents.has(id) or not active_event.is_empty():
+		return false
+	active_event = id
+	event_time_left = TownEvents.duration(id)
+	event_started.emit(id)
+	return true
+
+
+func _tick_event(delta: float) -> void:
+	if active_event.is_empty():
+		return
+	event_time_left -= delta
+	if event_time_left > 0.0:
+		return
+	var ended := active_event
+	active_event = ""
+	event_time_left = 0.0
+	event_ended.emit(ended)
 
 
 func _check_completion() -> void:
@@ -212,6 +323,7 @@ func unlock_business(id: String) -> bool:
 		return false
 	cash -= price
 	state.unlocked = true
+	upgrades_total += 1
 	_check_completion()
 	business_changed.emit(id)
 	unlocked.emit(id)
@@ -228,6 +340,7 @@ func upgrade_business(id: String) -> bool:
 		return false
 	cash -= price
 	state.upgrade_level()
+	upgrades_total += 1
 	_check_completion()
 	business_changed.emit(id)
 	cash_changed.emit(cash)
@@ -243,6 +356,7 @@ func upgrade_branch(id: String, branch: String) -> bool:
 		return false
 	cash -= price
 	state.upgrade_branch(branch)
+	branches_total += 1
 	_check_completion()
 	business_changed.emit(id)
 	cash_changed.emit(cash)
@@ -258,6 +372,7 @@ func hire_manager(id: String) -> bool:
 		return false
 	cash -= price
 	state.hire_manager()
+	managers_hired += 1
 	_check_completion()
 	business_changed.emit(id)
 	cash_changed.emit(cash)
@@ -280,6 +395,10 @@ func serialize() -> Dictionary:
 		"elapsed": elapsed,
 		"gems_claimed": gems_claimed,
 		"completed": completed,
+		"mission_step": mission_step,
+		"upgrades_total": upgrades_total,
+		"branches_total": branches_total,
+		"managers_hired": managers_hired,
 		"businesses": entries,
 	}
 
@@ -320,6 +439,12 @@ func apply_save(data: Dictionary) -> bool:
 	elapsed = maxf(0.0, float(data.get("elapsed", 0.0)))
 	gems_claimed = clampi(int(data.get("gems_claimed", 0)), 0, GEM_MILESTONES.size())
 	completed = bool(data.get("completed", false))
+	mission_step = clampi(int(data.get("mission_step", 0)), 0, MissionData.count())
+	upgrades_total = maxi(0, int(data.get("upgrades_total", 0)))
+	branches_total = maxi(0, int(data.get("branches_total", 0)))
+	managers_hired = maxi(0, int(data.get("managers_hired", 0)))
+	active_event = ""
+	event_time_left = 0.0
 	pending_offline_seconds = 0.0
 	changed.emit()
 	return true

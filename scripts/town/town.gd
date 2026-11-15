@@ -23,6 +23,9 @@ var _pinch_distance := 0.0
 var _levels: Dictionary = {}
 var _coin_timer := 0.0
 var _coin_index := 0
+var _event_timer := 75.0
+var _last_event_id := ""
+var _events_rng := RandomNumberGenerator.new()
 var _zoom_from := 30.0
 var _zoom_to := 30.0
 var _target_from := Vector3.ZERO
@@ -30,6 +33,7 @@ var _target_to := Vector3.ZERO
 
 
 func _ready() -> void:
+	_events_rng.randomize()
 	Game.ensure_town()
 	state = Game.town
 	state.business_changed.connect(_on_business_changed)
@@ -83,6 +87,13 @@ func _process(delta: float) -> void:
 	if _coin_timer >= 3.5:
 		_coin_timer = 0.0
 		_pop_income()
+	_event_timer -= delta
+	if _event_timer <= 0.0:
+		_event_timer = _events_rng.randf_range(110.0, 160.0)
+		if state.active_event.is_empty():
+			var event_id := TownEvents.pick(_events_rng, _last_event_id)
+			if state.start_event(event_id):
+				_last_event_id = event_id
 	_autosave += delta
 	if _autosave >= AUTOSAVE_SECONDS:
 		_autosave = 0.0

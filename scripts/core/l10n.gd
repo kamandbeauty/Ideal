@@ -116,6 +116,79 @@ const STRINGS := {
 		"fa": "شهرک کامل شد؛ آمادهٔ شهر بعدی!",
 		"en": "Town complete — ready for the next stop!",
 	},
+	# --- Missions -----------------------------------------------------------
+	"mission.title": {"fa": "مأموریت", "en": "Mission"},
+	"mission.claim": {"fa": "دریافت", "en": "Claim"},
+	"mission.progress": {"fa": "{0} از {1}", "en": "{0} of {1}"},
+	"mission.reward_coins": {"fa": "{0} سکه", "en": "{0} coins"},
+	"mission.reward_gems": {"fa": "{0} الماس", "en": "{0} gems"},
+	"mission.reward": {"fa": "جایزه: {0}", "en": "Reward: {0}"},
+	"msg.mission_claimed": {"fa": "جایزهٔ مأموریت: {0}", "en": "Mission reward: {0}"},
+	"mission.first_upgrade.title": {"fa": "اولین ارتقا", "en": "First upgrade"},
+	"mission.first_upgrade.desc": {
+		"fa": "یک کسب‌وکار را یک سطح ارتقا بده.",
+		"en": "Put one level into any business.",
+	},
+	"mission.open_restaurant.title": {"fa": "آشپزخانهٔ بین‌راهی", "en": "The roadside kitchen"},
+	"mission.open_restaurant.desc": {
+		"fa": "رستوران را باز کن تا مسافران غذا بخورند.",
+		"en": "Open the restaurant so travellers can eat.",
+	},
+	"mission.reach_level_three.title": {"fa": "سطح سه", "en": "Level three"},
+	"mission.reach_level_three.desc": {
+		"fa": "یک کسب‌وکار را به سطح ۳ برسان.",
+		"en": "Get any business to level 3.",
+	},
+	"mission.hire_manager.title": {"fa": "اولین مدیر", "en": "First manager"},
+	"mission.hire_manager.desc": {
+		"fa": "برای یک کسب‌وکار مدیر استخدام کن تا آفلاین هم درآمد بدهد.",
+		"en": "Hire a manager so a business earns while you are away.",
+	},
+	"mission.buy_branch.title": {"fa": "تخصص", "en": "Specialise"},
+	"mission.buy_branch.desc": {
+		"fa": "یکی از شاخه‌های ظرفیت، سرعت یا کیفیت را ارتقا بده.",
+		"en": "Buy a capacity, speed or quality branch.",
+	},
+	"mission.serve_customers.title": {"fa": "مشتریان ثابت", "en": "Regulars"},
+	"mission.serve_customers.desc": {
+		"fa": "۵۰۰ مشتری را سرویس بده.",
+		"en": "Serve 500 customers.",
+	},
+	"mission.open_all.title": {"fa": "ششگانه", "en": "Full house"},
+	"mission.open_all.desc": {
+		"fa": "هر شش کسب‌وکار شهرک را باز کن.",
+		"en": "Open all six businesses.",
+	},
+	"mission.complete_town.title": {"fa": "شهرک کامل", "en": "Complete stop"},
+	"mission.complete_town.desc": {
+		"fa": "شهرک را ۱۰۰٪ کامل کن.",
+		"en": "Finish the town.",
+	},
+
+	# --- Events -------------------------------------------------------------
+	"event.title": {"fa": "رویداد", "en": "Event"},
+	"event.started": {"fa": "رویداد: {0}", "en": "Event: {0}"},
+	"event.ended": {"fa": "{0} تمام شد", "en": "{0} ended"},
+	"event.remaining": {"fa": "{0} ثانیه", "en": "{0}s"},
+	"event.rush.name": {"fa": "هجوم مسافران", "en": "Rush hour"},
+	"event.rush.desc": {"fa": "ترافیک ۸۰٪ بیشتر", "en": "Traffic up 80%"},
+	"event.holiday.name": {"fa": "تعطیلات", "en": "Holiday"},
+	"event.holiday.desc": {
+		"fa": "گردشگر بیشتر، درآمد ۲۰٪ بالاتر",
+		"en": "More tourists, income up 20%",
+	},
+	"event.rain.name": {"fa": "بارندگی", "en": "Rain"},
+	"event.rain.desc": {"fa": "تردد ۴۰٪ کمتر", "en": "Traffic down 40%"},
+	"event.breakdown.name": {"fa": "خرابی دستگاه", "en": "Breakdown"},
+	"event.breakdown.desc": {"fa": "درآمد ۲۵٪ کمتر", "en": "Income down 25%"},
+	"event.festival.name": {"fa": "جشنوارهٔ محلی", "en": "Local festival"},
+	"event.festival.desc": {"fa": "درآمد ۳۰٪ بیشتر", "en": "Income up 30%"},
+	"event.power_cut.name": {"fa": "قطع برق", "en": "Power cut"},
+	"event.power_cut.desc": {
+		"fa": "خدمات کندتر، درآمد ۲۰٪ کمتر",
+		"en": "Services slower, income down 20%",
+	},
+
 	"hud.complete_title": {"fa": "شهرک تکمیل شد!", "en": "Town complete!"},
 	"hud.complete_body": {
 		"fa": "هر شش کسب‌وکار ساخته شد و به بالاترین سطح رسید. ۲۵ الماس گرفتی و شهرک آمادهٔ مقصد بعدی است.",

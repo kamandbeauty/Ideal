@@ -28,6 +28,14 @@ var _complete_title: Label
 var _complete_body: Label
 var _complete_button: Button
 var _offline_body: Label
+var _mission_pill: PanelContainer
+var _mission_title: Label
+var _mission_progress: Label
+var _mission_bar: ProgressBar
+var _mission_claim: Button
+var _event_pill: PanelContainer
+var _event_label: Label
+var _last_event := ""
 var _completion_bar: ProgressBar
 var _completion_label: Label
 var _stars: Array[ColorRect] = []
@@ -157,6 +165,58 @@ func _build_top_area() -> void:
 	_completion_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	progress.add_child(_completion_label)
 
+	_event_pill = PanelContainer.new()
+	_event_pill.name = "Event"
+	_event_pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_event_pill.add_theme_stylebox_override("panel", UiTheme.pill_style())
+	_event_pill.visible = false
+	progress.add_child(_event_pill)
+	_event_label = _label(14, UiTheme.ACCENT, false)
+	_event_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_event_pill.add_child(_event_label)
+
+	var mission_row := HBoxContainer.new()
+	mission_row.name = "Mission"
+	mission_row.add_theme_constant_override("separation", 10)
+	mission_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(mission_row)
+
+	_mission_pill = PanelContainer.new()
+	_mission_pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_mission_pill.add_theme_stylebox_override("panel", UiTheme.pill_style())
+	mission_row.add_child(_mission_pill)
+
+	var mission_box := HBoxContainer.new()
+	mission_box.add_theme_constant_override("separation", 10)
+	_mission_pill.add_child(mission_box)
+
+	var mission_text := VBoxContainer.new()
+	mission_text.add_theme_constant_override("separation", 0)
+	mission_box.add_child(mission_text)
+
+	_mission_title = _label(14, UiTheme.TEXT, true)
+	mission_text.add_child(_mission_title)
+	_mission_progress = _label(12, UiTheme.MUTED, false)
+	mission_text.add_child(_mission_progress)
+
+	_mission_bar = ProgressBar.new()
+	_mission_bar.show_percentage = false
+	_mission_bar.custom_minimum_size = Vector2(80, 8)
+	_mission_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_mission_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mission_bar.add_theme_stylebox_override(
+		"background", UiTheme.slim_style(UiTheme.PANEL_SOFT, UiTheme.BORDER)
+	)
+	_mission_bar.add_theme_stylebox_override(
+		"fill", UiTheme.slim_style(UiTheme.ACCENT, UiTheme.ACCENT)
+	)
+	mission_box.add_child(_mission_bar)
+
+	_mission_claim = _button("mission.claim", "PrimaryButton", 96, 34)
+	_mission_claim.add_theme_font_size_override("font_size", 14)
+	_mission_claim.pressed.connect(_on_claim_mission)
+	mission_box.add_child(_mission_claim)
+
 
 func _build_cards() -> void:
 	var row := HBoxContainer.new()
@@ -231,7 +291,7 @@ func _build_panel() -> void:
 	_panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
 	_panel.offset_left = -432
 	_panel.offset_right = -12
-	_panel.offset_top = 108
+	_panel.offset_top = 152
 	_panel.offset_bottom = -150
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	_panel.visible = false
@@ -417,6 +477,9 @@ func _apply_language() -> void:
 	_menu_button.text = App.t("hud.menu")
 	_close_button.text = App.t("hud.close")
 	_offline_title.text = App.t("hud.offline_title")
+	_mission_claim.text = App.t("mission.claim")
+	_refresh_mission()
+	_refresh_event()
 	for id in _cards:
 		var card: Dictionary = _cards[id]
 		(card["title"] as Label).text = _business_name(id)
@@ -470,10 +533,66 @@ func _refresh() -> void:
 			"fill", UiTheme.slim_style(UiTheme.GOLD, UiTheme.GOLD)
 		)
 
+	_refresh_mission()
+	_refresh_event()
+
 	for id in _cards:
 		_refresh_card(id)
 	if _panel.visible and not selected_id.is_empty():
 		_refresh_panel()
+
+
+func _refresh_mission() -> void:
+	var mission := state.mission_progress()
+	if mission.is_empty():
+		_mission_pill.visible = false
+		return
+	_mission_pill.visible = true
+	var id := str(mission["id"])
+	var current := float(mission["current"])
+	var goal := maxf(1.0, float(mission["goal"]))
+	_mission_title.text = "%s · %s" % [
+		App.t("mission.title"), App.t("mission.%s.title" % id)
+	]
+	_mission_progress.text = "%s · %s" % [
+		App.t("mission.progress", [_num(minf(current, goal)), _num(goal)]),
+		App.t("mission.%s.desc" % id),
+	]
+	_mission_bar.value = round(clampf(current / goal, 0.0, 1.0) * 100.0)
+	_mission_claim.visible = bool(mission["ready"])
+	_mission_claim.disabled = not bool(mission["ready"])
+
+
+func _refresh_event() -> void:
+	if state.active_event != _last_event:
+		if not state.active_event.is_empty():
+			_show_toast(App.t("event.started", [App.t(TownEvents.name_key(state.active_event))]))
+		elif not _last_event.is_empty():
+			_show_toast(App.t("event.ended", [App.t(TownEvents.name_key(_last_event))]))
+		_last_event = state.active_event
+	if state.active_event.is_empty():
+		_event_pill.visible = false
+		return
+	_event_pill.visible = true
+	_event_label.text = "%s · %s" % [
+		App.t(TownEvents.name_key(state.active_event)),
+		App.t("event.remaining", [_num(ceil(state.event_time_left))]),
+	]
+
+
+func _on_claim_mission() -> void:
+	var result := state.claim_mission()
+	if result.is_empty():
+		return
+	Sound.play("res://assets/audio/toggle.ogg", -6.0)
+	var parts: Array[String] = []
+	if float(result["reward"]) > 0.0:
+		parts.append(App.t("mission.reward_coins", [_num(float(result["reward"]))]))
+	if int(result["gems"]) > 0:
+		parts.append(App.t("mission.reward_gems", [_num(int(result["gems"]))]))
+	if not parts.is_empty():
+		_show_toast(App.t("msg.mission_claimed", [", ".join(parts)]))
+	_refresh()
 
 
 func _refresh_card(id: String) -> void:

@@ -50,6 +50,7 @@ func _run() -> void:
 
 	_town.deselect()
 	_town.camera_rig.turn_quarter(1)
+	_town.state.start_event("holiday")
 	_town.day_cycle.set_time(0.47)
 	await _settle(24)
 	await _capture("04-town-dusk")
@@ -96,6 +97,9 @@ func _boost_town(town) -> void:
 		state.hire_manager(id)
 	state.reputation = 310.0
 	state.advance(0.05)
+	var mission := state.mission_progress()
+	if not mission.is_empty() and bool(mission["ready"]):
+		state.claim_mission()
 	town.view.refresh_all()
 	town.hud.refresh()
 

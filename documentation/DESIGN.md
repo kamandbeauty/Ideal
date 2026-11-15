@@ -78,6 +78,43 @@ branches maxed. The HUD shows a progress bar under the resource bar and
 celebrates once when the town is finished, paying 25 gems and turning the meter
 gold; the flag is saved, so the reward is paid once per town.
 
+## Missions
+
+`MissionData` holds a single ordered chain, and `TownState.mission_progress()`
+measures the current one from state that already exists (upgrade counters,
+customers, unlocked businesses, completion):
+
+| # | Mission | Goal | Reward |
+| --- | --- | --- | --- |
+| 1 | First upgrade | 1 upgrade | 250 coins |
+| 2 | The roadside kitchen | open the restaurant | 400 coins |
+| 3 | Level three | any business at level 3 | 600 coins |
+| 4 | First manager | hire one manager | 800 coins |
+| 5 | Specialise | buy any branch | 500 coins |
+| 6 | Regulars | 500 customers served | 1,000 coins |
+| 7 | Full house | all six businesses open | 2,000 coins |
+| 8 | Complete stop | 100 % completion | 25 gems |
+
+The HUD shows one mission pill with progress and a claim button; the step and
+the counters are saved, and claiming is refused twice.
+
+## Events
+
+`TownEvents` defines short multipliers that keep the simulation deterministic:
+
+| Event | Duration | Traffic | Income |
+| --- | --- | --- | --- |
+| Rush hour | 90 s | ×1.8 | ×1.0 |
+| Holiday | 120 s | ×1.5 | ×1.2 |
+| Rain | 90 s | ×0.6 | ×0.9 |
+| Breakdown | 60 s | ×1.0 | ×0.75 |
+| Local festival | 90 s | ×1.2 | ×1.3 |
+| Power cut | 45 s | ×0.8 | ×0.8 |
+
+One event runs at a time; `traffic()` and `net_per_minute()` apply the factors,
+so capacity, customers, reputation and offline income all follow. The HUD shows
+a timed chip and toasts the start and the end.
+
 ## Presentation
 
 - **Lighting** — one shadow-casting warm sun, a cool sky fill, ACES tonemapping
@@ -213,6 +250,9 @@ new town starts.
   the backup fallback.
 - `test_decor` — all four visual stages build for every business, lit props
   register their materials, and the day cycle's sun and phases are correct.
+- `test_missions_events` — the chain runs from the first upgrade to a finished
+  town, rewards pay once, every mission and event is translated, and event
+  multipliers and timers behave.
 
 `tools/smoke.gd` then boots the real scenes with a software renderer and captures
 the menu (FA/EN), the town, the detail panel, a turned and a zoomed camera, the

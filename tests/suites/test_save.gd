@@ -14,6 +14,10 @@ func _rich_town() -> TownState:
 	town.gems = 10
 	town.gems_claimed = 2
 	town.completed = true
+	town.mission_step = 3
+	town.upgrades_total = 5
+	town.branches_total = 2
+	town.managers_hired = 1
 	return town
 
 
@@ -32,6 +36,10 @@ func test_round_trip_keeps_progress() -> void:
 	equal(loaded.business("gas_station").manager_rank, 1, "managers survive")
 	check(loaded.business("restaurant").unlocked, "unlocked businesses survive")
 	check(loaded.completed, "the completion flag survives")
+	equal(loaded.mission_step, 3, "the mission step survives")
+	equal(loaded.upgrades_total, 5, "upgrade counters survive")
+	equal(loaded.branches_total, 2, "branch counters survive")
+	equal(loaded.managers_hired, 1, "manager counters survive")
 	check(loaded.unlocked_ids().size() == 2, "no extra businesses appear")
 
 
