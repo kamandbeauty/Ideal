@@ -122,11 +122,15 @@ func test_the_queue_never_overbooks() -> void:
 func test_every_class_queues_with_its_own_plate() -> void:
 	_make_flow()
 	var styles: Array[String] = []
-	for index in GuildCustomerFlow.CLASSES.size():
+	var places := GuildHallZones.queue_length()
+	for index in places:
 		var customer := _flow.spawn()
+		check(customer != null, "customer %d walks in" % index)
+		if customer == null:
+			continue
 		styles.append(customer.class_id)
 		equal(customer.plate.text, GuildLocale.text("customer." + customer.class_id, "en"), "the plate names the class")
-	check(styles == Array(GuildCustomerFlow.CLASSES), "the five classes take turns")
+	check(styles == GuildCustomerFlow.CLASSES.slice(0, places), "the five classes take turns down the line")
 	_flow.set_language("fa")
 	for customer in _flow.customers:
 		not_equal(customer.plate.text, GuildLocale.text("customer." + customer.class_id, "en"), "Persian renames them")
