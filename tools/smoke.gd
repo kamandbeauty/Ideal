@@ -137,6 +137,7 @@ func _run() -> void:
 	probe.overview()
 	await _settle(20)
 	await _capture("16-guild-hall-top")
+	probe.set_demo_money(0.0, "idle")
 
 	# The first real loop: shelf -> hands -> counter -> coins -> vault.
 	probe.place_hero(Vector3(9.0, 0.0, 8.0), 180.0)

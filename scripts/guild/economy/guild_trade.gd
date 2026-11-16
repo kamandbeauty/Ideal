@@ -10,14 +10,16 @@ extends RefCounted
 
 ## Takes goods off a shelf. `wanted` is what the interact button asked for; the
 ## shelf and the hands each cap it.
-static func pick(state: GuildPlayerState, stock: GuildStock, wanted: int = 3) -> Dictionary:
+static func pick(
+		state: GuildPlayerState, stock: GuildStock, wanted: int = 3, prefer_item: String = ""
+) -> Dictionary:
 	if state == null or stock == null:
 		return _result(0, "", "no station")
 	if stock.is_empty():
 		return _result(0, "", "empty shelf")
 	if state.is_hands_full():
 		return _result(0, "", "hands full")
-	var item_id := stock.first_item()
+	var item_id := stock.first_item(prefer_item)
 	var taken := stock.take(item_id, mini(wanted, state.space_for_items()))
 	taken = state.hold_items(item_id, taken)
 	if taken == 0:

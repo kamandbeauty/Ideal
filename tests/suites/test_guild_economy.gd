@@ -46,6 +46,21 @@ func test_stock_counts_and_capacity() -> void:
 	equal(stock.take("slime_gel", 1), 0, "and gives nothing more")
 
 
+func test_the_shelf_serves_the_waiting_order_first() -> void:
+	var stock := GuildStock.new(20)
+	stock.add("healing_herb", 4)
+	stock.add("slime_gel", 2)
+	equal(stock.first_item(), "healing_herb", "without a preference the first item in the catalogue is grabbed")
+	equal(stock.first_item("slime_gel"), "slime_gel", "a waiting order pulls its own goods first")
+	equal(stock.first_item("ancient_coin"), "healing_herb", "a preference with no stock is ignored")
+
+	var state := GuildPlayerState.new()
+	var picked := GuildTrade.pick(state, stock, 2, "slime_gel")
+	equal(picked["item"], "slime_gel", "the pickup grabs what the customer wants")
+	equal(int(picked["taken"]), 2, "two of them")
+	equal(state.held_of("slime_gel"), 2, "in the hands")
+
+
 func test_stock_value_and_first_item() -> void:
 	var stock := GuildStock.new(10)
 	stock.add("iron_ore", 2)

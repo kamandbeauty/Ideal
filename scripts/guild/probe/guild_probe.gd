@@ -41,11 +41,10 @@ func _ready() -> void:
 func set_demo_pose(pose: String, carry: int = 0) -> void:
 	_pose = pose
 	_speed = 2.4 if pose in ["walk", "run"] else 0.0
-	hero.state.carry = carry
-	if hero.carry_stack.kind == "money":
-		hero.carry_stack.show_money(hero.state.money)
-	else:
-		hero.carry_stack.show_items(carry)
+	# The demo hands are real: four goods, not a number typed into the state.
+	hero.state.clear_hands()
+	if carry > 0:
+		hero.state.hold_items("slime_gel", carry)
 	_animate_hero(0.5)
 
 
@@ -159,6 +158,17 @@ func place_hero(point: Vector3, yaw_degrees: float = 0.0) -> void:
 	hero.rotation.y = deg_to_rad(yaw_degrees)
 
 
+## The item a waiting customer is asking for, so the player grabs the right goods.
+func waiting_item() -> String:
+	for station in stations:
+		var counter := station as GuildStation
+		if counter == null or counter.kind != GuildStation.COUNTER or counter.order == null:
+			continue
+		if counter.order.is_ready():
+			return counter.order.item_id
+	return ""
+
+
 func station_at_hero() -> GuildStation:
 	return GuildStation.nearest(stations, hero.global_position)
 
@@ -186,7 +196,7 @@ func _on_verb_finished(verb: String) -> void:
 	_pending = {}
 	match verb:
 		"pickup":
-			last_result = GuildTrade.pick(hero.state, station.stock, 3)
+			last_result = GuildTrade.pick(hero.state, station.stock, 3, waiting_item())
 		"deliver":
 			last_result = GuildTrade.deliver(hero.state, station.order)
 		"deposit":

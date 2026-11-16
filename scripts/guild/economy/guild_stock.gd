@@ -64,8 +64,11 @@ func take(item_id: String, amount: int) -> int:
 	return taken
 
 
-## Which item is on top of the pile, the one a "pick up" button should grab first.
-func first_item() -> String:
+## Which item a "pick up" button should grab: an explicitly preferred one (the
+## item a waiting customer asked for) or the first in stock.
+func first_item(prefer: String = "") -> String:
+	if not prefer.is_empty() and count(prefer) > 0:
+		return prefer
 	for id in GuildItems.ids():
 		if count(id) > 0:
 			return id

@@ -125,7 +125,9 @@ func _on_state_changed() -> void:
 		ensure_look()
 	if carry_stack == null:
 		return
-	if carry_stack.kind == "money":
+	if state.carry > 0:
+		carry_stack.show_items(state.carry)
+	elif state.money > 0.0:
 		carry_stack.show_money(state.money)
 	else:
-		carry_stack.show_items(state.carry)
+		carry_stack.show_items(0)
