@@ -4,7 +4,8 @@ extends Node3D
 ## roofs, with the same touch pan, pinch zoom and quarter-turn controls.
 
 const PITCH := 45.0
-const ORTHO_SCALE := 0.72
+# Width-based sizing preserves the composition on both 9:16 and 9:20 phones.
+const ORTHO_SCALE := 0.72 * (720.0 / 1280.0)
 const ZOOM_MIN := 11.0
 const ZOOM_MAX := 58.0
 const ZOOM_STEP := 0.9
@@ -22,7 +23,7 @@ var camera: Camera3D
 func _ready() -> void:
 	camera = Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.keep_aspect = Camera3D.KEEP_HEIGHT
+	camera.keep_aspect = Camera3D.KEEP_WIDTH
 	camera.near = 0.4
 	camera.far = 240.0
 	add_child(camera)
@@ -47,8 +48,8 @@ func pan_by_pixels(pixels: Vector2) -> void:
 	var forward := -global_transform.basis.z
 	forward.y = 0.0
 	forward = forward.normalized()
-	var view_height := maxf(1.0, get_viewport().get_visible_rect().size.y)
-	var speed := zoom * ORTHO_SCALE / view_height
+	var view_width := maxf(1.0, get_viewport().get_visible_rect().size.x)
+	var speed := zoom * ORTHO_SCALE / view_width
 	target += (-right * pixels.x + forward * pixels.y / sin(deg_to_rad(PITCH))) * speed
 	target.x = clampf(target.x, -PAN_LIMIT, PAN_LIMIT)
 	target.z = clampf(target.z, -PAN_LIMIT + 1.0, 29.0)

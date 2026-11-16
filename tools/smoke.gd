@@ -199,6 +199,10 @@ func _capture(shot_name: String) -> void:
 		return
 	if shot_name == "14-one-way-forecourt":
 		_validate_reference_daylight(image)
+	if shot_name == "16-tall-device-fa":
+		var gas := BusinessData.plot("gas_station")
+		var corner: Vector2 = _town.camera_rig.camera.unproject_position(Vector3(gas.x + 1.61, 2.0, gas.y - 1.30))
+		assert(corner.x < get_viewport().get_visible_rect().size.x - 2.0, "tall-device camera crops the gas office")
 	var path := "%s/%s.png" % [CAPTURE_DIR, shot_name]
 	var error := image.save_png(path)
 	print("SMOKE: captured %s (%s)" % [path, error_string(error)])

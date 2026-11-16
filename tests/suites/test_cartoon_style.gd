@@ -69,6 +69,7 @@ func test_orthographic_camera_zoom_remains_interactive() -> void:
 	var rig := IsometricCamera.new()
 	rig._ready()
 	equal(rig.camera.projection, Camera3D.PROJECTION_ORTHOGONAL, "parallel roads match the reference")
+	equal(rig.camera.keep_aspect, Camera3D.KEEP_WIDTH, "tall phones show more town, not a cropped gas office")
 	almost(rig.camera.size, rig.zoom * IsometricCamera.ORTHO_SCALE, "ortho size follows the existing zoom")
 	rig.zoom_by(0.8)
 	almost(rig.camera.size, rig.zoom * IsometricCamera.ORTHO_SCALE, "pinch still changes the projection")

@@ -39,7 +39,7 @@ Business equipment and signs retain identifying accents.
 - Surface maps are deterministic 256 px neutral masks with only faint grain.
   They are generated offline by `tools/build_surface_textures.py`.
 - The camera is **orthographic** with a 45° pitch and yaw. Pinch/wheel zoom changes
-  `Camera3D.size`; panning is scaled to the viewport, including tall phones.
+  `Camera3D.size`; width-preserving projection shows more town vertically on tall phones instead of cropping the gas office. Panning uses the viewport width.
 - `UiTheme` uses light cards with dark keylines. Modal labels, disabled states,
   floating badges, cash, quests and manager rarity text are retinted together.
 - Five original SVG pictograms in `assets/ui/` replace the tiny emoji-only
