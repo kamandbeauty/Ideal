@@ -300,11 +300,13 @@ static func previous_milestone(level: int) -> int:
 ## Manager level needed to keep a facility automated after renovations!
 static func automation_manager_level(level: int) -> int:
 	if level >= 100:
-		return 5
+		return 6
 	if level >= 75:
-		return 4
+		return 5
 	if level >= 50:
-		return 3
+		return 4
 	if level >= 25:
+		return 3
+	if level >= 10:
 		return 2
 	return 1

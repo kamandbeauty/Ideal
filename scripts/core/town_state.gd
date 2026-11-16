@@ -228,9 +228,7 @@ func advance(delta: float) -> void:
 			cash += sweep
 			lifetime_cash_earned += sweep
 		else:
-			cash += earned * 0.45
-			lifetime_cash_earned += earned * 0.45
-			b.vault_cash = minf(b.vault_capacity(tr), b.vault_cash + earned * 0.55)
+			b.vault_cash = minf(b.vault_capacity(tr), b.vault_cash + earned)
 	customers += served_total
 	reputation += served_total * CUSTOMER_REPUTATION
 	_tick_special_order(served_total, delta)
@@ -353,6 +351,7 @@ func upgrade_business(id: String, steps: int = 1) -> bool:
 	for _i in count:
 		b.upgrade_level()
 	upgrades_total += count
+	_check_completion()
 	cash_changed.emit(cash)
 	business_changed.emit(id)
 	changed.emit()
@@ -374,6 +373,7 @@ func upgrade_branch(id: String, branch: String) -> bool:
 	cash -= cost
 	b.upgrade_branch(branch)
 	branches_total += 1
+	_check_completion()
 	cash_changed.emit(cash)
 	business_changed.emit(id)
 	changed.emit()
@@ -602,8 +602,10 @@ func apply_save(saved: Dictionary) -> bool:
 	var ver := int(saved.get("version", 0))
 	if ver < 1 or ver > SAVE_VERSION:
 		return false
-	var saved_town := str(saved.get("town_id", town_id))
-	if TownData.has_town(saved_town) and saved_town != town_id:
+	var saved_town := str(saved.get("town_id", saved.get("town", "")))
+	if saved_town.is_empty() or not TownData.has_town(saved_town):
+		return false
+	if saved_town != town_id:
 		_init(saved_town)
 	cash = maxf(0.0, float(saved.get("cash", STARTING_CASH)))
 	lifetime_cash_earned = maxf(cash, float(saved.get("lifetime_cash", cash)))
@@ -645,6 +647,15 @@ func _load_cards_and_businesses(saved: Dictionary) -> void:
 		for id in stored:
 			if businesses.has(id) and typeof(stored[id]) == TYPE_DICTIONARY:
 				businesses[id].apply_save(stored[id])
+	elif typeof(stored) == TYPE_ARRAY:
+		for item in stored as Array:
+			if typeof(item) == TYPE_DICTIONARY:
+				var bid := str((item as Dictionary).get("id", ""))
+				if businesses.has(bid):
+					businesses[bid].apply_save(item as Dictionary)
+	var opener := opening_business(town_id)
+	if businesses.has(opener):
+		businesses[opener].unlocked = true
 	var saved_quests: Variant = saved.get("quest_slots", [])
 	if typeof(saved_quests) == TYPE_ARRAY and (saved_quests as Array).size() == 3:
 		quest_slots = (saved_quests as Array).duplicate(true)

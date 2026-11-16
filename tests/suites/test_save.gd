@@ -65,7 +65,7 @@ func test_unknown_businesses_are_dropped_and_levels_clamped() -> void:
 	equal(town.business("gas_station").level, BusinessData.MAX_LEVEL, "levels are clamped")
 	equal(
 		town.business("gas_station").capacity_level,
-		BusinessData.MAX_BRANCH_LEVEL,
+		town.business("gas_station").max_branch_for("capacity"),
 		"branches are clamped"
 	)
 
