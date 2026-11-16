@@ -121,10 +121,12 @@ func target_point() -> Vector3:
 
 
 func report() -> String:
-	return "customer %s state=%s slot=%d travelled=%.1f waypoints=%d routed=%s" % [
+	return "customer %s state=%s slot=%d at=(%.1f, %.1f) travelled=%.1f waypoints=%d routed=%s" % [
 		class_id,
 		state,
 		slot,
+		position.x,
+		position.z,
 		travelled,
 		route.size(),
 		str(routed),

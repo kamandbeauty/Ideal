@@ -274,12 +274,12 @@ func _build_environment() -> void:
 	_environment.background_mode = Environment.BG_SKY
 	_environment.sky = sky
 	_environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	_environment.ambient_light_energy = 0.72
+	_environment.ambient_light_energy = 0.62
 	_environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	_environment.fog_enabled = true
 	_environment.fog_light_color = Color(0.18, 0.16, 0.3)
 	_environment.fog_density = 0.005
-	_environment.tonemap_exposure = 1.12
+	_environment.tonemap_exposure = 1.0
 
 
 func _build_hall() -> void:

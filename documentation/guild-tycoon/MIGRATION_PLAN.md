@@ -310,11 +310,12 @@ in the loop; no per-frame allocations in the logic classes (verified by review).
 | 2b | procedural hero rig, 6 styles, 8 poses, carry/stack anchors | `test_guild_rig` (9) |
 | 2c | controller + follow camera, verbs timing, hall with nine zones, generated navmesh | `test_guild_player`, `test_guild_hall` (8 + 9) |
 | 3a | economy: items, buy/sell prices, treasury, stock, orders, payment | `test_guild_economy` (12) |
+| 3c | customers that **walk**: navmesh route from the door, a four-place queue, the counter order belongs to the front of the line, a served customer walks out and the line steps up, an ignored one gives up; decoration pass (wall bands, zone floor lines, patterned rug, wall sconces, rune circle, violet fill light) | `test_guild_customers` (8), captures `22-guild-customers-walk` / `23-guild-customers-order` |
 | 3b | touch HUD: facts bar, joystick, contextual action button, toast, language pill; world signs follow the language | `test_guild_hud` (7), captures `20-guild-hud-en` / `21-guild-hud-fa` |
 
-Still open, in this order: customers that **walk** door → queue → counter (Phase 4
-foundation), the mission board and dispatched adventurers, upgrades, the art pass,
-and finally Roadstop's removal.
+Still open, in this order: the mission board and dispatched adventurers, the
+treasury spent on restocking, upgrades, the real art pass (imported or authored
+meshes, hair, faces, fabric), and finally Roadstop's removal.
 
 Note on the HUD: the action button is contextual but the *player* still has to stand
 at the station; there is no "tap a customer to serve" shortcut yet, and the mission

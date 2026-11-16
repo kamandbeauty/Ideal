@@ -149,7 +149,7 @@ func _run() -> void:
 	await _settle(20)
 	await _capture("17-guild-pickup")
 
-	probe.place_hero(Vector3(-9.6, 0.0, 7.0), 0.0)
+	probe.place_hero(GuildHallZones.spawn("counter_delivery"), 0.0)
 	probe.press_action()
 	await _settle(45)
 	print("SMOKE: loop deliver " + str(probe.last_result))
@@ -167,7 +167,7 @@ func _run() -> void:
 
 	# The phone HUD, in both languages, with the action button live.
 	probe.renew_order("slime_gel", 2)
-	probe.place_hero(Vector3(-9.6, 0.0, 6.8), 0.0)
+	probe.place_hero(GuildHallZones.spawn("counter_delivery"), 0.0)
 	probe.hud.set_stick_input(Vector2(0.0, 0.6))
 	probe.overview()
 	await _settle(24)
@@ -187,8 +187,8 @@ func _run() -> void:
 	await _capture("22-guild-customers-walk")
 	print("SMOKE: " + probe.flow_report())
 	probe.advance_customers(9.0)
-	probe.place_hero(Vector3(-10.6, 0.0, 6.2), 0.0)
-	probe.shot(Vector3(-6.6, 1.15, 7.2), 24.0, 42.0, 8.4, 50.0)
+	probe.place_hero(GuildHallZones.spawn("counter_delivery"), 0.0)
+	probe.look_at_station(probe.counter_station)
 	await _settle(18)
 	await _capture("23-guild-customers-order")
 	print("SMOKE: " + probe.flow_report())

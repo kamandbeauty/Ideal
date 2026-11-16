@@ -100,7 +100,7 @@ const SPAWNS := {
 	"door": Vector3(4.0, 0.0, 9.4),
 	"customer_queue": Vector3(-2.4, 0.0, 6.4),
 	"warehouse_pickup": Vector3(9.0, 0.0, 9.6),
-	"counter_delivery": Vector3(-9.6, 0.0, 7.0),
+	"counter_delivery": Vector3(-8.0, 0.0, 8.9),
 	"treasury_deposit": Vector3(9.6, 0.0, 1.4),
 	"mission_board": Vector3(-10.0, 0.0, 1.0),
 }
@@ -109,11 +109,10 @@ const SPAWNS := {
 ## The queue in front of the counter, first place first. The counter desk faces
 ## north, so the line runs east along the desk instead of into it.
 const QUEUE_LINE := [
-	Vector3(-8.6, 0.0, 7.15),
-	Vector3(-7.1, 0.0, 7.15),
-	Vector3(-5.6, 0.0, 7.15),
-	Vector3(-4.1, 0.0, 7.15),
-	Vector3(-2.6, 0.0, 7.15),
+	Vector3(-10.6, 0.0, 7.3),
+	Vector3(-9.2, 0.0, 7.3),
+	Vector3(-7.8, 0.0, 7.3),
+	Vector3(-6.4, 0.0, 7.3),
 ]
 
 

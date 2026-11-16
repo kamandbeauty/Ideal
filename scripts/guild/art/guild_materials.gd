@@ -43,7 +43,7 @@ static func outline(width: float = OUTLINE_WIDTH) -> StandardMaterial3D:
 
 
 ## Self-lit surfaces: magic accents, windows, the glow a spell leaves behind.
-static func glow(color: Color, energy: float = 1.6) -> StandardMaterial3D:
+static func glow(color: Color, energy: float = 0.9) -> StandardMaterial3D:
 	var material := flat(color, 1.0)
 	material.emission_enabled = true
 	material.emission = color

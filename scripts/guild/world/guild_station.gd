@@ -264,7 +264,7 @@ func _build_vault() -> void:
 		coin_mesh.bottom_radius = 0.13
 		coin_mesh.height = 0.05
 		coin.mesh = coin_mesh
-		coin.material_override = GuildMaterials.glow(Color(0.95, 0.79, 0.36), 1.3)
+		coin.material_override = GuildMaterials.glow(Color(0.95, 0.79, 0.36), 0.8)
 		var row := index % 5
 		var layer := int(floor(index / 5.0))
 		coin.position = Vector3(-0.4 + row * 0.2, 1.1 + layer * 0.05, 0.0)
