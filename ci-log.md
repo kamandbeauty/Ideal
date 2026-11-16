@@ -1,4 +1,4 @@
-# CI log (run 43963999751)
+# CI log (run 43965400070)
 
 ```
 Flutter 3.47.9 • channel stable • https://github.com/flutter/flutter.git
@@ -120,35 +120,17 @@ Changed 108 dependencies!
 Try `flutter pub outdated` for more information.
 Analyzing Ideal...                                              
 
-warning • Unused import: '../features/dashboard/dashboard_screen.dart'. Try removing the import directive • lib/app/router.dart:7:8 • unused_import
-warning • Unused import: 'data/models/app_notification.dart'. Try removing the import directive • lib/bootstrap.dart:10:8 • unused_import
-  error • Undefined name 'assistantRepositoryProvider'. Try correcting the name to one that is defined, or defining the name • lib/core/providers/voice_providers.dart:21:40 • undefined_identifier
-warning • Dead code. Try removing the code, or fixing the code before it so that it can be reached • lib/data/models/job.dart:82:20 • dead_code
-   info • Unnecessary 'this.' qualifier. Try removing 'this.' • lib/data/models/job.dart:82:23 • unnecessary_this
-warning • The left operand can't be null, so the right operand is never executed. Try removing the operator and the right operand • lib/data/models/job.dart:82:23 • dead_null_aware_expression
    info • Use the null-aware operator '?.' rather than an explicit 'null' comparison. Try using '?.' • lib/data/models/job_run.dart:26:7 • prefer_null_aware_operators
-warning • Unused import: 'package:sqflite/sqflite.dart'. Try removing the import directive • lib/data/repositories/job_repository.dart:1:8 • unused_import
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/agent/agent_core.dart:92:16 • prefer_const_constructors
-warning • Unused import: '../../core/providers/service_providers.dart'. Try removing the import directive • lib/features/assistant/assistant_controller.dart:6:8 • unused_import
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/assistant/assistant_screen.dart:239:9 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/assistant/assistant_screen.dart:240:18 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/assistant/assistant_screen.dart:242:20 • prefer_const_constructors
 warning • Unused import: '../../core/providers/repository_providers.dart'. Try removing the import directive • lib/features/notes/notes_screen.dart:4:8 • unused_import
-  error • The method 'SurfaceCard' isn't defined for the type '_NoteTile'. Try correcting the name to the name of an existing method, or defining a method named 'SurfaceCard' • lib/features/notes/notes_screen.dart:254:12 • undefined_method
-  error • Undefined name 'settingsRepositoryProvider'. Try correcting the name to one that is defined, or defining the name • lib/features/settings/ai_settings_screen.dart:36:31 • undefined_identifier
-  error • Undefined name 'settingsRepositoryProvider'. Try correcting the name to one that is defined, or defining the name • lib/features/settings/ai_settings_screen.dart:53:50 • undefined_identifier
-warning • Unused import: '../../services/native_bridge.dart'. Try removing the import directive • lib/features/settings/privacy_screen.dart:11:8 • unused_import
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:117:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:122:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:127:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:132:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:137:11 • prefer_const_constructors
-warning • Unused import: '../../services/native_bridge.dart'. Try removing the import directive • lib/features/settings/settings_screen.dart:10:8 • unused_import
-warning • The getter doesn't override an inherited getter. Try updating this class to match the superclass, or removing the override annotation • lib/l10n/persian_material_localizations.dart:20:14 • override_on_non_overriding_member
-warning • The getter doesn't override an inherited getter. Try updating this class to match the superclass, or removing the override annotation • lib/l10n/persian_material_localizations.dart:59:14 • override_on_non_overriding_member
-warning • The getter doesn't override an inherited getter. Try updating this class to match the superclass, or removing the override annotation • lib/l10n/persian_material_localizations.dart:68:14 • override_on_non_overriding_member
-warning • The declaration '_openDatabase' isn't referenced. Try removing the declaration of '_openDatabase' • test/helpers/test_database.dart:13:20 • unused_element
-warning • The method doesn't override an inherited method. Try updating this class to match the superclass, or removing the override annotation • test/helpers/test_database.dart:13:20 • override_on_non_overriding_member
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:116:11 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:121:11 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:126:11 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:131:11 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:136:11 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:14:24 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:26:24 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:39:24 • prefer_const_constructors
@@ -159,100 +141,133 @@ warning • The method doesn't override an inherited method. Try updating this c
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:28:17 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:62:17 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:79:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:124:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:136:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:141:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:150:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:155:17 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:135:17 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:147:17 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:152:17 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:161:17 • prefer_const_constructors
+   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:166:17 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/models_test.dart:50:17 • prefer_const_constructors
+warning • Unused import: 'package:javid_ai/services/voice/native_speech_recognizer.dart'. Try removing the import directive • test/widget/app_smoke_test.dart:10:8 • unused_import
+warning • Unused import: 'package:javid_ai/services/voice/native_tts_engine.dart'. Try removing the import directive • test/widget/app_smoke_test.dart:11:8 • unused_import
+  error • The argument type 'SilentRecognizer' can't be assigned to the parameter type 'NativeSpeechRecognizer'.  • test/widget/app_smoke_test.dart:96:52 • argument_type_not_assignable
+  error • The argument type 'SilentTts' can't be assigned to the parameter type 'NativeTtsEngine'.  • test/widget/app_smoke_test.dart:97:45 • argument_type_not_assignable
 
-45 issues found. (ran in 7.7s)
-00:00 +0: loading /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart
-00:00 +0: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (setUpAll)
-00:00 +0: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
-00:00 +1: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: converts a valid native entry
-00:00 +2: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: keeps an explicit title
-00:00 +3: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: keeps an explicit title
-00:00 +4: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: keeps an explicit title
-00:00 +5: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: keeps an explicit title
-00:00 +6: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: falls back to capture time for invalid timestamps
-00:00 +7: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
-00:00 +8: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
-00:00 +9: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
-00:00 +10: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
-00:00 +11: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: searches title and body
-00:00 +12: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: filters by category
-00:00 +13: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: falls back to general for unknown categories
-00:00 +14: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: updates content and bumps updatedAt
-00:00 +15: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: pins notes to the top of the list
-00:00 +16: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: deletes a note
-00:00 +17: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: latest returns the most recently updated note
-00:00 +18: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: data survives closing and reopening the database file
-00:00 +19: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (tearDownAll)
-00:00 +19: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (setUpAll)
-00:00 +19: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: stores and lists notifications newest first
-00:01 +20: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deduplicates by dedupe key
-00:01 +21: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: group summaries are never surfaced
-00:01 +22: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: unread counts only unread, non-summary rows
-00:01 +23: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: markRead and markAllRead update rows
-00:01 +24: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: since filters by post time
-00:01 +25: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deleteBefore removes old rows and deleteAll clears everything
-00:01 +26: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: source labels map packages to Persian names
-00:01 +27: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: package classification matches the Kotlin implementation
-00:01 +28: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (tearDownAll)
-00:01 +28: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note round-trips through a map
-00:01 +29: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note displayTitle falls back to the body
-00:01 +30: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note preview flattens newlines
-00:01 +31: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note category labels are Persian
-00:01 +32: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job round-trips through a map
-00:01 +33: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job isRecurring and isActive reflect the schedule
-00:01 +34: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job copyWith can clear nullable fields
-00:01 +35: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: JobRun round-trips and computes duration
-00:01 +36: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: AssistantMessage round-trips meta
-00:01 +37: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a greeting
-00:01 +38: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a help request
-00:01 +39: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from an explicit save command
-00:01 +39 -1: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from an explicit save command [E]
-  Expected: 'جلسهٔ فردا ساعت ده'
-    Actual: ': جلسه فردا ساعت ده'
-     Which: is different.
-            Expected: جلسهٔ فردا ...
-              Actual: : جلسه فرد ...
-                      ^
-             Differ at offset 0
+31 issues found. (ran in 9.2s)
+00:00 +0: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
+test/widget/app_smoke_test.dart:96:52: Error: The argument type 'SilentRecognizer' can't be assigned to the parameter type 'NativeSpeechRecognizer'.
+ - 'SilentRecognizer' is from 'test/widget/app_smoke_test.dart'.
+ - 'NativeSpeechRecognizer' is from 'package:javid_ai/services/voice/native_speech_recognizer.dart' ('lib/services/voice/native_speech_recognizer.dart').
+        speechRecognizerProvider.overrideWithValue(SilentRecognizer()),
+                                                   ^
+test/widget/app_smoke_test.dart:97:45: Error: The argument type 'SilentTts' can't be assigned to the parameter type 'NativeTtsEngine'.
+ - 'SilentTts' is from 'test/widget/app_smoke_test.dart'.
+ - 'NativeTtsEngine' is from 'package:javid_ai/services/voice/native_tts_engine.dart' ('lib/services/voice/native_tts_engine.dart').
+        ttsEngineProvider.overrideWithValue(SilentTts()),
+                                            ^
+00:00 +0 -1: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart [E]
+  Failed to load "/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart":
+  Compilation failed for testPath=/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: test/widget/app_smoke_test.dart:96:52: Error: The argument type 'SilentRecognizer' can't be assigned to the parameter type 'NativeSpeechRecognizer'.
+   - 'SilentRecognizer' is from 'test/widget/app_smoke_test.dart'.
+   - 'NativeSpeechRecognizer' is from 'package:javid_ai/services/voice/native_speech_recognizer.dart' ('lib/services/voice/native_speech_recognizer.dart').
+          speechRecognizerProvider.overrideWithValue(SilentRecognizer()),
+                                                     ^
+  test/widget/app_smoke_test.dart:97:45: Error: The argument type 'SilentTts' can't be assigned to the parameter type 'NativeTtsEngine'.
+   - 'SilentTts' is from 'test/widget/app_smoke_test.dart'.
+   - 'NativeTtsEngine' is from 'package:javid_ai/services/voice/native_tts_engine.dart' ('lib/services/voice/native_tts_engine.dart').
+          ttsEngineProvider.overrideWithValue(SilentTts()),
+                                              ^
+  .
+  Error: The Dart compiler exited unexpectedly.
+  package:flutter_tools/src/base/common.dart 34:3  throwToolExit
+  package:flutter_tools/src/compile.dart 1024:11   DefaultResidentCompiler._compile.<fn>
+  dart:async/zone_root.dart 48:47                  _rootRunUnary
+  dart:async/zone.dart 816:35                      _CustomZone.runUnary
+  dart:async/future_impl.dart 948:45               Future._propagateToListeners.handleValueCallback
+  dart:async/future_impl.dart 977:13               Future._propagateToListeners
+  dart:async/future_impl.dart 862:9                Future._propagateToListeners
+  dart:async/future_impl.dart 720:5                Future._completeWithValue
+  dart:async/future_impl.dart 804:7                Future._asyncCompleteWithValue.<fn>
+  dart:async/zone_root.dart 35:13                  _rootRun
+  dart:async/zone.dart 810:35                      _CustomZone.run
+  dart:async/zone.dart 702:7                       _CustomZone.runGuarded
+  dart:async/zone.dart 743:23                      _CustomZone.bindCallbackGuarded.<fn>
+  dart:async/schedule_microtask.dart 40:35         _microtaskLoop
+  dart:async/schedule_microtask.dart 49:5          _startMicrotaskLoop
+  dart:isolate-patch/isolate_patch.dart 127:13     _runPendingImmediateCallback
+  dart:isolate-patch/isolate_patch.dart 193:5      _RawReceivePort._handleMessage
+  
+00:00 +0 -1: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: converts a valid native entry
+00:00 +1 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +2 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +3 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +4 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +5 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +6 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +7 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +8 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +9 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: keeps an explicit title
+00:00 +10 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
+00:00 +11 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: searches title and body
+00:00 +12 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: filters by category
+00:00 +13 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: falls back to general for unknown categories
+00:00 +14 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: updates content and bumps updatedAt
+00:00 +15 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: pins notes to the top of the list
+00:00 +16 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: deletes a note
+00:00 +17 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: latest returns the most recently updated note
+00:00 +18 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: data survives closing and reopening the database file
+00:00 +18 -2: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: data survives closing and reopening the database file [E]
+  Expected: 'ماندگار'
+    Actual: <null>
+     Which: not an <Instance of 'String'>
   
   package:matcher                                     expect
   package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/intent_parser_test.dart 28:7              main.<fn>.<fn>
+  test/unit/note_service_test.dart 100:5              main.<fn>
   
-00:01 +39 -1: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from «یادداشت جدید بساز»
-00:01 +40 -1: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes extracts quoted note bodies
-00:01 +41 -1: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes infers the work category
-00:01 +42 -1: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes asks for the body when the command has none
-00:01 +43 -1: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes lists notes
-00:01 +44 -1: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes deletes the latest note with confirmation
-00:01 +45 -1: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily reminder with a Persian word hour
-00:01 +45 -2: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily reminder with a Persian word hour [E]
-  Expected: IntentType:<IntentType.createJob>
-    Actual: IntentType:<IntentType.dailyBriefing>
+00:00 +18 -2: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (tearDownAll)
+00:00 +18 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (setUpAll)
+00:00 +18 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: stores and lists notifications newest first
+00:00 +19 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deduplicates by dedupe key
+00:00 +20 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: group summaries are never surfaced
+00:00 +21 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: unread counts only unread, non-summary rows
+00:00 +22 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: markRead and markAllRead update rows
+00:00 +23 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: since filters by post time
+00:00 +24 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deleteBefore removes old rows and deleteAll clears everything
+00:00 +25 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: source labels map packages to Persian names
+00:00 +26 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: package classification matches the Kotlin implementation
+00:00 +27 -2: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (tearDownAll)
+00:00 +27 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note round-trips through a map
+00:00 +28 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note displayTitle falls back to the body
+00:00 +29 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note preview flattens newlines
+00:00 +30 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note category labels are Persian
+00:00 +31 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job round-trips through a map
+00:01 +32 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job isRecurring and isActive reflect the schedule
+00:01 +33 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job copyWith can clear nullable fields
+00:01 +34 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: JobRun round-trips and computes duration
+00:01 +35 -2: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: AssistantMessage round-trips meta
+00:01 +36 -2: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a greeting
+00:01 +37 -2: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a help request
+00:01 +38 -2: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from an explicit save command
+00:01 +38 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from an explicit save command [E]
+  Expected: IntentType:<IntentType.createNote>
+    Actual: IntentType:<IntentType.createJob>
   
   package:matcher                                     expect
   package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/intent_parser_test.dart 67:7              main.<fn>.<fn>
+  test/unit/intent_parser_test.dart 27:7              main.<fn>.<fn>
   
-00:01 +45 -2: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily news summary keeps the briefing action
-00:01 +45 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily news summary keeps the briefing action [E]
-  Expected: IntentType:<IntentType.createJob>
-    Actual: IntentType:<IntentType.dailyBriefing>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/intent_parser_test.dart 77:7              main.<fn>.<fn>
-  
-00:01 +45 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation one-off reminder for tomorrow at 09:00
-00:01 +46 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «نه و نیم» clock expressions
-00:01 +47 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «و ربع» quarter hours
-00:01 +47 -4: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «و ربع» quarter hours [E]
+00:01 +38 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from «یادداشت جدید بساز»
+00:01 +39 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes extracts quoted note bodies
+00:01 +40 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes infers the work category
+00:01 +41 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes asks for the body when the command has none
+00:01 +42 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes lists notes
+00:01 +43 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes deletes the latest note with confirmation
+00:01 +44 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily reminder with a Persian word hour
+00:01 +45 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily news summary keeps the briefing action
+00:01 +46 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation one-off reminder for tomorrow at 09:00
+00:01 +47 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «نه و نیم» clock expressions
+00:01 +48 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «و ربع» quarter hours
+00:01 +48 -4: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «و ربع» quarter hours [E]
   Expected: <10>
     Actual: <null>
   
@@ -260,202 +275,147 @@ warning • The method doesn't override an inherited method. Try updating this c
   package:flutter_test/src/widget_tester.dart 473:18  expect
   test/unit/intent_parser_test.dart 100:7             main.<fn>.<fn>
   
-00:01 +47 -4: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation «۸ شب» becomes 20:00
-00:01 +47 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation «۸ شب» becomes 20:00 [E]
-  Expected: <20>
-    Actual: <8>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/intent_parser_test.dart 108:7             main.<fn>.<fn>
-  
-00:01 +47 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation interval schedules respect the 15 minute minimum
-00:01 +47 -6: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation interval schedules respect the 15 minute minimum [E]
+00:01 +48 -4: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation «۸ شب» becomes 20:00
+00:01 +49 -4: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation interval schedules respect the 15 minute minimum
+00:01 +49 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation interval schedules respect the 15 minute minimum [E]
   Null check operator used on a null value
   test/unit/intent_parser_test.dart 113:64  main.<fn>.<fn>
   
-00:01 +47 -6: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation weekly schedule on Saturday
-00:01 +48 -6: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation a past clock time rolls over to tomorrow
-00:01 +49 -6: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing recognises a spoken briefing request
-00:01 +50 -6: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing message summary without a schedule is not a job
-00:01 +51 -6: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input falls back to unknown
-00:01 +52 -6: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input empty input is unknown
-00:02 +53 -6: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (setUpAll)
-00:02 +53 -6: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: starts in the idle state
-00:02 +54 -6: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: listening captures partial transcripts
-00:02 +55 -6: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: processing a final transcript produces and speaks a reply
-00:02 +56 -6: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +57 -6: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +57 -7: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: rejects one-off jobs in the past
-00:02 +58 -7: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: rejects intervals under the WorkManager minimum
-00:02 +58 -7: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval [E]
-  Expected: <1>
-    Actual: <0>
+00:01 +49 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation weekly schedule on Saturday
+00:01 +50 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation a past clock time rolls over to tomorrow
+00:01 +51 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing recognises a spoken briefing request
+00:01 +52 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing message summary without a schedule is not a job
+00:01 +53 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input falls back to unknown
+00:01 +54 -5: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input empty input is unknown
+00:01 +55 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (setUpAll)
+00:01 +55 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: starts in the idle state
+00:01 +56 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: listening captures partial transcripts
+00:01 +57 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: processing a final transcript produces and speaks a reply
+00:02 +58 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:02 +59 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:02 +60 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:02 +61 -5: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: rejects intervals under the WorkManager minimum
+00:02 +62 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +63 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +64 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +65 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +66 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +67 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +68 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +69 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +70 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: recognition errors surface a Persian message and return to idle
+00:02 +71 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: repeat replays the last assistant reply
+00:02 +72 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:02 +73 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: typed input is recorded in the activity log
+00:02 +74 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: stopAll returns to idle and stops audio
+00:02 +75 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
+00:02 +76 -5: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (tearDownAll)
+00:02 +76 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts the start of Nowruz 1403
+00:02 +77 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts a day in Aban 1405
+00:02 +78 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian handles the last day of Esfand in a leap year
+00:02 +79 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali round-trips 500 consecutive days
+00:02 +80 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali Nowruz 1404 is 2025-03-21
+00:02 +81 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths first six months have 31 days
+00:02 +82 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths months seven to eleven have 30 days
+00:02 +83 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths Esfand has 29 days in a common year and 30 in a leap year
+00:03 +84 -5: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (setUpAll)
+00:03 +84 -5: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: writes and reads a string
+00:03 +85 -5: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: overwriting replaces the previous value
+00:03 +86 -5: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: booleans round-trip with a fallback for missing keys
+00:03 +87 -5: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: readAll returns every stored key
+00:03 +88 -5: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
+00:03 +89 -5: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (tearDownAll)
+00:03 +89 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: shortDate formats a Jalali date with Persian digits
+00:03 +90 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: longDate uses Persian month names
+00:03 +91 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: weekdayDate knows Persian weekday names
+00:03 +92 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: clock pads hours and minutes
+00:03 +93 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: relative describes recent times
+00:03 +94 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: scheduleLabel distinguishes today and tomorrow
+00:03 +95 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: greeting follows the hour of day
+00:03 +96 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: addDays keeps the wall-clock time across month boundaries
+00:03 +97 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles units and teens
+00:04 +98 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles tens and compounds
+00:04 +99 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles hundreds and thousands
+00:04 +100 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.fromWord parses digits and words
+00:04 +101 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock parses a plain hour
+00:04 +102 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock parses «و نیم» and «و ربع»
+00:04 +103 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock applies Persian meridiems
+00:04 +104 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock rejects nonsense instead of guessing
+00:04 +105 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun one-off returns its anchor only when in the future
+00:04 +106 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun daily fires today when the time is still ahead
+00:04 +107 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun daily rolls to tomorrow when the time has passed
+00:04 +108 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun weekly finds the next matching weekday
+00:04 +109 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun weekly returns today when it is the right day and still ahead
+00:04 +110 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun interval advances from the anchor in fixed steps
+00:04 +111 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun interval returns the anchor when it is still in the future
+00:04 +112 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun invalid schedules return null instead of throwing
+00:04 +113 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip daily schedule survives serialisation
+00:04 +114 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip one-off anchor survives serialisation
+00:04 +115 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip malformed JSON yields an invalid schedule rather than crashing
+00:04 +116 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels daily label uses 24h times
+00:04 +117 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels weekly label names the weekday
+00:04 +118 -5: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels interval label prefers hours for whole hours
+00:04 +119 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: Persian weekday names line up with DateTime.weekday
+00:04 +120 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: month names are in calendar order
+00:04 +121 -5: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: JalaliDate equality and comparison
+00:04 +122 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits converts ASCII digits
+00:04 +123 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits keeps letters and punctuation
+00:04 +124 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits accepts non-string input
+00:04 +125 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Persian digits
+00:04 +126 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Arabic-Indic digits
+00:04 +127 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput unifies Arabic yeh and kaf
+00:04 +128 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput removes diacritics and tatweel
+00:04 +129 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput converts digits and collapses whitespace
+00:04 +130 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput replaces zero-width non-joiners with spaces
+00:05 +131 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (setUpAll)
+00:05 +131 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent note creation asks for confirmation and only saves on execute
+00:05 +132 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent lists notes as a bullet list
+00:05 +133 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent reading the latest note returns its body
+00:05 +134 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent empty note commands ask for text instead of creating junk
+00:05 +135 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
+00:05 +136 -5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
+00:05 +137 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +138 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +139 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +140 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +141 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +142 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +143 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +144 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +145 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +146 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:05 +146 -6: loading /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart
+00:05 +146 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation [E]
+  Expected: DateTime:<2026-11-16 20:00:00.000>
+    Actual: DateTime:<2026-11-17 08:00:00.000>
   
   package:matcher                                     expect
   package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/assistant_controller_test.dart 169:5      main.<fn>
+  test/unit/agent_core_test.dart 104:7                main.<fn>.<fn>
   
-00:02 +59 -7: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
-00:02 +59 -7: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: disabling clears the next run and enabling recomputes it
-error DatabaseException(ffi sqlite_error 5: SqliteException(5): while selecting from statement, database is locked, database is locked (code 5)
-  Causing statement: PRAGMA user_version) sql 'PRAGMA user_version' {details: {database: {path: /home/runner/work/Ideal/Ideal/.dart_tool/sqflite_common_ffi/databases/:memory:, id: 4, readOnly: false, singleInstance: true}}} during open, closing...
-00:02 +59 -8: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
-00:02 +59 -8: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: disabling clears the next run and enabling recomputes it [E]
-  DatabaseException(ffi sqlite_error 5: SqliteException(5): while selecting from statement, database is locked, database is locked (code 5)
-    Causing statement: PRAGMA user_version) sql 'PRAGMA user_version' {details: {database: {path: /home/runner/work/Ideal/Ideal/.dart_tool/sqflite_common_ffi/databases/:memory:, id: 4, readOnly: false, singleInstance: true}}}
-  package:sqflite_common_ffi/src/method_call.dart 126:9  responseToResultOrThrow
-  package:sqflite_common_ffi/src/isolate_io.dart 85:12   SqfliteIsolate.handle
-  
-00:02 +60 -8: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
-00:02 +61 -8: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
-00:02 +61 -9: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
-00:02 +61 -9: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: due jobs only include active jobs whose time has come [E]
-  زمان اجرای این وظیفه در گذشته است.
-  package:javid_ai/services/job_service.dart 54:7  JobService.create
-  test/unit/job_service_test.dart 106:31           main.<fn>
-  
-00:02 +62 -9: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: deleting a job also deletes its run history
-00:02 +62 -9: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: recognition errors surface a Persian message and return to idle
-error DatabaseException(ffi sqlite_error 5: SqliteException(5): while selecting from statement, database is locked, database is locked (code 5)
-  Causing statement: PRAGMA user_version) sql 'PRAGMA user_version' {details: {database: {path: /home/runner/work/Ideal/Ideal/.dart_tool/sqflite_common_ffi/databases/:memory:, id: 6, readOnly: false, singleInstance: true}}} during open, closing...
-00:02 +62 -10: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: deleting a job also deletes its run history
-00:02 +62 -10: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: recognition errors surface a Persian message and return to idle [E]
-  DatabaseException(ffi sqlite_error 5: SqliteException(5): while selecting from statement, database is locked, database is locked (code 5)
-    Causing statement: PRAGMA user_version) sql 'PRAGMA user_version' {details: {database: {path: /home/runner/work/Ideal/Ideal/.dart_tool/sqflite_common_ffi/databases/:memory:, id: 6, readOnly: false, singleInstance: true}}}
-  package:sqflite_common_ffi/src/method_call.dart 126:9  responseToResultOrThrow
-  package:sqflite_common_ffi/src/isolate_io.dart 85:12   SqfliteIsolate.handle
-  
-00:02 +63 -10: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: repeat replays the last assistant reply
-00:02 +63 -10: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: nextScheduled returns the soonest active job
-error DatabaseException(ffi sqlite_error 5: SqliteException(5): while selecting from statement, database is locked, database is locked (code 5)
-  Causing statement: PRAGMA user_version) sql 'PRAGMA user_version' {details: {database: {path: /home/runner/work/Ideal/Ideal/.dart_tool/sqflite_common_ffi/databases/:memory:, id: 9, readOnly: false, singleInstance: true}}} during open, closing...
-00:02 +63 -11: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: repeat replays the last assistant reply
-00:02 +63 -11: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: nextScheduled returns the soonest active job [E]
-  DatabaseException(ffi sqlite_error 5: SqliteException(5): while selecting from statement, database is locked, database is locked (code 5)
-    Causing statement: PRAGMA user_version) sql 'PRAGMA user_version' {details: {database: {path: /home/runner/work/Ideal/Ideal/.dart_tool/sqflite_common_ffi/databases/:memory:, id: 9, readOnly: false, singleInstance: true}}}
-  package:sqflite_common_ffi/src/method_call.dart 126:9  responseToResultOrThrow
-  package:sqflite_common_ffi/src/isolate_io.dart 85:12   SqfliteIsolate.handle
-  
-00:02 +63 -11: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: list ordering is stable and deterministic
-error DatabaseException(ffi sqlite_error 5: SqliteException(5): while selecting from statement, database is locked, database is locked (code 5)
-  Causing statement: PRAGMA user_version) sql 'PRAGMA user_version' {details: {database: {path: /home/runner/work/Ideal/Ideal/.dart_tool/sqflite_common_ffi/databases/:memory:, id: 10, readOnly: false, singleInstance: true}}} during open, closing...
-00:02 +63 -12: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: repeat replays the last assistant reply
-00:02 +63 -12: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: list ordering is stable and deterministic [E]
-  DatabaseException(ffi sqlite_error 5: SqliteException(5): while selecting from statement, database is locked, database is locked (code 5)
-    Causing statement: PRAGMA user_version) sql 'PRAGMA user_version' {details: {database: {path: /home/runner/work/Ideal/Ideal/.dart_tool/sqflite_common_ffi/databases/:memory:, id: 10, readOnly: false, singleInstance: true}}}
-  package:sqflite_common_ffi/src/method_call.dart 126:9  responseToResultOrThrow
-  package:sqflite_common_ffi/src/isolate_io.dart 85:12   SqfliteIsolate.handle
-  
-00:02 +63 -12: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: repeat replays the last assistant reply
-00:02 +64 -12: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
-00:03 +65 -12: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: typed input is recorded in the activity log
-00:03 +66 -12: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: stopAll returns to idle and stops audio
-00:03 +67 -12: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
-00:03 +68 -12: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (tearDownAll)
-00:03 +68 -12: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts the start of Nowruz 1403
-00:03 +69 -12: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts a day in Aban 1405
-00:03 +70 -12: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian handles the last day of Esfand in a leap year
-00:03 +71 -12: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali round-trips 500 consecutive days
-00:03 +72 -12: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali Nowruz 1404 is 2025-03-21
-00:03 +73 -12: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths first six months have 31 days
-00:03 +74 -12: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths months seven to eleven have 30 days
-00:03 +75 -12: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths Esfand has 29 days in a common year and 30 in a leap year
-00:03 +76 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (setUpAll)
-00:03 +76 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: writes and reads a string
-00:04 +77 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: overwriting replaces the previous value
-00:04 +78 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: booleans round-trip with a fallback for missing keys
-00:04 +79 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: readAll returns every stored key
-00:04 +80 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
-00:04 +81 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
-00:04 +82 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
-00:04 +83 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
-00:04 +84 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
-00:04 +85 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
-00:04 +86 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: scheduleLabel distinguishes today and tomorrow
-00:04 +87 -12: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (tearDownAll)
-00:04 +87 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: greeting follows the hour of day
-00:04 +88 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: addDays keeps the wall-clock time across month boundaries
-00:04 +89 -12: loading /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart
-00:04 +89 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles units and teens
-00:04 +90 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles tens and compounds
-00:04 +91 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles hundreds and thousands
-00:04 +92 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.fromWord parses digits and words
-00:04 +93 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock parses a plain hour
-00:04 +94 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock parses «و نیم» and «و ربع»
-00:04 +95 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock applies Persian meridiems
-00:04 +96 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock rejects nonsense instead of guessing
-00:05 +97 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun one-off returns its anchor only when in the future
-00:05 +98 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun daily fires today when the time is still ahead
-00:05 +99 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun daily rolls to tomorrow when the time has passed
-00:05 +100 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun weekly finds the next matching weekday
-00:05 +101 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun weekly returns today when it is the right day and still ahead
-00:05 +102 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun interval advances from the anchor in fixed steps
-00:05 +103 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun interval returns the anchor when it is still in the future
-00:05 +104 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun invalid schedules return null instead of throwing
-00:05 +105 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip daily schedule survives serialisation
-00:05 +106 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip one-off anchor survives serialisation
-00:05 +107 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip malformed JSON yields an invalid schedule rather than crashing
-00:05 +108 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels daily label uses 24h times
-00:05 +109 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels weekly label names the weekday
-00:05 +110 -12: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels interval label prefers hours for whole hours
-00:05 +111 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits converts ASCII digits
-00:05 +112 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits keeps letters and punctuation
-00:05 +113 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits accepts non-string input
-00:05 +114 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Persian digits
-00:05 +115 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Arabic-Indic digits
-00:05 +116 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput unifies Arabic yeh and kaf
-00:05 +117 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput removes diacritics and tatweel
-00:05 +118 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput converts digits and collapses whitespace
-00:05 +119 -12: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput replaces zero-width non-joiners with spaces
-00:05 +120 -12: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (setUpAll)
-00:05 +120 -12: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent note creation asks for confirmation and only saves on execute
-00:05 +121 -12: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent lists notes as a bullet list
-00:05 +122 -12: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent reading the latest note returns its body
-00:05 +123 -12: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent empty note commands ask for text instead of creating junk
-00:05 +124 -12: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent deleting a note needs confirmation and reports no data without it
-00:05 +125 -12: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
-00:06 +125 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation [E]
-  Expected: true
-    Actual: <false>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/agent_core_test.dart 96:7                 main.<fn>.<fn>
-  
-00:06 +125 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a one-off reminder for tomorrow
-00:06 +126 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
-00:06 +127 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
-00:06 +128 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
-00:06 +129 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent greeting mentions the time of day
-00:06 +130 -13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
-00:06 +131 -13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
-00:06 +132 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
-00:06 +133 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
-00:06 +134 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
-00:06 +135 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
-00:06 +136 -13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: a past Jalali day/month rolls to next year
-00:06 +137 -13: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (tearDownAll)
-00:06 +137 -13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: Persian ordinals are understood
-00:06 +138 -13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: weekday names find the next occurrence
-00:06 +139 -13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «سه روز دیگر» offsets by days
-00:06 +140 -13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: explicit dotted Jalali dates are accepted
-00:06 +141 -13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: returns null when no date expression exists
-00:06 +142 -13: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing says so honestly when nothing happened
-00:06 +143 -13: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing counts messages per source with Persian digits
-00:06 +144 -13: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing highlights the next job and urgent items
-00:06 +145 -13: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing ignores notifications from previous days
-00:06 +146 -13: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing never invents content when asked for details
-00:06 +147 -13: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: urge detector matches Persian and English keywords
-00:06 +148 -13: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: summarize builds a compact one-liner
-00:06 +149 -13: Some tests failed.
+00:05 +146 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a one-off reminder for tomorrow
+00:05 +147 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
+00:05 +148 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
+00:05 +149 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
+00:05 +150 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent greeting mentions the time of day
+00:05 +151 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent help lists real capabilities
+00:05 +152 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
+00:05 +153 -6: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (tearDownAll)
+00:05 +153 -6: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing says so honestly when nothing happened
+00:05 +154 -6: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing counts messages per source with Persian digits
+00:05 +155 -6: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing highlights the next job and urgent items
+00:05 +156 -6: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing ignores notifications from previous days
+00:05 +157 -6: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing never invents content when asked for details
+00:05 +158 -6: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: urge detector matches Persian and English keywords
+00:05 +159 -6: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: summarize builds a compact one-liner
+00:05 +160 -6: Some tests failed.
 
 Failing tests:
   /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
-  /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-  /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: recognition errors surface a Persian message and return to idle
-  /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily news summary keeps the briefing action
-  ... and 9 more
+  /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «و ربع» quarter hours
+  /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation interval schedules respect the 15 minute minimum
+  /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from an explicit save command
+  ... and 2 more
 Running Gradle task 'assembleDebug'...                          
 Loading package information...                                                  
 Loading local repository...                                                     
@@ -561,44 +521,17 @@ If no such version exists, report the issue to the plugin. If necessary, here is
 an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
 
 If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-lib/core/providers/voice_providers.dart:21:40: Error: Undefined name 'assistantRepositoryProvider'.
-  (ref) => AssistantActivity(ref.watch(assistantRepositoryProvider)),
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-lib/features/notes/notes_screen.dart:254:12: Error: The method 'SurfaceCard' isn't defined for the type '_NoteTile'.
- - '_NoteTile' is from 'package:javid_ai/features/notes/notes_screen.dart' ('lib/features/notes/notes_screen.dart').
-Try correcting the name to the name of an existing method, or defining a method named 'SurfaceCard'.
-    return SurfaceCard(
-           ^^^^^^^^^^^
-lib/features/settings/ai_settings_screen.dart:36:31: Error: The getter 'settingsRepositoryProvider' isn't defined for the type '_AiSettingsScreenState'.
- - '_AiSettingsScreenState' is from 'package:javid_ai/features/settings/ai_settings_screen.dart' ('lib/features/settings/ai_settings_screen.dart').
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'settingsRepositoryProvider'.
-    final settings = ref.read(settingsRepositoryProvider);
-                              ^^^^^^^^^^^^^^^^^^^^^^^^^^
-lib/features/settings/ai_settings_screen.dart:53:50: Error: The getter 'settingsRepositoryProvider' isn't defined for the type '_AiSettingsScreenState'.
- - '_AiSettingsScreenState' is from 'package:javid_ai/features/settings/ai_settings_screen.dart' ('lib/features/settings/ai_settings_screen.dart').
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'settingsRepositoryProvider'.
-    final SettingsRepository settings = ref.read(settingsRepositoryProvider);
-                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: [options] source value 8 is obsolete and will be removed in a future release
 warning: [options] target value 8 is obsolete and will be removed in a future release
 warning: [options] To suppress warnings about obsolete options, use -Xlint:-options.
 3 warnings
-Target kernel_snapshot_program failed: Exception
-
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:compileFlutterBuildDebug'.
-> Process 'command '/opt/hostedtoolcache/flutter/stable-3.47.9-x64/flutter/bin/flutter'' finished with non-zero exit value 1
-
-* Try:
-> Run with --stacktrace option to get the stack trace.
-> Run with --info or --debug option to get more log output.
-> Run with --scan to get full insights from a Build Scan (powered by Develocity).
-> Get more help at https://help.gradle.org.
-
-BUILD FAILED in 2m 47s
-Running Gradle task 'assembleDebug'...                            169.5s
-Gradle task assembleDebug failed with exit code 1
+Checking the license for package CMake 3.22.1 in /usr/local/lib/android/sdk/licenses
+License for package CMake 3.22.1 accepted.
+Preparing "Install CMake 3.22.1 v.3.22.1".
+"Install CMake 3.22.1 v.3.22.1" ready.
+Installing CMake 3.22.1 in /usr/local/lib/android/sdk/cmake/3.22.1
+"Install CMake 3.22.1 v.3.22.1" complete.
+"Install CMake 3.22.1 v.3.22.1" finished.
+Running Gradle task 'assembleDebug'...                            275.0s
+✓ Built build/app/outputs/flutter-apk/app-debug.apk
 ```
