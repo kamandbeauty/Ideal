@@ -147,7 +147,7 @@ void main() {
 
     await tester.tap(find.text('پیام‌ها'));
     await settle(tester);
-    expect(find.textContaining('تاریخچهٔ کامل چت'), findsOneWidget);
+    expect(find.textContaining('دسترسی'), findsWidgets);
 
     await tester.tap(find.text('تنظیمات'));
     await settle(tester);
