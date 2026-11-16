@@ -341,6 +341,12 @@ func _build_hud() -> void:
 	hud = GuildHud.new()
 	add_child(hud)
 	hud.bind(interaction, treasury, stock)
+	hud.language_changed.connect(_on_language_changed)
+
+
+func _on_language_changed(language: String) -> void:
+	if hall != null:
+		hall.set_language(language)
 
 
 func _build_camera() -> void:

@@ -115,6 +115,21 @@ func test_persian_changes_words_only() -> void:
 	_free_world()
 
 
+func test_language_switch_is_announced() -> void:
+	_build_world()
+	var hud := GuildHud.new()
+	hud.bind(_interaction, _treasury, _stock)
+	var seen: Array[String] = []
+	hud.language_changed.connect(func(value: String) -> void: seen.append(value))
+	hud.toggle_language()
+	hud.toggle_language()
+	equal(seen.size(), 2, "both switches are announced")
+	equal(seen[0], "fa", "and the world can relabel itself")
+	equal(seen[1], "en", "and switch back")
+	hud.free()
+	_free_world()
+
+
 func test_the_stick_drives_the_player() -> void:
 	_build_world()
 	var hud := GuildHud.new()

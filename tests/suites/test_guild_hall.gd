@@ -90,6 +90,26 @@ func test_hall_builds_all_zones_and_geometry() -> void:
 	hall.free()
 
 
+func test_zone_signs_follow_the_language() -> void:
+	var hall := GuildHall.new()
+	hall.build()
+	equal(hall.zone_labels.size(), 9, "every zone has a sign")
+	var english: Array[String] = []
+	for id in GuildHallZones.zone_ids():
+		english.append((hall.zone_labels[id] as Label3D).text)
+	hall.set_language("fa")
+	var persian := 0
+	for index in GuildHallZones.zone_ids().size():
+		var id := GuildHallZones.zone_ids()[index]
+		var text := (hall.zone_labels[id] as Label3D).text
+		if text != english[index]:
+			persian += 1
+	equal(persian, 9, "all nine signs switch to Persian")
+	hall.set_language("en")
+	equal((hall.zone_labels["treasury"] as Label3D).text, "Treasury", "and back to English")
+	hall.free()
+
+
 func test_navmesh_walks_around_the_furniture() -> void:
 	var hall := GuildHall.new()
 	hall.build()

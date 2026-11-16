@@ -298,3 +298,24 @@ in the loop; no per-frame allocations in the logic classes (verified by review).
   حذف رودستاپ) → فاز ۶ (اندروید و پروفایل).
 - **بدون بازیکردن با کلمات:** هر فاز فقط وقتی «تمام» اعلام می‌شود که تست و
   اسکرین‌شات CI و بیلد APK داشته باشد.
+
+---
+
+## 6. Progress log (updated as slices land)
+
+| Slice | What really exists | Proven by |
+|---|---|---|
+| 1 | audit, branch rules, ADRs 001–007 | `AUDIT.md`, `DECISIONS.md` |
+| 2a | Persian-first locale layer, both directions, no mirrored layout | `test_guild_locale` (10 methods) |
+| 2b | procedural hero rig, 6 styles, 8 poses, carry/stack anchors | `test_guild_rig` (9) |
+| 2c | controller + follow camera, verbs timing, hall with nine zones, generated navmesh | `test_guild_player`, `test_guild_hall` (8 + 9) |
+| 3a | economy: items, buy/sell prices, treasury, stock, orders, payment | `test_guild_economy` (12) |
+| 3b | touch HUD: facts bar, joystick, contextual action button, toast, language pill; world signs follow the language | `test_guild_hud` (7), captures `20-guild-hud-en` / `21-guild-hud-fa` |
+
+Still open, in this order: customers that **walk** door → queue → counter (Phase 4
+foundation), the mission board and dispatched adventurers, upgrades, the art pass,
+and finally Roadstop's removal.
+
+Note on the HUD: the action button is contextual but the *player* still has to stand
+at the station; there is no "tap a customer to serve" shortcut yet, and the mission
+board is a labelled but inert zone.

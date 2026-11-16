@@ -7,6 +7,8 @@ extends CanvasLayer
 ## switching the language can never move or resize anything (ADR-002). The layout
 ## is built once in `build()` and only ever has its text replaced.
 
+signal language_changed(language: String)
+
 const TOP_BAR_HEIGHT := 62.0
 const STICK_SIZE := 186.0
 const KNOB_SIZE := 72.0
@@ -44,6 +46,7 @@ var _stick_pointer := -1
 var _stick_touch_origin := Vector2.ZERO
 var _stick_input := Vector2.ZERO
 var _shown_verb := ""
+var _shown_customers := -1
 
 
 func _init() -> void:
@@ -95,6 +98,7 @@ func toggle_language() -> void:
 func set_language(new_language: String) -> void:
 	language = "fa" if new_language == "fa" else "en"
 	refresh()
+	language_changed.emit(language)
 
 
 func refresh() -> void:
@@ -170,21 +174,21 @@ func _build_top_bar() -> void:
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(bar)
 
-	gold_label = _place(bar, "Gold", 26.0, 6.0, 22)
+	gold_label = _place(bar, "Gold", 22.0, 5.0, 24)
 	gold_label.add_theme_color_override("font_color", GuildTheme.GOLD)
-	reputation_label = _place(bar, "Reputation", 200.0, 6.0, 18)
+	reputation_label = _place(bar, "Reputation", 196.0, 8.0, 17)
 	reputation_label.add_theme_color_override("font_color", GuildTheme.TURQUOISE)
-	warehouse_label = _place(bar, "Warehouse", 380.0, 4.0, 18)
-	missions_label = _place(bar, "Missions", 380.0, 30.0, 15)
+	warehouse_label = _place(bar, "Warehouse", 360.0, 5.0, 17)
+	missions_label = _place(bar, "Missions", 540.0, 8.0, 15)
 	missions_label.add_theme_color_override("font_color", GuildTheme.MUTED)
-	customers_label = _place(bar, "Customers", 590.0, 30.0, 15)
+	customers_label = _place(bar, "Customers", 680.0, 8.0, 15)
 	customers_label.add_theme_color_override("font_color", GuildTheme.MUTED)
 
 	warehouse_meter = ColorRect.new()
 	warehouse_meter.name = "WarehouseMeter"
 	warehouse_meter.color = GuildTheme.TURQUOISE
-	warehouse_meter.position = Vector2(380.0, 26.0)
-	warehouse_meter.size = Vector2(150.0, 5.0)
+	warehouse_meter.position = Vector2(360.0, 30.0)
+	warehouse_meter.size = Vector2(160.0, 4.0)
 	warehouse_meter.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	warehouse_meter.pivot_offset = Vector2.ZERO
 	bar.add_child(warehouse_meter)
@@ -345,6 +349,10 @@ func _on_traded(_result: Dictionary) -> void:
 
 
 func _process(delta: float) -> void:
+	var waiting := waiting_customers()
+	if waiting != _shown_customers:
+		_shown_customers = waiting
+		refresh()
 	if _toast_left > 0.0:
 		_toast_left -= delta
 		if _toast_left <= 0.6:

@@ -20,6 +20,8 @@ const CUSHION := Color(0.55, 0.25, 0.35)
 
 var nav_region: NavigationRegion3D
 var zone_nodes: Dictionary = {}
+var zone_labels: Dictionary = {}
+var language := "en"
 
 var _props_root: Node3D
 var _solid: StaticBody3D
@@ -45,6 +47,17 @@ func build() -> void:
 	_build_props()
 	_build_lighting()
 	_build_navmesh()
+
+
+## Relabels the nine zone signs. Only the words change, never the geometry.
+func set_language(new_language: String) -> void:
+	language = "fa" if new_language == "fa" else "en"
+	for id in zone_labels:
+		var label := zone_labels[id] as Label3D
+		if label == null:
+			continue
+		var data := GuildHallZones.zone(str(id))
+		label.text = GuildLocale.t(str(data.get("name_key", "")), [], language)
 
 
 func navmesh_report() -> String:
@@ -200,6 +213,7 @@ func _build_zones() -> void:
 		label.no_depth_test = false
 		label.position = Vector3(0.0, 2.6, 0.0)
 		node.add_child(label)
+		zone_labels[id] = label
 
 	var rug := MeshInstance3D.new()
 	rug.name = "Rug"
