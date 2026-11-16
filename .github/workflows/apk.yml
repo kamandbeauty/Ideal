@@ -104,12 +104,20 @@ jobs:
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
 
-          if [ ! -f "$HOME/.android/debug.keystore" ]; then
-            keytool -genkeypair -v -keystore "$HOME/.android/debug.keystore" \
-              -storetype JKS -storepass android -keypass android \
-              -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -noprompt \
-              -dname "CN=Android Debug,O=Android,C=US"
+          # Refuse a silent identity change if GitHub evicts the signing cache.
+          if [ ! -s "$HOME/.android/debug.keystore" ]; then
+            echo "::error::The signing cache is missing. Restore the existing keystore securely; do not generate a replacement."
+            exit 1
           fi
+          keytool -exportcert -keystore "$HOME/.android/debug.keystore" \
+            -storepass android -alias androiddebugkey > "$RUNNER_TEMP/selected-signer.der"
+          signer=$(sha256sum "$RUNNER_TEMP/selected-signer.der" | cut -d' ' -f1)
+          echo "ANDROID_DEBUG_SIGNER_SHA256=$signer" >> "$GITHUB_ENV"
+          # Godot otherwise chooses a NEW editor-local keystore, not ~/.android.
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$GITHUB_ENV"
+          echo "::notice title=Selected signing identity::$signer"
 
       - name: Import the project
         run: |
@@ -171,15 +179,59 @@ jobs:
           echo "$BADGING" | grep -q "native-code: 'arm64-v8a'"
           echo "::notice title=APK package::$(echo "$BADGING" | head -1)"
           "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK" | tee /tmp/signature.txt
-          signer=$(grep 'Signer #1 certificate SHA-256 digest:' /tmp/signature.txt)
+          signer=$(awk '/Signer #1 certificate SHA-256 digest:/ {print $NF}' /tmp/signature.txt)
+          test "$signer" = "$ANDROID_DEBUG_SIGNER_SHA256" || {
+            echo "::error::Godot did not use the selected cached signing identity"; exit 1; }
           echo "::notice title=APK signing::$signer"
           (cd delivery && sha256sum RoadsideEmpire.apk > RoadsideEmpire.apk.sha256)
           echo "::notice title=APK checksum::$(cat delivery/RoadsideEmpire.apk.sha256)"
 
+      - name: Export a separate safe-preview app
+        run: |
+          set -euo pipefail
+          cp export_presets.cfg "$RUNNER_TEMP/main-export.cfg"
+          trap 'cp "$RUNNER_TEMP/main-export.cfg" export_presets.cfg' EXIT
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("export_presets.cfg")
+          text = p.read_text()
+          assert text.count('package/unique_name="com.roadsideempire.tycoon"') == 1
+          assert text.count('package/name="Roadside Empire"') == 1
+          text = text.replace('package/unique_name="com.roadsideempire.tycoon"', 'package/unique_name="com.roadsideempire.preview"')
+          text = text.replace('package/name="Roadside Empire"', 'package/name="Roadside Empire Preview"')
+          p.write_text(text)
+          PY
+          status=0
+          godot --headless --path . --export-debug "Android APK" delivery/RoadsideEmpire-Preview.apk \
+            > "$RUNNER_TEMP/preview-export.log" 2>&1 || status=$?
+          if [ "$status" -ne 0 ] || [ ! -s delivery/RoadsideEmpire-Preview.apk ]; then
+            msg=$(tail -25 "$RUNNER_TEMP/preview-export.log" | tr '\n' '|' | cut -c1-3500)
+            echo "::error title=Preview export::$msg"; exit 1
+          fi
+          APK=delivery/RoadsideEmpire-Preview.apk
+          BADGING=$("$ANDROID_HOME/build-tools/34.0.0/aapt2" dump badging "$APK")
+          echo "$BADGING" | grep -Fq "package: name='com.roadsideempire.preview'"
+          echo "$BADGING" | grep -Fq "application-label:'Roadside Empire Preview'"
+          echo "$BADGING" | grep -q "native-code: 'arm64-v8a'"
+          expected_name=$(sed -n 's/^version\/name="\(.*\)"$/\1/p' export_presets.cfg)
+          expected_code=$(sed -n 's/^version\/code=//p' export_presets.cfg)
+          echo "$BADGING" | grep -Fq "versionName='$expected_name'"
+          echo "$BADGING" | grep -Fq "versionCode='$expected_code'"
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK" \
+            | tee "$RUNNER_TEMP/preview-signature.txt"
+          signer=$(awk '/Signer #1 certificate SHA-256 digest:/ {print $NF}' "$RUNNER_TEMP/preview-signature.txt")
+          test "$signer" = "$ANDROID_DEBUG_SIGNER_SHA256"
+          (cd delivery && sha256sum RoadsideEmpire-Preview.apk > RoadsideEmpire-Preview.apk.sha256)
+          echo "::notice title=Preview package::$(echo "$BADGING" | head -1)"
+          echo "::notice title=Preview signing::$signer"
+          echo "::notice title=Preview checksum::$(cat delivery/RoadsideEmpire-Preview.apk.sha256)"
+
       - uses: actions/upload-artifact@v4
         with:
           name: roadside-empire-apk
-          path: delivery/RoadsideEmpire.apk
+          path: |
+            delivery/*.apk
+            delivery/*.sha256
           if-no-files-found: error
 
       - name: Publish the APK to the rolling release
@@ -192,8 +244,8 @@ jobs:
           notes=$(printf '%s\n\n%s\n\n%s\n\n%s\n' \
             "Roadside Empire: Idle Tycoon — v${version}, debug-signed Android ARM64 APK." \
             "Live service feedback: rotating wash brushes and foam, connected fuel/EV cables, distinct service pictograms and bounded 0/6/10-particle quality presets. Persian facility/manager labels and painted bay numbers are localized; floating badges stay inside the screen. The bright lime/orange town, physical car/building collisions, reservations, progression and save format are retained." \
-            "Install RoadsideEmpire.apk without uninstalling the existing game. Builds from v1.41 onward reuse the cached debug-signing identity. Compatibility with v1.40 is unverified: if Android reports a conflict, keep the old installation because uninstalling can delete saved progress." \
-            "ابتدا بدون حذف نسخهٔ قبلی نصب کنید. اگر خطای تداخل بسته یا امضا دریافت کردید، بازی قبلی را حذف نکنید؛ حذف بازی می‌تواند پیشرفت ذخیره‌شده را پاک کند.")
+            "For a non-destructive trial, install RoadsideEmpire-Preview.apk (com.roadsideempire.preview). It is a separate app with separate progress and does not replace the existing game. The main APK keeps com.roadsideempire.tycoon. The v1.42 certificate differs from this explicitly selected cached identity, so v1.42 cannot be updated in place with this APK. Do NOT uninstall an old game to resolve a signing conflict." \
+            "برای آزمایش امن، RoadsideEmpire-Preview.apk را نصب کنید؛ برنامه و ذخیرهٔ آن جداست و بازی فعلی را جایگزین نمی‌کند. پیشرفت نسخهٔ قبلی به آن منتقل نمی‌شود. امضای نسخهٔ اصلی با ساخت ۱.۴۲ متفاوت است؛ برای رفع تداخل، بازی قبلی را حذف نکنید چون ممکن است ذخیره‌ها پاک شوند.")
           notes="$notes"$'\n'"Built from $SHA."
           if ! gh release view roadside-empire-apk > /dev/null 2>&1; then
             gh release create roadside-empire-apk --title "Roadside Empire: Idle Tycoon — Android APK" \
@@ -201,5 +253,5 @@ jobs:
           else
             gh release edit roadside-empire-apk --notes "$notes"
           fi
-          gh release upload roadside-empire-apk delivery/RoadsideEmpire.apk delivery/RoadsideEmpire.apk.sha256 --clobber
+          gh release upload roadside-empire-apk delivery/*.apk delivery/*.sha256 --clobber
           gh release view roadside-empire-apk --json url -q .url
