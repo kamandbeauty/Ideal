@@ -18,7 +18,7 @@ const REASON_KEYS := {
 	"pouch full": "msg.hands_full",
 	"already paid": "msg.order_done",
 }
-const SILENT_REASONS: Array[String] = ["", "nothing near", "no coins", "busy"]
+const SILENT_REASONS: Array[String] = ["nothing near", "no coins", "busy"]
 
 var player: GuildPlayer
 var stations: Array = []
@@ -109,7 +109,7 @@ func result_message(language: String = "en") -> String:
 	if last_result.is_empty():
 		return ""
 	var reason := str(last_result.get("reason", ""))
-	if SILENT_REASONS.has(reason):
+	if not reason.is_empty() and SILENT_REASONS.has(reason):
 		return ""
 	if REASON_KEYS.has(reason):
 		return GuildLocale.t(str(REASON_KEYS[reason]), [], language)

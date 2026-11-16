@@ -63,6 +63,7 @@ func build() -> void:
 	root = Control.new()
 	root.name = "Root"
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.layout_direction = GuildLocale.layout_direction()
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
@@ -285,7 +286,7 @@ func _on_stick_input(event: InputEvent) -> void:
 	elif event is InputEventScreenDrag:
 		var drag := event as InputEventScreenDrag
 		if drag.index == _stick_pointer:
-			_apply_stick((drag.position - _stick_touch_origin) / (STICK_SIZE * 0.35))
+			_apply_stick(_from_screen(drag.position - _stick_touch_origin) / (STICK_SIZE * 0.35))
 	elif event is InputEventMouseButton:
 		var button := event as InputEventMouseButton
 		if button.button_index == MOUSE_BUTTON_LEFT:
@@ -297,7 +298,7 @@ func _on_stick_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion:
 		var motion := event as InputEventMouseMotion
 		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
-			_apply_stick((motion.position - _stick_touch_origin) / (STICK_SIZE * 0.35))
+			_apply_stick(_from_screen(motion.position - _stick_touch_origin) / (STICK_SIZE * 0.35))
 
 
 ## Pushes the stick from code: the suite and the play-through use the same path a
@@ -310,6 +311,8 @@ func stick_input() -> Vector2:
 	return _stick_input
 
 
+## `direction` is a game direction: x right, y forward. The knob is drawn with the
+## screen's Y pointing down, so pushing forward moves the knob up.
 func _apply_stick(direction: Vector2) -> void:
 	_stick_input = direction.limit_length(1.0)
 	if interaction != null and interaction.player != null:
@@ -317,7 +320,11 @@ func _apply_stick(direction: Vector2) -> void:
 	if stick_knob != null:
 		var travel := STICK_SIZE * 0.5 - KNOB_SIZE * 0.5
 		var center := Vector2(STICK_SIZE, STICK_SIZE) * 0.5 - Vector2(KNOB_SIZE, KNOB_SIZE) * 0.5
-		stick_knob.position = center + _stick_input * travel
+		stick_knob.position = center + Vector2(_stick_input.x, -_stick_input.y) * travel
+
+
+func _from_screen(delta: Vector2) -> Vector2:
+	return Vector2(delta.x, -delta.y)
 
 
 func _on_action_pressed() -> void:
