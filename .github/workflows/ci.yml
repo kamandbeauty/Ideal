@@ -1,17 +1,22 @@
-name: javidai
-on: workflow_dispatch
+name: javidai-ci
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+concurrency:
+  group: javidai-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   info:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Versions
+      - name: Toolchain info
         run: |
           flutter --version
           dart --version
           java -version 2>&1 | head -2
-          ls $ANDROID_HOME
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "ANDROID_HOME=$ANDROID_HOME"
           ls $ANDROID_HOME/platforms $ANDROID_HOME/build-tools 2>/dev/null
-          echo "Gradle cache: $(du -sh ~/.gradle 2>/dev/null)"
-          which gh || true
+          echo "PROBE-OK"
