@@ -16,12 +16,13 @@ var hero: GuildPlayer
 var stations: Array = []
 var stock: GuildStock
 var treasury: GuildTreasury
+var interaction: GuildInteraction
+var hud: GuildHud
 var last_result: Dictionary = {}
 var camera_rig: GuildPlayerCamera
 var cast: Array[GuildCharacter] = []
 
 var follow_hero := false
-var _pending: Dictionary = {}
 var _pose := "idle"
 var _speed := 0.0
 var _environment: Environment
@@ -32,8 +33,8 @@ func _ready() -> void:
 	_build_hall()
 	_build_cast()
 	_build_trade()
+	_build_hud()
 	_build_camera()
-	hero.state.verb_finished.connect(_on_verb_finished)
 	print("SMOKE: probe ready, " + describe())
 
 
@@ -195,35 +196,35 @@ func station_at_hero() -> GuildStation:
 
 
 ## The action button: starts the verb the nearest station offers. The trade itself
-## lands when the verb finishes, so a pickup cannot happen mid-air.
+## lands when the verb finishes (see GuildInteraction).
 func press_action() -> Dictionary:
-	var station := station_at_hero()
-	if station == null:
-		last_result = {"reason": "nothing near"}
-		return last_result
-	var verb := station.verb()
-	if not hero.interact(verb):
-		last_result = {"reason": "busy"}
-		return last_result
-	_pending = {"verb": verb, "station": station}
-	last_result = {"verb": verb, "station": station.kind, "started": true}
-	return last_result
+	if interaction == null:
+		return {"reason": "no interaction"}
+	var result := interaction.press()
+	last_result = interaction.last_result
+	return result
 
 
-func _on_verb_finished(verb: String) -> void:
-	if _pending.is_empty() or str(_pending["verb"]) != verb:
-		return
-	var station: GuildStation = _pending["station"]
-	_pending = {}
-	match verb:
-		"pickup":
-			last_result = GuildTrade.pick(hero.state, station.stock, 3, waiting_item())
-		"deliver":
-			last_result = GuildTrade.deliver(hero.state, station.order)
-		"deposit":
-			last_result = GuildTrade.deposit(hero.state, station.treasury)
-		_:
-			last_result = {"reason": "unknown verb"}
+## A fresh customer order, so a capture has a customer to serve.
+func renew_order(item_id: String = "slime_gel", amount: int = 3) -> void:
+	for station in stations:
+		var counter := station as GuildStation
+		if counter != null and counter.kind == GuildStation.COUNTER:
+			counter.bind_order(GuildOrder.new(item_id, amount))
+
+
+## The HUD's state, written next to the captures.
+func hud_report() -> String:
+	if hud == null:
+		return "hud: none"
+	return "hud lang=%s action=%s gold=%s warehouse=%s customers=%d stick=%s" % [
+		hud.language,
+		hud.action_label.text,
+		hud.gold_label.text,
+		hud.warehouse_label.text,
+		hud.waiting_customers(),
+		str(hud.stick_input()),
+	]
 
 
 ## The loop's books, written next to the captures.
@@ -324,6 +325,22 @@ func _build_trade() -> void:
 	vault.bind_treasury(treasury)
 
 	stations = [shelf, counter, vault]
+
+	interaction = GuildInteraction.new()
+	interaction.name = "Interaction"
+	add_child(interaction)
+	interaction.setup(hero, stations, treasury, stock)
+	interaction.traded.connect(_on_traded)
+
+
+func _on_traded(result: Dictionary) -> void:
+	last_result = result
+
+
+func _build_hud() -> void:
+	hud = GuildHud.new()
+	add_child(hud)
+	hud.bind(interaction, treasury, stock)
 
 
 func _build_camera() -> void:

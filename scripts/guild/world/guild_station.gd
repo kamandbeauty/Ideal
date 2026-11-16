@@ -89,6 +89,11 @@ func verb() -> String:
 
 ## English wording for the prompt, so the HUD and the capture say the same thing.
 func prompt() -> String:
+	return prompt_for("en")
+
+
+## The same prompt in a given language; only the words change.
+func prompt_for(language: String) -> String:
 	var key := ""
 	match kind:
 		SHELF:
@@ -99,7 +104,7 @@ func prompt() -> String:
 			key = "action.deposit"
 		_:
 			return ""
-	return GuildLocale.t(key, [], "en")
+	return GuildLocale.t(key, [], language)
 
 
 ## What is actually here, as one line: "stock 5", "order 2 x Slime Gel", "vault 240".

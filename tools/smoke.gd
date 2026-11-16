@@ -164,6 +164,20 @@ func _run() -> void:
 	await _settle(16)
 	await _capture("19-guild-vault")
 
+	# The phone HUD, in both languages, with the action button live.
+	probe.renew_order("slime_gel", 2)
+	probe.place_hero(Vector3(-9.6, 0.0, 6.8), 0.0)
+	probe.hud.set_stick_input(Vector2(0.0, 0.6))
+	probe.overview()
+	await _settle(24)
+	await _capture("20-guild-hud-en")
+	print("SMOKE: " + probe.hud_report())
+	probe.hud.set_language("fa")
+	await _settle(12)
+	await _capture("21-guild-hud-fa")
+	print("SMOKE: " + probe.hud_report())
+	probe.hud.set_stick_input(Vector2.ZERO)
+
 	print("SMOKE: " + probe.describe())
 	print("SMOKE: " + probe.trade_report())
 	_write_probe_report(
@@ -171,6 +185,7 @@ func _run() -> void:
 			+ "\n" + probe.hero_report()
 			+ "\n" + probe.hall_report()
 			+ "\n" + probe.trade_report()
+			+ "\n" + probe.hud_report()
 	)
 	probe.queue_free()
 	await _settle(4)
