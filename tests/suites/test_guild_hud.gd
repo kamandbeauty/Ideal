@@ -53,6 +53,13 @@ func test_bar_shows_the_real_numbers() -> void:
 	_free_world()
 
 
+func test_world_point_reads_unparented_nodes() -> void:
+	var station := GuildStation.new(GuildStation.VAULT)
+	station.position = Vector3(4.0, 0.0, -2.0)
+	equal(GuildStation.world_point(station), Vector3(4.0, 0.0, -2.0), "an unparented station still has a place")
+	station.free()
+
+
 func test_action_button_follows_the_nearest_station() -> void:
 	_build_world()
 	var hud := GuildHud.new()

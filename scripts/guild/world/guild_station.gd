@@ -126,6 +126,15 @@ func summary() -> String:
 			return ""
 
 
+## A node's position in the world, read safely: `global_position` is only
+## meaningful inside the tree, and a station built by a suite or a tool is not.
+static func world_point(node: Node3D) -> Vector3:
+	if node == null:
+		return Vector3.ZERO
+	return node.global_position if node.is_inside_tree() else node.position
+
+
+## The station within `radius` of `point` whose floor distance is shortest.
 static func nearest(stations: Array, point: Vector3, radius: float = 2.4) -> GuildStation:
 	var best: GuildStation = null
 	var best_distance := radius
@@ -133,7 +142,8 @@ static func nearest(stations: Array, point: Vector3, radius: float = 2.4) -> Gui
 		var candidate := station as GuildStation
 		if candidate == null:
 			continue
-		var distance := candidate.global_position.distance_to(Vector3(point.x, candidate.global_position.y, point.z))
+		var spot := world_point(candidate)
+		var distance := Vector2(spot.x - point.x, spot.z - point.z).length()
 		if distance < best_distance:
 			best_distance = distance
 			best = candidate

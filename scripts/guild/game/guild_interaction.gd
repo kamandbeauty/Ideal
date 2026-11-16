@@ -43,7 +43,7 @@ func setup(new_player: GuildPlayer, new_stations: Array, new_treasury: GuildTrea
 func station_near() -> GuildStation:
 	if player == null:
 		return null
-	return GuildStation.nearest(stations, player.global_position, REACH)
+	return GuildStation.nearest(stations, GuildStation.world_point(player), REACH)
 
 
 func verb_available() -> String:
