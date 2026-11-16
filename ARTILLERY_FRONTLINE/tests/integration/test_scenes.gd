@@ -123,6 +123,8 @@ func run(t: TestContext) -> void:
 	t.check(zombie.anim.has_animation("attack") and zombie.anim.has_animation("hit") and zombie.anim.has_animation("death_back") and zombie.anim.has_animation("death_front"), "the city model supports combat and death clips")
 	var city_skin: StandardMaterial3D = zombie.body_mesh.material_override as StandardMaterial3D
 	t.check(city_skin.albedo_texture.resource_path.ends_with("zombie_city.png"), "the realistic model uses its matching atlas")
+	var city_uv: PackedVector2Array = zombie.body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
+	t.check(city_uv.size() > 1000, "the realistic model retains UVs for its atlas")
 	var city_indices: PackedInt32Array = zombie.body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX]
 	t.check(city_indices.size() / 3 <= 3000, "the city model fits the mobile triangle budget")
 	zombie.anim.play("idle")
