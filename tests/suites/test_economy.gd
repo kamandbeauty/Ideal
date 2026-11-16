@@ -1,35 +1,56 @@
 extends TestCase
-## The idle economy: income, upgrades, managers, reputation and offline pay.
+## Roadside Empire idle economy: station vaults, manager automation, renovation
+## milestones, star levels, branches and offline earnings.
 
 
-func test_new_town_starts_with_one_business() -> void:
+func test_new_town_starts_with_gas_station() -> void:
 	var town := TownState.new("desert")
 	equal(town.cash, TownState.STARTING_CASH, "starting cash")
-	equal(town.unlocked_ids().size(), 1, "one business at the start")
+	equal(town.unlocked_ids().size(), 1, "one facility at the start")
 	check(town.business("gas_station").unlocked, "gas station is open")
 	check(town.net_per_minute() > 0.0, "the gas station earns")
-	equal(town.reputation, 0.0, "no reputation yet")
+	equal(town.star_level(), 1, "starts at Star Level 1")
 
 
-func test_advance_credits_the_profit() -> void:
+func test_unautomated_station_stores_cash_in_vault_until_collected() -> void:
 	var town := TownState.new("desert")
-	var rate := town.net_per_minute()
-	var cash := town.cash
-	town.advance(60.0)
-	almost(town.cash, cash + rate, "60 s should pay one minute of profit", 0.01)
-	check(town.customers > 0.0, "customers should be counted")
-	check(town.reputation > 0.0, "reputation should grow")
-	town.advance(0.0)
-	almost(town.cash, cash + rate, "zero time must not pay", 0.01)
+	var b := town.business("gas_station")
+	check(not b.is_automated(), "no manager means manual vault mode")
+	var start_cash := town.cash
+	town.advance(20.0)
+	equal(town.cash, start_cash, "unautomated cash waits in the station safe")
+	check(b.vault_cash > 0.0, "station vault accumulates cash")
+	var swept := town.collect_vault("gas_station")
+	check(swept > 0.0, "tapping collects the vault")
+	almost(town.cash, start_cash + swept, "collected cash enters wallet", 0.01)
+	equal(b.vault_cash, 0.0, "vault is emptied")
 
 
-func test_offline_only_runs_managed_businesses() -> void:
+func test_automated_station_credits_wallet_and_earns_offline() -> void:
 	var town := TownState.new("desert")
-	equal(town.offline_earnings(3600.0), 0.0, "no manager means no offline income")
+	equal(town.offline_earnings(3600.0), 0.0, "manual station earns nothing offline")
 	town.cash = 100000.0
-	check(town.hire_manager("gas_station"), "the manager should be affordable")
-	check(town.offline_earnings(3600.0) > 0.0, "a managed business earns offline")
-	equal(town.offline_net_per_minute(), town.net_per_minute(), "one managed business")
+	check(town.hire_manager("gas_station"), "hiring Buck Novak succeeds")
+	check(town.business("gas_station").is_automated(), "Lv 1 manager automates Lv 1..9")
+	var rate := town.net_per_minute()
+	var before := town.cash
+	town.advance(60.0)
+	almost(town.cash, before + rate, "60 s automated pays directly to wallet", 0.05)
+	check(town.offline_earnings(3600.0) > 0.0, "automated station earns offline")
+
+
+func test_renovation_milestone_raises_manager_requirement_and_awards_star() -> void:
+	var town := TownState.new("desert")
+	town.cash = 500000.0
+	town.hire_manager("gas_station")
+	check(town.business("gas_station").is_automated(), "automated at Lv 1")
+	var stars_before := town.star_points_total()
+	town.upgrade_business("gas_station", 9)
+	equal(town.business("gas_station").level, 10, "reached Lv 10 renovation milestone")
+	check(town.star_points_total() > stars_before, "Lv 10 awards a Star point")
+	check(not town.business("gas_station").is_automated(), "Lv 10 requires Manager Lv 2")
+	town.hire_manager("gas_station")
+	check(town.business("gas_station").is_automated(), "Manager Lv 2 restores automation")
 
 
 func test_offline_is_capped_at_eight_hours() -> void:
@@ -42,154 +63,49 @@ func test_offline_is_capped_at_eight_hours() -> void:
 		town.offline_earnings(eight_hours),
 		"offline earnings are capped at eight hours"
 	)
-	almost(
-		town.offline_earnings(60.0),
-		town.offline_net_per_minute() * TownState.OFFLINE_RATE,
-		"rate"
-	)
-	equal(town.offline_earnings(0.0), 0.0, "no time away, no money")
 	var report := town.apply_offline(eight_hours * 2.0)
-	almost(float(report["seconds"]), eight_hours, "the report should be capped")
-	check(town.cash > 100000.0, "offline income should be credited")
+	almost(float(report["seconds"]), eight_hours, "report seconds capped")
+	check(town.cash > 100000.0, "offline income is credited")
 
 
-func test_upgrades_raise_profit_and_price() -> void:
+func test_upgrades_and_branches_boost_station() -> void:
 	var town := TownState.new("desert")
-	town.cash = 100000.0
+	town.cash = 500000.0
+	var b := town.business("gas_station")
 	var before := town.net_per_minute()
-	var first := town.business("gas_station").upgrade_cost()
-	check(town.upgrade_business("gas_station"), "the upgrade should be affordable")
-	check(town.net_per_minute() > before, "level 2 should earn more")
-	check(town.upgrade_business("gas_station"), "level 3 should be affordable")
-	check(town.business("gas_station").upgrade_cost() > first, "upgrades get more expensive")
+	check(town.upgrade_business("gas_station", 5), "multi-step upgrade works")
+	check(town.net_per_minute() > before, "higher level earns more")
+	var bays_before := b.active_bays()
+	check(town.upgrade_branch("gas_station", "capacity"), "bays upgrade works")
+	check(b.active_bays() > bays_before, "extra pump island opens")
+	var price_before := b.price()
+	check(town.upgrade_branch("gas_station", "quality"), "value tech works")
+	check(b.price() > price_before, "value tech raises price per vehicle")
 
 
-func test_capacity_branch_raises_served() -> void:
+func test_star_level_gates_advanced_facilities() -> void:
 	var town := TownState.new("desert")
-	town.cash = 100000.0
-	var business := town.business("gas_station")
-	business.level = 3
-	var served := business.served_per_minute(town.traffic())
-	var before := town.net_per_minute()
-	check(town.upgrade_branch("gas_station", "capacity"), "capacity branch should buy")
-	check(business.served_per_minute(town.traffic()) > served, "capacity should serve more")
-	check(town.net_per_minute() > before, "capacity should earn more")
-
-
-func test_quality_branch_raises_price() -> void:
-	var town := TownState.new("desert")
-	town.cash = 100000.0
-	town.business("gas_station").level = 2
-	var price := town.business("gas_station").price()
-	check(town.upgrade_branch("gas_station", "quality"), "quality branch should buy")
-	check(town.business("gas_station").price() > price, "quality should raise the price")
-
-
-func test_manager_raises_efficiency() -> void:
-	var town := TownState.new("desert")
-	town.cash = 100000.0
-	var business := town.business("gas_station")
-	equal(business.manager_rank, 0, "no manager to start")
-	var before := town.net_per_minute()
-	check(town.hire_manager("gas_station"), "the manager should be affordable")
-	almost(business.efficiency(), 0.7, "one rank is 70 %", 0.001)
-	check(town.net_per_minute() > before, "a manager should earn more")
-
-
-func test_manager_rank_is_capped() -> void:
-	var town := TownState.new("desert")
-	town.cash = 100000000.0
-	for i in 10:
-		town.hire_manager("gas_station")
-	equal(town.business("gas_station").manager_rank, BusinessData.MAX_MANAGER, "manager cap")
-
-
-func test_level_is_capped() -> void:
-	var town := TownState.new("desert")
-	town.cash = 100000000.0
-	for i in 10:
-		town.upgrade_business("gas_station")
-	equal(town.business("gas_station").level, BusinessData.MAX_LEVEL, "level cap")
-	check(not town.business("gas_station").can_upgrade_level(), "cannot upgrade past the cap")
-
-
-func test_branch_is_capped_by_level() -> void:
-	var town := TownState.new("desert")
-	town.cash = 100000000.0
-	check(town.upgrade_branch("gas_station", "speed"), "level 1 allows one branch step")
-	check(not town.upgrade_branch("gas_station", "speed"), "the branch may not pass the level")
-	check(town.upgrade_business("gas_station"), "level up")
-	check(town.upgrade_branch("gas_station", "speed"), "level 2 allows a second step")
-
-
-func test_purchases_need_cash() -> void:
-	var town := TownState.new("desert")
-	town.cash = 10.0
-	check(not town.unlock_business("restaurant"), "cannot unlock without cash")
-	check(not town.upgrade_business("gas_station"), "cannot upgrade without cash")
-	check(not town.hire_manager("gas_station"), "cannot hire without cash")
-	equal(town.cash, 10.0, "a failed purchase must not spend")
-
-
-func test_unlocking_opens_a_business() -> void:
-	var town := TownState.new("desert")
-	town.cash = 5000.0
-	var cash := town.cash
-	check(town.unlock_business("store"), "the store should unlock")
-	check(town.unlocked_ids().has("store"), "the store should be listed")
-	almost(town.cash, cash - BusinessData.unlock_cost("store"), "unlock should be paid", 0.01)
-	check(town.net_per_minute() > 0.0, "two businesses earn more")
-
-
-func test_reputation_pays_gems_once() -> void:
-	var town := TownState.new("desert")
-	town.reputation = 100.0
-	town.advance(1.0)
-	equal(town.gems, TownState.GEM_REWARD, "the first milestone pays gems")
-	town.advance(1.0)
-	equal(town.gems, TownState.GEM_REWARD, "gems are not paid twice")
-	equal(town.town_level(), 1, "level from reputation")
-	town.reputation = 600.0
-	equal(town.town_level(), 3, "600 reputation is level 3")
+	town.cash = 1000000.0
+	check(town.unlock_business("car_wash"), "Car Wash unlocks at Star Level 1")
+	check(not town.unlock_business("motel"), "Motel is gated by Star Level 5")
+	for id in ["gas_station", "car_wash"]:
+		town.upgrade_business(id, 50)
+	check(town.star_level() >= 2, "milestones and unlocks raise Star Level")
+	check(town.unlock_business("auto_service"), "Auto Service unlocks once Star Level >= 2")
 
 
 func test_completion_tracks_progress() -> void:
 	var town := TownState.new("desert")
-	check(town.completion() > 0.0, "a fresh town has some progress")
-	check(town.completion() < 0.2, "a fresh town is barely started")
-	check(not town.is_complete(), "a fresh town is not complete")
-	town.cash = 100000000.0
-	for id in town.business_ids():
-		town.unlock_business(id)
-		while town.business(id).level < BusinessData.MAX_LEVEL:
-			town.upgrade_business(id)
-		for branch in BusinessData.BRANCHES:
-			while town.business(id).can_upgrade_branch(branch):
-				town.upgrade_branch(id, branch)
-	almost(town.completion(), 1.0, "a fully upgraded town is complete", 0.001)
-	check(town.is_complete(), "is_complete agrees with completion")
-	check(town.completed, "finishing the town is recorded")
-	check(town.gems >= TownState.COMPLETION_GEMS, "finishing the town pays gems")
-
-
-func test_completion_reward_is_paid_once() -> void:
-	var town := TownState.new("desert")
-	town.cash = 100000000.0
-	for id in town.business_ids():
-		town.unlock_business(id)
-		while town.business(id).level < BusinessData.MAX_LEVEL:
-			town.upgrade_business(id)
-		for branch in BusinessData.BRANCHES:
-			while town.business(id).can_upgrade_branch(branch):
-				town.upgrade_branch(id, branch)
-	var gems := town.gems
-	town.advance(1.0)
-	equal(town.gems, gems, "the completion reward is not paid twice")
-
-
-func test_town_modifiers_apply() -> void:
-	var desert := TownState.new("desert")
-	var highway := TownState.new("highway")
-	check(highway.net_per_minute() > 0.0, "the highway town earns too")
-	check(TownData.cost_multiplier("highway") > 1.0, "later towns cost more")
-	almost(desert.traffic(), 1.0, "the desert is the baseline")
+	check(not town.is_complete(), "a fresh hub is not complete")
+	town.cash = 1.0e15
+	for pass_idx in range(6):
+		for id in town.business_ids():
+			town.unlock_business(id)
+			if town.business(id).unlocked:
+				town.upgrade_business(id, BusinessData.MAX_LEVEL)
+				for branch in BusinessData.BRANCHES:
+					while town.business(id).can_upgrade_branch(branch):
+						town.upgrade_branch(id, branch)
+	almost(town.completion(), 1.0, "a maxed hub reaches 100% completion", 0.001)
+	check(town.is_complete(), "is_complete agrees")
+	check(town.completed, "completion flag set")

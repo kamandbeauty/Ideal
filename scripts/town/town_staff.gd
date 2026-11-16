@@ -1,16 +1,13 @@
 class_name TownStaff
 extends Node3D
-## The people who work here: one staff member per opened business, standing at
-## its door and working, plus a manager in a hi-vis vest patrolling the plot
-## once one has been hired.
-##
-## Hiring a manager is therefore something you can see, not just a number in the
-## detail panel - the same person is the one who spends the takings for you.
+## Roadside Empire attendants & managers:
+## - Each open bay has a uniformed attendant (showing floating `Zzz` when manual
+##   and idle, or energetic pumping/washing motion when automated!).
+## - Each hired Manager patrols the station plot with a golden aura ring under
+##   their feet (matching Screenshot 6 of Roadside Empire!).
 
-const WORK_SPOT := Vector3(1.2, 0.0, 1.65)
-const MANAGER_SPOT := Vector3(1.95, 0.0, 1.9)
-const PATROL := 0.75
-const MANAGER_SPEED := 0.42
+const PATROL := 0.85
+const MANAGER_SPEED := 0.52
 
 var state
 var _crew: Dictionary = {}
@@ -29,10 +26,9 @@ func refresh() -> void:
 		(_crew[id]["root"] as Node3D).queue_free()
 	_crew.clear()
 	for id in state.business_ids():
-		var business = state.business(id)
-		if business == null or not business.unlocked:
-			continue
-		_build(id, business)
+		var b = state.business(id)
+		if b != null and b.unlocked:
+			_build(id, b)
 
 
 func refresh_business(id: String) -> void:
@@ -41,117 +37,153 @@ func refresh_business(id: String) -> void:
 	if _crew.has(id):
 		(_crew[id]["root"] as Node3D).queue_free()
 		_crew.erase(id)
-	var business = state.business(id)
-	if business == null or not business.unlocked:
-		return
-	_build(id, business)
+	var b = state.business(id)
+	if b != null and b.unlocked:
+		_build(id, b)
 
 
-func _build(id: String, business) -> void:
+func _build(id: String, b) -> void:
 	var plot := BusinessData.plot(id)
-	var to_road := -signf(plot.x)
-	if to_road == 0.0:
-		to_road = -1.0
+	var bay_off := BusinessData.bay_offset(id)
 	var root := Node3D.new()
 	root.name = "Crew_" + id
 	add_child(root)
 
-	var staff := PersonMesh.build(absi(hash(id)) % 5)
-	staff.position = Vector3(
-		plot.x + to_road * WORK_SPOT.x, 0.0, plot.y + WORK_SPOT.z
-	)
-	staff.rotation_degrees.y = 90.0 * to_road
-	root.add_child(staff)
-	# An apron in the business colour: the staff belongs to the building, not to
-	# a generic crowd, and at a glance the plot reads as "someone works here".
-	var apron := MeshInstance3D.new()
-	var apron_mesh := BoxMesh.new()
-	apron_mesh.size = Vector3(0.31, 0.4, 0.05)
-	apron.mesh = apron_mesh
-	apron.position = Vector3(0, 0.62, -0.15 * to_road)
-	apron.material_override = PersonMesh.flat(BusinessData.accent(id))
-	staff.add_child(apron)
+	var bays := maxi(1, b.active_bays())
+	var workers: Array[Node3D] = []
+	var zzz_labels: Array[Label3D] = []
+	var uniform_col := BusinessData.accent(id)
+
+	for i in mini(3, bays):
+		var ox := bay_off.x + (float(i) - float(bays - 1) * 0.5) * 1.65
+		var worker := PersonMesh.build(absi(hash(id)) % 5)
+		worker.position = Vector3(plot.x + ox + 0.55, 0.03, plot.y + bay_off.y - 0.35)
+		worker.rotation_degrees.y = -35.0
+		root.add_child(worker)
+
+		# Uniform overalls & cap in the station's signature color!
+		var overalls := MeshInstance3D.new()
+		var ov_mesh := BoxMesh.new()
+		ov_mesh.size = Vector3(0.32, 0.42, 0.24)
+		overalls.mesh = ov_mesh
+		overalls.position = Vector3(0, 0.64, 0)
+		overalls.material_override = PersonMesh.flat(uniform_col)
+		worker.add_child(overalls)
+
+		var cap := MeshInstance3D.new()
+		var cap_mesh := BoxMesh.new()
+		cap_mesh.size = Vector3(0.24, 0.08, 0.26)
+		cap.mesh = cap_mesh
+		cap.position = Vector3(0, 1.13, 0.02)
+		cap.material_override = PersonMesh.flat(uniform_col.darkened(0.15))
+		worker.add_child(cap)
+
+		# Floating Zzz indicator shown whenever the station is NOT automated!
+		var zzz := Label3D.new()
+		zzz.text = "Zzz"
+		zzz.font_size = 36
+		zzz.pixel_size = 0.0075
+		zzz.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		zzz.modulate = Color(0.95, 0.97, 1.0)
+		zzz.outline_modulate = Color(0.12, 0.16, 0.28)
+		zzz.outline_size = 8
+		zzz.position = Vector3(0.0, 1.48, 0.0)
+		zzz.visible = not b.is_automated()
+		worker.add_child(zzz)
+
+		workers.append(worker)
+		zzz_labels.append(zzz)
 
 	var manager: Node3D = null
-	if business.manager_rank > 0:
-		manager = _build_manager(absi(hash(id + "m")) % 5)
-		manager.position = Vector3(
-			plot.x + to_road * MANAGER_SPOT.x, 0.0, plot.y + MANAGER_SPOT.z
-		)
+	if b.manager_rank > 0:
+		var mgr_id := BusinessData.manager_id(id)
+		manager = _build_manager(mgr_id)
+		manager.position = Vector3(plot.x + bay_off.x * 0.45, 0.03, plot.y + 1.45)
 		root.add_child(manager)
 
 	_crew[id] = {
 		"root": root,
-		"staff": staff,
+		"workers": workers,
+		"zzz": zzz_labels,
 		"manager": manager,
-		"to_road": to_road,
-		"patrol_origin": plot.y + MANAGER_SPOT.z,
+		"origin_x": plot.x + bay_off.x * 0.45,
 		"direction": 1.0,
 	}
 
 
-## Managers wear a hi-vis vest and a cap so they read as staff at a glance.
-func _build_manager(crew: int) -> Node3D:
-	var manager := PersonMesh.build(crew)
-	var vest := MeshInstance3D.new()
-	var vest_mesh := BoxMesh.new()
-	vest_mesh.size = Vector3(0.3, 0.34, 0.24)
-	vest.mesh = vest_mesh
-	vest.position = Vector3(0, 0.72, 0)
-	vest.material_override = PersonMesh.flat(Color(0.98, 0.78, 0.18))
-	manager.add_child(vest)
+func _build_manager(mgr_id: String) -> Node3D:
+	var col := ManagerData.rarity_color(mgr_id)
+	var manager := PersonMesh.build(absi(hash(mgr_id)) % 5)
 
-	var cap := MeshInstance3D.new()
-	var cap_mesh := BoxMesh.new()
-	cap_mesh.size = Vector3(0.24, 0.09, 0.26)
-	cap.mesh = cap_mesh
-	cap.position = Vector3(0, 1.14, 0.02)
-	cap.material_override = PersonMesh.flat(Color(0.16, 0.2, 0.28))
-	manager.add_child(cap)
+	var suit := MeshInstance3D.new()
+	var suit_mesh := BoxMesh.new()
+	suit_mesh.size = Vector3(0.34, 0.42, 0.26)
+	suit.mesh = suit_mesh
+	suit.position = Vector3(0, 0.68, 0)
+	suit.material_override = PersonMesh.flat(col)
+	manager.add_child(suit)
 
-	var board := MeshInstance3D.new()
-	var board_mesh := BoxMesh.new()
-	board_mesh.size = Vector3(0.2, 0.26, 0.03)
-	board.mesh = board_mesh
-	board.position = Vector3(0.24, 0.62, 0.16)
-	board.material_override = PersonMesh.flat(Color(0.86, 0.84, 0.78))
-	manager.add_child(board)
+	var hat := MeshInstance3D.new()
+	var hat_mesh := BoxMesh.new()
+	hat_mesh.size = Vector3(0.28, 0.10, 0.28)
+	hat.mesh = hat_mesh
+	hat.position = Vector3(0, 1.15, 0)
+	hat.material_override = PersonMesh.flat(Color(1.0, 0.84, 0.24))
+	manager.add_child(hat)
+
+	# Glowing golden manager aura ring on the ground (just like Screenshot 6!).
+	var aura := MeshInstance3D.new()
+	var cyl := CylinderMesh.new()
+	cyl.top_radius = 0.52
+	cyl.bottom_radius = 0.52
+	cyl.height = 0.025
+	aura.mesh = cyl
+	var aura_mat := StandardMaterial3D.new()
+	aura_mat.albedo_color = Color(1.0, 0.88, 0.24, 0.55)
+	aura_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	aura_mat.emission_enabled = true
+	aura_mat.emission = Color(1.0, 0.84, 0.18)
+	aura_mat.emission_energy_multiplier = 1.1
+	aura.material_override = aura_mat
+	aura.position = Vector3(0, 0.02, 0)
+	aura.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	manager.add_child(aura)
 	return manager
 
 
 func _process(delta: float) -> void:
-	if _crew.is_empty():
+	if state == null:
 		return
-	_phase += delta * 6.0
+	_phase += delta * 5.2
 	for id in _crew.keys():
 		var entry: Dictionary = _crew[id]
-		_work(entry["staff"] as Node3D)
-		var manager: Node3D = entry["manager"]
-		if manager != null:
-			_patrol(entry, manager, delta)
+		var b = state.business(id)
+		if b == null:
+			continue
+		var auto_ok: bool = b.is_automated()
+		var workers: Array = entry["workers"]
+		var zzzs: Array = entry["zzz"]
+		for i in workers.size():
+			var w: Node3D = workers[i]
+			var zlbl: Label3D = zzzs[i]
+			zlbl.visible = not auto_ok
+			if auto_ok:
+				PersonMesh.animate(w, _phase + float(i), 0.75)
+			else:
+				PersonMesh.animate(w, _phase * 0.3, 0.12)
+				zlbl.position.y = 1.46 + sin(_phase * 0.8 + float(i)) * 0.07
 
-
-## A two-handed workshop beat: the arms lift and fall, the body leans in.
-func _work(person: Node3D) -> void:
-	if person == null:
-		return
-	PersonMesh.animate(person, _phase, 0.0)
-	var arms: Array = person.get_meta("arms", [])
-	for i in arms.size():
-		var pivot: Node3D = arms[i]
-		pivot.rotation.x = -1.05 + sin(_phase * 1.6 + PI * float(i)) * 0.55
-	person.position.y = absf(sin(_phase * 0.9)) * 0.015
-
-
-func _patrol(entry: Dictionary, manager: Node3D, delta: float) -> void:
-	var origin := float(entry["patrol_origin"])
-	var direction := float(entry["direction"])
-	manager.position.z += direction * MANAGER_SPEED * delta
-	if manager.position.z > origin + PATROL:
-		manager.position.z = origin + PATROL
-		entry["direction"] = -1.0
-	elif manager.position.z < origin - PATROL:
-		manager.position.z = origin - PATROL
-		entry["direction"] = 1.0
-	manager.rotation_degrees.y = 0.0 if float(entry["direction"]) > 0.0 else 180.0
-	PersonMesh.animate(manager, _phase, 1.0)
+		var mgr: Node3D = entry["manager"]
+		if mgr != null:
+			var dir := float(entry["direction"])
+			mgr.position.x += dir * MANAGER_SPEED * delta
+			var ox := float(entry["origin_x"])
+			if mgr.position.x > ox + PATROL:
+				mgr.position.x = ox + PATROL
+				entry["direction"] = -1.0
+				mgr.rotation_degrees.y = -90.0
+			elif mgr.position.x < ox - PATROL:
+				mgr.position.x = ox - PATROL
+				entry["direction"] = 1.0
+				mgr.rotation_degrees.y = 90.0
+			PersonMesh.animate(mgr, _phase * 1.15, 0.9)

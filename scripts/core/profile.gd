@@ -1,32 +1,25 @@
 class_name Profile
 extends RefCounted
-## Everything one player owns: every town they have opened, the one they are
-## standing in, and the daily streak.
-##
-## One profile is one save file. Towns are created lazily, so a fresh profile
-## only ever holds the desert and gains a town the first time the player travels
-## to it. Reputation is *shared*: it is the best reputation of any town, which is
-## what unlocks the next town on the world map.
+## Everything one player owns across their Roadside Empire: every territory
+## station they have opened, the active one, and the daily login streak.
 
 signal changed
 signal travelled(town_id: String)
 
-const VERSION := 2
+const VERSION := 3
 const FIRST_TOWN := "desert"
 const SECONDS_PER_DAY := 86400.0
 
 var active_town := FIRST_TOWN
 var towns: Dictionary = {}
 var streak := 0
-var bonus_day := -1          ## Unix day index the last chest was opened on
+var bonus_day := -1
 var best_reputation := 0
 
 
 func _init() -> void:
 	town(FIRST_TOWN)
 
-
-# --- Towns -----------------------------------------------------------------
 
 func town(id: String) -> TownState:
 	if not TownData.has_town(id):
@@ -49,11 +42,17 @@ func town_ids() -> Array[String]:
 	return ids
 
 
-## Reputation is the profile's standing, not a town's: the highest of them all.
 func reputation() -> float:
 	var best := 0.0
 	for id in towns:
 		best = maxf(best, (towns[id] as TownState).reputation)
+	return best
+
+
+func best_star_level() -> int:
+	var best := 1
+	for id in towns:
+		best = maxi(best, (towns[id] as TownState).star_level())
 	return best
 
 
@@ -67,7 +66,9 @@ func total_income_per_minute() -> float:
 func unlocked(id: String) -> bool:
 	if not TownData.has_town(id):
 		return false
-	return reputation() >= TownData.reputation_required(id)
+	if id == FIRST_TOWN:
+		return true
+	return best_star_level() >= TownData.star_required(id) or reputation() >= TownData.reputation_required(id)
 
 
 func can_travel(id: String) -> bool:
@@ -77,14 +78,21 @@ func can_travel(id: String) -> bool:
 func travel(id: String) -> bool:
 	if not unlocked(id):
 		return false
-	town(id)
+	var prev_gems := active().gems
+	var prev_bourbon := active().bourbon
+	var prev_cards := active().manager_cards.duplicate(true)
+	var dest := town(id)
+	# Gems, Bourbon and Manager Cards are empire-wide currencies!
+	dest.gems = maxi(dest.gems, prev_gems)
+	dest.bourbon = maxi(dest.bourbon, prev_bourbon)
+	for mgr_id in prev_cards:
+		dest.manager_cards[mgr_id] = maxi(int(dest.manager_cards.get(mgr_id, 0)), int(prev_cards[mgr_id]))
 	active_town = id
 	changed.emit()
 	travelled.emit(id)
 	return true
 
 
-## Towns the player has actually been to (the lazy ones do not count).
 func visited(id: String) -> bool:
 	return towns.has(id)
 
@@ -92,8 +100,6 @@ func visited(id: String) -> bool:
 func _on_town_changed() -> void:
 	changed.emit()
 
-
-# --- Daily chest ------------------------------------------------------------
 
 static func today_index() -> int:
 	return int(floor(Time.get_unix_time_from_system() / SECONDS_PER_DAY))
@@ -104,7 +110,6 @@ func bonus_ready(today: int = -1) -> bool:
 	return day > bonus_day
 
 
-## Opens the chest for today. Returns {} when it is not ready yet.
 func claim_daily(today: int = -1) -> Dictionary:
 	var day := today if today >= 0 else today_index()
 	if day <= bonus_day:
@@ -115,8 +120,11 @@ func claim_daily(today: int = -1) -> Dictionary:
 	var town_state := active()
 	var earned := DailyBonus.cash(town_state.net_per_minute(), streak)
 	var gems := DailyBonus.gems(streak)
+	var bourbon_bonus := 15 + streak * 5
 	town_state.cash += earned
+	town_state.lifetime_cash_earned += earned
 	town_state.gems += gems
+	town_state.bourbon += bourbon_bonus
 	town_state.cash_changed.emit(town_state.cash)
 	changed.emit()
 	return {
@@ -124,13 +132,11 @@ func claim_daily(today: int = -1) -> Dictionary:
 		"streak": streak,
 		"cash": earned,
 		"gems": gems,
+		"bourbon": bourbon_bonus,
 		"multiplier": DailyBonus.multiplier(streak),
 	}
 
 
-# --- Offline ----------------------------------------------------------------
-
-## Credits every town that has managers, once, and reports the breakdown.
 func claim_offline(seconds: float) -> Dictionary:
 	var total := 0.0
 	var breakdown: Array = []
@@ -152,8 +158,6 @@ func claim_offline(seconds: float) -> Dictionary:
 	}
 
 
-# --- Saving ----------------------------------------------------------------
-
 func serialize() -> Dictionary:
 	var stored: Dictionary = {}
 	for id in towns:
@@ -169,24 +173,26 @@ func serialize() -> Dictionary:
 
 
 func apply_save(data: Dictionary) -> bool:
-	# Version 1 was a single town in the same file; wrap it instead of dropping
-	# the player's progress.
 	if not data.has("towns"):
 		return _apply_legacy(data)
-	if int(data.get("version", 0)) != VERSION:
+	var ver := int(data.get("version", 0))
+	if ver < 2 or ver > VERSION:
 		return false
 	var stored: Variant = data.get("towns", {})
 	if typeof(stored) != TYPE_DICTIONARY or (stored as Dictionary).is_empty():
 		return false
 	towns.clear()
 	for id in stored:
+		var town_key := str(id)
+		if not TownData.has_town(town_key):
+			continue
 		var entry: Variant = stored[id]
 		if typeof(entry) != TYPE_DICTIONARY:
 			continue
-		var town_state := TownState.new(str(id))
+		var town_state := TownState.new(town_key)
 		if not town_state.apply_save(entry as Dictionary):
 			continue
-		towns[str(id)] = town_state
+		towns[town_key] = town_state
 		town_state.changed.connect(_on_town_changed)
 	if towns.is_empty():
 		return false
@@ -202,15 +208,16 @@ func apply_save(data: Dictionary) -> bool:
 
 
 func _apply_legacy(data: Dictionary) -> bool:
-	var town_state := TownState.new(str(data.get("town", FIRST_TOWN)))
-	if not town_state.apply_save(data):
+	var id := str(data.get("town_id", FIRST_TOWN))
+	if not TownData.has_town(id):
+		id = FIRST_TOWN
+	var state := TownState.new(id)
+	if not state.apply_save(data):
 		return false
-	towns.clear()
-	towns[town_state.town_id] = town_state
-	town_state.changed.connect(_on_town_changed)
-	active_town = town_state.town_id
+	towns = {id: state}
+	state.changed.connect(_on_town_changed)
+	active_town = id
 	streak = 0
 	bonus_day = -1
-	best_reputation = int(town_state.reputation)
 	changed.emit()
 	return true

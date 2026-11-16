@@ -1,979 +1,622 @@
 extends Control
-## The in-game interface: the resource bar, one card per business, the detail
-## panel with upgrades and managers, and the offline-income report.
+## Authentic Roadside Empire Portrait HUD:
+## - Row 1: Gear Settings + Gold Star Badge + Cash + Bourbon + Gems pills
+## - Row 2: Clipboard Chapter Progress Bar + 3 Milestone Reward Chest buttons
+## - Row 3: 3 Side-by-Side Cream Quest Cards (turn Bright Green on completion!)
+## - Center: 2D Projected WorldBadges + StationSheet bottom renovation drawer
+## - Bottom: 5-Button Bar (Map, Cases, Wide Purple x2 Income, Managers, Hammer)
 
 var session: Node
-var state: TownState
 var selected_id := ""
 
-var _town_label: Label
-var _cash_label: Label
-var _gems_label: Label
-var _reputation_label: Label
-var _cards: Dictionary = {}
-var _panel: PanelContainer
-var _panel_title: Label
-var _panel_desc: Label
-var _panel_stats: Label
-var _branches_box: GridContainer
-var _branch_buttons: Dictionary = {}
-var _manager_row: HBoxContainer
-var _manager_label: Label
-var _manager_button: Button
-var _upgrade_button: Button
-var _unlock_button: Button
-var _offline_layer: Control
-var _complete_layer: Control
-var _complete_title: Label
-var _complete_body: Label
-var _complete_button: Button
-var _offline_body: Label
-var _mission_pill: PanelContainer
-var _mission_title: Label
-var _mission_progress: Label
-var _mission_bar: ProgressBar
-var _mission_claim: Button
-var _event_pill: PanelContainer
-var _event_label: Label
-var _last_event := ""
-var _completion_bar: ProgressBar
-var _completion_label: Label
-var _stars: Array[ColorRect] = []
-var _save_button: Button
-var _menu_button: Button
-var _close_button: Button
-var _offline_title: Label
-var _toast_panel: PanelContainer
-var _toast: Label
-var _boost_button: Button
-var _map_button: Button
-var _settings_button: Button
-var _world_map
-var _settings
-
+var _star_pill: Label
+var _cash_pill: Label
+var _bourbon_pill: Label
+var _gems_pill: Label
+var _chapter_lbl: Label
+var _chapter_bar: ProgressBar
+var _milestone_btns: Array[Button] = []
+var _quest_cards: Array[Button] = []
+var _event_chip: Button
+var _toast_lbl: Label
 var _toast_timer := 0.0
-var _refresh_timer := 0.0
+
+var _map_btn: Button
+var _cases_btn: Button
+var _boost_btn: Button
+var _managers_btn: Button
+var _build_btn: Button
+
+var _badges: WorldBadges
+var _sheet: StationSheet
+var _settings: Control
+var _map: Control
+var _managers: ManagersModal
+var _cases: CasesShopModal
+
+var _offline_modal: Control
+var _offline_body: Label
+var _offline_amount := 0.0
+var _bonus_modal: Control
+var _bonus_body: Label
+var _bonus_day := 0
+var _completion_modal: Control
+var _completion_shown := false
 
 
 func setup(session_node: Node) -> void:
 	session = session_node
-	state = session.state
 	theme = App.ui_theme
 	layout_direction = App.layout_direction()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build()
 	_apply_language()
-	_refresh()
-	_show_hint()
-	App.language_changed.connect(_on_language_changed)
+	App.language_changed.connect(func(_l: String) -> void:
+		layout_direction = App.layout_direction()
+		_apply_language())
+	session.state.changed.connect(_refresh_all)
+	session.state.event_started.connect(func(ev_id: String) -> void:
+		show_message(App.t(TownEvents.title_key(ev_id))))
+	_refresh_all()
 
-
-func _build() -> void:
-	_build_vignette()
-	_build_top_area()
-	_build_cards()
-	_build_panel()
-	_build_toast()
-	_build_offline()
-	_build_completion()
-	_build_overlays()
-
-
-func _build_vignette() -> void:
-	var vignette := TextureRect.new()
-	vignette.name = "Vignette"
-	vignette.texture = UiTheme.vignette_texture()
-	vignette.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	vignette.stretch_mode = TextureRect.STRETCH_SCALE
-	vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	vignette.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(vignette)
-
-
-func _build_top_area() -> void:
-	var column := VBoxContainer.new()
-	column.name = "TopArea"
-	column.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	column.offset_left = 12
-	column.offset_right = -12
-	column.offset_top = 10
-	column.add_theme_constant_override("separation", 6)
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(column)
-
-	var bar := PanelContainer.new()
-	bar.name = "TopBar"
-	bar.mouse_filter = Control.MOUSE_FILTER_STOP
-	column.add_child(bar)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 18)
-	bar.add_child(row)
-
-	_town_label = _label(22, UiTheme.TEXT, true)
-	row.add_child(_town_label)
-
-	row.add_child(_spacer())
-
-	_cash_label = _label(22, UiTheme.GOLD, true)
-	row.add_child(_cash_label)
-	_gems_label = _label(20, UiTheme.ACCENT, true)
-	row.add_child(_gems_label)
-	_reputation_label = _label(20, UiTheme.GOOD, true)
-	row.add_child(_reputation_label)
-
-	_boost_button = _button("hud.boost", "GhostButton", 116, 44)
-	_boost_button.pressed.connect(_on_boost)
-	row.add_child(_boost_button)
-
-	_map_button = _button("hud.map", "GhostButton", 96, 44)
-	_map_button.pressed.connect(_on_map)
-	row.add_child(_map_button)
-
-	_settings_button = _button("hud.settings", "GhostButton", 110, 44)
-	_settings_button.pressed.connect(_on_settings)
-	row.add_child(_settings_button)
-
-	_save_button = _button("hud.save", "GhostButton", 96, 44)
-	_save_button.pressed.connect(_on_save)
-	row.add_child(_save_button)
-
-	_menu_button = _button("hud.menu", "GhostButton", 96, 44)
-	_menu_button.pressed.connect(_on_menu)
-	row.add_child(_menu_button)
-
-	var pill := PanelContainer.new()
-	pill.name = "Completion"
-	pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pill.add_theme_stylebox_override("panel", UiTheme.pill_style())
-	column.add_child(pill)
-
-	var progress := HBoxContainer.new()
-	progress.add_theme_constant_override("separation", 10)
-	progress.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	pill.add_child(progress)
-
-	_completion_bar = ProgressBar.new()
-	_completion_bar.show_percentage = false
-	_completion_bar.custom_minimum_size = Vector2(190, 10)
-	_completion_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_completion_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_completion_bar.add_theme_stylebox_override(
-		"background", UiTheme.slim_style(UiTheme.PANEL_SOFT, UiTheme.BORDER)
-	)
-	_completion_bar.add_theme_stylebox_override(
-		"fill", UiTheme.slim_style(UiTheme.GOOD, UiTheme.GOOD)
-	)
-	state.town_completed.connect(_on_town_completed)
-	progress.add_child(_completion_bar)
-
-	_completion_label = _label(14, UiTheme.TEXT, false)
-	_completion_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	progress.add_child(_completion_label)
-
-	_event_pill = PanelContainer.new()
-	_event_pill.name = "Event"
-	_event_pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_event_pill.add_theme_stylebox_override("panel", UiTheme.pill_style())
-	_event_pill.visible = false
-	progress.add_child(_event_pill)
-	_event_label = _label(14, UiTheme.ACCENT, false)
-	_event_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_event_pill.add_child(_event_label)
-
-	_mission_pill = PanelContainer.new()
-	_mission_pill.name = "Mission"
-	_mission_pill.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_mission_pill.add_theme_stylebox_override("panel", UiTheme.pill_style())
-	progress.add_child(_mission_pill)
-
-	var mission_box := HBoxContainer.new()
-	mission_box.add_theme_constant_override("separation", 10)
-	_mission_pill.add_child(mission_box)
-
-	var mission_text := VBoxContainer.new()
-	mission_text.add_theme_constant_override("separation", 0)
-	mission_box.add_child(mission_text)
-
-	_mission_title = _label(13, UiTheme.TEXT, true)
-	_mission_title.clip_text = true
-	_mission_title.custom_minimum_size = Vector2(172, 0)
-	mission_text.add_child(_mission_title)
-	_mission_progress = _label(11, UiTheme.MUTED, false)
-	_mission_progress.clip_text = true
-	_mission_progress.custom_minimum_size = Vector2(172, 0)
-	mission_text.add_child(_mission_progress)
-
-	_mission_bar = ProgressBar.new()
-	_mission_bar.show_percentage = false
-	_mission_bar.custom_minimum_size = Vector2(80, 8)
-	_mission_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_mission_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_mission_bar.add_theme_stylebox_override(
-		"background", UiTheme.slim_style(UiTheme.PANEL_SOFT, UiTheme.BORDER)
-	)
-	_mission_bar.add_theme_stylebox_override(
-		"fill", UiTheme.slim_style(UiTheme.ACCENT, UiTheme.ACCENT)
-	)
-	mission_box.add_child(_mission_bar)
-
-	_mission_claim = _button("mission.claim", "PrimaryButton", 82, 32)
-	_mission_claim.add_theme_font_size_override("font_size", 14)
-	_mission_claim.pressed.connect(_on_claim_mission)
-	mission_box.add_child(_mission_claim)
-
-
-## The world map and the settings sheet live above the HUD, hidden until asked
-## for, so the town itself never has to know about them.
-func _build_overlays() -> void:
-	_world_map = load("res://scripts/ui/world_map.gd").new()
-	_world_map.name = "WorldMap"
-	_world_map.visible = false
-	_world_map.connect("travel_requested", _on_travel)
-	add_child(_world_map)
-
-	_settings = load("res://scripts/ui/settings_panel.gd").new()
-	_settings.name = "Settings"
-	_settings.visible = false
-	add_child(_settings)
-
-
-func _on_boost() -> void:
-	if state.buy_boost():
-		Sound.play("event", -4.0)
-		App.tap(35)
-		_show_toast(App.t("msg.boost"))
-	else:
-		Sound.play("deny", -12.0)
-	_refresh()
-
-
-## First toast: always the closest thing the player can actually do next.
-func _show_hint() -> void:
-	var goal := state.next_locked()
-	if goal.is_empty():
-		_show_toast(App.t("hud.hint"))
-		return
-	_show_toast(App.t("hud.next_goal", [
-		App.t("business.%s.name" % str(goal["id"])), _money(float(goal["price"]))
-	]))
-
-
-func _on_map() -> void:
-	Sound.play("click", -12.0)
-	_world_map.open()
-
-
-func _on_settings() -> void:
-	Sound.play("click", -12.0)
-	_settings.open()
-
-
-func _on_travel(town_id: String) -> void:
-	_world_map.close()
-	session.travel_to(town_id)
-
-
-func _build_cards() -> void:
-	var row := HBoxContainer.new()
-	row.name = "BusinessCards"
-	row.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	row.offset_left = 12
-	row.offset_right = -12
-	row.offset_top = -136
-	row.offset_bottom = -10
-	row.add_theme_constant_override("separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_STOP
-	add_child(row)
-
-	for id in state.business_ids():
-		row.add_child(_build_card(id))
-
-
-func _build_card(id: String) -> Button:
-	var card := Button.new()
-	card.name = "Card_%s" % id
-	card.focus_mode = Control.FOCUS_NONE
-	card.custom_minimum_size = Vector2(0, 120)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.pressed.connect(_on_card_pressed.bind(id))
-
-	var box := VBoxContainer.new()
-	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	box.offset_left = 12
-	box.offset_top = 8
-	box.offset_right = -12
-	box.offset_bottom = -8
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 3)
-	card.add_child(box)
-
-	var stripe := ColorRect.new()
-	stripe.color = BusinessData.accent(id)
-	stripe.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	stripe.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
-	stripe.offset_right = 4
-	card.add_child(stripe)
-
-	var title := _label(16, UiTheme.TEXT, true)
-	box.add_child(title)
-	var status := _label(13, UiTheme.MUTED, false)
-	box.add_child(status)
-	var income := _label(13, UiTheme.GOLD, false)
-	box.add_child(income)
-
-	var dots := HBoxContainer.new()
-	dots.add_theme_constant_override("separation", 4)
-	dots.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(dots)
-	var dot_list: Array[ColorRect] = []
-	for i in BusinessData.MAX_LEVEL:
-		var dot := ColorRect.new()
-		dot.custom_minimum_size = Vector2(12, 4)
-		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		dots.add_child(dot)
-		dot_list.append(dot)
-
-	_cards[id] = {
-		"card": card, "title": title, "status": status, "income": income, "dots": dot_list
-	}
-	return card
-
-
-func _build_panel() -> void:
-	_panel = PanelContainer.new()
-	_panel.name = "BusinessPanel"
-	_panel.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
-	_panel.offset_left = -432
-	_panel.offset_right = -12
-	_panel.offset_top = 140
-	_panel.offset_bottom = -150
-	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	_panel.visible = false
-	add_child(_panel)
-
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 6)
-	_panel.add_child(column)
-
-	var header := HBoxContainer.new()
-	column.add_child(header)
-	_panel_title = _label(22, UiTheme.TEXT, true)
-	_panel_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(_panel_title)
-	_close_button = _button("hud.close", "GhostButton", 84, 40)
-	_close_button.pressed.connect(_on_close_panel)
-	header.add_child(_close_button)
-
-	_panel_desc = _label(13, UiTheme.MUTED, false)
-	_panel_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	column.add_child(_panel_desc)
-
-	_panel_stats = _label(14, UiTheme.TEXT, false)
-	column.add_child(_panel_stats)
-
-	var stars_row := HBoxContainer.new()
-	stars_row.add_theme_constant_override("separation", 6)
-	column.add_child(stars_row)
-	for i in BusinessData.MAX_LEVEL:
-		var star := ColorRect.new()
-		star.custom_minimum_size = Vector2(26, 6)
-		star.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		stars_row.add_child(star)
-		_stars.append(star)
-
-	_branches_box = GridContainer.new()
-	_branches_box.columns = 3
-	_branches_box.add_theme_constant_override("h_separation", 6)
-	_branches_box.add_theme_constant_override("v_separation", 6)
-	column.add_child(_branches_box)
-	for branch in BusinessData.BRANCHES:
-		var button := Button.new()
-		button.theme_type_variation = "Button"
-		button.focus_mode = Control.FOCUS_NONE
-		button.custom_minimum_size = Vector2(0, 52)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.clip_text = true
-		button.add_theme_font_size_override("font_size", 13)
-		button.pressed.connect(_on_branch.bind(branch))
-		_branches_box.add_child(button)
-		_branch_buttons[branch] = button
-
-	_manager_row = HBoxContainer.new()
-	_manager_row.add_theme_constant_override("separation", 8)
-	column.add_child(_manager_row)
-	_manager_label = _label(15, UiTheme.ACCENT, false)
-	_manager_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_manager_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_manager_row.add_child(_manager_label)
-	_manager_button = _button("hud.hire_manager", "Button", 150, 44)
-	_manager_button.pressed.connect(_on_manager)
-	_manager_row.add_child(_manager_button)
-
-	_unlock_button = _button("hud.unlock", "PrimaryButton", 0, 48)
-	_unlock_button.add_theme_font_size_override("font_size", 18)
-	_unlock_button.pressed.connect(_on_unlock)
-	column.add_child(_unlock_button)
-
-	_upgrade_button = _button("hud.upgrade", "PrimaryButton", 0, 48)
-	_upgrade_button.add_theme_font_size_override("font_size", 18)
-	_upgrade_button.pressed.connect(_on_upgrade)
-	column.add_child(_upgrade_button)
-
-
-func _build_toast() -> void:
-	_toast_panel = PanelContainer.new()
-	_toast_panel.name = "Toast"
-	_toast_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	_toast_panel.offset_left = -260
-	_toast_panel.offset_right = 260
-	_toast_panel.offset_top = -196
-	_toast_panel.offset_bottom = -152
-	_toast_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_toast_panel.visible = false
-	add_child(_toast_panel)
-	_toast = _label(17, UiTheme.TEXT, true)
-	_toast.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_toast.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	# A long manager message wraps instead of stretching the pill across the
-	# screen and sliding under the detail panel.
-	_toast.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_toast_panel.add_child(_toast)
-
-
-func _build_completion() -> void:
-	_complete_layer = Control.new()
-	_complete_layer.name = "CompletionLayer"
-	_complete_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_complete_layer.mouse_filter = Control.MOUSE_FILTER_STOP
-	_complete_layer.visible = false
-	add_child(_complete_layer)
-
-	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.03, 0.05, 0.55)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_complete_layer.add_child(dim)
-
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_complete_layer.add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(600, 0)
-	center.add_child(panel)
-
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 14)
-	panel.add_child(column)
-
-	_complete_title = _label(34, UiTheme.GOLD, true)
-	_complete_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(_complete_title)
-
-	_complete_body = _label(18, UiTheme.TEXT, false)
-	_complete_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_complete_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(_complete_body)
-
-	_complete_button = _button("hud.complete_continue", "PrimaryButton", 0, 56)
-	_complete_button.add_theme_font_size_override("font_size", 19)
-	_complete_button.pressed.connect(dismiss_completion)
-	column.add_child(_complete_button)
-
-
-func dismiss_completion() -> void:
-	_complete_layer.visible = false
-	session.end_cinematic()
-
-
-func _build_offline() -> void:
-	_offline_layer = Control.new()
-	_offline_layer.name = "OfflineLayer"
-	_offline_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_offline_layer.mouse_filter = Control.MOUSE_FILTER_STOP
-	_offline_layer.visible = false
-	add_child(_offline_layer)
-
-	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.03, 0.05, 0.72)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_offline_layer.add_child(dim)
-
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_offline_layer.add_child(center)
-
-	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(520, 0)
-	center.add_child(panel)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
-	panel.add_child(column)
-
-	_offline_title = _label(26, UiTheme.GOLD, true)
-	_offline_title.text = App.t("hud.offline_title")
-	_offline_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(_offline_title)
-
-	_offline_body = _label(17, UiTheme.TEXT, false)
-	_offline_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_offline_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(_offline_body)
-
-	var collect := _button("hud.offline_claim", "PrimaryButton", 0, 56)
-	collect.add_theme_font_size_override("font_size", 19)
-	collect.pressed.connect(collect_offline)
-	column.add_child(collect)
-
-
-func _apply_language() -> void:
-	layout_direction = App.layout_direction()
-	_complete_title.text = App.t("hud.complete_title")
-	_complete_body.text = App.t("hud.complete_body")
-	_complete_button.text = App.t("hud.complete_continue")
-	_save_button.text = App.t("hud.save")
-	_menu_button.text = App.t("hud.menu")
-	_map_button.text = App.t("hud.map")
-	_boost_button.text = App.t("hud.boost", [App.format_number(float(TownState.BOOST_GEMS))])
-	_settings_button.text = App.t("hud.settings")
-	_close_button.text = App.t("hud.close")
-	_offline_title.text = App.t("hud.offline_title")
-	_mission_claim.text = App.t("mission.claim")
-	_refresh_mission()
-	_refresh_event()
-	for id in _cards:
-		var card: Dictionary = _cards[id]
-		(card["title"] as Label).text = _business_name(id)
-	if _panel.visible and not selected_id.is_empty():
-		_panel_title.text = _business_name(selected_id)
-		_panel_desc.text = App.t("business.%s.desc" % selected_id)
-	_refresh_panel()
-
-
-func _on_language_changed(_language: String) -> void:
-	_apply_language()
-
-
-# --- Refreshing ------------------------------------------------------------
 
 func tick(delta: float) -> void:
 	if _toast_timer > 0.0:
-		_toast_timer -= delta
-		_place_toast()
-		if _toast_timer <= 0.0:
-			_toast_panel.visible = false
-	_refresh_timer += delta
-	if _refresh_timer >= 0.2:
-		_refresh_timer = 0.0
-		_refresh()
+		_toast_timer = maxf(0.0, _toast_timer - delta)
+		_toast_lbl.get_parent().visible = _toast_timer > 0.0
+	var modal_open := (
+		_settings.visible or _map.visible or _managers.visible or _cases.visible
+		or _offline_modal.visible or _bonus_modal.visible or _completion_modal.visible
+	)
+	_badges.update_positions(modal_open or _sheet.visible)
+	_refresh_live_timers()
 
 
 func refresh() -> void:
-	_refresh()
+	_refresh_all()
 
 
-func _refresh() -> void:
-	if state == null:
+func show_message(message: String) -> void:
+	if _toast_lbl == null:
 		return
-	_town_label.text = "%s · %s" % [
-		App.t("town.%s" % state.town_id), App.t("hud.town_level", [_num(state.town_level())])
-	]
-	_cash_label.text = "%s %s" % [App.t("hud.cash"), _money(state.cash)]
-	_gems_label.text = "%s %s" % [App.t("hud.gems"), _num(state.gems)]
-	_reputation_label.text = "%s %s" % [
-		App.t("hud.reputation"), _num(int(state.reputation))
-	]
-	if _boost_button != null:
-		_boost_button.disabled = not state.can_boost()
-
-	var progress := state.completion()
-	_completion_bar.value = progress * 100.0
-	var percent := _num(round(progress * 100.0))
-	_completion_label.text = App.t(
-		"hud.completion_done" if state.completed else "hud.completion", [percent]
-	)
-	if state.completed:
-		_completion_bar.add_theme_stylebox_override(
-			"fill", UiTheme.slim_style(UiTheme.GOLD, UiTheme.GOLD)
-		)
-
-	_refresh_mission()
-	_refresh_event()
-
-	for id in _cards:
-		_refresh_card(id)
-	if _panel.visible and not selected_id.is_empty():
-		_refresh_panel()
+	_toast_lbl.text = message
+	_toast_lbl.get_parent().visible = true
+	_toast_timer = 3.2
 
 
-func _refresh_mission() -> void:
-	var mission := state.mission_progress()
-	if mission.is_empty():
-		_mission_pill.visible = false
+func show_completion_banner() -> void:
+	if _completion_modal == null or session == null:
 		return
-	_mission_pill.visible = true
-	var id := str(mission["id"])
-	var current := float(mission["current"])
-	var goal := maxf(1.0, float(mission["goal"]))
-	_mission_title.text = "%s · %s" % [
-		App.t("mission.title"), App.t("mission.%s.title" % id)
+	_completion_shown = true
+	(_completion_modal.get_meta("body") as Label).text = App.t("complete.body", [
+		App.t("town.%s" % session.state.town_id)
+	])
+	_completion_modal.visible = true
+
+
+func _build() -> void:
+	# 1) Projected 2D World Plot Badges (behind HUD bars & modals)
+	_badges = WorldBadges.new()
+	_badges.setup(session)
+	_badges.plot_tapped.connect(_on_badge_tapped)
+	add_child(_badges)
+
+	# 2) Top 3-Row Roadside Empire Header
+	_build_top_header()
+
+	# 3) Station Upgrade Bottom Sheet (above bottom nav)
+	_sheet = StationSheet.new()
+	_sheet.setup(session)
+	_sheet.closed.connect(func() -> void: session.deselect())
+	_sheet.action_feedback.connect(show_message)
+	add_child(_sheet)
+
+	# 4) Bottom 5-Button Navigation Bar
+	_build_bottom_nav()
+
+	# 5) Modals & Sheets (direct children so get_node("WorldMap") / get_node("Settings") work!)
+	_build_modals()
+
+
+func _build_top_header() -> void:
+	var top := MarginContainer.new()
+	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	top.add_theme_constant_override("margin_left", 10)
+	top.add_theme_constant_override("margin_right", 10)
+	top.add_theme_constant_override("margin_top", 8)
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(top)
+
+	var stack := VBoxContainer.new()
+	stack.add_theme_constant_override("separation", 6)
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(stack)
+
+	# ROW 1: Gear + Gold Star Badge + Cash + Bourbon + Gems
+	var row1 := HBoxContainer.new()
+	row1.add_theme_constant_override("separation", 6)
+	row1.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_child(row1)
+
+	var gear := Button.new()
+	gear.text = "⚙️"
+	gear.theme_type_variation = "NavButton"
+	gear.custom_minimum_size = Vector2(44, 42)
+	gear.focus_mode = Control.FOCUS_NONE
+	gear.pressed.connect(func() -> void: _settings.open())
+	row1.add_child(gear)
+
+	_star_pill = _pill_label(UiTheme.gold_badge_style(), UiTheme.DARK_TEXT, 14)
+	row1.add_child(_star_pill.get_parent())
+
+	_cash_pill = _pill_label(UiTheme.dark_pill_style(), Color.WHITE, 16)
+	_cash_pill.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row1.add_child(_cash_pill.get_parent())
+
+	_bourbon_pill = _pill_label(UiTheme.dark_pill_style(), UiTheme.BOURBON, 14)
+	row1.add_child(_bourbon_pill.get_parent())
+
+	_gems_pill = _pill_label(UiTheme.dark_pill_style(), UiTheme.GEM_PINK, 14)
+	row1.add_child(_gems_pill.get_parent())
+
+	# ROW 2: Clipboard Chapter Progress Bar + 3 Milestone Chest Buttons
+	var row2_panel := PanelContainer.new()
+	row2_panel.add_theme_stylebox_override("panel", UiTheme.dark_pill_style())
+	stack.add_child(row2_panel)
+
+	var row2 := HBoxContainer.new()
+	row2.add_theme_constant_override("separation", 8)
+	row2_panel.add_child(row2)
+
+	_chapter_lbl = _lbl(14, Color.WHITE)
+	row2.add_child(_chapter_lbl)
+
+	_chapter_bar = ProgressBar.new()
+	_chapter_bar.show_percentage = false
+	_chapter_bar.min_value = 0.0
+	_chapter_bar.max_value = float(ChapterQuests.TASKS_PER_CHAPTER)
+	_chapter_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_chapter_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_chapter_bar.custom_minimum_size = Vector2(90, 14)
+	var ch_bg := UiTheme.slim_style(Color(0.08, 0.09, 0.14), Color.TRANSPARENT, 7)
+	_chapter_bar.add_theme_stylebox_override("background", ch_bg)
+	_chapter_bar.add_theme_stylebox_override("fill", UiTheme.slim_style(UiTheme.GOOD, Color.TRANSPARENT, 7))
+	row2.add_child(_chapter_bar)
+
+	for step in ChapterQuests.MILESTONE_STEPS:
+		var m_btn := Button.new()
+		m_btn.custom_minimum_size = Vector2(54, 30)
+		m_btn.focus_mode = Control.FOCUS_NONE
+		m_btn.add_theme_font_size_override("font_size", 12)
+		var captured_step := int(step)
+		m_btn.pressed.connect(func() -> void: _on_claim_milestone(captured_step))
+		row2.add_child(m_btn)
+		_milestone_btns.append(m_btn)
+
+	# ROW 3: 3 Side-by-Side Cream Quest Cards!
+	var row3 := HBoxContainer.new()
+	row3.add_theme_constant_override("separation", 6)
+	row3.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_child(row3)
+
+	for i in range(ChapterQuests.SLOT_COUNT):
+		var q_btn := Button.new()
+		q_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		q_btn.custom_minimum_size = Vector2(0, 82)
+		q_btn.focus_mode = Control.FOCUS_NONE
+		q_btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		q_btn.add_theme_font_size_override("font_size", 13)
+		var slot_idx := i
+		q_btn.pressed.connect(func() -> void: _on_quest_card_pressed(slot_idx))
+		row3.add_child(q_btn)
+		_quest_cards.append(q_btn)
+
+	# ROW 4: Active Event / Special Order Banner + Toast Pill
+	_event_chip = Button.new()
+	_event_chip.theme_type_variation = "PurpleButton"
+	_event_chip.custom_minimum_size = Vector2(0, 36)
+	_event_chip.focus_mode = Control.FOCUS_NONE
+	_event_chip.add_theme_font_size_override("font_size", 13)
+	_event_chip.visible = false
+	_event_chip.pressed.connect(func() -> void: _map.open("exp"))
+	stack.add_child(_event_chip)
+
+	var toast_box := PanelContainer.new()
+	toast_box.add_theme_stylebox_override("panel", UiTheme.dark_pill_style())
+	toast_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	toast_box.visible = false
+	toast_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_child(toast_box)
+	_toast_lbl = _lbl(14, UiTheme.GOLD)
+	toast_box.add_child(_toast_lbl)
+
+
+func _build_bottom_nav() -> void:
+	var bottom := MarginContainer.new()
+	bottom.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	bottom.offset_top = -104
+	bottom.add_theme_constant_override("margin_left", 10)
+	bottom.add_theme_constant_override("margin_right", 10)
+	bottom.add_theme_constant_override("margin_bottom", 10)
+	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bottom)
+
+	var bar := HBoxContainer.new()
+	bar.add_theme_constant_override("separation", 6)
+	bottom.add_child(bar)
+
+	_map_btn = _nav_btn("NavButton", 1.0, func() -> void: _map.open("story"))
+	bar.add_child(_map_btn)
+
+	_cases_btn = _nav_btn("NavButton", 1.0, func() -> void: _cases.open("cases"))
+	bar.add_child(_cases_btn)
+
+	_boost_btn = _nav_btn("PurpleButton", 1.55, _on_boost_pressed)
+	bar.add_child(_boost_btn)
+
+	_managers_btn = _nav_btn("NavButton", 1.05, func() -> void: _managers.open())
+	bar.add_child(_managers_btn)
+
+	_build_btn = _nav_btn("PurpleButton", 1.05, func() -> void: _cases.open("build"))
+	bar.add_child(_build_btn)
+
+
+func _nav_btn(variation: String, stretch: float, cb: Callable) -> Button:
+	var b := Button.new()
+	b.theme_type_variation = variation
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.size_flags_stretch_ratio = stretch
+	b.custom_minimum_size = Vector2(0, 86)
+	b.focus_mode = Control.FOCUS_NONE
+	b.add_theme_font_size_override("font_size", 14)
+	b.pressed.connect(cb)
+	return b
+
+
+func _build_modals() -> void:
+	_offline_modal = _simple_modal("offline.title", "offline.collect", collect_offline)
+	_offline_body = _offline_modal.get_meta("body")
+	add_child(_offline_modal)
+
+	_bonus_modal = _simple_modal("bonus.title", "bonus.claim", collect_daily_bonus)
+	_bonus_body = _bonus_modal.get_meta("body")
+	add_child(_bonus_modal)
+
+	_completion_modal = _simple_modal("complete.title", "complete.stay", dismiss_completion)
+	add_child(_completion_modal)
+
+	_map = load("res://scripts/ui/world_map.gd").new()
+	_map.name = "WorldMap"
+	_map.setup(session)
+	_map.feedback.connect(show_message)
+	add_child(_map)
+
+	_managers = ManagersModal.new()
+	_managers.name = "ManagersModal"
+	_managers.setup(session.state)
+	_managers.feedback.connect(show_message)
+	add_child(_managers)
+
+	_cases = CasesShopModal.new()
+	_cases.name = "CasesModal"
+	_cases.setup(session.state)
+	_cases.feedback.connect(show_message)
+	_cases.facility_selected.connect(func(id: String) -> void: session.select_business(id))
+	add_child(_cases)
+
+	_settings = load("res://scripts/ui/settings_panel.gd").new()
+	_settings.name = "Settings"
+	_settings.session = session
+	_settings.visible = false
+	_settings.menu_requested.connect(func() -> void: session.leave_to_menu())
+	add_child(_settings)
+
+
+func _simple_modal(title_k: String, btn_k: String, cb: Callable) -> Control:
+	var wrap := Control.new()
+	wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	wrap.visible = false
+	wrap.mouse_filter = Control.MOUSE_FILTER_STOP
+	var scrim := ColorRect.new()
+	scrim.color = Color(0.02, 0.03, 0.06, 0.78)
+	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	wrap.add_child(scrim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	wrap.add_child(center)
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(560, 0)
+	center.add_child(panel)
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 12)
+	panel.add_child(col)
+	var tl := _lbl(25, UiTheme.GOLD)
+	tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tl.set_meta("k", title_k)
+	col.add_child(tl)
+	var bl := _lbl(17, UiTheme.TEXT)
+	bl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	bl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	col.add_child(bl)
+	var btn := Button.new()
+	btn.theme_type_variation = "GreenButton"
+	btn.custom_minimum_size = Vector2(0, 56)
+	btn.focus_mode = Control.FOCUS_NONE
+	btn.set_meta("k", btn_k)
+	btn.pressed.connect(cb)
+	col.add_child(btn)
+	wrap.set_meta("title", tl)
+	wrap.set_meta("body", bl)
+	wrap.set_meta("btn", btn)
+	return wrap
+
+
+func _refresh_all() -> void:
+	var st: TownState = session.state
+	var sp := EmpireActions.star_progress(st)
+	_star_pill.text = "⭐ %s · %s/%s" % [
+		App.t("hud.star_lvl", [App.format_number(int(sp["level"]))]),
+		App.format_number(int(sp["current"])),
+		App.format_number(int(sp["needed"])),
 	]
-	var reward_parts: Array[String] = []
-	if float(mission["reward"]) > 0.0:
-		reward_parts.append(App.t("mission.reward_coins", [_num(float(mission["reward"]))]))
-	if int(mission["gems"]) > 0:
-		reward_parts.append(App.t("mission.reward_gems", [_num(int(mission["gems"]))]))
-	_mission_progress.text = "%s · %s" % [
-		App.t("mission.progress", [_num(minf(current, goal)), _num(goal)]),
-		", ".join(reward_parts),
-	]
-	_mission_progress.tooltip_text = App.t("mission.%s.desc" % id)
-	_mission_bar.value = round(clampf(current / goal, 0.0, 1.0) * 100.0)
-	_mission_claim.visible = bool(mission["ready"])
-	_mission_claim.disabled = not bool(mission["ready"])
+	_cash_pill.text = "💵 %s" % App.format_short(st.cash)
+	_bourbon_pill.text = "🥃 %s" % App.format_number(st.bourbon)
+	_gems_pill.text = "💎 %s" % App.format_number(st.gems)
+
+	_chapter_lbl.text = "📋 " + App.t("hud.chapter_bar", [
+		App.format_number(st.chapter_index),
+		App.format_number(st.chapter_tasks_done),
+		App.format_number(ChapterQuests.TASKS_PER_CHAPTER),
+	])
+	_chapter_bar.value = float(st.chapter_tasks_done)
+	var icons := ["💵", "🥃", "💎"]
+	for idx in range(ChapterQuests.MILESTONE_STEPS.size()):
+		var step := int(ChapterQuests.MILESTONE_STEPS[idx])
+		var m_btn := _milestone_btns[idx]
+		var claimed := st.chapter_milestones.has(step)
+		var ready := EmpireActions.can_claim_chapter_milestone(st, step)
+		m_btn.text = "%s✓" % icons[idx] if claimed else "%s %d" % [icons[idx], step]
+		m_btn.theme_type_variation = "GreenButton" if ready else "GhostButton"
+		m_btn.disabled = not ready
+
+	_refresh_quest_cards()
+	_refresh_bottom_nav()
+	if _sheet.visible:
+		_sheet.refresh()
+	if _managers.visible:
+		_managers.refresh()
+	if _cases.visible:
+		_cases.refresh()
+	if _map.visible:
+		_map.refresh()
+	if not _completion_shown and st.is_complete():
+		show_completion_banner()
 
 
-func _refresh_event() -> void:
-	if state.active_event != _last_event:
-		if not state.active_event.is_empty():
-			_show_toast(App.t("event.started", [App.t(TownEvents.name_key(state.active_event))]))
-		elif not _last_event.is_empty():
-			_show_toast(App.t("event.ended", [App.t(TownEvents.name_key(_last_event))]))
-		_last_event = state.active_event
-	if state.active_event.is_empty():
-		_event_pill.visible = false
-		return
-	_event_pill.visible = true
-	_event_label.text = "%s · %s" % [
-		App.t(TownEvents.name_key(state.active_event)),
-		App.t("event.remaining", [_num(ceil(state.event_time_left))]),
-	]
+func _refresh_quest_cards() -> void:
+	var st: TownState = session.state
+	for i in range(_quest_cards.size()):
+		var card := _quest_cards[i]
+		if i >= st.quest_slots.size():
+			card.visible = false
+			continue
+		card.visible = true
+		var q: Dictionary = st.quest_slots[i]
+		var done := ChapterQuests.is_complete(q, st)
+		var icon := ChapterQuests.icon_for(q)
+		if done:
+			card.text = "%s %s\n✅ %s" % [
+				icon,
+				ChapterQuests.title_text(q),
+				App.t("quest.claim"),
+			]
+			card.add_theme_stylebox_override("normal", UiTheme.green_card_style())
+			card.add_theme_stylebox_override("hover", UiTheme.green_card_style())
+			card.add_theme_stylebox_override("pressed", UiTheme.green_card_style())
+			card.add_theme_color_override("font_color", Color.WHITE)
+		else:
+			card.text = "%s %s\n🔑 %s" % [
+				icon,
+				ChapterQuests.title_text(q),
+				ChapterQuests.progress_label(q, st),
+			]
+			card.add_theme_stylebox_override("normal", UiTheme.cream_card_style())
+			card.add_theme_stylebox_override("hover", UiTheme.cream_card_style())
+			card.add_theme_stylebox_override("pressed", UiTheme.cream_card_style())
+			card.add_theme_color_override("font_color", UiTheme.DARK_TEXT)
 
 
-func _on_claim_mission() -> void:
-	var result := state.claim_mission()
-	if result.is_empty():
-		return
-	Sound.play("mission", -5.0)
-	var parts: Array[String] = []
-	if float(result["reward"]) > 0.0:
-		parts.append(App.t("mission.reward_coins", [_num(float(result["reward"]))]))
-	if int(result["gems"]) > 0:
-		parts.append(App.t("mission.reward_gems", [_num(int(result["gems"]))]))
-	if not parts.is_empty():
-		_show_toast(App.t("msg.mission_claimed", [", ".join(parts)]))
-	_refresh()
+func _refresh_bottom_nav() -> void:
+	var st: TownState = session.state
+	_map_btn.text = "📍\n" + App.t("nav.map")
+	var crate_dot := " ●" if st.free_crate_cooldown <= 0.0 else ""
+	_cases_btn.text = "🧰%s\n%s" % [crate_dot, App.t("nav.cases")]
+	_managers_btn.text = "✨\n" + App.t("nav.managers")
+
+	var affordable := 0
+	for id in st.business_ids():
+		var b := st.business(id)
+		if (
+			not b.unlocked
+			and st.star_level() >= BusinessData.star_required(id)
+			and st.cash + 0.01 >= st.unlock_cost(id)
+		):
+			affordable += 1
+		elif b.unlocked and b.can_upgrade_level() and st.cash + 0.01 >= st.upgrade_cost(id, 1):
+			affordable += 1
+	var badge := (" (%d)" % affordable) if affordable > 0 else ""
+	_build_btn.text = "🔨%s\n%s" % [badge, App.t("nav.build")]
 
 
-func _refresh_card(id: String) -> void:
-	var business := state.business(id)
-	if business == null:
-		return
-	var card: Dictionary = _cards[id]
-	var card_button: Button = card["card"]
-	var status: Label = card["status"]
-	var income: Label = card["income"]
-
-	if business.unlocked:
-		status.text = App.t("hud.level", [_num(business.level)])
-		status.add_theme_color_override("font_color", UiTheme.GOOD)
-		income.text = App.t("hud.income_value", [_money(business.net_per_minute(state.traffic()))])
+func _refresh_live_timers() -> void:
+	var st: TownState = session.state
+	if st.x2_boost_seconds > 0.0:
+		_boost_btn.text = "⚡ " + App.t("nav.boost_active", [App.format_number(ceil(st.x2_boost_seconds))])
 	else:
-		status.text = App.t("hud.locked")
-		status.add_theme_color_override("font_color", UiTheme.MUTED)
-		income.text = App.t("hud.unlock", [_money(BusinessData.unlock_cost(id) * state.cost_scale())])
+		_boost_btn.text = "▶ " + App.t("nav.boost")
 
-	var accent := BusinessData.accent(id)
-	var dots: Array = card.get("dots", [])
-	for i in dots.size():
-		var dot: ColorRect = dots[i]
-		var reached := business.unlocked and business.level > i
-		dot.color = accent if reached else Color(0.28, 0.33, 0.42, 0.7)
-
-	if id == selected_id:
-		var style := UiTheme.button_style(accent.darkened(0.72), accent)
-		card_button.add_theme_stylebox_override("normal", style)
-		card_button.add_theme_stylebox_override("hover", style)
+	if st.special_order_active:
+		_event_chip.visible = true
+		_event_chip.text = "🚚 %s" % App.t("exp.order_running", [
+			App.format_number(floor(st.special_order_done)),
+			App.format_number(st.special_order_goal),
+			App.format_number(ceil(st.special_order_timer)),
+		])
+	elif not st.active_event.is_empty():
+		_event_chip.visible = true
+		_event_chip.text = "🔥 %s (%ss)" % [
+			App.t(TownEvents.title_key(st.active_event)),
+			App.format_number(ceil(st.event_remaining)),
+		]
 	else:
-		card_button.remove_theme_stylebox_override("normal")
-		card_button.remove_theme_stylebox_override("hover")
+		_event_chip.visible = false
 
 
-func _refresh_panel() -> void:
-	if selected_id.is_empty():
+func _on_badge_tapped(id: String) -> void:
+	var st: TownState = session.state
+	var b := st.business(id)
+	if b == null:
 		return
-	var business := state.business(selected_id)
-	if business == null:
+	if b.unlocked and (not b.is_automated()) and b.vault_cash >= 2.0:
+		var got := st.collect_vault(id)
+		if got > 0.0:
+			Sound.play("cash", -5.0)
+			App.tap(20)
+			session.view.pop_income(id, got)
+	elif (
+		(not b.unlocked)
+		and st.star_level() >= BusinessData.star_required(id)
+		and st.cash + 0.01 >= st.unlock_cost(id)
+	):
+		if st.unlock_business(id):
+			Sound.play("build", -4.0)
+			App.tap(36)
+			show_message(App.t("msg.unlocked", [App.t("business.%s.name" % id)]))
+	session.select_business(id)
+
+
+func _on_quest_card_pressed(slot_idx: int) -> void:
+	var st: TownState = session.state
+	if slot_idx < 0 or slot_idx >= st.quest_slots.size():
 		return
+	var q: Dictionary = st.quest_slots[slot_idx]
+	if ChapterQuests.is_complete(q, st):
+		var reward := EmpireActions.claim_quest_slot(st, slot_idx)
+		if not reward.is_empty():
+			Sound.play("mission", -4.0)
+			App.tap(32)
+			show_message(App.t("msg.quest_claimed", [
+				App.format_short(float(reward["cash"])),
+				App.format_number(float(reward["gems"])),
+			]))
+	else:
+		var target_id := String(q.get("target", ""))
+		if not target_id.is_empty() and st.business(target_id) != null:
+			session.select_business(target_id)
 
-	_panel_title.text = _business_name(selected_id)
-	_panel_desc.text = App.t("business.%s.desc" % selected_id)
 
-	var traffic := state.traffic()
-	_panel_stats.text = "\n".join([
-		App.t("hud.income_value", [_money(business.net_per_minute(traffic))]),
-		"%s: %s" % [App.t("hud.customers"), _num(round(business.served_per_minute(traffic)))],
-		"%s: %s" % [App.t("hud.capacity"), _num(round(business.capacity()))],
-		"%s: %s" % [App.t("hud.upkeep"), App.t("hud.upkeep_value", [
-			_money(business.upkeep_per_minute())
-		])],
-		App.t("hud.efficiency", [_num(round(business.efficiency() * 100.0))]),
+func _on_claim_milestone(step: int) -> void:
+	var reward := EmpireActions.claim_chapter_milestone(session.state, step)
+	if reward.is_empty():
+		return
+	Sound.play("gem", -4.0)
+	App.tap(34)
+	show_message("📋 +$%s · +%s 🥃 · +%s 💎!" % [
+		App.format_short(float(reward["cash"])),
+		App.format_number(float(reward["bourbon"])),
+		App.format_number(float(reward["gems"])),
 	])
 
-	var accent := BusinessData.accent(selected_id)
-	for i in _stars.size():
-		_stars[i].color = (
-			accent if business.level > i else Color(0.24, 0.3, 0.4, 0.55)
-		)
 
-	var locked := not business.unlocked
-	_branches_box.visible = not locked
-	_manager_row.visible = not locked
-	_unlock_button.visible = locked
-	_upgrade_button.visible = not locked
+func _on_boost_pressed() -> void:
+	EmpireActions.activate_x2_boost(session.state)
+	Sound.play("event", -5.0)
+	App.tap(28)
+	show_message(App.t("msg.boost_activated"))
 
-	if locked:
-		_unlock_button.text = App.t("hud.unlock", [
-			_money(BusinessData.unlock_cost(selected_id) * state.cost_scale())
-		])
-		_unlock_button.disabled = not state.can_afford(
-			BusinessData.unlock_cost(selected_id) * state.cost_scale()
-		)
-		return
-
-	for branch in BusinessData.BRANCHES:
-		var button: Button = _branch_buttons[branch]
-		var level := business.branch_level(branch)
-		if business.can_upgrade_branch(branch):
-			button.text = "%s\n%s" % [
-				App.t("branch.%s" % branch),
-				App.t("hud.branch_state", [
-					_num(level), _money(business.branch_cost(branch) * state.cost_scale())
-				]),
-			]
-			button.disabled = not state.can_afford(business.branch_cost(branch) * state.cost_scale())
-		else:
-			button.text = "%s\n%s" % [
-				App.t("branch.%s" % branch), App.t("hud.branch_state", [_num(level), "—"])
-			]
-			button.disabled = true
-
-	_manager_label.text = App.t("manager.rank.%d" % business.manager_rank)
-	if business.can_hire_manager():
-		var manager_key := "hud.hire_manager" if business.manager_rank <= 0 else "hud.promote_manager"
-		_manager_button.text = App.t(manager_key, [
-			_money(business.manager_cost() * state.cost_scale())
-		])
-		_manager_button.disabled = not state.can_afford(
-			business.manager_cost() * state.cost_scale()
-		)
-	else:
-		_manager_button.text = App.t("hud.manager_max")
-		_manager_button.disabled = true
-
-	if business.can_upgrade_level():
-		_upgrade_button.text = App.t("hud.upgrade", [
-			_money(business.upgrade_cost() * state.cost_scale())
-		])
-		_upgrade_button.disabled = not state.can_afford(
-			business.upgrade_cost() * state.cost_scale()
-		)
-	else:
-		_upgrade_button.text = App.t("hud.max_level")
-		_upgrade_button.disabled = true
-
-
-# --- Public API used by the session ---------------------------------------
 
 func show_business(id: String) -> void:
 	selected_id = id
-	_panel.visible = true
-	_refresh()
-	_apply_language()
+	_sheet.open_for(id)
 
 
 func hide_business() -> void:
 	selected_id = ""
-	_panel.visible = false
-
-
-func show_message(text: String) -> void:
-	_show_toast(text)
+	_sheet.visible = false
 
 
 func show_offline(seconds: float, earnings: float) -> void:
-	var total := int(maxf(seconds, 0.0))
-	_offline_body.text = App.t("hud.offline_body", [
-		_num(total / 3600), _num((total % 3600) / 60), _money(earnings)
-	])
-	_offline_layer.visible = true
-	_offline_layer.move_to_front()
-
-
-# --- Buttons ---------------------------------------------------------------
-
-func _on_card_pressed(id: String) -> void:
-	if id == selected_id:
-		if session.collect_tip(id) > 0.0:
-			return
-	Sound.play("click", -14.0)
-	session.select_business(id)
-
-
-func _on_town_completed() -> void:
-	Sound.play("res://assets/audio/toggle.ogg", -6.0)
-	show_completion_banner()
-
-
-func _on_close_panel() -> void:
-	session.deselect()
-
-
-func _on_upgrade() -> void:
-	var business := state.business(selected_id)
-	if business == null:
+	if earnings < 1.0:
 		return
-	if state.upgrade_business(selected_id):
-		Sound.play("upgrade", -8.0)
-		App.tap(20)
-		_show_toast(App.t("msg.upgraded", [_business_name(selected_id), business.level]))
-	else:
-		Sound.play("deny", -12.0)
-		_show_toast(App.t("msg.no_cash"))
-	_refresh()
-
-
-func _on_branch(branch: String) -> void:
-	var business := state.business(selected_id)
-	if business == null:
-		return
-	if state.upgrade_branch(selected_id, branch):
-		Sound.play("upgrade", -9.0)
-		App.tap(18)
-		_show_toast(App.t("msg.branch_upgraded", [
-			_business_name(selected_id),
-			App.t("branch.%s" % branch),
-			business.branch_level(branch),
-		]))
-	else:
-		Sound.play("deny", -12.0)
-		_show_toast(App.t("msg.no_cash"))
-	_refresh()
-
-
-func _on_manager() -> void:
-	var business := state.business(selected_id)
-	if business == null:
-		return
-	if state.hire_manager(selected_id):
-		Sound.play("hire", -6.0)
-		App.tap(30)
-		_show_toast(App.t("msg.manager_hired", [
-			_business_name(selected_id), App.t("manager.rank.%d" % business.manager_rank)
-		]))
-	else:
-		Sound.play("deny", -12.0)
-		_show_toast(App.t("msg.no_cash"))
-	_refresh()
-
-
-func _on_unlock() -> void:
-	if state.unlock_business(selected_id):
-		Sound.play("build", -5.0)
-		App.tap(30)
-		_show_toast(App.t("msg.unlocked", [_business_name(selected_id)]))
-	else:
-		Sound.play("deny", -12.0)
-		_show_toast(App.t("msg.no_cash"))
-	_refresh()
-
-
-func _on_save() -> void:
-	Sound.play("click", -12.0)
-	session.save_now()
-	_show_toast(App.t("msg.save_ok"))
-
-
-func _on_menu() -> void:
-	session.leave_to_menu()
-
-
-func show_completion_banner() -> void:
-	_complete_layer.visible = true
-	_complete_layer.move_to_front()
-	Sound.play("complete", -4.0)
-	App.tap(60)
+	_offline_amount = earnings
+	var mins := maxi(1, int(round(seconds / 60.0)))
+	_offline_body.text = "%s\n\n💵 %s" % [
+		App.t("offline.away", [App.format_number(mins)]),
+		App.format_money(earnings),
+	]
+	_offline_modal.visible = true
 
 
 func collect_offline() -> void:
-	var report: Dictionary = session.claim_offline()
-	_offline_layer.visible = false
-	if not report.is_empty():
-		_show_toast("+%s" % _money(float(report.get("earnings", 0.0))))
-	_refresh()
+	if _offline_amount > 0.0:
+		session.state.earn(_offline_amount)
+		_offline_amount = 0.0
+		Sound.play("cash", -4.0)
+	_offline_modal.visible = false
 
 
-# --- Small helpers ---------------------------------------------------------
-
-func _show_toast(message: String) -> void:
-	_toast.text = message
-	_place_toast()
-	_toast_panel.visible = true
-	_toast_timer = 2.6
-
-
-## Keeps the toast clear of the detail panel by sliding it to the free half,
-## whichever side the layout put the panel on.
-func _place_toast() -> void:
-	var shift := 0.0
-	if _panel != null and _panel.visible:
-		# In RTL the HUD mirrors local X, so a positive shift moves the pill left.
-		var side := -1.0 if App.is_rtl() else 1.0
-		shift = (_panel.size.x * 0.5 + 40.0) * side
-	_toast_panel.offset_left = -260.0 + shift
-	_toast_panel.offset_right = 260.0 + shift
+func show_daily_bonus(day: int) -> void:
+	_bonus_day = day
+	var c := DailyBonus.cash(session.state.net_per_minute(), day)
+	var g := DailyBonus.gems(day)
+	_bonus_body.text = "%s\n\n💵 %s   💎 %s" % [
+		App.t("bonus.day", [App.format_number(day)]),
+		App.format_short(c),
+		App.format_number(g),
+	]
+	_bonus_modal.visible = true
 
 
-func _business_name(id: String) -> String:
-	return App.t("business.%s.name" % id)
+func collect_daily_bonus() -> void:
+	if _bonus_day > 0:
+		var c := DailyBonus.cash(session.state.net_per_minute(), _bonus_day)
+		var g := DailyBonus.gems(_bonus_day)
+		session.state.earn(c)
+		session.state.gems += g
+		session.state.bourbon += 15
+		_bonus_day = 0
+		Sound.play("gem", -4.0)
+		session.state.changed.emit()
+	_bonus_modal.visible = false
 
 
-func _money(value: float) -> String:
-	var amount := maxf(0.0, value)
-	if amount >= 1000000.0:
-		return "%sM" % App.format_number(amount / 1000000.0, 1)
-	return App.format_number(amount)
+func dismiss_completion() -> void:
+	_completion_modal.visible = false
 
 
-func _num(value: float) -> String:
-	return App.format_number(value)
+func _apply_language() -> void:
+	for modal in [_offline_modal, _bonus_modal, _completion_modal]:
+		var tl: Label = modal.get_meta("title")
+		var btn: Button = modal.get_meta("btn")
+		tl.text = App.t(String(tl.get_meta("k")))
+		btn.text = App.t(String(btn.get_meta("k")))
+	_refresh_all()
 
 
-func _label(font_size: int, color: Color, bold: bool) -> Label:
-	var label := Label.new()
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
-	if bold:
-		var font: Font = load(UiTheme.FONT_BOLD)
-		label.add_theme_font_override("font", font)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return label
+func _pill_label(style: StyleBoxFlat, col: Color, size: int) -> Label:
+	var p := PanelContainer.new()
+	p.add_theme_stylebox_override("panel", style)
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var l := _lbl(size, col)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	p.add_child(l)
+	return l
 
 
-func _button(key: String, variation: String, width: int, height: int) -> Button:
-	var button := Button.new()
-	button.theme_type_variation = variation
-	button.focus_mode = Control.FOCUS_NONE
-	button.custom_minimum_size = Vector2(width, height)
-	button.text = App.t(key)
-	return button
-
-
-func _spacer() -> Control:
-	var spacer := Control.new()
-	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return spacer
+func _lbl(size: int, col: Color) -> Label:
+	var l := Label.new()
+	l.add_theme_font_size_override("font_size", size)
+	l.add_theme_color_override("font_color", col)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return l

@@ -1,10 +1,5 @@
 name: Project check
 
-# The engine is not available on every machine we work from, so this workflow
-# is the authoritative "does the project still import and run" gate: it imports
-# the project with the official editor, fails on any script or shader error, and
-# then boots the main scene headlessly.
-
 on:
   push:
     branches: ['arena/**']
@@ -94,11 +89,8 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri
-          # Run the play-through in the background so its progress can be
-          # mirrored into annotations while it works, and bound it with a
-          # timeout: a stuck scene should fail in minutes, not eat the job.
-          timeout 480 xvfb-run -a -s '-screen 0 1440x810x24' \
-            godot --path . --rendering-method gl_compatibility --resolution 1440x810 \
+          timeout 480 xvfb-run -a -s '-screen 0 720x1280x24' \
+            godot --path . --rendering-method gl_compatibility --resolution 720x1280 \
             res://tools/smoke.tscn > "$RUNNER_TEMP/smoke.log" 2>&1 &
           smoke_pid=$!
           for i in $(seq 1 480); do
@@ -121,7 +113,7 @@ jobs:
             echo "::error::The play-through did not finish"
             exit 1
           }
-          test -s documentation/qa/02-town-fa.png
+          test -s documentation/qa/03-town-fa.png
 
       - name: Publish play-through previews
         if: github.event_name == 'push'

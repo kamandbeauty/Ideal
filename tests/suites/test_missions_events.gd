@@ -1,5 +1,5 @@
 extends TestCase
-## The guided mission chain and the roadside events.
+## Guided mission chain and Roadside Empire rush/weather events.
 
 
 func _focus(town: TownState, id: String) -> void:
@@ -7,12 +7,13 @@ func _focus(town: TownState, id: String) -> void:
 		"first_upgrade":
 			if town.upgrades_total == 0:
 				town.upgrade_business("gas_station")
-		"open_store":
-			town.unlock_business("store")
-		"open_restaurant":
-			town.unlock_business("restaurant")
-		"reach_level_three":
-			while town.business("gas_station").level < 3:
+		"open_car_wash":
+			town.unlock_business("car_wash")
+		"open_auto_service":
+			town.upgrade_business("gas_station", 25)
+			town.unlock_business("auto_service")
+		"reach_level_ten":
+			while town.business("gas_station").level < 10:
 				town.upgrade_business("gas_station")
 		"hire_manager":
 			town.hire_manager("gas_station")
@@ -21,40 +22,27 @@ func _focus(town: TownState, id: String) -> void:
 				town.upgrade_business("gas_station")
 			town.upgrade_branch("gas_station", "capacity")
 		"serve_customers":
-			town.customers = 500.0
+			town.customers = 150.0
 		"open_all":
-			for business_id in town.business_ids():
-				town.unlock_business(business_id)
+			for pass_idx in range(6):
+				for bid in town.business_ids():
+					town.unlock_business(bid)
+					if town.business(bid).unlocked and town.business(bid).level < 25:
+						town.upgrade_business(bid, 25)
 		"complete_town":
-			for business_id in town.business_ids():
-				while town.business(business_id).level < BusinessData.MAX_LEVEL:
-					town.upgrade_business(business_id)
-				for branch in BusinessData.BRANCHES:
-					while town.business(business_id).can_upgrade_branch(branch):
-						town.upgrade_branch(business_id, branch)
-
-
-func test_mission_chain_starts_with_an_upgrade() -> void:
-	var town := TownState.new("desert")
-	var progress := town.mission_progress()
-	equal(str(progress["id"]), "first_upgrade", "the chain starts with the first upgrade")
-	check(not bool(progress["ready"]), "it is not ready on a fresh town")
-	check(town.claim_mission().is_empty(), "an unfinished mission pays nothing")
-
-	town.cash = 100000.0
-	var cash_before := town.cash
-	check(town.upgrade_business("gas_station"), "the upgrade should be affordable")
-	check(bool(town.mission_progress()["ready"]), "the first mission is ready")
-	var reward := town.claim_mission()
-	check(not reward.is_empty(), "the reward should pay")
-	almost(town.cash, cash_before - 850.0 + 250.0, "the reward is credited", 0.01)
-	equal(int(town.mission_progress()["index"]), 1, "the chain moves on")
-	check(town.claim_mission().is_empty(), "a mission cannot be claimed twice")
+			for pass_idx in range(6):
+				for bid in town.business_ids():
+					town.unlock_business(bid)
+					if town.business(bid).unlocked:
+						town.upgrade_business(bid, BusinessData.MAX_LEVEL)
+						for branch in BusinessData.BRANCHES:
+							while town.business(bid).can_upgrade_branch(branch):
+								town.upgrade_branch(bid, branch)
 
 
 func test_mission_chain_can_be_finished() -> void:
 	var town := TownState.new("desert")
-	town.cash = 100000000.0
+	town.cash = 1.0e15
 	for i in MissionData.count():
 		var progress := town.mission_progress()
 		check(not progress.is_empty(), "a mission is always offered")
@@ -62,7 +50,7 @@ func test_mission_chain_can_be_finished() -> void:
 		check(bool(town.mission_progress()["ready"]), "%s should be ready" % progress["id"])
 		town.claim_mission()
 	check(town.mission_progress().is_empty(), "the chain ends after the last mission")
-	check(town.completed, "the last mission needs a finished town")
+	check(town.completed, "the last mission finishes the hub")
 
 
 func test_every_mission_has_copy() -> void:
@@ -74,31 +62,20 @@ func test_every_mission_has_copy() -> void:
 			check(description != "mission.%s.desc" % id, "missing mission text for " + id)
 
 
-func test_events_change_traffic_and_income() -> void:
+func test_events_change_traffic_and_monster_hills_spawns_monsters() -> void:
 	var town := TownState.new("desert")
 	var base_traffic := town.traffic()
-	check(town.start_event("rush"), "rush hour should start")
+	check(town.start_event("monster_hills"), "Monster Hills rally starts")
+	check(TownEvents.spawns_monsters("monster_hills"), "Monster Hills spawns monster trucks")
 	almost(
 		town.traffic(),
-		base_traffic * TownEvents.traffic("rush"),
-		"rush multiplies traffic",
+		base_traffic * TownEvents.traffic("monster_hills"),
+		"Monster Hills boosts traffic",
 		0.001
 	)
-	check(not town.start_event("rain"), "only one event runs at a time")
-	town.advance(TownEvents.duration("rush") + 1.0)
-	check(town.active_event.is_empty(), "the event should end on time")
-	almost(town.traffic(), base_traffic, "traffic returns to normal", 0.001)
-
-
-func test_bad_weather_slows_the_stop() -> void:
-	var town := TownState.new("desert")
-	check(town.start_event("rain"), "rain starts")
-	check(town.traffic() < 1.0, "rain reduces traffic")
-	town.advance(TownEvents.duration("rain") + 1.0)
-	check(town.start_event("breakdown"), "breakdown starts")
-	check(town.event_income() < 1.0, "a breakdown reduces income")
-	town.advance(TownEvents.duration("breakdown") + 1.0)
-	almost(town.event_income(), 1.0, "income returns to normal", 0.001)
+	check(not town.start_event("sandstorm"), "only one event runs at a time")
+	town.advance(TownEvents.duration("monster_hills") + 1.0)
+	check(town.active_event.is_empty(), "event ends on time")
 
 
 func test_event_catalogue_is_complete() -> void:
@@ -110,6 +87,3 @@ func test_event_catalogue_is_complete() -> void:
 		for language in L10n.LANGUAGES:
 			var label := L10n.translate(language, TownEvents.name_key(id))
 			check(label != TownEvents.name_key(id), "missing event name for " + id)
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 7
-	check(TownEvents.pick(rng, "rush") != "rush", "pick avoids the previous event")

@@ -1,5 +1,5 @@
 extends Node
-## Global app state: language, saved progress, shared theme.
+## Global app state: language, compact tycoon number formatting, settings, haptics.
 
 signal language_changed(language: String)
 signal settings_changed
@@ -7,6 +7,8 @@ signal settings_changed
 const SETTINGS_PATH := "user://settings.cfg"
 const PERSIAN_DIGITS: Array[String] = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"]
 const DEFAULT_LANGUAGE := "fa"
+const COMPACT_SUFFIXES_EN: Array[String] = ["", "K", "M", "B", "T", "aa", "ab"]
+const COMPACT_SUFFIXES_FA: Array[String] = ["", "هزار", "میلیون", "میلیارد", "تریلیون", "aa", "ab"]
 
 var language: String = DEFAULT_LANGUAGE
 var best_reputation: int = 0
@@ -23,8 +25,6 @@ func _ready() -> void:
 	ui_theme = UiTheme.build()
 	Quality.apply(quality)
 
-
-# --- Settings --------------------------------------------------------------
 
 func set_music_volume(value: float) -> void:
 	music_volume = clampf(value, 0.0, 1.0)
@@ -55,22 +55,80 @@ func cycle_quality() -> void:
 	set_quality(Quality.LEVELS[(index + 1) % Quality.LEVELS.size()])
 
 
-## A short tap: on phones this is the difference between a game that feels
-## alive and one that feels like a form.
-func tap(strength: int = 30) -> void:
+func tap(strength: int = 28) -> void:
 	if not haptics:
 		return
 	if OS.has_feature("mobile") or OS.has_feature("web_android"):
 		Input.vibrate_handheld(strength)
 
 
-## Number formatting for the current language: Persian reads its own digits.
+## Grouped integer/decimal formatting with Persian digit conversion when active.
 func format_number(value: float, decimals: int = 0) -> String:
+	var negative := value < 0.0
+	var abs_val := absf(value)
 	var text := ""
 	if decimals > 0:
-		text = ("%." + str(decimals) + "f") % value
+		text = ("%." + str(decimals) + "f") % abs_val
 	else:
-		text = str(int(round(value)))
+		var whole := str(int(round(abs_val)))
+		var parts: Array[String] = []
+		while whole.length() > 3:
+			parts.push_front(whole.substr(whole.length() - 3, 3))
+			whole = whole.substr(0, whole.length() - 3)
+		parts.push_front(whole)
+		var sep := "٬" if language == "fa" else ","
+		text = sep.join(parts)
+	if negative:
+		text = "-" + text
+	return to_digits(text)
+
+
+## Compact Roadside Empire currency format: 393, 2.4K, 9.76M, 3.11B.
+func format_compact(value: float) -> String:
+	var negative := value < 0.0
+	var abs_val := absf(value)
+	if abs_val < 1000.0:
+		var small := str(int(round(abs_val)))
+		if negative:
+			small = "-" + small
+		return to_digits(small)
+	var tier := 0
+	var scaled := abs_val
+	while scaled >= 1000.0 and tier < COMPACT_SUFFIXES_EN.size() - 1:
+		scaled /= 1000.0
+		tier += 1
+	var digits := "%.2f" % scaled if scaled < 10.0 else ("%.1f" % scaled if scaled < 100.0 else "%d" % int(round(scaled)))
+	while digits.contains(".") and (digits.ends_with("0") or digits.ends_with(".")):
+		digits = digits.substr(0, digits.length() - 1)
+		if not digits.contains("."):
+			break
+	var suffix := COMPACT_SUFFIXES_EN[tier]
+	if language == "fa" and tier <= 4:
+		var num := to_digits(digits)
+		var out_fa := ("%s %s" % [num, COMPACT_SUFFIXES_FA[tier]]).strip_edges()
+		return ("-" + out_fa) if negative else out_fa
+	var out_en := digits + suffix
+	return ("-" + out_en) if negative else out_en
+
+
+## Short compact badge (always compact K/M/B so narrow pills never overflow).
+func format_short(value: float) -> String:
+	var abs_val := absf(value)
+	if abs_val < 1000.0:
+		return to_digits(str(int(round(value))))
+	var tier := 0
+	var scaled := abs_val
+	while scaled >= 1000.0 and tier < COMPACT_SUFFIXES_EN.size() - 1:
+		scaled /= 1000.0
+		tier += 1
+	var digits := "%.1f" % scaled if scaled < 100.0 else "%d" % int(round(scaled))
+	if digits.ends_with(".0"):
+		digits = digits.substr(0, digits.length() - 2)
+	var sign_prefix := "-" if value < 0.0 else ""
+	return sign_prefix + to_digits(digits) + COMPACT_SUFFIXES_EN[tier]
+
+
+func to_digits(text: String) -> String:
 	if language != "fa":
 		return text
 	var converted := ""
@@ -80,7 +138,6 @@ func format_number(value: float, decimals: int = 0) -> String:
 	return converted
 
 
-## Localised string lookup.
 func t(key: String, args: Array = []) -> String:
 	return L10n.translate(language, key, args)
 
@@ -101,7 +158,6 @@ func is_rtl() -> bool:
 	return language == "fa"
 
 
-## Layout direction for freshly built controls.
 func layout_direction() -> int:
 	return Control.LAYOUT_DIRECTION_RTL if is_rtl() else Control.LAYOUT_DIRECTION_LTR
 

@@ -1,5 +1,6 @@
 extends Node3D
-## Runs one town: the 3D view, the camera, the HUD and the idle simulation.
+## Runs one Roadside Empire station hub: the 3D canyon view, camera rig,
+## portrait HUD, world badges, vault collection and idle simulation.
 
 signal exit_requested
 signal travel_requested(town_id: String)
@@ -7,7 +8,6 @@ signal travel_requested(town_id: String)
 const HUD_SCENE := preload("res://scenes/ui/town_hud.tscn")
 const AUTOSAVE_SECONDS := 20.0
 const TAP_SLOP := 14.0
-const TIP_LABEL_SECONDS := 1.1
 
 var state: TownState
 var view: TownView
@@ -26,12 +26,12 @@ var _levels: Dictionary = {}
 var _music_night := false
 var _coin_timer := 0.0
 var _coin_index := 0
-var _event_timer := 75.0
+var _event_timer := 85.0
 var _auto_timer := 6.0
 var _last_event_id := ""
 var _events_rng := RandomNumberGenerator.new()
-var _zoom_from := 30.0
-var _zoom_to := 30.0
+var _zoom_from := 23.5
+var _zoom_to := 23.5
 var _target_from := Vector3.ZERO
 var _target_to := Vector3.ZERO
 
@@ -65,7 +65,6 @@ func _ready() -> void:
 	hud.setup(self)
 
 	if Game.offline_seconds > 0.0 and state.offline_earnings(Game.offline_seconds) > 0.0:
-		# Managers are what earn while the player sleeps: a zero report is noise.
 		hud.show_offline(Game.offline_seconds, state.offline_earnings(Game.offline_seconds))
 
 	state.event_started.connect(_on_event_started)
@@ -75,17 +74,17 @@ func _ready() -> void:
 
 
 func _intro_camera() -> void:
-	camera_rig.zoom = 38.0
-	camera_rig.target = Vector3(0, 0, 5.0)
+	camera_rig.zoom = 29.5
+	camera_rig.target = Vector3(-0.3, 0.0, 2.8)
 	camera_rig.apply()
 	var tween := create_tween()
-	tween.tween_method(_apply_intro, 0.0, 1.0, 1.2) \
+	tween.tween_method(_apply_intro, 0.0, 1.0, 1.0) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func _apply_intro(t: float) -> void:
-	camera_rig.zoom = lerpf(38.0, 30.0, t)
-	camera_rig.target = Vector3(0, 0, lerpf(5.0, 0.0, t))
+	camera_rig.zoom = lerpf(29.5, IsometricCamera.DEFAULT_ZOOM, t)
+	camera_rig.target = Vector3(-0.3, 0.0, lerpf(2.8, IsometricCamera.DEFAULT_TARGET.z, t))
 	camera_rig.apply()
 
 
@@ -94,19 +93,19 @@ func _process(delta: float) -> void:
 		return
 	state.advance(delta)
 	_coin_timer += delta
-	if _coin_timer >= 3.5:
+	if _coin_timer >= 3.8:
 		_coin_timer = 0.0
 		_pop_income()
 	_event_timer -= delta
 	if _event_timer <= 0.0:
-		_event_timer = _events_rng.randf_range(110.0, 160.0)
+		_event_timer = _events_rng.randf_range(115.0, 165.0)
 		if state.active_event.is_empty():
 			var event_id := TownEvents.pick(_events_rng, _last_event_id)
 			if state.start_event(event_id):
 				_last_event_id = event_id
 	_auto_timer -= delta
 	if _auto_timer <= 0.0:
-		_auto_timer = 5.0
+		_auto_timer = 5.5
 		_auto_upgrade()
 
 	_autosave += delta
@@ -124,16 +123,12 @@ func _exit_tree() -> void:
 		Game.save_game()
 
 
-# --- Atmosphere ------------------------------------------------------------
-
 func _start_music() -> void:
 	_music_night = day_cycle.is_night()
 	Sound.play_music("night" if _music_night else "day")
 	Sound.start_ambience()
 
 
-## The soundtrack follows the sun: bright walking bass by day, mellow minor at
-## night. It is the cheapest way to make the loop feel like it has a clock.
 func _tick_music() -> void:
 	var night := day_cycle.is_night()
 	if night == _music_night:
@@ -151,8 +146,6 @@ func _on_event_started(id: String) -> void:
 		hud.show_message(App.t(TownEvents.name_key(id)))
 
 
-## The first chest of the day is opened for the player, with the ceremony of a
-## toast and a coin burst: it is the reason to open the app again tomorrow.
 func _claim_daily() -> void:
 	if Game.profile == null or not Game.profile.bonus_ready():
 		return
@@ -160,7 +153,7 @@ func _claim_daily() -> void:
 	if chest.is_empty():
 		return
 	var message := App.t("msg.daily", [
-		App.format_number(float(chest["cash"])),
+		App.format_short(float(chest["cash"])),
 		App.format_number(float(chest["streak"])),
 		"%.1f" % float(chest["multiplier"]),
 	])
@@ -170,7 +163,7 @@ func _claim_daily() -> void:
 	if hud != null:
 		hud.show_message(message)
 	Sound.play("cash", -4.0)
-	App.tap(40)
+	App.tap(35)
 	hud.refresh()
 	Game.save_game()
 
@@ -178,19 +171,23 @@ func _claim_daily() -> void:
 func _on_settings_changed() -> void:
 	if view == null:
 		return
-	var customers := view.get_node_or_null("Customers")
-	if customers != null:
-		customers.set("max_agents", Quality.agent_cap(App.quality))
+	var cust := view.get_node_or_null("Customers")
+	if cust != null:
+		cust.set("max_agents", Quality.agent_cap(App.quality))
 	var walkers := view.get_node_or_null("Pedestrians")
 	if walkers != null:
 		walkers.call("set_count", Quality.pedestrian_count(App.quality))
 
 
-# --- Selection -------------------------------------------------------------
-
 func select_business(id: String) -> void:
 	if not state.businesses.has(id):
 		return
+	var b := state.business(id)
+	if b != null and b.unlocked and b.vault_cash >= 1.0:
+		var swept := state.collect_vault(id)
+		if swept > 0.0:
+			view.pop_income(id, swept)
+			Sound.play("coin", -7.0)
 	selected_id = id
 	view.set_selected(id)
 	hud.show_business(id)
@@ -203,47 +200,38 @@ func deselect() -> void:
 
 
 func _on_business_changed(id: String) -> void:
-	var business := state.business(id)
-	var previous := int(_levels.get(id, business.level if business != null else 1))
+	var b := state.business(id)
+	var previous := int(_levels.get(id, b.level if b != null else 1))
 	view.refresh_business(id)
-	if business == null:
+	if b == null:
 		return
-	_levels[id] = business.level
-	if business.level > previous:
+	_levels[id] = b.level
+	if b.level > previous:
 		view.sparkle(id)
-		_focus_camera(id)
 
 
-## Managers buy the cheapest sensible upgrade themselves, always leaving a cash
-## reserve behind. The player still owns the big decisions.
 func _auto_upgrade() -> void:
 	var step := AutoUpgrade.apply(state)
 	if step.is_empty() or hud == null:
 		return
 	var id := String(step["id"])
-	var business = state.business(id)
 	view.refresh_business(id)
 	view.sparkle(id)
-	var message := ""
-	match String(step["kind"]):
-		AutoUpgrade.KIND_BRANCH:
-			message = App.t("msg.auto_branch", [
-				App.t("business.%s.name" % id),
-				App.t("branch.%s" % String(step["branch"])),
-				App.format_number(float(step["branch_level"])),
-			])
-		AutoUpgrade.KIND_MANAGER:
-			message = App.t("msg.auto_rank", [
-				App.t("business.%s.name" % id),
-				App.t("manager.rank.%d" % int(step["manager_rank"])),
-			])
-		_:
-			message = App.t("msg.auto_level", [
-				App.t("business.%s.name" % id),
-				App.format_number(float(step["level"])),
-			])
-	if message.is_empty():
-		message = App.t("msg.upgraded", [App.t("business.%s.name" % id), business.level])
+	var message := App.t("msg.auto_level", [
+		App.t("business.%s.name" % id),
+		App.format_number(float(step.get("level", 1))),
+	])
+	if String(step["kind"]) == AutoUpgrade.KIND_BRANCH:
+		message = App.t("msg.auto_branch", [
+			App.t("business.%s.name" % id),
+			App.t("branch.%s" % String(step["branch"])),
+			App.format_number(float(step["branch_level"])),
+		])
+	elif String(step["kind"]) == AutoUpgrade.KIND_MANAGER:
+		message = App.t("msg.auto_rank", [
+			App.t("business.%s.name" % id),
+			App.t("manager.rank.%d" % int(step["manager_rank"])),
+		])
 	hud.show_message(message)
 
 
@@ -253,22 +241,29 @@ func _pop_income() -> void:
 		return
 	_coin_index = (_coin_index + 1) % ids.size()
 	var id := ids[_coin_index]
-	var business := state.business(id)
-	if business == null:
-		return
-	view.pop_income(id, business.net_per_second(state.traffic()) * 3.5)
+	var b := state.business(id)
+	if b != null and b.is_automated():
+		view.pop_income(id, b.net_per_second(state.traffic()) * state.income_multiplier() * 3.5)
 
 
-func _focus_camera(id: String) -> void:
-	var plot := BusinessData.plot(id)
+func _on_town_completed() -> void:
 	_zoom_from = camera_rig.zoom
-	_zoom_to = camera_rig.zoom * 0.86
+	_zoom_to = 31.0
 	_target_from = camera_rig.target
-	_target_to = Vector3(plot.x * 0.35, 0, plot.y * 0.35)
-	var tween := create_tween()
-	tween.tween_method(_apply_camera_focus, 0.0, 1.0, 0.45).set_trans(Tween.TRANS_SINE)
-	tween.tween_method(_apply_camera_focus, 1.0, 0.0, 0.9) \
-		.set_trans(Tween.TRANS_SINE).set_delay(0.35)
+	_target_to = IsometricCamera.DEFAULT_TARGET
+	var tw := create_tween()
+	tw.tween_method(_apply_camera_focus, 0.0, 1.0, 1.4).set_trans(Tween.TRANS_CUBIC)
+	if hud != null:
+		hud.show_completion_banner()
+
+
+func end_cinematic() -> void:
+	_zoom_from = camera_rig.zoom
+	_zoom_to = IsometricCamera.DEFAULT_ZOOM
+	_target_from = camera_rig.target
+	_target_to = IsometricCamera.DEFAULT_TARGET
+	var tw := create_tween()
+	tw.tween_method(_apply_camera_focus, 0.0, 1.0, 1.0).set_trans(Tween.TRANS_CUBIC)
 
 
 func _apply_camera_focus(t: float) -> void:
@@ -276,29 +271,6 @@ func _apply_camera_focus(t: float) -> void:
 	camera_rig.target = _target_from.lerp(_target_to, t)
 	camera_rig.apply()
 
-
-func _on_town_completed() -> void:
-	_zoom_from = camera_rig.zoom
-	_zoom_to = 40.0
-	_target_from = camera_rig.target
-	_target_to = Vector3.ZERO
-	var tween := create_tween()
-	tween.tween_method(_apply_camera_focus, 0.0, 1.0, 1.6).set_trans(Tween.TRANS_CUBIC)
-	if hud != null:
-		hud.show_completion_banner()
-
-
-## Called by the HUD once the completion banner is dismissed.
-func end_cinematic() -> void:
-	_zoom_from = camera_rig.zoom
-	_zoom_to = 30.0
-	_target_from = camera_rig.target
-	_target_to = Vector3.ZERO
-	var tween := create_tween()
-	tween.tween_method(_apply_camera_focus, 0.0, 1.0, 1.1).set_trans(Tween.TRANS_CUBIC)
-
-
-# --- HUD actions -----------------------------------------------------------
 
 func save_now() -> void:
 	Game.save_game()
@@ -316,7 +288,7 @@ func travel_to(town_id: String) -> bool:
 	if not Game.travel_to(town_id):
 		if hud != null:
 			hud.show_message(App.t("msg.travel_locked", [
-				App.format_number(TownData.reputation_required(town_id))
+				App.format_number(TownData.star_required(town_id))
 			]))
 		Sound.play("deny", -10.0)
 		return false
@@ -332,8 +304,6 @@ func leave_to_menu() -> void:
 	App.record_reputation(int(state.reputation))
 	exit_requested.emit()
 
-
-# --- Input -----------------------------------------------------------------
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
@@ -439,8 +409,6 @@ func _tap(screen_point: Vector2) -> void:
 	select_business(id)
 
 
-## Tapping the building you already have open pays its tip. It is the little
-## "yes, I touched the town" moment that turns watching into playing.
 func collect_tip(id: String) -> float:
 	var amount := state.collect_tip(id)
 	if amount <= 0.0:
@@ -456,7 +424,6 @@ func collect_tip(id: String) -> float:
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_PAUSED or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		# A phone can be killed while paused: never rely on the 20 s autosave.
 		if state != null:
 			Game.save_game()
 			App.record_reputation(int(state.reputation))

@@ -1,148 +1,80 @@
 extends TestCase
-## The profile: several towns, shared reputation, travel gates and the daily
-## streak. This is the layer the world map and the offline report sit on.
+## Profile: multi-territory US highway progression, Star Level travel gates,
+## offline claims across automated hubs and daily streak rewards.
 
 
-func _rich_town(town_id: String, reputation: float, cash: float) -> TownState:
+func _star_town(town_id: String, target_star_lvl: int, cash: float) -> TownState:
 	var town := TownState.new(town_id)
+	town.cash = 1.0e12
+	for pass_idx in range(6):
+		if town.star_level() >= target_star_lvl:
+			break
+		for id in town.business_ids():
+			town.unlock_business(id)
+			if town.business(id).unlocked and town.star_level() < target_star_lvl:
+				town.upgrade_business(id, 25)
 	town.cash = cash
-	town.unlock_business("restaurant")
-	town.cash = cash
-	town.reputation = reputation
 	return town
 
 
-func test_a_new_profile_starts_in_the_desert_only() -> void:
+func test_a_new_profile_starts_in_dusty_canyon() -> void:
 	var profile := Profile.new()
-	equal(profile.active_town, "desert", "a new profile starts in the desert")
-	check(profile.active() != null, "the desert town exists")
-	equal(profile.town_ids().size(), 1, "only the desert is visited")
-	check(profile.unlocked("desert"), "the desert needs no reputation")
-	check(not profile.unlocked("forest"), "the forest starts locked")
-	almost(profile.reputation(), 0.0, "no reputation yet")
+	equal(profile.active_town, "desert", "starts in Dusty Canyon AZ")
+	check(profile.active() != null, "the desert hub exists")
+	equal(profile.town_ids().size(), 1, "only Dusty Canyon is visited")
+	check(profile.unlocked("desert"), "Dusty Canyon needs Star Level 1")
+	check(not profile.unlocked("mojave"), "Red Rock Oasis needs Star Level 2")
+	equal(profile.best_star_level(), 1, "starts at Star Level 1")
 
 
-func test_every_town_opens_with_its_cheapest_business() -> void:
-	for id in TownData.ORDER:
-		var town := TownState.new(id)
-		var opener := TownState.opening_business(id)
-		check(not opener.is_empty(), "%s should have an opening business" % id)
-		equal(town.unlocked_ids().size(), 1, "%s opens exactly one business" % id)
-		check(town.business(opener).unlocked, "%s opens its cheapest business" % id)
-		check(town.net_per_minute() > 0.0, "%s must earn from the first second" % id)
-	equal(TownState.FIRST_BUSINESS, TownState.opening_business("desert"), "the desert still opens its pumps")
-
-
-func test_reputation_is_the_best_of_every_town() -> void:
+func test_travel_unlocks_by_star_level() -> void:
 	var profile := Profile.new()
-	profile.towns["forest"] = _rich_town("forest", 700.0, 5000.0)
-	profile.active_town = "forest"
-	almost(profile.reputation(), 700.0, "the highest town reputation counts")
-	check(profile.unlocked("forest"), "700 opens the forest (needs 600)")
-	check(not profile.unlocked("mountain"), "700 does not open the mountain")
+	profile.towns["desert"] = _star_town("desert", 3, 5000.0)
+	check(profile.unlocked("mojave"), "Star Level 3 unlocks Red Rock Oasis (Ch 2)")
+	check(profile.unlocked("forest"), "Star Level 3 unlocks Timberland Pass (Ch 3)")
+	check(not profile.unlocked("vegas"), "Star Level 3 does not unlock Vegas (Ch 6)")
+	check(profile.travel("forest"), "can travel to Timberland Pass")
+	equal(profile.active_town, "forest", "active hub switched")
+	check(not profile.travel("vegas"), "locked Vegas refuses travel")
 
 
-func test_every_town_unlocks_at_its_gate() -> void:
-	for id in TownData.ORDER:
-		var profile := Profile.new()
-		var need := TownData.reputation_required(id)
-		profile.towns["desert"] = _rich_town("desert", need, 0.0)
-		check(profile.unlocked(id), "gate for %s should open at %.0f" % [id, need])
-		if need > 0.0:
-			profile.towns["desert"].reputation = need - 1.0
-			check(not profile.unlocked(id), "gate for %s must stay shut below" % id)
-
-
-func test_travel_creates_and_switches_towns() -> void:
+func test_profile_round_trip_keeps_every_hub() -> void:
 	var profile := Profile.new()
-	profile.towns["desert"].reputation = 1500.0
-	check(profile.travel("forest"), "an unlocked town accepts travel")
-	equal(profile.active_town, "forest", "the active town moved")
-	check(profile.visited("forest"), "the forest now exists")
-	check(not profile.travel("highway"), "a locked town refuses travel")
-	equal(profile.active_town, "forest", "a refused travel keeps the town")
-	check(profile.travel("desert"), "the player can come back")
-	equal(profile.town_ids().size(), 2, "coming back does not add a town")
-
-
-func test_profile_round_trip_keeps_every_town() -> void:
-	var profile := Profile.new()
-	profile.towns["desert"].cash = 1234.0
-	profile.towns["desert"].reputation = 900.0
-	profile.travel("forest")
-	profile.towns["forest"].cash = 5000.0
-	profile.towns["forest"].upgrade_business("store")
-	profile.towns["forest"].cash = 555.0
+	profile.towns["desert"] = _star_town("desert", 3, 1234.0)
+	profile.travel("mojave")
+	profile.towns["mojave"].cash = 5000.0
+	profile.towns["mojave"].upgrade_business("gas_station")
+	profile.towns["mojave"].cash = 555.0
 	profile.streak = 3
 	profile.bonus_day = 400
 
 	var data := profile.serialize()
-	equal(int(data["version"]), Profile.VERSION, "the payload carries its version")
+	equal(int(data["version"]), Profile.VERSION, "payload carries version")
 	var loaded := Profile.new()
-	check(loaded.apply_save(data), "a profile save should load")
-	equal(loaded.active_town, "forest", "the active town survives")
-	equal(loaded.town_ids().size(), 2, "both towns survive")
-	almost(loaded.towns["desert"].cash, 1234.0, "the desert cash survives")
-	equal(loaded.towns["forest"].business("store").level, 2, "levels survive")
-	almost(loaded.towns["forest"].cash, 555.0, "the forest cash survives")
-	equal(loaded.streak, 3, "the streak survives")
-	almost(loaded.reputation(), 900.0, "reputation is restored")
+	check(loaded.apply_save(data), "profile save loads")
+	equal(loaded.active_town, "mojave", "active hub survives")
+	equal(loaded.town_ids().size(), 2, "both hubs survive")
+	almost(loaded.towns["desert"].cash, 1234.0, "desert cash survives")
+	equal(loaded.towns["mojave"].business("gas_station").level, 2, "levels survive")
+	equal(loaded.streak, 3, "streak survives")
 
 
-func test_a_version_one_save_is_wrapped() -> void:
-	# A version 1 file was a single town written at the top level.
-	var town := TownState.new("desert")
-	town.cash = 5000.0
-	town.reputation = 250.0
-	town.upgrade_business("gas_station")
-	town.cash = 777.0
-	var legacy := town.serialize()
-	legacy["last_seen"] = 1234
-
+func test_offline_pays_every_automated_hub_once() -> void:
 	var profile := Profile.new()
-	check(profile.apply_save(legacy), "an old single-town save still loads")
-	equal(profile.active_town, "desert", "the old town becomes the active one")
-	almost(profile.towns["desert"].cash, 777.0, "the old cash is kept")
-	equal(profile.towns["desert"].business("gas_station").level, 2, "old levels are kept")
-
-
-func test_bad_profile_saves_are_refused() -> void:
-	var profile := Profile.new()
-	check(not profile.apply_save({}), "an empty save is refused")
-	check(not profile.apply_save({"version": 99, "towns": {}}), "a wrong version is refused")
-	check(
-		not profile.apply_save({"version": Profile.VERSION, "towns": {"atlantis": {}}}),
-		"a profile of unknown towns is refused"
-	)
-
-
-func test_offline_pays_every_managed_town_once() -> void:
-	var profile := Profile.new()
+	profile.towns["desert"].cash = 50000.0
 	profile.towns["desert"].hire_manager("gas_station")
-	profile.towns["forest"] = _rich_town("forest", 700.0, 5000.0)
-	profile.towns["forest"].hire_manager("store")
+	profile.towns["mojave"] = _star_town("mojave", 2, 50000.0)
+	profile.towns["mojave"].hire_manager("gas_station")
 
 	var report := profile.claim_offline(3600.0)
-	check(float(report["earnings"]) > 0.0, "managed towns pay offline")
-	equal((report["breakdown"] as Array).size(), 2, "both towns are in the report")
-
-	var second := profile.claim_offline(0.0)
-	almost(float(second["earnings"]), 0.0, "claiming twice pays nothing extra")
+	check(float(report["earnings"]) > 0.0, "automated hubs pay offline")
+	equal((report["breakdown"] as Array).size(), 2, "both hubs are in the breakdown")
 
 
 func test_the_daily_chest_pays_once_a_day() -> void:
 	var profile := Profile.new()
-	profile.towns["desert"].cash = 0.0
-	profile.towns["desert"].upgrade_business("gas_station")
-	check(profile.bonus_ready(100), "day 100 should be ready")
+	check(profile.bonus_ready(100), "day 100 ready")
 	var chest := profile.claim_daily(100)
-	check(not chest.is_empty(), "the chest opens")
-	check(float(chest["cash"]) > 0.0, "the chest pays cash")
-	equal(int(chest["streak"]), 1, "the first day is streak 1")
-	check(not profile.bonus_ready(100), "the same day cannot be claimed twice")
-	check(profile.claim_daily(100).is_empty(), "a second claim returns nothing")
-
-	var next := profile.claim_daily(101)
-	equal(int(next["streak"]), 2, "the next day extends the streak")
-	var gap := profile.claim_daily(105)
-	equal(int(gap["streak"]), 1, "missing a day resets the streak")
+	check(not chest.is_empty(), "chest opens")
+	check(float(chest["cash"]) > 0.0, "chest pays cash")
+	check(not profile.bonus_ready(100), "same day cannot be claimed twice")

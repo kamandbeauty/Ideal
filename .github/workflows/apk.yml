@@ -1,15 +1,9 @@
 name: Android APK
 
-# Builds a debug-signed, arm64 APK you can install on a phone and keeps it as a
-# downloadable artifact. Manual on purpose: it downloads the export templates
-# and the Android SDK, so it should not run on every push.
-#
-#     gh workflow run apk.yml
-#     gh run download <run-id> -n roadstop-apk
 on:
   workflow_dispatch:
   push:
-    branches: [arena/82a11100-ideal]
+    branches: ['arena/**']
 permissions:
   contents: write
 env:
@@ -18,8 +12,6 @@ env:
 
 jobs:
   apk:
-    # Runs when dispatched, or when a commit asks for it with [apk] in the
-    # message, so ordinary pushes never pay for a template download.
     if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[apk]')
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -101,7 +93,6 @@ jobs:
           set -o pipefail
           "$SDKM" --sdk_root="$ANDROID_HOME" --install \
             "platform-tools" "build-tools;34.0.0" "platforms;android-34"
-          ls "$ANDROID_HOME/build-tools/34.0.0" | head
 
           echo "$ANDROID_HOME/platform-tools" >> "$GITHUB_PATH"
           echo "$ANDROID_HOME/build-tools/34.0.0" >> "$GITHUB_PATH"
@@ -112,7 +103,6 @@ jobs:
               -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 -noprompt \
               -dname "CN=Android Debug,O=Android,C=US"
           fi
-          keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android | head -3
 
       - name: Import the project
         run: |
@@ -125,11 +115,11 @@ jobs:
         run: |
           status=0
           mkdir -p delivery
-          godot --headless --path . --export-debug "Android APK" delivery/RoadstopTycoon.apk \
+          godot --headless --path . --export-debug "Android APK" delivery/RoadsideEmpire.apk \
             > /tmp/export.log 2>&1 || status=$?
           echo "::notice title=export-status::godot exited with $status"
           ls -la delivery || true
-          if [ ! -s delivery/RoadstopTycoon.apk ]; then
+          if [ ! -s delivery/RoadsideEmpire.apk ]; then
             msg=$(tail -25 /tmp/export.log | tr '\n' '|' | cut -c1-3500)
             echo "::error title=export-log::$msg"
             exit 1
@@ -139,21 +129,16 @@ jobs:
       - name: Inspect the APK
         run: |
           set -euo pipefail
-          APK=delivery/RoadstopTycoon.apk
+          APK=delivery/RoadsideEmpire.apk
           BADGING=$("$ANDROID_HOME/build-tools/34.0.0/aapt2" dump badging "$APK")
           echo "$BADGING" | grep -E "^(package|sdkVersion|targetSdkVersion|application-label|native-code|launchable-activity)" || true
-          summary=$(echo "$BADGING" | grep -E "^(package|sdkVersion|targetSdkVersion|native-code)" | tr '\n' '|')
-          summary="$summary size=$(du -h "$APK" | cut -f1)"
-          echo "::notice title=apk::$summary"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: roadstop-apk
-          path: delivery/RoadstopTycoon.apk
+          name: roadside-empire-apk
+          path: delivery/RoadsideEmpire.apk
           if-no-files-found: error
 
-      # The artifact download is a zip that needs a file manager on the phone.
-      # Publishing the raw APK on a rolling release makes it a single tap.
       - name: Publish the APK to the rolling release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -161,15 +146,15 @@ jobs:
         run: |
           set -euo pipefail
           notes=$(printf '%s\n\n%s\n%s\n' \
-            "Debug-signed arm64 build of Roadstop Tycoon — شهر کویر, version 0.9.0." \
-            "Install: open this page on the phone, download RoadstopTycoon.apk," \
-            "allow \"install unknown apps\" for your browser, then open the file.")
+            "Debug-signed arm64 Android APK of Roadside Empire: Idle Tycoon (امپراتوری بین‌راهی), v1.40.0." \
+            "Install: open this page on your Android phone, download RoadsideEmpire.apk," \
+            "allow \"install unknown apps\" for your browser/file manager, then open the file.")
           notes="$notes"$'\n'"Built from $SHA."
-          if ! gh release view roadstop-apk > /dev/null 2>&1; then
-            gh release create roadstop-apk --title "Roadstop Tycoon — phone build" \
+          if ! gh release view roadside-empire-apk > /dev/null 2>&1; then
+            gh release create roadside-empire-apk --title "Roadside Empire: Idle Tycoon — Android APK" \
               --target "$SHA" --latest=false --notes "$notes"
           else
-            gh release edit roadstop-apk --notes "$notes"
+            gh release edit roadside-empire-apk --notes "$notes"
           fi
-          gh release upload roadstop-apk delivery/RoadstopTycoon.apk --clobber
-          gh release view roadstop-apk --json url -q .url
+          gh release upload roadside-empire-apk delivery/RoadsideEmpire.apk --clobber
+          gh release view roadside-empire-apk --json url -q .url

@@ -5,13 +5,13 @@ config_version=5
 
 [application]
 
-config/name="Roadstop Tycoon"
-config/description="Roadstop Tycoon — a hybrid idle tycoon of roadside towns for Android."
-config/version="1.0.0"
+config/name="Roadside Empire: Idle Tycoon"
+config/description="Roadside Empire: Idle Tycoon — Build your desert gas station into a full roadside empire!"
+config/version="1.40.0"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/icons/icon.png"
-boot_splash/bg_color=Color(0.043, 0.051, 0.078, 1)
+boot_splash/bg_color=Color(0.92, 0.74, 0.46, 1)
 boot_splash/show_image=false
 
 [autoload]
@@ -22,13 +22,13 @@ Game="*res://scripts/core/game.gd"
 
 [display]
 
-window/size/viewport_width=1280
-window/size/viewport_height=720
-window/size/window_width_override=1280
-window/size/window_height_override=720
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=720
+window/size/window_height_override=1280
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/handheld/orientation=0
+window/handheld/orientation=1
 window/energy_saving/keep_screen_on=true
 
 [gui]
@@ -39,7 +39,7 @@ theme/default_font_multichannel_signed_distance_field=false
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-environment/defaults/default_clear_color=Color(0.043, 0.051, 0.078, 1)
+environment/defaults/default_clear_color=Color(0.92, 0.74, 0.46, 1)
 anti_aliasing/quality/msaa_3d=0
 textures/default_filters/anisotropic_filtering_level=1
 textures/vram_compression/import_etc2_astc=true

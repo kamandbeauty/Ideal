@@ -1,12 +1,8 @@
 extends Node
-## Scripted play-through for CI: opens the menu, runs the desert town, buys
-## upgrades and a manager, turns and zooms the camera, opens the business panel
-## and the offline report, and saves screenshots of each step.
-##
-##     xvfb-run godot --path . res://tools/smoke.tscn
-##
-## It is a scene (not a --script main loop) so the autoloads exist exactly as
-## they do for a player.
+## Scripted portrait play-through for CI (`720x1280`):
+## captures menus, early desert forecourt with derelict junkyard lots & vault
+## badges, expanded Roadside Empire hub, Station Sheet, Managers & Bourbon,
+## Supply Cases, Territory Map & Expeditions, Monster Hills rally and Night mode!
 
 const MENU_SCENE := preload("res://scenes/ui/main_menu.tscn")
 const TOWN_SCENE := preload("res://scenes/town/town.tscn")
@@ -26,93 +22,98 @@ func _run() -> void:
 
 	var menu = MENU_SCENE.instantiate()
 	add_child(menu)
-	await _settle(10)
+	await _settle(12)
 	await _capture("00-menu-fa")
 	App.set_language("en")
 	await _settle(6)
 	await _capture("01-menu-en")
-	App.set_language("fa")
 	menu.queue_free()
 	await _settle(3)
 
+	# 1) Early Forecourt in English (like Google Play Screenshot 1 & 2!):
+	# Gas Station open + Vault cash + 1 Green Quest ready + Derelict Car Wash $300!
 	Game.start_new_game()
 	_town = TOWN_SCENE.instantiate()
 	add_child(_town)
-	await _settle(80)
+	await _settle(90)
+	_town.state.cash = 420.0
+	_town.state.advance(18.0)
+	var q1: Dictionary = _town.state.quest_slots[1]
+	_town.state.earn(float(q1.get("goal", 400.0)) + 50.0)
+	_town.hud.refresh()
+	await _settle(90)
+	await _capture("02-early-forecourt-en")
 
+	# 2) Expanded Roadside Empire Hub in Persian & English!
+	App.set_language("fa")
 	_boost_town(_town)
-	await _settle(12)
-	await _capture("02-town-fa")
-
-	_town.select_business("restaurant")
-	await _settle(6)
-	await _capture("03-business-panel-fa")
-
-	_town.deselect()
-	_town.camera_rig.turn_quarter(1)
-	_town.state.start_event("holiday")
-	_town.day_cycle.set_time(0.47)
-	await _settle(24)
-	await _capture("04-town-dusk")
-
-	_town.day_cycle.set_time(0.78)
-	await _settle(24)
-	await _capture("05-town-night")
-
-	_town.day_cycle.set_time(0.22)
-	var away := 3.5 * 3600.0
-	_town.hud.show_offline(away, _town.state.offline_earnings(away))
-	await _settle(10)
-	await _capture("06-offline-fa")
-	_town.hud.collect_offline()
-	await _settle(6)
-
-	_max_town(_town)
 	await _settle(120)
-	await _capture("07-town-complete")
-	_town.hud.dismiss_completion()
-	await _settle(20)
+	await _capture("03-town-fa")
 
 	App.set_language("en")
-	_town.camera_rig.reset_view()
-	_town.select_business("gas_station")
 	await _settle(18)
-	await _capture("08-town-en")
+	await _capture("04-town-en")
 
-	# Close on the busiest plot so the queue itself is on the record.
-	App.set_language("fa")
-	_town.day_cycle.set_time(0.3)
-	_town.deselect()
-	var gas_plot := BusinessData.plot("gas_station")
-	_town.camera_rig.focus_on(Vector3(gas_plot.x, 0, gas_plot.y))
-	_town.camera_rig.zoom_by(0.72)
-	await _settle(360)
-	await _capture("09-customers")
-
-	# The world map, with one town behind the player and the route ahead locked.
-	Game.profile.travel("forest")
-	Game.profile.travel("desert")
-	var map_node: Node = _town.hud.get_node("WorldMap")
-	map_node.call("open")
+	# 3) Station Renovation & Manager Bottom Sheet on Gas Station!
+	_town.select_business("gas_station")
 	await _settle(12)
-	await _capture("10-world-map")
+	await _capture("05-station-sheet")
+	_town.deselect()
+	await _settle(6)
+
+	# 4) Close-up on Gas Station Forecourt, Pump Canopies & Servicing Vehicles!
+	var gas_plot := BusinessData.plot("gas_station")
+	_town.camera_rig.focus_on(Vector3(gas_plot.x - 1.2, 0.0, gas_plot.y + 1.5))
+	_town.camera_rig.zoom_by(0.72)
+	await _settle(180)
+	await _capture("06-forecourt-closeup")
+	_town.camera_rig.reset_view()
+	await _settle(12)
+
+	# 5) Managers & Bourbon Card Collection Modal!
+	var mgr_node: Node = _town.hud.get_node("ManagersModal")
+	mgr_node.call("open")
+	await _settle(10)
+	await _capture("07-managers-cards")
+	mgr_node.call("close")
+	await _settle(4)
+
+	# 6) Supply Cases & Bourbon Shop Modal!
+	var cases_node: Node = _town.hud.get_node("CasesModal")
+	cases_node.call("open", "cases")
+	await _settle(10)
+	await _capture("08-supply-cases")
+	cases_node.call("close")
+	await _settle(4)
+
+	# 7) Territory Map & Monster Hills Expeditions!
+	var map_node: Node = _town.hud.get_node("WorldMap")
+	map_node.call("open", "story")
+	await _settle(10)
+	await _capture("09-world-map")
+	map_node.call("open", "exp")
+	await _settle(10)
+	await _capture("10-expeditions")
 	map_node.call("close")
 	await _settle(4)
 
-	# The crew: staff at the door and a manager patrolling the restaurant plot.
-	_town.deselect()
-	_town.day_cycle.set_time(0.5)
-	var restaurant := BusinessData.plot("restaurant")
-	_town.camera_rig.focus_on(Vector3(restaurant.x, 0, restaurant.y))
-	_town.camera_rig.zoom_by(0.55)
-	await _settle(150)
-	await _capture("11-staff")
+	# 8) Monster Hills Rally + x2 Income Booster active!
+	EmpireActions.activate_x2_boost(_town.state)
+	_town.state.start_event("monster_hills")
+	await _settle(90)
+	await _capture("11-monster-hills")
 
-	# The settings sheet, so the sliders and the presets are on the record too.
+	# 9) Desert Highway Night Mode with glowing signs & headlights!
+	App.set_language("fa")
+	_town.day_cycle.set_time(0.78)
+	await _settle(30)
+	await _capture("12-town-night-fa")
+
+	# 10) Settings Sheet
 	var settings_node: Node = _town.hud.get_node("Settings")
 	settings_node.call("open")
 	await _settle(10)
-	await _capture("12-settings")
+	await _capture("13-settings")
 	settings_node.call("close")
 	await _settle(4)
 
@@ -120,38 +121,37 @@ func _run() -> void:
 	get_tree().quit(0)
 
 
-## Gives the demo town enough progress to show every part of the interface.
 func _boost_town(town) -> void:
 	var state: TownState = town.state
-	state.cash = 60000.0
-	for id in ["restaurant", "store", "workshop", "motel", "car_wash"]:
+	state.cash = 250000.0
+	state.bourbon = 85
+	state.gems = 65
+	state.manager_cards["buck_novak"] = 4
+	state.manager_cards["rico_suds"] = 3
+	state.manager_cards["daisy_torque"] = 2
+
+	# Unlock & upgrade initial facilities so Star Level rises to 3, leaving
+	# later facilities as visible derelict junkyard lots with Star/Price badges!
+	state.upgrade_business("gas_station", 14)
+	state.upgrade_branch("gas_station", "capacity")
+	state.upgrade_branch("gas_station", "capacity")
+	state.upgrade_branch("gas_station", "quality")
+	state.hire_manager("gas_station")
+	state.hire_manager("gas_station")
+
+	for id in ["car_wash", "auto_service", "toilets", "diner"]:
 		state.unlock_business(id)
-	for id in state.business_ids():
-		state.upgrade_business(id)
-		state.upgrade_business(id)
-		state.upgrade_branch(id, "capacity")
-		state.upgrade_branch(id, "quality")
-		state.hire_manager(id)
-	state.reputation = 1500.0
-	state.advance(0.05)
-	var mission := state.mission_progress()
-	if not mission.is_empty() and bool(mission["ready"]):
-		state.claim_mission()
+		if state.business(id).unlocked:
+			state.upgrade_business(id, 10)
+			state.upgrade_branch(id, "capacity")
+			state.hire_manager(id)
+			state.hire_manager(id)
+
+	state.chapter_tasks_done = 3
+	state.cash = 14800.0
+	state.advance(2.5)
 	town.view.refresh_all()
 	town.hud.refresh()
-
-
-## Levels every business to the top so the completion banner can be captured.
-func _max_town(town) -> void:
-	var state: TownState = town.state
-	state.cash = 500000000.0
-	for id in state.business_ids():
-		while state.business(id).level < BusinessData.MAX_LEVEL:
-			state.upgrade_business(id)
-		for branch in BusinessData.BRANCHES:
-			while state.business(id).can_upgrade_branch(branch):
-				state.upgrade_branch(id, branch)
-	state.advance(0.2)
 
 
 func _settle(frames: int) -> void:
@@ -159,19 +159,17 @@ func _settle(frames: int) -> void:
 		await get_tree().process_frame
 
 
-func _capture(name: String) -> void:
+func _capture(shot_name: String) -> void:
 	await get_tree().process_frame
 	var image := get_viewport().get_texture().get_image()
 	if image == null:
-		printerr("SMOKE: no image for " + name)
+		printerr("SMOKE: no image for " + shot_name)
 		return
-	var path := "%s/%s.png" % [CAPTURE_DIR, name]
+	var path := "%s/%s.png" % [CAPTURE_DIR, shot_name]
 	var error := image.save_png(path)
 	print("SMOKE: captured %s (%s)" % [path, error_string(error)])
 
-	# Small, committed stills so the play-through can be reviewed without
-	# downloading the (much larger) full-resolution artifact.
 	var preview := image.duplicate() as Image
-	preview.resize(960, 540, Image.INTERPOLATE_BILINEAR)
-	var preview_error := preview.save_jpg("%s/%s.jpg" % [PREVIEW_DIR, name], 0.72)
-	print("SMOKE: preview %s (%s)" % [name, error_string(preview_error)])
+	preview.resize(540, 960, Image.INTERPOLATE_BILINEAR)
+	var preview_error := preview.save_jpg("%s/%s.jpg" % [PREVIEW_DIR, shot_name], 0.78)
+	print("SMOKE: preview %s (%s)" % [shot_name, error_string(preview_error)])

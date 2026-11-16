@@ -1,59 +1,94 @@
 class_name TownData
 extends RefCounted
-## The five towns of the roadmap. The vertical slice plays the first one; the
-## others already carry their economy so the world map can be built on top.
+## The 6 Story Mode territories of Roadside Empire across America.
 
-const ORDER: Array[String] = ["desert", "forest", "mountain", "coast", "highway"]
+const ORDER: Array[String] = [
+	"desert",
+	"mojave",
+	"forest",
+	"swamp",
+	"star_city",
+	"vegas",
+]
 
 const TOWNS := {
 	"desert": {
+		"chapter": 1,
 		"traffic": 1.0,
 		"income": 1.0,
 		"cost": 1.0,
+		"star_required": 1,
 		"reputation_required": 0.0,
-		"ground": Color(0.76, 0.53, 0.29),
-		"sky_top": Color(0.29, 0.51, 0.83),
-		"businesses": [
-			"gas_station", "restaurant", "store", "workshop", "motel", "car_wash"
-		],
+		"ground": Color(0.91, 0.74, 0.48),
+		"cliff": Color(0.87, 0.62, 0.36),
+		"verge": Color(0.56, 0.72, 0.29),
+		"sky_top": Color(0.34, 0.64, 0.94),
+		"businesses": BusinessData.ORDER,
+	},
+	"mojave": {
+		"chapter": 2,
+		"traffic": 1.12,
+		"income": 1.6,
+		"cost": 1.25,
+		"star_required": 2,
+		"reputation_required": 350.0,
+		"ground": Color(0.86, 0.56, 0.38),
+		"cliff": Color(0.76, 0.40, 0.26),
+		"verge": Color(0.58, 0.68, 0.30),
+		"sky_top": Color(0.92, 0.52, 0.34),
+		"businesses": BusinessData.ORDER,
 	},
 	"forest": {
-		"traffic": 0.85,
-		"income": 1.2,
-		"cost": 1.1,
-		"reputation_required": 600.0,
-		"ground": Color(0.3, 0.55, 0.3),
-		"sky_top": Color(0.3, 0.5, 0.7),
-		"businesses": ["restaurant", "store", "motel", "workshop", "car_wash"],
+		"chapter": 3,
+		"traffic": 1.18,
+		"income": 2.4,
+		"cost": 1.55,
+		"star_required": 3,
+		"reputation_required": 900.0,
+		"ground": Color(0.46, 0.64, 0.38),
+		"cliff": Color(0.42, 0.48, 0.44),
+		"verge": Color(0.32, 0.58, 0.28),
+		"sky_top": Color(0.34, 0.60, 0.86),
+		"businesses": BusinessData.ORDER,
 	},
-	"mountain": {
-		"traffic": 0.9,
-		"income": 1.3,
-		"cost": 1.25,
-		"reputation_required": 1400.0,
-		"ground": Color(0.55, 0.56, 0.6),
-		"sky_top": Color(0.28, 0.42, 0.62),
-		"businesses": ["gas_station", "restaurant", "motel", "workshop", "car_wash"],
+	"swamp": {
+		"chapter": 4,
+		"traffic": 1.25,
+		"income": 3.6,
+		"cost": 1.95,
+		"star_required": 4,
+		"reputation_required": 1800.0,
+		"ground": Color(0.44, 0.56, 0.36),
+		"cliff": Color(0.32, 0.44, 0.30),
+		"verge": Color(0.28, 0.52, 0.32),
+		"sky_top": Color(0.36, 0.62, 0.66),
+		"businesses": BusinessData.ORDER,
 	},
-	"coast": {
-		"traffic": 1.15,
-		"income": 1.25,
-		"cost": 1.2,
-		"reputation_required": 2600.0,
-		"ground": Color(0.9, 0.82, 0.6),
-		"sky_top": Color(0.3, 0.6, 0.9),
-		"businesses": ["restaurant", "store", "motel", "car_wash"],
+	"star_city": {
+		"chapter": 5,
+		"traffic": 1.35,
+		"income": 5.2,
+		"cost": 2.5,
+		"star_required": 5,
+		"reputation_required": 3000.0,
+		"ground": Color(0.64, 0.58, 0.72),
+		"cliff": Color(0.44, 0.36, 0.62),
+		"verge": Color(0.30, 0.76, 0.66),
+		"sky_top": Color(0.20, 0.26, 0.54),
+		"businesses": BusinessData.ORDER,
 	},
-	"highway": {
-		"traffic": 1.4,
-		"income": 1.4,
-		"cost": 1.4,
-		"reputation_required": 4200.0,
-		"ground": Color(0.72, 0.68, 0.6),
-		"sky_top": Color(0.3, 0.45, 0.6),
-		"businesses": [
-			"gas_station", "restaurant", "store", "workshop", "motel", "car_wash"
-		],
+	"vegas": {
+		"chapter": 6,
+		"traffic": 1.55,
+		"income": 8.0,
+		"cost": 3.2,
+		"star_required": 6,
+		"reputation_required": 4600.0,
+		"ground": Color(0.86, 0.76, 0.56),
+		"cliff": Color(0.76, 0.54, 0.36),
+		"verge": Color(0.42, 0.76, 0.44),
+		"sky_top": Color(0.28, 0.38, 0.72),
+		"businesses": BusinessData.ORDER,
 	},
 }
 
@@ -68,6 +103,10 @@ static func data(id: String) -> Dictionary:
 	return TOWNS[id]
 
 
+static func chapter(id: String) -> int:
+	return int(data(id).get("chapter", 1))
+
+
 static func traffic(id: String) -> float:
 	return float(data(id).get("traffic", 1.0))
 
@@ -80,26 +119,38 @@ static func cost_multiplier(id: String) -> float:
 	return float(data(id).get("cost", 1.0))
 
 
+static func star_required(id: String) -> int:
+	return int(data(id).get("star_required", 1))
+
+
 static func reputation_required(id: String) -> float:
 	return float(data(id).get("reputation_required", 0.0))
 
 
 static func businesses(id: String) -> Array:
-	var list: Array = data(id).get("businesses", [])
+	var list: Array = data(id).get("businesses", BusinessData.ORDER)
 	return list.duplicate()
 
 
 static func ground_color(id: String) -> Color:
-	return data(id).get("ground", Color(0.8, 0.7, 0.5))
+	return data(id).get("ground", Color(0.91, 0.74, 0.48))
+
+
+static func cliff_color(id: String) -> Color:
+	return data(id).get("cliff", Color(0.86, 0.60, 0.34))
+
+
+static func verge_color(id: String) -> Color:
+	return data(id).get("verge", Color(0.56, 0.72, 0.29))
 
 
 static func sky_color(id: String) -> Color:
-	return data(id).get("sky_top", Color(0.3, 0.5, 0.8))
+	return data(id).get("sky_top", Color(0.34, 0.64, 0.94))
 
 
-static func unlocked_towns(reputation: float) -> Array[String]:
+static func unlocked_towns(reputation: float, star_level: int = 1) -> Array[String]:
 	var result: Array[String] = []
 	for id in ORDER:
-		if reputation >= reputation_required(id):
+		if star_level >= star_required(id) or reputation >= reputation_required(id):
 			result.append(id)
 	return result
