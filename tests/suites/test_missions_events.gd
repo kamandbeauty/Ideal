@@ -5,8 +5,8 @@ extends TestCase
 func _focus(town: TownState, id: String) -> void:
 	match id:
 		"first_upgrade":
-			if town.upgrades_total == 0:
-				town.upgrade_business("gas_station")
+			while town.upgrades_total < 3 and town.upgrade_business("gas_station"):
+				pass
 		"open_car_wash":
 			town.unlock_business("car_wash")
 		"open_auto_service":
@@ -18,9 +18,10 @@ func _focus(town: TownState, id: String) -> void:
 		"hire_manager":
 			town.hire_manager("gas_station")
 		"buy_branch":
-			if town.business("gas_station").level < 2:
-				town.upgrade_business("gas_station")
+			if town.business("gas_station").level < 10:
+				town.upgrade_business("gas_station", 10)
 			town.upgrade_branch("gas_station", "capacity")
+			town.upgrade_branch("gas_station", "speed")
 		"serve_customers":
 			town.customers = 150.0
 		"open_all":

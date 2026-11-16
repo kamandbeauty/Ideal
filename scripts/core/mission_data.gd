@@ -23,6 +23,13 @@ static func count() -> int:
 	return MISSIONS.size()
 
 
+static func ids() -> Array[String]:
+	var out: Array[String] = []
+	for m in MISSIONS:
+		out.append(str((m as Dictionary)["id"]))
+	return out
+
+
 static func mission(index: int) -> Dictionary:
 	if index < 0 or index >= MISSIONS.size():
 		return {}
