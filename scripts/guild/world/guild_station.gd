@@ -112,7 +112,7 @@ func summary() -> String:
 				return "no order"
 			return "order %d x %s / %.0f g" % [
 				order.amount,
-				GuildLocale.text(GuildItems.name_key(order.item_id), [], "en"),
+				GuildLocale.t(GuildItems.name_key(order.item_id), [], "en"),
 				order.payment,
 			]
 		VAULT:
