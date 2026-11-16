@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+# فایل‌های منبع (پی‌دی‌اف‌های انگلیسی) در گیت نگه‌داری نمی‌شوند چون حجیم‌اند
+source-pdfs/*.pdf
+source-pdfs/*.PDF
