@@ -12,11 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probe-logs
+          path: /home/runner/work/_temp/*.txt
+          if-no-files-found: ignore
       - name: Toolchain info
         run: |
-          flutter --version
-          dart --version
-          java -version 2>&1 | head -2
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls $ANDROID_HOME/platforms $ANDROID_HOME/build-tools 2>/dev/null
-          echo "PROBE-OK"
+          set -x
+          flutter --version 2>&1 | tee /tmp/probe.txt
+          dart --version 2>&1 | tee -a /tmp/probe.txt
+          java -version 2>&1 | head -2 | tee -a /tmp/probe.txt
+          echo "ANDROID_HOME=$ANDROID_HOME" | tee -a /tmp/probe.txt
+          ls $ANDROID_HOME/platforms $ANDROID_HOME/build-tools 2>/dev/null | tee -a /tmp/probe.txt
+          mkdir -p /tmp/artifacts && cp /tmp/probe.txt /tmp/artifacts/
+          echo "PROBE-DONE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-output
+          path: /tmp/artifacts/
