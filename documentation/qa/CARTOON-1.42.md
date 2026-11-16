@@ -19,9 +19,11 @@
 
 Physics routes, reservations, vehicle collider dimensions, economy logic and save-state fields are unchanged from the validated v1.41 implementation. The new building shells also pass visual-bounds-vs-solid checks at multiple renovation stages.
 
-## Deliverable
+## Historical deliverable
 
-[RoadsideEmpire.apk](https://github.com/kamandbeauty/Ideal/releases/download/roadside-empire-apk/RoadsideEmpire.apk), **32,853,264 bytes**.
+The download URL is a rolling release and now serves a later build. The size and hashes here identify the historical v1.42 artifact, not necessarily the current download.
+
+[Rolling APK link](https://github.com/kamandbeauty/Ideal/releases/download/roadside-empire-apk/RoadsideEmpire.apk); historical v1.42 size: **32,853,264 bytes**.
 
 SHA-256:
 
@@ -35,6 +37,6 @@ Public signing-certificate SHA-256:
 8792e1d235073b26ec97bd6cae558ded1efa32373ca4eeb39afa1aaf3ff29a46
 ```
 
-The build reuses the signing cache established for v1.41. Compatibility with the older v1.40 signing key is unverified. Do not uninstall an existing game merely to resolve a package/signature conflict: uninstalling can delete saved progress.
+**Signing correction discovered during v1.43 verification:** the SDK debug keystore was cached, but the v1.42 workflow did not explicitly bind Godot to it. Godot selected an editor-generated keystore instead. The earlier inference that the cache alone ensured a stable exported signing identity was incorrect. The certificate above is the actual verified v1.42 certificate; its private key was not retained by that workflow. The corrected v1.43 pipeline explicitly selects the cached key and compares the exported certificate with it. That identity differs from v1.42, so an existing v1.42 installation cannot be updated in place with the corrected main APK. The separately packaged Preview app allows a non-destructive trial, with separate progress. Do not uninstall an existing game merely to resolve a package/signature conflict: uninstalling can delete saved progress.
 
 This is automated engine/package QA and visual screenshot review, **not a physical Android-device performance test**. Phone GPU performance and an in-place upgrade still need confirmation on the user's device.
