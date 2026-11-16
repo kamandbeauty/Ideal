@@ -7,11 +7,11 @@ Verified using v4 scheme (APK Signature Scheme v4): false
 Verified for SourceStamp: false
 Number of signers: 1
 Signer #1 certificate DN: CN=Qabak Comics, OU=Mobile, O=Qabak Studio, L=Tehran, C=IR
-Signer #1 certificate SHA-256 digest: a528bdc81fe0e16860341d80152cb05e5d36139aa7fc8fa27c72f68a4f9dc5c5
-Signer #1 certificate SHA-1 digest: b36455ad092d0d914fb23bb01fcd3c14defd4e68
-Signer #1 certificate MD5 digest: 3a1bacd0aa7e734d554d76144f3ed876
+Signer #1 certificate SHA-256 digest: 3fe8736d3ffbd4523475150e13147a44a617e0949e708282c102ef868ce46b84
+Signer #1 certificate SHA-1 digest: 2d29a31f4000aec74ac2cc56c9a175d69cb1cd7d
+Signer #1 certificate MD5 digest: b8b81374654e4fc4a9e0d8611d62f115
 Signer #1 key algorithm: RSA
 Signer #1 key size (bits): 2048
-Signer #1 public key SHA-256 digest: bc1f25cce3b2eefa2205dd1a5678f236230bca10d28b445ee2ae2676d828ed3b
-Signer #1 public key SHA-1 digest: 0cc61a74f9d2b0c5017aab9e0b8702faeb8357b4
-Signer #1 public key MD5 digest: 188ccb48c8f78ad57ed446b2e2e0902a
+Signer #1 public key SHA-256 digest: 88d8d17bdaf2f066d537ebd7bba63a6fb42cc338c5eafb4f6c32ae472d244d0c
+Signer #1 public key SHA-1 digest: 1b65562f4bc9d9467ef75cef3f684c2a90280ef7
+Signer #1 public key MD5 digest: d643657a697fdadc9c71bbc709453cf0
