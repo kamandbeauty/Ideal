@@ -20,6 +20,7 @@ var _queues: Dictionary = {}
 var _timers: Dictionary = {}
 var _occupied: Dictionary = {}
 var _row_owners: Dictionary = {}
+var _departures: Dictionary = {}
 var _bay_roots: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var _next_id := 1
@@ -80,7 +81,7 @@ func _try_spawn_next() -> void:
 		if slots <= 0 or float(_timers[id]) > 0.0:
 			continue
 		var row := ForecourtLayout.row_for(id)
-		if _row_owners.has(row):
+		if _row_owners.has(row) or not (_departures.get(row, []) as Array).is_empty():
 			continue
 		var free_slot := -1
 		for slot in slots:
@@ -143,6 +144,10 @@ func _paid(id: String, cid: int) -> void:
 		if int(entry["cid"]) != cid:
 			continue
 		entry["phase"] = "wait_depart"
+		var row := ForecourtLayout.row_for(id)
+		if not _departures.has(row):
+			_departures[row] = []
+		(_departures[row] as Array).append(cid)
 		(entry["bar_root"] as Node3D).visible = false
 		var b := state.business(id)
 		var ticket := maxf(5.0, b.price() * state.income_multiplier() * state.event_income() * 0.25)
@@ -173,7 +178,9 @@ func _tick_agents(delta: float) -> void:
 				ServiceBayVisuals.set_progress(bar, (_queues[id] as ServiceQueue).progress_of(int(entry["cid"])))
 			"wait_depart":
 				car.hold(delta)
-				if not _row_owners.has(row):
+				var waiting: Array = _departures.get(row, [])
+				if not _row_owners.has(row) and not waiting.is_empty() and int(waiting[0]) == int(entry["cid"]):
+					waiting.pop_front()
 					_row_owners[row] = int(entry["cid"])
 					entry["phase"] = "reverse"
 					car.set_route(ForecourtLayout.reverse_out(id, slot))
@@ -217,7 +224,7 @@ func _merge_clear(car: VehicleBody) -> bool:
 			continue
 		var rear := peer.position.x - peer.dimensions.y * 0.5
 		var nose := peer.position.x + peer.dimensions.y * 0.5
-		if nose > ForecourtLayout.MERGE_STOP_X - 0.1 and rear < ForecourtLayout.DRIVE_X + 4.0:
+		if nose > ForecourtLayout.DRIVE_X - 3.3 and rear < ForecourtLayout.DRIVE_X + 4.0:
 			return false
 	return true
 

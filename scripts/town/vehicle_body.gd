@@ -76,7 +76,7 @@ func _drive_step(delta: float, cruise: float, reversing: bool) -> void:
 	var next_yaw := rotate_toward(rotation.y, desired_yaw, TURN_SPEED * delta)
 	var candidate := global_transform
 	candidate.basis = Basis(Vector3.UP, next_yaw)
-	if not _rotation_clear(candidate):
+	if absf(angle_difference(rotation.y, next_yaw)) > 0.0001 and not _rotation_clear(candidate):
 		hold(delta)
 		return
 	rotation.y = next_yaw
@@ -86,7 +86,10 @@ func _drive_step(delta: float, cruise: float, reversing: bool) -> void:
 	var look_ahead := maxf(0.7, speed * 0.8 + 0.35)
 	var hit := KinematicCollision3D.new()
 	if test_move(global_transform, direction * look_ahead, hit, 0.06):
-		desired_speed = minf(desired_speed, DrivingRules.stopping_speed(hit.get_travel().length(), cruise))
+		# A reserved parking endpoint may be closer to its wall than a moving
+		# road queue. The physical sweep still applies, with no snapping.
+		var gap := 0.08 if _waypoint == _route.size() - 1 else DrivingRules.BUMPER_GAP
+		desired_speed = minf(desired_speed, DrivingRules.stopping_speed(hit.get_travel().length(), cruise, gap))
 	speed = DrivingRules.approach_speed(speed, desired_speed, delta)
 	var motion := direction * minf(speed * delta, offset.length())
 	var collision := move_and_collide(motion, false, 0.02)
@@ -131,4 +134,11 @@ static func spawn_clear(parent: Node3D, vehicle_kind: String, at: Vector3, yaw: 
 			1.0
 		):
 			return false
-	return true
+	var query := PhysicsShapeQueryParameters3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(size.x, 1.55, size.y)
+	query.shape = box
+	query.transform = Transform3D(Basis(Vector3.UP, yaw), at + Vector3(0, 0.78, 0))
+	query.collision_mask = VEHICLE_LAYER | SOLID_LAYER
+	query.margin = 0.10
+	return parent.get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()

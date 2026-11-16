@@ -7,7 +7,7 @@ extends RefCounted
 const DRIVE_X := 9.6
 const ROW_PITCH := 8.0
 const MERGE_WAIT_Z := -3.2
-const MERGE_STOP_X := DRIVE_X - 4.0
+const MERGE_STOP_X := DRIVE_X - 5.0
 const BAY_SPACING := 1.70
 const BAY_Z := 2.85
 const AISLE_Z := 5.0

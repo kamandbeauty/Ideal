@@ -8,8 +8,8 @@ const BRAKING := 6.0
 const BUMPER_GAP := 0.32
 
 
-static func stopping_speed(free_distance: float, cruise: float) -> float:
-	return minf(cruise, sqrt(maxf(0.0, 2.0 * BRAKING * (free_distance - BUMPER_GAP))))
+static func stopping_speed(free_distance: float, cruise: float, gap: float = BUMPER_GAP) -> float:
+	return minf(cruise, sqrt(maxf(0.0, 2.0 * BRAKING * (free_distance - gap))))
 
 
 static func approach_speed(speed: float, target: float, delta: float) -> float:

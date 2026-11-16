@@ -148,6 +148,21 @@ func _diagnostics() -> String:
 		entries.append(
 			"%s %s at %s wait %.1fs" % [car.name, str(entry["phase"]), str(car.position), car.waiting_seconds]
 		)
+	var traffic: Traffic = _view.get_node("Traffic")
+	for entry in traffic.cars:
+		var car: VehicleBody = entry["node"]
+		entries.append(
+			(
+				"%s at %s speed %.2f gate %s pass %s"
+				% [
+					car.name,
+					str(car.position),
+					car.speed,
+					str(entry.get("gate_seen", false)),
+					str(entry.get("merge_pass", false))
+				]
+			)
+		)
 	return "; ".join(entries)
 
 
