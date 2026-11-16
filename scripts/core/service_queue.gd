@@ -21,12 +21,18 @@ func configure(slots: int, max_total: int) -> void:
 
 ## Returns "served" when a slot is free, "queued" when there is still room in
 ## the line and "rejected" when the traveller gives up and drives on.
-func request(id: int, duration: float) -> String:
+func request(id: int, duration: float, arrived: bool = true) -> String:
 	if _entries.size() >= limit:
 		return "rejected"
 	var span := maxf(0.2, duration)
-	_entries.append({"id": id, "remaining": span, "total": span})
+	_entries.append({"id": id, "remaining": span, "total": span, "arrived": arrived})
 	return "served" if _entries.size() - 1 < capacity else "queued"
+
+
+func mark_arrived(id: int) -> void:
+	var index := index_of(id)
+	if index >= 0:
+		_entries[index]["arrived"] = true
 
 
 ## Advances every customer that currently holds a service slot and returns the

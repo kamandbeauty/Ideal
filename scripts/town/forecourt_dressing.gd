@@ -14,9 +14,9 @@ static func build(parent: Node3D, verge_color: Color) -> void:
 		ServiceBayVisuals.mark(
 			parent, curb, Vector3(float(side) * 10.8, 0.08, center.y), Vector3(0.16, 0.16, bounds.size.y)
 		)
-	ServiceBayVisuals.mark(parent, curb, Vector3(0, 0.08, 28.45), Vector3(21.7, 0.16, 0.16))
+	ServiceBayVisuals.mark(parent, curb, Vector3(0, 0.08, 30.15), Vector3(21.7, 0.16, 0.16))
 	for row in 4:
-		var z := -1.2 + float(row) * 7.6
+		var z := -1.2 + float(row) * ForecourtLayout.ROW_PITCH
 		for side in [-1.0, 1.0]:
 			var x := float(side) * 4.6
 			SurfaceMaterials.paving(

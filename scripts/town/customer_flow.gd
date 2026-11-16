@@ -189,13 +189,37 @@ func _tick_agents(delta: float) -> void:
 					(_occupied[id] as Dictionary).erase(slot)
 					entry["bay_released"] = true
 				if car.arrived():
-					_release_row(entry)
-					if not bool(entry["bay_released"]):
-						(_occupied[id] as Dictionary).erase(slot)
+					entry["phase"] = "yield"
+					car.merge_requested = true
+			"yield":
+				car.hold(delta)
+				if _merge_clear(car):
+					entry["phase"] = "merge"
+					car.set_route(ForecourtLayout.highway_merge())
+			"merge":
+				car.drive(delta, DRIVE_SPEED)
+				if car.position.x > ForecourtLayout.DRIVE_X + 4.3:
+					car.merge_requested = false
+				if car.arrived():
+					car.merge_requested = false
 					car.collision_layer = 0
 					car.queue_free()
 					agents.remove_at(i)
 					completed_visits += 1
+
+
+func _merge_clear(car: VehicleBody) -> bool:
+	for other in get_tree().get_nodes_in_group(VehicleBody.GROUP):
+		var peer := other as VehicleBody
+		if peer == car or not peer.visible or peer.collision_layer == 0:
+			continue
+		if absf(peer.position.z - ForecourtLayout.NEAR_LANE_Z) > 1.2:
+			continue
+		var rear := peer.position.x - peer.dimensions.y * 0.5
+		var nose := peer.position.x + peer.dimensions.y * 0.5
+		if nose > ForecourtLayout.MERGE_STOP_X - 0.1 and rear < ForecourtLayout.DRIVE_X + 4.0:
+			return false
+	return true
 
 
 func _release_row(entry: Dictionary) -> void:

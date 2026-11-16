@@ -126,7 +126,7 @@ func _check_world(elapsed: float) -> void:
 	var claimed := {}
 	for entry in _view.customers.agents:
 		var key := "%s:%d" % [String(entry["business_id"]), int(entry["slot"])]
-		if String(entry["phase"]) == "depart" and bool(entry["bay_released"]):
+		if bool(entry["bay_released"]):
 			continue
 		if claimed.has(key):
 			_fail("Double-booked bay: " + key)

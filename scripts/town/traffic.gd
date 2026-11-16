@@ -33,6 +33,11 @@ func _spawn(index: int) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	var yielding := false
+	for body in get_tree().get_nodes_in_group(VehicleBody.GROUP):
+		if (body as VehicleBody).merge_requested:
+			yielding = true
+			break
 	for entry in cars:
 		var car: VehicleBody = entry["node"]
 		if car.arrived():
@@ -48,4 +53,8 @@ func _physics_process(delta: float) -> void:
 			car.visible = true
 			car.collision_layer = VehicleBody.VEHICLE_LAYER
 			car.set_route([ForecourtLayout.point(ROAD_HALF_LENGTH * direction, LANES[lane])])
-		car.drive(delta, float(entry["speed"]))
+		var cruise := float(entry["speed"])
+		if yielding and float(entry["direction"]) > 0.0 and car.position.x < ForecourtLayout.MERGE_STOP_X:
+			var available := ForecourtLayout.MERGE_STOP_X - car.position.x - car.dimensions.y * 0.5
+			cruise = minf(cruise, DrivingRules.stopping_speed(available, cruise))
+		car.drive(delta, cruise)

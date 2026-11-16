@@ -5,6 +5,9 @@ extends RefCounted
 ## Row aisles are eastbound only. Parking manoeuvres hold a FIFO row lock.
 
 const DRIVE_X := 9.6
+const ROW_PITCH := 8.0
+const MERGE_WAIT_Z := -3.2
+const MERGE_STOP_X := DRIVE_X - 4.0
 const BAY_SPACING := 1.70
 const BAY_Z := 2.85
 const AISLE_Z := 5.0
@@ -13,12 +16,12 @@ const HIGHWAY_Z := -6.8
 const NEAR_LANE_Z := HIGHWAY_Z + 0.82
 const FAR_LANE_Z := HIGHWAY_Z - 0.82
 const ROAD_END := 31.0
-const LOT_BOUNDS := Rect2(-10.85, -4.5, 21.7, 33.0)
+const LOT_BOUNDS := Rect2(-10.85, -4.5, 21.7, 34.7)
 const BUILDING_SIZE := Vector2(3.4, 3.2)
 
 
 static func row_for(id: String) -> int:
-	return roundi((BusinessData.plot(id).y + 1.2) / 7.6)
+	return roundi((BusinessData.plot(id).y + 1.2) / ROW_PITCH)
 
 
 static func aisle_z(id: String) -> float:
@@ -75,6 +78,14 @@ static func outbound(id: String, slot: int) -> Array[Vector3]:
 	var corners: Array[Vector3] = [
 		staging_position(id, slot),
 		point(DRIVE_X, aisle_z(id)),
+		point(DRIVE_X, MERGE_WAIT_Z),
+	]
+	return rounded(corners, 0.85)
+
+
+static func highway_merge() -> Array[Vector3]:
+	var corners: Array[Vector3] = [
+		point(DRIVE_X, MERGE_WAIT_Z),
 		point(DRIVE_X, NEAR_LANE_Z),
 		point(ROAD_END, NEAR_LANE_Z),
 	]

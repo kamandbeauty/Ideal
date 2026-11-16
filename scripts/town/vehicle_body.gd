@@ -12,6 +12,7 @@ const TURN_SPEED := 3.8
 var kind := "car"
 var dimensions := Vector2.ONE
 var speed := 0.0
+var merge_requested := false
 var distance_driven := 0.0
 var waiting_seconds := 0.0
 var visual: Node3D
