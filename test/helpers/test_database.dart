@@ -1,3 +1,4 @@
+import 'package:flutter_test/flutter_test.dart';
 import 'package:javid_ai/data/local/app_database.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -14,6 +15,7 @@ class TestDatabase extends AppDatabase {
 /// private `open()` path that calls into the sqflite plugin channel.
 Future<TestDatabase> openTestDatabase() async {
   final database = TestDatabase();
+  addTearDown(database.close);
   await database.attachForTests(
     await databaseFactoryFfi.openDatabase(
       inMemoryDatabasePath,

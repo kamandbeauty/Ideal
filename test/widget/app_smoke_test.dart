@@ -7,8 +7,6 @@ import 'package:javid_ai/core/providers/permission_providers.dart';
 import 'package:javid_ai/core/providers/voice_providers.dart';
 import 'package:javid_ai/services/native_bridge.dart';
 import 'package:javid_ai/services/permission_service.dart';
-import 'package:javid_ai/services/voice/native_speech_recognizer.dart';
-import 'package:javid_ai/services/voice/native_tts_engine.dart';
 import 'package:javid_ai/services/voice/speech_recognizer.dart';
 import 'package:javid_ai/services/voice/tts_engine.dart';
 

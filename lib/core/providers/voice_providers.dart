@@ -5,15 +5,18 @@ import '../../features/assistant/assistant_controller.dart';
 import '../../features/assistant/assistant_state.dart';
 import '../../services/voice/native_speech_recognizer.dart';
 import '../../services/voice/native_tts_engine.dart';
+import '../../services/voice/speech_recognizer.dart';
+import '../../services/voice/tts_engine.dart';
 import 'agent_providers.dart';
 import 'database_provider.dart';
 import 'settings_providers.dart';
 
 /// Speech engine instances (overridable with fakes in tests).
-final speechRecognizerProvider =
-    Provider((ref) => NativeSpeechRecognizer());
+final speechRecognizerProvider = Provider<SpeechRecognizer>(
+  (ref) => NativeSpeechRecognizer(),
+);
 
-final ttsEngineProvider = Provider((ref) => NativeTtsEngine());
+final ttsEngineProvider = Provider<TtsEngine>((ref) => NativeTtsEngine());
 
 /// Conversation/activity log of the assistant.
 final assistantActivityProvider =

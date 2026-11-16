@@ -23,6 +23,7 @@ class IntentParser {
     }
 
     final lowered = text.toLowerCase();
+    final recovered = toAsciiDigits(text).replaceAll('\u200c', ' ');
 
     if (_isGreeting(lowered)) {
       return AgentIntent(type: IntentType.greeting, rawText: rawText, confidence: 0.95);
@@ -30,30 +31,54 @@ class IntentParser {
     if (_isHelp(lowered)) {
       return AgentIntent(type: IntentType.help, rawText: rawText, confidence: 0.9);
     }
-    // Scheduling wins over the generic "summarise something" shortcuts: a
-    // phrase like «هر روز ساعت ۸ خلاصهٔ پیام‌ها را بگو» is a *job*, not a
-    // one-off briefing request.
-    final jobIntent = _parseJobCreation(text, lowered, rawText);
-    if (jobIntent != null) return jobIntent;
 
+    // 1) Explicit note verbs are the strongest signal: they describe what to do
+    //    with the *content*, which may itself mention dates or times.
+    final explicitNote = _parseExplicitNoteVerb(text, lowered, rawText);
+    if (explicitNote != null) return explicitNote;
+
+    // 2) Scheduling. A recurring expression always wins; otherwise a scheduling
+    //    verb («یادآوری کن») must accompany the time.
+    final recurring = _hasRecurringExpression(recovered);
+    final scheduleVerb = lowered.contains('یادآوری') ||
+        lowered.contains('یادم') ||
+        lowered.contains('به یاد') ||
+        recovered.contains('وظیفه') ||
+        recovered.contains('زمان بندی') ||
+        recovered.contains('زمان‌بندی') ||
+        recovered.contains('تنظیم کن');
+    if (recurring || scheduleVerb) {
+      final jobIntent = _parseJobCreation(text, lowered, rawText);
+      if (jobIntent != null) return jobIntent;
+    }
+
+    // 3) Job management («وظیفه‌هایم را نشان بده»، «وظیفهٔ ورزش را حذف کن»).
+    final jobManagement = _parseJobManagement(lowered, rawText);
+    if (jobManagement != null) return jobManagement;
+
+    // 4) One-off summaries. «پیام‌ها را خلاصه کن» only reaches this point when it
+    //    was not claimed by the scheduler above.
+    if (_isMessageSummaryRequest(lowered)) {
+      return AgentIntent(
+        type: IntentType.messageSummary,
+        rawText: rawText,
+        confidence: 0.9,
+      );
+    }
     if (_isBriefingRequest(lowered)) {
       return AgentIntent(
         type: IntentType.dailyBriefing,
         rawText: rawText,
         confidence: 0.92,
         slots: {
-          'includeContent': lowered.contains('متن') || lowered.contains('بخوان') ||
+          'includeContent': lowered.contains('متن') ||
+              lowered.contains('بخوان') ||
               lowered.contains('جزئیات'),
         },
       );
     }
-    if (_isMessageSummaryRequest(lowered)) {
-      return AgentIntent(type: IntentType.messageSummary, rawText: rawText, confidence: 0.9);
-    }
 
-    final jobManagement = _parseJobManagement(lowered, rawText);
-    if (jobManagement != null) return jobManagement;
-
+    // 5) Everything else: notes phrased without the word «یادداشت».
     final noteIntent = _parseNoteIntent(text, lowered, rawText);
     if (noteIntent != null) return noteIntent;
 
@@ -137,28 +162,8 @@ class IntentParser {
 
   // ------------------------------------------------------------ job creation
   AgentIntent? _parseJobCreation(String text, String lowered, String raw) {
-    final recovered = toAsciiDigits(text).replaceAll('\u200c', ' ');
     final schedule = _parseSchedule(text, lowered);
-
-    // A command is only a *scheduled job* when it carries a real temporal
-    // marker. «یادآوری» alone is not enough: «یادآوری کن» without a time is
-    // still a job (defaults to one hour from now), but a bare note/command must
-    // never turn into one.
-    final hasTemporalMarker = RegExp(
-      r'(ساعت|هر\s*روز|هر\s*شب|همه\s*روزه|هر\s*هفته|هر\s*(شنبه|یکشنبه|دوشنبه|سه‌? ?شنبه|چهارشنبه|پنج‌? ?شنبه|جمعه)|هر\s*\d+\s*(دقیقه|ساعت)|فردا|پس\s*فردا|امروز|دیروز|\d{1,2}\s*(روز|هفته|ماه))',
-    ).hasMatch(recovered);
-    final jobVerb = lowered.contains('یادآوری') ||
-        lowered.contains('یادم') ||
-        lowered.contains('به یاد') ||
-        recovered.contains('وظیفه') ||
-        recovered.contains('هر روز') ||
-        recovered.contains('هر شب') ||
-        // «فردا ساعت ۹ تماس بگیرم» — a dated phrase is a scheduling request.
-        (recovered.contains('فردا') && recovered.contains('ساعت')) ||
-        (recovered.contains('ساعت') && recovered.contains('تماس'));
-
     if (schedule == null) return null;
-    if (!hasTemporalMarker || !jobVerb) return null;
     final title = _extractJobTitle(text, lowered, schedule);
     final action = _inferJobAction(lowered);
     final kind = switch (action) {
@@ -234,10 +239,11 @@ class IntentParser {
     final daily = RegExp(r'هر\s*(روز|شب|صبح|عصر)').hasMatch(lowered);
     // Interval: «هر ۲ ساعت» / «هر ۳۰ دقیقه»
     final intervalMatch = RegExp(
-      r'هر\s*(\d+|یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|دوازده)\s*(ساعت|دقیقه)',
+      r'هر\s*(\d{1,3}|یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|دوازده|بیست|سی)\s*(ساعت|دقیقه)',
     ).firstMatch(toAsciiDigits(lowered));
     if (intervalMatch != null) {
       final amount = PersianNumbers.fromWord(intervalMatch.group(1)!) ?? 1;
+      if (amount <= 0) return null;
       final unit = intervalMatch.group(2)!;
       final minutes = unit == 'ساعت' ? amount * 60 : amount;
       return ScheduleRequest(
@@ -307,7 +313,8 @@ class IntentParser {
     }
 
     if (lowered.contains('یادآوری') && !lowered.contains('وظیفه')) {
-      // «یادآوری کن» with no time: one hour from now, clearly stated in the reply.
+      // «یادآوری کن» with no time: one hour from now. This checks *why* it was
+      // called (a scheduling verb) rather than inventing a time for notes.
       return ScheduleRequest(
         kind: JobScheduleKind.once,
         onceAt: now.add(const Duration(hours: 1)),
@@ -315,6 +322,14 @@ class IntentParser {
     }
     return null;
   }
+
+  /// True when the text contains a *recurring* scheduling expression. Notes and
+  /// notes-like commands that merely mention a date («جلسهٔ فردا») are not
+  /// turned into jobs.
+  bool _hasRecurringExpression(String recovered) => RegExp(
+        r'(هر\s*(روز|شب|صبح|عصر|هفته|شنبه|یکشنبه|دوشنبه|سه‌? ?شنبه|چهارشنبه|پنج‌? ?شنبه|جمعه)|'
+        r'همه\s*روزه|هر\s*\d+\s*(دقیقه|ساعت)|روزانه|هفتگی)',
+      ).hasMatch(recovered);
 
   (int, int)? _parseClockIn(String text, DateTime now) {
     final match = RegExp(r'ساعت\s*(.+)$').firstMatch(text);
@@ -336,13 +351,18 @@ class IntentParser {
     for (final word in words) {
       final isNumber = RegExp(r'^\d{1,2}$').hasMatch(word) ||
           PersianNumbers.fromWord(word) != null;
-      if (isNumber || clockWords.contains(word)) {
+      // The connector «و» is only valid once a number has been read and only if
+      // a real time word follows («۹ و نیم»، «۹ و بیست دقیقه»).
+      final isConnector = word == 'و' && tokens.isNotEmpty;
+      if (isNumber || clockWords.contains(word) || isConnector) {
         tokens.add(word);
       } else {
         break;
       }
-      // A time expression never needs more than 4 tokens (e.g. «۹ و نیم»).
-      if (tokens.length == 4) break;
+      if (tokens.length >= 6) break;
+    }
+    while (tokens.isNotEmpty && tokens.last == 'و') {
+      tokens.removeLast();
     }
 
     for (var count = tokens.length; count >= 1; count--) {
@@ -406,6 +426,53 @@ class IntentParser {
       return AgentIntent(type: IntentType.readLatestNote, rawText: raw, confidence: 0.8);
     }
 
+    return null;
+  }
+
+  /// Handles commands that *unambiguously* create/list/read notes.
+  AgentIntent? _parseExplicitNoteVerb(String text, String lowered, String raw) {
+    final hasNoteWord = lowered.contains('یادداشت') || lowered.contains('نوت');
+    final save = lowered.contains('ذخیره') ||
+        lowered.contains('سیو') ||
+        lowered.contains('ثبت کن') ||
+        lowered.contains('نگه دار');
+    final create = hasNoteWord &&
+        (lowered.contains('جدید') || lowered.contains('بساز') || lowered.contains('بنویس'));
+    final remove = hasNoteWord && (lowered.contains('حذف') || lowered.contains('پاک'));
+
+    if (remove) {
+      return AgentIntent(
+        type: IntentType.deleteNote,
+        rawText: raw,
+        confidence: 0.85,
+        slots: {'title': _extractQuoted(lowered) ?? _extractAfterDeleteKeyword(lowered)},
+      );
+    }
+
+    if (save || create) {
+      final body = _extractNoteBody(text);
+      if (body.isEmpty) {
+        return AgentIntent(
+          type: IntentType.createNote,
+          rawText: raw,
+          confidence: 0.6,
+          slots: {'body': '', 'needsBody': true},
+        );
+      }
+      return AgentIntent(
+        type: IntentType.createNote,
+        rawText: raw,
+        confidence: 0.92,
+        slots: {'body': body, 'category': _inferCategory(lowered)},
+      );
+    }
+
+    if (hasNoteWord && (lowered.contains('نشان') || lowered.contains('لیست'))) {
+      return AgentIntent(type: IntentType.listNotes, rawText: raw, confidence: 0.85);
+    }
+    if ((hasNoteWord && lowered.contains('بخوان')) || lowered.contains('آخرین یادداشت')) {
+      return AgentIntent(type: IntentType.readLatestNote, rawText: raw, confidence: 0.85);
+    }
     return null;
   }
 

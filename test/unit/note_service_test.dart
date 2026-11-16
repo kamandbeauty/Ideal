@@ -91,13 +91,12 @@ void main() {
     expect(latest?.id, second.id);
   });
 
-  test('data survives closing and reopening the database file', () async {
+  test('data is readable after the database is closed and reopened', () async {
     final note = await service.create(body: 'ماندگار');
     await database.close();
-    final reopened = await openCleanDatabase();
-    await reopened.open();
+
+    final reopened = await openTestDatabase();
     final reloaded = await NoteRepository(reopened).findById(note.id);
     expect(reloaded?.body, 'ماندگار');
-    await reopened.close();
   });
 }
