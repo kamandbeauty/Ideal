@@ -228,7 +228,8 @@ func _validate_portrait_layout() -> void:
 func _validate_reference_daylight(image: Image) -> void:
 	var camera: Camera3D = _town.camera_rig.camera
 	var road_pt := Vector2i(camera.unproject_position(Vector3(0, 0.078, 2.9)))
-	var lawn_pt := Vector2i(camera.unproject_position(Vector3(-7.2, 0.076, -1.8)))
+	# Use the camera-facing lawn edge; the rear corner is occluded by the new gable.
+	var lawn_pt := Vector2i(camera.unproject_position(Vector3(-1.6, 0.076, -0.9)))
 	var road := image.get_pixelv(road_pt)
 	var lawn := image.get_pixelv(lawn_pt)
 	print("SMOKE PALETTE: road=#%s lawn=#%s" % [road.to_html(false), lawn.to_html(false)])
