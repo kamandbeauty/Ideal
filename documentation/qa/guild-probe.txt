@@ -1,21 +1,22 @@
-hero_parts=13 hero_meshes=74 hero_visible=74 hero_pos=(1.0, 0.000078, 3.2) cast=5 stack=5 zone=hall
-hero in_tree=true visible=true pos=(1.0, 0.000078, 3.2) rot_y=0.105 children=2
+hero_parts=13 hero_meshes=64 hero_visible=64 hero_pos=(9.6, 0.000098, 2.6) cast=5 stack=0 zone=treasury
+hero in_tree=true visible=true pos=(9.6, 0.000098, 2.6) rot_y=-3.142 children=2
 rig parts=13 body_children=1
-  part leg_l visible=true meshes=6 global=(0.895575, 0.900078, 3.210976)
-  part leg_r visible=true meshes=6 global=(1.104425, 0.900078, 3.189024)
-  part torso visible=true meshes=16 global=(1.0, 0.980078, 3.2)
-  part arm_l visible=true meshes=8 global=(0.756342, 1.460078, 3.22561)
-  part fore_l visible=true meshes=6 global=(0.723939, 1.380662, 2.917319)
-  part hand_l visible=true meshes=4 global=(0.699945, 1.157716, 2.689022)
-  part arm_r visible=true meshes=8 global=(1.243658, 1.460078, 3.174391)
-  part fore_r visible=true meshes=6 global=(1.27606, 1.380662, 3.482681)
-  part hand_r visible=true meshes=4 global=(1.308305, 1.46577, 3.789466)
-  part head visible=true meshes=1 global=(1.001254, 1.770078, 3.211934)
-  part cape visible=true meshes=1 global=(0.98223, 1.200078, 3.030931)
-  part stack_anchor visible=true meshes=10 global=(1.03763, 1.160078, 3.558028)
-  part money_anchor visible=true meshes=0 global=(1.200935, 1.020078, 3.581084)
-stack kind=money total=5 visible=5 global=(1.03763, 1.040078, 3.558028)
+  part leg_l visible=true meshes=6 global=(9.705, 0.900098, 2.6)
+  part leg_r visible=true meshes=6 global=(9.495001, 0.900098, 2.6)
+  part torso visible=true meshes=16 global=(9.6, 0.980098, 2.6)
+  part arm_l visible=true meshes=8 global=(9.845, 1.460098, 2.6)
+  part fore_l visible=true meshes=6 global=(9.845, 1.380682, 2.909989)
+  part hand_l visible=true meshes=4 global=(9.845, 1.157735, 3.139543)
+  part arm_r visible=true meshes=8 global=(9.355, 1.460098, 2.6)
+  part fore_r visible=true meshes=6 global=(9.355, 1.380682, 2.290011)
+  part hand_r visible=true meshes=4 global=(9.355, 1.46579, 1.981537)
+  part head visible=true meshes=1 global=(9.6, 1.770098, 2.588)
+  part cape visible=true meshes=1 global=(9.6, 1.200098, 2.77)
+  part stack_anchor visible=true meshes=0 global=(9.6, 1.160098, 2.24)
+  part money_anchor visible=true meshes=0 global=(9.440001, 1.020098, 2.2)
+stack kind=money total=0 visible=0 global=(9.6, 1.040098, 2.24)
 navmesh polygons=372 vertices=744 regions=1
 path warehouse -> counter points=19 length=10.0
 path entrance -> treasury points=17 length=18.9
 path lounge -> mission_board points=31 length=24.4
+loop stock=10 hands=2 money=0 vault=240 reputation=12.0 last={ "amount": 240.0, "reason": "" }
