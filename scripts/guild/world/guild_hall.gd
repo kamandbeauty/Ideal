@@ -287,8 +287,8 @@ func _build_prop(prop: Dictionary) -> void:
 		"plant":
 			_block(root, Vector3(rect.size.x * 0.8, 0.5, rect.size.y * 0.8), Color(0.3, 0.22, 0.2), Vector3(0.0, 0.25, 0.0))
 			var leaves := SphereMesh.new()
-			leaves.radius = rect.size.x * 0.55
-			leaves.height = height * 0.6
+			leaves.radius = rect.size.x * 0.4
+			leaves.height = height * 0.5
 			_block_mesh(root, leaves, Color(0.28, 0.52, 0.36), Vector3(0.0, height * 0.7, 0.0))
 		"board":
 			_block(root, Vector3(rect.size.x, height, rect.size.y), WOOD.darkened(0.15), Vector3(0.0, height * 0.5, 0.0))
@@ -339,10 +339,14 @@ func _build_prop(prop: Dictionary) -> void:
 			bowl.bottom_radius = 0.18
 			bowl.height = 0.3
 			_block_mesh(root, bowl, IRON, Vector3(0.0, height * 0.62, 0.0))
-			var flame := SphereMesh.new()
-			flame.radius = 0.13
-			flame.height = 0.3
-			_block_mesh(root, flame, Color(0.95, 0.44, 0.14), Vector3(0.0, height * 0.82, 0.0), true)
+			var flame := CylinderMesh.new()
+			flame.top_radius = 0.02
+			flame.bottom_radius = 0.15
+			flame.height = 0.42
+			var fire := _block_mesh(
+				root, flame, Color(0.95, 0.42, 0.12), Vector3(0.0, height * 0.86, 0.0)
+			)
+			fire.material_override = GuildMaterials.glow(Color(0.95, 0.42, 0.12), 0.45)
 		_:
 			_block(root, Vector3(rect.size.x, height, rect.size.y), WOOD, Vector3(0.0, height * 0.5, 0.0))
 
