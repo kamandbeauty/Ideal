@@ -84,6 +84,13 @@ class SilentTts implements TtsEngine {
 void main() {
   setUpAll(setUpSqfliteFfi);
 
+  /// Advances a few frames without waiting for every animation to finish.
+  Future<void> settle(WidgetTester tester) async {
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 80));
+    }
+  }
+
   Future<TestDatabase> pumpApp(WidgetTester tester) async {
     final database = await openCleanDatabase();
     final container = ProviderContainer(
@@ -101,7 +108,10 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(container: container, child: const JavidApp()),
     );
-    await tester.pumpAndSettle();
+    // The mic button pulses forever, so `pumpAndSettle` would never return.
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 80));
+    }
     return database;
   }
 
@@ -128,19 +138,19 @@ void main() {
     await pumpApp(tester);
 
     await tester.tap(find.text('یادداشت‌ها'));
-    await tester.pumpAndSettle();
+    await settle(tester);
     expect(find.text('اولین یادداشتت را بساز'), findsOneWidget);
 
     await tester.tap(find.text('وظایف'));
-    await tester.pumpAndSettle();
+    await settle(tester);
     expect(find.text('هنوز وظیفه‌ای نداری'), findsOneWidget);
 
     await tester.tap(find.text('پیام‌ها'));
-    await tester.pumpAndSettle();
+    await settle(tester);
     expect(find.textContaining('تاریخچهٔ کامل چت'), findsOneWidget);
 
     await tester.tap(find.text('تنظیمات'));
-    await tester.pumpAndSettle();
+    await settle(tester);
     expect(find.text('ظاهر'), findsOneWidget);
     expect(find.text('هوش مصنوعی'), findsWidgets);
     expect(find.text('حریم خصوصی'), findsOneWidget);
@@ -152,34 +162,32 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, 'یادداشت جدید بساز: تست ویجت');
     await tester.tap(find.byIcon(Icons.send_rounded));
-    await tester.pumpAndSettle();
+    await settle(tester);
 
     expect(find.text('ذخیرهٔ یادداشت'), findsWidgets);
     expect(find.text('تأیید و انجام'), findsOneWidget);
 
     await tester.tap(find.text('تأیید و انجام'));
-    await tester.pumpAndSettle();
+    await settle(tester);
     expect(find.textContaining('ذخیره شد'), findsWidgets);
   });
 
   testWidgets('notes created through the agent appear in the notes tab',
       (tester) async {
     final database = await pumpApp(tester);
-    // Wait for bootstrap writes to settle.
-    await tester.pump(const Duration(milliseconds: 100));
 
     await tester.enterText(find.byType(TextField).first, 'یادداشت جدید بساز: خرید نان');
     await tester.tap(find.byIcon(Icons.send_rounded));
-    await tester.pumpAndSettle();
+    await settle(tester);
     await tester.tap(find.text('تأیید و انجام'));
-    await tester.pumpAndSettle();
+    await settle(tester);
 
     final rows = await (await database.open()).query('notes');
     expect(rows, hasLength(1));
     expect(rows.single['body'], contains('خرید نان'));
 
     await tester.tap(find.text('یادداشت‌ها'));
-    await tester.pumpAndSettle();
+    await settle(tester);
     expect(find.textContaining('خرید نان'), findsWidgets);
   });
 }
