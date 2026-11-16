@@ -1,8 +1,8 @@
 {
-  "checks": 2754,
+  "checks": 2760,
   "engine": "4.7.2-stable (official)",
   "failures": [],
-  "methods": 129,
+  "methods": 131,
   "passed": true,
   "suites": [
     {
@@ -84,9 +84,9 @@
       "name": "test_guild_player"
     },
     {
-      "checks": 872,
+      "checks": 875,
       "failures": 0,
-      "methods": 9,
+      "methods": 10,
       "name": "test_guild_hall"
     },
     {
@@ -96,11 +96,11 @@
       "name": "test_guild_economy"
     },
     {
-      "checks": 32,
+      "checks": 35,
       "failures": 0,
-      "methods": 6,
+      "methods": 7,
       "name": "test_guild_hud"
     }
   ],
-  "timestamp": "2026-11-16T06:25:30"
+  "timestamp": "2026-11-16T06:38:56"
 }
