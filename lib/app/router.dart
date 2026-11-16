@@ -1,0 +1,133 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../core/providers/repository_providers.dart';
+import '../core/theme/app_colors.dart';
+import '../features/assistant/assistant_screen.dart';
+import '../features/dashboard/dashboard_screen.dart';
+import '../features/jobs/jobs_screen.dart';
+import '../features/messages/messages_screen.dart';
+import '../features/notes/notes_screen.dart';
+import '../features/settings/settings_screen.dart';
+
+/// Bottom navigation destinations, in Persian.
+enum AppTab {
+  assistant(Icons.graphic_eq_rounded, 'دستیار'),
+  notes(Icons.sticky_note_2_rounded, 'یادداشت‌ها'),
+  jobs(Icons.alarm_rounded, 'وظایف'),
+  messages(Icons.forum_rounded, 'پیام‌ها'),
+  settings(Icons.tune_rounded, 'تنظیمات');
+
+  const AppTab(this.icon, this.label);
+
+  final IconData icon;
+  final String label;
+}
+
+final selectedTabProvider = StateProvider<AppTab>((ref) => AppTab.assistant);
+
+/// The five-tab shell. Every tab is a real screen; nothing is a placeholder.
+class AppShell extends ConsumerStatefulWidget {
+  const AppShell({super.key});
+
+  @override
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  final _pages = const <Widget>[
+    AssistantScreen(),
+    NotesScreen(),
+    JobsScreen(),
+    MessagesScreen(),
+    SettingsScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final tab = ref.watch(selectedTabProvider);
+    final unread = ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Scaffold(
+      extendBody: true,
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? AppColors.gradientBackground
+              : const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [AppColors.surfaceLight, Color(0xFFEDEBF7)],
+                ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 260),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.02),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: KeyedSubtree(key: ValueKey(tab), child: _pages[tab.index]),
+          ),
+        ),
+      ),
+      bottomNavigationBar: NavigationBarTheme(
+        data: Theme.of(context).navigationBarTheme.copyWith(
+              shadowColor: Colors.black26,
+            ),
+        child: NavigationBar(
+          selectedIndex: tab.index,
+          onDestinationSelected: (index) =>
+              ref.read(selectedTabProvider.notifier).state = AppTab.values[index],
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          destinations: [
+            for (final destination in AppTab.values)
+              NavigationDestination(
+                icon: _BadgeIcon(
+                  icon: destination.icon,
+                  count: destination == AppTab.messages ? unread : 0,
+                ),
+                selectedIcon: _BadgeIcon(
+                  icon: destination.icon,
+                  count: destination == AppTab.messages ? unread : 0,
+                  selected: true,
+                ),
+                label: destination.label,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BadgeIcon extends StatelessWidget {
+  const _BadgeIcon({required this.icon, required this.count, this.selected = false});
+
+  final IconData icon;
+  final int count;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7);
+    if (count <= 0) return Icon(icon, color: color);
+    return Badge(
+      label: Text('$count'),
+      backgroundColor: AppColors.coral,
+      child: Icon(icon, color: color),
+    );
+  }
+}

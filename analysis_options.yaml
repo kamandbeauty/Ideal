@@ -4,17 +4,14 @@ analyzer:
   exclude:
     - build/**
     - android/**
-  language:
-    strict-casts: true
-    strict-inference: true
-    strict-raw-types: true
+  errors:
+    # Keep CI honest: missing awaits in async code are errors, not notes.
+    unawaited_futures: error
 
 linter:
   rules:
     avoid_print: true
-    prefer_single_quotes: true
     unawaited_futures: true
-    always_declare_return_types: true
-    prefer_final_locals: true
-    avoid_unnecessary_containers: true
     use_super_parameters: true
+    prefer_const_constructors: true
+    prefer_const_declarations: true

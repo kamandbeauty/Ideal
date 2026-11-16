@@ -48,8 +48,10 @@ kotlin {
 
 dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
-    implementation("androidx.work:work-runtime-ktx:2.11.0")
-    implementation("com.google.code.gson:gson:2.13.2")
+
+    // Kotlin unit tests for the notification capture/normalisation logic.
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16")
 }
 
 flutter {
