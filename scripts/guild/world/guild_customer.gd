@@ -113,6 +113,15 @@ func _turn(direction: Vector3, delta: float) -> void:
 	rotation.y = lerp_angle(rotation.y, wanted, clampf(TURN_RATE * delta, 0.0, 1.0))
 
 
+## How far the customer stands from the place in the line it was given, which is
+## the honest way to see a route that stopped short.
+func off_slot() -> float:
+	if slot < 0:
+		return 0.0
+	var place := GuildHallZones.queue_slot(slot)
+	return Vector2(place.x - position.x, place.z - position.z).length()
+
+
 ## The free-standing point in the hall a customer is heading for, used by tests.
 func target_point() -> Vector3:
 	if route.is_empty():
@@ -121,12 +130,13 @@ func target_point() -> Vector3:
 
 
 func report() -> String:
-	return "customer %s state=%s slot=%d at=(%.1f, %.1f) travelled=%.1f waypoints=%d routed=%s" % [
+	return "customer %s state=%s slot=%d at=(%.1f, %.1f) off=%.2f travelled=%.1f waypoints=%d routed=%s" % [
 		class_id,
 		state,
 		slot,
 		position.x,
 		position.z,
+		off_slot(),
 		travelled,
 		route.size(),
 		str(routed),

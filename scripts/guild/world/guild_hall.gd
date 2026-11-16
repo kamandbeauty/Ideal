@@ -8,8 +8,11 @@ extends Node3D
 ## authored here (a 1.5 m grid with the furniture cut out) instead of being baked,
 ## because nobody can bake a navmesh in CI.
 
-const NAV_CELL := 1.0
-const NAV_MARGIN := 0.55
+## Half-metre cells with a 0.4 m margin. The earlier 1 m grid could not resolve
+## the 1.5 m gap between the lounge benches and the plant, so every cell in the
+## strip where the queue stands was rejected and customers stopped in mid-hall.
+const NAV_CELL := 0.5
+const NAV_MARGIN := 0.4
 const FLOOR_COLOR := Color(0.14, 0.15, 0.22)
 const WALL_COLOR := Color(0.2, 0.21, 0.31)
 const WOOD := Color(0.34, 0.24, 0.18)
