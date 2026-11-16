@@ -1,6 +1,6 @@
 extends Node
 ## Scripted portrait play-through for CI (`720x1280`):
-## captures menus, early desert forecourt with derelict junkyard lots & vault
+## captures menus, the bright cartoon forecourt, construction lots & vault
 ## badges, expanded Roadside Empire hub, Station Sheet, Managers & Bourbon,
 ## Supply Cases, Territory Map & Expeditions, Monster Hills rally and Night mode!
 
@@ -191,6 +191,8 @@ func _settle(frames: int) -> void:
 
 func _capture(shot_name: String) -> void:
 	await RenderingServer.frame_post_draw
+	if is_instance_valid(_town):
+		_validate_portrait_layout()
 	var image := get_viewport().get_texture().get_image()
 	if image == null:
 		printerr("SMOKE: no image for " + shot_name)
@@ -205,3 +207,17 @@ func _capture(shot_name: String) -> void:
 	)
 	var preview_error := preview.save_jpg("%s/%s.jpg" % [PREVIEW_DIR, shot_name], 0.78)
 	print("SMOKE: preview %s (%s)" % [shot_name, error_string(preview_error)])
+
+
+func _validate_portrait_layout() -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	var rectangles: Array[Rect2] = []
+	for key in ["_map_btn", "_cases_btn", "_boost_btn", "_managers_btn", "_build_btn"]:
+		var button: Button = _town.hud.get(key)
+		var rect := button.get_global_rect()
+		assert(rect.position.x >= -1.0 and rect.end.x <= viewport_size.x + 1.0, key + " clipped horizontally")
+		assert(rect.end.y <= viewport_size.y + 1.0, key + " clipped vertically")
+		assert(rect.size.x >= 44.0 and rect.size.y >= 60.0, key + " touch target is too small")
+		for other in rectangles:
+			assert(not rect.intersects(other), "navigation touch targets overlap")
+		rectangles.append(rect)

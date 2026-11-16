@@ -46,7 +46,7 @@ func close() -> void:
 
 func _build() -> void:
 	var scrim := ColorRect.new()
-	scrim.color = Color(0.02, 0.03, 0.06, 0.80)
+	scrim.color = UiTheme.SCRIM
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(scrim)
 
@@ -90,18 +90,22 @@ func _build() -> void:
 	_tab_story.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tab_story.custom_minimum_size = Vector2(0, 44)
 	_tab_story.focus_mode = Control.FOCUS_NONE
-	_tab_story.pressed.connect(func() -> void:
-		tab = "story"
-		refresh())
+	_tab_story.pressed.connect(
+		func() -> void:
+			tab = "story"
+			refresh()
+	)
 	tabs.add_child(_tab_story)
 
 	_tab_exp = Button.new()
 	_tab_exp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tab_exp.custom_minimum_size = Vector2(0, 44)
 	_tab_exp.focus_mode = Control.FOCUS_NONE
-	_tab_exp.pressed.connect(func() -> void:
-		tab = "exp"
-		refresh())
+	_tab_exp.pressed.connect(
+		func() -> void:
+			tab = "exp"
+			refresh()
+	)
 	tabs.add_child(_tab_exp)
 
 	var scroll := ScrollContainer.new()
@@ -128,7 +132,7 @@ func _build() -> void:
 func _build_story_rows() -> void:
 	for id in TownData.ORDER:
 		var card := PanelContainer.new()
-		var sb := UiTheme.button_style(Color(0.16, 0.20, 0.30), TownData.ground_color(id), 14)
+		var sb := UiTheme.button_style(UiTheme.PANEL_SOFT, TownData.ground_color(id), 14)
 		card.add_theme_stylebox_override("panel", sb)
 		_story_box.add_child(card)
 		var row := HBoxContainer.new()
@@ -137,7 +141,7 @@ func _build_story_rows() -> void:
 		var info := VBoxContainer.new()
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
-		var name_lbl := _lbl(17, Color.WHITE)
+		var name_lbl := _lbl(17, UiTheme.TEXT)
 		info.add_child(name_lbl)
 		var sub_lbl := _lbl(13, UiTheme.MUTED)
 		info.add_child(sub_lbl)
@@ -159,23 +163,21 @@ func _build_expedition_cards() -> void:
 	_iron_btn = _exp_card(_exp_box, "exp.iron_title", "exp.iron_desc", Color(0.94, 0.72, 0.20), _on_iron_bones)
 
 
-func _exp_card(
-	parent: VBoxContainer, title_k: String, desc_k: String, border: Color, cb: Callable
-) -> Button:
+func _exp_card(parent: VBoxContainer, title_k: String, desc_k: String, border: Color, cb: Callable) -> Button:
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UiTheme.button_style(Color(0.16, 0.20, 0.30), border, 14))
+	card.add_theme_stylebox_override("panel", UiTheme.button_style(UiTheme.PANEL_SOFT, border, 14))
 	parent.add_child(card)
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 6)
 	card.add_child(v)
-	var t_lbl := _lbl(18, Color.WHITE)
+	var t_lbl := _lbl(18, UiTheme.TEXT)
 	t_lbl.set_meta("k", title_k)
 	v.add_child(t_lbl)
 	var d_lbl := _lbl(13, UiTheme.MUTED)
 	d_lbl.set_meta("k", desc_k)
 	v.add_child(d_lbl)
 	var btn := Button.new()
-	btn.theme_type_variation = "PurpleButton"
+	btn.theme_type_variation = "BlueButton"
 	btn.custom_minimum_size = Vector2(0, 48)
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.pressed.connect(cb)
@@ -191,36 +193,60 @@ func refresh() -> void:
 	if profile == null or st == null:
 		return
 	_title.text = "🧭 " + App.t("map.title")
-	_subtitle.text = App.t("map.subtitle", [
-		App.format_number(profile.best_star_level()),
-		App.format_short(profile.total_income_per_minute()),
-	])
+	_subtitle.text = (
+		App
+		. t(
+			"map.subtitle",
+			[
+				App.format_number(profile.best_star_level()),
+				App.format_short(profile.total_income_per_minute()),
+			]
+		)
+	)
 	_tab_story.text = App.t("map.tab_story")
 	_tab_exp.text = App.t("map.tab_expeditions")
-	_tab_story.theme_type_variation = "PurpleButton" if tab == "story" else "GhostButton"
-	_tab_exp.theme_type_variation = "PurpleButton" if tab == "exp" else "GhostButton"
+	_tab_story.theme_type_variation = "BlueButton" if tab == "story" else "GhostButton"
+	_tab_exp.theme_type_variation = "BlueButton" if tab == "exp" else "GhostButton"
 	_story_box.visible = tab == "story"
 	_exp_box.visible = tab == "exp"
 
 	for id in TownData.ORDER:
 		var r: Dictionary = _town_rows[id]
-		(r["name"] as Label).text = "Ch.%s · %s" % [
-			App.format_number(TownData.chapter(id)),
-			App.t("town.%s" % id),
-		]
-		var rates := App.t("map.rates", [
-			"%.1f" % TownData.income_multiplier(id),
-			"%.1f" % TownData.traffic(id),
-		])
+		(r["name"] as Label).text = (
+			"Ch.%s · %s"
+			% [
+				App.format_number(TownData.chapter(id)),
+				App.t("town.%s" % id),
+			]
+		)
+		var rates := (
+			App
+			. t(
+				"map.rates",
+				[
+					"%.1f" % TownData.income_multiplier(id),
+					"%.1f" % TownData.traffic(id),
+				]
+			)
+		)
 		if profile.visited(id):
 			var ts := profile.town(id)
-			(r["sub"] as Label).text = "%s · %s" % [
-				rates,
-				App.t("map.progress", [
-					App.format_number(round(ts.completion() * 100.0)),
-					App.format_number(ts.star_level()),
-				]),
-			]
+			(r["sub"] as Label).text = (
+				"%s · %s"
+				% [
+					rates,
+					(
+						App
+						. t(
+							"map.progress",
+							[
+								App.format_number(round(ts.completion() * 100.0)),
+								App.format_number(ts.star_level()),
+							]
+						)
+					),
+				]
+			)
 		else:
 			(r["sub"] as Label).text = "%s · %s" % [rates, App.t("map.unvisited")]
 
@@ -244,11 +270,17 @@ func refresh() -> void:
 	_monster_btn.text = App.t("exp.monster_btn")
 	_monster_btn.disabled = st.active_event == "monster_hills"
 	if st.special_order_active:
-		_order_btn.text = App.t("exp.order_running", [
-			App.format_number(floor(st.special_order_done)),
-			App.format_number(st.special_order_goal),
-			App.format_number(ceil(st.special_order_timer)),
-		])
+		_order_btn.text = (
+			App
+			. t(
+				"exp.order_running",
+				[
+					App.format_number(floor(st.special_order_done)),
+					App.format_number(st.special_order_goal),
+					App.format_number(ceil(st.special_order_timer)),
+				]
+			)
+		)
 		_order_btn.disabled = true
 	else:
 		_order_btn.text = App.t("exp.order_btn")
@@ -298,11 +330,19 @@ func _on_iron_bones() -> void:
 		return
 	Sound.play("cash", -4.0)
 	App.tap(32)
-	feedback.emit("🔩 +$%s · +%s 🥃 · +1 Card (%s)!" % [
-		App.format_short(float(loot["cash"])),
-		App.format_number(float(loot["bourbon"])),
-		App.t("mgr.%s" % String(loot["card"])),
-	])
+	(
+		feedback
+		. emit(
+			(
+				"🔩 +$%s · +%s 🥃 · +1 Card (%s)!"
+				% [
+					App.format_short(float(loot["cash"])),
+					App.format_number(float(loot["bourbon"])),
+					App.t("mgr.%s" % String(loot["card"])),
+				]
+			)
+		)
+	)
 	refresh()
 
 

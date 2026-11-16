@@ -5,16 +5,16 @@ extends RefCounted
 
 const KINDS: Array[String] = ["car", "suv", "pickup", "truck", "bus", "camper"]
 const PAINTS: Array[Color] = [
-	Color(0.88, 0.47, 0.18),
-	Color(0.20, 0.61, 0.72),
-	Color(0.83, 0.39, 0.53),
-	Color(0.73, 0.20, 0.18),
-	Color(0.91, 0.67, 0.20),
-	Color(0.27, 0.44, 0.65),
-	Color(0.25, 0.59, 0.43),
-	Color(0.22, 0.27, 0.33),
-	Color(0.83, 0.79, 0.67),
-	Color(0.52, 0.35, 0.65),
+	Color("#ed7541"),
+	Color("#39acc3"),
+	Color("#ed8f9d"),
+	Color("#d94735"),
+	Color("#ffd04d"),
+	Color("#4e95ce"),
+	Color("#67ba8a"),
+	Color("#627b92"),
+	Color("#fff0d2"),
+	Color("#b19ad3"),
 ]
 const WHEEL_RADIUS := 0.16
 const SIZE_SCALE := 0.82
@@ -115,7 +115,7 @@ static func build(kind: String, color: Color) -> Node3D:
 	)
 	_box(car, paint(color, 0.38), Vector3(0, base_y + body_h * 0.5, 0), Vector3(width, body_h, length), 0.055)
 	var cabin_pos := Vector3(0, base_y + body_h + cabin_h * 0.5 - 0.01, float(profile["cabin_offset"]) * length)
-	var cream := Color(0.85, 0.83, 0.74)
+	var cream := CartoonPalette.WHITE
 	var cab_col := cream if profile.has("twotone") else color.lightened(0.06)
 	_box(car, paint(cab_col, 0.40), cabin_pos, Vector3(width * 0.94, cabin_h, cabin_len), 0.055)
 	_add_glazing(car, width, cabin_h, cabin_len, cabin_pos, kind)
@@ -126,8 +126,8 @@ static func build(kind: String, color: Color) -> Node3D:
 
 
 static func _add_glazing(car: Node3D, width: float, height: float, length: float, at: Vector3, kind: String) -> void:
-	var glass := paint(Color(0.19, 0.36, 0.43), 0.18, 0.24)
-	var glint := paint(Color(0.49, 0.66, 0.68), 0.26, 0.10)
+	var glass := paint(CartoonPalette.WINDOW, 0.85, 0.0)
+	var glint := paint(CartoonPalette.WINDOW_GLINT, 0.85, 0.0)
 	for end in [-1.0, 1.0]:
 		_box(
 			car,
@@ -304,14 +304,16 @@ static func set_braking(car: Node3D, braking: bool) -> void:
 		material.emission_energy_multiplier = 1.8 if braking else 0.25
 
 
-static func paint(color: Color, roughness: float, metallic: float = 0.10) -> StandardMaterial3D:
+static func paint(color: Color, roughness: float, metallic: float = 0.0) -> StandardMaterial3D:
 	var key := "%s:%.2f:%.2f" % [color.to_html(), roughness, metallic]
 	if _paints.has(key):
 		return _paints[key]
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
-	material.roughness = roughness
-	material.metallic = metallic
+	material.roughness = maxf(roughness, 0.70)
+	material.metallic = minf(metallic, 0.16)
+	material.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
+	material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	_paints[key] = material
 	return material
 

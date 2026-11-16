@@ -1,5 +1,5 @@
 extends Control
-## Portrait Roadside Empire title screen: warm desert canyon backdrop, large
+## Portrait toy-town title screen: sunny sky/lawn backdrop, large
 ## glossy GAS station icon, Start/Continue, Language switcher & Settings!
 
 signal play_requested
@@ -34,9 +34,9 @@ func _ready() -> void:
 func _build() -> void:
 	_built = true
 	var gradient := Gradient.new()
-	gradient.set_color(0, Color(0.24, 0.48, 0.80))
-	gradient.add_point(0.55, Color(0.86, 0.56, 0.28))
-	gradient.set_color(1, Color(0.16, 0.13, 0.22))
+	gradient.set_color(0, Color("#91d0ed"))
+	gradient.add_point(0.55, CartoonPalette.GRASS_LIGHT)
+	gradient.set_color(1, Color("#e9f0c8"))
 	var texture := GradientTexture2D.new()
 	texture.gradient = gradient
 	texture.fill_from = Vector2(0.5, 0.0)
@@ -89,7 +89,7 @@ func _build() -> void:
 	_continue.pressed.connect(func() -> void: continue_requested.emit())
 	col.add_child(_continue)
 
-	_play = _make_button(440, 62, "PurpleButton")
+	_play = _make_button(440, 62, "BlueButton")
 	_play.add_theme_font_size_override("font_size", 21)
 	_play.pressed.connect(func() -> void: play_requested.emit())
 	col.add_child(_play)

@@ -38,7 +38,7 @@ func close() -> void:
 
 func _build() -> void:
 	var scrim := ColorRect.new()
-	scrim.color = Color(0.02, 0.03, 0.06, 0.78)
+	scrim.color = UiTheme.SCRIM
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(scrim)
 
@@ -91,7 +91,7 @@ func _build() -> void:
 func _build_row(parent: VBoxContainer, mgr_id: String) -> Dictionary:
 	var r_col := ManagerData.rarity_color(mgr_id)
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", UiTheme.button_style(Color(0.16, 0.20, 0.30), r_col, 14))
+	card.add_theme_stylebox_override("panel", UiTheme.button_style(UiTheme.PANEL_SOFT, r_col, 14))
 	parent.add_child(card)
 
 	var row := HBoxContainer.new()
@@ -103,15 +103,15 @@ func _build_row(parent: VBoxContainer, mgr_id: String) -> Dictionary:
 	info.add_theme_constant_override("separation", 3)
 	row.add_child(info)
 
-	var name_lbl := _lbl(17, Color.WHITE)
+	var name_lbl := _lbl(17, UiTheme.TEXT)
 	info.add_child(name_lbl)
-	var fac_lbl := _lbl(13, r_col.lightened(0.2))
+	var fac_lbl := _lbl(13, r_col.darkened(0.42))
 	info.add_child(fac_lbl)
 	var cards_lbl := _lbl(13, UiTheme.MUTED)
 	info.add_child(cards_lbl)
 
 	var btn := Button.new()
-	btn.theme_type_variation = "PurpleButton"
+	btn.theme_type_variation = "BlueButton"
 	btn.custom_minimum_size = Vector2(168, 52)
 	btn.focus_mode = Control.FOCUS_NONE
 	btn.add_theme_font_size_override("font_size", 13)
@@ -134,26 +134,38 @@ func refresh() -> void:
 		var b := state.business(fac_id)
 		var lvl := b.manager_rank if b != null else 0
 		var rarity_txt := App.t("rarity.%s" % ManagerData.rarity(mgr_id))
-		(r["name"] as Label).text = "%s %s · %s (Lv %s)" % [
-			ManagerData.avatar(mgr_id),
-			App.t("mgr.%s" % mgr_id),
-			rarity_txt,
-			App.format_number(lvl),
-		]
+		(r["name"] as Label).text = (
+			"%s %s · %s (Lv %s)"
+			% [
+				ManagerData.avatar(mgr_id),
+				App.t("mgr.%s" % mgr_id),
+				rarity_txt,
+				App.format_number(lvl),
+			]
+		)
 		var mult := ManagerData.income_multiplier(mgr_id, maxi(1, lvl))
-		(r["fac"] as Label).text = "%s %s · Profit x%.1f" % [
-			BusinessData.icon(fac_id),
-			App.t("business.%s.name" % fac_id),
-			mult,
-		]
+		(r["fac"] as Label).text = (
+			"%s %s · Profit x%.1f"
+			% [
+				BusinessData.icon(fac_id),
+				App.t("business.%s.name" % fac_id),
+				mult,
+			]
+		)
 		var owned_cards := EmpireActions.cards_for(state, mgr_id)
 		var need_cards := ManagerData.cards_needed(lvl)
 		var need_bourbon := ManagerData.bourbon_needed(lvl)
-		(r["cards"] as Label).text = App.t("managers.cards", [
-			App.format_number(owned_cards),
-			App.format_number(need_cards),
-			App.format_number(need_bourbon),
-		])
+		(r["cards"] as Label).text = (
+			App
+			. t(
+				"managers.cards",
+				[
+					App.format_number(owned_cards),
+					App.format_number(need_cards),
+					App.format_number(need_bourbon),
+				]
+			)
+		)
 
 		var btn: Button = r["btn"]
 		if b == null or not b.unlocked:
@@ -176,10 +188,21 @@ func _promote(fac_id: String) -> void:
 		Sound.play("hire", -4.0)
 		App.tap(30)
 		var b := state.business(fac_id)
-		feedback.emit(App.t("msg.manager_hired", [
-			App.t("business.%s.name" % fac_id),
-			App.t("manager.rank.%d" % b.manager_rank),
-		]))
+		(
+			feedback
+			. emit(
+				(
+					App
+					. t(
+						"msg.manager_hired",
+						[
+							App.t("business.%s.name" % fac_id),
+							App.t("manager.rank.%d" % b.manager_rank),
+						]
+					)
+				)
+			)
+		)
 		refresh()
 	else:
 		Sound.play("deny", -10.0)

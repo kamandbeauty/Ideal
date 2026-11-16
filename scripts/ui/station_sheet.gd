@@ -63,10 +63,12 @@ func _build() -> void:
 		sbtn.focus_mode = Control.FOCUS_NONE
 		sbtn.add_theme_font_size_override("font_size", 14)
 		var captured: int = int(step)
-		sbtn.pressed.connect(func() -> void:
-			buy_steps = captured
-			Sound.play("click", -12.0)
-			refresh())
+		sbtn.pressed.connect(
+			func() -> void:
+				buy_steps = captured
+				Sound.play("click", -12.0)
+				refresh()
+		)
 		header.add_child(sbtn)
 		_step_buttons[step] = sbtn
 
@@ -84,9 +86,9 @@ func _build() -> void:
 	_milestone_bar = ProgressBar.new()
 	_milestone_bar.show_percentage = false
 	_milestone_bar.custom_minimum_size = Vector2(0, 14)
-	var bg_sb := UiTheme.slim_style(Color(0.08, 0.10, 0.16), UiTheme.BORDER, 7)
+	var bg_sb := UiTheme.slim_style(UiTheme.TRACK, UiTheme.BORDER, 7)
 	_milestone_bar.add_theme_stylebox_override("background", bg_sb)
-	_milestone_bar.add_theme_stylebox_override("fill", UiTheme.slim_style(UiTheme.GOLD, UiTheme.GOLD, 7))
+	_milestone_bar.add_theme_stylebox_override("fill", UiTheme.slim_style(UiTheme.BLUE, UiTheme.BORDER, 7))
 	col.add_child(_milestone_bar)
 
 	_milestone_label = _lbl(13, UiTheme.GOLD)
@@ -97,7 +99,7 @@ func _build() -> void:
 
 	# Manager Card Box inside the station sheet!
 	var mgr_panel := PanelContainer.new()
-	mgr_panel.add_theme_stylebox_override("panel", UiTheme.button_style(Color(0.16, 0.20, 0.31), UiTheme.BORDER, 12))
+	mgr_panel.add_theme_stylebox_override("panel", UiTheme.button_style(UiTheme.PANEL_SOFT, UiTheme.BORDER, 12))
 	col.add_child(mgr_panel)
 
 	var mgr_row := HBoxContainer.new()
@@ -115,7 +117,7 @@ func _build() -> void:
 	mgr_info.add_child(_mgr_status)
 
 	_mgr_btn = Button.new()
-	_mgr_btn.theme_type_variation = "PurpleButton"
+	_mgr_btn.theme_type_variation = "BlueButton"
 	_mgr_btn.custom_minimum_size = Vector2(168, 48)
 	_mgr_btn.focus_mode = Control.FOCUS_NONE
 	_mgr_btn.add_theme_font_size_override("font_size", 14)
@@ -175,16 +177,21 @@ func refresh() -> void:
 		return
 	for step in _step_buttons:
 		var sb: Button = _step_buttons[step]
-		sb.theme_type_variation = "PurpleButton" if buy_steps == int(step) else "GhostButton"
+		sb.theme_type_variation = "BlueButton" if buy_steps == int(step) else "GhostButton"
 		sb.visible = b.unlocked
 
 	var req_star_txt := App.format_number(BusinessData.star_required(facility_id))
-	var lvl_txt := App.t("hud.level", [App.format_number(b.level)]) if b.unlocked else App.t("hud.locked", [req_star_txt])
-	_title.text = "%s %s · %s" % [
-		BusinessData.icon(facility_id),
-		App.t("business.%s.name" % facility_id),
-		lvl_txt,
-	]
+	var lvl_txt := (
+		App.t("hud.level", [App.format_number(b.level)]) if b.unlocked else App.t("hud.locked", [req_star_txt])
+	)
+	_title.text = (
+		"%s %s · %s"
+		% [
+			BusinessData.icon(facility_id),
+			App.t("business.%s.name" % facility_id),
+			lvl_txt,
+		]
+	)
 	_desc.text = App.t("business.%s.desc" % facility_id)
 
 	if not b.unlocked:
@@ -218,18 +225,27 @@ func refresh() -> void:
 	_milestone_bar.min_value = float(prev_m)
 	_milestone_bar.max_value = float(maxi(prev_m + 1, next_m))
 	_milestone_bar.value = float(b.level)
-	_milestone_label.text = App.t("hud.renovation_warn", [
-		App.format_number(next_m),
-		App.format_number(BusinessData.automation_manager_level(next_m)),
-	])
+	_milestone_label.text = (
+		App
+		. t(
+			"hud.renovation_warn",
+			[
+				App.format_number(next_m),
+				App.format_number(BusinessData.automation_manager_level(next_m)),
+			]
+		)
+	)
 
 	var tr := state.traffic()
 	var per_min := b.net_per_minute(tr) * state.income_multiplier() * state.event_income()
-	_stats_label.text = "💵 %s · %s · %s" % [
-		App.t("hud.income_value", [App.format_short(per_min)]),
-		App.t("hud.capacity_value", [App.format_number(b.active_bays())]),
-		App.t("hud.efficiency", ["%.1f" % b.efficiency()]),
-	]
+	_stats_label.text = (
+		"💵 %s · %s · %s"
+		% [
+			App.t("hud.income_value", [App.format_short(per_min)]),
+			App.t("hud.capacity_value", [App.format_number(b.active_bays())]),
+			App.t("hud.efficiency", ["%.1f" % b.efficiency()]),
+		]
+	)
 
 	_refresh_manager_box(b)
 	_refresh_branches(b)
@@ -252,12 +268,15 @@ func refresh() -> void:
 func _refresh_manager_box(b: BusinessState) -> void:
 	var mgr_id := BusinessData.manager_id(facility_id)
 	var rarity_txt := App.t("rarity.%s" % ManagerData.rarity(mgr_id))
-	_mgr_title.text = "%s %s (%s · Lv %s)" % [
-		ManagerData.avatar(mgr_id),
-		App.t("mgr.%s" % mgr_id),
-		rarity_txt,
-		App.format_number(b.manager_rank),
-	]
+	_mgr_title.text = (
+		"%s %s (%s · Lv %s)"
+		% [
+			ManagerData.avatar(mgr_id),
+			App.t("mgr.%s" % mgr_id),
+			rarity_txt,
+			App.format_number(b.manager_rank),
+		]
+	)
 	if b.is_automated():
 		_mgr_status.text = App.t("hud.automated")
 		_mgr_status.add_theme_color_override("font_color", UiTheme.GOOD)
@@ -289,9 +308,9 @@ func _refresh_branches(b: BusinessState) -> void:
 			btn.disabled = true
 		else:
 			var cost := state.branch_cost(facility_id, br)
-			btn.text = "%s (%s/%s)\n💵 %s" % [
-				title, App.format_number(cur), App.format_number(cap), App.format_short(cost)
-			]
+			btn.text = (
+				"%s (%s/%s)\n💵 %s" % [title, App.format_number(cur), App.format_number(cap), App.format_short(cost)]
+			)
 			btn.disabled = (not b.can_upgrade_branch(br)) or state.cash + 0.01 < cost
 
 
@@ -303,10 +322,21 @@ func _on_upgrade_pressed() -> void:
 	if state.upgrade_business(facility_id, steps):
 		Sound.play("upgrade", -5.0)
 		App.tap(24)
-		action_feedback.emit(App.t("msg.upgraded", [
-			App.t("business.%s.name" % facility_id),
-			App.format_number(b.level),
-		]))
+		(
+			action_feedback
+			. emit(
+				(
+					App
+					. t(
+						"msg.upgraded",
+						[
+							App.t("business.%s.name" % facility_id),
+							App.format_number(b.level),
+						]
+					)
+				)
+			)
+		)
 		refresh()
 	else:
 		Sound.play("deny", -10.0)
@@ -336,10 +366,21 @@ func _on_manager_pressed() -> void:
 		var b := state.business(facility_id)
 		Sound.play("hire", -4.0)
 		App.tap(32)
-		action_feedback.emit(App.t("msg.manager_hired", [
-			App.t("business.%s.name" % facility_id),
-			App.t("manager.rank.%d" % b.manager_rank),
-		]))
+		(
+			action_feedback
+			. emit(
+				(
+					App
+					. t(
+						"msg.manager_hired",
+						[
+							App.t("business.%s.name" % facility_id),
+							App.t("manager.rank.%d" % b.manager_rank),
+						]
+					)
+				)
+			)
+		)
 		refresh()
 	else:
 		Sound.play("deny", -10.0)

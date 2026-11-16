@@ -12,82 +12,88 @@ const ORDER: Array[String] = [
 ]
 
 const TOWNS := {
-	"desert": {
+	"desert":
+	{
 		"chapter": 1,
 		"traffic": 1.0,
 		"income": 1.0,
 		"cost": 1.0,
 		"star_required": 1,
 		"reputation_required": 0.0,
-		"ground": Color(0.91, 0.74, 0.48),
-		"cliff": Color(0.87, 0.62, 0.36),
-		"verge": Color(0.56, 0.72, 0.29),
-		"sky_top": Color(0.34, 0.64, 0.94),
+		"ground": Color("#cce34f"),
+		"cliff": Color("#b3cd5a"),
+		"verge": Color("#d2e753"),
+		"sky_top": Color("#86caf3"),
 		"businesses": BusinessData.ORDER,
 	},
-	"mojave": {
+	"mojave":
+	{
 		"chapter": 2,
 		"traffic": 1.12,
 		"income": 1.6,
 		"cost": 1.25,
 		"star_required": 2,
 		"reputation_required": 350.0,
-		"ground": Color(0.86, 0.56, 0.38),
-		"cliff": Color(0.76, 0.40, 0.26),
-		"verge": Color(0.58, 0.68, 0.30),
-		"sky_top": Color(0.92, 0.52, 0.34),
+		"ground": Color("#cedf60"),
+		"cliff": Color("#b5ce61"),
+		"verge": Color("#d9e96d"),
+		"sky_top": Color("#92cbef"),
 		"businesses": BusinessData.ORDER,
 	},
-	"forest": {
+	"forest":
+	{
 		"chapter": 3,
 		"traffic": 1.18,
 		"income": 2.4,
 		"cost": 1.55,
 		"star_required": 3,
 		"reputation_required": 900.0,
-		"ground": Color(0.46, 0.64, 0.38),
-		"cliff": Color(0.42, 0.48, 0.44),
-		"verge": Color(0.32, 0.58, 0.28),
-		"sky_top": Color(0.34, 0.60, 0.86),
+		"ground": Color("#b7d45c"),
+		"cliff": Color("#85ac55"),
+		"verge": Color("#c4df61"),
+		"sky_top": Color("#91cbe8"),
 		"businesses": BusinessData.ORDER,
 	},
-	"swamp": {
+	"swamp":
+	{
 		"chapter": 4,
 		"traffic": 1.25,
 		"income": 3.6,
 		"cost": 1.95,
 		"star_required": 4,
 		"reputation_required": 1800.0,
-		"ground": Color(0.44, 0.56, 0.36),
-		"cliff": Color(0.32, 0.44, 0.30),
-		"verge": Color(0.28, 0.52, 0.32),
-		"sky_top": Color(0.36, 0.62, 0.66),
+		"ground": Color("#b0d778"),
+		"cliff": Color("#85b878"),
+		"verge": Color("#bce37b"),
+		"sky_top": Color("#9cd4d9"),
 		"businesses": BusinessData.ORDER,
 	},
-	"star_city": {
+	"star_city":
+	{
 		"chapter": 5,
 		"traffic": 1.35,
 		"income": 5.2,
 		"cost": 2.5,
 		"star_required": 5,
 		"reputation_required": 3000.0,
-		"ground": Color(0.64, 0.58, 0.72),
-		"cliff": Color(0.44, 0.36, 0.62),
-		"verge": Color(0.30, 0.76, 0.66),
-		"sky_top": Color(0.20, 0.26, 0.54),
+		"ground": Color("#b9d991"),
+		"cliff": Color("#99bc90"),
+		"verge": Color("#c5e59c"),
+		"sky_top": Color("#9fc6ed"),
 		"businesses": BusinessData.ORDER,
 	},
-	"vegas": {
+	"vegas":
+	{
 		"chapter": 6,
 		"traffic": 1.55,
 		"income": 8.0,
 		"cost": 3.2,
 		"star_required": 6,
 		"reputation_required": 4600.0,
-		"ground": Color(0.86, 0.76, 0.56),
-		"cliff": Color(0.76, 0.54, 0.36),
-		"verge": Color(0.42, 0.76, 0.44),
-		"sky_top": Color(0.28, 0.38, 0.72),
+		"ground": Color("#cfe16a"),
+		"cliff": Color("#b5c46a"),
+		"verge": Color("#dceb7d"),
+		"sky_top": Color("#9bc7ef"),
 		"businesses": BusinessData.ORDER,
 	},
 }
@@ -133,7 +139,7 @@ static func businesses(id: String) -> Array:
 
 
 static func ground_color(id: String) -> Color:
-	return data(id).get("ground", Color(0.91, 0.74, 0.48))
+	return data(id).get("ground", CartoonPalette.GRASS)
 
 
 static func cliff_color(id: String) -> Color:
@@ -141,7 +147,7 @@ static func cliff_color(id: String) -> Color:
 
 
 static func verge_color(id: String) -> Color:
-	return data(id).get("verge", Color(0.56, 0.72, 0.29))
+	return data(id).get("verge", CartoonPalette.GRASS_LIGHT)
 
 
 static func sky_color(id: String) -> Color:

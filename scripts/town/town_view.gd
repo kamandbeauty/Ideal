@@ -1,8 +1,8 @@
 class_name TownView
 extends Node3D
-## The 3D Roadside Empire compound: warm sunlit desert canyon, diagonal highway
-## with traffic, derelict tire/crate junkyards for unbuilt plots, custom-dressed
-## facilities with 3D rooftop signs & fuel pump bays, attendants and customers!
+## Sunny, low-poly Roadside Empire hub. The cartoon art pass changes only
+## rendering: all building solids, bay coordinates and traffic remain shared
+## with the validated driving layout.
 
 const BUSINESS_SCALE := 2.25
 const SEED := 20261115
@@ -77,17 +77,17 @@ func _build_environment() -> void:
 	_sky_material = sky_mat
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(1.0, 0.94, 0.84)
-	env.ambient_light_energy = 0.32
-	env.tonemap_mode = Environment.TONE_MAPPER_ACES
-	env.tonemap_exposure = 0.90
+	env.ambient_light_color = Color(0.96, 0.98, 1.0)
+	env.ambient_light_energy = 0.60
+	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
+	env.tonemap_exposure = 1.0
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.02
-	env.adjustment_contrast = 1.03
+	env.adjustment_saturation = 1.0
+	env.adjustment_contrast = 1.0
 	env.fog_enabled = true
 	env.fog_light_color = TownData.ground_color(state.town_id).lightened(0.12)
 	env.fog_light_energy = 0.45
-	env.fog_density = 0.0018
+	env.fog_density = 0.0008
 	env.fog_sky_affect = 0.10
 	world.environment = env
 	_env = env
@@ -96,11 +96,12 @@ func _build_environment() -> void:
 	_sun = DirectionalLight3D.new()
 	_sun.name = "Sun"
 	_sun.light_energy = 0.82
-	_sun.light_color = Color(1.0, 0.94, 0.80)
+	_sun.light_color = Color(1.0, 0.99, 0.96)
 	_sun.rotation_degrees = Vector3(-52, -36, 0)
 	_sun.shadow_enabled = true
 	_sun.directional_shadow_max_distance = 68.0
-	_sun.shadow_blur = 1.7
+	_sun.shadow_blur = 1.15
+	_sun.shadow_opacity = 0.46
 	_sun.shadow_bias = 0.04
 	_sun.shadow_normal_bias = 1.0
 	add_child(_sun)
@@ -116,7 +117,7 @@ func _build_environment() -> void:
 
 func _build_ground() -> void:
 	SurfaceMaterials.paving(
-		self, "sand", TownData.ground_color(state.town_id).darkened(0.12), Vector3(0, -0.01, 0), Vector2(160, 160)
+		self, "grass", TownData.ground_color(state.town_id), Vector3(0, -0.01, 0), Vector2(160, 160)
 	)
 
 
@@ -223,60 +224,11 @@ func refresh_business(id: String) -> void:
 		staff.refresh_business(id)
 
 
-func _populate_unlocked_building(visual: Node3D, id: String, _b: BusinessState, stage: int, bays: int) -> void:
-	var d := BusinessData.data(id)
-	var wall_col: Color = d.get("accent", Color(0.95, 0.45, 0.20))
-	var roof_col: Color = d.get("roof", Color(0.24, 0.28, 0.56))
-
-	# Crisp concrete pad + stylized Roadside Empire building block + kit detail!
-	var pad_mat := SurfaceMaterials.textured("concrete", Color(0.80, 0.78, 0.69), Vector2(2.5, 2))
-	var wall_mat := SurfaceMaterials.textured("plaster", wall_col.lerp(Color(0.75, 0.65, 0.46), 0.24))
-	var roof_mat := VehicleMesh.paint(roof_col, 0.55, 0.12)
-	var trim_mat := VehicleMesh.paint(wall_col, 0.45, 0.15)
-	var glass_mat := StandardMaterial3D.new()
-	glass_mat.albedo_color = Color(0.17, 0.37, 0.43)
-	glass_mat.roughness = 0.23
-	glass_mat.metallic = 0.18
-	glass_mat.emission_enabled = true
-	glass_mat.emission = Color(0.93, 0.69, 0.34)
-	glass_mat.emission_energy_multiplier = 0.0
-	var nights: Array[StandardMaterial3D] = [glass_mat]
-
-	var h := 1.75 + float(stage >= 4) * 0.22
-	_add_box(visual, pad_mat, Vector3(0, 0.05, 0), Vector3(3.35, 0.10, 3.05), false)
-	_add_box(visual, wall_mat, Vector3(0, 0.10 + h * 0.5, 0), Vector3(2.55, h, 2.05))
-	_add_box(visual, roof_mat, Vector3(0, 0.12 + h, 0), Vector3(2.78, 0.24, 2.28))
-	_add_box(visual, trim_mat, Vector3(0, 0.24 + h, 0), Vector3(2.42, 0.16, 1.92))
-	# Recessed storefront glazing, sills, door and shaded side windows.
-	var frame := VehicleMesh.paint(Color(0.72, 0.71, 0.61), 0.65, 0.15)
-	var dark := VehicleMesh.paint(Color(0.19, 0.23, 0.25), 0.85, 0.0)
-	_add_box(visual, dark, Vector3(0, 0.20, 0), Vector3(2.59, 0.26, 2.09))
-	for wx in [-0.78, 0.78]:
-		_add_box(visual, frame, Vector3(float(wx), 0.95, 1.045), Vector3(0.63, 0.85, 0.075))
-		_add_box(visual, glass_mat, Vector3(float(wx), 0.96, 1.09), Vector3(0.51, 0.71, 0.025), false)
-		_add_box(visual, frame, Vector3(float(wx), 0.57, 1.13), Vector3(0.70, 0.055, 0.16), false)
-	_add_box(visual, frame, Vector3(0, 0.83, 1.07), Vector3(0.58, 1.44, 0.10))
-	_add_box(visual, glass_mat, Vector3(0, 0.93, 1.13), Vector3(0.44, 1.12, 0.025), false)
-	_add_box(visual, frame, Vector3(0.15, 0.76, 1.16), Vector3(0.035, 0.17, 0.035), false)
-	for side in [-1.0, 1.0]:
-		_add_box(visual, frame, Vector3(1.29 * float(side), 1.0, -0.12), Vector3(0.04, 0.80, 1.25))
-		_add_box(visual, glass_mat, Vector3(1.32 * float(side), 1.0, -0.12), Vector3(0.025, 0.67, 1.10), false)
-		_add_box(visual, trim_mat, Vector3(1.23 * float(side), h * 0.5 + 0.12, 1.04), Vector3(0.10, h, 0.12))
-	var shadow := SurfaceMaterials.contact_shadow(Vector2(4.5, 4.0))
-	shadow.position.y = 0.065
-	visual.add_child(shadow)
-	visual.add_child(BusinessDecor.build_facility(id, stage * 20, bays, nights))
+func _populate_unlocked_building(visual: Node3D, id: String, b: BusinessState, stage: int, bays: int) -> void:
+	var nights: Array[StandardMaterial3D] = []
+	visual.add_child(CartoonBuildings.build(id, stage, nights))
+	visual.add_child(BusinessDecor.build_facility(id, b.level, bays, nights))
 	_building_nights[id] = nights
-
-
-func _add_box(parent: Node3D, mat: StandardMaterial3D, pos: Vector3, size: Vector3, shadows: bool = true) -> void:
-	var inst := MeshInstance3D.new()
-	inst.mesh = StylizedMesh.box(size, minf(0.055, minf(size.x, minf(size.y, size.z)) * 0.2))
-	inst.material_override = mat
-	inst.position = pos
-	if not shadows:
-		inst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(inst)
 
 
 func sparkle(id: String) -> void:
@@ -336,21 +288,21 @@ func apply_time(t: float) -> void:
 	var day := clampf(elevation, 0.0, 1.0)
 	var night := clampf(-elevation * 2.4, 0.0, 1.0)
 	var dusk := clampf(1.0 - absf(elevation) * 2.4, 0.0, 1.0)
-	var sand := TownData.ground_color(state.town_id)
+	var turf := TownData.ground_color(state.town_id)
 	var sky_day := TownData.sky_color(state.town_id)
 
 	if _sun != null:
-		_sun.rotation_degrees = Vector3(-(18.0 + 62.0 * day), -38.0 + 360.0 * t, 0)
-		_sun.light_energy = 0.18 + 0.64 * day + 0.20 * dusk
-		var sun_col := Color(1.0, 0.95, 0.84).lerp(Color(1.0, 0.56, 0.28), dusk)
+		_sun.rotation_degrees = Vector3(-(32.0 + 26.0 * day), -36.0, 0)
+		_sun.light_energy = 0.12 + 0.66 * day + 0.12 * dusk
+		var sun_col := Color(1.0, 0.99, 0.96).lerp(Color(1.0, 0.89, 0.74), dusk * 0.45)
 		_sun.light_color = sun_col.lerp(Color(0.72, 0.78, 0.96), night * 0.6)
 	if _fill != null:
-		_fill.light_energy = 0.08 + 0.05 * day
+		_fill.light_energy = 0.12 + 0.02 * day
 	if _env != null:
-		_env.ambient_light_energy = 0.38 - 0.10 * day
-		var amb := Color(0.96, 0.92, 0.86).lerp(Color(1.0, 0.78, 0.60), dusk * 0.75)
-		_env.ambient_light_color = amb.lerp(Color(0.46, 0.50, 0.68), night)
-		_env.fog_light_color = sand.lightened(0.22).lerp(Color(0.14, 0.18, 0.32), night)
+		_env.ambient_light_energy = 0.58 - 0.12 * night
+		var amb := Color(0.96, 0.98, 1.0).lerp(Color(1.0, 0.96, 0.87), dusk * 0.30)
+		_env.ambient_light_color = amb.lerp(Color(0.58, 0.67, 0.85), night)
+		_env.fog_light_color = turf.lightened(0.22).lerp(Color(0.14, 0.18, 0.32), night)
 	if _sky_material != null:
 		_sky_material.sky_top_color = sky_day.lerp(Color(0.08, 0.12, 0.24), night)
 		var hor := sky_day.lightened(0.25).lerp(Color(1.0, 0.58, 0.34), dusk * 0.85)

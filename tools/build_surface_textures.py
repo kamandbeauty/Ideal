@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic, tileable mobile surface maps (no runtime noise shaders)."""
+"""Deterministic, subtle neutral surface maps for the flat-colour toy-town style."""
 from pathlib import Path
 
 import numpy as np
@@ -23,21 +23,22 @@ def surface(name, base, grain, seed):
     colors = np.array(base)[None, None, :] + shade[..., None]
     if name == "asphalt":
         flecks = rng.random((SIZE, SIZE)) > 0.975
-        colors[flecks] += 18
+        colors[flecks] += 1.5
     image = Image.fromarray(np.uint8(np.clip(colors, 0, 255)), "RGB")
     image.save(ROOT / f"{name}.png", optimize=True)
 
 
 def main():
     ROOT.mkdir(parents=True, exist_ok=True)
-    surface("asphalt", (133, 143, 150), 4.2, 721)
-    surface("concrete", (207, 203, 190), 2.2, 722)
-    surface("sand", (219, 193, 150), 2.5, 723)
-    surface("plaster", (236, 232, 219), 1.4, 724)
+    surface("asphalt", (247, 248, 249), 0.40, 721)
+    surface("concrete", (251, 251, 250), 0.25, 722)
+    surface("sand", (249, 247, 241), 0.45, 723)
+    surface("plaster", (252, 252, 250), 0.12, 724)
+    surface("grass", (250, 252, 247), 0.30, 725)
     y, x = np.mgrid[-1:1:complex(SIZE), -1:1:complex(SIZE)]
     alpha = np.clip((1 - (x * x + y * y)) * 0.8, 0, 1) ** 2
     shadow = np.zeros((SIZE, SIZE, 4), dtype=np.uint8)
-    shadow[:, :, 3] = (alpha * 115).astype(np.uint8)
+    shadow[:, :, 3] = (alpha * 84).astype(np.uint8)
     Image.fromarray(shadow, "RGBA").filter(ImageFilter.GaussianBlur(8)).save(
         ROOT / "contact-shadow.png", optimize=True
     )

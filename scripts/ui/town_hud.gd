@@ -1,10 +1,10 @@
 extends Control
-## Authentic Roadside Empire Portrait HUD:
+## Sunny cartoon portrait HUD:
 ## - Row 1: Gear Settings + Gold Star Badge + Cash + Bourbon + Gems pills
 ## - Row 2: Clipboard Chapter Progress Bar + 3 Milestone Reward Chest buttons
 ## - Row 3: 3 Side-by-Side Cream Quest Cards (turn Bright Green on completion!)
 ## - Center: 2D Projected WorldBadges + StationSheet bottom renovation drawer
-## - Bottom: 5-Button Bar (Map, Cases, Wide Purple x2 Income, Managers, Hammer)
+## - Bottom: 5-Button Bar (Map, Cases, Wide Blue x2 Income, Managers, Hammer)
 
 var session: Node
 var selected_id := ""
@@ -52,12 +52,13 @@ func setup(session_node: Node) -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build()
 	_apply_language()
-	App.language_changed.connect(func(_l: String) -> void:
-		layout_direction = App.layout_direction()
-		_apply_language())
+	App.language_changed.connect(
+		func(_l: String) -> void:
+			layout_direction = App.layout_direction()
+			_apply_language()
+	)
 	session.state.changed.connect(_refresh_all)
-	session.state.event_started.connect(func(ev_id: String) -> void:
-		show_message(App.t(TownEvents.name_key(ev_id))))
+	session.state.event_started.connect(func(ev_id: String) -> void: show_message(App.t(TownEvents.name_key(ev_id))))
 	_refresh_all()
 
 
@@ -66,8 +67,13 @@ func tick(delta: float) -> void:
 		_toast_timer = maxf(0.0, _toast_timer - delta)
 		_toast_lbl.get_parent().visible = _toast_timer > 0.0
 	var modal_open := (
-		_settings.visible or _map.visible or _managers.visible or _cases.visible
-		or _offline_modal.visible or _bonus_modal.visible or _completion_modal.visible
+		_settings.visible
+		or _map.visible
+		or _managers.visible
+		or _cases.visible
+		or _offline_modal.visible
+		or _bonus_modal.visible
+		or _completion_modal.visible
 	)
 	_badges.update_positions(modal_open or _sheet.visible)
 	_refresh_live_timers()
@@ -89,9 +95,9 @@ func show_completion_banner() -> void:
 	if _completion_modal == null or session == null:
 		return
 	_completion_shown = true
-	(_completion_modal.get_meta("body") as Label).text = App.t("complete.body", [
-		App.t("town.%s" % session.state.town_id)
-	])
+	(_completion_modal.get_meta("body") as Label).text = App.t(
+		"complete.body", [App.t("town.%s" % session.state.town_id)]
+	)
 	_completion_modal.visible = true
 
 
@@ -120,6 +126,13 @@ func _build() -> void:
 
 
 func _build_top_header() -> void:
+	var header_back := Panel.new()
+	header_back.name = "OrangeHeader"
+	header_back.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	header_back.offset_bottom = 112
+	header_back.add_theme_stylebox_override("panel", UiTheme.header_style())
+	header_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(header_back)
 	var top := MarginContainer.new()
 	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	top.add_theme_constant_override("margin_left", 10)
@@ -150,7 +163,7 @@ func _build_top_header() -> void:
 	_star_pill = _pill_label(UiTheme.gold_badge_style(), UiTheme.DARK_TEXT, 14)
 	row1.add_child(_star_pill.get_parent())
 
-	_cash_pill = _pill_label(UiTheme.dark_pill_style(), Color.WHITE, 16)
+	_cash_pill = _pill_label(UiTheme.dark_pill_style(), UiTheme.GOOD, 16)
 	_cash_pill.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row1.add_child(_cash_pill.get_parent())
 
@@ -169,7 +182,7 @@ func _build_top_header() -> void:
 	row2.add_theme_constant_override("separation", 8)
 	row2_panel.add_child(row2)
 
-	_chapter_lbl = _lbl(14, Color.WHITE)
+	_chapter_lbl = _lbl(14, UiTheme.TEXT)
 	row2.add_child(_chapter_lbl)
 
 	_chapter_bar = ProgressBar.new()
@@ -179,9 +192,9 @@ func _build_top_header() -> void:
 	_chapter_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_chapter_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_chapter_bar.custom_minimum_size = Vector2(90, 14)
-	var ch_bg := UiTheme.slim_style(Color(0.08, 0.09, 0.14), Color.TRANSPARENT, 7)
+	var ch_bg := UiTheme.slim_style(UiTheme.TRACK, UiTheme.BORDER, 5)
 	_chapter_bar.add_theme_stylebox_override("background", ch_bg)
-	_chapter_bar.add_theme_stylebox_override("fill", UiTheme.slim_style(UiTheme.GOOD, Color.TRANSPARENT, 7))
+	_chapter_bar.add_theme_stylebox_override("fill", UiTheme.slim_style(UiTheme.BLUE, Color.TRANSPARENT, 5))
 	row2.add_child(_chapter_bar)
 
 	for step in ChapterQuests.MILESTONE_STEPS:
@@ -210,11 +223,26 @@ func _build_top_header() -> void:
 		var slot_idx := i
 		q_btn.pressed.connect(func() -> void: _on_quest_card_pressed(slot_idx))
 		row3.add_child(q_btn)
+		var progress := ProgressBar.new()
+		progress.show_percentage = false
+		progress.max_value = 1.0
+		progress.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+		progress.offset_left = 10
+		progress.offset_right = -10
+		progress.offset_top = -10
+		progress.offset_bottom = -6
+		progress.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		progress.add_theme_stylebox_override("background", UiTheme.slim_style(UiTheme.TRACK, Color.TRANSPARENT, 2))
+		progress.add_theme_stylebox_override(
+			"fill", UiTheme.slim_style(CartoonPalette.ACTION_GREEN, Color.TRANSPARENT, 2)
+		)
+		q_btn.add_child(progress)
+		q_btn.set_meta("progress", progress)
 		_quest_cards.append(q_btn)
 
 	# ROW 4: Active Event / Special Order Banner + Toast Pill
 	_event_chip = Button.new()
-	_event_chip.theme_type_variation = "PurpleButton"
+	_event_chip.theme_type_variation = "OrangeButton"
 	_event_chip.custom_minimum_size = Vector2(0, 36)
 	_event_chip.focus_mode = Control.FOCUS_NONE
 	_event_chip.add_theme_font_size_override("font_size", 13)
@@ -246,28 +274,34 @@ func _build_bottom_nav() -> void:
 	bar.add_theme_constant_override("separation", 6)
 	bottom.add_child(bar)
 
-	_map_btn = _nav_btn("NavButton", 1.0, func() -> void: _map.open("story"))
+	_map_btn = _nav_btn("NavButton", 1.0, "map", func() -> void: _map.open("story"))
 	bar.add_child(_map_btn)
 
-	_cases_btn = _nav_btn("NavButton", 1.0, func() -> void: _cases.open("cases"))
+	_cases_btn = _nav_btn("NavButton", 1.0, "cases", func() -> void: _cases.open("cases"))
 	bar.add_child(_cases_btn)
 
-	_boost_btn = _nav_btn("PurpleButton", 1.55, _on_boost_pressed)
+	_boost_btn = _nav_btn("BlueButton", 1.55, "boost", _on_boost_pressed)
 	bar.add_child(_boost_btn)
 
-	_managers_btn = _nav_btn("NavButton", 1.05, func() -> void: _managers.open())
+	_managers_btn = _nav_btn("NavButton", 1.05, "managers", func() -> void: _managers.open())
 	bar.add_child(_managers_btn)
 
-	_build_btn = _nav_btn("PurpleButton", 1.05, func() -> void: _cases.open("build"))
+	_build_btn = _nav_btn("NavButton", 1.05, "build", func() -> void: _cases.open("build"))
 	bar.add_child(_build_btn)
 
 
-func _nav_btn(variation: String, stretch: float, cb: Callable) -> Button:
+func _nav_btn(variation: String, stretch: float, icon_name: String, cb: Callable) -> Button:
 	var b := Button.new()
 	b.theme_type_variation = variation
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.size_flags_stretch_ratio = stretch
-	b.custom_minimum_size = Vector2(0, 86)
+	b.custom_minimum_size = Vector2(0, 90)
+	b.icon = load("res://assets/ui/nav-%s.svg" % icon_name)
+	b.expand_icon = true
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.add_theme_constant_override("icon_max_width", 42)
+	b.add_theme_constant_override("h_separation", 3)
 	b.focus_mode = Control.FOCUS_NONE
 	b.add_theme_font_size_override("font_size", 14)
 	b.pressed.connect(cb)
@@ -319,7 +353,7 @@ func _simple_modal(title_k: String, btn_k: String, cb: Callable) -> Control:
 	wrap.visible = false
 	wrap.mouse_filter = Control.MOUSE_FILTER_STOP
 	var scrim := ColorRect.new()
-	scrim.color = Color(0.02, 0.03, 0.06, 0.78)
+	scrim.color = UiTheme.SCRIM
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	wrap.add_child(scrim)
 	var center := CenterContainer.new()
@@ -355,20 +389,32 @@ func _simple_modal(title_k: String, btn_k: String, cb: Callable) -> Control:
 func _refresh_all() -> void:
 	var st: TownState = session.state
 	var sp := EmpireActions.star_progress(st)
-	_star_pill.text = "⭐ %s · %s/%s" % [
-		App.t("hud.star_lvl", [App.format_number(int(sp["level"]))]),
-		App.format_number(int(sp["current"])),
-		App.format_number(int(sp["needed"])),
-	]
+	_star_pill.text = (
+		"⭐ %s · %s/%s"
+		% [
+			App.t("hud.star_lvl", [App.format_number(int(sp["level"]))]),
+			App.format_number(int(sp["current"])),
+			App.format_number(int(sp["needed"])),
+		]
+	)
 	_cash_pill.text = "💵 %s" % App.format_short(st.cash)
 	_bourbon_pill.text = "🥃 %s" % App.format_number(st.bourbon)
 	_gems_pill.text = "💎 %s" % App.format_number(st.gems)
 
-	_chapter_lbl.text = "📋 " + App.t("hud.chapter_bar", [
-		App.format_number(st.chapter_index),
-		App.format_number(st.chapter_tasks_done),
-		App.format_number(ChapterQuests.TASKS_PER_CHAPTER),
-	])
+	_chapter_lbl.text = (
+		"📋 "
+		+ (
+			App
+			. t(
+				"hud.chapter_bar",
+				[
+					App.format_number(st.chapter_index),
+					App.format_number(st.chapter_tasks_done),
+					App.format_number(ChapterQuests.TASKS_PER_CHAPTER),
+				]
+			)
+		)
+	)
 	_chapter_bar.value = float(st.chapter_tasks_done)
 	var icons := ["💵", "🥃", "💎"]
 	for idx in range(ChapterQuests.MILESTONE_STEPS.size()):
@@ -405,22 +451,30 @@ func _refresh_quest_cards() -> void:
 		var q: Dictionary = st.quest_slots[i]
 		var done := ChapterQuests.is_complete(q, st)
 		var icon := ChapterQuests.icon_for(q)
+		var progress: ProgressBar = card.get_meta("progress")
+		progress.value = ChapterQuests.current_value(q, st) / maxf(1.0, float(q.get("goal", 1.0)))
 		if done:
-			card.text = "%s %s\n✅ %s" % [
-				icon,
-				ChapterQuests.title_text(q),
-				App.t("quest.claim"),
-			]
+			card.text = (
+				"%s %s\n✅ %s"
+				% [
+					icon,
+					ChapterQuests.title_text(q),
+					App.t("quest.claim"),
+				]
+			)
 			card.add_theme_stylebox_override("normal", UiTheme.green_card_style())
 			card.add_theme_stylebox_override("hover", UiTheme.green_card_style())
 			card.add_theme_stylebox_override("pressed", UiTheme.green_card_style())
-			card.add_theme_color_override("font_color", Color.WHITE)
+			card.add_theme_color_override("font_color", UiTheme.GOOD)
 		else:
-			card.text = "%s %s\n🔑 %s" % [
-				icon,
-				ChapterQuests.title_text(q),
-				ChapterQuests.progress_label(q, st),
-			]
+			card.text = (
+				"%s %s\n🔑 %s"
+				% [
+					icon,
+					ChapterQuests.title_text(q),
+					ChapterQuests.progress_label(q, st),
+				]
+			)
 			card.add_theme_stylebox_override("normal", UiTheme.cream_card_style())
 			card.add_theme_stylebox_override("hover", UiTheme.cream_card_style())
 			card.add_theme_stylebox_override("pressed", UiTheme.cream_card_style())
@@ -429,10 +483,10 @@ func _refresh_quest_cards() -> void:
 
 func _refresh_bottom_nav() -> void:
 	var st: TownState = session.state
-	_map_btn.text = "📍\n" + App.t("nav.map")
+	_map_btn.text = App.t("nav.map")
 	var crate_dot := " ●" if st.free_crate_cooldown <= 0.0 else ""
-	_cases_btn.text = "🧰%s\n%s" % [crate_dot, App.t("nav.cases")]
-	_managers_btn.text = "✨\n" + App.t("nav.managers")
+	_cases_btn.text = App.t("nav.cases") + crate_dot
+	_managers_btn.text = App.t("nav.managers")
 
 	var affordable := 0
 	for id in st.business_ids():
@@ -446,29 +500,41 @@ func _refresh_bottom_nav() -> void:
 		elif b.unlocked and b.can_upgrade_level() and st.cash + 0.01 >= st.upgrade_cost(id, 1):
 			affordable += 1
 	var badge := (" (%d)" % affordable) if affordable > 0 else ""
-	_build_btn.text = "🔨%s\n%s" % [badge, App.t("nav.build")]
+	_build_btn.text = App.t("nav.build") + badge
 
 
 func _refresh_live_timers() -> void:
 	var st: TownState = session.state
 	if st.x2_boost_seconds > 0.0:
-		_boost_btn.text = "⚡ " + App.t("nav.boost_active", [App.format_number(ceil(st.x2_boost_seconds))])
+		_boost_btn.text = App.t("nav.boost_active", [App.format_number(ceil(st.x2_boost_seconds))])
 	else:
-		_boost_btn.text = "▶ " + App.t("nav.boost")
+		_boost_btn.text = App.t("nav.boost")
 
 	if st.special_order_active:
 		_event_chip.visible = true
-		_event_chip.text = "🚚 %s" % App.t("exp.order_running", [
-			App.format_number(floor(st.special_order_done)),
-			App.format_number(st.special_order_goal),
-			App.format_number(ceil(st.special_order_timer)),
-		])
+		_event_chip.text = (
+			"🚚 %s"
+			% (
+				App
+				. t(
+					"exp.order_running",
+					[
+						App.format_number(floor(st.special_order_done)),
+						App.format_number(st.special_order_goal),
+						App.format_number(ceil(st.special_order_timer)),
+					]
+				)
+			)
+		)
 	elif not st.active_event.is_empty():
 		_event_chip.visible = true
-		_event_chip.text = "🔥 %s (%ss)" % [
-			App.t(TownEvents.name_key(st.active_event)),
-			App.format_number(ceilf(st.event_time_left)),
-		]
+		_event_chip.text = (
+			"🔥 %s (%ss)"
+			% [
+				App.t(TownEvents.name_key(st.active_event)),
+				App.format_number(ceilf(st.event_time_left)),
+			]
+		)
 	else:
 		_event_chip.visible = false
 
@@ -485,9 +551,7 @@ func _on_badge_tapped(id: String) -> void:
 			App.tap(20)
 			session.view.pop_income(id, got)
 	elif (
-		(not b.unlocked)
-		and st.star_level() >= BusinessData.star_required(id)
-		and st.cash + 0.01 >= st.unlock_cost(id)
+		(not b.unlocked) and st.star_level() >= BusinessData.star_required(id) and st.cash + 0.01 >= st.unlock_cost(id)
 	):
 		if st.unlock_business(id):
 			Sound.play("build", -4.0)
@@ -506,10 +570,18 @@ func _on_quest_card_pressed(slot_idx: int) -> void:
 		if not reward.is_empty():
 			Sound.play("mission", -4.0)
 			App.tap(32)
-			show_message(App.t("msg.quest_claimed", [
-				App.format_short(float(reward["cash"])),
-				App.format_number(float(reward["gems"])),
-			]))
+			show_message(
+				(
+					App
+					. t(
+						"msg.quest_claimed",
+						[
+							App.format_short(float(reward["cash"])),
+							App.format_number(float(reward["gems"])),
+						]
+					)
+				)
+			)
 	else:
 		var target_id := String(q.get("target", ""))
 		if not target_id.is_empty() and st.business(target_id) != null:
@@ -523,11 +595,16 @@ func _on_claim_milestone(step: int) -> void:
 		return
 	Sound.play("gem", -4.0)
 	App.tap(34)
-	show_message("📋 +$%s · +%s 🥃 · +%s 💎!" % [
-		App.format_short(float(reward["cash"])),
-		App.format_number(float(reward["bourbon"])),
-		App.format_number(float(reward["gems"])),
-	])
+	show_message(
+		(
+			"📋 +$%s · +%s 🥃 · +%s 💎!"
+			% [
+				App.format_short(float(reward["cash"])),
+				App.format_number(float(reward["bourbon"])),
+				App.format_number(float(reward["gems"])),
+			]
+		)
+	)
 
 
 func _on_boost_pressed() -> void:
@@ -553,10 +630,13 @@ func show_offline(seconds: float, earnings: float) -> void:
 		return
 	_offline_amount = earnings
 	var mins := maxi(1, int(roundf(seconds / 60.0)))
-	_offline_body.text = "%s\n\n💵 %s" % [
-		App.t("offline.away", [App.format_number(mins)]),
-		App.format_money(earnings),
-	]
+	_offline_body.text = (
+		"%s\n\n💵 %s"
+		% [
+			App.t("offline.away", [App.format_number(mins)]),
+			App.format_money(earnings),
+		]
+	)
 	_offline_modal.visible = true
 
 
@@ -574,11 +654,14 @@ func show_daily_bonus(day: int) -> void:
 	var st: TownState = session.state
 	var c := DailyBonus.cash(st.net_per_minute(), day)
 	var g := DailyBonus.gems(day)
-	_bonus_body.text = "%s\n\n💵 %s   💎 %s" % [
-		App.t("bonus.day", [App.format_number(day)]),
-		App.format_short(c),
-		App.format_number(g),
-	]
+	_bonus_body.text = (
+		"%s\n\n💵 %s   💎 %s"
+		% [
+			App.t("bonus.day", [App.format_number(day)]),
+			App.format_short(c),
+			App.format_number(g),
+		]
+	)
 	_bonus_modal.visible = true
 
 

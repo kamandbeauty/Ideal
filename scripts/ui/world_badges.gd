@@ -38,7 +38,7 @@ func setup(session_node: Node) -> void:
 		bar.custom_minimum_size = Vector2(92, 6)
 		bar.position = Vector2(8, 33)
 		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bar.add_theme_stylebox_override("background", UiTheme.slim_style(Color(0.10, 0.12, 0.16), Color.TRANSPARENT, 3))
+		bar.add_theme_stylebox_override("background", UiTheme.slim_style(UiTheme.TRACK, Color.TRANSPARENT, 3))
 		bar.add_theme_stylebox_override("fill", UiTheme.slim_style(UiTheme.GOOD, Color.TRANSPARENT, 3))
 		holder.add_child(bar)
 
@@ -71,15 +71,17 @@ func update_positions(suppressed: bool) -> void:
 		var entry: Dictionary = _entries[id]
 		var holder: Control = entry["holder"]
 		var plot := BusinessData.plot(id)
-		var world_pt := Vector3(plot.x, 2.55, plot.y)
+		var world_pt := Vector3(plot.x, 3.05, plot.y)
 		if cam.is_position_behind(world_pt):
 			holder.visible = false
 			continue
 		var screen_pt := cam.unproject_position(world_pt)
 		# Keep badges inside the playable central viewport between top quests & bottom nav!
 		if (
-			screen_pt.x < 24.0 or screen_pt.x > vp_size.x - 24.0
-			or screen_pt.y < 195.0 or screen_pt.y > vp_size.y - 135.0
+			screen_pt.x < 24.0
+			or screen_pt.x > vp_size.x - 24.0
+			or screen_pt.y < 235.0
+			or screen_pt.y > vp_size.y - 135.0
 		):
 			holder.visible = false
 			continue
@@ -124,7 +126,7 @@ func _style_entry(id: String, entry: Dictionary, tr: float) -> void:
 		btn.add_theme_stylebox_override("normal", UiTheme.dark_pill_style())
 		btn.add_theme_stylebox_override("hover", UiTheme.dark_pill_style())
 		btn.add_theme_stylebox_override("pressed", UiTheme.dark_pill_style())
-		btn.add_theme_color_override("font_color", Color.WHITE)
+		btn.add_theme_color_override("font_color", UiTheme.TEXT)
 		bar.visible = true
 		bar.value = b.vault_fill_ratio(tr)
 	else:
@@ -132,5 +134,5 @@ func _style_entry(id: String, entry: Dictionary, tr: float) -> void:
 		btn.add_theme_stylebox_override("normal", UiTheme.dark_pill_style())
 		btn.add_theme_stylebox_override("hover", UiTheme.dark_pill_style())
 		btn.add_theme_stylebox_override("pressed", UiTheme.dark_pill_style())
-		btn.add_theme_color_override("font_color", UiTheme.GOLD if b.is_automated() else Color.WHITE)
+		btn.add_theme_color_override("font_color", UiTheme.GOOD if b.is_automated() else UiTheme.TEXT)
 		bar.visible = false

@@ -34,6 +34,16 @@ The launcher icon is generated artwork: the 1024 px master is
 derives every shipped size (project icon, legacy launcher icon, Android adaptive
 foreground and background) from it.
 
+## Cartoon environment and navigation art
+
+The procedural gabled buildings, palette, lawns and toy-town scenery in
+`scripts/town/cartoon_buildings.gd` and related scripts, the five SVG navigation
+illustrations in `assets/ui/`, and the baked maps from
+`tools/build_surface_textures.py` are original assets made for this project.
+The user-provided screenshot guided the palette and general low-poly treatment;
+no models, textures, icons, logos, screenshot pixels or UI artwork were extracted
+from the reference game or included in the shipped assets.
+
 ## Vazirmatn font
 
 `assets/fonts/Vazirmatn-*.ttf` is **Vazirmatn** by Saber Rastikerdar, licensed

@@ -4,6 +4,7 @@ extends RefCounted
 ## no SSAO, real-time reflections, screen-reading shaders or HDR are required.
 
 const MAPS := {
+	"grass": preload("res://assets/textures/grass.png"),
 	"asphalt": preload("res://assets/textures/asphalt.png"),
 	"sand": preload("res://assets/textures/sand.png"),
 	"concrete": preload("res://assets/textures/concrete.png"),
@@ -18,8 +19,10 @@ static func textured(kind: String, color: Color, tiling: Vector2 = Vector2.ONE) 
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
 	material.albedo_texture = MAPS.get(kind)
-	material.roughness = 0.88
+	material.roughness = 0.95
 	material.metallic = 0.0
+	material.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT
+	material.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
 	material.uv1_scale = Vector3(tiling.x, tiling.y, 1.0)
 	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	return material

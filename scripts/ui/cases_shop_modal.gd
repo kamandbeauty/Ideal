@@ -44,7 +44,7 @@ func close() -> void:
 
 func _build() -> void:
 	var scrim := ColorRect.new()
-	scrim.color = Color(0.02, 0.03, 0.06, 0.78)
+	scrim.color = UiTheme.SCRIM
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(scrim)
 
@@ -110,16 +110,16 @@ func _build_cases_content() -> void:
 	]
 	for d in defs:
 		var card := PanelContainer.new()
-		card.add_theme_stylebox_override("panel", UiTheme.button_style(Color(0.16, 0.20, 0.30), d["col"], 14))
+		card.add_theme_stylebox_override("panel", UiTheme.button_style(UiTheme.PANEL_SOFT, d["col"], 14))
 		_cases_box.add_child(card)
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
 		card.add_child(row)
-		var lbl := _lbl(16, Color.WHITE)
+		var lbl := _lbl(16, UiTheme.TEXT)
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(lbl)
 		var btn := Button.new()
-		btn.theme_type_variation = "GreenButton" if d["id"] == "free_crate" else "PurpleButton"
+		btn.theme_type_variation = "GreenButton" if d["id"] == "free_crate" else "BlueButton"
 		btn.custom_minimum_size = Vector2(160, 50)
 		btn.focus_mode = Control.FOCUS_NONE
 		var cid := String(d["id"])
@@ -129,7 +129,7 @@ func _build_cases_content() -> void:
 
 	# Bourbon Barrel Gem Pack!
 	var b_card := PanelContainer.new()
-	b_card.add_theme_stylebox_override("panel", UiTheme.button_style(Color(0.24, 0.17, 0.12), UiTheme.BOURBON, 14))
+	b_card.add_theme_stylebox_override("panel", UiTheme.button_style(Color("#fff1d4"), UiTheme.BOURBON, 14))
 	_cases_box.add_child(b_card)
 	var b_row := HBoxContainer.new()
 	b_card.add_child(b_row)
@@ -137,7 +137,7 @@ func _build_cases_content() -> void:
 	b_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b_row.add_child(b_lbl)
 	_bourbon_btn = Button.new()
-	_bourbon_btn.theme_type_variation = "PurpleButton"
+	_bourbon_btn.theme_type_variation = "BlueButton"
 	_bourbon_btn.custom_minimum_size = Vector2(160, 50)
 	_bourbon_btn.focus_mode = Control.FOCUS_NONE
 	_bourbon_btn.pressed.connect(_on_buy_bourbon)
@@ -148,12 +148,12 @@ func _build_cases_content() -> void:
 func _build_facilities_content() -> void:
 	for id in BusinessData.ORDER:
 		var card := PanelContainer.new()
-		card.add_theme_stylebox_override("panel", UiTheme.button_style(Color(0.16, 0.20, 0.30), BusinessData.accent(id), 14))
+		card.add_theme_stylebox_override("panel", UiTheme.button_style(UiTheme.PANEL_SOFT, BusinessData.accent(id), 14))
 		_build_box.add_child(card)
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 10)
 		card.add_child(row)
-		var info := _lbl(16, Color.WHITE)
+		var info := _lbl(16, UiTheme.TEXT)
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(info)
 		var btn := Button.new()
@@ -196,21 +196,27 @@ func refresh() -> void:
 		_bourbon_btn.disabled = state.gems < 15
 	else:
 		_title.text = "🔨 " + App.t("build.title")
-		_subtitle.text = "💵 %s · ⭐ %s" % [
-			App.format_short(state.cash),
-			App.t("hud.star_lvl", [App.format_number(state.star_level())]),
-		]
+		_subtitle.text = (
+			"💵 %s · ⭐ %s"
+			% [
+				App.format_short(state.cash),
+				App.t("hud.star_lvl", [App.format_number(state.star_level())]),
+			]
+		)
 		for id in BusinessData.ORDER:
 			var r: Dictionary = _build_rows[id]
 			var b := state.business(id)
 			var btn: Button = r["btn"]
 			if not b.unlocked:
 				var req_s := BusinessData.star_required(id)
-				(r["info"] as Label).text = "%s %s\n%s" % [
-					BusinessData.icon(id),
-					App.t("business.%s.name" % id),
-					App.t("business.%s.desc" % id),
-				]
+				(r["info"] as Label).text = (
+					"%s %s\n%s"
+					% [
+						BusinessData.icon(id),
+						App.t("business.%s.name" % id),
+						App.t("business.%s.desc" % id),
+					]
+				)
 				if state.star_level() < req_s:
 					btn.text = App.t("hud.locked", [App.format_number(req_s)])
 					btn.disabled = true
@@ -220,12 +226,15 @@ func refresh() -> void:
 					btn.disabled = state.cash + 0.01 < uc
 			else:
 				var rate := b.net_per_minute(state.traffic()) * state.income_multiplier()
-				(r["info"] as Label).text = "%s %s · Lv %s\n💵 %s/min" % [
-					BusinessData.icon(id),
-					App.t("business.%s.name" % id),
-					App.format_number(b.level),
-					App.format_short(rate),
-				]
+				(r["info"] as Label).text = (
+					"%s %s · Lv %s\n💵 %s/min"
+					% [
+						BusinessData.icon(id),
+						App.t("business.%s.name" % id),
+						App.format_number(b.level),
+						App.format_short(rate),
+					]
+				)
 				if b.can_upgrade_level():
 					var c := state.upgrade_cost(id, 1)
 					btn.text = App.t("hud.upgrade", [App.format_short(c)])
@@ -242,11 +251,22 @@ func _on_open_case(cid: String) -> void:
 		return
 	Sound.play("gem", -4.0)
 	App.tap(36)
-	feedback.emit(App.t("cases.reward_toast", [
-		App.format_short(float(loot["cash"])),
-		App.format_number(float(loot["bourbon"])),
-		App.format_number(float(loot["card_count"])),
-	]))
+	(
+		feedback
+		. emit(
+			(
+				App
+				. t(
+					"cases.reward_toast",
+					[
+						App.format_short(float(loot["cash"])),
+						App.format_number(float(loot["bourbon"])),
+						App.format_number(float(loot["card_count"])),
+					]
+				)
+			)
+		)
+	)
 	refresh()
 
 

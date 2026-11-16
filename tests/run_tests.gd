@@ -20,6 +20,7 @@ const SUITES := [
 	"res://tests/suites/test_daily_and_tips.gd",
 	"res://tests/suites/test_roadside_empire.gd",
 	"res://tests/suites/test_driving.gd",
+	"res://tests/suites/test_cartoon_style.gd",
 ]
 const REPORT_PATH := "res://documentation/qa/test-results.json"
 
@@ -51,12 +52,17 @@ func _initialize() -> void:
 				suite.call(method_name)
 		checks += suite.checks
 		failures.append_array(suite.failures)
-		suites.append({
-			"name": suite.suite_name,
-			"methods": suite_methods,
-			"checks": suite.checks,
-			"failures": suite.failures.size(),
-		})
+		(
+			suites
+			. append(
+				{
+					"name": suite.suite_name,
+					"methods": suite_methods,
+					"checks": suite.checks,
+					"failures": suite.failures.size(),
+				}
+			)
+		)
 		print("%-22s %3d checks  %d failures" % [suite.suite_name, suite.checks, suite.failures.size()])
 
 	var report := {

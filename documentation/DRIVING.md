@@ -23,9 +23,9 @@ The visual traffic remains separate from the statistical idle economy: neither g
 
 ## Art and performance
 
-- Tileable sand, asphalt, concrete and plaster maps are baked by `tools/build_surface_textures.py` (fixed seeds, no external downloads or runtime noise shader).
+- Subtle, neutral grass, asphalt, concrete, sand and plaster maps are baked by `tools/build_surface_textures.py` (fixed seeds, no external downloads or runtime noise shader).
 - Cached low-poly chamfer geometry catches edge highlights on cars, roofs, signs and props. Framed windows, sills, skirting, wheel hubs, bumpers, mirrors and brake lamps add depth without expensive reflections.
-- Restrained daylight exposure and softer directional shadows retain the warm desert palette without clipping the forecourt to white. Small contact shadows work in the GL Compatibility renderer, without SSAO.
+- Neutral daylight, matte materials and soft directional shadows retain the lime/grey/orange reference palette. White kerbs, lawn islands, pitched tile roofs and original illustrated navigation replace the earlier dark/desert presentation; see [art direction](ART_DIRECTION.md). Small contact shadows work in the GL Compatibility renderer, without SSAO.
 - Numbered bays, lane arrows and separate IN/OUT driveways communicate the actual traffic routes. Pedestrians stay on storefront pavement.
 - Low quality disables real-time directional shadows; high adds 2× MSAA; medium uses FXAA. Existing customer/pedestrian caps and the night-light budget still apply; highway traffic is capped at 6 / 8 / 10 vehicles for low / medium / high. No rigid-body pile-ups, RVO swarm or real-time GI is required.
 
@@ -37,7 +37,7 @@ godot --headless --path . --script res://tests/run_tests.gd
 godot --headless --path . res://tools/traffic_check.tscn
 ```
 
-The unit suite checks stable/non-overlapping bays, all car/camper/monster routes against every building and service obstacle, service-on-arrival, braking and collision layers.
+The unit suites check shell-vs-solid bounds, UI text contrast, orthographic zoom, the lightweight art budget, stable/non-overlapping bays, all car/camper/monster routes against every building and service obstacle, service-on-arrival, braking and collision layers.
 
 The PhysicsServer integration scenario runs **six simulated minutes**, including a low customer cap, capacity upgrades while customers are present, all eight facilities, and a high-cap monster-truck event. Every physics tick checks vehicle/vehicle penetration, vehicle/scenery penetration, slot ownership and progress. It also requires visits to every business and a minimum number of completed highway-to-highway journeys; merely stopping every car cannot pass.
 

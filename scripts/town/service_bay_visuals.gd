@@ -8,8 +8,8 @@ static func build(id: String, slots: int) -> Node3D:
 	var root := Node3D.new()
 	root.name = "Bays_" + id
 	root.set_meta("slots", slots)
-	var stripe := VehicleMesh.paint(Color(0.80, 0.79, 0.70), 0.9, 0.0)
-	var pad := SurfaceMaterials.textured("asphalt", Color(0.34, 0.37, 0.39))
+	var stripe := VehicleMesh.paint(CartoonPalette.WHITE, 0.95, 0.0)
+	var pad := SurfaceMaterials.textured("asphalt", CartoonPalette.PARKING)
 	for i in slots:
 		var at := ForecourtLayout.bay_position(id, i)
 		at.y = 0.063
@@ -22,7 +22,7 @@ static func build(id: String, slots: int) -> Node3D:
 		number.font_size = 40
 		number.pixel_size = 0.006
 		number.outline_size = 0
-		number.modulate = Color(0.81, 0.80, 0.71)
+		number.modulate = CartoonPalette.WHITE
 		number.rotation_degrees.x = -90.0
 		number.position = at + Vector3(0, 0.03, 1.11)
 		root.add_child(number)

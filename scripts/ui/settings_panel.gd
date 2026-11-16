@@ -24,9 +24,11 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_build()
-	App.language_changed.connect(func(_l: String) -> void:
-		layout_direction = App.layout_direction()
-		_refresh())
+	App.language_changed.connect(
+		func(_l: String) -> void:
+			layout_direction = App.layout_direction()
+			_refresh()
+	)
 
 
 func open() -> void:
@@ -43,7 +45,7 @@ func close() -> void:
 
 func _build() -> void:
 	var scrim := ColorRect.new()
-	scrim.color = Color(0.02, 0.03, 0.06, 0.78)
+	scrim.color = UiTheme.SCRIM
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(scrim)
@@ -67,26 +69,34 @@ func _build() -> void:
 	_music.value_changed.connect(func(v: float) -> void: App.set_music_volume(v))
 
 	_sfx = _slider_row(col, "settings.sfx")
-	_sfx.value_changed.connect(func(v: float) -> void:
-		App.set_sfx_volume(v)
-		Sound.play("pop", -8.0))
+	_sfx.value_changed.connect(
+		func(v: float) -> void:
+			App.set_sfx_volume(v)
+			Sound.play("pop", -8.0)
+	)
 
 	_haptics = _btn_row(col)
-	_haptics.pressed.connect(func() -> void:
-		App.haptics = not App.haptics
-		App.tap(24)
-		_refresh())
+	_haptics.pressed.connect(
+		func() -> void:
+			App.haptics = not App.haptics
+			App.tap(24)
+			_refresh()
+	)
 
 	_quality = _btn_row(col)
-	_quality.pressed.connect(func() -> void:
-		App.cycle_quality()
-		Sound.play("click", -10.0)
-		_refresh())
+	_quality.pressed.connect(
+		func() -> void:
+			App.cycle_quality()
+			Sound.play("click", -10.0)
+			_refresh()
+	)
 
 	_lang_btn = _btn_row(col)
-	_lang_btn.pressed.connect(func() -> void:
-		Sound.play("click", -10.0)
-		App.toggle_language())
+	_lang_btn.pressed.connect(
+		func() -> void:
+			Sound.play("click", -10.0)
+			App.toggle_language()
+	)
 
 	var action_row := HBoxContainer.new()
 	action_row.add_theme_constant_override("separation", 10)
@@ -96,10 +106,12 @@ func _build() -> void:
 	_save_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_save_btn.custom_minimum_size = Vector2(0, 48)
 	_save_btn.focus_mode = Control.FOCUS_NONE
-	_save_btn.pressed.connect(func() -> void:
-		Game.save_game()
-		Sound.play("cash", -8.0)
-		close())
+	_save_btn.pressed.connect(
+		func() -> void:
+			Game.save_game()
+			Sound.play("cash", -8.0)
+			close()
+	)
 	action_row.add_child(_save_btn)
 
 	_menu_btn = Button.new()
@@ -107,9 +119,11 @@ func _build() -> void:
 	_menu_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_menu_btn.custom_minimum_size = Vector2(0, 48)
 	_menu_btn.focus_mode = Control.FOCUS_NONE
-	_menu_btn.pressed.connect(func() -> void:
-		close()
-		menu_requested.emit())
+	_menu_btn.pressed.connect(
+		func() -> void:
+			close()
+			menu_requested.emit()
+	)
 	action_row.add_child(_menu_btn)
 
 	_close = Button.new()
@@ -157,12 +171,8 @@ func _refresh() -> void:
 		(_rows[k] as Label).text = App.t(String(k))
 	_music.set_value_no_signal(App.music_volume)
 	_sfx.set_value_no_signal(App.sfx_volume)
-	_haptics.text = "%s: %s" % [
-		App.t("settings.haptics"), App.t("settings.on" if App.haptics else "settings.off")
-	]
-	_quality.text = "%s: %s" % [
-		App.t("settings.quality"), App.t(Quality.label_key(App.quality))
-	]
+	_haptics.text = "%s: %s" % [App.t("settings.haptics"), App.t("settings.on" if App.haptics else "settings.off")]
+	_quality.text = "%s: %s" % [App.t("settings.quality"), App.t(Quality.label_key(App.quality))]
 	_lang_btn.text = "🌐 %s -> %s" % [App.t("settings.lang"), App.t("menu.language_target")]
 	_save_btn.text = "💾 " + App.t("hud.save")
 	_menu_btn.text = "🏠 " + App.t("hud.menu")
