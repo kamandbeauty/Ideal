@@ -19,8 +19,8 @@ navmesh polygons=2352 vertices=4704 regions=1
 path warehouse -> counter points=36 length=15.8
 path entrance -> treasury points=37 length=10.8
 path lounge -> counter points=38 length=11.2
-loop stock=9 hands=0 money=0 vault=54 reputation=2.7 last={ "reason": "nothing near" }
-hud lang=fa action=تحویل gold=طلا 54 warehouse=انبار 9 / 40 customers=1 stick=(0.0, 0.0)
+loop stock=13 hands=0 money=0 vault=14 reputation=3.7 last={ "verb": "buy_loot", "amount": 32.0, "reason": "", "loot": { "healing_herb": 2, "slime_gel": 2 }, "class_id": "warrior" }
+hud lang=fa action=اعزام gold=طلا 14 warehouse=انبار 13 / 40 customers=1 stick=(0.0, 0.0)
 flow spawned=3 served=0 waiting=1 abandoned=0 order=slime_gel x2
   customer warrior state=ordering slot=0 at=(-10.6, 7.3) off=0.00 travelled=15.3 waypoints=0 routed=true
   customer mage state=queued slot=1 at=(-9.2, 7.3) off=0.00 travelled=13.9 waypoints=0 routed=true
