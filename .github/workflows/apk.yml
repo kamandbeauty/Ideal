@@ -9,6 +9,8 @@ permissions:
 env:
   GODOT_VERSION: 4.7.2-stable
   GODOT_SHA256: cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+  # Public certificate digest only. The private debug key is never committed.
+  ANDROID_PINNED_SIGNER_SHA256: bb6840034c2fdbaafebcd65487cd4b572cec1bd96eec875a7b634a23ffc53b99
 
 jobs:
   apk:
@@ -112,6 +114,8 @@ jobs:
           keytool -exportcert -keystore "$HOME/.android/debug.keystore" \
             -storepass android -alias androiddebugkey > "$RUNNER_TEMP/selected-signer.der"
           signer=$(sha256sum "$RUNNER_TEMP/selected-signer.der" | cut -d' ' -f1)
+          test "$signer" = "$ANDROID_PINNED_SIGNER_SHA256" || {
+            echo "::error::The restored signing certificate differs from the pinned identity"; exit 1; }
           echo "ANDROID_DEBUG_SIGNER_SHA256=$signer" >> "$GITHUB_ENV"
           # Godot otherwise chooses a NEW editor-local keystore, not ~/.android.
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
