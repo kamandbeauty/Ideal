@@ -23,6 +23,15 @@ const VERBS := {
 	"receive": 0.4,
 	"deliver": 0.5,
 	"deposit": 0.6,
+	"dispatch": 0.7,
+	"buy_loot": 0.5,
+}
+
+## Verbs that are read as a hand-over rather than their own gesture: the guild
+## master is signing a contract at the board, not miming a dispatch.
+const QUIET_POSES := {
+	"dispatch": "receive",
+	"buy_loot": "receive",
 }
 
 ## The generic cargo used by the controller's own tests and by anything that is
@@ -189,7 +198,7 @@ func locomotion(speed: float, running: bool = false) -> String:
 ## The pose the character rig should hold this frame.
 func pose_for(speed: float, running: bool = false) -> String:
 	if is_busy():
-		return verb
+		return str(QUIET_POSES.get(verb, verb))
 	var move := locomotion(speed, running)
 	if move == RUN:
 		return "run"

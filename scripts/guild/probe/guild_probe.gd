@@ -361,7 +361,9 @@ func _build_missions() -> void:
 	board.position = Vector3(-10.0, 0.0, 3.4)
 	add_child(board)
 	board.bind_desk(desk)
-	stations = [stations[0], stations[1], stations[2], board]
+	# Appended in place: the interaction holds this very array, so a board added
+	# later is the same board the button sees.
+	stations.append(board)
 
 
 ## Lets the roster's clock run for `seconds` without waiting for them.

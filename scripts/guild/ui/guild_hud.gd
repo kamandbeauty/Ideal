@@ -19,6 +19,8 @@ const VERB_KEYS := {
 	"receive": "action.deliver",
 	"deliver": "action.deliver",
 	"deposit": "action.deposit",
+	"dispatch": "action.dispatch",
+	"buy_loot": "action.buy_loot",
 }
 
 
