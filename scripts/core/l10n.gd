@@ -4,6 +4,7 @@ extends RefCounted
 
 const FALLBACK := "en"
 const LANGUAGES: Array[String] = ["fa", "en"]
+const PERSIAN_DIGITS: Array[String] = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"]
 
 const STRINGS := {
 	# --- Brand & Menu --------------------------------------------------------
@@ -118,6 +119,8 @@ const STRINGS := {
 	"hud.town_level": {"fa": "ستاره {0}", "en": "Star Lv {0}"},
 	"hud.income": {"fa": "درآمد در دقیقه", "en": "Income / min"},
 	"hud.income_value": {"fa": "{0} در دقیقه", "en": "{0}/min"},
+	"hud.price_customer": {"fa": "{0} دلار / مشتری", "en": "${0} / customer"},
+	"hud.max_short": {"fa": "حداکثر", "en": "MAX"},
 	"hud.customers": {"fa": "خودرو در دقیقه", "en": "Vehicles / min"},
 	"hud.capacity": {"fa": "جایگاه فعال", "en": "Active Bays"},
 	"hud.capacity_value": {"fa": "{0} جایگاه", "en": "{0} bays"},
@@ -364,6 +367,17 @@ static func translate(language: String, key: String, args: Array = []) -> String
 	for i in args.size():
 		text = text.replace("{%d}" % i, str(args[i]))
 	return text
+
+
+## Shared by screen labels and painted 3D bay numbers, without an autoload.
+static func to_digits(language: String, text: String) -> String:
+	if language != "fa":
+		return text
+	var converted := ""
+	for character in text:
+		var index := "0123456789".find(character)
+		converted += PERSIAN_DIGITS[index] if index >= 0 else character
+	return converted
 
 
 static func keys() -> Array:

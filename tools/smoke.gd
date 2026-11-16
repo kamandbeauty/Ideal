@@ -58,6 +58,10 @@ func _run() -> void:
 	_town.select_business("gas_station")
 	await _settle(12)
 	await _capture("05-station-sheet")
+	App.set_language("fa")
+	await _settle(6)
+	await _capture("17-station-sheet-fa")
+	App.set_language("en")
 	_town.deselect()
 	await _settle(6)
 
@@ -75,6 +79,10 @@ func _run() -> void:
 	mgr_node.call("open")
 	await _settle(10)
 	await _capture("07-managers-cards")
+	App.set_language("fa")
+	await _settle(6)
+	await _capture("18-managers-fa")
+	App.set_language("en")
 	mgr_node.call("close")
 	await _settle(4)
 
@@ -147,8 +155,50 @@ func _run() -> void:
 	await _settle(24)
 	await _capture("16-tall-device-fa")
 
+	await _capture_live_car_wash()
 	print("SMOKE OK")
 	get_tree().quit(0)
+
+
+## A fresh, single-business fixture makes the close-up deterministic. This is
+## still a REAL highway arrival and ServiceQueue timer, never a posed/teleported
+## car. The ordinary eight-business hub is covered above and by traffic_check.
+func _capture_live_car_wash() -> void:
+	_town.queue_free()
+	await _settle(3)
+	Game.start_new_game()
+	for id in Game.town.business_ids():
+		Game.town.business(id).unlocked = id == "car_wash"
+	get_window().size = Vector2i(720, 1280)
+	_town = TOWN_SCENE.instantiate()
+	add_child(_town)
+	_town.view.customers.max_agents = 1
+	_town.day_cycle.set_time(0.24)
+	await _settle(66)
+	var plot := BusinessData.plot("car_wash")
+	_town.camera_rig.focus_on(Vector3(plot.x - 0.8, 0.0, plot.y + 1.8))
+	_town.camera_rig.zoom = 26.0
+	_town.camera_rig.apply()
+	var flow: CustomerFlow = _town.view.customers
+	for frame in 2400:
+		await get_tree().physics_frame
+		for entry in flow.agents:
+			if String(entry["phase"]) != "service":
+				continue
+			var queue: ServiceQueue = flow.get("_queues")["car_wash"]
+			if queue.progress_of(int(entry["cid"])) < 0.25:
+				continue
+			var effects: ServiceEffects = entry["service_fx"]
+			assert(effects.visible and effects.servicing, "rendered wash needs actual service")
+			assert(effects.particle_count() == 10, "high preset needs its bounded foam pool")
+			await _capture("19-live-car-wash-fa")
+			App.set_quality("low")
+			await _settle(2)
+			assert(effects.servicing and effects.particle_count() == 0, "low removes foam, not service")
+			await _capture("20-car-wash-low-fa")
+			App.set_quality("high")
+			return
+	assert(false, "car-wash customer did not park in the allotted 40 simulated seconds")
 
 
 func _boost_town(town) -> void:
@@ -227,6 +277,37 @@ func _validate_portrait_layout() -> void:
 		for other in rectangles:
 			assert(not rect.intersects(other), "navigation touch targets overlap")
 		rectangles.append(rect)
+
+	var badges: WorldBadges = _town.hud.get("_badges")
+	if badges.is_visible_in_tree():
+		for entry in badges.get("_entries").values():
+			var button: Button = entry["btn"]
+			if not button.is_visible_in_tree():
+				continue
+			var rect := button.get_global_rect()
+			assert(rect.position.x >= 0.0 and rect.end.x <= viewport_size.x, "translated world badge is clipped")
+			assert(rect.size.y >= 44.0, "world badges need a finger-sized touch target")
+			var arrow: Label = entry["arrow"]
+			if arrow.visible:
+				assert(arrow.get_global_rect().end.x <= viewport_size.x, "world upgrade arrow is clipped")
+			if App.language == "fa":
+				assert(not button.text.contains("Lv"), "Persian world levels must not use English Lv")
+
+	for root in _town.view.customers.get("_bay_roots").values():
+		for child in root.get_children():
+			if child is Label3D and child.has_meta("bay_number"):
+				assert(child.text == App.to_digits("%02d" % int(child.get_meta("bay_number"))), "bay language is stale")
+
+	if App.language == "fa":
+		var sheet: StationSheet = _town.hud.get("_sheet")
+		if sheet.visible:
+			assert(not (sheet.get("_mgr_title") as Label).text.contains("Lv"), "Persian sheet manager level")
+			assert(not (sheet.get("_stats_label") as Label).text.contains("customer"), "Persian customer price")
+		var managers: ManagersModal = _town.hud.get("_managers")
+		if managers.visible:
+			for row in managers.get("_rows").values():
+				assert(not (row["name"] as Label).text.contains("Lv"), "Persian manager modal level")
+				assert(not (row["fac"] as Label).text.contains("Profit"), "Persian manager profit")
 
 
 func _validate_reference_daylight(image: Image) -> void:

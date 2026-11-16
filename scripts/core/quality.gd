@@ -58,6 +58,16 @@ static func light_budget(level: String) -> int:
 	return 6
 
 
+## One MultiMesh per servicing car; low retains the icon/cable, not bubbles.
+static func service_particle_count(level: String) -> int:
+	match normalise(level):
+		"low":
+			return 0
+		"medium":
+			return 6
+	return 10
+
+
 ## 30 fps is a deliberate battery choice on the low preset.
 static func max_fps(level: String) -> int:
 	match normalise(level):

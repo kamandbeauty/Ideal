@@ -21,6 +21,7 @@ const SUITES := [
 	"res://tests/suites/test_roadside_empire.gd",
 	"res://tests/suites/test_driving.gd",
 	"res://tests/suites/test_cartoon_style.gd",
+	"res://tests/suites/test_service_effects.gd",
 ]
 const REPORT_PATH := "res://documentation/qa/test-results.json"
 

@@ -33,6 +33,8 @@ var _spawn_counts: Dictionary = {}
 func setup(town_state: TownState) -> void:
 	state = town_state
 	_rng.seed = 77123
+	App.language_changed.connect(_refresh_bay_language)
+	App.settings_changed.connect(_refresh_effect_quality)
 	if state == null:
 		return
 	for id in state.business_ids():
@@ -65,7 +67,7 @@ func _tick_business(id: String, delta: float) -> void:
 	if not _bay_roots.has(id) or int((_bay_roots[id] as Node3D).get_meta("slots", 0)) != slots:
 		if _bay_roots.has(id):
 			(_bay_roots[id] as Node3D).queue_free()
-		var bays := ServiceBayVisuals.build(id, slots)
+		var bays := ServiceBayVisuals.build(id, slots, App.language)
 		add_child(bays)
 		_bay_roots[id] = bays
 	for finished in queue.tick(delta):
@@ -133,7 +135,11 @@ func _spawn(id: String, slot: int) -> bool:
 	add_child(car)
 	car.set_route(route)
 	var bar := ServiceBayVisuals.progress_bar()
+	bar.position.y = ServiceEffects.indicator_height(id, kind) + 0.42
 	car.add_child(bar)
+	var effects := ServiceEffects.new()
+	effects.setup(id, kind, App.quality)
+	car.add_child(effects)
 	(
 		agents
 		. append(
@@ -143,6 +149,7 @@ func _spawn(id: String, slot: int) -> bool:
 				"slot": slot,
 				"node": car,
 				"bar_root": bar,
+				"service_fx": effects,
 				"phase": "arrive",
 				"bay_released": false,
 			}
@@ -162,6 +169,7 @@ func _paid(id: String, cid: int) -> void:
 			_departures[row] = []
 		(_departures[row] as Array).append(cid)
 		(entry["bar_root"] as Node3D).visible = false
+		(entry["service_fx"] as ServiceEffects).stop()
 		var b := state.business(id)
 		var ticket := maxf(5.0, b.price() * state.income_multiplier() * state.event_income() * 0.25)
 		_pop_cash((entry["node"] as Node3D).position + Vector3(0, 1.35, 0), ticket)
@@ -188,9 +196,6 @@ func _tick_agents(delta: float) -> void:
 					_release_row(entry)
 			"service":
 				car.hold(delta)
-				var bar: Node3D = entry["bar_root"]
-				bar.visible = true
-				ServiceBayVisuals.set_progress(bar, (_queues[id] as ServiceQueue).progress_of(int(entry["cid"])))
 			"wait_depart":
 				car.hold(delta)
 				var waiting: Array = _departures.get(row, [])
@@ -243,6 +248,37 @@ func _tick_agents(delta: float) -> void:
 					car.queue_free()
 					agents.remove_at(i)
 					completed_visits += 1
+		_update_service_visuals(entry, delta)
+
+
+func _update_service_visuals(entry: Dictionary, delta: float) -> void:
+	var car: VehicleBody = entry["node"]
+	var queue: ServiceQueue = _queues[String(entry["business_id"])]
+	var cid := int(entry["cid"])
+	var active := String(entry["phase"]) == "service" and queue.is_serving(cid)
+	var progress := queue.progress_of(cid)
+	var bar: Node3D = entry["bar_root"]
+	var effects: ServiceEffects = entry["service_fx"]
+	# Equipment is aligned to the WORLD bay, not the car's 180-degree heading.
+	# This never rotates or moves the vehicle or its collider.
+	effects.rotation.y = -car.rotation.y
+	bar.rotation.y = -car.rotation.y
+	bar.visible = active
+	if active:
+		ServiceBayVisuals.set_progress(bar, progress)
+	effects.set_quality(App.quality)
+	effects.tick(delta, active, progress)
+
+
+func _refresh_effect_quality() -> void:
+	for entry in agents:
+		(entry["service_fx"] as ServiceEffects).set_quality(App.quality)
+
+
+func _refresh_bay_language(language: String) -> void:
+	for root in _bay_roots.values():
+		if is_instance_valid(root):
+			ServiceBayVisuals.localize(root as Node3D, language)
 
 
 func _merge_clear(car: VehicleBody) -> bool:

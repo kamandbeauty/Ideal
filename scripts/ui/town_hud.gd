@@ -422,7 +422,7 @@ func _refresh_all() -> void:
 		var m_btn := _milestone_btns[idx]
 		var claimed := st.chapter_milestones.has(step)
 		var ready := EmpireActions.can_claim_chapter_milestone(st, step)
-		m_btn.text = "%s✓" % icons[idx] if claimed else "%s %d" % [icons[idx], step]
+		m_btn.text = "%s✓" % icons[idx] if claimed else "%s %s" % [icons[idx], App.format_number(step)]
 		m_btn.theme_type_variation = "GreenButton" if ready else "GhostButton"
 		m_btn.disabled = not ready
 
@@ -499,7 +499,7 @@ func _refresh_bottom_nav() -> void:
 			affordable += 1
 		elif b.unlocked and b.can_upgrade_level() and st.cash + 0.01 >= st.upgrade_cost(id, 1):
 			affordable += 1
-	var badge := (" (%d)" % affordable) if affordable > 0 else ""
+	var badge := (" (%s)" % App.format_number(affordable)) if affordable > 0 else ""
 	_build_btn.text = App.t("nav.build") + badge
 
 
@@ -529,10 +529,10 @@ func _refresh_live_timers() -> void:
 	elif not st.active_event.is_empty():
 		_event_chip.visible = true
 		_event_chip.text = (
-			"🔥 %s (%ss)"
+			"🔥 %s (%s)"
 			% [
 				App.t(TownEvents.name_key(st.active_event)),
-				App.format_number(ceilf(st.event_time_left)),
+				App.t("event.remaining", [App.format_number(ceilf(st.event_time_left))]),
 			]
 		)
 	else:

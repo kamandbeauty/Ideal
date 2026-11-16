@@ -55,6 +55,7 @@ static func _populate(
 	root: Node3D, id: String, stage: int, bays: int, accent: Color, nights: Array[StandardMaterial3D]
 ) -> void:
 	_rooftop_sign(root, BusinessData.sign_text(id), accent, stage, nights)
+	_service_emblem(root, id)
 	match id:
 		"gas_station":
 			_gas_roof(root, stage)
@@ -75,6 +76,20 @@ static func _populate(
 				root, VehicleMesh.paint(Color(0.14, 0.18, 0.22), 0.8), Vector3(0, 2.75, -0.8), Vector3(3.1, 1.75, 0.16)
 			)
 			_box(root, screen, Vector3(0, 2.75, -0.7), Vector3(2.82, 1.48, 0.025), false)
+
+
+## A small, text-free enamel sign fits between the side windows. The same
+## original pictogram appears over a customer only while service is running.
+static func _service_emblem(root: Node3D, id: String) -> void:
+	var icon := Sprite3D.new()
+	icon.name = "ServiceEmblem"
+	icon.texture = ServiceEffects.ICONS.get(id, ServiceEffects.ICONS["gas_station"])
+	icon.pixel_size = 0.006
+	icon.position = Vector3(1.315, 1.28, -0.04)
+	icon.rotation_degrees.y = 90.0
+	icon.shaded = false
+	icon.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(icon)
 
 
 static func _rooftop_sign(
@@ -139,8 +154,8 @@ static func _equipment(root: Node3D, id: String, bays: int, nights: Array[Standa
 					_box(
 						root,
 						VehicleMesh.paint(Color(0.13, 0.32, 0.37), 0.9, 0.0),
-						at + Vector3(float(side), 0.58, -0.1),
-						Vector3(0.08, 0.90, 0.34)
+						at + Vector3(float(side), 1.48, 0.12),
+						Vector3(0.08, 0.10, 0.20)
 					)
 		else:
 			_box(root, cream, at + Vector3(-0.82, 0.69, 0), Vector3(0.16, 1.30, 0.32))

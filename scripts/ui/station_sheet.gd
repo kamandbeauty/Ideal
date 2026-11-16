@@ -58,7 +58,7 @@ func _build() -> void:
 
 	for step in [1, 5, 10]:
 		var sbtn := Button.new()
-		sbtn.text = "x%d" % step
+		sbtn.text = "×" + App.format_number(step)
 		sbtn.custom_minimum_size = Vector2(48, 36)
 		sbtn.focus_mode = Control.FOCUS_NONE
 		sbtn.add_theme_font_size_override("font_size", 14)
@@ -177,6 +177,7 @@ func refresh() -> void:
 		return
 	for step in _step_buttons:
 		var sb: Button = _step_buttons[step]
+		sb.text = "×" + App.format_number(int(step))
 		sb.theme_type_variation = "BlueButton" if buy_steps == int(step) else "GhostButton"
 		sb.visible = b.unlocked
 
@@ -204,7 +205,7 @@ func refresh() -> void:
 		_unlock_btn.visible = true
 		var req_star := BusinessData.star_required(facility_id)
 		var cost := state.unlock_cost(facility_id)
-		_stats_label.text = "💵 $%s / customer" % App.format_short(b.price())
+		_stats_label.text = "💵 " + App.t("hud.price_customer", [App.format_short(b.price())])
 		if state.star_level() < req_star:
 			_unlock_btn.text = App.t("hud.locked", [App.format_number(req_star)])
 			_unlock_btn.disabled = true
@@ -243,7 +244,7 @@ func refresh() -> void:
 		% [
 			App.t("hud.income_value", [App.format_short(per_min)]),
 			App.t("hud.capacity_value", [App.format_number(b.active_bays())]),
-			App.t("hud.efficiency", ["%.1f" % b.efficiency()]),
+			App.t("hud.efficiency", [App.format_number(b.efficiency(), 1)]),
 		]
 	)
 
@@ -260,7 +261,7 @@ func refresh() -> void:
 	else:
 		var steps := mini(buy_steps, BusinessData.MAX_LEVEL - b.level)
 		var u_cost := state.upgrade_cost(facility_id, steps)
-		var step_prefix := ("x%d · " % steps) if steps > 1 else ""
+		var step_prefix := ("×%s · " % App.format_number(steps)) if steps > 1 else ""
 		_upgrade_btn.text = step_prefix + App.t("hud.upgrade", [App.format_short(u_cost)])
 		_upgrade_btn.disabled = state.cash + 0.01 < u_cost
 
@@ -269,12 +270,12 @@ func _refresh_manager_box(b: BusinessState) -> void:
 	var mgr_id := BusinessData.manager_id(facility_id)
 	var rarity_txt := App.t("rarity.%s" % ManagerData.rarity(mgr_id))
 	_mgr_title.text = (
-		"%s %s (%s · Lv %s)"
+		"%s %s (%s · %s)"
 		% [
 			ManagerData.avatar(mgr_id),
 			App.t("mgr.%s" % mgr_id),
 			rarity_txt,
-			App.format_number(b.manager_rank),
+			App.t("hud.level", [App.format_number(b.manager_rank)]),
 		]
 	)
 	if b.is_automated():
@@ -304,7 +305,7 @@ func _refresh_branches(b: BusinessState) -> void:
 		var cap := b.max_branch_for(br)
 		var title := App.t(BusinessData.branch_label_key(br))
 		if cur >= cap:
-			btn.text = "%s\nMAX (%s)" % [title, App.format_number(cur)]
+			btn.text = "%s\n%s (%s)" % [title, App.t("hud.max_short"), App.format_number(cur)]
 			btn.disabled = true
 		else:
 			var cost := state.branch_cost(facility_id, br)

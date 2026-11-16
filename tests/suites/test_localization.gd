@@ -21,6 +21,16 @@ func test_arguments_are_substituted() -> void:
 	check(offline.contains("1,200"), "offline earnings missing")
 
 
+func test_shared_world_and_ui_digits_preserve_punctuation() -> void:
+	equal(L10n.to_digits("fa", "01 ×2 · 3.5"), "۰۱ ×۲ · ۳.۵", "Persian numbers keep punctuation and padding")
+	equal(L10n.to_digits("en", "01 ×2 · 3.5"), "01 ×2 · 3.5", "English numbers are unchanged")
+	equal(L10n.translate("fa", "hud.level", ["۱۲"]), "سطح ۱۲", "no English Lv in a Persian level label")
+	for key in ["hud.price_customer", "hud.efficiency", "event.remaining"]:
+		var text := L10n.translate("fa", key, ["۲"])
+		check(text.contains("۲"), key + " uses the localized argument")
+		check(not text.contains("customer") and not text.contains("Profit"), key + " is fully Persian")
+
+
 func test_unknown_key_is_echoed() -> void:
 	equal(L10n.translate("fa", "no.such.key"), "no.such.key", "unknown keys should echo")
 	equal(L10n.translate("fa", "hud.cash"), "پول", "cash label")

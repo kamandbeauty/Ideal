@@ -11,6 +11,8 @@ var _start_ms := 0
 var _last_progress := 0.0
 var _last_completed := 0
 var _next_log := 30.0
+var _service_seen: Dictionary = {}
+var _quality_stage := 0
 
 
 func _ready() -> void:
@@ -21,6 +23,7 @@ func _ready() -> void:
 func _run() -> void:
 	Engine.physics_ticks_per_second = 60
 	Engine.time_scale = 8.0
+	App.set_quality("high")
 	Engine.max_fps = 0
 	_state = TownState.new("desert")
 	for id in _state.business_ids():
@@ -47,6 +50,12 @@ func _run() -> void:
 			high_cap = true
 			_view.customers.max_agents = 9
 			_state.start_event("monster_hills")
+		# Existing customers must immediately follow quality changes without
+		# restarting service or rebuilding their collision bodies.
+		if _quality_stage < 3 and elapsed > 145.0 + float(_quality_stage) * 25.0:
+			App.set_quality(["low", "medium", "high"][_quality_stage])
+			Engine.max_fps = 0
+			_quality_stage += 1
 		_check_world(elapsed)
 		if elapsed >= _next_log:
 			print(
@@ -72,6 +81,10 @@ func _run() -> void:
 		if int(flow.visits_by_business.get(id, 0)) == 0:
 			_fail("No customer reached " + id + ": " + _diagnostics())
 			return
+		if not _service_seen.has(id):
+			_fail("No actual service feedback observed for " + id)
+			return
+	print("TRAFFIC FX: all 8 facility animations observed; low/medium/high budgets and lifecycle gates checked")
 	print(
 		(
 			"TRAFFIC OK: 360s, no penetrations or double bookings; %d completed visits across all 8 businesses"
@@ -125,6 +138,9 @@ func _check_world(elapsed: float) -> void:
 					return
 	var claimed := {}
 	for entry in _view.customers.agents:
+		_check_service_feedback(entry)
+		if _finished:
+			return
 		var key := "%s:%d" % [String(entry["business_id"]), int(entry["slot"])]
 		if bool(entry["bay_released"]):
 			continue
@@ -137,6 +153,35 @@ func _check_world(elapsed: float) -> void:
 		_last_progress = elapsed
 	if elapsed - _last_progress > 90.0:
 		_fail("Traffic made no exit progress for 90s: " + _diagnostics())
+
+
+func _check_service_feedback(entry: Dictionary) -> void:
+	var car: VehicleBody = entry["node"]
+	var effects: ServiceEffects = entry.get("service_fx")
+	var bar: Node3D = entry["bar_root"]
+	var active := String(entry["phase"]) == "service"
+	var id := String(entry["business_id"])
+	if effects == null:
+		_fail("Missing service feedback for " + car.name)
+		return
+	if effects.servicing != active or effects.visible != active or bar.visible != active:
+		_fail("Feedback is not synchronized with " + car.name + ": " + String(entry["phase"]))
+		return
+	if effects.particle_count() != Quality.service_particle_count(App.quality):
+		_fail("Service particle budget did not follow the live preset")
+		return
+	var expected_activations := 0 if String(entry["phase"]) == "arrive" else 1
+	if effects.activation_count != expected_activations:
+		_fail("Service animation restarted or ran before arrival: " + car.name)
+		return
+	if active:
+		if car.position.distance_to(ForecourtLayout.bay_position(id, int(entry["slot"]))) > 0.06 or car.speed > 0.001:
+			_fail("An effect started before its car was parked: " + car.name)
+			return
+		if not effects.global_basis.is_equal_approx(Basis.IDENTITY):
+			_fail("Service equipment rotated away from its world-aligned bay: " + car.name)
+			return
+		_service_seen[id] = true
 
 
 func _diagnostics() -> String:

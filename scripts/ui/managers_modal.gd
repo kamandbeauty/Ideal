@@ -135,21 +135,21 @@ func refresh() -> void:
 		var lvl := b.manager_rank if b != null else 0
 		var rarity_txt := App.t("rarity.%s" % ManagerData.rarity(mgr_id))
 		(r["name"] as Label).text = (
-			"%s %s · %s (Lv %s)"
+			"%s %s · %s (%s)"
 			% [
 				ManagerData.avatar(mgr_id),
 				App.t("mgr.%s" % mgr_id),
 				rarity_txt,
-				App.format_number(lvl),
+				App.t("hud.level", [App.format_number(lvl)]),
 			]
 		)
 		var mult := ManagerData.income_multiplier(mgr_id, maxi(1, lvl))
 		(r["fac"] as Label).text = (
-			"%s %s · Profit x%.1f"
+			"%s %s · %s"
 			% [
 				BusinessData.icon(fac_id),
 				App.t("business.%s.name" % fac_id),
-				mult,
+				App.t("hud.efficiency", [App.format_number(mult, 1)]),
 			]
 		)
 		var owned_cards := EmpireActions.cards_for(state, mgr_id)

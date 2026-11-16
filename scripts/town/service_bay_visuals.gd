@@ -4,7 +4,7 @@ extends RefCounted
 ## the traffic reservations, so upgrades never move a car underneath a pump.
 
 
-static func build(id: String, slots: int) -> Node3D:
+static func build(id: String, slots: int, language: String = "en") -> Node3D:
 	var root := Node3D.new()
 	root.name = "Bays_" + id
 	root.set_meta("slots", slots)
@@ -18,7 +18,10 @@ static func build(id: String, slots: int) -> Node3D:
 			mark(root, stripe, at + Vector3(float(sx), 0.016, 0), Vector3(0.035, 0.012, 2.68))
 		mark(root, stripe, at + Vector3(0, 0.016, -1.33), Vector3(1.55, 0.012, 0.045))
 		var number := Label3D.new()
-		number.text = "%02d" % (i + 1)
+		number.name = "BayNumber_%d" % i
+		number.set_meta("bay_number", i + 1)
+		number.text = L10n.to_digits(language, "%02d" % (i + 1))
+		number.font = preload("res://assets/fonts/Vazirmatn-Black.ttf")
 		number.font_size = 40
 		number.pixel_size = 0.006
 		number.outline_size = 0
@@ -27,6 +30,12 @@ static func build(id: String, slots: int) -> Node3D:
 		number.position = at + Vector3(0, 0.03, 1.11)
 		root.add_child(number)
 	return root
+
+
+static func localize(root: Node3D, language: String) -> void:
+	for child in root.get_children():
+		if child is Label3D and child.has_meta("bay_number"):
+			(child as Label3D).text = L10n.to_digits(language, "%02d" % int(child.get_meta("bay_number")))
 
 
 static func progress_bar() -> Node3D:

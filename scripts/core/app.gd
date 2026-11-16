@@ -5,7 +5,7 @@ signal language_changed(language: String)
 signal settings_changed
 
 const SETTINGS_PATH := "user://settings.cfg"
-const PERSIAN_DIGITS: Array[String] = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"]
+const PERSIAN_DIGITS: Array[String] = L10n.PERSIAN_DIGITS
 const DEFAULT_LANGUAGE := "fa"
 const COMPACT_SUFFIXES_EN: Array[String] = ["", "K", "M", "B", "T", "aa", "ab"]
 const COMPACT_SUFFIXES_FA: Array[String] = ["", "هزار", "میلیون", "میلیارد", "تریلیون", "aa", "ab"]
@@ -97,7 +97,9 @@ func format_compact(value: float) -> String:
 	while scaled >= 1000.0 and tier < COMPACT_SUFFIXES_EN.size() - 1:
 		scaled /= 1000.0
 		tier += 1
-	var digits := "%.2f" % scaled if scaled < 10.0 else ("%.1f" % scaled if scaled < 100.0 else "%d" % int(round(scaled)))
+	var digits := (
+		"%.2f" % scaled if scaled < 10.0 else ("%.1f" % scaled if scaled < 100.0 else "%d" % int(round(scaled)))
+	)
 	while digits.contains(".") and (digits.ends_with("0") or digits.ends_with(".")):
 		digits = digits.substr(0, digits.length() - 1)
 		if not digits.contains("."):
@@ -133,13 +135,7 @@ func format_money(value: float) -> String:
 
 
 func to_digits(text: String) -> String:
-	if language != "fa":
-		return text
-	var converted := ""
-	for character in text:
-		var index := "0123456789".find(character)
-		converted += PERSIAN_DIGITS[index] if index >= 0 else character
-	return converted
+	return L10n.to_digits(language, text)
 
 
 func t(key: String, args: Array = []) -> String:
