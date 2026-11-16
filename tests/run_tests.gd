@@ -22,6 +22,8 @@ const SUITES := [
 ]
 const REPORT_PATH := "res://documentation/qa/test-results.json"
 
+var _finished := false
+
 
 func _initialize() -> void:
 	var checks := 0
@@ -67,6 +69,7 @@ func _initialize() -> void:
 	}
 	_write_report(report)
 	print(JSON.stringify(report, "  "))
+	_finished = true
 
 	if failures.is_empty():
 		print("ALL TESTS PASSED (%d checks in %d suites)" % [checks, suites.size()])
@@ -79,7 +82,8 @@ func _initialize() -> void:
 
 
 func _process(_delta: float) -> bool:
-	quit(1)
+	if not _finished:
+		quit(1)
 	return true
 
 
