@@ -31,5 +31,7 @@ base = base * (1 - blood) + np.array([0.075, 0.009, 0.006], dtype=np.float32) * 
 base = np.where(swatch[..., None], linear, base)
 out = np.where(base <= 0.0031308, 12.92 * base, 1.055 * np.maximum(base, 0) ** (1 / 2.4) - 0.055)
 path = Path(__file__).resolve().parent.parent / 'assets/textures/zombies/zombie_city.png'
-Image.fromarray((np.clip(out, 0, 1) * 255).astype(np.uint8)).save(path, optimize=True)
+# Upstream UVs use the OpenGL convention (V points upward). The atlas is
+# loaded as an external Godot texture, so flip it to match the imported UVs.
+Image.fromarray((np.clip(out, 0, 1) * 255).astype(np.uint8)).transpose(Image.Transpose.FLIP_TOP_BOTTOM).save(path, optimize=True)
 print(path)
