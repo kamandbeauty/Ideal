@@ -212,8 +212,8 @@ func _build_zones() -> void:
 		var label := Label3D.new()
 		label.name = "Label"
 		label.text = GuildLocale.t(str(data["name_key"]), [], "en")
-		label.font_size = 48
-		label.pixel_size = 0.0075
+		label.font_size = 40
+		label.pixel_size = 0.005
 		label.modulate = Color(0.88, 0.9, 1.0, 0.82)
 		label.outline_size = 12
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -342,7 +342,7 @@ func _build_prop(prop: Dictionary) -> void:
 			var flame := SphereMesh.new()
 			flame.radius = 0.13
 			flame.height = 0.3
-			_block_mesh(root, flame, Color(1.0, 0.62, 0.24), Vector3(0.0, height * 0.82, 0.0), true)
+			_block_mesh(root, flame, Color(0.95, 0.44, 0.14), Vector3(0.0, height * 0.82, 0.0), true)
 		_:
 			_block(root, Vector3(rect.size.x, height, rect.size.y), WOOD, Vector3(0.0, height * 0.5, 0.0))
 
@@ -423,6 +423,7 @@ func _build_decor() -> void:
 	_build_zone_trim()
 	_build_rug_pattern()
 	_build_sconces()
+	_build_runner()
 	_build_tapestries()
 	_build_rune_circle()
 
@@ -523,6 +524,42 @@ func _build_sconces() -> void:
 
 ## A rune circle in the middle of the hall: the guild's own sigil, and the one
 ## glowing thing on the floor that draws the eye from the door.
+## A carpet runner from the door, past the lounge, to the counter. It gives the
+## empty middle of the room a line to follow - and it is the route the queue walks.
+func _build_runner() -> void:
+	var start := GuildHallZones.spawn("door").x
+	var end := GuildHallZones.queue_slot(0).x
+	var y := 0.05
+	var from := Vector3(end - 1.2, y, 6.9)
+	var to := Vector3(start + 0.4, y, 8.6)
+	var middle := (from + to) * 0.5
+	var length := Vector2(to.x - from.x, to.z - from.z).length()
+	var angle := atan2(to.z - from.z, to.x - from.x)
+	var across := Vector2(-sin(angle), cos(angle))
+	_runner_piece(Vector3(length, 0.03, 2.0), RUG.lightened(0.1), Vector3(middle.x, y, middle.z), angle)
+	_runner_piece(Vector3(length, 0.035, 1.7), RUG.lightened(0.18), Vector3(middle.x, y + 0.005, middle.z), angle)
+	for side in [-1.0, 1.0]:
+		var offset := (across * 0.78 * side) as Vector2
+		_runner_piece(
+			Vector3(length, 0.04, 0.1),
+			TRIM.darkened(0.12),
+			Vector3(middle.x + offset.x, y + 0.01, middle.z + offset.y),
+			angle
+		)
+
+
+func _runner_piece(size: Vector3, color: Color, at: Vector3, angle: float) -> void:
+	var box := BoxMesh.new()
+	box.size = size
+	var piece := MeshInstance3D.new()
+	piece.mesh = box
+	piece.material_override = GuildMaterials.flat(color)
+	piece.position = at
+	piece.rotation.y = -angle
+	piece.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(piece)
+
+
 ## Three tapestries on the back wall: the only tall shapes in a room whose
 ## furniture is all waist-high, so the hall reads as a room and not a floor plan.
 func _build_tapestries() -> void:
