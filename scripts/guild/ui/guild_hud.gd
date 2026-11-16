@@ -47,6 +47,7 @@ var _stick_touch_origin := Vector2.ZERO
 var _stick_input := Vector2.ZERO
 var _shown_verb := ""
 var _shown_customers := -1
+var _shown_missions := -1
 
 
 func _init() -> void:
@@ -125,10 +126,17 @@ func refresh() -> void:
 		GuildLocale.t("hud.customers", [], language),
 		waiting_customers(),
 	]
-	missions_label.text = "%s %d" % [GuildLocale.t("hud.missions", [], language), 0]
+	missions_label.text = "%s %d" % [GuildLocale.t("hud.missions", [], language), missions_active()]
 	if language_button != null:
 		language_button.text = "EN" if language == "en" else "FA"
 	_refresh_action()
+
+
+## How many adventurers are out right now, read from the board's desk.
+func missions_active() -> int:
+	if interaction == null:
+		return 0
+	return interaction.missions_active()
 
 
 func waiting_customers() -> int:
@@ -350,8 +358,10 @@ func _on_traded(_result: Dictionary) -> void:
 
 func _process(delta: float) -> void:
 	var waiting := waiting_customers()
-	if waiting != _shown_customers:
+	var missions := missions_active()
+	if waiting != _shown_customers or missions != _shown_missions:
 		_shown_customers = waiting
+		_shown_missions = missions
 		refresh()
 	if _toast_left > 0.0:
 		_toast_left -= delta

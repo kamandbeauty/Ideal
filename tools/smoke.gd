@@ -193,6 +193,24 @@ func _run() -> void:
 	await _capture("23-guild-customers-order")
 	print("SMOKE: " + probe.flow_report())
 
+	# The mission board: pay a fee, let the clock run, buy the pack back into the
+	# warehouse. The board's rigs are the roster, so an absent adventurer is absent.
+	probe.place_hero(GuildHallZones.spawn("mission_board"), 0.0)
+	probe.press_action()
+	await _settle(45)
+	print("SMOKE: dispatch " + str(probe.last_result))
+	probe.advance_desk(30.0)
+	probe.shot(Vector3(-10.2, 1.1, 3.6), 14.0, 44.0, 11.5, 55.0)
+	await _settle(16)
+	await _capture("24-guild-board")
+	print("SMOKE: " + probe.mission_report())
+	probe.press_action()
+	await _settle(45)
+	print("SMOKE: bought " + str(probe.last_result))
+	await _settle(12)
+	await _capture("25-guild-loot-bought")
+	print("SMOKE: " + probe.mission_report())
+
 	print("SMOKE: " + probe.describe())
 	print("SMOKE: " + probe.trade_report())
 	_write_probe_report(
@@ -202,6 +220,7 @@ func _run() -> void:
 			+ "\n" + probe.trade_report()
 			+ "\n" + probe.hud_report()
 			+ "\n" + probe.flow_report()
+			+ "\n" + probe.mission_report()
 	)
 	probe.queue_free()
 	await _settle(4)

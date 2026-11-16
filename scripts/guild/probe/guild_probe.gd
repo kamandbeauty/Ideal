@@ -22,11 +22,16 @@ var last_result: Dictionary = {}
 var camera_rig: GuildPlayerCamera
 var flow: GuildCustomerFlow
 var counter_station: GuildStation
+var board: GuildStation
+var desk: GuildMissionDesk
 
 var follow_hero := false
 ## The play-through drives the queue by hand so a capture is repeatable; in the
 ## real game `_process` ticks it every frame.
 var auto_flow := true
+## The mission desk runs on wall-clock time in the game; a capture advances it by
+## hand so a forty-second expedition does not cost forty seconds of CI.
+var auto_desk := true
 var _pose := "idle"
 var _speed := 0.0
 var _environment: Environment
@@ -38,6 +43,7 @@ func _ready() -> void:
 	_build_cast()
 	_build_trade()
 	_build_flow()
+	_build_missions()
 	_build_hud()
 	_build_camera()
 	print("SMOKE: probe ready, " + describe())
@@ -248,6 +254,8 @@ func _process(delta: float) -> void:
 	_animate_hero(delta)
 	if auto_flow and flow != null:
 		flow.tick(delta)
+	if auto_desk and desk != null:
+		desk.tick(delta)
 	if follow_hero and camera_rig != null:
 		camera_rig.follow_feet(hero.global_position, delta)
 
@@ -342,6 +350,35 @@ func _refresh_counter_order() -> void:
 		return
 	if counter_station.order.fulfilled:
 		counter_station.bind_order(null)
+
+
+func _build_missions() -> void:
+	desk = GuildMissionDesk.new()
+	desk.setup(treasury, stock, 31)
+	desk.hire_default_roster()
+	board = GuildStation.new(GuildStation.BOARD)
+	board.name = "Board"
+	board.position = Vector3(-10.0, 0.0, 3.4)
+	add_child(board)
+	board.bind_desk(desk)
+	stations = [stations[0], stations[1], stations[2], board]
+
+
+## Lets the roster's clock run for `seconds` without waiting for them.
+func advance_desk(seconds: float) -> void:
+	if desk == null:
+		return
+	var left := seconds
+	while left > 0.0:
+		var step := minf(0.25, left)
+		desk.tick(step)
+		left -= step
+
+
+func mission_report() -> String:
+	if desk == null:
+		return "desk: none"
+	return desk.report() + " verb=" + board.verb() + " | " + board.summary()
 
 
 func _build_flow() -> void:

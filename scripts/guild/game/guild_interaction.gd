@@ -17,6 +17,11 @@ const REASON_KEYS := {
 	"not enough goods": "msg.no_stock",
 	"pouch full": "msg.hands_full",
 	"already paid": "msg.order_done",
+	"no gold": "msg.no_gold",
+	"warehouse full": "msg.warehouse_full",
+	"everyone out": "msg.no_adventurer",
+	"nothing to buy": "msg.no_loot",
+	"no desk": "msg.no_desk",
 }
 const SILENT_REASONS: Array[String] = ["nothing near", "no coins", "busy"]
 
@@ -59,6 +64,22 @@ func prompt(language: String = "en") -> String:
 	return station.prompt_for(language)
 
 
+## The mission board's desk, if the player has one in reach of the roster.
+func board() -> GuildStation:
+	for station in stations:
+		var found := station as GuildStation
+		if found != null and found.kind == GuildStation.BOARD:
+			return found
+	return null
+
+
+func missions_active() -> int:
+	var station := board()
+	if station == null or station.desk == null:
+		return 0
+	return station.desk.active_count()
+
+
 ## The item a waiting customer wants, so the shelf hands out the right goods.
 func waiting_item() -> String:
 	for station in stations:
@@ -98,6 +119,10 @@ func _on_verb_finished(verb: String) -> void:
 			last_result = GuildTrade.deliver(player.state, station.order)
 		"deposit":
 			last_result = GuildTrade.deposit(player.state, station.treasury)
+		"dispatch":
+			last_result = station.desk.dispatch() if station.desk != null else {"reason": "no desk"}
+		"buy_loot":
+			last_result = station.desk.buy() if station.desk != null else {"reason": "no desk"}
 		_:
 			last_result = {"reason": "unknown verb"}
 	last_verb = verb
@@ -109,15 +134,38 @@ func result_message(language: String = "en") -> String:
 	if last_result.is_empty():
 		return ""
 	var reason := str(last_result.get("reason", ""))
-	if not reason.is_empty() and SILENT_REASONS.has(reason):
-		return ""
+	var message := ""
+	if not reason.is_empty():
+		if SILENT_REASONS.has(reason):
+			return ""
+		message = _reason_message(reason, language)
+	elif last_result.has("mission_id"):
+		message = _dispatched_message(language)
+	elif last_result.has("loot"):
+		message = _bought_message(language)
+	elif last_result.has("taken"):
+		message = _taken_message(language)
+	elif last_result.has("amount"):
+		message = _amount_message(language)
+	return message
+
+
+func _reason_message(reason: String, language: String) -> String:
 	if REASON_KEYS.has(reason):
 		return GuildLocale.t(str(REASON_KEYS[reason]), [], language)
-	if last_result.has("taken"):
-		return _taken_message(language)
-	if last_result.has("amount"):
-		return _amount_message(language)
 	return ""
+
+
+func _dispatched_message(language: String) -> String:
+	var who := GuildLocale.t("customer." + str(last_result.get("class_id", "")), [], language)
+	var job := GuildLocale.t(GuildMissions.name_key(str(last_result.get("mission_id", ""))), [], language)
+	return GuildLocale.t("msg.dispatched", [who, job], language)
+
+
+func _bought_message(language: String) -> String:
+	var coins := GuildLocale.format_money(float(last_result.get("amount", 0.0)))
+	var count := GuildMissions.item_count(last_result.get("loot", {}) as Dictionary)
+	return GuildLocale.t("msg.loot_bought", ["%d" % count, coins], language)
 
 
 func _taken_message(language: String) -> String:

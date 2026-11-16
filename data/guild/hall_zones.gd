@@ -102,7 +102,7 @@ const SPAWNS := {
 	"warehouse_pickup": Vector3(9.0, 0.0, 9.6),
 	"counter_delivery": Vector3(-8.0, 0.0, 8.9),
 	"treasury_deposit": Vector3(9.6, 0.0, 1.4),
-	"mission_board": Vector3(-10.0, 0.0, 1.0),
+	"mission_board": Vector3(-10.0, 0.0, 4.6),
 }
 
 

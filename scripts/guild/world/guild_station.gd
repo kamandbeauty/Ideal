@@ -10,6 +10,7 @@ extends Node3D
 const SHELF := "shelf"
 const COUNTER := "counter"
 const VAULT := "vault"
+const BOARD := "board"
 
 const PARCEL := Vector3(0.22, 0.16, 0.2)
 
@@ -17,6 +18,7 @@ var kind := SHELF
 var stock: GuildStock
 var order: GuildOrder
 var treasury: GuildTreasury
+var desk: GuildMissionDesk
 var customer: GuildCharacter
 var interactions := 0
 
@@ -60,6 +62,14 @@ func bind_treasury(vault: GuildTreasury) -> void:
 	_refresh()
 
 
+## Connects the board to the roster it stands for and draws that roster.
+func bind_desk(mission_desk: GuildMissionDesk) -> void:
+	desk = mission_desk
+	if desk != null and not desk.changed.is_connected(_refresh):
+		desk.changed.connect(_refresh)
+	_refresh()
+
+
 ## Shows the customer standing at this counter.
 func set_customer(character: GuildCharacter) -> void:
 	customer = character
@@ -83,6 +93,8 @@ func verb() -> String:
 			return "deliver"
 		VAULT:
 			return "deposit"
+		BOARD:
+			return desk.next_verb() if desk != null else ""
 		_:
 			return ""
 
@@ -102,6 +114,8 @@ func prompt_for(language: String) -> String:
 			key = "action.deliver"
 		VAULT:
 			key = "action.deposit"
+		BOARD:
+			key = "action.buy_loot" if verb() == "buy_loot" else "action.dispatch"
 		_:
 			return ""
 	return GuildLocale.t(key, [], language)
@@ -122,6 +136,11 @@ func summary() -> String:
 			]
 		VAULT:
 			return "vault %.0f g" % (treasury.cash if treasury != null else 0.0)
+		BOARD:
+			var roster := "no roster"
+			if desk != null:
+				roster = "out %d / back %d" % [desk.active_count(), desk.waiting_count()]
+			return roster
 		_:
 			return ""
 
@@ -161,6 +180,8 @@ func _refresh() -> void:
 			_build_counter()
 		VAULT:
 			_build_vault()
+		BOARD:
+			_build_board()
 	if _label != null:
 		_label.text = "%s - %s" % [prompt(), summary()]
 
@@ -271,6 +292,47 @@ func _build_vault() -> void:
 		_visual_add(coin)
 		coins += 1
 	set_meta("drawn_coins", coins)
+
+
+## The board: one rig per adventurer on the roster, a pack of loot on the ground
+## in front of whoever came back, and the sign above. Absent adventurers are simply
+## not drawn - being away is a state of the roster, not a hidden prop.
+func _build_board() -> void:
+	if desk == null:
+		return
+	var shown := 0
+	var standing := -1
+	for index in desk.adventurers.size():
+		var adventurer := desk.adventurers[index]
+		if adventurer.is_away():
+			continue
+		standing += 1
+		var rig := GuildCharacter.new(adventurer.class_id, true)
+		rig.position = Vector3(-1.9 + standing * 1.0, 0.0, 0.42)
+		rig.rotation.y = 0.0
+		_visuals.add_child(rig)
+		rig.animate(0.016, 0.0, "idle")
+		shown += 1
+		if adventurer.has_loot():
+			_draw_pack(rig.position + Vector3(0.42, 0.0, 0.34), adventurer.loot)
+	set_meta("drawn_adventurers", shown)
+
+
+## The pack: one box per item, coloured like the item, stacked on the floor.
+func _draw_pack(at: Vector3, loot: Dictionary) -> void:
+	var placed := 0
+	for id in loot:
+		var color := GuildItems.color(str(id))
+		for index in mini(int(loot[id]), 4):
+			var parcel := MeshInstance3D.new()
+			var mesh := BoxMesh.new()
+			mesh.size = PARCEL
+			parcel.mesh = mesh
+			parcel.material_override = GuildMaterials.flat(color.darkened(0.04 * index))
+			parcel.position = at + Vector3(0.0, 0.1 + index * 0.18, 0.0)
+			_visual_add(parcel)
+			placed += 1
+	set_meta("drawn_loot", placed)
 
 
 func _visual_add(instance: MeshInstance3D) -> void:
