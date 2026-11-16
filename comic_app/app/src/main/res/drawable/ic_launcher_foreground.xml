@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Outer crisp comic page card -->
+    <path
+        android:fillColor="#FAF6EC"
+        android:pathData="M28,24 L80,24 C82.2,24 84,25.8 84,28 L84,80 C84,82.2 82.2,84 80,84 L28,84 C25.8,84 24,82.2 24,80 L24,28 C24,25.8 25.8,24 28,24 Z" />
+    <!-- Top wide golden comic panel -->
+    <path
+        android:fillColor="#FFB703"
+        android:pathData="M29,29 L79,29 L79,51 L29,55 Z" />
+    <!-- Bottom-left crimson panel -->
+    <path
+        android:fillColor="#EF476F"
+        android:pathData="M29,59 L52,57 L52,79 L29,79 Z" />
+    <!-- Bottom-right cyan panel -->
+    <path
+        android:fillColor="#38BDF8"
+        android:pathData="M56,56.6 L79,54.8 L79,79 L56,79 Z" />
+    <!-- Crisp white comic speech bubble in center -->
+    <path
+        android:fillColor="#0F1320"
+        android:pathData="M42,36 L66,36 C70.4,36 74,39.6 74,44 L74,52 C74,56.4 70.4,60 66,60 L54,60 L46,67 L47.5,60 L42,60 C37.6,60 34,56.4 34,52 L34,44 C34,39.6 37.6,36 42,36 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M42.5,39 L65.5,39 C68.5,39 71,41.5 71,44.5 L71,51.5 C71,54.5 68.5,57 65.5,57 L52.8,57 L48.8,61.2 L49.6,57 L42.5,57 C39.5,57 37,54.5 37,51.5 L37,44.5 C37,41.5 39.5,39 42.5,39 Z" />
+    <!-- Two bold ink dialogue dots -->
+    <path
+        android:fillColor="#0F1320"
+        android:pathData="M48,48 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+    <path
+        android:fillColor="#0F1320"
+        android:pathData="M60,48 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+</vector>

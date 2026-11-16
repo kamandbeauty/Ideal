@@ -1,0 +1,272 @@
+{
+  "id": "neon_tehran_2099",
+  "titleFa": "نئون تهران ۲۰۹۹: فرکانس گمشده",
+  "titleEn": "Neon Tehran 2099: Lost Frequency",
+  "seriesFa": "تهران ۲۰۹۹ • شماره ۱",
+  "seriesEn": "Tehran 2099 • #1",
+  "authorFa": "آتلیه شب‌نگار",
+  "authorEn": "Shabnegar Atelier",
+  "genreFa": "سایبرپانک نوآر",
+  "genreEn": "Cyberpunk Noir",
+  "descriptionFa": "در تهران بارانی سال ۲۰۹۹، «تارا» پیک سایبری شهر، آخرین کاست کریستالی موسیقی آزاد را در کوچه‌های بازار قدیمی پیدا می‌کند و برای رساندن آن به برج مخابراتی، از میان پهپادهای امنیتی بر فراز بام‌های نئونی می‌گذرد.",
+  "descriptionEn": "In rain-soaked Tehran 2099, cyber-courier Tara recovers an encrypted amber crystal holding the city's forgotten music archive—and races patrol drones across neon rooftops to broadcast it to the night sky.",
+  "accentHex": "#38BDF8",
+  "defaultMode": "PAGED_RTL",
+  "pages": [
+    {
+      "file": "page_00.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": true,
+      "titleFa": "روی جلد — شماره ۱",
+      "titleEn": "Cover — Issue #1",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.0,
+          "right": 1.0,
+          "bottom": 1.0
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.9,
+          "width": 0.82,
+          "style": "COVER_TITLE",
+          "textFa": "نئون تهران ۲۰۹۹ • فرکانس گمشده",
+          "textEn": "NEON TEHRAN 2099 • LOST FREQUENCY",
+          "subFa": "شماره ۰۱ • سایبرپانک نوآر",
+          "subEn": "ISSUE #01 • CYBERPUNK NOIR"
+        }
+      ]
+    },
+    {
+      "file": "page_01.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۱ — بازار بارانی",
+      "titleEn": "Page 1 — Rain in the Bazaar",
+      "panels": [
+        {
+          "left": 0.0356,
+          "top": 0.0237,
+          "right": 0.9644,
+          "bottom": 0.4148
+        },
+        {
+          "left": 0.0356,
+          "top": 0.4326,
+          "right": 0.4889,
+          "bottom": 0.6963
+        },
+        {
+          "left": 0.5133,
+          "top": 0.4326,
+          "right": 0.9644,
+          "bottom": 0.6963
+        },
+        {
+          "left": 0.0356,
+          "top": 0.7141,
+          "right": 0.9644,
+          "bottom": 0.9763
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.36,
+          "y": 0.08,
+          "width": 0.58,
+          "style": "CAPTION",
+          "textFa": "تهران، سال ۲۰۹۹ — در کوچه‌های کاشی‌کاری‌شده، باران بوی نئون می‌دهد.",
+          "textEn": "Tehran, 2099 — Beneath tiled arches, the midnight rain hums with neon."
+        },
+        {
+          "x": 0.72,
+          "y": 0.65,
+          "width": 0.38,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "تارا به مرکز: بسته را در گذر سوم تحویل گرفتم.",
+          "textEn": "Tara to Base: Picked up the parcel in Sector Three."
+        },
+        {
+          "x": 0.34,
+          "y": 0.9,
+          "width": 0.54,
+          "style": "CAPTION",
+          "textFa": "یک کاست کریستالی کهربایی؛ آخرین آرشیو موسیقی آزاد شهر.",
+          "textEn": "An amber crystal cassette—the city's last unencrypted music archive."
+        }
+      ]
+    },
+    {
+      "file": "page_02.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۲ — سیگنال کهربایی",
+      "titleEn": "Page 2 — The Amber Signal",
+      "panels": [
+        {
+          "left": 0.0356,
+          "top": 0.0237,
+          "right": 0.9644,
+          "bottom": 0.3852
+        },
+        {
+          "left": 0.0356,
+          "top": 0.403,
+          "right": 0.9644,
+          "bottom": 0.6963
+        },
+        {
+          "left": 0.0356,
+          "top": 0.7141,
+          "right": 0.9644,
+          "bottom": 0.9763
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.68,
+          "y": 0.1,
+          "width": 0.5,
+          "style": "SPEECH",
+          "tailDir": "DOWN",
+          "textFa": "صبر کن... فرکانسش فعال شد! الان ردیابی‌اش می‌کنند!",
+          "textEn": "Wait... the crystal's pulsing live! Scanners will lock onto it!"
+        },
+        {
+          "x": 0.25,
+          "y": 0.46,
+          "width": 0.36,
+          "style": "SFX",
+          "textFa": "آژیـر!",
+          "textEn": "VWEEE-OO!"
+        },
+        {
+          "x": 0.35,
+          "y": 0.9,
+          "width": 0.54,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "پهپادهای گشت رسیدند. تنها راه، پشت‌بام‌های برج غربی است!",
+          "textEn": "Patrol drones inbound. Only way out is over the West Arch roofs!"
+        }
+      ]
+    },
+    {
+      "file": "page_03.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۳ — پرش در باران",
+      "titleEn": "Page 3 — Leap Through Rain",
+      "panels": [
+        {
+          "left": 0.0356,
+          "top": 0.0237,
+          "right": 0.9644,
+          "bottom": 0.563
+        },
+        {
+          "left": 0.0356,
+          "top": 0.5807,
+          "right": 0.4944,
+          "bottom": 0.9763
+        },
+        {
+          "left": 0.5189,
+          "top": 0.5807,
+          "right": 0.9644,
+          "bottom": 0.9763
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.28,
+          "y": 0.09,
+          "width": 0.42,
+          "style": "SHOUT",
+          "tailDir": "DOWN",
+          "textFa": "امشب هیچ‌کس این صدا را خاموش نمی‌کند!",
+          "textEn": "Nobody's silencing this frequency tonight!"
+        },
+        {
+          "x": 0.74,
+          "y": 0.5,
+          "width": 0.34,
+          "style": "SFX",
+          "textFa": "شـوووش!",
+          "textEn": "WHOOSH!"
+        },
+        {
+          "x": 0.72,
+          "y": 0.9,
+          "width": 0.42,
+          "style": "CAPTION",
+          "textFa": "قوس فیروزه‌ای برج در مه درخشید؛ دکل مخابراتی درست روبه‌روست.",
+          "textEn": "The cyan arch gleamed ahead—the citywide relay tower in reach."
+        }
+      ]
+    },
+    {
+      "file": "page_04.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۴ — پخش نیمه‌شب",
+      "titleEn": "Page 4 — Midnight Broadcast",
+      "panels": [
+        {
+          "left": 0.0356,
+          "top": 0.0237,
+          "right": 0.9644,
+          "bottom": 0.3037
+        },
+        {
+          "left": 0.0356,
+          "top": 0.3215,
+          "right": 0.9644,
+          "bottom": 0.7259
+        },
+        {
+          "left": 0.0356,
+          "top": 0.7437,
+          "right": 0.9644,
+          "bottom": 0.9763
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.3,
+          "y": 0.08,
+          "width": 0.44,
+          "style": "SPEECH",
+          "tailDir": "DOWN",
+          "textFa": "اتصال برقرار شد... پخش روی تمام کانال‌های شهر!",
+          "textEn": "Uplink locked... broadcasting on every channel in Tehran!"
+        },
+        {
+          "x": 0.6,
+          "y": 0.66,
+          "width": 0.62,
+          "style": "CAPTION",
+          "textFa": "از دامنه البرز تا پایین‌ترین گذر بازار، ملودی فراموش‌شده در باران پیچید.",
+          "textEn": "From the Alborz foothills to the deepest bazaar, the lost melody filled the rain."
+        },
+        {
+          "x": 0.5,
+          "y": 0.91,
+          "width": 0.56,
+          "style": "CAPTION",
+          "textFa": "ادامه دارد... • پایان شماره اول",
+          "textEn": "To be continued... • End of Issue #1"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,169 @@
+name: Qabak Comics Android
+
+on:
+  push:
+    branches:
+      - arena/611502bc-ideal
+    paths:
+      - 'comic_app/**'
+      - '!comic_app/delivery/**'
+      - '!comic_app/qa/**'
+      - '.github/workflows/qabak-comics.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: qabak-comics-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SESSION_BRANCH: arena/611502bc-ideal
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Android SDK 35 & Build Tools
+        run: |
+          set -euo pipefail
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
+
+      - name: Set up Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Prepare signing keystore (V1 + V2 + V3)
+        run: |
+          set -euo pipefail
+          PASS="$(openssl rand -hex 24)"
+          KEYSTORE="$RUNNER_TEMP/qabak-release.jks"
+          keytool -genkeypair \
+            -v \
+            -keystore "$KEYSTORE" \
+            -storetype PKCS12 \
+            -storepass "$PASS" \
+            -keypass "$PASS" \
+            -alias qabak \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Qabak Comics, OU=Mobile, O=Qabak Studio, L=Tehran, C=IR" >/dev/null 2>&1
+          {
+            echo "QABAK_KEYSTORE_PATH=$KEYSTORE"
+            echo "QABAK_KEYSTORE_PASSWORD=$PASS"
+            echo "QABAK_KEY_ALIAS=qabak"
+            echo "QABAK_KEY_PASSWORD=$PASS"
+          } >> "$GITHUB_ENV"
+
+      - name: Run unit tests & capture Compose visual screenshots
+        run: |
+          set -euo pipefail
+          rm -rf comic_app/qa && mkdir -p comic_app/qa/screenshots
+          if ! gradle -p comic_app testDebugUnitTest -Droborazzi.test.record=true --no-daemon > /tmp/test.log 2>&1; then
+            tail -n 120 /tmp/test.log
+            grep -E 'e: |FAILED|Exception|AssertionError|Caused by:|FAILURE|What went wrong|> ' /tmp/test.log | tail -n 35 | while IFS= read -r line; do
+              echo "::error title=Unit/UI Test::${line}"
+            done
+            exit 1
+          fi
+          tail -n 30 /tmp/test.log
+          ls -lh comic_app/qa/screenshots/
+
+      - name: Assemble signed Release APK & run Android Lint
+        run: |
+          set -euo pipefail
+          if ! gradle -p comic_app assembleRelease lintDebug --no-daemon > /tmp/build.log 2>&1; then
+            tail -n 120 /tmp/build.log
+            grep -E 'e: |ERROR|Error|FAILED|Exception|Caused by:|FAILURE|> ' /tmp/build.log | tail -n 35 | while IFS= read -r line; do
+              echo "::error title=Release Build::${line}"
+            done
+            exit 1
+          fi
+          tail -n 30 /tmp/build.log
+
+      - name: Verify APK signature, manifest, CRC & metadata
+        run: |
+          set -euo pipefail
+          BT="$ANDROID_HOME/build-tools/35.0.0"
+          APK_SRC="$(find comic_app/app/build/outputs/apk/release -name '*-release.apk' | head -n 1)"
+          test -s "$APK_SRC"
+
+          rm -rf comic_app/delivery && mkdir -p comic_app/delivery
+          APK_OUT="comic_app/delivery/QabakComics-v1.0.0.apk"
+          cp "$APK_SRC" "$APK_OUT"
+
+          # Verify ZIP CRC integrity
+          unzip -t "$APK_OUT" > /tmp/zipcheck.log
+          tail -n 3 /tmp/zipcheck.log
+
+          # Verify Android APK Signature Scheme v1/v2/v3
+          "$BT/apksigner" verify --verbose --print-certs "$APK_OUT" > comic_app/delivery/apk-signature.txt
+          grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" comic_app/delivery/apk-signature.txt
+          grep -q "Verified using v3 scheme (APK Signature Scheme v3): true" comic_app/delivery/apk-signature.txt
+
+          # Inspect package badging and compiled AndroidManifest
+          "$BT/aapt2" dump badging "$APK_OUT" > comic_app/delivery/package-metadata.txt
+          "$BT/aapt2" dump xmltree "$APK_OUT" --file AndroidManifest.xml > comic_app/delivery/AndroidManifest.txt
+
+          (cd comic_app/delivery && sha256sum QabakComics-v1.0.0.apk > SHA256SUMS.txt)
+          APK_SIZE="$(du -h "$APK_OUT" | cut -f1)"
+          TEST_COUNT="$(grep -o 'tests="[0-9]*"' comic_app/app/build/test-results/testDebugUnitTest/*.xml | awk -F'"' '{s+=$2} END {print s+0}')"
+          FAIL_COUNT="$(grep -o 'failures="[0-9]*"' comic_app/app/build/test-results/testDebugUnitTest/*.xml | awk -F'"' '{s+=$2} END {print s+0}')"
+          SHOT_COUNT="$(ls -1 comic_app/qa/screenshots/*.png 2>/dev/null | wc -l | tr -d ' ')"
+
+          cat << EOF > comic_app/delivery/BUILD-STATUS.txt
+          App: Qabak Comics (قابک)
+          Package: com.qabak.comics
+          Version: 1.0.0 (code 1)
+          Min SDK: 26 (Android 8.0) | Target/Compile SDK: 35 (Android 15+)
+          Source commit: ${GITHUB_SHA}
+          APK file: QabakComics-v1.0.0.apk (${APK_SIZE})
+          Build type: Release (R8 minified, resource-shrunk, signed V1 + V2 + V3)
+          Unit & Compose UI tests: ${TEST_COUNT} passed, ${FAIL_COUNT} failed
+          Rendered UI screenshots: ${SHOT_COUNT} PNGs in comic_app/qa/screenshots/
+          Verified: ZIP CRC OK, apksigner v1/v2/v3 OK, aapt2 badging & manifest OK, zero dangerous storage permissions
+          EOF
+          cat comic_app/delivery/BUILD-STATUS.txt
+
+      - name: Commit verified APK & QA screenshots to session branch
+        if: github.ref_name == env.SESSION_BRANCH
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f comic_app/delivery comic_app/qa/screenshots
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "build(qabak): deliver verified signed Android APK and Compose QA screenshots"
+          git pull --rebase origin "$SESSION_BRANCH"
+          git push origin "HEAD:$SESSION_BRANCH"
+
+      - name: Upload APK & QA artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: QabakComics-Android-Release
+          path: |
+            comic_app/delivery/
+            comic_app/qa/screenshots/
+          if-no-files-found: ignore

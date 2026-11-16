@@ -1,0 +1,160 @@
+{
+  "id": "simorgh_dawn_webtoon",
+  "titleFa": "سرود سپیده‌دم (وب‌تون)",
+  "titleEn": "Song of Dawn (Webtoon)",
+  "seriesFa": "وب‌تون کوتاه • اپیزود ویژه",
+  "seriesEn": "Short Webtoon • Special Ep.",
+  "authorFa": "استودیو قابک",
+  "authorEn": "Qabak Studio",
+  "genreFa": "وب‌تون حماسی",
+  "genreEn": "Epic Webtoon",
+  "descriptionFa": "اپیزود کوتاه وب‌تون با چیدمان عمودی پیوسته و بدون مرز؛ روایتی شاعرانه از شعله تنها در برف تا پرواز زرین سیمرغ بر فراز دره‌های البرز.",
+  "descriptionEn": "A seamless vertical-scroll webtoon episode—a poetic visual journey from a lone winter lantern to the golden flight of the Simorgh over waking mountain valleys.",
+  "accentHex": "#FBBF24",
+  "defaultMode": "WEBTOON",
+  "pages": [
+    {
+      "file": "page_00.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": true,
+      "titleFa": "روی جلد — اپیزود وب‌تون",
+      "titleEn": "Cover — Webtoon Episode",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.0,
+          "right": 1.0,
+          "bottom": 1.0
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.89,
+          "width": 0.82,
+          "style": "COVER_TITLE",
+          "textFa": "سرود سپیده‌دم • وب‌تون عمودی",
+          "textEn": "SONG OF DAWN • VERTICAL WEBTOON",
+          "subFa": "اپیزود ویژه • اسکرول پیوسته عمودی",
+          "subEn": "SPECIAL EPISODE • SEAMLESS WEBTOON"
+        }
+      ]
+    },
+    {
+      "file": "page_01.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "پرده ۱ — شعله در برف",
+      "titleEn": "Scroll 1 — Flame in the Snow",
+      "panels": [
+        {
+          "left": 0.04,
+          "top": 0.05,
+          "right": 0.96,
+          "bottom": 0.48
+        },
+        {
+          "left": 0.04,
+          "top": 0.53,
+          "right": 0.96,
+          "bottom": 0.95
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.06,
+          "width": 0.68,
+          "style": "CAPTION",
+          "textFa": "می‌گویند هر زمستان با یک فانوس تنها آغاز می‌شود...",
+          "textEn": "They say every long winter is answered by a single lantern..."
+        },
+        {
+          "x": 0.5,
+          "y": 0.5,
+          "width": 0.66,
+          "style": "CAPTION",
+          "textFa": "و هر بهار، با جرئتی که تاریکی را به آسمان پیوند می‌زند.",
+          "textEn": "And every spring begins when courage lifts that spark to the sky."
+        }
+      ]
+    },
+    {
+      "file": "page_02.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "پرده ۲ — بال‌های زرین",
+      "titleEn": "Scroll 2 — Wings of Gold",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.02,
+          "right": 1.0,
+          "bottom": 0.48
+        },
+        {
+          "left": 0.0,
+          "top": 0.5,
+          "right": 1.0,
+          "bottom": 0.98
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.49,
+          "width": 0.64,
+          "style": "CAPTION",
+          "textFa": "سی پرِ روشنایی در باد یکی شدند و نام کهن خویش را به یاد آوردند.",
+          "textEn": "Thirty feathers of light converged in the wind, remembering their ancient name."
+        },
+        {
+          "x": 0.5,
+          "y": 0.93,
+          "width": 0.58,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "تا زمانی که امید در دل کوهستان زنده است، شب ماندگار نیست.",
+          "textEn": "So long as hope breathes in these mountains, night cannot stay."
+        }
+      ]
+    },
+    {
+      "file": "page_03.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "پرده ۳ — صبح دره",
+      "titleEn": "Scroll 3 — Valley Morning",
+      "panels": [
+        {
+          "left": 0.02,
+          "top": 0.08,
+          "right": 0.98,
+          "bottom": 0.9
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.1,
+          "width": 0.64,
+          "style": "CAPTION",
+          "textFa": "و خورشید، آرام بر بام‌های پربرف دره فرود آمد.",
+          "textEn": "And morning settled gently upon every snow-draped roof below."
+        },
+        {
+          "x": 0.5,
+          "y": 0.91,
+          "width": 0.56,
+          "style": "CAPTION",
+          "textFa": "پایان اپیزود وب‌تون • قابک",
+          "textEn": "End of Webtoon Episode • Qabak"
+        }
+      ]
+    }
+  ]
+}
