@@ -25,6 +25,7 @@ var _bay_roots: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var _next_id := 1
 var _spawn_cursor := 0
+var _spawn_counts: Dictionary = {}
 
 
 func setup(town_state: TownState) -> void:
@@ -74,6 +75,9 @@ func _try_spawn_next() -> void:
 	if agents.size() >= max_agents:
 		return
 	var ids := state.business_ids()
+	var chosen := ""
+	var chosen_slot := -1
+	var fewest_visits := 2147483647
 	for offset in ids.size():
 		var index := (_spawn_cursor + offset) % ids.size()
 		var id: String = ids[index]
@@ -90,10 +94,17 @@ func _try_spawn_next() -> void:
 				break
 		if free_slot < 0:
 			continue
-		if _spawn(id, free_slot):
-			_spawn_cursor = (index + 1) % ids.size()
-			_timers[id] = _rng.randf_range(2.4, 4.5)
-			return
+		# Round-robin alone can repeatedly miss the other shop in a shared row.
+		# Least-visited eligible facilities win; round-robin breaks equal ties.
+		var visits := int(_spawn_counts.get(id, 0))
+		if visits < fewest_visits:
+			chosen = id
+			chosen_slot = free_slot
+			fewest_visits = visits
+	if not chosen.is_empty() and _spawn(chosen, chosen_slot):
+		_spawn_counts[chosen] = fewest_visits + 1
+		_spawn_cursor = (ids.find(chosen) + 1) % ids.size()
+		_timers[chosen] = _rng.randf_range(2.4, 4.5)
 
 
 func _spawn(id: String, slot: int) -> bool:
@@ -166,7 +177,9 @@ func _tick_agents(delta: float) -> void:
 		var slot := int(entry["slot"])
 		match String(entry["phase"]):
 			"arrive":
-				car.drive(delta, DRIVE_SPEED)
+				var bay := ForecourtLayout.bay_position(id, slot)
+				var cruise := PARKING_SPEED if car.position.distance_to(bay) < 4.0 else DRIVE_SPEED
+				car.drive(delta, cruise)
 				if car.arrived():
 					entry["phase"] = "service"
 					(_queues[id] as ServiceQueue).mark_arrived(int(entry["cid"]))
