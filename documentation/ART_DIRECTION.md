@@ -1,4 +1,4 @@
-# Bright cartoon town — v1.42
+# Bright cartoon town — v1.43
 
 ## Visual target
 
@@ -45,6 +45,31 @@ Business equipment and signs retain identifying accents.
 - Five original SVG pictograms in `assets/ui/` replace the tiny emoji-only
   navigation. Buttons keep their existing gameplay actions and touch targets.
 
+## Live service details
+
+`ServiceEffects` is a visual child owned by each customer, not another simulation.
+Arrival starts it; payment hides it **before** a reverse/departure is requested.
+Fuel and EV cables are counter-rotated to stay aligned to the actual world-space
+pump, without rotating or moving the vehicle. Wash rollers turn only during
+service. Foam, charge pulses, repair glints and small refresh/food/rest/cinema
+accents distinguish the eight facilities. Original 64 px pictograms are reused
+on side-wall enamel signs and over the corresponding service bay.
+
+The effect has one shared low-poly sphere mesh/material, one MultiMesh per car,
+no particle-node spawning, no lights, no collision shapes, no Timer nodes, no
+runtime random draws and no economy/save writes. Particle budgets are **0 / 6 /
+10** for low / medium / high; the low preset retains the service icon, progress,
+rollers and connected cable. Preset changes resize only the pool, not the car.
+All feedback is freed with its owning vehicle. Indicators sit above the real
+canopy/gantry rather than being hidden under its roof.
+
+Persian facility and manager levels, multipliers, customer prices, event seconds
+and painted bay numbers use the shared localization/digit helpers. Switching
+language updates existing bay labels without moving their coordinates. World
+badges use 44 px-high touch targets, fit their translated text and projecting
+upgrade arrow inside the viewport, and reuse three cached styles instead of
+allocating new StyleBoxes every frame.
+
 ## Regression checks
 
 `test_cartoon_style.gd` checks palette families, light-panel text contrast,
@@ -53,6 +78,14 @@ budgets, night-window registration, orthographic zoom and the navigation assets.
 The rendered walkthrough asserts that navigation touch targets stay on-screen
 and do not overlap in both portrait aspect ratios. It also samples known lawn and road points in the rendered daylight frame, rejecting clipped yellow lawns and washed-out cyan tarmac.
 
-Before shipping, also run the unchanged six-minute physical traffic scenario and
-review the rendered day/night, Persian/English and 720 × 1600 device captures.
+`test_service_effects.gd` checks distinct assets, bounded pools/node counts,
+quality switching, finite transforms, indicator clearance, service gating,
+parent-owned cleanup and live bay-number localization. The six-minute physical
+traffic scenario also checks the real feedback lifecycle at every tick, observes
+all eight facility services, and changes the effect preset while cars are live.
+The rendered walkthrough adds Persian facility/manager sheets and real highway-
+to-car-wash captures at high and low quality (21 screenshots in total).
+
+Before shipping, review the rendered day/night, Persian/English and 720 × 1600
+device captures and keep the physical traffic checks passing.
 Unit tests and screenshot rendering are not a substitute for phone GPU testing.

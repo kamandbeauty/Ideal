@@ -99,7 +99,7 @@ func test_departing_car_owns_and_frees_all_its_feedback() -> void:
 	var effects := ServiceEffects.new()
 	effects.setup("electric_charger", "car", "medium")
 	car.add_child(effects)
-	var reference := weakref(effects)
+	var reference: WeakRef = weakref(effects)
 	check(effects.has_node("ChargingCable"), "EV customers get a charging cable")
 	car.free()
 	equal(reference.get_ref(), null, "freeing a car also frees every service effect")

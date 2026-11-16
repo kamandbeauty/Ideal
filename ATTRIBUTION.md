@@ -38,7 +38,8 @@ foreground and background) from it.
 
 The procedural gabled buildings, palette, lawns and toy-town scenery in
 `scripts/town/cartoon_buildings.gd` and related scripts, the five SVG navigation
-illustrations in `assets/ui/`, and the baked maps from
+illustrations and six service pictograms in `assets/ui/`, the procedural service
+rollers/cables/particle pools, and the baked maps from
 `tools/build_surface_textures.py` are original assets made for this project.
 The user-provided screenshot guided the palette and general low-poly treatment;
 no models, textures, icons, logos, screenshot pixels or UI artwork were extracted
