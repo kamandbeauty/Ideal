@@ -34,7 +34,7 @@ Business equipment and signs retain identifying accents.
   stops behind the parking lanes. Props never move the stable bay coordinates.
 - Low-poly cottages and trees replace the former canyon wall. They are scenery
   outside the highway, inbound/outbound spines and turning envelopes.
-- Neutral daylight and matte Lambert materials avoid ochre colour multiplication,
+- Neutral daylight with explicit GL Compatibility exposure headroom and matte Lambert materials avoid ochre colour multiplication,
   mirror-like highlights, bloom and expensive screen-space effects.
 - Surface maps are deterministic 256 px neutral masks with only faint grain.
   They are generated offline by `tools/build_surface_textures.py`.
@@ -51,7 +51,7 @@ Business equipment and signs retain identifying accents.
 physical shell bounds at multiple renovation stages, real gables, material/map
 budgets, night-window registration, orthographic zoom and the navigation assets.
 The rendered walkthrough asserts that navigation touch targets stay on-screen
-and do not overlap in both portrait aspect ratios.
+and do not overlap in both portrait aspect ratios. It also samples known lawn and road points in the rendered daylight frame, rejecting clipped yellow lawns and washed-out cyan tarmac.
 
 Before shipping, also run the unchanged six-minute physical traffic scenario and
 review the rendered day/night, Persian/English and 720 × 1600 device captures.

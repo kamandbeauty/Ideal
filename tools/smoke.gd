@@ -197,6 +197,8 @@ func _capture(shot_name: String) -> void:
 	if image == null:
 		printerr("SMOKE: no image for " + shot_name)
 		return
+	if shot_name == "14-one-way-forecourt":
+		_validate_reference_daylight(image)
 	var path := "%s/%s.png" % [CAPTURE_DIR, shot_name]
 	var error := image.save_png(path)
 	print("SMOKE: captured %s (%s)" % [path, error_string(error)])
@@ -221,3 +223,20 @@ func _validate_portrait_layout() -> void:
 		for other in rectangles:
 			assert(not rect.intersects(other), "navigation touch targets overlap")
 		rectangles.append(rect)
+
+
+func _validate_reference_daylight(image: Image) -> void:
+	var camera: Camera3D = _town.camera_rig.camera
+	var road_pt := Vector2i(camera.unproject_position(Vector3(0, 0.078, 2.9)))
+	var lawn_pt := Vector2i(camera.unproject_position(Vector3(-7.2, 0.076, -1.8)))
+	var road := image.get_pixelv(road_pt)
+	var lawn := image.get_pixelv(lawn_pt)
+	print("SMOKE PALETTE: road=#%s lawn=#%s" % [road.to_html(false), lawn.to_html(false)])
+	assert(
+		road.r > 0.40 and road.r < 0.68 and road.b < 0.78,
+		"road must remain grey, not washed-out cyan: " + road.to_html(false)
+	)
+	assert(
+		lawn.g > 0.73 and lawn.b < 0.47 and lawn.r < 0.96,
+		"lawn must remain lime, not clipped yellow: " + lawn.to_html(false)
+	)

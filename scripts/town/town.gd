@@ -74,16 +74,15 @@ func _ready() -> void:
 
 
 func _intro_camera() -> void:
-	camera_rig.zoom = 36.0
+	camera_rig.zoom = 42.0
 	camera_rig.target = Vector3(-0.3, 0.0, 2.8)
 	camera_rig.apply()
 	var tween := create_tween()
-	tween.tween_method(_apply_intro, 0.0, 1.0, 1.0) \
-		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_method(_apply_intro, 0.0, 1.0, 1.0).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func _apply_intro(t: float) -> void:
-	camera_rig.zoom = lerpf(36.0, IsometricCamera.DEFAULT_ZOOM, t)
+	camera_rig.zoom = lerpf(42.0, IsometricCamera.DEFAULT_ZOOM, t)
 	camera_rig.target = Vector3(-0.3, 0.0, 2.8).lerp(IsometricCamera.DEFAULT_TARGET, t)
 	camera_rig.apply()
 
@@ -152,11 +151,17 @@ func _claim_daily() -> void:
 	var chest := Game.profile.claim_daily()
 	if chest.is_empty():
 		return
-	var message := App.t("msg.daily", [
-		App.format_short(float(chest["cash"])),
-		App.format_number(float(chest["streak"])),
-		"%.1f" % float(chest["multiplier"]),
-	])
+	var message := (
+		App
+		. t(
+			"msg.daily",
+			[
+				App.format_short(float(chest["cash"])),
+				App.format_number(float(chest["streak"])),
+				"%.1f" % float(chest["multiplier"]),
+			]
+		)
+	)
 	if int(chest["gems"]) > 0:
 		message += " · " + App.t("msg.daily_gems", [App.format_number(float(chest["gems"]))])
 		Sound.play("gem", -4.0)
@@ -218,21 +223,39 @@ func _auto_upgrade() -> void:
 	var id := String(step["id"])
 	view.refresh_business(id)
 	view.sparkle(id)
-	var message := App.t("msg.auto_level", [
-		App.t("business.%s.name" % id),
-		App.format_number(float(step.get("level", 1))),
-	])
+	var message := (
+		App
+		. t(
+			"msg.auto_level",
+			[
+				App.t("business.%s.name" % id),
+				App.format_number(float(step.get("level", 1))),
+			]
+		)
+	)
 	if String(step["kind"]) == AutoUpgrade.KIND_BRANCH:
-		message = App.t("msg.auto_branch", [
-			App.t("business.%s.name" % id),
-			App.t("branch.%s" % String(step["branch"])),
-			App.format_number(float(step["branch_level"])),
-		])
+		message = (
+			App
+			. t(
+				"msg.auto_branch",
+				[
+					App.t("business.%s.name" % id),
+					App.t("branch.%s" % String(step["branch"])),
+					App.format_number(float(step["branch_level"])),
+				]
+			)
+		)
 	elif String(step["kind"]) == AutoUpgrade.KIND_MANAGER:
-		message = App.t("msg.auto_rank", [
-			App.t("business.%s.name" % id),
-			App.t("manager.rank.%d" % int(step["manager_rank"])),
-		])
+		message = (
+			App
+			. t(
+				"msg.auto_rank",
+				[
+					App.t("business.%s.name" % id),
+					App.t("manager.rank.%d" % int(step["manager_rank"])),
+				]
+			)
+		)
 	hud.show_message(message)
 
 
@@ -288,9 +311,7 @@ func claim_offline() -> Dictionary:
 func travel_to(town_id: String) -> bool:
 	if not Game.travel_to(town_id):
 		if hud != null:
-			hud.show_message(App.t("msg.travel_locked", [
-				App.format_number(TownData.star_required(town_id))
-			]))
+			hud.show_message(App.t("msg.travel_locked", [App.format_number(TownData.star_required(town_id))]))
 		Sound.play("deny", -10.0)
 		return false
 	App.record_reputation(int(state.reputation))

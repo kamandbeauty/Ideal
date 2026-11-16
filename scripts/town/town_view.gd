@@ -6,6 +6,8 @@ extends Node3D
 
 const BUSINESS_SCALE := 2.25
 const SEED := 20261115
+# Compatibility Lambert lighting needs headroom to retain the reference sRGB hues.
+const DAYLIGHT_GAIN := 0.37
 
 var state: TownState
 var buildings: Dictionary = {}
@@ -78,7 +80,7 @@ func _build_environment() -> void:
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = Color(0.96, 0.98, 1.0)
-	env.ambient_light_energy = 0.60
+	env.ambient_light_energy = 0.60 * DAYLIGHT_GAIN
 	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	env.tonemap_exposure = 1.0
 	env.adjustment_enabled = true
@@ -95,7 +97,7 @@ func _build_environment() -> void:
 
 	_sun = DirectionalLight3D.new()
 	_sun.name = "Sun"
-	_sun.light_energy = 0.82
+	_sun.light_energy = 0.82 * DAYLIGHT_GAIN
 	_sun.light_color = Color(1.0, 0.99, 0.96)
 	_sun.rotation_degrees = Vector3(-52, -36, 0)
 	_sun.shadow_enabled = true
@@ -108,7 +110,7 @@ func _build_environment() -> void:
 
 	_fill = DirectionalLight3D.new()
 	_fill.name = "Fill"
-	_fill.light_energy = 0.12
+	_fill.light_energy = 0.12 * DAYLIGHT_GAIN
 	_fill.light_color = Color(0.68, 0.82, 1.0)
 	_fill.rotation_degrees = Vector3(-34, 142, 0)
 	_fill.shadow_enabled = false
@@ -290,16 +292,17 @@ func apply_time(t: float) -> void:
 	var dusk := clampf(1.0 - absf(elevation) * 2.4, 0.0, 1.0)
 	var turf := TownData.ground_color(state.town_id)
 	var sky_day := TownData.sky_color(state.town_id)
+	var lighting_gain := lerpf(DAYLIGHT_GAIN, 1.0, night)
 
 	if _sun != null:
 		_sun.rotation_degrees = Vector3(-(32.0 + 26.0 * day), -36.0, 0)
-		_sun.light_energy = 0.12 + 0.66 * day + 0.12 * dusk
+		_sun.light_energy = (0.12 + 0.66 * day + 0.12 * dusk) * lighting_gain
 		var sun_col := Color(1.0, 0.99, 0.96).lerp(Color(1.0, 0.89, 0.74), dusk * 0.45)
 		_sun.light_color = sun_col.lerp(Color(0.72, 0.78, 0.96), night * 0.6)
 	if _fill != null:
-		_fill.light_energy = 0.12 + 0.02 * day
+		_fill.light_energy = (0.12 + 0.02 * day) * lighting_gain
 	if _env != null:
-		_env.ambient_light_energy = 0.58 - 0.12 * night
+		_env.ambient_light_energy = (0.58 - 0.12 * night) * lighting_gain
 		var amb := Color(0.96, 0.98, 1.0).lerp(Color(1.0, 0.96, 0.87), dusk * 0.30)
 		_env.ambient_light_color = amb.lerp(Color(0.58, 0.67, 0.85), night)
 		_env.fog_light_color = turf.lightened(0.22).lerp(Color(0.14, 0.18, 0.32), night)

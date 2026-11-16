@@ -10,8 +10,8 @@ const ZOOM_MAX := 58.0
 const ZOOM_STEP := 0.9
 const PAN_LIMIT := 13.0
 const DEFAULT_YAW := 45.0
-const DEFAULT_ZOOM := 34.0
-const DEFAULT_TARGET := Vector3(0.8, 0.0, 3.6)
+const DEFAULT_ZOOM := 36.0
+const DEFAULT_TARGET := Vector3(1.6, 0.0, 2.8)
 
 var target := DEFAULT_TARGET
 var yaw := DEFAULT_YAW
