@@ -19,11 +19,14 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 70
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 1
+
+      - name: Diagnostics init
+        run: python3 tools/ci/diag.py init
 
       - name: Set up JDK
         uses: actions/setup-java@v5
@@ -38,19 +41,29 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Report toolchain
-        run: |
-          flutter --version
-          dart --version
+      - name: Versions
+        run: python3 tools/ci/diag.py run diag.log -- flutter --version
 
       - name: Install dependencies
-        run: flutter pub get
+        run: |
+          python3 tools/ci/diag.py run diag.log -- flutter pub get
+          python3 tools/ci/diag.py publish failure || true
 
       - name: Analyze
-        run: flutter analyze
+        run: |
+          python3 tools/ci/diag.py run diag.log -- flutter analyze
+          python3 tools/ci/diag.py publish failure || true
 
       - name: Test
-        run: flutter test --reporter expanded
+        run: |
+          python3 tools/ci/diag.py run diag.log -- flutter test --reporter expanded
+          python3 tools/ci/diag.py publish failure || true
 
       - name: Build debug APK
-        run: flutter build apk --debug
+        run: |
+          python3 tools/ci/diag.py run diag.log -- flutter build apk --debug
+          python3 tools/ci/diag.py publish failure || true
+
+      - name: Publish success
+        if: success()
+        run: python3 tools/ci/diag.py publish success
