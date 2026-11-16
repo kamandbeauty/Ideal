@@ -25,6 +25,30 @@ static func activate_x2_boost(state: TownState) -> bool:
 	return true
 
 
+static func grant_cash(state: TownState, amount: float) -> void:
+	if amount <= 0.0:
+		return
+	state.cash += amount
+	state.lifetime_cash_earned += amount
+	state.cash_changed.emit(state.cash)
+	state.changed.emit()
+
+
+static func record_convoy_served(state: TownState, count: float) -> void:
+	if count <= 0.0:
+		return
+	state.customers += count
+	if state.special_order_active:
+		state.special_order_done += count
+		if state.special_order_done >= state.special_order_goal:
+			state.special_order_active = false
+			state.special_order_timer = 0.0
+			var bonus_cash := roundf(maxf(400.0, state.net_per_minute() * 2.5))
+			grant_cash(state, bonus_cash)
+			state.bourbon += 28
+			state.changed.emit()
+
+
 static func cards_for(state: TownState, mgr_id: String) -> int:
 	return int(state.manager_cards.get(mgr_id, 0))
 

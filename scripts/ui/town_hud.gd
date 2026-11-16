@@ -563,7 +563,7 @@ func show_offline(seconds: float, earnings: float) -> void:
 func collect_offline() -> void:
 	if _offline_amount > 0.0:
 		var st: TownState = session.state
-		st.earn(_offline_amount)
+		EmpireActions.grant_cash(st, _offline_amount)
 		_offline_amount = 0.0
 		Sound.play("cash", -4.0)
 	_offline_modal.visible = false
@@ -587,7 +587,7 @@ func collect_daily_bonus() -> void:
 		var st: TownState = session.state
 		var c := DailyBonus.cash(st.net_per_minute(), _bonus_day)
 		var g := DailyBonus.gems(_bonus_day)
-		st.earn(c)
+		EmpireActions.grant_cash(st, c)
 		st.gems += g
 		st.bourbon += 15
 		_bonus_day = 0

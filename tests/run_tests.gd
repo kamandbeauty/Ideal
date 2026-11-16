@@ -78,6 +78,11 @@ func _initialize() -> void:
 		quit(1)
 
 
+func _process(_delta: float) -> bool:
+	quit(1)
+	return true
+
+
 func _write_report(report: Dictionary) -> void:
 	var directory := ProjectSettings.globalize_path(REPORT_PATH.get_base_dir())
 	DirAccess.make_dir_recursive_absolute(directory)

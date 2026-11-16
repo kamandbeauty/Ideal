@@ -52,12 +52,24 @@ const ORDER: Array[String] = [
 ]
 
 
+static func ids() -> Array[String]:
+	return ORDER
+
+
 static func has_event(id: String) -> bool:
 	return EVENTS.has(id)
 
 
 static func duration(id: String) -> float:
 	return float(EVENTS.get(id, {}).get("duration", 0.0))
+
+
+static func traffic(id: String) -> float:
+	return traffic_multiplier(id)
+
+
+static func income(id: String) -> float:
+	return income_multiplier(id)
 
 
 static func traffic_multiplier(id: String) -> float:

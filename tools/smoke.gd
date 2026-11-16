@@ -39,7 +39,7 @@ func _run() -> void:
 	_town.state.cash = 420.0
 	_town.state.advance(18.0)
 	var q1: Dictionary = _town.state.quest_slots[1]
-	_town.state.earn(float(q1.get("goal", 400.0)) + 50.0)
+	EmpireActions.grant_cash(_town.state, float(q1.get("goal", 400.0)) + 50.0)
 	_town.hud.refresh()
 	await _settle(90)
 	await _capture("02-early-forecourt-en")

@@ -128,6 +128,10 @@ func format_short(value: float) -> String:
 	return sign_prefix + to_digits(digits) + COMPACT_SUFFIXES_EN[tier]
 
 
+func format_money(value: float) -> String:
+	return "$" + format_short(value)
+
+
 func to_digits(text: String) -> String:
 	if language != "fa":
 		return text

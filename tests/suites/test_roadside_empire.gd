@@ -73,7 +73,7 @@ func test_special_orders_and_iron_bones_salvage() -> void:
 	town.hire_manager("gas_station")
 	check(EmpireActions.start_special_order(town), "VIP Convoy Special Order starts")
 	check(town.special_order_active, "special order active")
-	town.customers_served(town.special_order_goal + 1.0)
+	EmpireActions.record_convoy_served(town, town.special_order_goal + 1.0)
 	check(not town.special_order_active, "finishing convoy pays bonus and closes order")
 
 	var rng := RandomNumberGenerator.new()
