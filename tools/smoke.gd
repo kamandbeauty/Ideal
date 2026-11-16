@@ -205,7 +205,12 @@ func _run() -> void:
 	await _capture("24-guild-board")
 	print("SMOKE: " + probe.mission_report())
 	probe.press_action()
-	await _settle(32)
+	# Capture the moment the purchase lands, not a guess at how many frames the
+	# software renderer needs: the toast only lives three seconds.
+	for frame in 60:
+		await get_tree().process_frame
+		if probe.last_result.has("loot"):
+			break
 	print("SMOKE: bought " + str(probe.last_result))
 	await _capture("25-guild-loot-bought")
 	print("SMOKE: " + probe.mission_report())
