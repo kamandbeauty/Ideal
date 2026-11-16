@@ -21,6 +21,8 @@ var _timers: Dictionary = {}
 var _occupied: Dictionary = {}
 var _row_owners: Dictionary = {}
 var _departures: Dictionary = {}
+var _exit_waiting: Array[int] = []
+var _exit_owner := 0
 var _bay_roots: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var _next_id := 1
@@ -200,6 +202,19 @@ func _tick_agents(delta: float) -> void:
 			"reverse":
 				car.drive(delta, PARKING_SPEED, true)
 				if car.arrived():
+					entry["phase"] = "exit_approach"
+					car.set_route(ForecourtLayout.exit_approach(id, slot))
+			"exit_approach":
+				car.drive(delta, PARKING_SPEED)
+				if car.arrived():
+					entry["phase"] = "corridor_wait"
+					_exit_waiting.append(int(entry["cid"]))
+			"corridor_wait":
+				car.hold(delta)
+				# The narrow exit spine is a reserved single-lane corridor.
+				# Waiting cars stay OFF it, so a turning tail cannot trap through traffic.
+				if _exit_owner == 0 and not _exit_waiting.is_empty() and _exit_waiting[0] == int(entry["cid"]):
+					_exit_owner = _exit_waiting.pop_front()
 					entry["phase"] = "depart"
 					car.set_route(ForecourtLayout.outbound(id, slot))
 			"depart":
@@ -220,6 +235,8 @@ func _tick_agents(delta: float) -> void:
 				car.drive(delta, DRIVE_SPEED)
 				if car.position.x > ForecourtLayout.DRIVE_X + 4.3:
 					car.merge_requested = false
+					if _exit_owner == int(entry["cid"]):
+						_exit_owner = 0
 				if car.arrived():
 					car.merge_requested = false
 					car.collision_layer = 0

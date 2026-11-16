@@ -5,6 +5,7 @@ extends RefCounted
 ## Row aisles are eastbound only. Parking manoeuvres hold a FIFO row lock.
 
 const DRIVE_X := 9.6
+const EXIT_HOLD_X := DRIVE_X - 2.1
 const ROW_PITCH := 8.0
 const MERGE_WAIT_Z := -3.2
 const MERGE_STOP_X := DRIVE_X - 5.0
@@ -74,9 +75,13 @@ static func reverse_out(id: String, slot: int) -> Array[Vector3]:
 	return [bay_position(id, slot), staging_position(id, slot)]
 
 
-static func outbound(id: String, slot: int) -> Array[Vector3]:
+static func exit_approach(id: String, slot: int) -> Array[Vector3]:
+	return [staging_position(id, slot), point(EXIT_HOLD_X, aisle_z(id))]
+
+
+static func outbound(id: String, _slot: int) -> Array[Vector3]:
 	var corners: Array[Vector3] = [
-		staging_position(id, slot),
+		point(EXIT_HOLD_X, aisle_z(id)),
 		point(DRIVE_X, aisle_z(id)),
 		point(DRIVE_X, MERGE_WAIT_Z),
 	]

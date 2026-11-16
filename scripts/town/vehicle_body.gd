@@ -89,6 +89,8 @@ func _drive_step(delta: float, cruise: float, reversing: bool) -> void:
 		# A reserved parking endpoint may be closer to its wall than a moving
 		# road queue. The physical sweep still applies, with no snapping.
 		var gap := 0.08 if _waypoint == _route.size() - 1 else DrivingRules.BUMPER_GAP
+		if hit.get_collider() is VehicleBody:
+			gap = 0.80  # Leave room for a leading car's tail to turn out of the lane.
 		desired_speed = minf(desired_speed, DrivingRules.stopping_speed(hit.get_travel().length(), cruise, gap))
 	speed = DrivingRules.approach_speed(speed, desired_speed, delta)
 	var motion := direction * minf(speed * delta, offset.length())

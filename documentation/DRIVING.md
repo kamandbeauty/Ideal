@@ -14,7 +14,7 @@
 1. Turn right off the near highway lane into the west/southbound spine.
 2. Follow the assigned row's eastbound aisle, then turn into a reserved bay.
 3. **Begin service only after reaching the bay.** A pending reservation has no running service timer.
-4. Obtain the row manoeuvre lock, reverse into the aisle, then use the east/northbound exit spine.
+4. Obtain the row manoeuvre lock, reverse into the aisle, and wait off the east spine. A FIFO corridor reservation admits one turning/exiting customer at a time; it releases once that customer has safely merged. This prevents a turning tail and through traffic from trapping each other on the narrow single-lane exit.
 5. Wait outside the highway. Highway vehicles that can safely stop yield upstream; vehicles already in the junction continue through. Merge only after the junction clears.
 
 Bay coordinates are based on the facility's maximum footprint, not its current capacity. Upgrading capacity exposes more bays without recentering existing cars. A slot remains owned until its departing vehicle has cleared the row. Parked cars never hold a manoeuvre lock, and departures get priority over new arrivals.
