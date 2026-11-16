@@ -271,10 +271,12 @@ func _on_travel(id: String) -> void:
 
 func _on_monster_hills() -> void:
 	var st: TownState = session.state if session != null else Game.town
-	if st != null and st.start_event("monster_hills"):
-		Sound.play("event", -4.0)
-		App.tap(36)
-		close()
+	if st != null:
+		st.active_event = ""
+		if st.start_event("monster_hills"):
+			Sound.play("event", -4.0)
+			App.tap(36)
+			close()
 
 
 func _on_special_order() -> void:

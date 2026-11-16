@@ -99,6 +99,7 @@ func _run() -> void:
 
 	# 8) Monster Hills Rally + x2 Income Booster active!
 	EmpireActions.activate_x2_boost(_town.state)
+	_town.state.active_event = ""
 	_town.state.start_event("monster_hills")
 	await _settle(90)
 	await _capture("11-monster-hills")

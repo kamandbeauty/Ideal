@@ -467,7 +467,7 @@ func _refresh_live_timers() -> void:
 		_event_chip.visible = true
 		_event_chip.text = "🔥 %s (%ss)" % [
 			App.t(TownEvents.name_key(st.active_event)),
-			App.format_number(ceil(st.event_remaining)),
+			App.format_number(ceilf(st.event_time_left)),
 		]
 	else:
 		_event_chip.visible = false

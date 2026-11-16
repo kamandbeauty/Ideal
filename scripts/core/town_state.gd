@@ -494,7 +494,7 @@ func _measure_mission(m: Dictionary) -> float:
 
 
 func start_event(id: String) -> bool:
-	if not TownEvents.has_event(id):
+	if not TownEvents.has_event(id) or not active_event.is_empty():
 		return false
 	active_event = id
 	event_time_left = TownEvents.duration(id)
