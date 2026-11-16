@@ -62,6 +62,8 @@ func _run() -> void:
 				)
 			)
 			_next_log += 30.0
+			if elapsed > 290.0:
+				print("TRAFFIC DIAGNOSTICS: " + _diagnostics())
 	if _finished:
 		return
 	var flow := _view.customers
@@ -70,7 +72,7 @@ func _run() -> void:
 		return
 	for id in _state.business_ids():
 		if int(flow.visits_by_business.get(id, 0)) == 0:
-			_fail("No customer reached " + id)
+			_fail("No customer reached " + id + ": " + _diagnostics())
 			return
 	print(
 		(

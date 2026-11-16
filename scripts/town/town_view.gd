@@ -426,6 +426,9 @@ func _add_solid(parent: Node3D, rect: Rect2, label: String, height: float) -> vo
 
 
 func apply_quality(preset: String) -> void:
+	var traffic := get_node_or_null("Traffic") as Traffic
+	if traffic != null:
+		traffic.count = Quality.highway_count(preset)
 	_sun.shadow_enabled = Quality.normalise(preset) != "low"
 	get_viewport().msaa_3d = Viewport.MSAA_2X if preset == "high" else Viewport.MSAA_DISABLED
 	get_viewport().screen_space_aa = (

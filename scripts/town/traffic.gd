@@ -10,6 +10,7 @@ const SEED := 4242
 const VEHICLES: Array[String] = ["camper", "truck", "camper", "car", "pickup", "camper", "suv", "truck", "bus", "car"]
 
 var cars: Array[Dictionary] = []
+var count := CAR_COUNT
 var _rng := RandomNumberGenerator.new()
 var _yield_active := false
 
@@ -40,8 +41,14 @@ func _physics_process(delta: float) -> void:
 			yielding = true
 			break
 	_yield_active = yielding
-	for entry in cars:
+	for index in cars.size():
+		var entry: Dictionary = cars[index]
 		var car: VehicleBody = entry["node"]
+		if index >= count:
+			car.visible = false
+			car.collision_layer = 0
+			car.set_route([])
+			continue
 		if car.arrived():
 			car.visible = false
 			car.collision_layer = 0

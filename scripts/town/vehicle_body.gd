@@ -100,7 +100,7 @@ func _drive_step(delta: float, cruise: float, reversing: bool) -> void:
 	var before := global_transform
 	var collision := move_and_collide(motion, false, 0.02)
 	var moved := global_position.distance_to(before.origin)
-	if not _live_clear(global_position, global_rotation.y, 0.015):
+	if not _live_clear(global_position, global_rotation.y, 0.08):
 		global_transform = before  # Reject a penetration-recovery displacement.
 		speed = 0.0
 		moved = 0.0
@@ -116,7 +116,7 @@ func _drive_step(delta: float, cruise: float, reversing: bool) -> void:
 
 
 func _rotation_clear(candidate: Transform3D) -> bool:
-	if not _live_clear(candidate.origin, candidate.basis.get_euler().y, 0.06):
+	if not _live_clear(candidate.origin, candidate.basis.get_euler().y, 0.08):
 		return false
 	if _shape == null or get_world_3d() == null:
 		return true

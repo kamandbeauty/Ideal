@@ -39,6 +39,15 @@ static func pedestrian_count(level: String) -> int:
 	return 10
 
 
+static func highway_count(level: String) -> int:
+	match normalise(level):
+		"low":
+			return 6
+		"medium":
+			return 8
+	return 10
+
+
 ## How many plots get a real light; the rest rely on emissive windows and halos.
 static func light_budget(level: String) -> int:
 	match normalise(level):
