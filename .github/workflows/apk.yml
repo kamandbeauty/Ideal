@@ -191,7 +191,7 @@ jobs:
           version=$(sed -n 's/^version\/name="\(.*\)"$/\1/p' export_presets.cfg)
           notes=$(printf '%s\n\n%s\n\n%s\n\n%s\n' \
             "Roadside Empire: Idle Tycoon — v${version}, debug-signed Android ARM64 APK." \
-            "Bright cartoon town: lime lawns, white kerbs, cool-grey roads, orange gabled roofs, orthographic camera and a light orange/blue illustrated UI. Existing collision bodies, reservations and progression are retained." \
+            "Live service feedback: rotating wash brushes and foam, connected fuel/EV cables, distinct service pictograms and bounded 0/6/10-particle quality presets. Persian facility/manager labels and painted bay numbers are localized; floating badges stay inside the screen. The bright lime/orange town, physical car/building collisions, reservations, progression and save format are retained." \
             "Install RoadsideEmpire.apk without uninstalling the existing game. Builds from v1.41 onward reuse the cached debug-signing identity. Compatibility with v1.40 is unverified: if Android reports a conflict, keep the old installation because uninstalling can delete saved progress." \
             "ابتدا بدون حذف نسخهٔ قبلی نصب کنید. اگر خطای تداخل بسته یا امضا دریافت کردید، بازی قبلی را حذف نکنید؛ حذف بازی می‌تواند پیشرفت ذخیره‌شده را پاک کند.")
           notes="$notes"$'\n'"Built from $SHA."

@@ -83,6 +83,8 @@ jobs:
             done
             exit 1
           fi
+          summary=$(python3 -c 'import json; r=json.load(open("documentation/qa/test-results.json")); print("%s checks in %s methods / %s suites" % (r["checks"], r["methods"], len(r["suites"])))')
+          echo "::notice title=Tests::$summary"
 
       - name: Physical traffic and parking stress test
         run: |
