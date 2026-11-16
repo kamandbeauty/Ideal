@@ -1,0 +1,79 @@
+extends Node3D
+
+# Isolated experiment: attach a rifle to the right hand and solve the left arm
+# towards a support point. This is not wired to gameplay or a finished asset.
+const Model = preload("res://assets/models/motus-fbx2gltf-reference.glb")
+const Rifle = preload("res://assets/models/rifle-quaternius.glb")
+const RIFLE_SCALE := 0.30
+const RIGHT_GRIP := Vector3(0.45, -0.05, 0.0)
+const SUPPORT_GRIP := Vector3(1.55, 0.20, 0.0)
+var model: Node3D
+var skeleton: Skeleton3D
+var animation: AnimationPlayer
+var right_attachment: BoneAttachment3D
+var support_target: Node3D
+var rifle: Node3D
+var solver: SkeletonIK3D
+var ready_ok := false
+
+func find_type(node: Node, type_name: String) -> Node:
+	if node.is_class(type_name):
+		return node
+	for child in node.get_children():
+		var found := find_type(child, type_name)
+		if found:
+			return found
+	return null
+
+func _ready() -> void:
+	model = Model.instantiate() as Node3D
+	add_child(model)
+	skeleton = find_type(model, "Skeleton3D") as Skeleton3D
+	animation = find_type(model, "AnimationPlayer") as AnimationPlayer
+	if skeleton == null or animation == null:
+		push_error("Experimental rifle rig is missing skeleton or animation")
+		return
+	for bone in ["RightHand", "LeftArm", "LeftHand", "Spine2"]:
+		if skeleton.find_bone(bone) < 0:
+			push_error("Experimental rifle rig is missing bone: " + bone)
+			return
+	right_attachment = BoneAttachment3D.new()
+	right_attachment.name = "RightHandAttachment"
+	right_attachment.bone_name = "RightHand"
+	skeleton.add_child(right_attachment)
+	rifle = Rifle.instantiate() as Node3D
+	rifle.name = "ExperimentalRifle"
+	add_child(rifle)
+	support_target = Node3D.new()
+	support_target.name = "SupportGripTarget"
+	add_child(support_target)
+	solver = SkeletonIK3D.new()
+	solver.name = "SupportHandIK"
+	solver.root_bone = "LeftArm"
+	solver.tip_bone = "LeftHand"
+	solver.override_tip_basis = false
+	solver.interpolation = 1.0
+	skeleton.add_child(solver)
+	solver.target_node = solver.get_path_to(support_target)
+	animation.play("PistolAimWalk")
+	animation.advance(0.4)
+	ready_ok = true
+	update_mount()
+	solver.start()
+
+func update_mount() -> void:
+	if not ready_ok:
+		return
+	var spine := skeleton.to_global(skeleton.get_bone_global_pose(skeleton.find_bone("Spine2")).origin)
+	var right := right_attachment.global_position
+	var forward := right - spine
+	forward.y = 0.0
+	if forward.length_squared() < 0.0001:
+		return
+	forward = forward.normalized()
+	var basis := Basis(forward, Vector3.UP, forward.cross(Vector3.UP).normalized())
+	rifle.global_transform = Transform3D(basis.scaled(Vector3.ONE * RIFLE_SCALE), right - basis * (RIGHT_GRIP * RIFLE_SCALE))
+	support_target.global_position = rifle.to_global(SUPPORT_GRIP)
+
+func _process(_delta: float) -> void:
+	update_mount()
