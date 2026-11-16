@@ -5,12 +5,12 @@ extends Node3D
 
 const PITCH := 41.0
 const ZOOM_MIN := 11.0
-const ZOOM_MAX := 38.0
+const ZOOM_MAX := 58.0
 const ZOOM_STEP := 0.9
 const PAN_LIMIT := 13.0
 const DEFAULT_YAW := 38.0
-const DEFAULT_ZOOM := 23.5
-const DEFAULT_TARGET := Vector3(-0.3, 0.0, 0.4)
+const DEFAULT_ZOOM := 30.0
+const DEFAULT_TARGET := Vector3(0.0, 0.0, 1.5)
 
 var target := DEFAULT_TARGET
 var yaw := DEFAULT_YAW
@@ -47,7 +47,7 @@ func pan_by_pixels(pixels: Vector2) -> void:
 	var speed := zoom * 0.0017
 	target += (-right * pixels.x + forward * pixels.y) * speed
 	target.x = clampf(target.x, -PAN_LIMIT, PAN_LIMIT)
-	target.z = clampf(target.z, -PAN_LIMIT + 1.0, PAN_LIMIT + 3.0)
+	target.z = clampf(target.z, -PAN_LIMIT + 1.0, 29.0)
 	apply()
 
 
@@ -65,7 +65,7 @@ func focus_on(point: Vector3) -> void:
 	target = Vector3(
 		clampf(point.x, -PAN_LIMIT, PAN_LIMIT),
 		0.0,
-		clampf(point.z, -PAN_LIMIT + 1.0, PAN_LIMIT + 3.0)
+		clampf(point.z, -PAN_LIMIT + 1.0, 29.0)
 	)
 	apply()
 

@@ -38,7 +38,9 @@ func tick(delta: float) -> Array[int]:
 	var serving := mini(capacity, _entries.size())
 	for i in range(serving - 1, -1, -1):
 		var entry: Dictionary = _entries[i]
-		entry["remaining"] = float(entry["remaining"]) - delta
+		if not bool(entry.get("arrived", true)):
+			continue
+		entry["remaining"] = float(entry["remaining"]) - maxf(0.0, delta)
 		if float(entry["remaining"]) <= 0.0:
 			done.append(int(entry["id"]))
 			_entries.remove_at(i)

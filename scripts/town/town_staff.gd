@@ -55,9 +55,9 @@ func _build(id: String, b: BusinessState) -> void:
 	var uniform_col := BusinessData.accent(id)
 
 	for i in mini(3, bays):
-		var ox := bay_off.x + (float(i) - float(bays - 1) * 0.5) * 1.65
+		var bay := ForecourtLayout.bay_position(id, i)
 		var worker := PersonMesh.build(absi(hash(id)) % 5)
-		worker.position = Vector3(plot.x + ox + 0.55, 0.03, plot.y + bay_off.y - 0.35)
+		worker.position = bay + Vector3(0.70, 0.02, -1.35)
 		worker.rotation_degrees.y = -35.0
 		root.add_child(worker)
 

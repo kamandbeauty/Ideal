@@ -171,6 +171,7 @@ func _claim_daily() -> void:
 func _on_settings_changed() -> void:
 	if view == null:
 		return
+	view.apply_quality(App.quality)
 	var cust := view.get_node_or_null("Customers")
 	if cust != null:
 		cust.set("max_agents", Quality.agent_cap(App.quality))

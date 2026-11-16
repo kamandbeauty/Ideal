@@ -23,9 +23,9 @@ static func build_all(root: Node3D, town_id: String, night_materials: Array[Stan
 
 
 static func _build_mesas(parent: Node3D, cliff_col: Color) -> void:
-	var mat_base := VehicleMesh.paint(cliff_col, 0.94, 0.0)
-	var mat_mid := VehicleMesh.paint(cliff_col.lightened(0.10), 0.92, 0.0)
-	var mat_cap := VehicleMesh.paint(cliff_col.lightened(0.20), 0.90, 0.0)
+	var mat_base := SurfaceMaterials.textured("sand", cliff_col.darkened(0.24), Vector2(3, 2))
+	var mat_mid := VehicleMesh.paint(cliff_col.darkened(0.12), 0.92, 0.0)
+	var mat_cap := VehicleMesh.paint(cliff_col, 0.90, 0.0)
 
 	# Upper-horizon canyon wall behind the highway (z < -11), plus side buttes.
 	var specs := [
@@ -49,10 +49,10 @@ static func _build_mesas(parent: Node3D, cliff_col: Color) -> void:
 
 
 static func _build_highway(parent: Node3D, verge_col: Color) -> void:
-	var asphalt := VehicleMesh.paint(Color(0.35, 0.34, 0.37), 0.94, 0.02)
+	var asphalt := SurfaceMaterials.textured("asphalt", Color(0.39, 0.43, 0.45), Vector2(32, 1.7))
 	var verge := VehicleMesh.paint(verge_col, 0.92, 0.0)
 	var curb := VehicleMesh.paint(Color(0.80, 0.78, 0.72), 0.88, 0.0)
-	var dash_mat := VehicleMesh.paint(Color(0.95, 0.94, 0.90), 0.75, 0.0)
+	var dash_mat := VehicleMesh.paint(Color(0.78, 0.75, 0.58), 0.75, 0.0)
 
 	# Grass verges flanking the highway.
 	_box(parent, verge, Vector3(0.0, 0.015, HIGHWAY_Z - 2.35), Vector3(HIGHWAY_LENGTH, 0.03, 1.4), false)
@@ -60,8 +60,8 @@ static func _build_highway(parent: Node3D, verge_col: Color) -> void:
 	# Highway tarmac & concrete edge curbs.
 	_box(parent, asphalt, Vector3(0.0, 0.03, HIGHWAY_Z), Vector3(HIGHWAY_LENGTH, 0.05, HIGHWAY_WIDTH), false)
 	_box(parent, curb, Vector3(0.0, 0.055, HIGHWAY_Z - 1.75), Vector3(HIGHWAY_LENGTH, 0.06, 0.14), false)
-	_box(parent, curb, Vector3(-16.0, 0.055, HIGHWAY_Z + 1.75), Vector3(26.0, 0.06, 0.14), false)
-	_box(parent, curb, Vector3(17.5, 0.055, HIGHWAY_Z + 1.75), Vector3(25.0, 0.06, 0.14), false)
+	_box(parent, curb, Vector3(-22.0, 0.055, HIGHWAY_Z + 1.75), Vector3(15.0, 0.06, 0.14), false)
+	_box(parent, curb, Vector3(22.0, 0.055, HIGHWAY_Z + 1.75), Vector3(15.0, 0.06, 0.14), false)
 
 	# Crisp white dashed center line along the highway.
 	for i in 28:
@@ -70,36 +70,10 @@ static func _build_highway(parent: Node3D, verge_col: Color) -> void:
 
 
 static func _build_forecourt(parent: Node3D, verge_col: Color) -> void:
-	var tarmac := VehicleMesh.paint(Color(0.39, 0.38, 0.41), 0.95, 0.02)
-	var apron_light := VehicleMesh.paint(Color(0.84, 0.75, 0.60), 0.94, 0.0)
-	var curb := VehicleMesh.paint(Color(0.82, 0.80, 0.75), 0.86, 0.0)
-	var grass := VehicleMesh.paint(verge_col, 0.92, 0.0)
-	var stripe := VehicleMesh.paint(Color(0.94, 0.94, 0.90), 0.78, 0.0)
-
-	# Main paved station compound + sandy central plaza like Roadside Empire!
-	_box(parent, tarmac, Vector3(-0.4, 0.024, 3.4), Vector3(16.8, 0.04, 15.6), false)
-	_box(parent, apron_light, Vector3(-0.6, 0.032, 0.4), Vector3(6.8, 0.03, 5.2), false)
-	# Green lawn pockets around the main GAS station and roadside corners.
-	_box(parent, grass, Vector3(6.8, 0.032, -1.6), Vector3(2.8, 0.03, 5.4), false)
-	_box(parent, grass, Vector3(6.8, 0.032, 8.2), Vector3(2.6, 0.03, 5.0), false)
-
-	# Curbs framing the compound.
-	_box(parent, curb, Vector3(-8.85, 0.06, 3.4), Vector3(0.22, 0.08, 15.8), false)
-	_box(parent, curb, Vector3(8.05, 0.06, 3.4), Vector3(0.22, 0.08, 15.8), false)
-	_box(parent, curb, Vector3(-0.4, 0.06, 11.25), Vector3(17.1, 0.08, 0.22), false)
-
-	# Two highway entry/exit driveways with white zebra crosswalks!
-	for entry_x in [-1.2, 4.8]:
-		var x := float(entry_x)
-		_box(parent, tarmac, Vector3(x, 0.028, -4.75), Vector3(2.8, 0.04, 1.9), false)
-		for s in 5:
-			var sx := x - 0.96 + float(s) * 0.48
-			_box(parent, stripe, Vector3(sx, 0.056, -4.65), Vector3(0.24, 0.015, 0.95), false)
+	ForecourtDressing.build(parent, verge_col)
 
 
-static func _build_poles_and_fences(
-	parent: Node3D, night_materials: Array[StandardMaterial3D]
-) -> void:
+static func _build_poles_and_fences(parent: Node3D, night_materials: Array[StandardMaterial3D]) -> void:
 	var wood := VehicleMesh.paint(Color(0.56, 0.36, 0.20), 0.92, 0.0)
 	var wire := VehicleMesh.paint(Color(0.14, 0.14, 0.16), 0.85, 0.0)
 	var pole_metal := VehicleMesh.paint(Color(0.46, 0.48, 0.62), 0.55, 0.25)
@@ -129,10 +103,16 @@ static func _build_poles_and_fences(
 			var mid_x := (px + nx) * 0.5
 			var span := nx - px
 			for w_off in [-0.42, 0.42]:
-				_box(parent, wire, Vector3(mid_x, 3.72, HIGHWAY_Z - 2.6 + float(w_off)), Vector3(span, 0.035, 0.035), false)
+				_box(
+					parent,
+					wire,
+					Vector3(mid_x, 3.72, HIGHWAY_Z - 2.6 + float(w_off)),
+					Vector3(span, 0.035, 0.035),
+					false
+				)
 
 	# Forecourt purple-grey street lamps.
-	for lp in [Vector3(-3.8, 0, -4.1), Vector3(2.2, 0, -4.1), Vector3(6.6, 0, 1.4), Vector3(-7.8, 0, 4.8)]:
+	for lp in [Vector3(-8.1, 0, -2.5), Vector3(8.1, 0, -2.5), Vector3(8.1, 0, 6.0), Vector3(-8.1, 0, 6.0)]:
 		_box(parent, pole_metal, lp + Vector3(0, 1.35, 0), Vector3(0.11, 2.7, 0.11))
 		_box(parent, pole_metal, lp + Vector3(0.28, 2.68, 0), Vector3(0.65, 0.09, 0.11))
 		_box(parent, lamp_glow, lp + Vector3(0.52, 2.60, 0), Vector3(0.24, 0.08, 0.18), false)
@@ -142,7 +122,7 @@ static func _build_landmarks(parent: Node3D, _town_id: String) -> void:
 	# Red water tower in the upper-left corner (signature Roadside Empire prop!).
 	var red_steel := VehicleMesh.paint(Color(0.86, 0.30, 0.22), 0.65, 0.2)
 	var cap_col := VehicleMesh.paint(Color(0.76, 0.74, 0.72), 0.6, 0.25)
-	var wt := Vector3(-8.4, 0.0, -4.6)
+	var wt := Vector3(-12.4, 0.0, -3.2)
 	for lx in [-0.55, 0.55]:
 		for lz in [-0.55, 0.55]:
 			_box(parent, red_steel, wt + Vector3(float(lx), 1.3, float(lz)), Vector3(0.12, 2.6, 0.12))
@@ -167,11 +147,11 @@ static func _build_landmarks(parent: Node3D, _town_id: String) -> void:
 
 	# Saguaro cacti & orange dumpsters around the desert station!
 	var cactus_spots := [
-		Vector3(5.6, 0, -3.6),
-		Vector3(7.2, 0, -3.2),
-		Vector3(-9.6, 0, 0.5),
-		Vector3(-9.4, 0, 6.4),
-		Vector3(8.8, 0, 5.5),
+		Vector3(12.2, 0, 0.6),
+		Vector3(12.5, 0, 7.2),
+		Vector3(-12.2, 0, 3.5),
+		Vector3(-12.0, 0, 11.4),
+		Vector3(12.2, 0, 15.5),
 		Vector3(-4.2, 0, -9.2),
 		Vector3(3.4, 0, -9.4),
 		Vector3(9.8, 0, -9.0),
@@ -181,7 +161,7 @@ static func _build_landmarks(parent: Node3D, _town_id: String) -> void:
 
 	var dump_mat := VehicleMesh.paint(Color(0.88, 0.52, 0.18), 0.78, 0.1)
 	var lid_mat := VehicleMesh.paint(Color(0.18, 0.18, 0.22), 0.8, 0.05)
-	for dp in [Vector3(5.8, 0, -0.6), Vector3(-4.8, 0, -3.6)]:
+	for dp in [Vector3(6.2, 0, -2.2), Vector3(-6.2, 0, -2.2)]:
 		_box(parent, dump_mat, dp + Vector3(0, 0.32, 0), Vector3(0.75, 0.62, 0.56))
 		_box(parent, lid_mat, dp + Vector3(0, 0.65, 0), Vector3(0.78, 0.07, 0.58))
 
@@ -196,16 +176,10 @@ static func _saguaro(parent: Node3D, at: Vector3) -> void:
 
 
 static func _box(
-	parent: Node3D,
-	mat: StandardMaterial3D,
-	pos: Vector3,
-	size: Vector3,
-	shadows: bool = true
+	parent: Node3D, mat: StandardMaterial3D, pos: Vector3, size: Vector3, shadows: bool = true
 ) -> MeshInstance3D:
 	var inst := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	inst.mesh = mesh
+	inst.mesh = StylizedMesh.box(size, minf(0.10, minf(size.x, minf(size.y, size.z)) * 0.15))
 	inst.material_override = mat
 	inst.position = pos
 	if not shadows:

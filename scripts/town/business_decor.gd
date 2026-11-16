@@ -1,277 +1,209 @@
 class_name BusinessDecor
 extends RefCounted
-## Roadside Empire 3D props: derelict junkyard lots (tires, crates, barricades)
-## before unlocking, and bespoke themed equipment, 3D rooftop signs, yellow fuel
-## pump canopies, locked pump padlocks and wash foam after unlocking!
+## Bespoke station equipment, aligned to the very same bays used by traffic.
+## Warm metal, painted trim and small neon accents replace flat glowing blocks.
 
 const STAGE_LEVELS: Array[int] = [2, 3, 4, 5]
 
 
-## Kept compatible with `test_decor.gd`: builds visible prop stages 2..5.
 static func build_stage(id: String, stage: int, accent: Color = Color.WHITE) -> Node3D:
-	var root := Node3D.new()
-	root.name = "Stage%d" % stage
 	var nights: Array[StandardMaterial3D] = []
-	var col := accent if accent != Color.WHITE else BusinessData.accent(id)
-	var bays := clampi(stage - 1, 1, BusinessData.max_bays(id))
-	_populate_open_props(root, id, stage, bays, col, nights)
+	var root := Node3D.new()
+	var color := BusinessData.accent(id) if accent == Color.WHITE else accent
+	_populate(root, id, stage, clampi(stage - 1, 1, BusinessData.max_bays(id)), color, nights)
 	root.set_meta("night_materials", nights)
 	return root
 
 
-## Derelict junkyard lot shown on every locked/unbuilt facility plot!
 static func build_junkyard(id: String) -> Node3D:
 	var root := Node3D.new()
 	root.name = "Junkyard_" + id
-	var sand := VehicleMesh.paint(Color(0.84, 0.72, 0.52), 0.96, 0.0)
-	var crate_mat := VehicleMesh.paint(Color(0.62, 0.44, 0.26), 0.90, 0.0)
-	var tire_mat := VehicleMesh.paint(Color(0.16, 0.17, 0.20), 0.88, 0.04)
-	var red_bar := VehicleMesh.paint(Color(0.88, 0.22, 0.20), 0.72, 0.05)
-	var white_bar := VehicleMesh.paint(Color(0.96, 0.95, 0.92), 0.72, 0.05)
-	var hazard := VehicleMesh.paint(Color(0.96, 0.78, 0.14), 0.70, 0.05)
-
-	_box(root, sand, Vector3(0, 0.03, 0), Vector3(3.4, 0.05, 3.2), false)
-	# Wooden crates & rubble piles.
-	_box(root, crate_mat, Vector3(-0.95, 0.34, -0.75), Vector3(0.68, 0.68, 0.68))
-	_box(root, crate_mat, Vector3(-0.22, 0.26, -0.85), Vector3(0.54, 0.52, 0.54))
-	_box(root, crate_mat, Vector3(0.88, 0.28, -0.60), Vector3(0.60, 0.56, 0.56))
-	# Stacks of old black tires!
-	for tp in [Vector3(-0.7, 0.0, 0.45), Vector3(0.55, 0.0, 0.35), Vector3(1.05, 0.0, 0.75)]:
+	var sand := SurfaceMaterials.textured("sand", Color(0.74, 0.64, 0.47))
+	var wood := VehicleMesh.paint(Color(0.43, 0.29, 0.17), 0.95, 0.0)
+	var plank := VehicleMesh.paint(Color(0.61, 0.45, 0.26), 0.9, 0.0)
+	var tire := VehicleMesh.paint(Color(0.11, 0.13, 0.14), 0.95, 0.0)
+	var red := VehicleMesh.paint(Color(0.70, 0.22, 0.16), 0.85, 0.0)
+	var cream := VehicleMesh.paint(Color(0.79, 0.76, 0.62), 0.9, 0.0)
+	_box(root, sand, Vector3(0, 0.045, 0), Vector3(3.4, 0.035, 3.2), false)
+	for at in [Vector3(-0.95, 0.32, -0.65), Vector3(-0.20, 0.25, -0.8), Vector3(0.88, 0.28, -0.5)]:
+		_box(root, plank, at, Vector3(0.60, at.y * 2, 0.56))
+		for side in [-0.21, 0.21]:
+			_box(root, wood, at + Vector3(float(side), 0, 0.289), Vector3(0.045, at.y * 2, 0.02), false)
+		_box(root, wood, at + Vector3(0, 0, 0.30), Vector3(0.59, 0.06, 0.02), false)
+	for at in [Vector3(-0.7, 0, 0.45), Vector3(0.55, 0, 0.35), Vector3(1.05, 0, 0.75)]:
 		for h in 3:
-			_tire(root, tire_mat, tp + Vector3(0, 0.10 + float(h) * 0.15, 0))
-	# Red-and-white construction barricades & yellow hazard tape along the front!
+			_tire(root, tire, at + Vector3(0, 0.10 + float(h) * 0.15, 0))
 	for bx in [-0.85, 0.85]:
-		_box(root, red_bar, Vector3(float(bx), 0.42, 1.28), Vector3(0.95, 0.16, 0.10))
-		_box(root, white_bar, Vector3(float(bx), 0.42, 1.30), Vector3(0.42, 0.17, 0.11))
-		_box(root, crate_mat, Vector3(float(bx) - 0.36, 0.22, 1.28), Vector3(0.08, 0.44, 0.08))
-		_box(root, crate_mat, Vector3(float(bx) + 0.36, 0.22, 1.28), Vector3(0.08, 0.44, 0.08))
-	_box(root, hazard, Vector3(0.0, 0.38, 1.28), Vector3(0.75, 0.06, 0.04))
+		var x := float(bx)
+		_box(root, cream, Vector3(x, 0.42, 1.28), Vector3(0.95, 0.16, 0.10))
+		for stripe in [-0.30, 0.0, 0.30]:
+			var band := _box(root, red, Vector3(x + float(stripe), 0.42, 1.34), Vector3(0.12, 0.16, 0.014), false)
+			band.rotation_degrees.z = -18.0
+		for side in [-0.36, 0.36]:
+			_box(root, wood, Vector3(x + float(side), 0.22, 1.28), Vector3(0.07, 0.44, 0.07))
 	return root
 
 
-## Full dressed facility props matching the player's current level & active bays.
-static func build_facility(
-	id: String, level: int, active_bays: int, night_materials: Array[StandardMaterial3D]
-) -> Node3D:
+static func build_facility(id: String, level: int, bays: int, nights: Array[StandardMaterial3D]) -> Node3D:
 	var root := Node3D.new()
 	root.name = "FacilityDecor_" + id
-	var stage := BusinessData.renovation_stage(level)
-	_populate_open_props(root, id, stage, active_bays, BusinessData.accent(id), night_materials)
+	_populate(root, id, BusinessData.renovation_stage(level), bays, BusinessData.accent(id), nights)
 	return root
 
 
-static func _populate_open_props(
-	root: Node3D,
-	id: String,
-	stage: int,
-	active_bays: int,
-	accent: Color,
-	nights: Array[StandardMaterial3D]
+static func _populate(
+	root: Node3D, id: String, stage: int, bays: int, accent: Color, nights: Array[StandardMaterial3D]
 ) -> void:
-	# Bold 3D Rooftop Sign (GAS, WASH, AUTO, WC, BBQ, EV, HOTEL, CINEMA)!
 	_rooftop_sign(root, BusinessData.sign_text(id), accent, stage, nights)
-
-	var bay_off := BusinessData.bay_offset(id)
-	var max_b := BusinessData.max_bays(id)
-	if id == "gas_station" or id == "restaurant":
-		_build_gas_props(root, stage, active_bays, max_b, bay_off, nights)
-	elif id == "car_wash":
-		_build_wash_props(root, stage, active_bays, bay_off, nights)
-	elif id == "auto_service" or id == "workshop":
-		_build_auto_props(root, stage, bay_off, nights)
-	elif id == "toilets" or id == "store":
-		_build_toilet_props(root, stage, accent, nights)
-	elif id == "diner":
-		_build_diner_props(root, stage, nights)
-	elif id == "electric_charger":
-		_build_ev_props(root, stage, active_bays, bay_off, nights)
-	elif id == "motel":
-		_build_motel_props(root, stage, nights)
-	else:
-		_build_cinema_props(root, stage, nights)
+	match id:
+		"gas_station":
+			_gas_roof(root)
+			_equipment(root, id, bays, nights)
+		"car_wash", "auto_service", "electric_charger":
+			_equipment(root, id, bays, nights)
+		"toilets":
+			var door := VehicleMesh.paint(Color(0.16, 0.37, 0.43), 0.65, 0.0)
+			for i in 3:
+				_box(root, door, Vector3(-0.65 + float(i) * 0.65, 0.74, 1.06), Vector3(0.47, 1.32, 0.08))
+		"diner":
+			_diner(root, nights)
+		"motel":
+			_roof_pool(root, nights)
+		"drive_in":
+			var screen := _emissive(Color(0.58, 0.72, 0.75), nights, 0.6)
+			_box(
+				root, VehicleMesh.paint(Color(0.14, 0.18, 0.22), 0.8), Vector3(0, 2.75, -0.8), Vector3(3.1, 1.75, 0.16)
+			)
+			_box(root, screen, Vector3(0, 2.75, -0.7), Vector3(2.82, 1.48, 0.025), false)
 
 
 static func _rooftop_sign(
-	root: Node3D, text: String, accent: Color, stage: int, nights: Array[StandardMaterial3D]
+	root: Node3D, text: String, color: Color, stage: int, nights: Array[StandardMaterial3D]
 ) -> void:
-	var board_mat := _emissive(accent, nights, 0.85)
-	var frame_mat := VehicleMesh.paint(Color(0.97, 0.96, 0.94), 0.35, 0.1)
-	var y_top := 2.45 + float(stage >= 4) * 0.18
-	_box(root, frame_mat, Vector3(0, y_top, 0.82), Vector3(1.95, 0.76, 0.22))
-	_box(root, board_mat, Vector3(0, y_top, 0.85), Vector3(1.78, 0.60, 0.24))
+	var y := 2.45 + float(stage >= 4) * 0.22
+	var metal := VehicleMesh.paint(Color(0.61, 0.64, 0.60), 0.5, 0.35)
+	var panel := VehicleMesh.paint(color.darkened(0.22), 0.6, 0.0)
+	var neon := _emissive(Color(0.97, 0.82, 0.52), nights, 0.55)
+	for x in [-0.72, 0.72]:
+		_box(root, metal, Vector3(float(x), y - 0.34, 0.78), Vector3(0.07, 0.60, 0.07))
+	_box(root, metal, Vector3(0, y, 0.82), Vector3(2.0, 0.72, 0.18))
+	_box(root, panel, Vector3(0, y, 0.93), Vector3(1.89, 0.61, 0.06))
+	for side in [-1.0, 1.0]:
+		_box(root, neon, Vector3(0, y + 0.30 * float(side), 0.975), Vector3(1.89, 0.025, 0.02), false)
+	var label := Label3D.new()
+	label.text = text
+	label.font_size = 56
+	label.pixel_size = 0.008
+	label.modulate = Color(0.98, 0.91, 0.70)
+	label.outline_modulate = Color(0.10, 0.15, 0.18)
+	label.outline_size = 5
+	label.position = Vector3(0, y, 0.98)
+	root.add_child(label)
 
-	var lbl := Label3D.new()
-	lbl.text = text
-	lbl.font_size = 56
-	lbl.pixel_size = 0.0085
-	lbl.modulate = Color(1.0, 1.0, 1.0)
-	lbl.outline_modulate = Color(0.14, 0.12, 0.18)
-	lbl.outline_size = 10
-	lbl.position = Vector3(0, y_top, 0.99)
-	root.add_child(lbl)
 
-
-static func _build_gas_props(
-	root: Node3D,
-	stage: int,
-	active_bays: int,
-	max_b: int,
-	bay_off: Vector2,
-	nights: Array[StandardMaterial3D]
-) -> void:
-	# Red rooftop propane cylinder + grey AC unit just like Screenshots 3 & 4!
-	var red_tank := VehicleMesh.paint(Color(0.90, 0.22, 0.20), 0.45, 0.2)
-	var ac_mat := VehicleMesh.paint(Color(0.54, 0.58, 0.66), 0.65, 0.2)
+static func _gas_roof(root: Node3D) -> void:
+	var tank_mat := VehicleMesh.paint(Color(0.66, 0.23, 0.16), 0.55, 0.20)
 	var tank := MeshInstance3D.new()
-	var cyl := CylinderMesh.new()
-	cyl.top_radius = 0.36
-	cyl.bottom_radius = 0.36
-	cyl.height = 1.45
-	tank.mesh = cyl
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = 0.30
+	cylinder.bottom_radius = 0.30
+	cylinder.height = 1.35
+	cylinder.radial_segments = 16
+	tank.mesh = cylinder
 	tank.rotation_degrees.z = 90.0
-	tank.material_override = red_tank
-	tank.position = Vector3(-0.35, 2.35, -0.75)
+	tank.material_override = tank_mat
+	tank.position = Vector3(-0.35, 2.32, -0.65)
 	root.add_child(tank)
-	_box(root, ac_mat, Vector3(0.75, 2.18, -0.55), Vector3(0.62, 0.36, 0.58))
+	var steel := VehicleMesh.paint(Color(0.38, 0.43, 0.45), 0.65, 0.35)
+	_box(root, steel, Vector3(0.76, 2.20, -0.54), Vector3(0.58, 0.32, 0.52))
+	for i in 5:
+		_box(
+			root,
+			VehicleMesh.paint(Color(0.14, 0.19, 0.22), 0.85),
+			Vector3(0.76, 2.37, -0.73 + float(i) * 0.09),
+			Vector3(0.44, 0.018, 0.025),
+			false
+		)
 
-	# Yellow single-post angled canopies for unlocked fuel pumps + dark padlocks for locked!
-	var yellow := _emissive(Color(0.98, 0.82, 0.14), nights, 0.55)
-	var pump_red := VehicleMesh.paint(Color(0.92, 0.30, 0.18), 0.45, 0.15)
-	var post_grey := VehicleMesh.paint(Color(0.72, 0.74, 0.78), 0.5, 0.25)
-	var lock_dark := VehicleMesh.paint(Color(0.18, 0.18, 0.22), 0.8, 0.1)
 
-	for i in max_b:
-		var offset_x := bay_off.x + (float(i) - float(max_b - 1) * 0.5) * 1.65
-		var p := Vector3(offset_x, 0.0, bay_off.y)
-		if i < active_bays:
-			_box(root, post_grey, p + Vector3(0, 0.06, -0.55), Vector3(0.76, 0.10, 0.48), false)
-			_box(root, pump_red, p + Vector3(0, 0.44, -0.55), Vector3(0.42, 0.68, 0.28))
-			_box(root, post_grey, p + Vector3(0.24, 0.98, -0.55), Vector3(0.12, 1.75, 0.12))
-			var canopy := _box(root, yellow, p + Vector3(-0.08, 1.84, -0.15), Vector3(1.15, 0.14, 1.55))
-			canopy.rotation_degrees.z = 8.0
+static func _equipment(root: Node3D, id: String, bays: int, nights: Array[StandardMaterial3D]) -> void:
+	var plot := BusinessData.plot(id)
+	var steel := VehicleMesh.paint(Color(0.44, 0.48, 0.48), 0.5, 0.35)
+	var cream := VehicleMesh.paint(Color(0.76, 0.76, 0.67), 0.6, 0.0)
+	var dark := VehicleMesh.paint(Color(0.10, 0.15, 0.18), 0.65, 0.0)
+	var accent := VehicleMesh.paint(BusinessData.accent(id).darkened(0.12), 0.55, 0.1)
+	var glow := _emissive(BusinessData.accent(id).lightened(0.2), nights, 0.45)
+	for i in bays:
+		var world := ForecourtLayout.bay_position(id, i)
+		var at := Vector3(world.x - plot.x, 0, ForecourtLayout.BAY_Z)
+		if id == "gas_station":
+			var pump := at + Vector3(-0.82, 0, -0.12)
+			_box(root, cream, pump + Vector3(0, 0.07, 0), Vector3(0.24, 0.08, 0.54), false)
+			_box(root, accent, pump + Vector3(0, 0.47, 0), Vector3(0.16, 0.76, 0.34))
+			_box(root, dark, pump + Vector3(0, 0.63, 0.18), Vector3(0.16, 0.18, 0.025), false)
+			_box(root, steel, pump + Vector3(0, 1.25, -0.10), Vector3(0.10, 2.15, 0.10))
+			_box(
+				root,
+				VehicleMesh.paint(Color(0.83, 0.63, 0.20), 0.65, 0.1),
+				at + Vector3(0, 2.22, 0),
+				Vector3(1.62, 0.17, 2.15)
+			)
+			_box(root, glow, at + Vector3(0, 2.13, 0.8), Vector3(1.30, 0.025, 0.035), false)
+		elif id == "car_wash" or id == "auto_service":
+			for side in [-0.80, 0.80]:
+				_box(root, accent, at + Vector3(float(side), 1.08, 0.12), Vector3(0.10, 2.12, 0.22))
+			_box(root, cream, at + Vector3(0, 2.12, 0.12), Vector3(1.70, 0.18, 0.28))
+			_box(root, glow, at + Vector3(0, 2.08, 0.28), Vector3(1.25, 0.035, 0.025), false)
+			if id == "car_wash":
+				for side in [-0.66, 0.66]:
+					_box(
+						root,
+						VehicleMesh.paint(Color(0.13, 0.32, 0.37), 0.9, 0.0),
+						at + Vector3(float(side), 0.58, -0.1),
+						Vector3(0.08, 0.90, 0.34)
+					)
 		else:
-			_box(root, post_grey, p + Vector3(0, 0.05, -0.45), Vector3(0.68, 0.08, 0.52), false)
-			_box(root, lock_dark, p + Vector3(0, 0.48, -0.45), Vector3(0.28, 0.78, 0.20))
-
-	if stage >= 3:
-		var glow := _emissive(Color(1.0, 0.58, 0.18), nights, 0.9)
-		_box(root, glow, Vector3(0, 1.98, 1.24), Vector3(2.5, 0.09, 0.09), false)
+			_box(root, cream, at + Vector3(-0.82, 0.69, 0), Vector3(0.16, 1.30, 0.32))
+			_box(root, glow, at + Vector3(-0.82, 0.78, 0.18), Vector3(0.15, 0.52, 0.025), false)
 
 
-static func _build_wash_props(
-	root: Node3D, stage: int, active_bays: int, bay_off: Vector2, nights: Array[StandardMaterial3D]
-) -> void:
-	var cyan := _emissive(Color(0.14, 0.76, 0.90), nights, 0.7)
-	var foam := VehicleMesh.paint(Color(0.97, 0.99, 1.0), 0.35, 0.0)
-	for i in maxi(1, active_bays):
-		var ox := bay_off.x + (float(i) - float(maxi(1, active_bays) - 1) * 0.5) * 1.65
-		var p := Vector3(ox, 0.0, bay_off.y)
-		_box(root, cyan, p + Vector3(-0.62, 0.95, 0), Vector3(0.16, 1.9, 0.24))
-		_box(root, cyan, p + Vector3(0.62, 0.95, 0), Vector3(0.16, 1.9, 0.24))
-		_box(root, cyan, p + Vector3(0, 1.88, 0), Vector3(1.42, 0.20, 0.30))
-		# Sudsy foam bubbles!
-		for b_i in 3:
-			var bub := MeshInstance3D.new()
-			var sph := SphereMesh.new()
-			sph.radius = 0.20 + float(b_i) * 0.04
-			sph.height = sph.radius * 2.0
-			bub.mesh = sph
-			bub.material_override = foam
-			bub.position = p + Vector3(-0.25 + float(b_i) * 0.25, 0.55 + float(b_i % 2) * 0.22, 0.15)
-			root.add_child(bub)
-	if stage >= 3:
-		_box(root, cyan, Vector3(0, 2.05, 1.15), Vector3(2.3, 0.10, 0.10), false)
+static func _diner(root: Node3D, nights: Array[StandardMaterial3D]) -> void:
+	var red := VehicleMesh.paint(Color(0.71, 0.25, 0.16), 0.70, 0.0)
+	var cream := VehicleMesh.paint(Color(0.83, 0.78, 0.62), 0.8, 0.0)
+	var dark := VehicleMesh.paint(Color(0.12, 0.15, 0.17), 0.8, 0.20)
+	for x in [-0.75, 0.75]:
+		_box(root, cream, Vector3(float(x), 0.38, 1.32), Vector3(0.54, 0.08, 0.45))
+		_box(root, red, Vector3(float(x), 1.63, 1.22), Vector3(0.96, 0.12, 0.76))
+		_box(root, dark, Vector3(float(x), 0.18, 1.32), Vector3(0.07, 0.36, 0.07))
+	_box(root, dark, Vector3(-0.85, 2.35, -0.65), Vector3(0.15, 0.85, 0.15))
+	_box(root, _emissive(Color(0.93, 0.56, 0.20), nights, 0.4), Vector3(0, 1.9, 1.12), Vector3(2.45, 0.04, 0.04), false)
 
 
-static func _build_auto_props(
-	root: Node3D, stage: int, bay_off: Vector2, nights: Array[StandardMaterial3D]
-) -> void:
-	var yellow := _emissive(Color(0.96, 0.72, 0.16), nights, 0.6)
-	var dark := VehicleMesh.paint(Color(0.18, 0.20, 0.24), 0.85, 0.1)
-	var red_box := VehicleMesh.paint(Color(0.88, 0.24, 0.22), 0.5, 0.2)
-	var p := Vector3(bay_off.x, 0.0, bay_off.y)
-	_box(root, yellow, p + Vector3(-0.55, 0.85, -0.55), Vector3(0.16, 1.7, 0.16))
-	_box(root, yellow, p + Vector3(-0.55, 0.85, 0.55), Vector3(0.16, 1.7, 0.16))
-	_box(root, dark, p + Vector3(0.0, 0.12, 0.0), Vector3(1.4, 0.08, 0.9))
-	_box(root, red_box, Vector3(0.95, 0.42, 1.15), Vector3(0.55, 0.82, 0.38))
-	for h in (2 + mini(2, stage)):
-		_tire(root, dark, Vector3(-1.05, 0.10 + float(h) * 0.15, 1.15))
+static func _roof_pool(root: Node3D, nights: Array[StandardMaterial3D]) -> void:
+	var rim := VehicleMesh.paint(Color(0.70, 0.74, 0.68), 0.7, 0.0)
+	var water := _emissive(Color(0.14, 0.48, 0.58), nights, 0.4)
+	_box(root, rim, Vector3(0, 2.12, -0.2), Vector3(2.0, 0.15, 1.28), false)
+	_box(root, water, Vector3(0, 2.21, -0.2), Vector3(1.72, 0.03, 1.0), false)
 
 
-static func _build_toilet_props(
-	root: Node3D, _stage: int, accent: Color, nights: Array[StandardMaterial3D]
-) -> void:
-	var neon := _emissive(accent, nights, 0.9)
-	var door := VehicleMesh.paint(Color(0.24, 0.56, 0.86), 0.6, 0.1)
-	for i in 3:
-		_box(root, door, Vector3(-0.65 + float(i) * 0.65, 0.72, 1.16), Vector3(0.46, 1.35, 0.08))
-	_box(root, neon, Vector3(0, 1.85, 1.20), Vector3(1.9, 0.14, 0.12), false)
+static func _tire(parent: Node3D, mat: StandardMaterial3D, at: Vector3) -> void:
+	var instance := MeshInstance3D.new()
+	var mesh := TorusMesh.new()
+	mesh.inner_radius = 0.11
+	mesh.outer_radius = 0.25
+	mesh.rings = 10
+	mesh.ring_segments = 6
+	instance.mesh = mesh
+	instance.scale.y = 0.65
+	instance.material_override = mat
+	instance.position = at
+	parent.add_child(instance)
 
 
-static func _build_diner_props(
-	root: Node3D, stage: int, nights: Array[StandardMaterial3D]
-) -> void:
-	var smoker := VehicleMesh.paint(Color(0.16, 0.16, 0.20), 0.75, 0.25)
-	var umbrella := _emissive(Color(0.94, 0.30, 0.26), nights, 0.55)
-	var cream := VehicleMesh.paint(Color(0.97, 0.94, 0.86), 0.65, 0.0)
-	_box(root, smoker, Vector3(-1.15, 0.48, 1.15), Vector3(0.85, 0.62, 0.52))
-	_box(root, smoker, Vector3(-1.42, 1.05, 1.15), Vector3(0.12, 0.75, 0.12))
-	for side in [-0.75, 0.75]:
-		_box(root, cream, Vector3(float(side), 0.38, 1.65), Vector3(0.58, 0.08, 0.58))
-		_box(root, umbrella, Vector3(float(side), 1.25, 1.65), Vector3(0.95, 0.14, 0.95))
-	if stage >= 3:
-		_box(root, umbrella, Vector3(0, 1.95, 1.20), Vector3(2.2, 0.12, 0.12), false)
-
-
-static func _build_ev_props(
-	root: Node3D, _stage: int, active_bays: int, bay_off: Vector2, nights: Array[StandardMaterial3D]
-) -> void:
-	var green_glow := _emissive(Color(0.20, 0.92, 0.56), nights, 1.1)
-	var white_mat := VehicleMesh.paint(Color(0.95, 0.97, 0.98), 0.3, 0.15)
-	for i in maxi(1, active_bays):
-		var ox := bay_off.x + (float(i) - float(maxi(1, active_bays) - 1) * 0.5) * 1.55
-		var p := Vector3(ox, 0.0, bay_off.y)
-		_box(root, white_mat, p + Vector3(0, 0.62, -0.55), Vector3(0.38, 1.22, 0.22))
-		_box(root, green_glow, p + Vector3(0, 0.72, -0.42), Vector3(0.22, 0.68, 0.05), false)
-
-
-static func _build_motel_props(
-	root: Node3D, _stage: int, nights: Array[StandardMaterial3D]
-) -> void:
-	var water := _emissive(Color(0.18, 0.78, 0.92), nights, 0.65)
-	var rim := VehicleMesh.paint(Color(0.94, 0.92, 0.86), 0.6, 0.0)
-	_box(root, rim, Vector3(0.0, 0.08, 1.85), Vector3(2.2, 0.14, 1.25), false)
-	_box(root, water, Vector3(0.0, 0.16, 1.85), Vector3(1.88, 0.05, 0.95), false)
-
-
-static func _build_cinema_props(
-	root: Node3D, _stage: int, nights: Array[StandardMaterial3D]
-) -> void:
-	var screen_glow := _emissive(Color(0.92, 0.95, 1.0), nights, 1.0)
-	var frame := VehicleMesh.paint(Color(0.22, 0.20, 0.30), 0.65, 0.2)
-	_box(root, frame, Vector3(0.0, 1.85, -1.15), Vector3(3.1, 2.1, 0.18))
-	_box(root, screen_glow, Vector3(0.0, 1.92, -1.03), Vector3(2.8, 1.75, 0.06), false)
-
-
-static func _tire(parent: Node3D, mat: StandardMaterial3D, pos: Vector3) -> void:
-	var inst := MeshInstance3D.new()
-	var cyl := CylinderMesh.new()
-	cyl.top_radius = 0.24
-	cyl.bottom_radius = 0.24
-	cyl.height = 0.14
-	cyl.radial_segments = 10
-	inst.mesh = cyl
-	inst.material_override = mat
-	inst.position = pos
-	parent.add_child(inst)
-
-
-static func _emissive(
-	color: Color, nights: Array[StandardMaterial3D], energy: float
-) -> StandardMaterial3D:
+static func _emissive(color: Color, nights: Array[StandardMaterial3D], energy: float) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
-	mat.albedo_color = color
-	mat.roughness = 0.38
+	mat.albedo_color = color.darkened(0.12)
+	mat.roughness = 0.55
 	mat.emission_enabled = true
 	mat.emission = color
 	mat.emission_energy_multiplier = energy
@@ -280,19 +212,13 @@ static func _emissive(
 
 
 static func _box(
-	parent: Node3D,
-	mat: StandardMaterial3D,
-	pos: Vector3,
-	size: Vector3,
-	shadows: bool = true
+	parent: Node3D, mat: StandardMaterial3D, at: Vector3, size: Vector3, shadows: bool = true
 ) -> MeshInstance3D:
-	var inst := MeshInstance3D.new()
-	var mesh := BoxMesh.new()
-	mesh.size = size
-	inst.mesh = mesh
-	inst.material_override = mat
-	inst.position = pos
+	var instance := MeshInstance3D.new()
+	instance.mesh = StylizedMesh.box(size, minf(0.035, minf(size.x, minf(size.y, size.z)) * 0.2))
+	instance.material_override = mat
+	instance.position = at
 	if not shadows:
-		inst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(inst)
-	return inst
+		instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(instance)
+	return instance
