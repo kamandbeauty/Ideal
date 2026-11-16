@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/providers/repository_providers.dart';
+import '../../data/repositories/assistant_repository.dart';
 import '../../core/providers/service_providers.dart';
 import '../../data/models/assistant_message.dart';
 import '../../features/agent/agent_core.dart';
@@ -240,14 +240,14 @@ class AssistantController extends StateNotifier<AssistantState> {
 
 /// Persists the activity log so the dashboard timeline survives restarts.
 class AssistantActivity extends StateNotifier<List<AssistantMessage>> {
-  AssistantActivity(this._ref) : super(const []) {
+  AssistantActivity(this._repository) : super(const []) {
     reload();
   }
 
-  final Ref _ref;
+  final AssistantRepository _repository;
 
   Future<void> reload() async {
-    final messages = await _ref.read(assistantRepositoryProvider).recent(limit: 20);
+    final messages = await _repository.recent(limit: 20);
     if (mounted) state = messages;
   }
 
@@ -257,16 +257,15 @@ class AssistantActivity extends StateNotifier<List<AssistantMessage>> {
     AssistantTurnSource source = AssistantTurnSource.text,
   }) async {
     if (text.trim().isEmpty) return;
-    await _ref.read(assistantRepositoryProvider).insert(
-          AssistantMessage(
-            id: '${DateTime.now().microsecondsSinceEpoch}-${role.name}',
-            text: text,
-            role: role,
-            createdAt: DateTime.now(),
-            source: source,
-          ),
-        );
-    _ref.invalidate(assistantMessagesProvider);
+    await _repository.insert(
+      AssistantMessage(
+        id: '${DateTime.now().microsecondsSinceEpoch}-${role.name}',
+        text: text,
+        role: role,
+        createdAt: DateTime.now(),
+        source: source,
+      ),
+    );
     await reload();
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/models/assistant_message.dart';
 import '../../features/assistant/assistant_controller.dart';
+import '../../features/assistant/assistant_state.dart';
 import '../../services/voice/native_speech_recognizer.dart';
 import '../../services/voice/native_tts_engine.dart';
 import 'agent_providers.dart';
@@ -17,7 +18,7 @@ final ttsEngineProvider = Provider((ref) => NativeTtsEngine());
 /// Conversation/activity log of the assistant.
 final assistantActivityProvider =
     StateNotifierProvider<AssistantActivity, List<AssistantMessage>>(
-  (ref) => AssistantActivity(ref),
+  (ref) => AssistantActivity(ref.watch(assistantRepositoryProvider)),
 );
 
 /// The assistant state machine.

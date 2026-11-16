@@ -114,7 +114,7 @@ void main() {
     container = ProviderContainer(
       overrides: [appDatabaseProviderOverride(database)],
     );
-    activity = AssistantActivity(container);
+    activity = AssistantActivity(AssistantRepository(database));
     recognizer = FakeRecognizer();
     tts = FakeTts();
   });

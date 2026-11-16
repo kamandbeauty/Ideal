@@ -8,6 +8,7 @@ import '../../services/job_service.dart';
 import '../../services/note_service.dart';
 import 'intent.dart';
 import 'intent_parser.dart';
+import 'tool.dart';
 
 /// One step of an agent turn as shown in the activity timeline.
 class AgentTurn {

@@ -79,7 +79,7 @@ class Job {
         id: id,
         title: title ?? this.title,
         prompt: prompt ?? this.prompt,
-        kind: schedule?.kind ?? kind,
+        kind: kind ?? this.kind,
         schedule: schedule ?? this.schedule,
         action: action ?? this.action,
         nextRunAt: clearNextRunAt ? null : (nextRunAt ?? this.nextRunAt),

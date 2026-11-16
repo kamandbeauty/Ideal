@@ -14,6 +14,8 @@ void main() {
   setUp(() async {
     database = TestDatabase();
     await database.open();
+    final sql = await database.open();
+    await sql.delete('notes');
     service = NoteService(NoteRepository(database));
   });
 

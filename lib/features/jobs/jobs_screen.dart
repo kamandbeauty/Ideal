@@ -5,6 +5,7 @@ import '../../core/providers/service_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/persian_date.dart';
 import '../../data/models/job.dart';
+import '../../services/job_service.dart';
 import '../../ui/widgets/empty_state.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/section_header.dart';

@@ -99,7 +99,8 @@ ParsedDateExpression? parsePersianDate(String input, DateTime now) {
     'یکشنبه': DateTime.sunday,
   };
   for (final entry in weekdays.entries) {
-    if (RegExp('(^|\\s)${RegExp.escape(entry.key)}($|\\s)').hasMatch(text)) {
+    final pattern = RegExp('(^|\\s)${RegExp.escape(entry.key)}(?:\\s|\\u0000|\$)');
+    if (pattern.hasMatch('$text\u0000')) {
       final start = DateTime(now.year, now.month, now.day);
       var candidate = start;
       do {

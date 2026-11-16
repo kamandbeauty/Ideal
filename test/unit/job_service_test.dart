@@ -15,6 +15,9 @@ void main() {
   setUp(() async {
     database = TestDatabase();
     await database.open();
+    final sql = await database.open();
+    await sql.delete('job_runs');
+    await sql.delete('jobs');
     service = JobService(JobRepository(database), clock: () => now);
   });
 

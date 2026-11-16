@@ -64,7 +64,7 @@ class ScheduleRequest {
   final int? intervalMinutes;
   final DateTime? onceAt;
 
-  JobSchedule toSchedule() => ScheduleRequest.kind == JobScheduleKind.once
+  JobSchedule toSchedule() => kind == JobScheduleKind.once
       ? JobSchedule.once(onceAt!)
       : JobSchedule(
           kind: kind,
