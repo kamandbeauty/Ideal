@@ -8,8 +8,8 @@ extends Node3D
 ## authored here (a 1.5 m grid with the furniture cut out) instead of being baked,
 ## because nobody can bake a navmesh in CI.
 
-const NAV_CELL := 1.5
-const NAV_MARGIN := 0.75
+const NAV_CELL := 1.0
+const NAV_MARGIN := 0.55
 const FLOOR_COLOR := Color(0.14, 0.15, 0.22)
 const WALL_COLOR := Color(0.2, 0.21, 0.31)
 const WOOD := Color(0.34, 0.24, 0.18)
