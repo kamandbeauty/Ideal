@@ -17,6 +17,9 @@ const IRON := Color(0.42, 0.45, 0.56)
 const GOLD := Color(0.92, 0.76, 0.38)
 const RUG := Color(0.17, 0.13, 0.28)
 const CUSHION := Color(0.55, 0.25, 0.35)
+const TRIM := Color(0.74, 0.6, 0.32)
+const LANTERN := Color(1.0, 0.84, 0.52)
+const RUNE := Color(0.36, 0.88, 0.9)
 
 var nav_region: NavigationRegion3D
 var zone_nodes: Dictionary = {}
@@ -45,6 +48,7 @@ func build() -> void:
 	_build_walls()
 	_build_zones()
 	_build_props()
+	_build_decor()
 	_build_lighting()
 	_build_navmesh()
 
@@ -372,11 +376,22 @@ func _build_lighting() -> void:
 	var key := DirectionalLight3D.new()
 	key.name = "Moonlight"
 	key.rotation_degrees = Vector3(-58.0, 42.0, 0.0)
-	key.light_color = Color(0.72, 0.8, 1.0)
-	key.light_energy = 0.55
+	key.light_color = Color(0.78, 0.85, 1.0)
+	key.light_energy = 0.95
 	key.shadow_enabled = true
-	key.directional_shadow_max_distance = 40.0
+	key.shadow_bias = 0.04
+	key.directional_shadow_max_distance = 46.0
 	add_child(key)
+
+	# A cool violet fill from the opposite side, without shadows: it lifts the
+	# shadowed half of every wall so the deep-blue palette never turns to mud.
+	var fill := DirectionalLight3D.new()
+	fill.name = "FillLight"
+	fill.rotation_degrees = Vector3(-34.0, -138.0, 0.0)
+	fill.light_color = Color(0.56, 0.5, 0.96)
+	fill.light_energy = 0.42
+	fill.shadow_enabled = false
+	add_child(fill)
 
 	var lamps := [
 		{"zone": "counter", "color": Color(1.0, 0.8, 0.52)},
@@ -389,9 +404,177 @@ func _build_lighting() -> void:
 		var spot := GuildHallZones.center(str(lamp["zone"]))
 		light.position = spot + Vector3(0.0, 4.4, 0.0)
 		light.light_color = lamp["color"] as Color
-		light.light_energy = 7.0
-		light.omni_range = 13.0
+		light.light_energy = 9.5
+		light.omni_range = 15.0
+		light.light_specular = 0.0
 		add_child(light)
+
+
+# --- decoration ------------------------------------------------------------
+#
+# Everything below is geometry and emission only: it costs no extra lights, so the
+# hall keeps its five-light budget on the Low preset and still reads as a place.
+
+func _build_decor() -> void:
+	_build_trim()
+	_build_zone_trim()
+	_build_rug_pattern()
+	_build_beams_and_lanterns()
+	_build_rune_circle()
+
+
+## Gold band and dark baseboard around the room: two long strips per wall, which is
+## what turns a flat box into a hall.
+func _build_trim() -> void:
+	var half_w := GuildHallZones.WIDTH * 0.5 - GuildHallZones.WALL_THICKNESS * 0.5
+	var half_d := GuildHallZones.DEPTH * 0.5 - GuildHallZones.WALL_THICKNESS * 0.5
+	var bands := [
+		{"size": Vector3(GuildHallZones.WIDTH - 0.2, 0.12, 0.08), "at": Vector3(0.0, 2.5, -half_d + 0.06)},
+		{"size": Vector3(GuildHallZones.WIDTH - 0.2, 0.12, 0.08), "at": Vector3(0.0, 2.5, half_d - 0.06)},
+		{"size": Vector3(0.08, 0.12, GuildHallZones.DEPTH - 0.2), "at": Vector3(-half_w + 0.06, 2.5, 0.0)},
+		{"size": Vector3(0.08, 0.12, GuildHallZones.DEPTH - 0.2), "at": Vector3(half_w - 0.06, 2.5, 0.0)},
+	]
+	var boards := [
+		{"size": Vector3(GuildHallZones.WIDTH - 0.2, 0.22, 0.1), "at": Vector3(0.0, 0.11, -half_d + 0.07)},
+		{"size": Vector3(GuildHallZones.WIDTH - 0.2, 0.22, 0.1), "at": Vector3(0.0, 0.11, half_d - 0.07)},
+		{"size": Vector3(0.1, 0.22, GuildHallZones.DEPTH - 0.2), "at": Vector3(-half_w + 0.07, 0.11, 0.0)},
+		{"size": Vector3(0.1, 0.22, GuildHallZones.DEPTH - 0.2), "at": Vector3(half_w - 0.07, 0.11, 0.0)},
+	]
+	for band in bands:
+		_plate(band["size"] as Vector3, TRIM, band["at"] as Vector3, true)
+	for board in boards:
+		_plate(board["size"] as Vector3, WOOD.darkened(0.35), board["at"] as Vector3)
+
+
+## A gold line around every zone: from the top-down camera the floor plan becomes
+## legible at a glance instead of nine similar rectangles.
+func _build_zone_trim() -> void:
+	for id in GuildHallZones.zone_ids():
+		var rect := GuildHallZones.rect(id)
+		var color := TRIM.darkened(0.15)
+		var y := 0.045
+		var thin := 0.07
+		_plate(Vector3(rect.size.x, 0.02, thin), color, Vector3(rect.position.x + rect.size.x * 0.5, y, rect.position.y))
+		_plate(
+			Vector3(rect.size.x, 0.02, thin), color,
+			Vector3(rect.position.x + rect.size.x * 0.5, y, rect.position.y + rect.size.y)
+		)
+		_plate(Vector3(thin, 0.02, rect.size.y), color, Vector3(rect.position.x, y, rect.position.y + rect.size.y * 0.5))
+		_plate(
+			Vector3(thin, 0.02, rect.size.y), color,
+			Vector3(rect.position.x + rect.size.x, y, rect.position.y + rect.size.y * 0.5)
+		)
+
+
+## The rug gets a border and a diamond so it is a carpet and not a purple mat.
+func _build_rug_pattern() -> void:
+	var center := Vector3(0.0, 0.055, 6.4)
+	_plate(Vector3(5.4, 0.02, 3.4), RUG.lightened(0.16), center)
+	_plate(Vector3(4.9, 0.025, 2.9), TRIM.darkened(0.1), center)
+	_plate(Vector3(4.5, 0.03, 2.5), RUG.lightened(0.06), center)
+	var diamond := BoxMesh.new()
+	diamond.size = Vector3(1.7, 0.02, 1.7)
+	var gem := MeshInstance3D.new()
+	gem.mesh = diamond
+	gem.material_override = GuildMaterials.glow(RUNE.darkened(0.35), 0.6)
+	gem.position = center + Vector3(0.0, 0.01, 0.0)
+	gem.rotation.y = deg_to_rad(45.0)
+	gem.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(gem)
+
+
+## Ceiling beams with hanging lanterns: the room gets a top and the light sources
+## are visible instead of being invisible spheres of illumination.
+func _build_beams_and_lanterns() -> void:
+	var beams := 3
+	for index in beams:
+		var z := -7.0 + index * 7.0
+		_plate(Vector3(GuildHallZones.WIDTH - 1.0, 0.3, 0.36), WOOD.darkened(0.25), Vector3(0.0, 5.6, z))
+		for side in [-1.0, 1.0]:
+			_lantern(Vector3(5.4 * side, 5.45, z))
+	_lantern(Vector3(0.0, 5.45, 0.0))
+
+
+func _lantern(at: Vector3) -> void:
+	var chain := BoxMesh.new()
+	chain.size = Vector3(0.05, 0.7, 0.05)
+	var wire := MeshInstance3D.new()
+	wire.mesh = chain
+	wire.material_override = GuildMaterials.flat(IRON.darkened(0.3))
+	wire.position = at + Vector3(0.0, -0.35, 0.0)
+	wire.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(wire)
+
+	var body := BoxMesh.new()
+	body.size = Vector3(0.34, 0.44, 0.34)
+	var glass := MeshInstance3D.new()
+	glass.mesh = body
+	glass.material_override = GuildMaterials.glow(LANTERN, 2.4)
+	glass.position = at + Vector3(0.0, -0.9, 0.0)
+	glass.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(glass)
+
+	var corners := [
+		Vector3(-0.21, 0.0, -0.21), Vector3(0.21, 0.0, -0.21),
+		Vector3(-0.21, 0.0, 0.21), Vector3(0.21, 0.0, 0.21),
+	]
+	for corner in corners:
+		var post := BoxMesh.new()
+		post.size = Vector3(0.05, 0.5, 0.05)
+		var frame := MeshInstance3D.new()
+		frame.mesh = post
+		frame.material_override = GuildMaterials.metal(TRIM)
+		frame.position = at + (corner as Vector3) + Vector3(0.0, -0.9, 0.0)
+		frame.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(frame)
+
+
+## A rune circle in the middle of the hall: the guild's own sigil, and the one
+## glowing thing on the floor that draws the eye from the door.
+func _build_rune_circle() -> void:
+	var center := GuildHallZones.center("hall")
+	for ring in [
+		{"radius": 2.35, "width": 0.14, "color": RUNE, "energy": 1.5},
+		{"radius": 1.75, "width": 0.07, "color": Color(0.62, 0.52, 1.0), "energy": 1.1},
+	]:
+		var mesh := TorusMesh.new()
+		mesh.inner_radius = float(ring["radius"]) - float(ring["width"])
+		mesh.outer_radius = float(ring["radius"])
+		mesh.rings = 48
+		mesh.ring_segments = 6
+		var node := MeshInstance3D.new()
+		node.mesh = mesh
+		node.material_override = GuildMaterials.glow(ring["color"] as Color, float(ring["energy"]))
+		node.position = center + Vector3(0.0, 0.06, 0.0)
+		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(node)
+
+	for index in 4:
+		var angle := TAU * float(index) / 4.0 + PI * 0.25
+		var shard := CylinderMesh.new()
+		shard.top_radius = 0.0
+		shard.bottom_radius = 0.16
+		shard.height = 0.7
+		var crystal := MeshInstance3D.new()
+		crystal.mesh = shard
+		crystal.material_override = GuildMaterials.glow(RUNE, 1.8)
+		crystal.position = center + Vector3(cos(angle) * 2.05, 0.35, sin(angle) * 2.05)
+		crystal.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(crystal)
+
+
+## A flat box in world space with no ink outline: trim, plates and floor lines are
+## geometry, not props, so they stay cheap.
+func _plate(size: Vector3, color: Color, at: Vector3, metallic: bool = false) -> MeshInstance3D:
+	var mesh := BoxMesh.new()
+	mesh.size = size
+	var node := MeshInstance3D.new()
+	node.mesh = mesh
+	node.material_override = GuildMaterials.metal(color) if metallic else GuildMaterials.flat(color)
+	node.position = at
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
+	return node
 
 
 func _build_navmesh() -> void:

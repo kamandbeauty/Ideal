@@ -8,7 +8,7 @@ extends Node3D
 ## This is a probe, not the game: it has no orders, no economy and no mission
 ## loop yet. It exists to prove the hall, the rig and the pathfinding together.
 
-const CAST: Array[String] = ["warrior", "mage", "archer", "rogue", "knight"]
+const DEMO_SPAWNS: Array[String] = ["warrior", "mage", "archer"]
 const DEMO_HERO_SPOT := Vector3(1.0, 0.05, 3.2)
 
 var hall: GuildHall
@@ -20,9 +20,13 @@ var interaction: GuildInteraction
 var hud: GuildHud
 var last_result: Dictionary = {}
 var camera_rig: GuildPlayerCamera
-var cast: Array[GuildCharacter] = []
+var flow: GuildCustomerFlow
+var counter_station: GuildStation
 
 var follow_hero := false
+## The play-through drives the queue by hand so a capture is repeatable; in the
+## real game `_process` ticks it every frame.
+var auto_flow := true
 var _pose := "idle"
 var _speed := 0.0
 var _environment: Environment
@@ -33,6 +37,7 @@ func _ready() -> void:
 	_build_hall()
 	_build_cast()
 	_build_trade()
+	_build_flow()
 	_build_hud()
 	_build_camera()
 	print("SMOKE: probe ready, " + describe())
@@ -110,12 +115,12 @@ func describe() -> String:
 	for mesh in meshes:
 		if (mesh as MeshInstance3D).is_visible_in_tree():
 			shown += 1
-	return "hero_parts=%d hero_meshes=%d hero_visible=%d hero_pos=%s cast=%d stack=%d zone=%s" % [
+	return "hero_parts=%d hero_meshes=%d hero_visible=%d hero_pos=%s queue=%d stack=%d zone=%s" % [
 		hero.character.parts.size(),
 		meshes.size(),
 		shown,
 		str(hero.global_position),
-		cast.size(),
+		flow.queue_length() if flow != null else 0,
 		hero.carry_stack.visible_count(),
 		GuildHallZones.zone_at(hero.global_position),
 	]
@@ -241,6 +246,8 @@ func trade_report() -> String:
 
 func _process(delta: float) -> void:
 	_animate_hero(delta)
+	if auto_flow and flow != null:
+		flow.tick(delta)
 	if follow_hero and camera_rig != null:
 		camera_rig.follow_feet(hero.global_position, delta)
 
@@ -267,11 +274,12 @@ func _build_environment() -> void:
 	_environment.background_mode = Environment.BG_SKY
 	_environment.sky = sky
 	_environment.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	_environment.ambient_light_energy = 0.5
+	_environment.ambient_light_energy = 0.72
 	_environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	_environment.fog_enabled = true
 	_environment.fog_light_color = Color(0.18, 0.16, 0.3)
-	_environment.fog_density = 0.008
+	_environment.fog_density = 0.005
+	_environment.tonemap_exposure = 1.12
 
 
 func _build_hall() -> void:
@@ -285,17 +293,6 @@ func _build_cast() -> void:
 	hero.position = DEMO_HERO_SPOT
 	hero.rotation.y = deg_to_rad(6.0)
 	add_child(hero)
-
-	var queue_spot := GuildHallZones.spawn("customer_queue")
-	for index in CAST.size():
-		var style := CAST[index]
-		var member := GuildCharacter.new(style, true)
-		member.name = "Cast_" + style
-		member.position = Vector3(queue_spot.x - 2.6 + index * 1.4, 0.0, queue_spot.z + 1.4)
-		member.rotation.y = deg_to_rad(-8.0 + index * 4.0)
-		add_child(member)
-		cast.append(member)
-		member.animate(0.016, 0.0, "idle")
 	print("SMOKE: hero node children=%d, rig parts=%d" % [hero.get_child_count(), hero.character.parts.size()])
 
 
@@ -316,7 +313,6 @@ func _build_trade() -> void:
 	counter.position = Vector3(-9.6, 0.0, 7.4)
 	add_child(counter)
 	counter.bind_order(GuildOrder.new("slime_gel", 3))
-	counter.set_customer(GuildCharacter.new("mage", true))
 
 	var vault := GuildStation.new(GuildStation.VAULT)
 	vault.name = "Vault"
@@ -325,6 +321,7 @@ func _build_trade() -> void:
 	vault.bind_treasury(treasury)
 
 	stations = [shelf, counter, vault]
+	counter_station = counter
 
 	interaction = GuildInteraction.new()
 	interaction.name = "Interaction"
@@ -335,6 +332,71 @@ func _build_trade() -> void:
 
 func _on_traded(result: Dictionary) -> void:
 	last_result = result
+	_refresh_counter_order()
+
+
+## After a delivery the counter is empty until the next customer steps up, so the
+## sign on it never promises an order nobody is waiting for.
+func _refresh_counter_order() -> void:
+	if counter_station == null or counter_station.order == null:
+		return
+	if counter_station.order.fulfilled:
+		counter_station.bind_order(null)
+
+
+func _build_flow() -> void:
+	flow = GuildCustomerFlow.new()
+	flow.name = "CustomerFlow"
+	add_child(flow)
+	flow.setup(hall, counter_station, 11)
+
+
+## Five customers, sent through the door by the queue itself: the lineup capture is
+## the same walk the game runs, not five mannequins placed by hand.
+func stage_lineup() -> void:
+	reset_customers()
+	auto_flow = false
+	for index in GuildHallZones.queue_length():
+		flow.spawn()
+	flow.advance(26.0)
+	_freeze_line()
+
+
+## Three customers caught on their way in, so the capture shows the walk.
+func stage_customers() -> void:
+	reset_customers()
+	auto_flow = false
+	for style in DEMO_SPAWNS:
+		flow.spawn(style)
+	flow.advance(3.2)
+
+
+## Lets the staged queue keep walking for `seconds`.
+func advance_customers(seconds: float) -> void:
+	if flow != null:
+		flow.advance(seconds)
+
+
+func reset_customers() -> void:
+	if flow == null:
+		return
+	for customer in flow.customers.duplicate():
+		customer.free()
+	flow.setup(hall, counter_station, 11)
+
+
+func _freeze_line() -> void:
+	for customer in flow.customers:
+		customer.rotation.y = 0.0
+
+
+func flow_report() -> String:
+	if flow == null:
+		return "flow: none"
+	var lines: Array[String] = [flow.report()]
+	for customer in flow.customers:
+		lines.append("  " + customer.report())
+	return "\n".join(lines)
 
 
 func _build_hud() -> void:
@@ -347,6 +409,8 @@ func _build_hud() -> void:
 func _on_language_changed(language: String) -> void:
 	if hall != null:
 		hall.set_language(language)
+	if flow != null:
+		flow.set_language(language)
 
 
 func _build_camera() -> void:

@@ -122,6 +122,7 @@ func _run() -> void:
 	await _settle(6)
 	var probe := GuildProbe.new()
 	add_child(probe)
+	probe.stage_lineup()
 	await _settle(30)
 	await _capture("13-guild-lineup")
 	print("SMOKE: " + probe.describe())
@@ -178,6 +179,20 @@ func _run() -> void:
 	print("SMOKE: " + probe.hud_report())
 	probe.hud.set_stick_input(Vector2.ZERO)
 
+	# Customers, walking the real navigation mesh instead of standing in a row.
+	probe.reset_customers()
+	probe.overview()
+	probe.stage_customers()
+	await _settle(18)
+	await _capture("22-guild-customers-walk")
+	print("SMOKE: " + probe.flow_report())
+	probe.advance_customers(9.0)
+	probe.place_hero(Vector3(-10.6, 0.0, 6.2), 0.0)
+	probe.shot(Vector3(-6.6, 1.15, 7.2), 24.0, 42.0, 8.4, 50.0)
+	await _settle(18)
+	await _capture("23-guild-customers-order")
+	print("SMOKE: " + probe.flow_report())
+
 	print("SMOKE: " + probe.describe())
 	print("SMOKE: " + probe.trade_report())
 	_write_probe_report(
@@ -186,6 +201,7 @@ func _run() -> void:
 			+ "\n" + probe.hall_report()
 			+ "\n" + probe.trade_report()
 			+ "\n" + probe.hud_report()
+			+ "\n" + probe.flow_report()
 	)
 	probe.queue_free()
 	await _settle(4)

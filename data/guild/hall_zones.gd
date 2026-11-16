@@ -106,6 +106,27 @@ const SPAWNS := {
 }
 
 
+## The queue in front of the counter, first place first. The counter desk faces
+## north, so the line runs east along the desk instead of into it.
+const QUEUE_LINE := [
+	Vector3(-8.6, 0.0, 7.15),
+	Vector3(-7.1, 0.0, 7.15),
+	Vector3(-5.6, 0.0, 7.15),
+	Vector3(-4.1, 0.0, 7.15),
+	Vector3(-2.6, 0.0, 7.15),
+]
+
+
+static func queue_slot(index: int) -> Vector3:
+	if index < 0 or index >= QUEUE_LINE.size():
+		return SPAWNS["customer_queue"] as Vector3
+	return QUEUE_LINE[index] as Vector3
+
+
+static func queue_length() -> int:
+	return QUEUE_LINE.size()
+
+
 static func zone_ids() -> Array[String]:
 	var ids: Array[String] = []
 	for id in ZONES:
