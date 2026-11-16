@@ -1,5 +1,5 @@
 {
-  "checks": 2805,
+  "checks": 4785,
   "engine": "4.7.2-stable (official)",
   "failures": [],
   "methods": 139,
@@ -84,7 +84,7 @@
       "name": "test_guild_player"
     },
     {
-      "checks": 875,
+      "checks": 2855,
       "failures": 0,
       "methods": 10,
       "name": "test_guild_hall"
@@ -108,5 +108,5 @@
       "name": "test_guild_customers"
     }
   ],
-  "timestamp": "2026-11-16T08:47:44"
+  "timestamp": "2026-11-16T08:59:20"
 }
