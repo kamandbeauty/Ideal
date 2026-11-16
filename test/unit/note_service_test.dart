@@ -12,10 +12,7 @@ void main() {
   late NoteService service;
 
   setUp(() async {
-    database = TestDatabase();
-    await database.open();
-    final sql = await database.open();
-    await sql.delete('notes');
+    database = await openCleanDatabase();
     service = NoteService(NoteRepository(database));
   });
 

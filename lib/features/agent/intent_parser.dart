@@ -134,27 +134,28 @@ class IntentParser {
 
   // ------------------------------------------------------------ job creation
   AgentIntent? _parseJobCreation(String text, String lowered, String raw) {
+    final recovered = text.replaceAll('\u200c', ' ');
     final schedule = _parseSchedule(text, lowered);
-    final explicitJobVerb = lowered.contains('یادآوری') ||
+
+    // A command is only a *scheduled job* when it carries a real temporal
+    // marker. «یادآوری» alone is not enough: «یادآوری کن» without a time is
+    // still a job (defaults to one hour from now), but a bare note/command must
+    // never turn into one.
+    final hasTemporalMarker = RegExp(
+      r'(ساعت|هر روز|هر شب|همه روزه|هر هفته|هر شنبه|هر یکشنبه|هر دوشنبه|'
+      r'هر سه شنبه|هر چهارشنبه|هر پنجشنبه|هر جمعه|هر \d+ دقیقه|هر \d+ ساعت|'
+      r'فردا|پس فردا|امروز|دیروز|\d{1,2}\s*(روز|هفته|ماه))',
+    ).hasMatch(recovered);
+    final jobVerb = lowered.contains('یادآوری') ||
         lowered.contains('یادم') ||
         lowered.contains('به یاد') ||
-        lowered.contains('ریکاوری') ||
-        lowered.contains('وظیفه') ||
-        lowered.contains('هر روز') ||
-        lowered.contains('هر شب') ||
-        lowered.contains('همه روزه') ||
-        lowered.contains('تنظیم') ||
-        lowered.contains('زمان‌بندی');
+        recovered.contains('وظیفه') ||
+        recovered.contains('زمان') ||
+        recovered.contains('هر روز') ||
+        recovered.contains('هر شب');
 
     if (schedule == null) return null;
-    // A date without any scheduling verb is not a job (it may be a note).
-    if (!explicitJobVerb && schedule.kind == JobScheduleKind.once) {
-      final hasReminderWord = lowered.contains('تماس') ||
-          lowered.contains('یاد') ||
-          lowered.contains('ساعت');
-      if (!hasReminderWord) return null;
-    }
-
+    if (!hasTemporalMarker || !jobVerb) return null;
     final title = _extractJobTitle(text, lowered, schedule);
     final action = _inferJobAction(lowered);
     final kind = switch (action) {
@@ -302,7 +303,7 @@ class IntentParser {
       return ScheduleRequest(kind: JobScheduleKind.once, onceAt: fireAt);
     }
 
-    if (lowered.contains('یادآوری') || lowered.contains('یادم')) {
+    if (lowered.contains('یادآوری') && !lowered.contains('وظیفه')) {
       // «یادآوری کن» with no time: one hour from now, clearly stated in the reply.
       return ScheduleRequest(
         kind: JobScheduleKind.once,
@@ -318,7 +319,7 @@ class IntentParser {
     // A command may continue after the time («ساعت ۹ تماس بگیرم»); only the
     // first few words can be a clock expression, so try 3..1 word segments.
     final tail = match.group(1)!.trim();
-    final words = tail.split(RegExp(r'\s+'));
+    final words = tail.replaceAll('\u200c', ' ').split(RegExp(r'\s+'));
     // Words that signal the end of the time expression and the start of the
     // action the user wants to be reminded about («ساعت ۹ تماس بگیرم»).
     const commandVerbs = <String>{

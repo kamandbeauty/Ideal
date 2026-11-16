@@ -100,8 +100,7 @@ void main() {
   late ProviderContainer container;
 
   setUp(() async {
-    database = TestDatabase();
-    await database.open();
+    database = await openCleanDatabase();
     notes = NoteService(NoteRepository(database));
     final jobs = JobService(JobRepository(database), clock: () => now);
     agent = AgentCore(

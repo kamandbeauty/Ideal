@@ -27,3 +27,25 @@ void setUpSqfliteFfi() {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 }
+
+/// Opens a clean in-memory database and wipes any rows left by a previous test.
+///
+/// sqflite identifies in-memory databases by path, so the schema survives
+/// between `close()` calls in the same process. Opening the same handle again
+/// and deleting every row gives each test a deterministic empty state without
+/// needing a distinct file per test.
+Future<TestDatabase> openCleanDatabase() async {
+  final database = TestDatabase();
+  final db = await database.open();
+  for (final table in const [
+    'assistant_messages',
+    'job_runs',
+    'jobs',
+    'notifications',
+    'notes',
+    'settings',
+  ]) {
+    await db.delete(table);
+  }
+  return database;
+}

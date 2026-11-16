@@ -46,13 +46,14 @@ ParsedDateExpression? parsePersianDate(String input, DateTime now) {
   }
 
   // 2) Relative day words.
+  // Longest expressions first: «پس‌فردا» must not match plain «فردا».
   const relatives = <String, int>{
-    'امروز': 0,
-    'فردا': 1,
     'پس فردا': 2,
     'پس‌فردا': 2,
-    'دیروز': -1,
     'پریروز': -2,
+    'امروز': 0,
+    'فردا': 1,
+    'دیروز': -1,
   };
   for (final entry in relatives.entries) {
     if (text.contains(entry.key)) {

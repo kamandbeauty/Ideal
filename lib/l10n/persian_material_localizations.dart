@@ -109,7 +109,7 @@ class PersianMaterialLocalizations extends DefaultMaterialLocalizations {
   String formatDecimal(int number) => toPersianDigits(number);
 
   @override
-  String formatHour(TimeOfDay timeOfDay, {AlwaysUse24HourFormat alwaysUse24HourFormat = false}) {
+  String formatHour(TimeOfDay timeOfDay, {bool alwaysUse24HourFormat = false}) {
     return toPersianDigits(timeOfDay.hour.toString().padLeft(2, '0'));
   }
 
@@ -118,7 +118,7 @@ class PersianMaterialLocalizations extends DefaultMaterialLocalizations {
       toPersianDigits(timeOfDay.minute.toString().padLeft(2, '0'));
 
   @override
-  String formatTimeOfDay(TimeOfDay timeOfDay, {AlwaysUse24HourFormat alwaysUse24HourFormat = true}) {
+  String formatTimeOfDay(TimeOfDay timeOfDay, {bool alwaysUse24HourFormat = false}) {
     return toPersianDigits(
       '${timeOfDay.hour.toString().padLeft(2, '0')}:'
       '${timeOfDay.minute.toString().padLeft(2, '0')}',
@@ -131,7 +131,8 @@ class PersianMaterialLocalizations extends DefaultMaterialLocalizations {
 
   /// Iranian week order, starting on Saturday: ش ی د س چ پ ج
   @override
-  String get narrowWeekdays => 'ش،ی،د،س،چ،پ،ج';
+  List<String> get narrowWeekdays =>
+      const ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
 }
 
 class _PersianMaterialLocalizationsDelegate

@@ -21,8 +21,7 @@ void main() {
   late AgentCore agent;
 
   setUp(() async {
-    database = TestDatabase();
-    await database.open();
+    database = await openCleanDatabase();
     notes = NoteService(NoteRepository(database));
     jobs = JobService(JobRepository(database), clock: () => now);
     agent = AgentCore(

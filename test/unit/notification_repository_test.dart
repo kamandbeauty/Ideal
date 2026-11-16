@@ -11,8 +11,7 @@ void main() {
   late NotificationRepository repository;
 
   setUp(() async {
-    database = TestDatabase();
-    await database.open();
+    database = await openCleanDatabase();
     repository = NotificationRepository(database);
   });
 

@@ -58,8 +58,8 @@ class NativeSpeechRecognizer implements SpeechRecognizer {
     _onError = onError;
     try {
       final ok = await _speech.listen(
-        localeId: 'fa_IR',
         listenOptions: SpeechListenOptions(
+          localeId: 'fa_IR',
           partialResults: true,
           cancelOnError: true,
           listenMode: ListenMode.dictation,

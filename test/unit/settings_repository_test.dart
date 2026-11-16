@@ -10,8 +10,7 @@ void main() {
   late SettingsRepository repository;
 
   setUp(() async {
-    database = TestDatabase();
-    await database.open();
+    database = await openCleanDatabase();
     repository = SettingsRepository(database);
   });
 

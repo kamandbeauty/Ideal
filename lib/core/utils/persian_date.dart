@@ -49,10 +49,10 @@ abstract final class PersianDate {
     }
     if (difference.inSeconds < 60) return 'همین حالا';
     if (difference.inMinutes < 60) return '${toPersianDigits(difference.inMinutes)} دقیقه پیش';
-    if (difference.inHours < 24) return '${toPersianDigits(difference.inHours)} ساعت پیش';
     final startOfToday = DateTime(reference.year, reference.month, reference.day);
     final startOfDate = DateTime(date.year, date.month, date.day);
     final dayGap = startOfToday.difference(startOfDate).inDays;
+    if (dayGap == 0) return '${toPersianDigits(difference.inHours)} ساعت پیش';
     if (dayGap == 1) return 'دیروز';
     if (dayGap < 7) return '${toPersianDigits(dayGap)} روز پیش';
     return longDate(date);
