@@ -737,6 +737,17 @@ func _line_up() -> void:
 		await frames(10 if view == views[0] else 4)
 		check(absf(camera.fov - float(view[2])) < 0.01, "the long lens is on for %s (a field of %.1f degrees)" % [view[0], camera.fov])
 		await shot(view[0], "staged")
+	# Force the realistic look for a repeatable close-up instead of relying on RNG.
+	var city_zombie: Zombie = row[1]
+	city_zombie._use_look(1)
+	city_zombie._paint_look(1, RandomNumberGenerator.new())
+	city_zombie._play("idle")
+	_aim_at(Vector3(5.3, 0.95, -26.0))
+	level.defender._apply_aim()
+	camera.fov = 5.5
+	await frames(10)
+	check(city_zombie.body_mesh != null and city_zombie.anim.has_animation("idle"), "realistic city zombie is shown and animated")
+	await shot("53-city-zombie-close", "staged")
 	level.defender.set_process(true)
 	camera.fov = lens
 	level.defender.weapon.visible = true

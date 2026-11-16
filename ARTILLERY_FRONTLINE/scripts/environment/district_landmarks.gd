@@ -11,7 +11,7 @@ var warning: StandardMaterial3D
 func build(district: int) -> void:
 	name = "DistrictLandmarks%d" % district
 	steel = _material(Color(0.26, 0.27, 0.25), "metal")
-	concrete = _material(Color(0.40, 0.37, 0.32), "concrete")
+	concrete = _material(Color(0.76, 0.73, 0.68), "district_facade_detail")
 	warning = _material(Color(0.52, 0.27, 0.14), "metal")
 	match district:
 		3: # factories and tall chimneys

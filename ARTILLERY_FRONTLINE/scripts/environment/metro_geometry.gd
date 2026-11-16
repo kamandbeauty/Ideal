@@ -11,6 +11,8 @@ func _ready() -> void:
 	_textured("wall", "metro_wall_detail", Vector3(8, 2, 1))
 	materials["tunnel_dark"] = _material(Color(0.018, 0.023, 0.025))
 	(materials["tunnel_dark"] as StandardMaterial3D).shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	materials["train_body"] = _material(Color(0.82, 0.82, 0.78), 0.15)
+	_textured("train_body", "metro_train_detail", Vector3(5, 1, 1))
 	materials["sandbag"] = _material(Color(0.36, 0.32, 0.24))
 	_textured("sandbag", "burlap", Vector3(2, 1, 1))
 	_metro_defenses()
@@ -38,7 +40,7 @@ func _ready() -> void:
 			_box("EmergencyLight%d_%d" % [side, index], Vector3(side * 24, 17.3, z), Vector3(2.0, 0.16, 0.35), "white")
 	for side: int in [-1, 1]:
 		var x: float = side * 25.0
-		_box("TrainBody%d" % side, Vector3(x, 3, -94), Vector3(6, 6, 51), "white")
+		_box("TrainBody%d" % side, Vector3(x, 3, -94), Vector3(6, 6, 51), "train_body")
 		_box("TrainRoof%d" % side, Vector3(x, 6.2, -94), Vector3(6.2, 0.5, 51), "trim")
 		_box("TrainStripe%d" % side, Vector3(x - side * 3.04, 2.5, -94), Vector3(0.12, 0.6, 50), "red")
 		for index: int in 6:

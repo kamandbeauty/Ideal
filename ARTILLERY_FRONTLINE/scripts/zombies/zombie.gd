@@ -323,8 +323,12 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 
 
 func _pick_look(rng: RandomNumberGenerator) -> int:
-	if data == null or not mix_extras or data.extra_looks.is_empty() or rng.randf() >= 0.28:
+	if data == null or not mix_extras or data.extra_looks.is_empty() or rng.randf() >= 0.55:
 		return 0
+	# City zombie has a realistic atlas and is the preferred extra; keep
+	# the other variants occasionally for a more varied crowd.
+	if data.extra_looks[0].resource_path.ends_with("zombie_city.glb") and rng.randf() < 0.75:
+		return 1
 	return 1 + rng.randi_range(0, data.extra_looks.size() - 1)
 
 

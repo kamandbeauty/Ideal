@@ -120,6 +120,16 @@ func run(t: TestContext) -> void:
 	t.check(zombie.look_index == 1 and zombie.anim.has_animation("walk_clean") and zombie.anim.has_animation("run_clean"), "the extra model has animated walk and run")
 	t.check(zombie.body_mesh != null and zombie.body_mesh.material_override != null and (zombie.body_mesh.material_override as StandardMaterial3D).albedo_texture != null, "the extra figure has its own assigned texture")
 	t.check(zombie.head_area.get_parent() is BoneAttachment3D, "the extra model keeps a bone-following head target")
+	t.check(zombie.anim.has_animation("attack") and zombie.anim.has_animation("hit") and zombie.anim.has_animation("death_back") and zombie.anim.has_animation("death_front"), "the city model supports combat and death clips")
+	var city_skin: StandardMaterial3D = zombie.body_mesh.material_override as StandardMaterial3D
+	t.check(city_skin.albedo_texture.resource_path.ends_with("zombie_city.png"), "the realistic model uses its matching atlas")
+	var city_indices: PackedInt32Array = zombie.body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX]
+	t.check(city_indices.size() / 3 <= 3000, "the city model fits the mobile triangle budget")
+	zombie.anim.play("idle")
+	zombie.anim.advance(0.1)
+	await t.physics_frames(2)
+	var head_height: float = zombie.head_area.get_child(0).global_position.y - zombie.global_position.y
+	t.check(head_height > 1.0 and head_height < 2.0, "the city zombie head target is in metre-scale space (%.2f m)" % head_height)
 	zombie._use_look(0)
 	zombie._sleep()
 	zombie.running = false
