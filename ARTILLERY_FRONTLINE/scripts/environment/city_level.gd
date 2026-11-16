@@ -55,6 +55,10 @@ func _ready() -> void:
 	add_to_group("quality_listener")
 	geometry = get_node("Geometry")
 	MaterialLibrary.bind(geometry)
+	if Campaign.district(stage) >= 3:
+		var landmarks := DistrictLandmarks.new()
+		geometry.add_child(landmarks)
+		landmarks.build(Campaign.district(stage))
 	_build_environment()
 	_build_sun()
 	effects = EffectPool.new()

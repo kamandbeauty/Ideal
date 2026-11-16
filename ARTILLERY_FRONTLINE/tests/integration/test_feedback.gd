@@ -41,8 +41,10 @@ func run(t: TestContext) -> void:
 	t.check(marks != null and bullets.marks == marks and level.horde.marks == marks, "rounds and the horde share the level's pool of marks")
 	t.check(level.ash != null and level.ash.emitting and level.ash.visible, "ash drifts over the court on the top tier")
 	t.check(level.ash.amount <= 60, "and it is a handful of flecks, not a storm (%d)" % level.ash.amount)
-	for kind: String in ["chips", "ember", "launch", "wisp"]:
+	for kind: String in ["chips", "ember", "launch", "wisp", "gore_chunk"]:
 		t.check(effects.emitters.has(kind), "the effect pool has %s" % kind)
+	t.check((effects.emitters["gore_chunk"][0] as CPUParticles3D).mesh is BoxMesh, "gore fragments use a 3D mesh")
+	t.check(EffectPool.KINDS.blood.amount > 10 and EffectPool.KINDS.gore.amount > 18, "blood and gore bursts have more particles")
 	t.check(effects.emitters["ember"].size() >= Explosions.BLASTS, "every blast that can burn at once has its embers")
 	t.check(gun != null and gun.casings != null and gun.ports.size() == 2, "the twin gun has a casing pool and a port for each barrel")
 	t.check(gun.port_sides[0] * gun.port_sides[1] < 0.0, "the two barrels throw their brass to opposite sides")

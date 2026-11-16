@@ -6,10 +6,13 @@ extends Node3D
 ## quality tier goes without.
 
 const KINDS: Dictionary = {
-	"blood": {"count": 12, "amount": 10, "life": 0.45, "speed": Vector2(1.8, 5.0), "spread": 38.0, "gravity": -9.0,
+	"blood": {"count": 14, "amount": 16, "life": 0.55, "speed": Vector2(2.0, 5.6), "spread": 38.0, "gravity": -9.0,
 		"size": Vector2(0.045, 0.13), "color": Color(0.30, 0.012, 0.009, 0.96), "grow": 1.0, "additive": false},
-	"gore": {"count": 6, "amount": 18, "life": 0.6, "speed": Vector2(2.5, 6.5), "spread": 60.0, "gravity": -9.0,
+	"gore": {"count": 8, "amount": 26, "life": 0.72, "speed": Vector2(2.5, 7.0), "spread": 60.0, "gravity": -9.0,
 		"size": Vector2(0.06, 0.19), "color": Color(0.34, 0.015, 0.01, 0.96), "grow": 1.0, "additive": false},
+	# Chunky fragments are low-poly 3D pieces, not another flat blood sprite.
+	"gore_chunk": {"count": 8, "amount": 8, "life": 0.9, "speed": Vector2(3.0, 8.0), "spread": 75.0, "gravity": -14.0,
+		"size": Vector2(0.08, 0.20), "color": Color(0.28, 0.035, 0.025, 1.0), "grow": 1.0, "additive": false},
 	# Separate translucent mist from the heavier falling droplets. Both reuse
 	# small fixed pools and are reduced by the existing mobile quality governor.
 	"blood_mist": {"count": 8, "amount": 7, "life": 0.28, "speed": Vector2(0.6, 2.0), "spread": 45.0, "gravity": -2.0,
@@ -65,17 +68,24 @@ func _ready() -> void:
 		var material := StandardMaterial3D.new()
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		material.billboard_mode = BaseMaterial3D.BILLBOARD_DISABLED if kind == "gore_chunk" else BaseMaterial3D.BILLBOARD_PARTICLES
 		# Without this the billboard discards each particle's scale and draws every quad at full size.
 		material.billboard_keep_scale = true
 		material.vertex_color_use_as_albedo = true
-		material.albedo_texture = MarkPool.texture_for("blood") if kind == "blood" or kind == "gore" else soft_dot()
+		if kind != "gore_chunk":
+			material.albedo_texture = MarkPool.texture_for("blood") if kind == "blood" or kind == "gore" else soft_dot()
 		material.disable_receive_shadows = true
 		if spec.additive:
 			material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 			# Fire is its own light: haze must not grey it out.
 			material.disable_fog = true
-		var mesh := QuadMesh.new()
+		var mesh: PrimitiveMesh
+		if kind == "gore_chunk":
+			var piece := BoxMesh.new()
+			piece.size = Vector3(1.0, 0.7, 1.3)
+			mesh = piece
+		else:
+			mesh = QuadMesh.new()
 		mesh.material = material
 		var fade := Gradient.new()
 		fade.set_color(0, spec.color)

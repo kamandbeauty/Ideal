@@ -649,6 +649,47 @@ func _metro_stage() -> void:
 	await shot("47-metro-attack", "play")
 
 
+func _later_districts() -> void:
+	game.to_menu()
+	await wait_transition()
+	game.menus.show_campaign()
+	await frames(2)
+	var next_page := game.menus.holder.find_child("NextDistrictPage", true, false) as Button
+	next_page.pressed.emit()
+	await frames(2)
+	game.menus.neighborhood_button.pressed.emit()
+	await frames(2)
+	check(game.stage == 9 and game.menus.stage_choices.buttons[11].visible, "industrial district offers stages ten to twelve")
+	await shot("48-industrial-map", "screen")
+	game.start_match()
+	await wait_transition()
+	level = game.level
+	check(level.geometry.get_node_or_null("DistrictLandmarks3") != null, "industrial skyline loads")
+	await frames(5)
+	await shot("49-industrial-stage", "play")
+	game.to_menu()
+	await wait_transition()
+	game.menus.show_campaign()
+	await frames(2)
+	for page: int in 2:
+		next_page = game.menus.holder.find_child("NextDistrictPage", true, false) as Button
+		next_page.pressed.emit()
+		await frames(2)
+	game.menus.neighborhood_button.pressed.emit()
+	game.menus.stage_choices.buttons[29].pressed.emit()
+	await frames(2)
+	check(game.stage == 29, "the thirtieth stage can be picked on the last page")
+	await shot("50-final-district-map", "screen")
+	game.start_match()
+	await wait_transition()
+	level = game.level
+	check(level.stage == 29 and level.geometry.get_node_or_null("DistrictLandmarks9") != null, "final district loads its skyline")
+	simulate(20.0)
+	await frames(5)
+	check(level.horde.spawned_total > 0, "the final stage sends attackers")
+	await shot("51-final-stage", "play")
+
+
 func _aim_at(point: Vector3) -> void:
 	var wanted: Vector2 = level.defender.aim_for(point)
 	level.defender.aim.set_aim(wanted.x, wanted.y)
@@ -1019,6 +1060,7 @@ func _run() -> void:
 	await _second_stage()
 	await _hospital_stage()
 	await _metro_stage()
+	await _later_districts()
 
 	var render: Dictionary = Graphics.snapshot()
 	check(String(render.tier) == PICTURE_TIER and is_equal_approx(float(render.scale), float(Graphics.PROFILES[PICTURE_TIER].scale)),

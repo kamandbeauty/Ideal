@@ -10,15 +10,20 @@ extends Resource
 ## Added to zombie speed per wave already survived.
 @export_range(0.0, 0.5, 0.005) var speed_growth: float = 0.03
 ## Waves of the siege that came before this stage: the horde arrives already that much harder.
-@export_range(0, 60) var waves_before: int = 0
+@export_range(0, 200) var waves_before: int = 0
+
+
+func _effective_wave(wave_index: int) -> float:
+	var overall: int = maxi(waves_before + wave_index, 0)
+	return float(mini(overall, 25)) + float(maxi(overall - 25, 0)) * 0.12
 
 
 func health_scale(wave_index: int) -> float:
-	return 1.0 + health_growth * float(waves_before + wave_index)
+	return 1.0 + health_growth * _effective_wave(wave_index)
 
 
 func speed_scale(wave_index: int) -> float:
-	return 1.0 + speed_growth * float(waves_before + wave_index)
+	return 1.0 + speed_growth * _effective_wave(wave_index)
 
 
 func total_zombies() -> int:

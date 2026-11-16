@@ -101,7 +101,7 @@ func run(t: TestContext) -> void:
 
 ## The siege is played a stage at a time. The first is three waves; each later one opens as hard as the wave it starts with.
 func _stages(t: TestContext) -> void:
-	t.equal(Campaign.count(), 9, "three districts each have three stages")
+	t.equal(Campaign.count(), 30, "ten districts each have three stages")
 	var first: WaveSet = Campaign.waves(0)
 	t.equal(first.waves.size(), 3, "the first stage is three waves")
 	t.equal(first.waves_before, 0, "and starts the siege")
@@ -135,6 +135,14 @@ func _stages(t: TestContext) -> void:
 			for group: SpawnGroup in wave.groups:
 				for route: String in group.routes:
 					t.check(layout.has_route(route), "district wave route exists: " + route)
+	var city: LevelLayout = load("res://resources/levels/city_siege_layout.tres")
+	for stage: int in range(9, Campaign.count()):
+		t.equal(Campaign.district(stage), stage / 3, "later stage belongs to its district")
+		t.check(Campaign.scene(stage).contains("city"), "later district uses the proven city routes")
+		for wave: WaveData in Campaign.waves(stage).waves:
+			for group: SpawnGroup in wave.groups:
+				for route: String in group.routes:
+					t.check(city.has_route(route), "later wave route exists: " + route)
 	t.equal(Campaign.open_stages(0), Campaign.count(), "a new player may start any stage")
 	t.equal(Campaign.open_stages(1), Campaign.count(), "all stages remain available")
 	t.equal(Campaign.open_stages(Campaign.count()), Campaign.count(), "and nothing opens past the last")

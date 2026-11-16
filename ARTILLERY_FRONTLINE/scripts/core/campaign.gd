@@ -1,7 +1,6 @@
 class_name Campaign
 extends RefCounted
-## The siege as the player meets it: a few short stages across two districts, each
-## a set of waves, all available from the start.
+## Thirty stages in ten districts, each with its own wave set; all remain selectable.
 
 const STAGES: Array[String] = [
 	"res://resources/waves/stage_1_waves.tres",
@@ -13,6 +12,27 @@ const STAGES: Array[String] = [
 	"res://resources/waves/stage_7_waves.tres",
 	"res://resources/waves/stage_8_waves.tres",
 	"res://resources/waves/stage_9_waves.tres",
+	"res://resources/waves/stage_10_waves.tres",
+	"res://resources/waves/stage_11_waves.tres",
+	"res://resources/waves/stage_12_waves.tres",
+	"res://resources/waves/stage_13_waves.tres",
+	"res://resources/waves/stage_14_waves.tres",
+	"res://resources/waves/stage_15_waves.tres",
+	"res://resources/waves/stage_16_waves.tres",
+	"res://resources/waves/stage_17_waves.tres",
+	"res://resources/waves/stage_18_waves.tres",
+	"res://resources/waves/stage_19_waves.tres",
+	"res://resources/waves/stage_20_waves.tres",
+	"res://resources/waves/stage_21_waves.tres",
+	"res://resources/waves/stage_22_waves.tres",
+	"res://resources/waves/stage_23_waves.tres",
+	"res://resources/waves/stage_24_waves.tres",
+	"res://resources/waves/stage_25_waves.tres",
+	"res://resources/waves/stage_26_waves.tres",
+	"res://resources/waves/stage_27_waves.tres",
+	"res://resources/waves/stage_28_waves.tres",
+	"res://resources/waves/stage_29_waves.tres",
+	"res://resources/waves/stage_30_waves.tres",
 
 ]
 
@@ -25,13 +45,18 @@ static func waves(stage: int) -> WaveSet:
 	return load(STAGES[clampi(stage, 0, STAGES.size() - 1)]) as WaveSet
 
 
-## Each district supplies its own real 3D scene; unbuilt hospital stages are not advertised.
+## The first three districts have dedicated layouts. Later districts reuse the
+## city routes and defenses with distinct, collision-free skyline landmarks.
 static func scene(stage: int) -> String:
-	if stage >= 6:
+	if stage >= 6 and stage < 9:
 		return "res://scenes/levels/metro_siege.tscn"
-	if stage >= 3:
+	if stage >= 3 and stage < 6:
 		return "res://scenes/levels/hospital_siege.tscn"
 	return "res://scenes/levels/city_siege.tscn"
+
+
+static func district(stage: int) -> int:
+	return clampi(stage, 0, count() - 1) / 3
 
 
 ## All stages are available regardless of the saved number of wins.

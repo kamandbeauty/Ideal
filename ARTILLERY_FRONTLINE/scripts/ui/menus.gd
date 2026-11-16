@@ -40,6 +40,7 @@ var result_onward: bool = false
 var stage: int = 0
 var stage_brief: Label
 var stage_choices: MenuWidgets.Choices
+var map_page: int = 0
 var neighborhood_button: Button
 var hospital_button: Button
 var metro_button: Button
@@ -232,6 +233,7 @@ func show_upgrade() -> void:
 
 
 func show_campaign() -> void:
+	map_page = Campaign.district(stage) / 3
 	_show("campaign")
 
 
@@ -456,33 +458,33 @@ func _build_campaign() -> void:
 		_zone(button, Rect2(0.62 - 0.12 * (index % 3), 0.40 + 0.13 * (index % 3), 0.11, 0.12), "MapStage%d" % (index + 1))
 		button.visible = false
 	stage_choices.visible = false
-	neighborhood_button = UITheme.button(Loc.t("neighborhood_city"), func() -> void:
-		map_art.texture = load("res://assets/textures/branding/design_map.png")
-		if stage >= 3:
-			stage_choices._choose(0)
-		stage_choices.visible = true
-		for index: int in stage_choices.buttons.size():
-			stage_choices.buttons[index].visible = index < 3
-		stage_brief.text = stage_brief_for(stage), "accent")
-	_zone(neighborhood_button, Rect2(0.57, 0.18, 0.30, 0.11), "Neighborhood")
-	hospital_button = UITheme.button(Loc.t("neighborhood_hospital"), func() -> void:
-		map_art.texture = load("res://assets/textures/branding/hospital_district.png")
-		if stage < 3 or stage >= 6:
-			stage_choices._choose(3)
-		stage_choices.visible = true
-		for index: int in stage_choices.buttons.size():
-			stage_choices.buttons[index].visible = index >= 3 and index < 6
-		stage_brief.text = stage_brief_for(stage), "accent")
-	_zone(hospital_button, Rect2(0.03, 0.36, 0.27, 0.11), "HospitalNeighborhood")
-	metro_button = UITheme.button(Loc.t("neighborhood_metro"), func() -> void:
-		map_art.texture = load("res://assets/textures/branding/metro_district.png")
-		if stage < 6 or stage >= 9:
-			stage_choices._choose(6)
-		stage_choices.visible = true
-		for index: int in stage_choices.buttons.size():
-			stage_choices.buttons[index].visible = index >= 6 and index < 9
-		stage_brief.text = stage_brief_for(stage), "accent")
-	_zone(metro_button, Rect2(0.03, 0.50, 0.27, 0.11), "MetroNeighborhood")
+	var region_keys: Array[String] = ["neighborhood_city", "neighborhood_hospital", "neighborhood_metro",
+		"neighborhood_industrial", "neighborhood_bazaar", "neighborhood_terminal", "neighborhood_towers",
+		"neighborhood_stadium", "neighborhood_refinery", "neighborhood_citadel"]
+	var regions: Array[Button] = []
+	for slot: int in 3:
+		var district: int = map_page * 3 + slot
+		var button: Button = UITheme.button(Loc.t(region_keys[district]) if district < region_keys.size() else "—", func() -> void:
+			_select_district(district, map_art), "accent")
+		button.disabled = district >= region_keys.size()
+		var location: Rect2 = [Rect2(0.57, 0.18, 0.30, 0.11), Rect2(0.03, 0.36, 0.27, 0.11), Rect2(0.03, 0.50, 0.27, 0.11)][slot]
+		_zone(button, location, ["Neighborhood", "HospitalNeighborhood", "MetroNeighborhood"][slot])
+		regions.append(button)
+	neighborhood_button = regions[0]
+	hospital_button = regions[1]
+	metro_button = regions[2]
+	var previous := UITheme.button("‹", func() -> void:
+		map_page -= 1
+		_show("campaign", false))
+	previous.disabled = map_page <= 0
+	_zone(previous, Rect2(0.03, 0.64, 0.12, 0.11), "PreviousDistrictPage")
+	var next := UITheme.button("›", func() -> void:
+		map_page += 1
+		_show("campaign", false))
+	next.disabled = map_page >= 3
+	_zone(next, Rect2(0.18, 0.64, 0.12, 0.11), "NextDistrictPage")
+	_zone(UITheme.outline(_text(Loc.t("region_page", [Loc.number(map_page + 1), Loc.number(4)]), 18, UITheme.TEXT), 3), Rect2(0.03, 0.77, 0.27, 0.05), "DistrictPage")
+
 	var info := _plate()
 	_zone(info, Rect2(0.68, 0.66, 0.30, 0.31), "MissionBrief")
 	var details := _column()
@@ -491,6 +493,24 @@ func _build_campaign() -> void:
 	stage_brief = _text(stage_brief_for(stage), 21, UITheme.TEXT)
 	details.add_child(stage_brief)
 	details.add_child(UITheme.button(Loc.t("select_weapon"), show_arsenal, "accent", "ui_start"))
+
+
+func _select_district(district: int, map_art: TextureRect) -> void:
+	if district < 0 or district >= 10:
+		return
+	var art: String = "res://assets/textures/branding/design_map.png"
+	if district == 1:
+		art = "res://assets/textures/branding/hospital_district.png"
+	elif district == 2:
+		art = "res://assets/textures/branding/metro_district.png"
+	map_art.texture = load(art)
+	var first: int = district * 3
+	if stage < first or stage >= first + 3:
+		stage_choices._choose(first)
+	stage_choices.visible = true
+	for index: int in stage_choices.buttons.size():
+		stage_choices.buttons[index].visible = index >= first and index < first + 3
+	stage_brief.text = stage_brief_for(stage)
 
 
 # -- Armory ----------------------------------------------------------------------------

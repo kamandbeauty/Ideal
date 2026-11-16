@@ -64,7 +64,7 @@ func run(t: TestContext) -> void:
 	var menus: Menus = game.menus
 	var hud: Hud = game.hud
 	var stages: int = Campaign.count()
-	t.equal(stages, 9, "three districts each include three stages")
+	t.equal(stages, 30, "ten districts each include three stages")
 
 	# The tactical map exposes the same stage progression as the armory.
 	menus.show_campaign()
@@ -90,6 +90,20 @@ func run(t: TestContext) -> void:
 	menus.stage_choices.buttons[1].pressed.emit()
 	t.equal(game.stage, 1, "the map selects an unlocked stage")
 	t.equal(menus.stage_brief.text, Menus.stage_brief_for(1), "the mission brief follows the selected stage")
+	# Page through all ten districts and select the final mission from the map.
+	for page: int in range(1, 4):
+		var next_page := menus.holder.find_child("NextDistrictPage", true, false) as Button
+		t.check(next_page != null and not next_page.disabled, "next district page is available")
+		next_page.pressed.emit()
+		await t.frames(1)
+		t.equal(menus.map_page, page, "district page advances")
+	menus.neighborhood_button.pressed.emit()
+	t.check(game.stage == 27 and menus.stage_choices.buttons[29].visible, "final district exposes stages 28 to 30")
+	menus.stage_choices.buttons[29].pressed.emit()
+	t.equal(game.stage, 29, "the thirtieth stage can be selected")
+	t.check((menus.holder.find_child("NextDistrictPage", true, false) as Button).disabled, "last page cannot be passed")
+	menus.show_campaign()
+	t.equal(menus.map_page, 3, "returning to the map keeps the selected district in view")
 	Profile.data.stats.stages_cleared = 0
 	game.select_stage(0)
 	t.check(game.go_back() and menus.screen == "main", "back leaves the map for the title")
@@ -268,14 +282,16 @@ func run(t: TestContext) -> void:
 		level = game.level
 		last = Campaign.waves(index)
 		t.check(level.stage == index and level.wave_set == last, "next loads stage %d with its waves" % (index + 1))
-		if index >= 6:
+		if index >= 6 and index < 9:
 			t.check(level.geometry.find_child("TunnelEnd", true, false) != null, "the metro stage has its own scenery")
 			t.check(level.geometry.find_child("SandbagLine", true, false) != null and level.geometry.find_child("FiringPlatform", true, false) != null, "metro gunner stands behind a full sandbag line")
 			t.check(level.geometry.find_child("GateLeafA", true, false) != null and level.geometry.find_child("WallPatch", true, false) != null, "metro doors coincide with the two attack targets")
 			t.check(level.environment.background_mode == Environment.BG_COLOR and level.geometry.find_child("TunnelLeft", true, false) != null, "metro is enclosed with a deep dark tunnel")
+		if index >= 9:
+			t.check(level.geometry.get_node_or_null("DistrictLandmarks%d" % Campaign.district(index)) != null, "stage %d has its district landmarks" % (index + 1))
 		_end(game, true, last.waves.size())
 		await t.frames(2)
-	t.check(menus.result_victory and not menus.result_onward and not game.won_onward, "winning the ninth ends the current campaign")
+	t.check(menus.result_victory and not menus.result_onward and not game.won_onward, "winning the thirtieth ends the campaign")
 	t.check(_has_text(menus, Loc.t("victory_title")) and _button(menus, Loc.t("next_stage")) == null, "with the victory screen, and no next stage to go to")
 	t.equal(int(Profile.data.stats.stages_cleared), stages, "every stage is won")
 	t.equal(int(Profile.data.stats.best_wave), Campaign.total_waves(), "and the record is the last wave of the siege")

@@ -11,7 +11,7 @@ const FLASH_TIME: float = 0.32
 const GLARE_TIME: float = 0.15
 const RING_TIME: float = 0.42
 const SCORCH_TIME: float = 30.0
-const GORE_PER_BLAST: int = 4
+const GORE_PER_BLAST: int = 6
 
 var horde: Horde
 var defense: Defense
@@ -150,6 +150,11 @@ func detonate(at: Vector3, data: ExplosionData, direct: Zombie = null, direct_da
 		hurt += 1
 		if direct.take_blast(direct_damage, at, 1.0, data):
 			killed += 1
+			if effects:
+				gore += 1
+				effects.burst("gore", direct.global_position + Vector3.UP, Vector3.UP)
+				effects.burst("blood_mist", direct.global_position + Vector3.UP, Vector3.UP)
+				effects.burst("gore_chunk", direct.global_position + Vector3.UP, Vector3.UP)
 	if horde != null and data.damage > 0.0:
 		for zombie: Zombie in horde.active:
 			if not zombie.alive:
@@ -164,6 +169,7 @@ func detonate(at: Vector3, data: ExplosionData, direct: Zombie = null, direct_da
 					gore += 1
 					effects.burst("gore", zombie.global_position + Vector3(0.0, 1.0, 0.0), Vector3.UP)
 					effects.burst("blood_mist", zombie.global_position + Vector3(0.0, 1.0, 0.0), Vector3.UP)
+					effects.burst("gore_chunk", zombie.global_position + Vector3(0.0, 1.0, 0.0), Vector3.UP)
 	if data.structure_damage > 0.0 and defense != null and layout != null:
 		_damage_structures(at, data)
 	kills += killed

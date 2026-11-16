@@ -9,7 +9,7 @@ extends Node3D
 const START_SHARE: float = 0.3
 const KINDS: Dictionary = {
 	"scar": {"count": 48, "size": Vector2(0.16, 0.3), "color": Color(0.05, 0.045, 0.04, 0.82), "lift": 0.02, "grow": 0.0},
-	"blood": {"count": 28, "size": Vector2(0.95, 1.55), "color": Color(0.2, 0.012, 0.01, 0.88), "lift": 0.03, "grow": 1.3},
+	"blood": {"count": 40, "size": Vector2(1.1, 1.85), "color": Color(0.2, 0.012, 0.01, 0.88), "lift": 0.03, "grow": 1.3},
 }
 
 var meshes: Dictionary = {}

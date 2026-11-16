@@ -251,7 +251,7 @@ func _sieges(t: TestContext) -> void:
 		t.check(last.boss_seen_at > 0.0 and last.boss_down_at > last.boss_seen_at, "the boss walks on in the last wave and is brought down")
 		t.check(last.boss_seen_at >= last.wave_times[last.wave_count - 1], "not before the last wave")
 	t.check(rockets >= 4, "rockets are used and resupplied (%d)" % rockets)
-	t.check(time > 300.0 and time < 2400.0, "the extended siege lasts under 40 minutes in all (%.0f s)" % time)
+	t.check(time > 300.0 and time < 240.0 * float(stages), "the stages each complete within a reasonable time (%.0f s total)" % time)
 	for id: StringName in [&"walker", &"runner", &"brute", &"boss"]:
 		t.check(int(by_type.get(id, 0)) > 0, "the siege fields the %s" % id)
 
