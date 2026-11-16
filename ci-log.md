@@ -1,4 +1,4 @@
-# CI log (run 43967036290)
+# CI log (run 43971878014)
 
 ```
 Flutter 3.47.9 • channel stable • https://github.com/flutter/flutter.git
@@ -147,226 +147,35 @@ Analyzing Ideal...
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:166:17 • prefer_const_constructors
    info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/models_test.dart:50:17 • prefer_const_constructors
 
-26 issues found. (ran in 9.5s)
+26 issues found. (ran in 8.3s)
 00:00 +0: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
-00:00 +0: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: (setUpAll)
-00:00 +0: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (setUpAll)
-00:00 +0: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +3: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +6: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +7: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +8: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +9: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +10: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +10 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +10 -1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: data is readable after the database is closed and reopened [E]
-  Expected: 'ماندگار'
-    Actual: <null>
-     Which: not an <Instance of 'String'>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/note_service_test.dart 100:5              main.<fn>
-  
-00:00 +10 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +11 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +12 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +13 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +14 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +15 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +16 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +17 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:00 +18 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +19 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +20 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +21 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +22 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +23 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +24 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +25 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +26 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:01 +27 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +28 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +29 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +30 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +31 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +32 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +33 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +34 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +35 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +36 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +37 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +38 -1: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +38 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +38 -2: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from an explicit save command [E]
-  Expected: 'جلسهٔ فردا ساعت ده'
-    Actual: 'جلسه فردا ساعت ده'
-     Which: is different.
-            Expected: جلسهٔ فردا ساع ...
-              Actual: جلسه فردا ساعت ...
-                          ^
-             Differ at offset 4
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/intent_parser_test.dart 28:7              main.<fn>.<fn>
-  
-00:02 +39 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +40 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +41 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +42 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +43 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +44 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +45 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +46 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +47 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +48 -2: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +48 -3: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +48 -3: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «و ربع» quarter hours [E]
-  Expected: <10>
-    Actual: <null>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/intent_parser_test.dart 100:7             main.<fn>.<fn>
-  
-00:02 +49 -3: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +50 -3: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +51 -3: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +52 -3: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +53 -3: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +53 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +53 -4: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing message summary without a schedule is not a job [E]
-  Expected: IntentType:<IntentType.dailyBriefing>
-    Actual: IntentType:<IntentType.messageSummary>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/intent_parser_test.dart 141:7             main.<fn>.<fn>
-  
-00:02 +54 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:02 +55 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +56 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +57 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +58 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +59 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +60 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +61 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +62 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +63 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +64 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:03 +65 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +66 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +67 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +68 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +69 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +70 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +71 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +72 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +73 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +74 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +75 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:04 +76 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +77 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +78 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +79 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +80 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +81 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +82 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +83 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +84 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +85 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +86 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +87 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +88 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:05 +89 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +90 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +91 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +92 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +93 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +94 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +95 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +96 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +97 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +98 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +99 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +100 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +101 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +102 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +103 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +104 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:06 +105 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +106 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +107 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +108 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +109 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +110 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +111 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +112 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +113 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +114 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +115 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +116 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +117 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +118 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:07 +119 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +120 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +121 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +122 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +123 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +124 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +125 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +126 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +127 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +128 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +129 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +130 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:08 +131 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +132 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +133 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +134 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +135 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +136 -4: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +136 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +136 -5: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation [E]
-  Expected: DateTime:<2026-11-16 20:00:00.000>
-    Actual: DateTime:<2026-11-17 08:00:00.000>
-  
-  package:matcher                                     expect
-  package:flutter_test/src/widget_tester.dart 473:18  expect
-  test/unit/agent_core_test.dart 104:7                main.<fn>.<fn>
-  
-00:09 +137 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +138 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +139 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +140 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +141 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +142 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +143 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +144 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +145 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +146 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +147 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +148 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +149 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +150 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +151 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +152 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:09 +153 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:10 +154 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:10 +155 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:10 +156 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:10 +157 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:10 +158 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:10 +159 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-00:10 +160 -5: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-10:00 +160 -6: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels [E]
+00:00 +0: (setUpAll)
+00:00 +0: boots into the assistant tab in RTL with Persian labels
+10:00 +0 -1: boots into the assistant tab in RTL with Persian labels [E]
   TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
   dart:isolate  _RawReceivePort._handleMessage
   
-10:00 +160 -6: /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: navigates through all five tabs
+10:00 +0 -1: navigates through all five tabs
+20:00 +0 -2: navigates through all five tabs [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+  
+20:00 +0 -2: typed assistant input produces a confirmation sheet
+30:00 +0 -3: typed assistant input produces a confirmation sheet [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+  
+30:00 +0 -3: notes created through the agent appear in the notes tab
+40:00 +0 -4: notes created through the agent appear in the notes tab [E]
+  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
+  dart:isolate  _RawReceivePort._handleMessage
+  
+40:00 +0 -4: (tearDownAll)
+40:00 +0 -4: Some tests failed.
+
+Failing tests:
+  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
+  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: navigates through all five tabs
+  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: notes created through the agent appear in the notes tab
+  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: typed assistant input produces a confirmation sheet
 ```
