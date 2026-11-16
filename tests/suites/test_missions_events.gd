@@ -13,8 +13,8 @@ func _focus(town: TownState, id: String) -> void:
 			town.upgrade_business("gas_station", 25)
 			town.unlock_business("auto_service")
 		"reach_level_ten":
-			while town.business("gas_station").level < 10:
-				town.upgrade_business("gas_station")
+			while town.business("gas_station").level < 10 and town.upgrade_business("gas_station"):
+				pass
 		"hire_manager":
 			town.hire_manager("gas_station")
 		"buy_branch":
@@ -36,8 +36,8 @@ func _focus(town: TownState, id: String) -> void:
 					if town.business(bid).unlocked:
 						town.upgrade_business(bid, BusinessData.MAX_LEVEL)
 						for branch in BusinessData.BRANCHES:
-							while town.business(bid).can_upgrade_branch(branch):
-								town.upgrade_branch(bid, branch)
+							while town.business(bid).can_upgrade_branch(branch) and town.upgrade_branch(bid, branch):
+								pass
 
 
 func test_mission_chain_can_be_finished() -> void:

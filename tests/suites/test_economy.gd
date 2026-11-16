@@ -104,8 +104,8 @@ func test_completion_tracks_progress() -> void:
 			if town.business(id).unlocked:
 				town.upgrade_business(id, BusinessData.MAX_LEVEL)
 				for branch in BusinessData.BRANCHES:
-					while town.business(id).can_upgrade_branch(branch):
-						town.upgrade_branch(id, branch)
+					while town.business(id).can_upgrade_branch(branch) and town.upgrade_branch(id, branch):
+						pass
 	almost(town.completion(), 1.0, "a maxed hub reaches 100% completion", 0.001)
 	check(town.is_complete(), "is_complete agrees")
 	check(town.completed, "completion flag set")

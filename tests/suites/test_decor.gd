@@ -28,7 +28,7 @@ func test_emissive_props_register_for_night() -> void:
 
 
 func test_totems_and_wash_are_dressed() -> void:
-	for id in ["restaurant", "store", "workshop", "motel", "car_wash"]:
+	for id in BusinessData.ids():
 		var node := BusinessDecor.build_stage(id, 5, Color.WHITE)
 		check(node.get_child_count() >= 2, id + " needs a visible final stage")
 		node.free()

@@ -63,15 +63,15 @@ func test_the_reserve_grows_with_income() -> void:
 
 
 func test_a_finished_business_is_left_alone() -> void:
-	var town := _managed_town(900000.0)
+	var town := _managed_town(1.0e15)
 	var business := town.business("gas_station")
-	while business.can_upgrade_level():
-		town.upgrade_business("gas_station")
+	while business.can_upgrade_level() and town.upgrade_business("gas_station", 10):
+		pass
 	for branch in BusinessData.BRANCHES:
-		while business.can_upgrade_branch(branch):
-			town.upgrade_branch("gas_station", branch)
-	while business.can_hire_manager():
-		town.hire_manager("gas_station")
+		while business.can_upgrade_branch(branch) and town.upgrade_branch("gas_station", branch):
+			pass
+	while business.can_hire_manager() and town.hire_manager("gas_station"):
+		pass
 	for option in AutoUpgrade.candidates(town):
 		check(String(option["id"]) != "gas_station", "a maxed business has nothing to buy")
 	check(AutoUpgrade.apply(town).is_empty(), "so the manager stops spending")
