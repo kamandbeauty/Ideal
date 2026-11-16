@@ -25,6 +25,7 @@ func run_test() -> void:
 		check(hand_position.distance_to(grip_position) < 0.03, "rifle grip follows right-hand attachment")
 		check(rig.solver.is_running(), "support-hand IK runs on animated skeleton")
 		check(rig.support_target.global_position.distance_to(rig.rifle.to_global(rig.SUPPORT_GRIP)) < 0.01, "IK target follows rifle support point")
+		print("Post-modifier support hand distance: ", rig.left_attachment.global_position.distance_to(rig.support_target.global_position))
 	rig.queue_free()
 	await process_frame
 	quit(1 if failures else 0)

@@ -41,8 +41,9 @@ func capture() -> void:
 	for i in range(12):
 		await process_frame
 	await RenderingServer.frame_post_draw
-	var left_index: int = rig.skeleton.find_bone("LeftHand")
-	var left_position: Vector3 = rig.skeleton.to_global(rig.skeleton.get_bone_global_pose(left_index).origin)
+	# BoneAttachment follows the post-modifier pose, unlike a normal-frame
+	# Skeleton3D bone query, which returns the pre-modifier animation pose.
+	var left_position: Vector3 = rig.left_attachment.global_position
 	var right_position: Vector3 = rig.right_attachment.global_position
 	var grip_position: Vector3 = rig.rifle.to_global(rig.RIGHT_GRIP)
 	print("RIFLE EXPERIMENT right=", right_position, " right grip=", grip_position, " right distance=", right_position.distance_to(grip_position), " left=", left_position, " target=", rig.support_target.global_position, " left distance=", left_position.distance_to(rig.support_target.global_position), " solver=", rig.solver.is_running())

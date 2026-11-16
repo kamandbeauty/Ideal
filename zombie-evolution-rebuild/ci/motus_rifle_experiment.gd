@@ -5,12 +5,13 @@ extends Node3D
 const Model = preload("res://assets/models/motus-fbx2gltf-reference.glb")
 const Rifle = preload("res://assets/models/rifle-quaternius.glb")
 const RIFLE_SCALE := 0.30
-const RIGHT_GRIP := Vector3(0.45, -0.05, 0.0)
+const RIGHT_GRIP := Vector3(0.70, 0.45, 0.0)
 const SUPPORT_GRIP := Vector3(1.55, 0.20, 0.0)
 var model: Node3D
 var skeleton: Skeleton3D
 var animation: AnimationPlayer
 var right_attachment: BoneAttachment3D
+var left_attachment: BoneAttachment3D
 var support_target: Node3D
 var rifle: Node3D
 var solver: SkeletonIK3D
@@ -41,6 +42,10 @@ func _ready() -> void:
 	right_attachment.name = "RightHandAttachment"
 	right_attachment.bone_name = "RightHand"
 	skeleton.add_child(right_attachment)
+	left_attachment = BoneAttachment3D.new()
+	left_attachment.name = "LeftHandAttachment"
+	left_attachment.bone_name = "LeftHand"
+	skeleton.add_child(left_attachment)
 	rifle = Rifle.instantiate() as Node3D
 	rifle.name = "ExperimentalRifle"
 	add_child(rifle)
