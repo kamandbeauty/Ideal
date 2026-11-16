@@ -37,7 +37,7 @@ func setup(town_state: TownState) -> void:
 	traffic.name = "Traffic"
 	add_child(traffic)
 
-	var q_preset := App.quality if App != null else Quality.MEDIUM
+	var q_preset: String = App.quality if App != null else Quality.DEFAULT
 	customers = CustomerFlow.new()
 	customers.name = "Customers"
 	customers.max_agents = Quality.agent_cap(q_preset)
@@ -302,7 +302,7 @@ func pop_income(id: String, amount: float) -> void:
 	if not buildings.has(id) or amount < 1.0:
 		return
 	var label := Label3D.new()
-	var amt_txt := App.format_short(amount) if App != null else L10n.format_short("en", amount)
+	var amt_txt: String = App.format_short(amount) if App != null else ("%d" % int(round(amount)))
 	label.text = "+$" + amt_txt
 	label.font_size = 62
 	label.pixel_size = 0.0058

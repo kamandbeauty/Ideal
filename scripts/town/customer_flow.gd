@@ -13,7 +13,7 @@ const EXIT_POS := Vector3(4.8, 0.03, -6.4)
 
 var agents: Array[Dictionary] = []
 var max_agents := MAX_AGENTS
-var state
+var state: TownState
 var _queues: Dictionary = {}
 var _timers: Dictionary = {}
 var _bays: Dictionary = {}
@@ -22,7 +22,7 @@ var _rng := RandomNumberGenerator.new()
 var _next_id := 1
 
 
-func setup(town_state) -> void:
+func setup(town_state: TownState) -> void:
 	state = town_state
 	_rng.seed = 77123
 	if state == null:
@@ -178,7 +178,7 @@ func _paid(id: String, cid: int) -> void:
 
 func _pop_cash(at: Vector3, amount: float) -> void:
 	var lbl := Label3D.new()
-	var amt_txt := App.format_short(amount) if App != null else L10n.format_short("en", amount)
+	var amt_txt: String = App.format_short(amount) if App != null else ("%d" % int(round(amount)))
 	lbl.text = "+$" + amt_txt
 	lbl.font_size = 48
 	lbl.pixel_size = 0.0065

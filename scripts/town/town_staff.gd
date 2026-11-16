@@ -9,12 +9,12 @@ extends Node3D
 const PATROL := 0.85
 const MANAGER_SPEED := 0.52
 
-var state
+var state: TownState
 var _crew: Dictionary = {}
 var _phase := 0.0
 
 
-func setup(town_state) -> void:
+func setup(town_state: TownState) -> void:
 	state = town_state
 	refresh()
 
@@ -42,7 +42,7 @@ func refresh_business(id: String) -> void:
 		_build(id, b)
 
 
-func _build(id: String, b) -> void:
+func _build(id: String, b: BusinessState) -> void:
 	var plot := BusinessData.plot(id)
 	var bay_off := BusinessData.bay_offset(id)
 	var root := Node3D.new()

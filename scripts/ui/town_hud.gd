@@ -57,7 +57,7 @@ func setup(session_node: Node) -> void:
 		_apply_language())
 	session.state.changed.connect(_refresh_all)
 	session.state.event_started.connect(func(ev_id: String) -> void:
-		show_message(App.t(TownEvents.title_key(ev_id))))
+		show_message(App.t(TownEvents.name_key(ev_id))))
 	_refresh_all()
 
 
@@ -466,7 +466,7 @@ func _refresh_live_timers() -> void:
 	elif not st.active_event.is_empty():
 		_event_chip.visible = true
 		_event_chip.text = "🔥 %s (%ss)" % [
-			App.t(TownEvents.title_key(st.active_event)),
+			App.t(TownEvents.name_key(st.active_event)),
 			App.format_number(ceil(st.event_remaining)),
 		]
 	else:

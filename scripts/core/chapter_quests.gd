@@ -9,7 +9,7 @@ const MILESTONE_STEPS: Array[int] = [3, 6, 9]
 
 
 static func make_slot(slot_index: int, state, serial: int) -> Dictionary:
-	var income_min := maxf(80.0, state.net_per_minute())
+	var income_min := maxf(80.0, float(state.net_per_minute()))
 	var scale := maxf(1.0, pow(1.22, float(serial)))
 	match slot_index % 3:
 		0:
@@ -22,9 +22,9 @@ static func make_slot(slot_index: int, state, serial: int) -> Dictionary:
 static func _make_build_quest(state, income_min: float, _scale: float, serial: int) -> Dictionary:
 	for id in BusinessData.ORDER:
 		var b = state.business(id)
-		if b != null and not b.unlocked and state.star_level() >= BusinessData.star_required(id):
-			var unlock_price := state.unlock_cost(id)
-			if unlock_price <= maxf(600.0, state.cash * 2.5 + income_min * 3.0):
+		if b != null and not b.unlocked and int(state.star_level()) >= BusinessData.star_required(id):
+			var unlock_price: float = float(state.unlock_cost(id))
+			if unlock_price <= maxf(600.0, float(state.cash) * 2.5 + income_min * 3.0):
 				return {
 					"kind": "unlock_facility",
 					"target": id,
@@ -41,7 +41,7 @@ static func _make_build_quest(state, income_min: float, _scale: float, serial: i
 		if b.level < BusinessData.MAX_LEVEL and b.level < lowest_lvl:
 			lowest_lvl = b.level
 			pick_id = id
-	var cur_lvl: int = state.business(pick_id).level
+	var cur_lvl: int = int(state.business(pick_id).level)
 	var goal_lvl := mini(BusinessData.MAX_LEVEL, cur_lvl + (4 if cur_lvl < 15 else 5))
 	if goal_lvl <= cur_lvl:
 		return _make_earn_quest(state, income_min, 1.0, serial)
@@ -186,10 +186,12 @@ static func _tr(key: String, args: Array = []) -> String:
 static func _fmt_short(val: float) -> String:
 	if App != null:
 		return App.format_short(val)
-	return L10n.format_short("en", val)
+	if val >= 1000.0:
+		return "%.1fK" % (val / 1000.0)
+	return "%d" % int(round(val))
 
 
 static func _fmt_num(val: float) -> String:
 	if App != null:
 		return App.format_number(val)
-	return L10n.format_number("en", val)
+	return "%d" % int(round(val))
