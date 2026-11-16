@@ -13,7 +13,7 @@ routes = PackedStringArray("ring_right", "alley_right")
 
 [sub_resource type="Resource" id="Resource_gy6ni"]
 script = ExtResource("3_ywpqh")
-count = 23
+count = 19
 start_time = 3.0
 interval = 1.0
 routes = PackedStringArray("avenue_left", "avenue_right", "cross_left", "cross_right")
@@ -43,13 +43,13 @@ hint_key = "wave_hint_brutes"
 
 [sub_resource type="Resource" id="Resource_vae0l"]
 script = ExtResource("3_ywpqh")
-count = 20
+count = 16
 interval = 1.05
 routes = PackedStringArray("avenue_left", "avenue_right", "cross_left", "cross_right")
 
 [sub_resource type="Resource" id="Resource_3vvwj"]
 script = ExtResource("3_ywpqh")
-count = 12
+count = 10
 start_time = 3.0
 interval = 1.1
 routes = PackedStringArray("ring_left", "alley_left")
@@ -75,7 +75,7 @@ routes = PackedStringArray("ring_right", "alley_right")
 [sub_resource type="Resource" id="Resource_6bwnr"]
 script = ExtResource("3_ywpqh")
 zombie = &"runner"
-count = 18
+count = 15
 start_time = 16.0
 interval = 0.5
 burst = 2
@@ -92,14 +92,14 @@ resupply_grenades = 2
 [sub_resource type="Resource" id="Resource_5twhb"]
 script = ExtResource("3_ywpqh")
 zombie = &"runner"
-count = 14
+count = 11
 interval = 0.45
 burst = 3
 routes = PackedStringArray("avenue_left", "avenue_right")
 
 [sub_resource type="Resource" id="Resource_xfqln"]
 script = ExtResource("3_ywpqh")
-count = 14
+count = 11
 start_time = 2.0
 interval = 1.0
 routes = PackedStringArray("ring_left", "alley_left", "ring_right", "alley_right")
@@ -108,7 +108,7 @@ target = "any"
 [sub_resource type="Resource" id="Resource_asots"]
 script = ExtResource("3_ywpqh")
 zombie = &"runner"
-count = 10
+count = 8
 start_time = 14.0
 interval = 0.45
 burst = 2
@@ -126,7 +126,7 @@ routes = PackedStringArray("ring_right", "alley_right")
 [sub_resource type="Resource" id="Resource_gddej"]
 script = ExtResource("3_ywpqh")
 zombie = &"runner"
-count = 16
+count = 13
 start_time = 28.0
 interval = 0.4
 burst = 2

@@ -15,7 +15,7 @@ extends Resource
 
 func _effective_wave(wave_index: int) -> float:
 	var overall: int = maxi(waves_before + wave_index, 0)
-	return float(mini(overall, 25)) + float(maxi(overall - 25, 0)) * 0.12
+	return float(mini(overall, 25)) + float(maxi(overall - 25, 0)) * 0.035
 
 
 func health_scale(wave_index: int) -> float:
