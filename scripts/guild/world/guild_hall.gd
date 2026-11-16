@@ -524,38 +524,32 @@ func _build_sconces() -> void:
 
 ## A rune circle in the middle of the hall: the guild's own sigil, and the one
 ## glowing thing on the floor that draws the eye from the door.
-## A carpet runner from the door, past the lounge, to the counter. It gives the
-## empty middle of the room a line to follow - and it is the route the queue walks.
+## A carpet runner from the door to the guild master's place behind the counter.
+## The middle of the room was a wide blue emptiness; the runner gives it the one
+## line the composition was missing, and it is where the staff walk, while the
+## customers queue on the clean floor in front of the desk.
 func _build_runner() -> void:
-	var start := GuildHallZones.spawn("door").x
-	var end := GuildHallZones.queue_slot(0).x
-	var y := 0.05
-	var from := Vector3(end - 1.2, y, 6.9)
-	var to := Vector3(start + 0.4, y, 8.6)
+	var from := Vector3(GuildHallZones.spawn("door").x + 0.4, 0.05, 9.0)
+	var to := Vector3(-8.6, 0.05, 9.0)
 	var middle := (from + to) * 0.5
-	var length := Vector2(to.x - from.x, to.z - from.z).length()
-	var angle := atan2(to.z - from.z, to.x - from.x)
-	var across := Vector2(-sin(angle), cos(angle))
-	_runner_piece(Vector3(length, 0.03, 2.0), RUG.lightened(0.1), Vector3(middle.x, y, middle.z), angle)
-	_runner_piece(Vector3(length, 0.035, 1.7), RUG.lightened(0.18), Vector3(middle.x, y + 0.005, middle.z), angle)
+	var length := absf(to.x - from.x)
+	_runner_piece(Vector3(length, 0.03, 1.8), RUG.lightened(0.1), middle)
+	_runner_piece(Vector3(length, 0.035, 1.5), RUG.lightened(0.2), middle + Vector3(0.0, 0.005, 0.0))
 	for side in [-1.0, 1.0]:
-		var offset := (across * 0.78 * side) as Vector2
 		_runner_piece(
-			Vector3(length, 0.04, 0.1),
+			Vector3(length, 0.04, 0.09),
 			TRIM.darkened(0.12),
-			Vector3(middle.x + offset.x, y + 0.01, middle.z + offset.y),
-			angle
+			middle + Vector3(0.0, 0.01, 0.72 * side)
 		)
 
 
-func _runner_piece(size: Vector3, color: Color, at: Vector3, angle: float) -> void:
+func _runner_piece(size: Vector3, color: Color, at: Vector3) -> void:
 	var box := BoxMesh.new()
 	box.size = size
 	var piece := MeshInstance3D.new()
 	piece.mesh = box
 	piece.material_override = GuildMaterials.flat(color)
 	piece.position = at
-	piece.rotation.y = -angle
 	piece.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(piece)
 
