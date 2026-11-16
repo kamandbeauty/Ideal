@@ -85,6 +85,8 @@ static func rank_index(rank: String) -> int:
 ## A mission needs someone of at least its rank: an F-rank recruit cannot be sent
 ## on a D-rank dig.
 static func fits_rank(rank: String, mission_id: String) -> bool:
+	if not exists(mission_id):
+		return false
 	var needed := rank_index(str(mission(mission_id).get("rank", "F")))
 	return rank_index(rank) >= needed and needed >= 0
 
