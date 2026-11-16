@@ -252,6 +252,13 @@ func run(t: TestContext) -> void:
 	t.check(level.stage == 3 and level.layout == load("res://resources/levels/hospital_layout.tres") and level.wave_set == last, "the next stage loads hospital layout and waves")
 	t.check(level.geometry.find_child("HospitalMain", true, false) != null, "the hospital has its own geometry")
 	t.check(level.geometry.find_child("HospitalRoof", true, false) != null and level.geometry.find_child("ClinicCanopy-1", true, false) != null, "hospital has a rooftop and detailed entrance canopy")
+	for side: int in [-1, 1]:
+		var wing: MeshInstance3D = level.geometry.find_child("HospitalDoorWing%d" % side, true, false)
+		t.check(wing != null and (wing.mesh as BoxMesh).size.y > 15.0 and wing.position.y - (wing.mesh as BoxMesh).size.y * 0.5 > 4.0, "hospital door wing has upper floors without blocking its entrance")
+	var wing_windows: MultiMeshInstance3D = level.geometry.find_child("HospitalDoorWingWindows", true, false)
+	t.check(wing_windows != null and wing_windows.multimesh.instance_count == 48, "both near door wings have three floors of batched windows")
+	var clinic_windows: MultiMeshInstance3D = level.geometry.find_child("ClinicFrontWindows", true, false)
+	t.check(clinic_windows != null and clinic_windows.multimesh.instance_count == 24, "the side clinics have four storeys of front windows")
 	_end(game, true, last.waves.size())
 	await t.frames(2)
 	for index: int in range(4, stages):

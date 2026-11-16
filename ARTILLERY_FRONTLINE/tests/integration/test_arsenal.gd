@@ -296,7 +296,10 @@ func _the_choice(t: TestContext) -> void:
 			outlined += 1
 	t.equal(outlined, Profile.GUNS.size(), "each is shown by its outline over its name")
 	t.equal(menus.gun_note.text, Menus.gun_note_for("twin_hmg"), "with a line on what the lit one is good for")
-	t.check(menus.weapon_photo != null and menus.weapon_photo.texture != null, "the armory shows the real selected weapon in its studio")
+	t.check(menus.weapon_photo != null and menus.weapon_photo.texture != null, "the armory shows the selected weapon in its studio")
+	var studio: TextureRect = menus.holder.find_child("MenuBackdrop", true, false)
+	t.check(studio != null and studio.texture.resource_path.ends_with("armory_studio.jpg"), "the weapon-selection screen shares one studio backdrop")
+	t.check(menus.weapon_photo.material is ShaderMaterial, "the still photo blends into the shared backdrop")
 	t.check(game.level.defender.weapon is TwinHmg, "and the gun behind the menu is that one")
 	var card_height: float = (menus.gun_note.get_parent().get_parent() as Control).size.y
 	var rotary_at: int = Profile.GUNS.find("rotary_gun")

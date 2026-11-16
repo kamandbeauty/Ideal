@@ -24,6 +24,7 @@ const TITLE_WIDTH: float = 640.0
 const ARMORY_WIDTH: float = 660.0
 const CYAN := Color(0.19, 0.78, 0.84)
 const SETTINGS_GREEN := Color(0.55, 0.92, 0.18)
+static var photo_edge_shader: Shader
 
 var screen: String = ""
 var came_from: String = "main"
@@ -73,6 +74,7 @@ var built_view := Vector2.ZERO
 var built_margins := Vector2.ZERO
 var layout_check: float = 0.0
 ## Values survive a screen rebuild on a language or viewport change.
+var loading_startup: bool = false
 var loading_progress: float = 0.0
 var loading_message: String = "loading_world"
 var loading_bar: ProgressBar
@@ -254,6 +256,7 @@ func show_result(victory: bool, stats: Dictionary, record: bool = false, onward:
 
 ## Covers the scene during startup and while the next match is instantiated.
 func show_loading(startup: bool = false) -> void:
+	loading_startup = startup
 	loading_progress = 0.0
 	loading_message = "loading_world" if startup else "loading_deploy"
 	_show("loading", false)
@@ -494,7 +497,7 @@ func _build_campaign() -> void:
 ## After PLAY: pick the stage and the gun, then go to the wall. The street behind
 ## the menu shows the gun that is lit.
 func _build_arsenal() -> void:
-	_background("res://assets/textures/branding/design_workshop.png")
+	_background("res://assets/textures/branding/armory_studio.jpg")
 	_zone(UITheme.outline(_heading(Loc.t("armory"), 40, UITheme.TEXT), 4), Rect2(0.25, 0.01, 0.50, 0.07), "ArsenalTitle")
 	_zone(UITheme.button(Loc.t("back"), show_campaign, "plain", "ui_back"), Rect2(0.84, 0.01, 0.14, 0.11), "ArsenalBack")
 	var gallery := _column()
@@ -504,6 +507,20 @@ func _build_arsenal() -> void:
 	weapon_photo.name = "WeaponPhoto"
 	weapon_photo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	weapon_photo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	# Fade only the edges of the still photo into the same dark studio. The
+	# centre and stand remain an ordinary 2D image, not a 3D viewport.
+	if photo_edge_shader == null:
+		photo_edge_shader = Shader.new()
+		photo_edge_shader.code = """shader_type canvas_item;
+void fragment() {
+	float edge = smoothstep(0.0, 0.10, UV.x) * smoothstep(0.0, 0.10, 1.0 - UV.x);
+	edge *= smoothstep(0.0, 0.08, UV.y) * smoothstep(0.0, 0.08, 1.0 - UV.y);
+	COLOR.a *= edge;
+}
+"""
+	var edge_material := ShaderMaterial.new()
+	edge_material.shader = photo_edge_shader
+	weapon_photo.material = edge_material
 	weapon_photo.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	gallery.add_child(weapon_photo)
 	gun_preview_name = UITheme.outline(_heading(Loc.t(gun_data(String(Profile.setting("gun"))).name_key), 30, UITheme.TEXT), 3)
@@ -704,7 +721,7 @@ func _refresh_equipment(rebuild_preview: bool) -> void:
 
 
 func _build_loading() -> void:
-	_background("res://assets/textures/branding/design_battlefield.png")
+	_background("res://assets/textures/branding/tehran_loading.jpg" if loading_startup else "res://assets/textures/branding/design_battlefield.png")
 	holder.get_child(holder.get_child_count() - 1).name = "LoadingArt"
 	var title := UITheme.outline(_heading("LAST WALL", 72, UITheme.TEXT), 5)
 	title.add_theme_font_override("font", load("res://assets/fonts/Rajdhani-SemiBold.ttf"))

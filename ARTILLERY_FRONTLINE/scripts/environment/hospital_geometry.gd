@@ -35,6 +35,7 @@ func _build_hospital() -> void:
 	_box("HospitalMain", Vector3(0, 1.9, 5), Vector3(31, 3.8, 16), "wall", true)
 	_box("HospitalRoof", Vector3(0, 3.95, 5), Vector3(32, 0.1, 16), "concrete")
 	_box("HospitalRoofEdge", Vector3(0, 4.08, -2.95), Vector3(30, 0.16, 0.35), "trim")
+	_hospital_upper_wings()
 	# A ruined city block on the far side of the road frames the approach.
 	_box("CityBlockWest", Vector3(-25, 12, -150), Vector3(26, 24, 14), "wall", true)
 	_box("CityBlockEast", Vector3(25, 12, -150), Vector3(26, 24, 14), "concrete", true)
@@ -47,21 +48,16 @@ func _build_hospital() -> void:
 		for col: int in 3:
 			_box("CityColumn%d_%d" % [side, col], Vector3(cx - 9 + col * 9, 12, -142.82), Vector3(0.35, 23, 0.25), "concrete")
 	# Two damaged wings frame the forecourt without blocking the avenue.
-	_box("WestClinic", Vector3(-39, 7.5, -95), Vector3(14, 15, 38), "concrete", true)
-	_box("EastClinic", Vector3(39, 7.5, -95), Vector3(14, 15, 38), "concrete", true)
+	_box("WestClinic", Vector3(-39, 11, -95), Vector3(14, 22, 38), "concrete", true)
+	_box("EastClinic", Vector3(39, 11, -95), Vector3(14, 22, 38), "concrete", true)
 	_box("WestClinicStripe", Vector3(-31.9, 7, -95), Vector3(0.2, 1.2, 36), "red")
 	_box("EastClinicStripe", Vector3(31.9, 7, -95), Vector3(0.2, 1.2, 36), "red")
+	_clinic_windows()
 	for side: int in [-1, 1]:
-		for index: int in 5:
-			_box("ClinicWindow%d_%d" % [side, index], Vector3(side * 31.85, 10, -110 + index * 6), Vector3(0.2, 2.4, 2.7), "glass")
-		_box("ClinicRoof%d" % side, Vector3(side * 39, 15.2, -95), Vector3(15, 0.6, 39), "trim")
-		# Front glazing and medical signs face the rooftop.
-		for floor_index: int in 2:
-			for col: int in 3:
-				_box("ClinicFront%d_%d_%d" % [side, floor_index, col], Vector3(side * 39 + (col - 1) * 3.7, 5.2 + floor_index * 5.3, -75.9), Vector3(2.4, 2.3, 0.18), "glass")
-		_box("ClinicSign%d" % side, Vector3(side * 39, 13.0, -75.8), Vector3(5.4, 1.4, 0.2), "white")
-		_box("ClinicCrossV%d" % side, Vector3(side * 39, 13.0, -75.65), Vector3(0.45, 1.1, 0.12), "red")
-		_box("ClinicCrossH%d" % side, Vector3(side * 39, 13.0, -75.60), Vector3(1.2, 0.4, 0.12), "red")
+		_box("ClinicRoof%d" % side, Vector3(side * 39, 22.2, -95), Vector3(15, 0.6, 39), "trim")
+		_box("ClinicSign%d" % side, Vector3(side * 39, 20.5, -75.8), Vector3(5.4, 1.4, 0.2), "white")
+		_box("ClinicCrossV%d" % side, Vector3(side * 39, 20.5, -75.65), Vector3(0.45, 1.1, 0.12), "red")
+		_box("ClinicCrossH%d" % side, Vector3(side * 39, 20.5, -75.60), Vector3(1.2, 0.4, 0.12), "red")
 	# A weathered entrance canopy, pillars, signage and medical clutter along
 	# the shoulders: all decoration stays out of zombie navigation lanes.
 	for side: int in [-1, 1]:
@@ -92,6 +88,55 @@ func _build_hospital() -> void:
 	for side: int in [-1, 1]:
 		for index: int in 4:
 			_box("Debris%d_%d" % [side, index], Vector3(side * (24.0 + index * 1.4), 0.3, -50 - index * 8), Vector3(2.2, 0.6, 1.4), "concrete")
+
+
+## Upper storeys start above the existing doors. Their collision does not
+## intersect ground-level routes or the separate destructible door plates.
+func _hospital_upper_wings() -> void:
+	var windows: Array[Transform3D] = []
+	for side: int in [-1, 1]:
+		var x: float = -17.9 if side < 0 else 17.75
+		var inner: float = -16.69 if side < 0 else 16.54
+		_box("HospitalDoorWing%d" % side, Vector3(x, 13.0, -24), Vector3(2.2, 16.4, 48), "wall", true)
+		_box("HospitalDoorWingRoof%d" % side, Vector3(x, 21.3, -24), Vector3(2.8, 0.4, 48), "trim")
+		for floor_index: int in 3:
+			var y: float = 7.1 + floor_index * 4.8
+			_box("DoorWingSill%d_%d" % [side, floor_index], Vector3(inner, y - 1.6, -24), Vector3(0.25, 0.3, 47), "trim")
+			for col: int in 8:
+				windows.append(Transform3D(Basis.IDENTITY, Vector3(inner, y, -43.5 + col * 5.6)))
+	_batch_windows("HospitalDoorWingWindows", Vector3(0.14, 2.5, 3.0), windows)
+
+
+## Both distant clinics have four visible floors. Their repeated windows are
+## batched rather than requiring one draw call per pane on a phone.
+func _clinic_windows() -> void:
+	var inner: Array[Transform3D] = []
+	var fronts: Array[Transform3D] = []
+	for side: int in [-1, 1]:
+		for floor_index: int in 4:
+			var y: float = 5.7 + floor_index * 4.2
+			for col: int in 5:
+				inner.append(Transform3D(Basis.IDENTITY, Vector3(side * 31.85, y, -110 + col * 6)))
+			for col: int in 3:
+				fronts.append(Transform3D(Basis.IDENTITY, Vector3(side * 39 + (col - 1) * 3.7, y, -75.9)))
+	_batch_windows("ClinicSideWindows", Vector3(0.2, 2.4, 2.7), inner)
+	_batch_windows("ClinicFrontWindows", Vector3(2.4, 2.3, 0.18), fronts)
+
+
+func _batch_windows(batch_name: String, dimensions: Vector3, positions: Array[Transform3D]) -> void:
+	var window_mesh := BoxMesh.new()
+	window_mesh.size = dimensions
+	window_mesh.material = materials["glass"]
+	var batch := MultiMesh.new()
+	batch.transform_format = MultiMesh.TRANSFORM_3D
+	batch.mesh = window_mesh
+	batch.instance_count = positions.size()
+	for index: int in positions.size():
+		batch.set_instance_transform(index, positions[index])
+	var instance := MultiMeshInstance3D.new()
+	instance.name = batch_name
+	instance.multimesh = batch
+	add_child(instance)
 
 
 func _build_shared_defenses() -> void:
