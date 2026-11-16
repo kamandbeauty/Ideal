@@ -1,8 +1,8 @@
 {
-  "checks": 4785,
+  "checks": 4917,
   "engine": "4.7.2-stable (official)",
   "failures": [],
-  "methods": 139,
+  "methods": 147,
   "passed": true,
   "suites": [
     {
@@ -66,7 +66,7 @@
       "name": "test_daily_and_tips"
     },
     {
-      "checks": 319,
+      "checks": 361,
       "failures": 0,
       "methods": 10,
       "name": "test_guild_locale"
@@ -106,7 +106,13 @@
       "failures": 0,
       "methods": 8,
       "name": "test_guild_customers"
+    },
+    {
+      "checks": 90,
+      "failures": 0,
+      "methods": 8,
+      "name": "test_guild_missions"
     }
   ],
-  "timestamp": "2026-11-16T09:44:45"
+  "timestamp": "2026-11-16T21:02:21"
 }
