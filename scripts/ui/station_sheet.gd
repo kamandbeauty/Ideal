@@ -62,7 +62,7 @@ func _build() -> void:
 		sbtn.custom_minimum_size = Vector2(48, 36)
 		sbtn.focus_mode = Control.FOCUS_NONE
 		sbtn.add_theme_font_size_override("font_size", 14)
-		var captured := step
+		var captured: int = int(step)
 		sbtn.pressed.connect(func() -> void:
 			buy_steps = captured
 			Sound.play("click", -12.0)
@@ -132,7 +132,7 @@ func _build() -> void:
 		b_btn.custom_minimum_size = Vector2(0, 56)
 		b_btn.focus_mode = Control.FOCUS_NONE
 		b_btn.add_theme_font_size_override("font_size", 13)
-		var captured_br := br
+		var captured_br: String = String(br)
 		b_btn.pressed.connect(func() -> void: _on_branch_pressed(captured_br))
 		_branch_box.add_child(b_btn)
 		_branch_btns[br] = b_btn

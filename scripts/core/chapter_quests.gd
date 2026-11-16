@@ -57,13 +57,13 @@ static func _make_build_quest(state, income_min: float, _scale: float, serial: i
 
 
 static func _make_earn_quest(state, income_min: float, _scale: float, serial: int) -> Dictionary:
-	var target_earn := round(maxf(250.0, income_min * 1.6))
+	var target_earn := roundf(maxf(250.0, income_min * 1.6))
 	return {
 		"kind": "earn_cash",
 		"target": "",
 		"start": float(state.lifetime_cash_earned),
 		"goal": target_earn,
-		"cash": round(target_earn * 0.45),
+		"cash": roundf(target_earn * 0.45),
 		"bourbon": 10 + (serial % 4) * 3,
 		"gems": 2 if serial % 3 == 2 else 0,
 	}

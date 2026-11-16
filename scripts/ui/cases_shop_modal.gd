@@ -160,7 +160,7 @@ func _build_facilities_content() -> void:
 		btn.theme_type_variation = "GreenButton"
 		btn.custom_minimum_size = Vector2(165, 50)
 		btn.focus_mode = Control.FOCUS_NONE
-		var captured := id
+		var captured: String = String(id)
 		btn.pressed.connect(func() -> void: _on_quick_facility(captured))
 		row.add_child(btn)
 		_build_rows[id] = {"info": info, "btn": btn}

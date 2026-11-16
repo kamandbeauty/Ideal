@@ -145,7 +145,7 @@ func _build_story_rows() -> void:
 		btn.theme_type_variation = "GreenButton"
 		btn.custom_minimum_size = Vector2(156, 48)
 		btn.focus_mode = Control.FOCUS_NONE
-		var captured := id
+		var captured: String = String(id)
 		btn.pressed.connect(func() -> void: _on_travel(captured))
 		row.add_child(btn)
 		_town_rows[id] = {"name": name_lbl, "sub": sub_lbl, "btn": btn}
@@ -186,7 +186,7 @@ func _exp_card(
 
 
 func refresh() -> void:
-	var profile := Game.profile
+	var profile: Profile = Game.profile
 	var st: TownState = session.state if session != null else Game.town
 	if profile == null or st == null:
 		return

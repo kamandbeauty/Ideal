@@ -269,7 +269,7 @@ func _finish_special_order(won: bool) -> void:
 	special_order_active = false
 	special_order_timer = 0.0
 	if won:
-		var bonus_cash := round(maxf(400.0, net_per_minute() * 2.5))
+		var bonus_cash := roundf(maxf(400.0, net_per_minute() * 2.5))
 		cash += bonus_cash
 		lifetime_cash_earned += bonus_cash
 		bourbon += 28

@@ -517,7 +517,8 @@ func _on_quest_card_pressed(slot_idx: int) -> void:
 
 
 func _on_claim_milestone(step: int) -> void:
-	var reward := EmpireActions.claim_chapter_milestone(session.state, step)
+	var st: TownState = session.state
+	var reward := EmpireActions.claim_chapter_milestone(st, step)
 	if reward.is_empty():
 		return
 	Sound.play("gem", -4.0)
@@ -530,7 +531,8 @@ func _on_claim_milestone(step: int) -> void:
 
 
 func _on_boost_pressed() -> void:
-	EmpireActions.activate_x2_boost(session.state)
+	var st: TownState = session.state
+	EmpireActions.activate_x2_boost(st)
 	Sound.play("event", -5.0)
 	App.tap(28)
 	show_message(App.t("msg.boost_activated"))
@@ -550,7 +552,7 @@ func show_offline(seconds: float, earnings: float) -> void:
 	if earnings < 1.0:
 		return
 	_offline_amount = earnings
-	var mins := maxi(1, int(round(seconds / 60.0)))
+	var mins := maxi(1, int(roundf(seconds / 60.0)))
 	_offline_body.text = "%s\n\n💵 %s" % [
 		App.t("offline.away", [App.format_number(mins)]),
 		App.format_money(earnings),
@@ -560,7 +562,8 @@ func show_offline(seconds: float, earnings: float) -> void:
 
 func collect_offline() -> void:
 	if _offline_amount > 0.0:
-		session.state.earn(_offline_amount)
+		var st: TownState = session.state
+		st.earn(_offline_amount)
 		_offline_amount = 0.0
 		Sound.play("cash", -4.0)
 	_offline_modal.visible = false
@@ -568,7 +571,8 @@ func collect_offline() -> void:
 
 func show_daily_bonus(day: int) -> void:
 	_bonus_day = day
-	var c := DailyBonus.cash(session.state.net_per_minute(), day)
+	var st: TownState = session.state
+	var c := DailyBonus.cash(st.net_per_minute(), day)
 	var g := DailyBonus.gems(day)
 	_bonus_body.text = "%s\n\n💵 %s   💎 %s" % [
 		App.t("bonus.day", [App.format_number(day)]),
@@ -580,14 +584,15 @@ func show_daily_bonus(day: int) -> void:
 
 func collect_daily_bonus() -> void:
 	if _bonus_day > 0:
-		var c := DailyBonus.cash(session.state.net_per_minute(), _bonus_day)
+		var st: TownState = session.state
+		var c := DailyBonus.cash(st.net_per_minute(), _bonus_day)
 		var g := DailyBonus.gems(_bonus_day)
-		session.state.earn(c)
-		session.state.gems += g
-		session.state.bourbon += 15
+		st.earn(c)
+		st.gems += g
+		st.bourbon += 15
 		_bonus_day = 0
 		Sound.play("gem", -4.0)
-		session.state.changed.emit()
+		st.changed.emit()
 	_bonus_modal.visible = false
 
 

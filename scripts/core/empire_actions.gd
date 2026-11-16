@@ -73,7 +73,7 @@ static func open_case(
 	if case_id == "free_crate":
 		state.free_crate_cooldown = float(spec.get("cooldown", 180.0))
 	var got_bourbon := local_rng.randi_range(int(spec["bourbon_min"]), int(spec["bourbon_max"]))
-	var got_cash := round(maxf(120.0, state.net_per_minute() * float(spec["cash_minutes"])))
+	var got_cash := roundf(maxf(120.0, state.net_per_minute() * float(spec["cash_minutes"])))
 	var drops := ManagerData.roll_case_cards(local_rng, case_id)
 	state.bourbon += got_bourbon
 	state.cash += got_cash
@@ -187,7 +187,7 @@ static func salvage_iron_bones(
 	if rng == null:
 		local_rng.randomize()
 	var got_bourbon := local_rng.randi_range(12, 30)
-	var got_cash := round(maxf(180.0, state.net_per_minute() * 1.1))
+	var got_cash := roundf(maxf(180.0, state.net_per_minute() * 1.1))
 	var got_gems := 3 if local_rng.randf() < 0.35 else 0
 	var mgr := ManagerData.ORDER[local_rng.randi_range(0, ManagerData.ORDER.size() - 1)]
 	state.bourbon += got_bourbon

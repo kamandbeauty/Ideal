@@ -28,7 +28,7 @@ func setup(session_node: Node) -> void:
 		main_btn.focus_mode = Control.FOCUS_NONE
 		main_btn.custom_minimum_size = Vector2(108, 38)
 		main_btn.add_theme_font_size_override("font_size", 15)
-		var captured := id
+		var captured: String = String(id)
 		main_btn.pressed.connect(func() -> void: plot_tapped.emit(captured))
 		holder.add_child(main_btn)
 
