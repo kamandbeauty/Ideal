@@ -205,9 +205,8 @@ func _run() -> void:
 	await _capture("24-guild-board")
 	print("SMOKE: " + probe.mission_report())
 	probe.press_action()
-	await _settle(45)
+	await _settle(32)
 	print("SMOKE: bought " + str(probe.last_result))
-	await _settle(12)
 	await _capture("25-guild-loot-bought")
 	print("SMOKE: " + probe.mission_report())
 

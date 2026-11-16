@@ -355,7 +355,7 @@ func _on_traded(_result: Dictionary) -> void:
 		return
 	toast.text = message
 	toast.modulate.a = 1.0
-	_toast_left = 2.6
+	_toast_left = 3.0
 
 
 func _process(delta: float) -> void:

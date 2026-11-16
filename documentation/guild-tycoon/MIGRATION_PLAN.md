@@ -311,11 +311,18 @@ in the loop; no per-frame allocations in the logic classes (verified by review).
 | 2c | controller + follow camera, verbs timing, hall with nine zones, generated navmesh | `test_guild_player`, `test_guild_hall` (8 + 9) |
 | 3a | economy: items, buy/sell prices, treasury, stock, orders, payment | `test_guild_economy` (12) |
 | 3c | customers that **walk**: navmesh route from the door, a four-place queue, the counter order belongs to the front of the line, a served customer walks out and the line steps up, an ignored one gives up; decoration pass (wall bands, zone floor lines, patterned rug, wall sconces, rune circle, violet fill light) | `test_guild_customers` (8), captures `22-guild-customers-walk` / `23-guild-customers-order` |
+| 3d | the mission board: a four-job table with ranks, fees and loot tables; a five-person roster; dispatch debits the vault, the clock runs, the pack comes home, and buying it pays the buy price into the warehouse; the HUD's mission counter and the board's sign read the desk; `data/**` added to the CI path filter (a data-only fix never ran the check) | `test_guild_missions` (8), captures `24-guild-board` / `25-guild-loot-bought` |
 | 3b | touch HUD: facts bar, joystick, contextual action button, toast, language pill; world signs follow the language | `test_guild_hud` (7), captures `20-guild-hud-en` / `21-guild-hud-fa` |
 
-Still open, in this order: the mission board and dispatched adventurers, the
-treasury spent on restocking, upgrades, the real art pass (imported or authored
-meshes, hair, faces, fabric), and finally Roadstop's removal.
+Still open, in this order: upgrades (carry, speed, warehouse, hands, deposit) and
+employees, the punishment side of the loop (a customer who leaves angry costs
+reputation), the real art pass (imported or authored meshes, hair, faces, fabric),
+save/load for the guild state, and finally Roadstop's removal.
+
+What the loop proves today, from the play-through report: `loop stock=13 vault=14
+reputation=3.7 last={verb: buy_loot, amount: 32}` - a fee of 8 and a pack worth 32
+left the vault, four items entered the warehouse, and the mission's reputation came
+home. Nothing in that sentence is decorative.
 
 Note on the HUD: the action button is contextual but the *player* still has to stand
 at the station; there is no "tap a customer to serve" shortcut yet, and the mission
