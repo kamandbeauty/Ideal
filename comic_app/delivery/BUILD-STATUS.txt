@@ -1,0 +1,11 @@
+App: Qabak Comics (قابک)
+Package: com.qabak.comics
+Version: 1.0.0 (code 1)
+Min SDK: 26 (Android 8.0) | Target/Compile SDK: 35 (Android 15+)
+Source commit: c1b17631159d9f1bb6a2833fabce35340a85ee49
+APK file: QabakComics-v1.0.0.apk (8.1M)
+Build type: Release (R8 minified, resource-shrunk, signed V1 + V2 + V3)
+Bundled comics: 4 original bilingual illustrated comics (22 high-res WebP pages)
+Unit & Compose UI tests: 17 passed, 0 failed
+Rendered UI screenshots: 0 PNGs in comic_app/qa/screenshots/
+Verified: ZIP CRC32 OK, apksigner v1/v2/v3 OK, aapt2 badging & manifest OK, zero dangerous storage permissions
