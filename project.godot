@@ -6,12 +6,12 @@ config_version=5
 [application]
 
 config/name="Roadside Empire: Idle Tycoon"
-config/description="Roadside Empire: Idle Tycoon — Build your desert gas station into a full roadside empire!"
-config/version="1.41.0"
+config/description="Roadside Empire: Idle Tycoon — Build a bright cartoon roadside town with orange roofs and lime lawns!"
+config/version="1.42.0"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://assets/icons/icon.png"
-boot_splash/bg_color=Color(0.92, 0.74, 0.46, 1)
+boot_splash/bg_color=Color(0.80, 0.89, 0.31, 1)
 boot_splash/show_image=false
 
 [autoload]
@@ -39,7 +39,7 @@ theme/default_font_multichannel_signed_distance_field=false
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-environment/defaults/default_clear_color=Color(0.92, 0.74, 0.46, 1)
+environment/defaults/default_clear_color=Color(0.80, 0.89, 0.31, 1)
 anti_aliasing/quality/msaa_3d=0
 textures/default_filters/anisotropic_filtering_level=2
 textures/vram_compression/import_etc2_astc=true

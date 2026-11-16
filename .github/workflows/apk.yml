@@ -149,7 +149,7 @@ jobs:
             > /tmp/export.log 2>&1 || status=$?
           echo "::notice title=export-status::godot exited with $status"
           ls -la delivery || true
-          if [ ! -s delivery/RoadsideEmpire.apk ]; then
+          if [ "$status" -ne 0 ] || [ ! -s delivery/RoadsideEmpire.apk ]; then
             msg=$(tail -25 /tmp/export.log | tr '\n' '|' | cut -c1-3500)
             echo "::error title=export-log::$msg"
             exit 1
@@ -163,8 +163,18 @@ jobs:
           BADGING=$("$ANDROID_HOME/build-tools/34.0.0/aapt2" dump badging "$APK")
           echo "$BADGING" | grep -E "^(package|sdkVersion|targetSdkVersion|application-label|native-code|launchable-activity)"
           echo "$BADGING" | grep -q "package: name='com.roadsideempire.tycoon'"
-          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK"
+          expected_name=$(sed -n 's/^version\/name="\(.*\)"$/\1/p' export_presets.cfg)
+          expected_code=$(sed -n 's/^version\/code=//p' export_presets.cfg)
+          test -n "$expected_name" && test -n "$expected_code"
+          echo "$BADGING" | grep -Fq "versionName='$expected_name'"
+          echo "$BADGING" | grep -Fq "versionCode='$expected_code'"
+          echo "$BADGING" | grep -q "native-code: 'arm64-v8a'"
+          echo "::notice title=APK package::$(echo "$BADGING" | head -1)"
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK" | tee /tmp/signature.txt
+          signer=$(grep 'Signer #1 certificate SHA-256 digest:' /tmp/signature.txt)
+          echo "::notice title=APK signing::$signer"
           (cd delivery && sha256sum RoadsideEmpire.apk > RoadsideEmpire.apk.sha256)
+          echo "::notice title=APK checksum::$(cat delivery/RoadsideEmpire.apk.sha256)"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -178,10 +188,12 @@ jobs:
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          notes=$(printf '%s\n\n%s\n%s\n' \
-            "Debug-signed arm64 Android APK of Roadside Empire: Idle Tycoon (امپراتوری بین‌راهی), v1.41.0 — swept vehicle collisions, reserved parking, one-way roads and refreshed graphics." \
-            "Install: open this page on your Android phone, download RoadsideEmpire.apk," \
-            "allow \"install unknown apps\" for your browser/file manager, then open the file.")
+          version=$(sed -n 's/^version\/name="\(.*\)"$/\1/p' export_presets.cfg)
+          notes=$(printf '%s\n\n%s\n\n%s\n\n%s\n' \
+            "Roadside Empire: Idle Tycoon — v${version}, debug-signed Android ARM64 APK." \
+            "Bright cartoon town: lime lawns, white kerbs, cool-grey roads, orange gabled roofs, orthographic camera and a light orange/blue illustrated UI. Existing collision bodies, reservations and progression are retained." \
+            "Install RoadsideEmpire.apk without uninstalling the existing game. Builds from v1.41 onward reuse the cached debug-signing identity. Compatibility with v1.40 is unverified: if Android reports a conflict, keep the old installation because uninstalling can delete saved progress." \
+            "ابتدا بدون حذف نسخهٔ قبلی نصب کنید. اگر خطای تداخل بسته یا امضا دریافت کردید، بازی قبلی را حذف نکنید؛ حذف بازی می‌تواند پیشرفت ذخیره‌شده را پاک کند.")
           notes="$notes"$'\n'"Built from $SHA."
           if ! gh release view roadside-empire-apk > /dev/null 2>&1; then
             gh release create roadside-empire-apk --title "Roadside Empire: Idle Tycoon — Android APK" \

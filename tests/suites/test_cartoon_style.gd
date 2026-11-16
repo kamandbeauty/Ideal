@@ -61,7 +61,8 @@ func test_maps_preserve_the_palette_and_mobile_materials() -> void:
 		equal(material.specular_mode, BaseMaterial3D.SPECULAR_DISABLED, kind + " is matte")
 		check(material.roughness >= 0.90, kind + " cannot produce glaring highlights")
 	var car_paint := VehicleMesh.paint(Color.RED, 0.2, 0.8)
-	check(car_paint.roughness >= 0.70 and car_paint.metallic <= 0.16, "toy cars are not glossy metal blocks")
+	almost(car_paint.roughness, 0.70, "toy paint clamps the highlight roughness", 0.0001)
+	check(car_paint.metallic <= 0.1601, "toy cars are not glossy metal blocks")
 
 
 func test_orthographic_camera_zoom_remains_interactive() -> void:
