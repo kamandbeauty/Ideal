@@ -13,10 +13,15 @@ const DEMO_HERO_SPOT := Vector3(1.0, 0.05, 3.2)
 
 var hall: GuildHall
 var hero: GuildPlayer
+var stations: Array = []
+var stock: GuildStock
+var treasury: GuildTreasury
+var last_result: Dictionary = {}
 var camera_rig: GuildPlayerCamera
 var cast: Array[GuildCharacter] = []
 
 var follow_hero := false
+var _pending: Dictionary = {}
 var _pose := "idle"
 var _speed := 0.0
 var _environment: Environment
@@ -26,7 +31,9 @@ func _ready() -> void:
 	_build_environment()
 	_build_hall()
 	_build_cast()
+	_build_trade()
 	_build_camera()
+	hero.state.verb_finished.connect(_on_verb_finished)
 	print("SMOKE: probe ready, " + describe())
 
 
@@ -145,6 +152,61 @@ func hero_report() -> String:
 	return "\n".join(lines)
 
 
+## Moves the guild master and turns them, so a capture can stand them anywhere.
+func place_hero(point: Vector3, yaw_degrees: float = 0.0) -> void:
+	hero.velocity = Vector3.ZERO
+	hero.global_position = Vector3(point.x, 0.05, point.z)
+	hero.rotation.y = deg_to_rad(yaw_degrees)
+
+
+func station_at_hero() -> GuildStation:
+	return GuildStation.nearest(stations, hero.global_position)
+
+
+## The action button: starts the verb the nearest station offers. The trade itself
+## lands when the verb finishes, so a pickup cannot happen mid-air.
+func press_action() -> Dictionary:
+	var station := station_at_hero()
+	if station == null:
+		last_result = {"reason": "nothing near"}
+		return last_result
+	var verb := station.verb()
+	if not hero.interact(verb):
+		last_result = {"reason": "busy"}
+		return last_result
+	_pending = {"verb": verb, "station": station}
+	last_result = {"verb": verb, "station": station.kind, "started": true}
+	return last_result
+
+
+func _on_verb_finished(verb: String) -> void:
+	if _pending.is_empty() or str(_pending["verb"]) != verb:
+		return
+	var station: GuildStation = _pending["station"]
+	_pending = {}
+	match verb:
+		"pickup":
+			last_result = GuildTrade.pick(hero.state, station.stock, 3)
+		"deliver":
+			last_result = GuildTrade.deliver(hero.state, station.order)
+		"deposit":
+			last_result = GuildTrade.deposit(hero.state, station.treasury)
+		_:
+			last_result = {"reason": "unknown verb"}
+
+
+## The loop's books, written next to the captures.
+func trade_report() -> String:
+	return "loop stock=%d hands=%d money=%.0f vault=%.0f reputation=%.1f last=%s" % [
+		stock.total() if stock != null else -1,
+		hero.state.carry,
+		hero.state.money,
+		treasury.cash if treasury != null else -1.0,
+		treasury.reputation if treasury != null else -1.0,
+		str(last_result),
+	]
+
+
 func _process(delta: float) -> void:
 	_animate_hero(delta)
 	if follow_hero and camera_rig != null:
@@ -203,6 +265,34 @@ func _build_cast() -> void:
 		cast.append(member)
 		member.animate(0.016, 0.0, "idle")
 	print("SMOKE: hero node children=%d, rig parts=%d" % [hero.get_child_count(), hero.character.parts.size()])
+
+
+func _build_trade() -> void:
+	treasury = GuildTreasury.new()
+	stock = GuildStock.new(40)
+	stock.add("slime_gel", 9)
+	stock.add("healing_herb", 3)
+
+	var shelf := GuildStation.new(GuildStation.SHELF)
+	shelf.name = "Shelf"
+	shelf.position = Vector3(9.0, 0.0, 9.0)
+	add_child(shelf)
+	shelf.bind_stock(stock)
+
+	var counter := GuildStation.new(GuildStation.COUNTER)
+	counter.name = "Counter"
+	counter.position = Vector3(-9.6, 0.0, 7.4)
+	add_child(counter)
+	counter.bind_order(GuildOrder.new("slime_gel", 3))
+	counter.set_customer(GuildCharacter.new("mage", true))
+
+	var vault := GuildStation.new(GuildStation.VAULT)
+	vault.name = "Vault"
+	vault.position = Vector3(9.6, 0.0, 2.6)
+	add_child(vault)
+	vault.bind_treasury(treasury)
+
+	stations = [shelf, counter, vault]
 
 
 func _build_camera() -> void:

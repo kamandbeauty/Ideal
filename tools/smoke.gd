@@ -137,9 +137,35 @@ func _run() -> void:
 	probe.overview()
 	await _settle(20)
 	await _capture("16-guild-hall-top")
+
+	# The first real loop: shelf -> hands -> counter -> coins -> vault.
+	probe.place_hero(Vector3(9.0, 0.0, 8.0), 180.0)
+	probe.press_action()
+	await _settle(45)
+	print("SMOKE: loop pickup " + str(probe.last_result))
+	probe.focus_hero()
+	await _settle(20)
+	await _capture("17-guild-pickup")
+
+	probe.place_hero(Vector3(-9.6, 0.0, 7.0), 0.0)
+	probe.press_action()
+	await _settle(45)
+	print("SMOKE: loop deliver " + str(probe.last_result))
+	await _capture("18-guild-deliver")
+
+	probe.place_hero(Vector3(9.6, 0.0, 2.6), 180.0)
+	probe.press_action()
+	await _settle(45)
+	print("SMOKE: loop deposit " + str(probe.last_result))
+	await _capture("19-guild-vault")
+
 	print("SMOKE: " + probe.describe())
+	print("SMOKE: " + probe.trade_report())
 	_write_probe_report(
-			probe.describe() + "\n" + probe.hero_report() + "\n" + probe.hall_report()
+			probe.describe()
+			+ "\n" + probe.hero_report()
+			+ "\n" + probe.hall_report()
+			+ "\n" + probe.trade_report()
 	)
 	probe.queue_free()
 	await _settle(4)

@@ -25,7 +25,12 @@ const VERBS := {
 	"deposit": 0.6,
 }
 
+## The generic cargo used by the controller's own tests and by anything that is
+## not a catalogued item yet. Real goods carry their own item id.
+const GENERIC_ITEM := "cargo"
+
 var carry := 0
+var held: Dictionary = {}
 var carry_capacity := 6
 var money := 0.0
 var money_capacity := 500.0
@@ -77,22 +82,67 @@ func can_carry(amount: int) -> bool:
 	return amount > 0 and amount <= space_for_items()
 
 
-## Adds items; returns how many were actually taken (never more than the space).
-func take_items(amount: int) -> int:
+## Puts `amount` of an item into the hands; returns how many fit.
+func hold_items(item_id: String, amount: int) -> int:
 	var taken := clampi(amount, 0, space_for_items())
-	carry += taken
-	if taken > 0:
-		changed.emit()
+	if taken == 0 or item_id.is_empty():
+		return 0
+	held[item_id] = held_of(item_id) + taken
+	_refresh_carry()
+	changed.emit()
 	return taken
 
 
-## Removes items; returns how many were actually handed over.
-func give_items(amount: int) -> int:
-	var given := clampi(amount, 0, carry)
-	carry -= given
-	if given > 0:
-		changed.emit()
+## Hands items over; returns how many were actually taken out of the hands.
+func release_items(item_id: String, amount: int) -> int:
+	var given := clampi(amount, 0, held_of(item_id))
+	if given == 0:
+		return 0
+	var left := held_of(item_id) - given
+	if left > 0:
+		held[item_id] = left
+	else:
+		held.erase(item_id)
+	_refresh_carry()
+	changed.emit()
 	return given
+
+
+## Generic convenience used when the kind of cargo does not matter.
+func take_items(amount: int) -> int:
+	return hold_items(GENERIC_ITEM, amount)
+
+
+func give_items(amount: int) -> int:
+	return release_items(GENERIC_ITEM, amount)
+
+
+func held_of(item_id: String) -> int:
+	return int(held.get(item_id, 0))
+
+
+## The item to grab first when the hands are not empty.
+func first_held() -> String:
+	for id in held:
+		if int(held[id]) > 0:
+			return str(id)
+	return ""
+
+
+func clear_hands() -> int:
+	var emptied := carry
+	held.clear()
+	_refresh_carry()
+	if emptied > 0:
+		changed.emit()
+	return emptied
+
+
+func _refresh_carry() -> void:
+	var total := 0
+	for id in held:
+		total += int(held[id])
+	carry = total
 
 
 func money_space() -> float:
