@@ -14,7 +14,7 @@ signal arrived(customer: GuildCustomer)
 
 const WALK_SPEED := 1.35
 const TURN_RATE := 9.0
-const PLATE_HEIGHT := 2.15
+const PLATE_HEIGHT := 2.0
 
 var class_id := "warrior"
 var character: GuildCharacter
@@ -46,7 +46,7 @@ func _build_plate() -> void:
 	plate.name = "Plate"
 	plate.text = GuildLocale.t("customer." + class_id, [], "en")
 	plate.font_size = 42
-	plate.pixel_size = 0.0045
+	plate.pixel_size = 0.0038
 	plate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	plate.outline_size = 10
 	plate.modulate = Color(0.92, 0.94, 1.0, 0.92)

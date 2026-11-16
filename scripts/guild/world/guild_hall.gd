@@ -14,12 +14,12 @@ extends Node3D
 const NAV_CELL := 0.5
 const NAV_MARGIN := 0.4
 const FLOOR_COLOR := Color(0.14, 0.15, 0.22)
-const WALL_COLOR := Color(0.2, 0.21, 0.31)
+const WALL_COLOR := Color(0.22, 0.23, 0.34)
 const WOOD := Color(0.34, 0.24, 0.18)
 const IRON := Color(0.42, 0.45, 0.56)
 const GOLD := Color(0.92, 0.76, 0.38)
 const RUG := Color(0.17, 0.13, 0.28)
-const CUSHION := Color(0.55, 0.25, 0.35)
+const CUSHION := Color(0.46, 0.17, 0.25)
 const TRIM := Color(0.62, 0.5, 0.27)
 const LANTERN := Color(1.0, 0.84, 0.52)
 const RUNE := Color(0.36, 0.88, 0.9)
@@ -133,7 +133,7 @@ func _build_floor() -> void:
 		var patch_mesh := BoxMesh.new()
 		patch_mesh.size = Vector3(rect.size.x - 0.5, 0.03, rect.size.y - 0.5)
 		patch.mesh = patch_mesh
-		patch.material_override = GuildMaterials.flat(data["floor"] as Color)
+		patch.material_override = GuildMaterials.flat((data["floor"] as Color).lightened(0.07))
 		patch.position = Vector3(rect.position.x + rect.size.x * 0.5, 0.016, rect.position.y + rect.size.y * 0.5)
 		inlay.add_child(patch)
 
@@ -213,8 +213,8 @@ func _build_zones() -> void:
 		label.name = "Label"
 		label.text = GuildLocale.t(str(data["name_key"]), [], "en")
 		label.font_size = 48
-		label.pixel_size = 0.009
-		label.modulate = Color(0.86, 0.88, 1.0, 0.9)
+		label.pixel_size = 0.0075
+		label.modulate = Color(0.88, 0.9, 1.0, 0.82)
 		label.outline_size = 12
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		label.no_depth_test = false
@@ -321,7 +321,7 @@ func _build_prop(prop: Dictionary) -> void:
 				_block(
 						root,
 						Vector3(rect.size.x, step_height, rect.size.y * (1.0 - index * 0.12)),
-						Color(0.3, 0.31, 0.42),
+						Color(0.34, 0.33, 0.42),
 						Vector3(0.0, step_height * (index + 0.5), -rect.size.y * 0.06 * index)
 				)
 		"dummy":
@@ -407,7 +407,7 @@ func _build_lighting() -> void:
 		var spot := GuildHallZones.center(str(lamp["zone"]))
 		light.position = spot + Vector3(0.0, 4.4, 0.0)
 		light.light_color = lamp["color"] as Color
-		light.light_energy = 9.5
+		light.light_energy = 10.5
 		light.omni_range = 15.0
 		light.light_specular = 0.0
 		add_child(light)
@@ -423,6 +423,7 @@ func _build_decor() -> void:
 	_build_zone_trim()
 	_build_rug_pattern()
 	_build_sconces()
+	_build_tapestries()
 	_build_rune_circle()
 
 
@@ -475,15 +476,19 @@ func _build_rug_pattern() -> void:
 	_plate(Vector3(5.4, 0.02, 3.4), RUG.lightened(0.16), center)
 	_plate(Vector3(4.9, 0.025, 2.9), TRIM.darkened(0.1), center)
 	_plate(Vector3(4.5, 0.03, 2.5), RUG.lightened(0.06), center)
-	var diamond := BoxMesh.new()
-	diamond.size = Vector3(1.7, 0.02, 1.7)
-	var gem := MeshInstance3D.new()
-	gem.mesh = diamond
-	gem.material_override = GuildMaterials.glow(RUNE.darkened(0.55), 0.35)
-	gem.position = center + Vector3(0.0, 0.01, 0.0)
-	gem.rotation.y = deg_to_rad(45.0)
-	gem.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	add_child(gem)
+	# The middle of the carpet: a dark medallion with a gold star, woven rather
+	# than lit - an emissive patch here read as a puddle on the floor.
+	_plate(Vector3(2.1, 0.032, 1.6), RUG.darkened(0.25), center + Vector3(0.0, 0.012, 0.0))
+	for step in 4:
+		var arm := BoxMesh.new()
+		arm.size = Vector3(1.5, 0.034, 0.09)
+		var ray := MeshInstance3D.new()
+		ray.mesh = arm
+		ray.material_override = GuildMaterials.flat(TRIM.darkened(0.25))
+		ray.position = center + Vector3(0.0, 0.02, 0.0)
+		ray.rotation.y = deg_to_rad(45.0 * step)
+		ray.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(ray)
 
 
 ## Sconces on the walls. An earlier pass hung lanterns from ceiling beams, but a
@@ -493,7 +498,7 @@ func _build_sconces() -> void:
 	var half_d := GuildHallZones.DEPTH * 0.5 - GuildHallZones.WALL_THICKNESS * 0.5
 	for side in [-1.0, 1.0]:
 		for spot in [-8.5, -2.5, 3.5]:
-			var at := Vector3(spot, 2.9, half_d * side)
+			var at := Vector3(spot, 3.3, half_d * side)
 			_plate(Vector3(0.12, 0.5, 0.12), IRON.darkened(0.25), at + Vector3(0.0, -0.25, -0.16 * side))
 			var cup := CylinderMesh.new()
 			cup.top_radius = 0.2
@@ -506,11 +511,11 @@ func _build_sconces() -> void:
 			bowl.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			add_child(bowl)
 			var flame := SphereMesh.new()
-			flame.radius = 0.12
-			flame.height = 0.3
+			flame.radius = 0.09
+			flame.height = 0.24
 			var fire := MeshInstance3D.new()
 			fire.mesh = flame
-			fire.material_override = GuildMaterials.glow(LANTERN, 1.0)
+			fire.material_override = GuildMaterials.glow(Color(0.98, 0.66, 0.32), 0.7)
 			fire.position = at + Vector3(0.0, 0.24, -0.22 * side)
 			fire.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			add_child(fire)
@@ -518,6 +523,32 @@ func _build_sconces() -> void:
 
 ## A rune circle in the middle of the hall: the guild's own sigil, and the one
 ## glowing thing on the floor that draws the eye from the door.
+## Three tapestries on the back wall: the only tall shapes in a room whose
+## furniture is all waist-high, so the hall reads as a room and not a floor plan.
+func _build_tapestries() -> void:
+	var wall_z := -GuildHallZones.DEPTH * 0.5 + GuildHallZones.WALL_THICKNESS
+	var banners := [
+		{"x": -6.6, "color": Color(0.2, 0.22, 0.52), "trim": RUNE},
+		{"x": 0.0, "color": Color(0.34, 0.2, 0.46), "trim": Color(0.95, 0.8, 0.42)},
+		{"x": 6.6, "color": Color(0.16, 0.34, 0.4), "trim": Color(0.72, 0.86, 0.92)},
+	]
+	for banner in banners:
+		var at := Vector3(float(banner["x"]), 3.4, wall_z + 0.08)
+		_plate(Vector3(2.4, 3.2, 0.06), banner["color"] as Color, at)
+		_plate(Vector3(2.6, 0.16, 0.1), TRIM, at + Vector3(0.0, 1.68, 0.01), true)
+		_plate(Vector3(0.14, 3.2, 0.08), TRIM.darkened(0.1), at + Vector3(-1.2, 0.0, 0.01))
+		_plate(Vector3(0.14, 3.2, 0.08), TRIM.darkened(0.1), at + Vector3(1.2, 0.0, 0.01))
+		var emblem := BoxMesh.new()
+		emblem.size = Vector3(0.7, 0.7, 0.04)
+		var mark := MeshInstance3D.new()
+		mark.mesh = emblem
+		mark.material_override = GuildMaterials.flat(banner["trim"] as Color)
+		mark.position = at + Vector3(0.0, 0.1, 0.05)
+		mark.rotation.y = deg_to_rad(45.0)
+		mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(mark)
+
+
 func _build_rune_circle() -> void:
 	var center := GuildHallZones.center("hall")
 	for ring in [
