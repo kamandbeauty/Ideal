@@ -77,7 +77,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf comic_app/qa && mkdir -p comic_app/qa/screenshots
-          if ! gradle -p comic_app testDebugUnitTest -Droborazzi.test.record=true --no-daemon > /tmp/test.log 2>&1; then
+          if ! gradle -p comic_app recordRoborazziDebug --no-daemon > /tmp/test.log 2>&1; then
             tail -n 120 /tmp/test.log
             grep -E 'e: |FAILED|Exception|AssertionError|Caused by:|FAILURE|What went wrong|> ' /tmp/test.log | tail -n 35 | while IFS= read -r line; do
               echo "::error title=Unit/UI Test::${line}"
@@ -86,6 +86,7 @@ jobs:
           fi
           tail -n 30 /tmp/test.log
           ls -lh comic_app/qa/screenshots/
+          test "$(find comic_app/qa/screenshots -maxdepth 1 -name '*.png' | wc -l)" -ge 10
 
       - name: Assemble signed Release APK & run Android Lint
         run: |
@@ -152,11 +153,11 @@ jobs:
             printf 'Min SDK: 26 (Android 8.0) | Target/Compile SDK: 35 (Android 15+)\n'
             printf 'Source commit: %s\n' "$GITHUB_SHA"
             printf 'APK file: QabakComics-v1.0.0.apk (%s)\n' "$APK_SIZE"
-            printf 'Build type: Release (R8 minified, resource-shrunk, signed V1 + V2 + V3)\n'
+            printf 'Build type: Release (R8 minified, resource-shrunk, signed APK Signature Scheme v2 + v3)\n'
             printf 'Bundled comics: 4 original bilingual illustrated comics (22 high-res WebP pages)\n'
             printf 'Unit & Compose UI tests: %s passed, %s failed\n' "$TEST_COUNT" "$FAIL_COUNT"
             printf 'Rendered UI screenshots: %s PNGs in comic_app/qa/screenshots/\n' "$SHOT_COUNT"
-            printf 'Verified: ZIP CRC32 OK, apksigner v1/v2/v3 OK, aapt2 badging & manifest OK, zero dangerous storage permissions\n'
+            printf 'Verified: ZIP CRC32 OK, apksigner v2/v3 OK, aapt2 badging & manifest OK, zero dangerous storage permissions\n'
           } > comic_app/delivery/BUILD-STATUS.txt
           cat comic_app/delivery/BUILD-STATUS.txt
 
