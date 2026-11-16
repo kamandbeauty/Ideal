@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The INTERNET permission is required for development: the Flutter tool uses it
+         to talk to the running application for hot reload and debugging. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+</manifest>

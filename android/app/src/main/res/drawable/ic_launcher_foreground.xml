@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Adaptive-icon foreground: a stylised microphone inside a soft purple ring. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- microphone capsule -->
+    <path
+        android:fillColor="#FFB9A7FF"
+        android:pathData="M54,30c-4.4,0 -8,3.6 -8,8v14c0,4.4 3.6,8 8,8s8,-3.6 8,-8V38c0,-4.4 -3.6,-8 -8,-8z" />
+    <!-- microphone cradle -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFEDE9FF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M40,52v2c0,7.7 6.3,14 14,14s14,-6.3 14,-14v-2" />
+    <!-- stand -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFEDE9FF"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M54,68v8M46,76h16" />
+</vector>

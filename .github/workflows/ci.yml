@@ -3,57 +3,54 @@ on:
   push:
     branches: ['**']
   workflow_dispatch:
+
 permissions:
   contents: read
   checks: write
+
+concurrency:
+  group: javidai-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.47.9'
+  JAVA_VERSION: '21'
+
 jobs:
-  probe:
+  build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - name: Environment probe
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Set up JDK
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Report toolchain
         run: |
-          python3 - <<'PY'
-          import base64, os, shutil, subprocess, glob, platform
-          out = []
-          def run(cmd):
-              try:
-                  p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
-                  return (p.stdout + p.stderr).strip()
-              except Exception as e:
-                  return f"ERR {e}"
-          out.append("=== OS ===")
-          out.append(run("cat /etc/os-release | head -3"))
-          out.append("=== FLUTTER ===")
-          out.append("which flutter: " + run("which flutter"))
-          out.append("flutter version: " + run("flutter --version"))
-          out.append("=== DART ===")
-          out.append(run("which dart"))
-          out.append("=== JAVA ===")
-          out.append(run("java -version 2>&1"))
-          out.append("JAVA_HOME=" + str(os.environ.get("JAVA_HOME")))
-          out.append("=== ANDROID ===")
-          out.append("ANDROID_HOME=" + str(os.environ.get("ANDROID_HOME")))
-          out.append("ANDROID_SDK_ROOT=" + str(os.environ.get("ANDROID_SDK_ROOT")))
-          ah = os.environ.get("ANDROID_HOME") or "/usr/local/lib/android/sdk"
-          out.append("platforms: " + str(sorted(os.listdir(ah + "/platforms")) if os.path.isdir(ah + "/platforms") else "none"))
-          out.append("build-tools: " + str(sorted(os.listdir(ah + "/build-tools")) if os.path.isdir(ah + "/build-tools") else "none"))
-          out.append("ndk: " + str(sorted(os.listdir(ah + "/ndk")) if os.path.isdir(ah + "/ndk") else "none"))
-          out.append("cmdline-tools: " + str(sorted(os.listdir(ah + "/cmdline-tools")) if os.path.isdir(ah + "/cmdline-tools") else "none"))
-          out.append("=== GRADLE CACHE ===")
-          g = os.path.expanduser("~/.gradle")
-          out.append("gradle cache sizes: " + run("du -sh ~/.gradle/* 2>/dev/null | head"))
-          out.append("gradle wrappers: " + str(glob.glob(os.path.expanduser('~/.gradle/wrapper/dists/*'))))
-          out.append("=== PUB CACHE ===")
-          out.append(run("du -sh ~/.pub-cache 2>/dev/null; ls ~/.pub-cache/hosted/pub.dev 2>/dev/null | head -30"))
-          out.append("=== FLUTTER SDK CACHE ===")
-          out.append(run("ls $(dirname $(dirname $(which flutter)))/bin/cache/artifacts/engine 2>/dev/null | head -20"))
-          out.append("=== DISK ===")
-          out.append(run("df -h / | tail -1"))
-          text = "\n".join(out)
-          # print in chunks of 3500 chars using annotations
-          for i in range(0, len(text), 3500):
-              chunk = text[i:i+3500]
-              print(f"::warning title=PROBE{i//3500}::{base64.b64encode(chunk.encode()).decode()}")
-          PY
-          echo "probe finished"
+          flutter --version
+          dart --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test --reporter expanded
+
+      - name: Build debug APK
+        run: flutter build apk --debug
