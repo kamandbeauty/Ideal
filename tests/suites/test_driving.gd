@@ -44,7 +44,8 @@ func test_routes_go_around_buildings_not_through_them() -> void:
 				for route in [
 					ForecourtLayout.inbound(id, slot),
 					ForecourtLayout.reverse_out(id, slot),
-					ForecourtLayout.outbound(id, slot)
+					ForecourtLayout.outbound(id, slot),
+					ForecourtLayout.highway_merge()
 				]:
 					check(
 						_clear_route(route, size, obstacles),

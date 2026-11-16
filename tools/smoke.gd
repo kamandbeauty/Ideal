@@ -118,6 +118,28 @@ func _run() -> void:
 	settings_node.call("close")
 	await _settle(4)
 
+	# 11) New one-way circulation and surface detail in daylight.
+	App.set_language("en")
+	_town.day_cycle.set_time(0.24)
+	_town.camera_rig.focus_on(Vector3(0, 0, 4.5))
+	_town.camera_rig.zoom = 35.0
+	_town.camera_rig.apply()
+	await _settle(120)
+	await _capture("14-one-way-forecourt")
+
+	# 12) Fully built hub: every reserved bay must remain reachable.
+	for id in _town.state.business_ids():
+		var business: BusinessState = _town.state.business(id)
+		business.unlocked = true
+		business.capacity_level = business.max_branch_for("capacity")
+	_town.view.refresh_all()
+	_town.camera_rig.yaw = 12.0
+	_town.camera_rig.focus_on(Vector3(0, 0, 11.0))
+	_town.camera_rig.zoom = 56.0
+	_town.camera_rig.apply()
+	await _settle(90)
+	await _capture("15-full-hub-circulation")
+
 	print("SMOKE OK")
 	get_tree().quit(0)
 

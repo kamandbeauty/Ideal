@@ -53,8 +53,18 @@ func _physics_process(delta: float) -> void:
 			car.visible = true
 			car.collision_layer = VehicleBody.VEHICLE_LAYER
 			car.set_route([ForecourtLayout.point(ROAD_HALF_LENGTH * direction, LANES[lane])])
+			entry["gate_seen"] = false
+		if not yielding:
+			entry["gate_seen"] = false
+			entry["merge_pass"] = false
+		elif not bool(entry.get("gate_seen", false)):
+			entry["gate_seen"] = true
+			# A car already too close to brake safely must clear the junction.
+			var braking_distance := car.speed * car.speed / (2.0 * DrivingRules.BRAKING)
+			var nose := car.position.x + car.dimensions.y * 0.5
+			entry["merge_pass"] = nose + braking_distance + 0.55 >= ForecourtLayout.MERGE_STOP_X
 		var cruise := float(entry["speed"])
-		if yielding and float(entry["direction"]) > 0.0 and car.position.x < ForecourtLayout.MERGE_STOP_X:
+		if yielding and float(entry["direction"]) > 0.0 and not bool(entry.get("merge_pass", false)):
 			var available := ForecourtLayout.MERGE_STOP_X - car.position.x - car.dimensions.y * 0.5
 			cruise = minf(cruise, DrivingRules.stopping_speed(available, cruise))
 		car.drive(delta, cruise)

@@ -1,4 +1,4 @@
-extends SceneTree
+extends Node
 ## Real headless PhysicsServer3D integration test, not a mocked movement test.
 ## Runs six simulated minutes: low cap, live capacity changes, then monster
 ## traffic/high cap. Fails on penetration, double-booking, or a stalled system.
@@ -13,7 +13,7 @@ var _last_completed := 0
 var _next_log := 30.0
 
 
-func _initialize() -> void:
+func _ready() -> void:
 	_start_ms = Time.get_ticks_msec()
 	call_deferred("_run")
 
@@ -28,14 +28,14 @@ func _run() -> void:
 		business.unlocked = true
 		business.level = 1
 	_view = TownView.new()
-	root.add_child(_view)
+	add_child(_view)
 	_view.setup(_state)
 	_view.customers.max_agents = 3
 	var elapsed := 0.0
 	var upgraded := false
 	var high_cap := false
 	while elapsed < DURATION and not _finished:
-		await physics_frame
+		await get_tree().physics_frame
 		elapsed += Engine.time_scale / float(Engine.physics_ticks_per_second)
 		if elapsed > 35.0 and not upgraded:
 			upgraded = true
@@ -79,11 +79,11 @@ func _run() -> void:
 		)
 	)
 	_finished = true
-	quit(0)
+	get_tree().quit(0)
 
 
 func _check_world(elapsed: float) -> void:
-	var bodies := get_nodes_in_group(VehicleBody.GROUP)
+	var bodies := get_tree().get_nodes_in_group(VehicleBody.GROUP)
 	for i in bodies.size():
 		var car := bodies[i] as VehicleBody
 		if car == null or not car.visible or car.collision_layer == 0:
@@ -140,6 +140,8 @@ func _check_world(elapsed: float) -> void:
 
 
 func _diagnostics() -> String:
+	if _view == null or _view.customers == null:
+		return "Scenario setup did not complete"
 	var entries: Array[String] = []
 	for entry in _view.customers.agents:
 		var car: VehicleBody = entry["node"]
@@ -152,10 +154,9 @@ func _diagnostics() -> String:
 func _fail(message: String) -> void:
 	printerr("TRAFFIC FAILED: " + message)
 	_finished = true
-	quit(1)
+	get_tree().quit(1)
 
 
-func _process(_delta: float) -> bool:
+func _process(_delta: float) -> void:
 	if not _finished and Time.get_ticks_msec() - _start_ms > 150000:
 		_fail("Wall-clock timeout: " + _diagnostics())
-	return false

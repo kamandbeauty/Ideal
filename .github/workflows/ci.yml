@@ -87,7 +87,7 @@ jobs:
       - name: Physical traffic and parking stress test
         run: |
           set +e
-          timeout 180 godot --headless --path . --script res://tools/traffic_check.gd > "$RUNNER_TEMP/traffic.log" 2>&1
+          timeout 180 godot --headless --path . res://tools/traffic_check.tscn > "$RUNNER_TEMP/traffic.log" 2>&1
           status=$?
           cat "$RUNNER_TEMP/traffic.log"
           if [ "$status" -ne 0 ] || grep -qE 'SCRIPT ERROR|Parse Error|TRAFFIC FAILED' "$RUNNER_TEMP/traffic.log"; then
