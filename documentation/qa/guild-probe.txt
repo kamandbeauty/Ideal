@@ -1,4 +1,4 @@
-hero_parts=13 hero_meshes=64 hero_visible=64 hero_pos=(9.6, 0.000098, 2.6) cast=5 stack=0 zone=treasury
+hero_parts=13 hero_meshes=70 hero_visible=70 hero_pos=(9.6, 0.000098, 2.6) cast=5 stack=3 zone=treasury
 hero in_tree=true visible=true pos=(9.6, 0.000098, 2.6) rot_y=-3.142 children=2
 rig parts=13 body_children=1
   part leg_l visible=true meshes=6 global=(9.705, 0.900098, 2.6)
@@ -12,11 +12,11 @@ rig parts=13 body_children=1
   part hand_r visible=true meshes=4 global=(9.355, 1.46579, 1.981537)
   part head visible=true meshes=1 global=(9.6, 1.770098, 2.588)
   part cape visible=true meshes=1 global=(9.6, 1.200098, 2.77)
-  part stack_anchor visible=true meshes=0 global=(9.6, 1.160098, 2.24)
+  part stack_anchor visible=true meshes=6 global=(9.6, 1.160098, 2.24)
   part money_anchor visible=true meshes=0 global=(9.440001, 1.020098, 2.2)
-stack kind=money total=0 visible=0 global=(9.6, 1.040098, 2.24)
+stack kind=items total=3 visible=3 global=(9.6, 1.040098, 2.24)
 navmesh polygons=372 vertices=744 regions=1
 path warehouse -> counter points=19 length=10.0
 path entrance -> treasury points=17 length=18.9
 path lounge -> mission_board points=31 length=24.4
-loop stock=10 hands=2 money=0 vault=240 reputation=12.0 last={ "amount": 240.0, "reason": "" }
+loop stock=10 hands=3 money=0 vault=54 reputation=2.7 last={ "amount": 54.0, "reason": "" }

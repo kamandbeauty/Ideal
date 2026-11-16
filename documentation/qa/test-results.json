@@ -1,8 +1,8 @@
 {
-  "checks": 2716,
+  "checks": 2722,
   "engine": "4.7.2-stable (official)",
   "failures": [],
-  "methods": 122,
+  "methods": 123,
   "passed": true,
   "suites": [
     {
@@ -90,11 +90,11 @@
       "name": "test_guild_hall"
     },
     {
-      "checks": 118,
+      "checks": 124,
       "failures": 0,
-      "methods": 11,
+      "methods": 12,
       "name": "test_guild_economy"
     }
   ],
-  "timestamp": "2026-11-16T00:33:59"
+  "timestamp": "2026-11-16T00:39:33"
 }
