@@ -11,7 +11,7 @@ func test_catalogue_is_complete() -> void:
 		for key in [
 			"model", "accent", "plot", "unlock_cost", "base_price", "base_capacity",
 			"base_demand", "base_upkeep", "upgrade_cost", "branch_cost", "manager_cost",
-			"star_required", "manager_id",
+			"star_req", "manager_id",
 		]:
 			check(data.has(key), "%s is missing '%s'" % [id, key])
 		check(float(data["base_capacity"]) > 0.0, id + " has no capacity")

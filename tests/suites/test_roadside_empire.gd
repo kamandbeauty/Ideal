@@ -55,7 +55,7 @@ func test_chapter_quests_and_milestones_advance_chapter() -> void:
 	for step_i in range(9):
 		# Complete slot 1 (earn_cash) reliably by crediting earnings.
 		var q: Dictionary = town.quest_slots[1]
-		town.earn(float(q.get("goal", 1000.0)) + 500.0)
+		EmpireActions.grant_cash(town, float(q.get("goal", 1000.0)) + 500.0)
 		check(ChapterQuests.is_complete(q, town), "earn quest becomes ready")
 		var reward := EmpireActions.claim_quest_slot(town, 1)
 		check(not reward.is_empty(), "claiming quest pays reward")

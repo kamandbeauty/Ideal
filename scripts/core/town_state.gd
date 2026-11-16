@@ -413,7 +413,7 @@ func next_locked() -> Dictionary:
 		if not b.unlocked and unlock_cost(id) < best_cost:
 			best_cost = unlock_cost(id)
 			best_id = id
-	return {"id": best_id, "cost": best_cost} if not best_id.is_empty() else {}
+	return {"id": best_id, "cost": best_cost, "price": best_cost} if not best_id.is_empty() else {}
 
 
 func can_buy_boost() -> bool:
@@ -439,7 +439,15 @@ func mission_progress() -> Dictionary:
 		return {}
 	var goal := float(m["goal"])
 	var current := _measure_mission(m)
-	return {"current": minf(current, goal), "goal": goal, "complete": current + 0.001 >= goal}
+	var ready := current + 0.001 >= goal
+	return {
+		"id": str(m["id"]),
+		"index": mission_step,
+		"current": minf(current, goal),
+		"goal": goal,
+		"complete": ready,
+		"ready": ready,
+	}
 
 
 func claim_mission() -> bool:
