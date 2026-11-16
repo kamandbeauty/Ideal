@@ -284,7 +284,7 @@ func _build_head(skin: Color, hair: Color, accent: Color) -> void:
 
 	for side in [-1.0, 1.0]:
 		var eye := _part(_body, _box(Vector3(0.058, 0.09, 0.02)), accent, Vector3(0.066 * side, 1.75, 0.163))
-		eye.material_override = GuildMaterials.glow(accent, 1.15)
+		eye.material_override = GuildMaterials.glow(accent, 0.7)
 
 	if bool(palette["hood"]):
 		var hood := _part(_body, _sphere(0.215, 0.34), palette["coat"], Vector3(0.0, 1.82, -0.02), "hood")
@@ -314,7 +314,7 @@ func _build_weapon(kind: String, trim: Color, accent: Color) -> void:
 		"staff":
 			_part(weapon, _cylinder(0.022, 0.026, 1.5), Color(0.32, 0.24, 0.2), Vector3(0.0, 0.42, 0.03))
 			var gem := _part(weapon, _sphere(0.075, 0.15), accent, Vector3(0.0, 1.2, 0.03))
-			gem.material_override = GuildMaterials.glow(accent, 1.8)
+			gem.material_override = GuildMaterials.glow(accent, 0.9)
 		"bow":
 			_part(weapon, _torus(0.24, 0.275), Color(0.4, 0.29, 0.18), Vector3(0.0, 0.05, 0.05))
 			_part(weapon, _box(Vector3(0.008, 0.5, 0.008)), Color(0.85, 0.85, 0.8), Vector3(0.0, 0.05, 0.26))

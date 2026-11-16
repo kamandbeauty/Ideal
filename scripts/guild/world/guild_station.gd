@@ -33,12 +33,12 @@ func _init(station_kind: String = SHELF) -> void:
 	add_child(_visuals)
 	_label = Label3D.new()
 	_label.name = "Sign"
-	_label.font_size = 44
-	_label.pixel_size = 0.0042
+	_label.font_size = 34
+	_label.pixel_size = 0.0036
 	_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	_label.outline_size = 10
 	_label.modulate = Color(1.0, 0.94, 0.8)
-	_label.position = Vector3(0.0, 2.3, 0.0)
+	_label.position = Vector3(0.0, 2.55, 0.0)
 	add_child(_label)
 
 

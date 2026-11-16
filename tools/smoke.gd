@@ -188,7 +188,7 @@ func _run() -> void:
 	print("SMOKE: " + probe.flow_report())
 	probe.advance_customers(9.0)
 	probe.place_hero(GuildHallZones.spawn("counter_delivery"), 0.0)
-	probe.shot(Vector3(-8.4, 1.0, 7.4), 30.0, 40.0, 13.0, 52.0)
+	probe.shot(Vector3(-8.6, 1.2, 7.4), 20.0, 57.0, 15.0, 58.0)
 	await _settle(18)
 	await _capture("23-guild-customers-order")
 	print("SMOKE: " + probe.flow_report())
