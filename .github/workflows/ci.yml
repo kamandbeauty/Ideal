@@ -17,7 +17,7 @@ env:
   JAVA_VERSION: '21'
 
 jobs:
-  build:
+  analyze-test-build:
     runs-on: ubuntu-latest
     timeout-minutes: 70
     steps:
