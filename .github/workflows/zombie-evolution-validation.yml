@@ -129,14 +129,15 @@ jobs:
           /usr/bin/python3 - <<'PYCODE'
           import base64, io
           from PIL import Image
-          image = Image.open('ci-artifacts/rendered/screenshots/15-motus-fbx2gltf-walk-test-only.png').convert('RGB')
-          image.thumbnail((240, 427))
-          data = io.BytesIO()
-          image.save(data, format='JPEG', quality=65, optimize=True)
-          encoded = base64.b64encode(data.getvalue()).decode('ascii')
-          chunks = [encoded[i:i+3500] for i in range(0, len(encoded), 3500)]
-          for index, chunk in enumerate(chunks):
-              print(f'::notice::MOTUS_ALT_{index:03d}_OF_{len(chunks):03d}:{chunk}')
+          for kind, name in [('WALK', '15-motus-fbx2gltf-walk-test-only.png'), ('FIRE', '16-motus-fbx2gltf-fire-test-only.png')]:
+              image = Image.open('ci-artifacts/rendered/screenshots/' + name).convert('RGB')
+              image.thumbnail((240, 427))
+              data = io.BytesIO()
+              image.save(data, format='JPEG', quality=65, optimize=True)
+              encoded = base64.b64encode(data.getvalue()).decode('ascii')
+              chunks = [encoded[i:i+3500] for i in range(0, len(encoded), 3500)]
+              for index, chunk in enumerate(chunks):
+                  print(f'::notice::MOTUS_{kind}_{index:03d}_OF_{len(chunks):03d}:{chunk}')
           PYCODE
       - name: Publish renderer capture diagnostics
         if: always()

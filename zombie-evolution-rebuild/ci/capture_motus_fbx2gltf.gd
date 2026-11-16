@@ -38,7 +38,7 @@ func capture() -> void:
 	model.scale = Vector3.ONE
 	stage.add_child(model)
 	var camera := Camera3D.new()
-	camera.position = Vector3(0, 1.2, -4.5)
+	camera.position = Vector3(4.5, 1.2, -0.8)
 	camera.fov = 36
 	stage.add_child(camera)
 	camera.look_at(Vector3(0, 0.95, 0), Vector3.UP)
@@ -59,6 +59,20 @@ func capture() -> void:
 		quit(1)
 		return
 	print("CAPTURE TEST-ONLY: Motus pistol reference model walk pose ", image.get_size())
+	if not animation.has_animation("PistolFire"):
+		printerr("FAIL: Motus pistol fire clip missing")
+		quit(1)
+		return
+	animation.play("PistolFire")
+	animation.seek(0.12, true)
+	await process_frame
+	await RenderingServer.frame_post_draw
+	var fire_image := root.get_texture().get_image()
+	if fire_image == null or fire_image.is_empty() or fire_image.save_png(output.path_join("16-motus-fbx2gltf-fire-test-only.png")) != OK:
+		printerr("FAIL: could not save fire review")
+		quit(1)
+		return
+	print("CAPTURE TEST-ONLY: Motus pistol reference fire pose ", fire_image.get_size())
 	stage.queue_free()
 	await process_frame
 	quit(0)
