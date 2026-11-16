@@ -11,6 +11,7 @@ const VEHICLES: Array[String] = ["camper", "truck", "camper", "car", "pickup", "
 
 var cars: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
+var _yield_active := false
 
 
 func _ready() -> void:
@@ -38,6 +39,7 @@ func _physics_process(delta: float) -> void:
 		if (body as VehicleBody).merge_requested:
 			yielding = true
 			break
+	_yield_active = yielding
 	for entry in cars:
 		var car: VehicleBody = entry["node"]
 		if car.arrived():
@@ -68,3 +70,19 @@ func _physics_process(delta: float) -> void:
 			var available := ForecourtLayout.MERGE_STOP_X - car.position.x - car.dimensions.y * 0.5
 			cruise = minf(cruise, DrivingRules.stopping_speed(available, cruise))
 		car.drive(delta, cruise)
+
+
+func can_merge() -> bool:
+	if not _yield_active:
+		return false
+	for entry in cars:
+		var car: VehicleBody = entry["node"]
+		if float(entry["direction"]) < 0.0 or not car.visible or car.collision_layer == 0:
+			continue
+		if not bool(entry.get("gate_seen", false)):
+			return false
+		# Include cars still approaching but too close to stop: looking only at
+		# their CURRENT junction rectangle would grant a conflicting merge.
+		if bool(entry.get("merge_pass", true)) and car.position.x < ForecourtLayout.DRIVE_X + 4.0:
+			return false
+	return true

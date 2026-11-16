@@ -216,6 +216,9 @@ func _tick_agents(delta: float) -> void:
 
 
 func _merge_clear(car: VehicleBody) -> bool:
+	var highway := get_parent().get_node_or_null("Traffic") as Traffic
+	if highway == null or not highway.can_merge():
+		return false
 	for other in get_tree().get_nodes_in_group(VehicleBody.GROUP):
 		var peer := other as VehicleBody
 		if peer == car or not peer.visible or peer.collision_layer == 0:

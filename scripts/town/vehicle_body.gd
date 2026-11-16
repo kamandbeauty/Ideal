@@ -92,8 +92,18 @@ func _drive_step(delta: float, cruise: float, reversing: bool) -> void:
 		desired_speed = minf(desired_speed, DrivingRules.stopping_speed(hit.get_travel().length(), cruise, gap))
 	speed = DrivingRules.approach_speed(speed, desired_speed, delta)
 	var motion := direction * minf(speed * delta, offset.length())
+	# PhysicsServer broadphase can lag another kinematic body's live transform
+	# during a fast tick. Guard the current poses as well as the swept cast.
+	if not _live_clear(global_position + motion, global_rotation.y, 0.08):
+		hold(delta)
+		return
+	var before := global_transform
 	var collision := move_and_collide(motion, false, 0.02)
-	var moved := motion.length() if collision == null else collision.get_travel().length()
+	var moved := global_position.distance_to(before.origin)
+	if not _live_clear(global_position, global_rotation.y, 0.015):
+		global_transform = before  # Reject a penetration-recovery displacement.
+		speed = 0.0
+		moved = 0.0
 	distance_driven += moved
 	VehicleMesh.roll(visual, moved * (-1.0 if reversing else 1.0))
 	VehicleMesh.set_braking(visual, desired_speed < cruise * 0.55 or collision != null)
@@ -106,6 +116,8 @@ func _drive_step(delta: float, cruise: float, reversing: bool) -> void:
 
 
 func _rotation_clear(candidate: Transform3D) -> bool:
+	if not _live_clear(candidate.origin, candidate.basis.get_euler().y, 0.06):
+		return false
 	if _shape == null or get_world_3d() == null:
 		return true
 	var query := PhysicsShapeQueryParameters3D.new()
@@ -115,6 +127,21 @@ func _rotation_clear(candidate: Transform3D) -> bool:
 	query.exclude = [get_rid()]
 	query.margin = 0.012
 	return get_world_3d().direct_space_state.intersect_shape(query, 1).is_empty()
+
+
+func _live_clear(at: Vector3, yaw: float, margin: float) -> bool:
+	for other in get_tree().get_nodes_in_group(GROUP):
+		var peer := other as VehicleBody
+		if peer == self or not peer.visible or peer.collision_layer == 0:
+			continue
+		var pos := peer.global_position
+		if absf(pos.x - at.x) > 3.5 or absf(pos.z - at.z) > 3.5:
+			continue
+		if DrivingRules.overlaps(
+			DrivingRules.xz(at), dimensions, yaw, DrivingRules.xz(pos), peer.dimensions, peer.global_rotation.y, margin
+		):
+			return false
+	return true
 
 
 ## Check both broadphase and the just-spawned bodies (same physics tick).
