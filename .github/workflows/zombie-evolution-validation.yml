@@ -112,6 +112,13 @@ jobs:
           export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
           timeout 120 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --audio-driver Dummy --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_soldier_review.gd 2>&1 | tee ci-artifacts/rendered/soldier-review.log
           if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/soldier-review.log; then exit 1; fi
+      - name: Capture test-only Motus pistol reference
+        run: |
+          set -o pipefail
+          export LIBGL_ALWAYS_SOFTWARE=1
+          export CI_SCREENSHOT_DIR="$GITHUB_WORKSPACE/ci-artifacts/rendered/screenshots"
+          timeout 120 xvfb-run -a -s '-screen 0 720x1280x24' "$GODOT" --path zombie-evolution-rebuild --audio-driver Dummy --rendering-method gl_compatibility --fixed-fps 30 --script res://ci/capture_motus_review.gd 2>&1 | tee ci-artifacts/rendered/motus-review.log
+          if grep -Eq '(^|[[:space:]])(SCRIPT ERROR|ERROR|FAIL):' ci-artifacts/rendered/motus-review.log; then exit 1; fi
       - name: Publish renderer capture diagnostics
         if: always()
         run: |
