@@ -8,18 +8,23 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 /// suites isolated – the shared helper documents that contract.
 class TestDatabase extends AppDatabase {
   TestDatabase() : super(fileName: inMemoryDatabasePath);
+}
 
-  @override
-  Future<Database> _openDatabase() async {
-    return databaseFactoryFfi.openDatabase(
+/// Opens the in-memory database with the production schema, bypassing the
+/// private `open()` path that calls into the sqflite plugin channel.
+Future<TestDatabase> openTestDatabase() async {
+  final database = TestDatabase();
+  await database.attachForTests(
+    await databaseFactoryFfi.openDatabase(
       inMemoryDatabasePath,
       options: OpenDatabaseOptions(
         version: AppDatabase.schemaVersion,
-        onConfigure: (database) => database.execute('PRAGMA foreign_keys = ON'),
-        onCreate: (database, version) => AppDatabase.createSchema(database),
+        onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+        onCreate: (db, version) => AppDatabase.createSchema(db),
       ),
-    );
-  }
+    ),
+  );
+  return database;
 }
 
 /// Initialises the FFI factory used by the in-memory database (call in setUpAll).
@@ -35,7 +40,7 @@ void setUpSqfliteFfi() {
 /// and deleting every row gives each test a deterministic empty state without
 /// needing a distinct file per test.
 Future<TestDatabase> openCleanDatabase() async {
-  final database = TestDatabase();
+  final database = await openTestDatabase();
   final db = await database.open();
   for (final table in const [
     'assistant_messages',

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/repositories/assistant_repository.dart';
-import '../../core/providers/service_providers.dart';
 import '../../data/models/assistant_message.dart';
 import '../../features/agent/agent_core.dart';
 import '../../services/voice/speech_recognizer.dart';

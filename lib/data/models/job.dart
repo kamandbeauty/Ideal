@@ -61,6 +61,7 @@ class Job {
   Job copyWith({
     String? title,
     String? prompt,
+    JobKind? kind,
     JobSchedule? schedule,
     JobAction? action,
     DateTime? nextRunAt,

@@ -6,7 +6,7 @@ import '../../features/assistant/assistant_state.dart';
 import '../../services/voice/native_speech_recognizer.dart';
 import '../../services/voice/native_tts_engine.dart';
 import 'agent_providers.dart';
-import 'repository_providers.dart';
+import 'database_provider.dart';
 import 'settings_providers.dart';
 
 /// Speech engine instances (overridable with fakes in tests).

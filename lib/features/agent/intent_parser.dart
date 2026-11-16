@@ -30,6 +30,12 @@ class IntentParser {
     if (_isHelp(lowered)) {
       return AgentIntent(type: IntentType.help, rawText: rawText, confidence: 0.9);
     }
+    // Scheduling wins over the generic "summarise something" shortcuts: a
+    // phrase like «هر روز ساعت ۸ خلاصهٔ پیام‌ها را بگو» is a *job*, not a
+    // one-off briefing request.
+    final jobIntent = _parseJobCreation(text, lowered, rawText);
+    if (jobIntent != null) return jobIntent;
+
     if (_isBriefingRequest(lowered)) {
       return AgentIntent(
         type: IntentType.dailyBriefing,
@@ -44,9 +50,6 @@ class IntentParser {
     if (_isMessageSummaryRequest(lowered)) {
       return AgentIntent(type: IntentType.messageSummary, rawText: rawText, confidence: 0.9);
     }
-
-    final jobIntent = _parseJobCreation(text, lowered, rawText);
-    if (jobIntent != null) return jobIntent;
 
     final jobManagement = _parseJobManagement(lowered, rawText);
     if (jobManagement != null) return jobManagement;
@@ -134,7 +137,7 @@ class IntentParser {
 
   // ------------------------------------------------------------ job creation
   AgentIntent? _parseJobCreation(String text, String lowered, String raw) {
-    final recovered = text.replaceAll('\u200c', ' ');
+    final recovered = toAsciiDigits(text).replaceAll('\u200c', ' ');
     final schedule = _parseSchedule(text, lowered);
 
     // A command is only a *scheduled job* when it carries a real temporal
@@ -142,17 +145,17 @@ class IntentParser {
     // still a job (defaults to one hour from now), but a bare note/command must
     // never turn into one.
     final hasTemporalMarker = RegExp(
-      r'(ساعت|هر روز|هر شب|همه روزه|هر هفته|هر شنبه|هر یکشنبه|هر دوشنبه|'
-      r'هر سه شنبه|هر چهارشنبه|هر پنجشنبه|هر جمعه|هر \d+ دقیقه|هر \d+ ساعت|'
-      r'فردا|پس فردا|امروز|دیروز|\d{1,2}\s*(روز|هفته|ماه))',
+      r'(ساعت|هر\s*روز|هر\s*شب|همه\s*روزه|هر\s*هفته|هر\s*(شنبه|یکشنبه|دوشنبه|سه‌? ?شنبه|چهارشنبه|پنج‌? ?شنبه|جمعه)|هر\s*\d+\s*(دقیقه|ساعت)|فردا|پس\s*فردا|امروز|دیروز|\d{1,2}\s*(روز|هفته|ماه))',
     ).hasMatch(recovered);
     final jobVerb = lowered.contains('یادآوری') ||
         lowered.contains('یادم') ||
         lowered.contains('به یاد') ||
         recovered.contains('وظیفه') ||
-        recovered.contains('زمان') ||
         recovered.contains('هر روز') ||
-        recovered.contains('هر شب');
+        recovered.contains('هر شب') ||
+        // «فردا ساعت ۹ تماس بگیرم» — a dated phrase is a scheduling request.
+        (recovered.contains('فردا') && recovered.contains('ساعت')) ||
+        (recovered.contains('ساعت') && recovered.contains('تماس'));
 
     if (schedule == null) return null;
     if (!hasTemporalMarker || !jobVerb) return null;
@@ -232,7 +235,7 @@ class IntentParser {
     // Interval: «هر ۲ ساعت» / «هر ۳۰ دقیقه»
     final intervalMatch = RegExp(
       r'هر\s*(\d+|یک|دو|سه|چهار|پنج|شش|هفت|هشت|نه|ده|دوازده)\s*(ساعت|دقیقه)',
-    ).firstMatch(lowered);
+    ).firstMatch(toAsciiDigits(lowered));
     if (intervalMatch != null) {
       final amount = PersianNumbers.fromWord(intervalMatch.group(1)!) ?? 1;
       final unit = intervalMatch.group(2)!;
@@ -316,27 +319,34 @@ class IntentParser {
   (int, int)? _parseClockIn(String text, DateTime now) {
     final match = RegExp(r'ساعت\s*(.+)$').firstMatch(text);
     if (match == null) return null;
-    // A command may continue after the time («ساعت ۹ تماس بگیرم»); only the
-    // first few words can be a clock expression, so try 3..1 word segments.
-    final tail = match.group(1)!.trim();
-    final words = tail.replaceAll('\u200c', ' ').split(RegExp(r'\s+'));
-    // Words that signal the end of the time expression and the start of the
-    // action the user wants to be reminded about («ساعت ۹ تماس بگیرم»).
-    const commandVerbs = <String>{
-      'تماس', 'زنگ', 'بزن', 'بگیرم', 'بگیر', 'برو', 'برم', 'بخواب', 'بیدار',
-      'بشو', 'بخورم', 'بخور', 'کن', 'کنم', 'بفرست', 'بخر', 'خرید', 'دارو',
-      'جلسه', 'قرار', 'ملاقات', 'کار', 'یادم', 'بیار', 'باشه', 'شروع',
+    final tail = toAsciiDigits(match.group(1)!)
+        .replaceAll('\u200c', ' ')
+        .replaceAll(RegExp(r'[،,.؛;]'), ' ')
+        .trim();
+    final words = tail.split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
+    if (words.isEmpty) return null;
+
+    // Collect the leading tokens that can belong to a time expression, stopping
+    // at the first token that starts the thing being reminded about.
+    const clockWords = <String>{
+      'و', 'نیم', 'ربع', 'دقیقه', 'صبح', 'ظهر', 'عصر', 'شب', 'بامداد',
+      'بعد', 'از', 'بعدازظهر', 'ساعت',
     };
-    var stop = words.length;
-    for (var i = 1; i < words.length; i++) {
-      final word = words[i].replaceAll(RegExp(r'[،,.؛;]$'), '');
-      if (commandVerbs.contains(word)) {
-        stop = i;
+    final tokens = <String>[];
+    for (final word in words) {
+      final isNumber = RegExp(r'^\d{1,2}$').hasMatch(word) ||
+          PersianNumbers.fromWord(word) != null;
+      if (isNumber || clockWords.contains(word)) {
+        tokens.add(word);
+      } else {
         break;
       }
+      // A time expression never needs more than 4 tokens (e.g. «۹ و نیم»).
+      if (tokens.length == 4) break;
     }
-    for (var count = (stop < 3 ? stop : 3); count >= 1; count--) {
-      final candidate = words.take(count).join(' ').replaceAll(RegExp(r'[،,.؛;]$'), '');
+
+    for (var count = tokens.length; count >= 1; count--) {
+      final candidate = tokens.take(count).join(' ');
       final parsed = PersianTime.parseClock(candidate);
       if (parsed != null && parsed.$1 >= 0 && parsed.$1 <= 23 && parsed.$2 >= 0 && parsed.$2 <= 59) {
         return parsed;
@@ -355,9 +365,7 @@ class IntentParser {
     final newVerb = lowered.contains('جدید') || lowered.contains('بساز');
     final listVerb = lowered.contains('نشان') ||
         lowered.contains('لیست') ||
-        lowered.contains('چی') ||
-        lowered.contains('چه');
-    final readVerb = lowered.contains('بخوان') || lowered.contains('بگو') || lowered.contains('آخرین');
+        (lowered.contains('چند') && lowered.contains('یادداشت'));
     final deleteVerb = lowered.contains('حذف') || lowered.contains('پاک');
 
     if (deleteVerb && noteVerb) {
@@ -369,14 +377,8 @@ class IntentParser {
       );
     }
 
-    if (noteVerb && listVerb) {
-      return AgentIntent(type: IntentType.listNotes, rawText: raw, confidence: 0.85);
-    }
-
-    if (readVerb && (noteVerb || lowered.contains('آخرین'))) {
-      return AgentIntent(type: IntentType.readLatestNote, rawText: raw, confidence: 0.8);
-    }
-
+    // Creating a note takes precedence over listing/reading it: the phrases
+    // «یادداشت جدید بساز» and «یادداشت‌هایم را نشان بده» differ only in verbs.
     if (saveVerb || (noteVerb && newVerb)) {
       final body = _extractNoteBody(text);
       if (body.isEmpty) {
@@ -396,28 +398,33 @@ class IntentParser {
       );
     }
 
-    // Dictating a plain sentence with no verb: treat long statements as notes
-    // only when the user explicitly asked for voice typing (handled upstream).
+    if (noteVerb && listVerb) {
+      return AgentIntent(type: IntentType.listNotes, rawText: raw, confidence: 0.85);
+    }
+
+    if (lowered.contains('آخرین') || (noteVerb && lowered.contains('بخوان'))) {
+      return AgentIntent(type: IntentType.readLatestNote, rawText: raw, confidence: 0.8);
+    }
+
     return null;
   }
 
   static String _extractNoteBody(String text) {
-    var body = text;
     final quoted = RegExp('«([^»]+)»').firstMatch(text) ??
         RegExp('"([^"]+)"').firstMatch(text);
     if (quoted != null && quoted.group(1)!.trim().isNotEmpty) {
       return quoted.group(1)!.trim();
     }
-    body = body.replaceAll(
-      RegExp(
-        r'(این متن را|این را|متن زیر را|متن را|یادداشت جدید(ی)?|یادداشت|نوت جدید|'
-        r'ذخیره کن|ذخیره|ثبت کن|ثبت|بساز|برای من|لطفاً|لطفا)',
-      ),
-      ' ',
-    );
+    final commandEnd = RegExp(
+      r'(این متن را|این را|متن زیر را|متن را|یادداشت جدید(?:ی)?(?: بساز)?|یادداشت|'
+      r'نوت جدید(?: بساز)?|نوت|ذخیره کن|ذخیره|ثبت کن|ثبت|بساز|برای من|لطفاً|لطفا)',
+    ).allMatches(text).lastOrNull;
+    var body = commandEnd == null
+        ? text
+        : text.substring(commandEnd.end).trimLeft();
+    body = body.replaceFirst(RegExp(r'^[:\-–—]+\s*'), '');
     body = body.replaceAll(RegExp(r'\s+'), ' ').trim();
-    body = body.replaceAll(RegExp(r'^[،,.؛;\-]+|[،,.؛;\-]+$'), '').trim();
-    return body;
+    return body.replaceAll(RegExp(r'^[،,.؛;\-]+|[،,.؛;\-]+$'), '').trim();
   }
 
   static String _inferCategory(String lowered) {

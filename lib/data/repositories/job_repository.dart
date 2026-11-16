@@ -1,5 +1,3 @@
-import 'package:sqflite/sqflite.dart';
-
 import '../local/app_database.dart';
 import '../models/job.dart';
 import '../models/job_run.dart';

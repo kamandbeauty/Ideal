@@ -14,11 +14,6 @@ class PersianMaterialLocalizations extends DefaultMaterialLocalizations {
   static const LocalizationsDelegate<MaterialLocalizations> delegate =
       _PersianMaterialLocalizationsDelegate();
 
-  static const _fa = 'fa_IR';
-
-  @override
-  String get localeName => _fa;
-
   @override
   String get datePickerHelpText => 'انتخاب تاریخ';
 
@@ -30,9 +25,6 @@ class PersianMaterialLocalizations extends DefaultMaterialLocalizations {
 
   @override
   String get inputDateModeButtonLabel => 'ورود دستی تاریخ';
-
-  @override
-  String get dateInputLabel => 'تاریخ';
 
   @override
   String get dateHelpText => 'مثلاً ۱۴۰۵/۰۸/۲۵';
@@ -56,16 +48,10 @@ class PersianMaterialLocalizations extends DefaultMaterialLocalizations {
   String get unspecifiedDate => 'بدون تاریخ';
 
   @override
-  String get todayLabel => 'امروز';
-
-  @override
   String get nextMonthTooltip => 'ماه بعد';
 
   @override
   String get previousMonthTooltip => 'ماه قبل';
-
-  @override
-  String get unsupportedDate => 'نامعتبر';
 
   @override
   String formatCompactDate(DateTime date) {

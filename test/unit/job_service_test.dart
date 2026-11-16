@@ -103,18 +103,29 @@ void main() {
   });
 
   test('due jobs only include active jobs whose time has come', () async {
-    final due = await service.create(
-      title: 'رسیده',
-      prompt: 'x',
-      schedule: JobSchedule.once(DateTime(2026, 11, 16, 9, 30)),
+    // create() refuses times in the past, so build the row directly: this is the
+    // state the scheduler observes when the device wakes after a delay.
+    await JobRepository(database).upsert(
+      Job(
+        id: 'due',
+        title: 'رسیده',
+        prompt: 'x',
+        kind: JobKind.reminder,
+        schedule: JobSchedule.once(DateTime(2026, 11, 16, 9, 30)),
+        action: JobAction.reminder,
+        nextRunAt: DateTime(2026, 11, 16, 9, 30),
+        createdAt: DateTime(2026, 11, 16, 8),
+      ),
     );
-    await service.create(
+    final upcoming = await service.create(
       title: 'بعداً',
       prompt: 'x',
       schedule: JobSchedule.once(DateTime(2026, 11, 16, 18)),
     );
+
     final dueJobs = await service.dueJobs();
-    expect(dueJobs.map((job) => job.id), contains(due.id));
+    expect(dueJobs.map((job) => job.id), contains('due'));
+    expect(dueJobs.map((job) => job.id), isNot(contains(upcoming.id)));
   });
 
   test('deleting a job also deletes its run history', () async {

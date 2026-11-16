@@ -46,6 +46,12 @@ class AppDatabase {
     });
   }
 
+  /// Attaches an already-open database (used by tests with sqflite_common_ffi).
+  @visibleForTesting
+  Future<void> attachForTests(Database database) async {
+    _database = database;
+  }
+
   @protected
   Future<Database> _openDatabase() async {
     final path = p.join(await getDatabasesPath(), fileName);

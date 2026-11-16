@@ -7,7 +7,6 @@ import '../../core/providers/repository_providers.dart';
 import '../../core/providers/settings_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../data/models/app_notification.dart';
-import '../../services/native_bridge.dart';
 import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/section_header.dart';
 import '../../ui/widgets/status_chip.dart';

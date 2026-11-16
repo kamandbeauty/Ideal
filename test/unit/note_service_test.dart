@@ -94,7 +94,7 @@ void main() {
   test('data survives closing and reopening the database file', () async {
     final note = await service.create(body: 'ماندگار');
     await database.close();
-    final reopened = TestDatabase();
+    final reopened = await openCleanDatabase();
     await reopened.open();
     final reloaded = await NoteRepository(reopened).findById(note.id);
     expect(reloaded?.body, 'ماندگار');

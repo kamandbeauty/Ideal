@@ -7,6 +7,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/persian_date.dart';
 import '../../data/models/note.dart';
 import '../../ui/widgets/empty_state.dart';
+import '../../ui/widgets/glass_card.dart';
 import '../../ui/widgets/section_header.dart';
 import '../../ui/widgets/status_chip.dart';
 import 'note_editor_screen.dart';

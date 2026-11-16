@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/providers/repository_providers.dart';
 import '../core/theme/app_colors.dart';
 import '../features/assistant/assistant_screen.dart';
-import '../features/dashboard/dashboard_screen.dart';
 import '../features/jobs/jobs_screen.dart';
 import '../features/messages/messages_screen.dart';
 import '../features/notes/notes_screen.dart';

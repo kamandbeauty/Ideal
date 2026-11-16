@@ -7,7 +7,6 @@ import 'core/providers/permission_providers.dart';
 import 'core/providers/repository_providers.dart';
 import 'core/providers/settings_providers.dart';
 import 'data/local/app_database.dart';
-import 'data/models/app_notification.dart';
 import 'services/notification_ingestor.dart';
 
 /// Opens the database, wires the provider graph and pulls in notifications that

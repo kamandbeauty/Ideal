@@ -59,7 +59,15 @@ abstract final class PersianNumbers {
     if (index >= 0) return index;
     final tensIndex = _tens.indexOf(normalized);
     if (tensIndex > 0) return tensIndex * 10;
-    // Compound like «بیست و پنج» handled by callers splitting on « و ».
+    // Compound like «بیست و پنج»
+    if (normalized.contains(' و ')) {
+      final parts = normalized.split(' و ');
+      final base = PersianNumbers.fromWord(parts.first.trim());
+      final extra = PersianNumbers.fromWord(parts.last.trim());
+      if (base != null && extra != null && base >= 20 && extra < 10) {
+        return base + extra;
+      }
+    }
     return null;
   }
 }
@@ -68,7 +76,10 @@ abstract final class PersianNumbers {
 abstract final class PersianTime {
   /// «نه و نیم» → 9:30, «نه و ربع» → 9:15, «نه و بیست دقیقه» → 9:20.
   static (int hour, int minute)? parseClock(String value) {
-    var text = toAsciiDigits(value).trim();
+    var text = toAsciiDigits(value)
+        .replaceAll(RegExp(r'[،,.؛;!؟?]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
     if (text.isEmpty) return null;
 
     // Remove common prefixes: ساعت، حدوداً، حوالی...

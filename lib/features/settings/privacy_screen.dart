@@ -8,7 +8,6 @@ import '../../core/providers/repository_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../ui/widgets/section_header.dart';
 import '../../ui/widgets/status_chip.dart';
-import '../../services/native_bridge.dart';
 import '../../services/permission_service.dart';
 
 /// Privacy center: what is stored, why, and how to delete or export it.
