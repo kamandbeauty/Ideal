@@ -11,12 +11,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Deliberate failure with annotation
+      - name: Environment probe
         run: |
           python3 - <<'PY'
-          import urllib.parse
-          msg = "line1: upstream failure\nline2: 'quoted' & special chars <tag>\nline3: Persian متن فارسی"
-          enc = urllib.parse.quote(msg, safe='')
-          print(f"::error title=PROBE::{enc}")
+          import base64, os, shutil, subprocess, glob, platform
+          out = []
+          def run(cmd):
+              try:
+                  p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
+                  return (p.stdout + p.stderr).strip()
+              except Exception as e:
+                  return f"ERR {e}"
+          out.append("=== OS ===")
+          out.append(run("cat /etc/os-release | head -3"))
+          out.append("=== FLUTTER ===")
+          out.append("which flutter: " + run("which flutter"))
+          out.append("flutter version: " + run("flutter --version"))
+          out.append("=== DART ===")
+          out.append(run("which dart"))
+          out.append("=== JAVA ===")
+          out.append(run("java -version 2>&1"))
+          out.append("JAVA_HOME=" + str(os.environ.get("JAVA_HOME")))
+          out.append("=== ANDROID ===")
+          out.append("ANDROID_HOME=" + str(os.environ.get("ANDROID_HOME")))
+          out.append("ANDROID_SDK_ROOT=" + str(os.environ.get("ANDROID_SDK_ROOT")))
+          ah = os.environ.get("ANDROID_HOME") or "/usr/local/lib/android/sdk"
+          out.append("platforms: " + str(sorted(os.listdir(ah + "/platforms")) if os.path.isdir(ah + "/platforms") else "none"))
+          out.append("build-tools: " + str(sorted(os.listdir(ah + "/build-tools")) if os.path.isdir(ah + "/build-tools") else "none"))
+          out.append("ndk: " + str(sorted(os.listdir(ah + "/ndk")) if os.path.isdir(ah + "/ndk") else "none"))
+          out.append("cmdline-tools: " + str(sorted(os.listdir(ah + "/cmdline-tools")) if os.path.isdir(ah + "/cmdline-tools") else "none"))
+          out.append("=== GRADLE CACHE ===")
+          g = os.path.expanduser("~/.gradle")
+          out.append("gradle cache sizes: " + run("du -sh ~/.gradle/* 2>/dev/null | head"))
+          out.append("gradle wrappers: " + str(glob.glob(os.path.expanduser('~/.gradle/wrapper/dists/*'))))
+          out.append("=== PUB CACHE ===")
+          out.append(run("du -sh ~/.pub-cache 2>/dev/null; ls ~/.pub-cache/hosted/pub.dev 2>/dev/null | head -30"))
+          out.append("=== FLUTTER SDK CACHE ===")
+          out.append(run("ls $(dirname $(dirname $(which flutter)))/bin/cache/artifacts/engine 2>/dev/null | head -20"))
+          out.append("=== DISK ===")
+          out.append(run("df -h / | tail -1"))
+          text = "\n".join(out)
+          # print in chunks of 3500 chars using annotations
+          for i in range(0, len(text), 3500):
+              chunk = text[i:i+3500]
+              print(f"::warning title=PROBE{i//3500}::{base64.b64encode(chunk.encode()).decode()}")
           PY
-          exit 1
+          echo "probe finished"
