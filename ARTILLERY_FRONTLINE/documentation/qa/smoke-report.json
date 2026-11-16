@@ -1,5 +1,5 @@
 {
-  "checks": 198,
+  "checks": 200,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -45,6 +45,8 @@
       "39-weapon-bushmaster.png",
       "39-weapon-gilded_minigun.png",
       "44-hospital-stage.png",
+      "44a-hospital-left-wing.png",
+      "44b-hospital-right-wing.png",
       "45-hospital-attack.png",
       "47-metro-attack.png",
       "10-rocket-away.png"
@@ -106,6 +108,8 @@
       "39-weapon-bushmaster.png",
       "39-weapon-gilded_minigun.png",
       "44-hospital-stage.png",
+      "44a-hospital-left-wing.png",
+      "44b-hospital-right-wing.png",
       "45-hospital-attack.png",
       "47-metro-attack.png"
     ],
@@ -162,32 +166,32 @@
   "notes": {
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
-    "blast_kills": 13,
-    "boss_reached_gate_after_s": 68.0,
-    "defeat_time_s": 190.0,
-    "gate_attackers": 5,
-    "gate_fell_after_s": 10.0,
-    "gate_left_with_boss": 0.62,
+    "blast_kills": 12,
+    "boss_reached_gate_after_s": 61.5,
+    "defeat_time_s": 188.7,
+    "gate_attackers": 6,
+    "gate_fell_after_s": 16.0,
+    "gate_left_with_boss": 0.88,
     "grenade_kills": 7,
-    "hits": 6,
-    "kills": 2,
+    "hits": 5,
+    "kills": 1,
     "peak_load": {
       "alive": 50,
-      "draw_calls": 440,
-      "fps": 9.9,
-      "nodes": 1074,
+      "draw_calls": 426,
+      "fps": 10.0,
+      "nodes": 1110,
       "orphan_nodes": 0,
-      "primitives": 395957,
+      "primitives": 398541,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 114.2,
+      "static_memory_mb": 114.5,
       "striking": 30,
       "texture_memory_mb": 90.7,
       "tier": "medium",
-      "video_memory_mb": 110.8,
+      "video_memory_mb": 111.2,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 177.89,
-      "worst_physics_tick_ms_in_a_second": 0.8,
+      "worst_frame_ms_in_a_second": 162.5,
+      "worst_physics_tick_ms_in_a_second": 0.96,
       "zombie_nodes": 50
     },
     "phone_20x9": {
@@ -228,19 +232,19 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 356,
-      "fps": 5.8,
+      "draw_calls": 368,
+      "fps": 6.1,
       "nodes": 936,
       "orphan_nodes": 0,
-      "primitives": 277718,
+      "primitives": 277820,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 117.5,
+      "static_memory_mb": 117.6,
       "texture_memory_mb": 85.2,
       "tier": "medium",
       "video_memory_mb": 103.9
     },
-    "rocket_kills": 6,
+    "rocket_kills": 5,
     "second_stage": {
       "alive_20s_into_its_first_wave": 28,
       "brutes_among_them": 2,
@@ -254,7 +258,7 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 54.2,
+    "sight_target_m": 53.1,
     "six_barrel_kills": 1,
     "six_barrel_shots": 31,
     "stage_held_preview": {
@@ -315,7 +319,7 @@
       "waves_cleared": 3,
       "waves_total": 3
     },
-    "wall_fell_after_s": 5.0,
+    "wall_fell_after_s": 4.0,
     "window": [
       1440,
       810
@@ -380,6 +384,8 @@
     "35-second-stage-begins.png",
     "43-hospital-map.png",
     "44-hospital-stage.png",
+    "44a-hospital-left-wing.png",
+    "44b-hospital-right-wing.png",
     "45-hospital-attack.png",
     "46-metro-map.png",
     "47-metro-attack.png"
