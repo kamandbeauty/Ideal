@@ -421,9 +421,15 @@ func _build_navmesh() -> void:
 	add_child(nav_region)
 
 
+## A cell is only walkable when its centre *and* all four corners are clear, so a
+## navigation vertex can never end up inside furniture.
 func _cell_blocked(x0: float, z0: float, x1: float, z1: float, blocked: Array[Rect2]) -> bool:
-	var center := Vector2((x0 + x1) * 0.5, (z0 + z1) * 0.5)
-	for rect in blocked:
-		if rect.has_point(center):
-			return true
+	var probes := [
+		Vector2((x0 + x1) * 0.5, (z0 + z1) * 0.5),
+		Vector2(x0, z0), Vector2(x1, z0), Vector2(x0, z1), Vector2(x1, z1),
+	]
+	for point in probes:
+		for rect in blocked:
+			if rect.has_point(point):
+				return true
 	return false
