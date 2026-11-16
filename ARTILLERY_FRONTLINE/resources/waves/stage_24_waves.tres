@@ -8,7 +8,7 @@
 script = ExtResource("3_ywpqh")
 zombie = &"brute"
 count = 2
-interval = 9.0
+interval = 10.0
 routes = PackedStringArray("ring_right", "alley_right")
 
 [sub_resource type="Resource" id="Resource_gy6ni"]
@@ -76,7 +76,7 @@ routes = PackedStringArray("ring_right", "alley_right")
 script = ExtResource("3_ywpqh")
 zombie = &"runner"
 count = 15
-start_time = 18.0
+start_time = 22.0
 interval = 0.5
 burst = 2
 routes = PackedStringArray()

@@ -688,6 +688,14 @@ func _later_districts() -> void:
 	await frames(5)
 	check(level.horde.spawned_total > 0, "the final stage sends attackers")
 	await shot("51-final-stage", "play")
+	# A controlled close burst for inspecting the pooled blood and fragments.
+	level.defender.aim.set_aim(0.0, -7.0)
+	var impact := Vector3(0.0, 1.6, -24.0)
+	level.effects.burst("gore", impact, Vector3.UP, 1.4)
+	level.effects.burst("gore_chunk", impact, Vector3.UP, 1.4)
+	level.effects.burst("blood_mist", impact, Vector3.UP, 1.4)
+	await frames(2)
+	await shot("52-gore-burst", "staged")
 
 
 func _aim_at(point: Vector3) -> void:

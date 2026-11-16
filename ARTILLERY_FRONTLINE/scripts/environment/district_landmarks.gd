@@ -10,9 +10,9 @@ var warning: StandardMaterial3D
 
 func build(district: int) -> void:
 	name = "DistrictLandmarks%d" % district
-	steel = _material(Color(0.20, 0.23, 0.23))
-	concrete = _material(Color(0.44, 0.42, 0.38))
-	warning = _material(Color(0.60, 0.27, 0.12))
+	steel = _material(Color(0.26, 0.27, 0.25), "metal")
+	concrete = _material(Color(0.40, 0.37, 0.32), "concrete")
+	warning = _material(Color(0.52, 0.27, 0.14), "metal")
 	match district:
 		3: # factories and tall chimneys
 			for side: int in [-1, 1]:
@@ -55,9 +55,12 @@ func build(district: int) -> void:
 				_box(Vector3(side * 38, 29, -101.5), Vector3(4, 11, 1), steel)
 
 
-func _material(color: Color) -> StandardMaterial3D:
+func _material(color: Color, texture: String) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()
 	material.albedo_color = color
+	material.albedo_texture = load("res://assets/textures/world/" + texture + ".jpg")
+	material.uv1_scale = Vector3(4.0, 4.0, 1.0)
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	material.roughness = 0.88
 	return material
 

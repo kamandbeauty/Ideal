@@ -169,6 +169,13 @@ func _build_environment() -> void:
 	environment.adjustment_saturation = 1.06
 	environment.glow_enabled = false
 	environment.glow_intensity = 0.5
+	# The later districts share the city lanes, but each has its own atmosphere.
+	var district: int = Campaign.district(stage)
+	var atmospheres: Array[Color] = [Color(0.43, 0.37, 0.32), Color(0.49, 0.40, 0.30), Color(0.36, 0.40, 0.43),
+		Color(0.34, 0.39, 0.47), Color(0.37, 0.40, 0.40), Color(0.47, 0.34, 0.28), Color(0.42, 0.36, 0.31)]
+	if district >= 3:
+		environment.fog_light_color = atmospheres[district - 3]
+		environment.ambient_light_color = atmospheres[district - 3].lightened(0.08)
 	if geometry.has_method("is_underground") and geometry.is_underground():
 		environment.background_mode = Environment.BG_COLOR
 		environment.background_color = Color(0.018, 0.022, 0.025)
