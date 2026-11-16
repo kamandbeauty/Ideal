@@ -1,20 +1,20 @@
-hero_parts=13 hero_meshes=64 hero_visible=64 hero_pos=(-10.6, 0.000098, 6.2) queue=3 stack=0 zone=counter
-hero in_tree=true visible=true pos=(-10.6, 0.000098, 6.2) rot_y=0.000 children=2
+hero_parts=13 hero_meshes=64 hero_visible=64 hero_pos=(-8.0, 0.000098, 8.9) queue=3 stack=0 zone=counter
+hero in_tree=true visible=true pos=(-8.0, 0.000098, 8.9) rot_y=0.000 children=2
 rig parts=13 body_children=1
-  part leg_l visible=true meshes=6 global=(-10.705, 0.900098, 6.2)
-  part leg_r visible=true meshes=6 global=(-10.495, 0.900098, 6.2)
-  part torso visible=true meshes=16 global=(-10.6, 0.980098, 6.2)
-  part arm_l visible=true meshes=8 global=(-10.845, 1.460098, 6.2)
-  part fore_l visible=true meshes=6 global=(-10.845, 1.140294, 6.188805)
-  part hand_l visible=true meshes=4 global=(-10.845, 0.821449, 6.215974)
-  part arm_r visible=true meshes=8 global=(-10.355, 1.460098, 6.2)
-  part fore_r visible=true meshes=6 global=(-10.355, 1.140294, 6.211195)
-  part hand_r visible=true meshes=4 global=(-10.355, 0.82413, 6.260594)
-  part head visible=true meshes=1 global=(-10.6, 1.770098, 6.212)
-  part cape visible=true meshes=1 global=(-10.6, 1.200098, 6.03)
-  part stack_anchor visible=true meshes=0 global=(-10.6, 1.160098, 6.559999)
-  part money_anchor visible=true meshes=0 global=(-10.44, 1.020098, 6.599999)
-stack kind=items total=0 visible=0 global=(-10.6, 1.040098, 6.559999)
+  part leg_l visible=true meshes=6 global=(-8.105, 0.900098, 8.9)
+  part leg_r visible=true meshes=6 global=(-7.895, 0.900098, 8.9)
+  part torso visible=true meshes=16 global=(-8.0, 0.980098, 8.9)
+  part arm_l visible=true meshes=8 global=(-8.245, 1.460098, 8.9)
+  part fore_l visible=true meshes=6 global=(-8.245, 1.140291, 8.888885)
+  part hand_l visible=true meshes=4 global=(-8.245, 0.821453, 8.916136)
+  part arm_r visible=true meshes=8 global=(-7.755, 1.460098, 8.9)
+  part fore_r visible=true meshes=6 global=(-7.755, 1.140291, 8.911114)
+  part hand_r visible=true meshes=4 global=(-7.755, 0.824114, 8.960433)
+  part head visible=true meshes=1 global=(-8.0, 1.770098, 8.912)
+  part cape visible=true meshes=1 global=(-8.0, 1.200098, 8.73)
+  part stack_anchor visible=true meshes=0 global=(-8.0, 1.160098, 9.259999)
+  part money_anchor visible=true meshes=0 global=(-7.84, 1.020098, 9.299999)
+stack kind=items total=0 visible=0 global=(-8.0, 1.040098, 9.259999)
 navmesh polygons=372 vertices=744 regions=1
 path warehouse -> counter points=19 length=10.0
 path entrance -> treasury points=17 length=18.9
@@ -22,6 +22,6 @@ path lounge -> mission_board points=31 length=24.4
 loop stock=9 hands=0 money=0 vault=54 reputation=2.7 last={ "amount": 54.0, "reason": "" }
 hud lang=fa action=تحویل gold=طلا 54 warehouse=انبار 9 / 40 customers=1 stick=(0.0, 0.0)
 flow spawned=3 served=0 waiting=1 abandoned=0 order=slime_gel x2
-  customer warrior state=ordering slot=0 travelled=9.4 waypoints=0 routed=true
-  customer mage state=queued slot=1 travelled=9.4 waypoints=0 routed=true
-  customer archer state=queued slot=2 travelled=9.4 waypoints=0 routed=true
+  customer warrior state=ordering slot=0 at=(-4.0, 7.1) travelled=9.4 waypoints=0 routed=true
+  customer mage state=queued slot=1 at=(-4.0, 7.1) travelled=9.4 waypoints=0 routed=true
+  customer archer state=queued slot=2 at=(-4.0, 7.1) travelled=9.4 waypoints=0 routed=true
