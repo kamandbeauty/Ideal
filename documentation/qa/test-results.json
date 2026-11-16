@@ -1,8 +1,8 @@
 {
-  "checks": 2722,
+  "checks": 2754,
   "engine": "4.7.2-stable (official)",
   "failures": [],
-  "methods": 123,
+  "methods": 129,
   "passed": true,
   "suites": [
     {
@@ -94,7 +94,13 @@
       "failures": 0,
       "methods": 12,
       "name": "test_guild_economy"
+    },
+    {
+      "checks": 32,
+      "failures": 0,
+      "methods": 6,
+      "name": "test_guild_hud"
     }
   ],
-  "timestamp": "2026-11-16T00:45:16"
+  "timestamp": "2026-11-16T06:25:30"
 }
