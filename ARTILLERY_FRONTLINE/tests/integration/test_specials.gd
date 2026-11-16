@@ -226,6 +226,7 @@ func _pecking_order(t: TestContext) -> void:
 	# A gate that outlasts the test, so everyone is still at it when the boss gets there.
 	var sturdy: DefenseData = level.defense.data.duplicate()
 	sturdy.gate_max_health = 1000000.0
+	sturdy.wall_max_health = 1000000.0
 	level.defense.data = sturdy
 	level.defense.reset()
 	var columns: int = horde.lines.lines.gate.columns
@@ -250,8 +251,13 @@ func _pecking_order(t: TestContext) -> void:
 	t.check(boss.slot != null and absf(float(boss.slot.members[1].column) - middle) < 0.6, "in the middle of it")
 	t.check(boss.position.distance_to(boss.slot.position) < 0.05 and absf(boss.position.z - level.layout.gate_center.z) < 0.6,
 		"standing in front of the middle of the gate")
-	# Give those it pushed aside time to walk to their new places.
-	t.simulate(level, 14.0)
+	# Wait for the displaced brutes to reach their new slots. Their speeds and
+	# route choices vary; a fixed fourteen seconds occasionally catches one en route.
+	_until(t, level, 45.0, func() -> bool:
+		for brute: Zombie in [brutes[0], brutes[1], third]:
+			if not brute.alive or brute.state != Zombie.State.ATTACK or brute.slot == null or brute.slot.members.size() != 2:
+				return false
+		return true)
 	var at_gate: int = 0
 	var striking: int = 0
 	for brute: Zombie in [brutes[0], brutes[1], third]:
