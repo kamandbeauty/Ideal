@@ -48,6 +48,12 @@ func set_demo_pose(pose: String, carry: int = 0) -> void:
 	_animate_hero(0.5)
 
 
+## Empties the hands, so a demo loop starts from nothing.
+func clear_hands() -> void:
+	hero.state.clear_hands()
+	hero.state.unload_money()
+
+
 ## Coins in the hands, for the deposit beat.
 func set_demo_money(amount: float, pose: String = "deposit") -> void:
 	_pose = pose
@@ -71,14 +77,29 @@ func focus_hero() -> void:
 
 ## The whole room, which is how the player first sees it.
 func overview() -> void:
+	shot(Vector3(0.0, 1.2, 0.4), 18.0, 54.0, GuildPlayerCamera.MAX_DISTANCE, 66.0)
+
+
+## A framed shot from above the furniture, so a capture never ends up inside a
+## shelf. Used for the loop beats, where the camera in the player's hand would
+## collide with the racks.
+func shot(focus: Vector3, yaw_degrees: float, pitch_degrees: float, distance: float, lens: float) -> void:
 	if camera_rig == null:
 		return
-	camera_rig.distance = GuildPlayerCamera.MAX_DISTANCE
-	camera_rig.pitch = 46.0
-	camera_rig.yaw = 18.0
+	camera_rig.yaw = yaw_degrees
+	camera_rig.pitch = clampf(pitch_degrees, GuildPlayerCamera.MIN_PITCH, GuildPlayerCamera.MAX_PITCH)
+	camera_rig.distance = distance
 	if camera_rig.camera != null:
-		camera_rig.camera.fov = 52.0
-	camera_rig.focus_on(Vector3(0.0, 1.4, 0.4))
+		camera_rig.camera.fov = lens
+	camera_rig.focus_on(focus)
+
+
+## Puts the camera over a station, high enough to clear the shelves.
+func look_at_station(station: GuildStation) -> void:
+	if station == null:
+		return
+	var spot := station.global_position
+	shot(Vector3(spot.x, 1.15, spot.z) , 26.0, 44.0, 8.0, 50.0)
 
 
 ## A one-line health check of the rig, mirrored into the CI log.

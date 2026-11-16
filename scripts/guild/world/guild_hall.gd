@@ -192,8 +192,8 @@ func _build_zones() -> void:
 		var label := Label3D.new()
 		label.name = "Label"
 		label.text = GuildLocale.t(str(data["name_key"]), [], "en")
-		label.font_size = 56
-		label.pixel_size = 0.006
+		label.font_size = 48
+		label.pixel_size = 0.009
 		label.modulate = Color(0.86, 0.88, 1.0, 0.9)
 		label.outline_size = 12
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
