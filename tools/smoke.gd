@@ -41,13 +41,13 @@ func _run() -> void:
 	var q1: Dictionary = _town.state.quest_slots[1]
 	EmpireActions.grant_cash(_town.state, float(q1.get("goal", 400.0)) + 50.0)
 	_town.hud.refresh()
-	await _settle(90)
+	await _settle(720)
 	await _capture("02-early-forecourt-en")
 
 	# 2) Expanded Roadside Empire Hub in Persian & English!
 	App.set_language("fa")
 	_boost_town(_town)
-	await _settle(120)
+	await _settle(600)
 	await _capture("03-town-fa")
 
 	App.set_language("en")
@@ -140,6 +140,13 @@ func _run() -> void:
 	await _settle(90)
 	await _capture("15-full-hub-circulation")
 
+	# Match the tall Android aspect ratio in the device feedback (9:20).
+	App.set_language("fa")
+	_town.camera_rig.reset_view()
+	get_window().size = Vector2i(720, 1600)
+	await _settle(24)
+	await _capture("16-tall-device-fa")
+
 	print("SMOKE OK")
 	get_tree().quit(0)
 
@@ -179,11 +186,11 @@ func _boost_town(town) -> void:
 
 func _settle(frames: int) -> void:
 	for i in frames:
-		await get_tree().process_frame
+		await get_tree().physics_frame
 
 
 func _capture(shot_name: String) -> void:
-	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
 	var image := get_viewport().get_texture().get_image()
 	if image == null:
 		printerr("SMOKE: no image for " + shot_name)
@@ -193,6 +200,8 @@ func _capture(shot_name: String) -> void:
 	print("SMOKE: captured %s (%s)" % [path, error_string(error)])
 
 	var preview := image.duplicate() as Image
-	preview.resize(540, 960, Image.INTERPOLATE_BILINEAR)
+	preview.resize(
+		540, roundi(540.0 * float(image.get_height()) / float(image.get_width())), Image.INTERPOLATE_BILINEAR
+	)
 	var preview_error := preview.save_jpg("%s/%s.jpg" % [PREVIEW_DIR, shot_name], 0.78)
 	print("SMOKE: preview %s (%s)" % [shot_name, error_string(preview_error)])

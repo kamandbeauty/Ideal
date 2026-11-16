@@ -84,7 +84,7 @@ static func spec(kind: String) -> Dictionary:
 ## Full visual envelope, including oversized monster tyres and both bumpers.
 static func footprint(kind: String) -> Vector2:
 	var profile := spec(kind)
-	var extra_width := 0.44 if kind == "monster" else 0.18
+	var extra_width := 0.48 if kind == "monster" else 0.24
 	return Vector2(float(profile["width"]) + extra_width, float(profile["length"]) + 0.14) * SIZE_SCALE
 
 
@@ -241,6 +241,9 @@ static func _add_lights_and_wheels(car: Node3D, kind: String, size: Vector2, rad
 	car.set_meta("brake_material", brake)
 	for side in [-1.0, 1.0]:
 		var head := paint(Color(0.94, 0.85, 0.61), 0.25, 0.0)
+		head.emission_enabled = true
+		head.emission = Color(0.85, 0.69, 0.36)
+		head.emission_energy_multiplier = 0.65
 		_box(
 			car,
 			head,

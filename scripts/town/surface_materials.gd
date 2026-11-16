@@ -33,6 +33,7 @@ static func contact_shadow(size: Vector2) -> MeshInstance3D:
 		_shadow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		_shadow_mat.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	var shadow := MeshInstance3D.new()
+	shadow.name = "ContactShadow"
 	var mesh := PlaneMesh.new()
 	mesh.size = size
 	shadow.mesh = mesh

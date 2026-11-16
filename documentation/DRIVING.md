@@ -4,7 +4,7 @@
 
 - `VehicleBody` is a **CharacterBody3D**, not a visual node moved by direct position addition. A full-size swept box includes wheels, mirrors and bumpers. Cars brake rather than push one another.
 - Touch targets use layer **1**; vehicles use **2**; buildings and service equipment use **4**. Vehicle masks are **6**. A large mobile tap target is never mistaken for a wall.
-- A forward shape cast sets a braking speed; `move_and_collide` is the final non-penetration guard. Rotational clearance is checked before changing heading. Large frame deltas are subdivided into angular/motion steps.
+- A forward shape cast sets a braking speed; `move_and_collide` sweeps against physical bodies, and an additional oriented-box check against live vehicle transforms rejects penetration-recovery displacements during accelerated/hitchy ticks. Rotational clearance is checked before changing heading. Large frame deltas are subdivided into angular/motion steps.
 - Highway recycling and customer spawning require free space, including bodies spawned during the same physics tick. No wrap-around teleport can land inside a vehicle.
 
 ## Route and parking ownership
@@ -27,7 +27,7 @@ The visual traffic remains separate from the statistical idle economy: neither g
 - Cached low-poly chamfer geometry catches edge highlights on cars, roofs, signs and props. Framed windows, sills, skirting, wheel hubs, bumpers, mirrors and brake lamps add depth without expensive reflections.
 - Restrained daylight exposure and softer directional shadows retain the warm desert palette without clipping the forecourt to white. Small contact shadows work in the GL Compatibility renderer, without SSAO.
 - Numbered bays, lane arrows and separate IN/OUT driveways communicate the actual traffic routes. Pedestrians stay on storefront pavement.
-- Low quality disables real-time directional shadows; high adds 2× MSAA; medium uses FXAA. Existing customer/pedestrian caps and the night-light budget still apply. No rigid-body pile-ups, RVO swarm or real-time GI is required.
+- Low quality disables real-time directional shadows; high adds 2× MSAA; medium uses FXAA. Existing customer/pedestrian caps and the night-light budget still apply; highway traffic is capped at 6 / 8 / 10 vehicles for low / medium / high. No rigid-body pile-ups, RVO swarm or real-time GI is required.
 
 ## Reproducible validation
 
@@ -41,4 +41,4 @@ The unit suite checks stable/non-overlapping bays, all car/camper/monster routes
 
 The PhysicsServer integration scenario runs **six simulated minutes**, including a low customer cap, capacity upgrades while customers are present, all eight facilities, and a high-cap monster-truck event. Every physics tick checks vehicle/vehicle penetration, vehicle/scenery penetration, slot ownership and progress. It also requires visits to every business and a minimum number of completed highway-to-highway journeys; merely stopping every car cannot pass.
 
-The rendered smoke walkthrough additionally captures the service detail and a full-hub circulation overview. A device play-test is still needed to assess GPU/frame-time behaviour on a particular phone.
+The rendered smoke walkthrough additionally captures the service detail and a full-hub circulation overview, and a 720×1600 tall-device layout. It waits on physics frames and captures only after `RenderingServer.frame_post_draw`, so slow software rendering does not inflate simulation waits or capture an unfinished UI frame. A device play-test is still needed to assess GPU/frame-time behaviour on a particular phone.

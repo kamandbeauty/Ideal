@@ -96,3 +96,28 @@ func test_bevels_are_real_cached_geometry() -> void:
 	check(first == StylizedMesh.box(size), "identical bevel meshes are shared")
 	equal(first.get_surface_count(), 1, "one material surface per chamfered mesh")
 	check(first.get_aabb().size.is_equal_approx(size), "bevels retain the requested dimensions")
+
+
+func test_colliders_cover_the_actual_body_mirrors_and_tyres() -> void:
+	var kinds := VehicleMesh.KINDS.duplicate()
+	kinds.append("monster")
+	for kind in kinds:
+		var visual := VehicleMesh.build(kind, Color.WHITE)
+		var bounds := _visual_bounds(visual, Transform3D.IDENTITY)
+		var footprint := VehicleMesh.footprint(kind)
+		check(bounds.position.x >= -footprint.x * 0.5 - 0.001, kind + " left side fits its collider")
+		check(bounds.end.x <= footprint.x * 0.5 + 0.001, kind + " right side fits its collider")
+		check(bounds.position.z >= -footprint.y * 0.5 - 0.001, kind + " rear bumper fits its collider")
+		check(bounds.end.z <= footprint.y * 0.5 + 0.001, kind + " front bumper fits its collider")
+		visual.free()
+
+
+func _visual_bounds(node: Node3D, parent_transform: Transform3D) -> AABB:
+	var transform := parent_transform * node.transform
+	var result := AABB(transform.origin, Vector3.ZERO)
+	if node is MeshInstance3D:
+		result = transform * (node as MeshInstance3D).mesh.get_aabb()
+	for child in node.get_children():
+		if child is Node3D and child.name != "ContactShadow":
+			result = result.merge(_visual_bounds(child as Node3D, transform))
+	return result

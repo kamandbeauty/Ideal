@@ -64,6 +64,13 @@ jobs:
           ls "$target" | head -20
           test -f "$target/android_debug.apk"
 
+      # Debug signing only: keep sideload updates consistent between builds.
+      - name: Restore debug signing identity
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: roadside-debug-signing-v1
+
       - name: Install Android SDK tools
         run: |
           set -euxo pipefail
@@ -111,6 +118,29 @@ jobs:
             tail -160 /tmp/import.log; exit 1; }
           if grep -E 'SCRIPT ERROR|Parse Error|Failed to load script' /tmp/import.log; then exit 1; fi
 
+      - name: Validate gameplay before packaging
+        run: |
+          set -euo pipefail
+          status=0
+          godot --headless --path . --script res://tests/run_tests.gd > /tmp/tests.log 2>&1 || status=$?
+          cat /tmp/tests.log
+          if [ "$status" -ne 0 ] || grep -qE 'SCRIPT ERROR|Parse Error|TESTS FAILED' /tmp/tests.log; then
+            tail -20 /tmp/tests.log | while IFS= read -r line; do
+              echo "::error title=APK tests::${line:0:1200}"
+            done
+            exit 1
+          fi
+          status=0
+          timeout 180 godot --headless --path . res://tools/traffic_check.tscn > /tmp/traffic.log 2>&1 || status=$?
+          cat /tmp/traffic.log
+          if [ "$status" -ne 0 ] || grep -qE 'SCRIPT ERROR|Parse Error|TRAFFIC FAILED' /tmp/traffic.log; then
+            tail -12 /tmp/traffic.log | while IFS= read -r line; do
+              echo "::error title=APK traffic::${line:0:3500}"
+            done
+            exit 1
+          fi
+          grep -q 'TRAFFIC OK' /tmp/traffic.log
+
       - name: Export the APK
         run: |
           status=0
@@ -131,7 +161,10 @@ jobs:
           set -euo pipefail
           APK=delivery/RoadsideEmpire.apk
           BADGING=$("$ANDROID_HOME/build-tools/34.0.0/aapt2" dump badging "$APK")
-          echo "$BADGING" | grep -E "^(package|sdkVersion|targetSdkVersion|application-label|native-code|launchable-activity)" || true
+          echo "$BADGING" | grep -E "^(package|sdkVersion|targetSdkVersion|application-label|native-code|launchable-activity)"
+          echo "$BADGING" | grep -q "package: name='com.roadsideempire.tycoon'"
+          "$ANDROID_HOME/build-tools/34.0.0/apksigner" verify --verbose --print-certs "$APK"
+          (cd delivery && sha256sum RoadsideEmpire.apk > RoadsideEmpire.apk.sha256)
 
       - uses: actions/upload-artifact@v4
         with:
@@ -146,7 +179,7 @@ jobs:
         run: |
           set -euo pipefail
           notes=$(printf '%s\n\n%s\n%s\n' \
-            "Debug-signed arm64 Android APK of Roadside Empire: Idle Tycoon (امپراتوری بین‌راهی), v1.40.0." \
+            "Debug-signed arm64 Android APK of Roadside Empire: Idle Tycoon (امپراتوری بین‌راهی), v1.41.0 — swept vehicle collisions, reserved parking, one-way roads and refreshed graphics." \
             "Install: open this page on your Android phone, download RoadsideEmpire.apk," \
             "allow \"install unknown apps\" for your browser/file manager, then open the file.")
           notes="$notes"$'\n'"Built from $SHA."
@@ -156,5 +189,5 @@ jobs:
           else
             gh release edit roadside-empire-apk --notes "$notes"
           fi
-          gh release upload roadside-empire-apk delivery/RoadsideEmpire.apk --clobber
+          gh release upload roadside-empire-apk delivery/RoadsideEmpire.apk delivery/RoadsideEmpire.apk.sha256 --clobber
           gh release view roadside-empire-apk --json url -q .url

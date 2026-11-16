@@ -74,7 +74,7 @@ func _ready() -> void:
 
 
 func _intro_camera() -> void:
-	camera_rig.zoom = 29.5
+	camera_rig.zoom = 36.0
 	camera_rig.target = Vector3(-0.3, 0.0, 2.8)
 	camera_rig.apply()
 	var tween := create_tween()
@@ -83,8 +83,8 @@ func _intro_camera() -> void:
 
 
 func _apply_intro(t: float) -> void:
-	camera_rig.zoom = lerpf(29.5, IsometricCamera.DEFAULT_ZOOM, t)
-	camera_rig.target = Vector3(-0.3, 0.0, lerpf(2.8, IsometricCamera.DEFAULT_TARGET.z, t))
+	camera_rig.zoom = lerpf(36.0, IsometricCamera.DEFAULT_ZOOM, t)
+	camera_rig.target = Vector3(-0.3, 0.0, 2.8).lerp(IsometricCamera.DEFAULT_TARGET, t)
 	camera_rig.apply()
 
 
@@ -249,9 +249,9 @@ func _pop_income() -> void:
 
 func _on_town_completed() -> void:
 	_zoom_from = camera_rig.zoom
-	_zoom_to = 31.0
+	_zoom_to = 56.0
 	_target_from = camera_rig.target
-	_target_to = IsometricCamera.DEFAULT_TARGET
+	_target_to = Vector3(0, 0, 12.0)
 	var tw := create_tween()
 	tw.tween_method(_apply_camera_focus, 0.0, 1.0, 1.4).set_trans(Tween.TRANS_CUBIC)
 	if hud != null:
