@@ -169,7 +169,6 @@ class Choices:
 	var glyph_strip: float = GLYPH_STRIP
 	var allow_reselect: bool = false
 	var accent: Color = UITheme.AMBER
-	var dark_selection: bool = false
 	var corner_radius: int = 6
 
 	func _init(labels: Array = [], start: int = 0, icons: Array = [], wrap_after: int = 0) -> void:
@@ -195,6 +194,7 @@ class Choices:
 			button.pressed.connect(_choose.bind(index))
 			add_child(button)
 			buttons.append(button)
+			UITheme.trim_button(button, Color(UITheme.AMBER, 0.5))
 			var glyph: Glyph = null
 			if index < icons.size() and String(icons[index]) != "":
 				glyph = Glyph.new(String(icons[index]), 34.0 if String(icons[index]) == "grenade" else 84.0)
@@ -210,15 +210,24 @@ class Choices:
 		for place: int in buttons.size():
 			var button: Button = buttons[place]
 			var lit: bool = place == index
-			var back: Color = (Color(0.22, 0.15, 0.07) if dark_selection else accent.darkened(0.1)) if lit else UITheme.PLATE
-			var rim: Color = accent.lightened(0.15) if lit else UITheme.LINE
-			var ink: Color = (accent.lightened(0.5) if dark_selection else Color(0.08, 0.06, 0.03)) if lit else UITheme.TEXT
+			var back: Color = Color(0.22, 0.15, 0.07, 0.98) if lit else Color(0.075, 0.08, 0.082, 0.97)
+			var rim: Color = accent.lightened(0.15) if lit else Color(0.49, 0.43, 0.34, 0.85)
+			var ink: Color = accent.lightened(0.5) if lit else UITheme.TEXT
 			if locked.has(place):
 				back = Color(0.085, 0.088, 0.092, 0.8)
 				rim = Color(0.34, 0.33, 0.3, 0.5)
 				ink = Color(UITheme.MUTED, 0.55)
+			UITheme.trim_button(button, Color(accent, 0.9 if lit else 0.45))
 			for key: String in ["normal", "hover", "pressed", "disabled"]:
-				var style: StyleBoxFlat = UITheme.box(back, rim, corner_radius, 1, 12)
+				var state_back: Color = back
+				var state_rim: Color = rim
+				if not locked.has(place) and key == "hover":
+					state_back = back.lightened(0.08)
+					state_rim = accent.lightened(0.25)
+				elif not locked.has(place) and key == "pressed":
+					state_back = back.darkened(0.25)
+					state_rim = accent
+				var style: StyleBoxFlat = UITheme.button_plate(state_back, state_rim, 12, corner_radius)
 				if glyphs[place] != null:
 					# The name sits under its outline.
 					style.content_margin_top = glyph_strip

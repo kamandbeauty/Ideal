@@ -563,7 +563,6 @@ void fragment() {
 	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 2)
 	gun_choices.name = "ArsenalWeapons"
 	_add_weapon_thumbnails(gun_choices, Profile.GUNS)
-	gun_choices.dark_selection = true
 	gun_choices.select(gun_choices.selected)
 	gun_choices.chosen.connect(func(index: int) -> void:
 		gun_note.text = gun_note_for(Profile.GUNS[index])
@@ -642,7 +641,6 @@ func _build_equipment() -> void:
 	for button: Button in equipment_choices.buttons:
 		button.custom_minimum_size.y = 205.0
 	_add_weapon_thumbnails(equipment_choices, Profile.EQUIPMENT, 128.0)
-	equipment_choices.dark_selection = true
 	equipment_choices.select(equipment_choices.selected)
 	equipment_choices.chosen.connect(func(index: int) -> void:
 		equipment_id = Profile.EQUIPMENT[index]

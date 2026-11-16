@@ -69,6 +69,60 @@ static func box(background: Color, border: Color = LINE, radius: int = 8, width:
 	return style
 
 
+## One restrained, layered metal plate shared by every menu button and card.
+## Borders, margins and shadows never change the size of the touch target.
+static func button_plate(background: Color, border: Color, padding: int = 24, radius: int = 4) -> StyleBoxFlat:
+	var style: StyleBoxFlat = box(background, border, radius, 1, padding)
+	style.border_width_bottom = 2
+	style.shadow_color = Color(0.0, 0.0, 0.0, 0.55)
+	style.shadow_size = 3
+	style.shadow_offset = Vector2(0, 3)
+	return style
+
+
+## Fine highlights and rivets sit inside the plate, outside its text and icon area.
+## The overlay never receives input; the original Button remains the touch target.
+class ButtonTrim:
+	extends Control
+
+	func _init() -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	func _notification(what: int) -> void:
+		if what == NOTIFICATION_RESIZED:
+			queue_redraw()
+
+	func _draw() -> void:
+		var button := get_parent() as Button
+		if button == null or size.x < 60.0 or size.y < 32.0:
+			return
+		var color: Color = button.get_meta("trim_color", UITheme.AMBER)
+		if button.disabled:
+			color = Color(0.48, 0.46, 0.42, 0.32)
+		var w: float = size.x
+		var h: float = size.y
+		var edge := Color(color.r, color.g, color.b, color.a * 0.72)
+		var glint := Color(1.0, 0.91, 0.76, 0.12)
+		draw_line(Vector2(12, 5), Vector2(w - 12, 5), glint, 1.0)
+		for side: float in [1.0, -1.0]:
+			var x: float = 7.0 if side > 0.0 else w - 7.0
+			draw_line(Vector2(x, 9), Vector2(x + side * 12.0, 9), edge, 2.0)
+			draw_line(Vector2(x, 9), Vector2(x, 20), edge, 2.0)
+			draw_line(Vector2(x, h - 9), Vector2(x + side * 12.0, h - 9), edge, 1.0)
+			draw_circle(Vector2(x + side * 3.0, h - 13), 1.5, edge)
+
+
+static func trim_button(node: Button, color: Color = AMBER) -> void:
+	node.set_meta("trim_color", color)
+	var trim := node.get_node_or_null("ButtonTrim") as ButtonTrim
+	if trim == null:
+		trim = ButtonTrim.new()
+		trim.name = "ButtonTrim"
+		node.add_child(trim)
+	trim.queue_redraw()
+
+
 static func theme() -> Theme:
 	if shared != null:
 		return shared
@@ -78,10 +132,11 @@ static func theme() -> Theme:
 	shared.set_color("font_shadow_color", "Label", Color(0, 0, 0, 0.75))
 	shared.set_constant("shadow_offset_x", "Label", 1)
 	shared.set_constant("shadow_offset_y", "Label", 2)
-	shared.set_stylebox("normal", "Button", box(PLATE, LINE, 6, 1, 24))
-	shared.set_stylebox("hover", "Button", box(PLATE.lightened(0.06), AMBER, 6, 1, 24))
-	shared.set_stylebox("pressed", "Button", box(PLATE.darkened(0.3), AMBER, 6, 2, 24))
-	shared.set_stylebox("disabled", "Button", box(Color(0.1, 0.1, 0.1, 0.6), Color(0.3, 0.3, 0.3, 0.4), 6, 1, 24))
+	shared.set_stylebox("normal", "Button", button_plate(Color(0.075, 0.08, 0.082, 0.97), Color(0.49, 0.43, 0.34, 0.85)))
+	shared.set_stylebox("hover", "Button", button_plate(Color(0.15, 0.135, 0.11, 0.98), AMBER))
+	shared.set_stylebox("pressed", "Button", button_plate(Color(0.10, 0.085, 0.065, 0.99), AMBER.lightened(0.2)))
+	shared.set_stylebox("disabled", "Button", button_plate(Color(0.055, 0.055, 0.055, 0.85), Color(0.3, 0.29, 0.26, 0.5)))
+	shared.set_color("font_disabled_color", "Button", Color(0.64, 0.62, 0.57, 0.7))
 	shared.set_stylebox("focus", "Button", StyleBoxEmpty.new())
 	for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		shared.set_color(key, "Button", TEXT)
@@ -149,11 +204,12 @@ static func paint_button(node: Button, look: String) -> void:
 		node.remove_theme_stylebox_override(key)
 	for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 		node.remove_theme_color_override(key)
-	var tone: Color = AMBER if look == "accent" else RED
+	var tone: Color = RED if look == "danger" else AMBER
+	trim_button(node, Color(tone, 0.90 if look != "plain" else 0.52))
 	if look == "accent" or look == "danger":
-		node.add_theme_stylebox_override("normal", box(Color(0.18, 0.13, 0.07, 0.96) if look == "accent" else tone.darkened(0.12), tone.lightened(0.25), 2, 2, 24))
-		node.add_theme_stylebox_override("hover", box(tone.darkened(0.55) if look == "accent" else tone, Color.WHITE, 2, 2, 24))
-		node.add_theme_stylebox_override("pressed", box(tone.darkened(0.35), tone, 2, 2, 24))
-		var ink: Color = Color(1.0, 0.97, 0.90)
+		var base := Color(0.20, 0.125, 0.045, 0.98) if look == "accent" else Color(0.24, 0.055, 0.045, 0.98)
+		node.add_theme_stylebox_override("normal", button_plate(base, tone.lightened(0.18)))
+		node.add_theme_stylebox_override("hover", button_plate(base.lightened(0.13), tone.lightened(0.35)))
+		node.add_theme_stylebox_override("pressed", button_plate(base.darkened(0.25), tone))
 		for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-			node.add_theme_color_override(key, ink)
+			node.add_theme_color_override(key, TEXT)

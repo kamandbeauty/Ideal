@@ -90,6 +90,34 @@ func run(t: TestContext) -> void:
 	var root: Window = t.tree.root
 	var old_size: Vector2i = root.size
 
+	# Every menu action and choice gets the same touch-safe metal treatment.
+	var action: Button = UITheme.button("test", func() -> void: pass, "accent")
+	action.theme = UITheme.theme()
+	root.add_child(action)
+	var trim := action.get_node_or_null("ButtonTrim") as Control
+	t.check(trim != null and trim.mouse_filter == Control.MOUSE_FILTER_IGNORE, "button decoration cannot intercept a tap")
+	t.equal(action.custom_minimum_size.y, UITheme.TOUCH, "decoration keeps the action touch target")
+	var normal := action.get_theme_stylebox("normal") as StyleBoxFlat
+	var hover := action.get_theme_stylebox("hover") as StyleBoxFlat
+	var pressed := action.get_theme_stylebox("pressed") as StyleBoxFlat
+	t.check(normal != null and hover != null and pressed != null and normal.bg_color != hover.bg_color and normal.bg_color != pressed.bg_color, "action plate has distinct normal, hover and pressed states")
+	UITheme.paint_button(action, "danger")
+	t.check((action.get_meta("trim_color") as Color).r > (action.get_meta("trim_color") as Color).g, "confirmation gets the danger trim")
+	UITheme.paint_button(action, "plain")
+	t.check(action.get_child_count() == 1 and action.get_theme_stylebox("normal") == UITheme.theme().get_stylebox("normal", "Button"), "repainting reuses trim and restores the plain style")
+	action.queue_free()
+	var choices := MenuWidgets.Choices.new(["first", "second", "third"], 0)
+	root.add_child(choices)
+	var selected := choices.buttons[0].get_theme_stylebox("normal") as StyleBoxFlat
+	var unselected := choices.buttons[1].get_theme_stylebox("normal") as StyleBoxFlat
+	t.check(selected.bg_color != unselected.bg_color and choices.buttons[0].get_node_or_null("ButtonTrim") != null, "selected choices are visibly distinct and share the trim")
+	choices.lock(2)
+	choices._choose(2)
+	t.check(choices.selected == 0 and choices.buttons[2].disabled, "locked choice remains disabled")
+	choices._choose(1)
+	t.equal(choices.selected, 1, "a different unlocked choice can still be selected")
+	choices.queue_free()
+
 	# The margin rule itself.
 	t.equal(UITheme.TOUCH, 88.0, "a touch target is 88 canvas units, 7.4 mm on a 6.5-inch phone")
 	t.equal(Hud.margins_for(Vector2(1440.0, 810.0), Vector2.ZERO), Vector2(Hud.MARGIN, Hud.MARGIN), "on a 16:9 screen the HUD keeps its plain margin")
