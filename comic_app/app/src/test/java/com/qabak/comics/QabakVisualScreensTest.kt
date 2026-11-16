@@ -62,15 +62,18 @@ class QabakVisualScreensTest {
     private lateinit var sampleComics: List<ComicBook>
     private lateinit var alborzSource: BundledPageSource
     private lateinit var tehranSource: BundledPageSource
+    private lateinit var webtoonSource: BundledPageSource
+    private lateinit var mangaSource: BundledPageSource
 
     @Before
     fun setUp() = runBlocking {
         context = ApplicationProvider.getApplicationContext()
         alborzSource = BundledPageSource(context, "guardian_of_alborz")
         tehranSource = BundledPageSource(context, "neon_tehran_2099")
-        val webtoonSource = BundledPageSource(context, "simorgh_dawn_webtoon")
+        webtoonSource = BundledPageSource(context, "desert_lantern_webtoon")
+        mangaSource = BundledPageSource(context, "ink_blade_manga")
 
-        val sources = listOf(alborzSource, tehranSource, webtoonSource)
+        val sources = listOf(alborzSource, tehranSource, webtoonSource, mangaSource)
         sampleComics = sources.mapIndexed { idx, src ->
             val m = src.manifest
             val coverPath = "asset://comics/${m.id}/${m.pages.first().file}"
@@ -298,14 +301,14 @@ class QabakVisualScreensTest {
 
     @Test
     fun capture05_readerEnglishCyberpunkActionPage() = runBlocking {
-        tehranSource.renderPage(3, maxWidth = 1440, maxHeight = 2200)
+        tehranSource.renderPage(4, maxWidth = 1440, maxHeight = 2200)
 
         composeRule.setContent {
             QabakTheme(themeMode = AppThemeMode.DARK, language = AppLanguage.EN) {
                 ReaderScreen(
                     comic = sampleComics[1],
                     source = tehranSource,
-                    initialPage = 3,
+                    initialPage = 4,
                     initialMode = ReadingMode.PAGED_LTR,
                     settings = UserSettings(
                         language = AppLanguage.EN,
@@ -433,5 +436,83 @@ class QabakVisualScreensTest {
         }
         composeRule.waitForIdle()
         composeRule.onRoot().captureRoboImage("../qa/screenshots/08_import_sheet_fa.png")
+    }
+
+    @Test
+    fun capture09_readerPersianDesertWebtoon() = runBlocking {
+        webtoonSource.renderPage(3, maxWidth = 1440, maxHeight = 2200)
+
+        composeRule.setContent {
+            QabakTheme(themeMode = AppThemeMode.DARK, language = AppLanguage.FA) {
+                ReaderScreen(
+                    comic = sampleComics[2],
+                    source = webtoonSource,
+                    initialPage = 3,
+                    initialMode = ReadingMode.PAGED_RTL,
+                    settings = UserSettings(
+                        language = AppLanguage.FA,
+                        dialogueMode = DialogueDisplayMode.FA
+                    ),
+                    bookmarkedPages = setOf(3),
+                    bookmarkNotes = mapOf(3 to "چشمه آینه و بادگیرها"),
+                    initialHudVisible = true,
+                    onBack = {},
+                    onPageChanged = {},
+                    onModeChanged = {},
+                    onPageFitChanged = {},
+                    onColorFilterChanged = {},
+                    onBackgroundChanged = {},
+                    onDialogueModeChanged = {},
+                    onBrightnessChanged = {},
+                    onNightWarmthChanged = {},
+                    onToggleVolumeKeys = {},
+                    onToggleBookmark = {},
+                    onSaveBookmarkNote = { _, _ -> }
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        Thread.sleep(250)
+        composeRule.waitForIdle()
+        composeRule.onRoot().captureRoboImage("../qa/screenshots/09_reader_fa_webtoon.png")
+    }
+
+    @Test
+    fun capture10_readerPersianSamuraiManga() = runBlocking {
+        mangaSource.renderPage(3, maxWidth = 1440, maxHeight = 2200)
+
+        composeRule.setContent {
+            QabakTheme(themeMode = AppThemeMode.DARK, language = AppLanguage.FA) {
+                ReaderScreen(
+                    comic = sampleComics[3],
+                    source = mangaSource,
+                    initialPage = 3,
+                    initialMode = ReadingMode.PAGED_RTL,
+                    settings = UserSettings(
+                        language = AppLanguage.FA,
+                        dialogueMode = DialogueDisplayMode.FA
+                    ),
+                    bookmarkedPages = emptySet(),
+                    bookmarkNotes = emptyMap(),
+                    initialHudVisible = true,
+                    onBack = {},
+                    onPageChanged = {},
+                    onModeChanged = {},
+                    onPageFitChanged = {},
+                    onColorFilterChanged = {},
+                    onBackgroundChanged = {},
+                    onDialogueModeChanged = {},
+                    onBrightnessChanged = {},
+                    onNightWarmthChanged = {},
+                    onToggleVolumeKeys = {},
+                    onToggleBookmark = {},
+                    onSaveBookmarkNote = { _, _ -> }
+                )
+            }
+        }
+        composeRule.waitForIdle()
+        Thread.sleep(250)
+        composeRule.waitForIdle()
+        composeRule.onRoot().captureRoboImage("../qa/screenshots/10_reader_fa_manga.png")
     }
 }

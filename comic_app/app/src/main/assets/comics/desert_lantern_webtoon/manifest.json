@@ -1,0 +1,201 @@
+{
+  "id": "desert_lantern_webtoon",
+  "titleFa": "فانوس کویر: کاروان ستارگان",
+  "titleEn": "Lantern of the Desert: Star Caravan",
+  "seriesFa": "وب‌تون کویر • اپیزود ۱",
+  "seriesEn": "Desert Webtoon • Ep. 1",
+  "authorFa": "نگارخانه کویر",
+  "authorEn": "Kavir Studio",
+  "genreFa": "وب‌تون فانتزی",
+  "genreEn": "Fantasy Webtoon",
+  "descriptionFa": "«نوا» دختر اخترشناس، ستاره‌ای سقوط‌کرده را در حوض فیروزه‌ای کاروانسرا می‌یابد و به همراه روباهی از جنس کهکشان، از میان تپه‌های شنی به رصدخانه بادگیرها می‌رود تا نور گمشده را به آسمان بازگرداند.",
+  "descriptionEn": "Young stargazer Nava discovers a fallen star in a turquoise caravanserai pool and follows a constellation fennec fox across moonlit dunes to an ancient windcatcher observatory.",
+  "accentHex": "#2DD4BF",
+  "defaultMode": "WEBTOON",
+  "pages": [
+    {
+      "file": "page_00.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": true,
+      "titleFa": "روی جلد — اپیزود وب‌تون",
+      "titleEn": "Cover — Webtoon Episode",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.0,
+          "right": 1.0,
+          "bottom": 1.0
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.9,
+          "width": 0.84,
+          "style": "COVER_TITLE",
+          "textFa": "فانوس کویر • کاروان ستارگان",
+          "textEn": "LANTERN OF THE DESERT • STAR CARAVAN",
+          "subFa": "وب‌تون اختصاصی • اسکرول پیوسته عمودی",
+          "subEn": "ORIGINAL WEBTOON • VERTICAL SCROLL"
+        }
+      ]
+    },
+    {
+      "file": "page_01.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "پرده ۱ — ستاره در حوض کاشی",
+      "titleEn": "Scroll 1 — Star in the Courtyard Pool",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.03,
+          "right": 1.0,
+          "bottom": 0.58
+        },
+        {
+          "left": 0.04,
+          "top": 0.61,
+          "right": 0.96,
+          "bottom": 0.96
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.06,
+          "width": 0.72,
+          "style": "CAPTION",
+          "textFa": "هنگام غروب در کاروانسرای فیروزه، اخگری از کهکشان در حوض آرام افتاد.",
+          "textEn": "At dusk in the Turquoise Caravanserai, a fallen spark drifted onto the still pool."
+        },
+        {
+          "x": 0.5,
+          "y": 0.92,
+          "width": 0.64,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "نترس ستاره کوچک... نورت را در فانوسم نگه می‌دارم تا راه خانه را پیدا کنیم.",
+          "textEn": "Don't fade, little star... rest in my lantern, and I'll carry you home."
+        }
+      ]
+    },
+    {
+      "file": "page_02.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "پرده ۲ — روباه کهکشانی",
+      "titleEn": "Scroll 2 — The Constellation Fox",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.05,
+          "right": 1.0,
+          "bottom": 0.55
+        },
+        {
+          "left": 0.0,
+          "top": 0.55,
+          "right": 1.0,
+          "bottom": 0.95
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.42,
+          "y": 0.11,
+          "width": 0.66,
+          "style": "CAPTION",
+          "textFa": "بر تیغه شن‌های نقره‌فام، روباهی از جنس ستاره پیشاپیش «نوا» قدم برداشت.",
+          "textEn": "Along silver dune ridges, a fox woven of starlight stepped ahead of Nava."
+        },
+        {
+          "x": 0.62,
+          "y": 0.91,
+          "width": 0.6,
+          "style": "CAPTION",
+          "textFa": "هر ردپایش بر ماسه‌ها مثل فانوسی فیروزه‌ای راه رصدخانه کهن را نشان می‌داد.",
+          "textEn": "Each glowing pawprint lit the forgotten path toward the ancient observatory."
+        }
+      ]
+    },
+    {
+      "file": "page_03.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "پرده ۳ — چشمه آینه و بادگیرها",
+      "titleEn": "Scroll 3 — Mirror Pool of the Windcatchers",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.04,
+          "right": 1.0,
+          "bottom": 0.52
+        },
+        {
+          "left": 0.0,
+          "top": 0.52,
+          "right": 1.0,
+          "bottom": 0.96
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.08,
+          "width": 0.68,
+          "style": "CAPTION",
+          "textFa": "در میان بادگیرهای خاموش دره، آبِ آینه‌گون با نور فانوس به آواز درآمد.",
+          "textEn": "Between ancient canyon windcatchers, the mirror pool answered her lantern's glow."
+        },
+        {
+          "x": 0.34,
+          "y": 0.92,
+          "width": 0.56,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "پرواز کن... کهکشان منتظر توست!",
+          "textEn": "Rise free... the Milky Way has been waiting for you!"
+        }
+      ]
+    },
+    {
+      "file": "page_04.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "پرده ۴ — کاروان سپیده‌دم",
+      "titleEn": "Scroll 4 — Caravan of Dawn",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.05,
+          "right": 1.0,
+          "bottom": 0.94
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.48,
+          "y": 0.09,
+          "width": 0.68,
+          "style": "CAPTION",
+          "textFa": "با طلوع سرخ کویر، پرستوهای روشنایی ستاره را تا بلندای آسمان بدرقه کردند.",
+          "textEn": "As rose dawn touched the oasis, birds of golden starlight carried it skyward."
+        },
+        {
+          "x": 0.5,
+          "y": 0.93,
+          "width": 0.62,
+          "style": "CAPTION",
+          "textFa": "پایان اپیزود اول • فانوس کویر",
+          "textEn": "End of Episode 1 • Lantern of the Desert"
+        }
+      ]
+    }
+  ]
+}

@@ -9,7 +9,7 @@
   "genreFa": "فانتزی اساطیری",
   "genreEn": "Mythic Fantasy",
   "descriptionFa": "در دل بوران بی‌پایان قله دماوند، «آرش» نقشه‌نگار جوان به نیایشگاهی فراموش‌شده قدم می‌گذارد و اسطرلاب باستانی سیمرغ را می‌یابد؛ اما بیدار کردن نور کهن، نگهبان مفرغی معبد را نیز از خواب هزارساله برمی‌انگیزد.",
-  "descriptionEn": "High in a relentless blizzard on Mount Damavand, young cartographer Arash uncovers a forgotten obsidian sanctuary housing the ancient Simorgh Astrolabe—awakening both its bronze sentinel and a legend of golden fire.",
+  "descriptionEn": "High in a relentless blizzard on Mount Damavand, young cartographer Arash uncovers a forgotten sanctuary housing the ancient Simorgh Astrolabe—awakening its bronze sentinel and a legend of golden fire.",
   "accentHex": "#F59E0B",
   "defaultMode": "PAGED_RTL",
   "pages": [
@@ -53,190 +53,18 @@
           "left": 0.0378,
           "top": 0.0252,
           "right": 0.9622,
-          "bottom": 0.3852
+          "bottom": 0.4815
         },
         {
-          "left": 0.0378,
-          "top": 0.4015,
-          "right": 0.4867,
-          "bottom": 0.6815
-        },
-        {
-          "left": 0.5111,
-          "top": 0.4015,
-          "right": 0.9622,
-          "bottom": 0.6815
-        },
-        {
-          "left": 0.0378,
-          "top": 0.6978,
+          "left": 0.5133,
+          "top": 0.4978,
           "right": 0.9622,
           "bottom": 0.9748
-        }
-      ],
-      "bubbles": [
-        {
-          "x": 0.34,
-          "y": 0.08,
-          "width": 0.56,
-          "style": "CAPTION",
-          "textFa": "ارتفاعات دماوند — سه شب از آغاز بوران بی‌پایان گذشته است.",
-          "textEn": "Mount Damavand — Three nights into the endless winter storm."
-        },
-        {
-          "x": 0.26,
-          "y": 0.63,
-          "width": 0.38,
-          "style": "SPEECH",
-          "tailDir": "UP",
-          "textFa": "نقشه‌های کهن درست می‌گفتند... دروازه سنگی همین‌جاست!",
-          "textEn": "The ancient maps were right... the stone archway is real!"
-        },
-        {
-          "x": 0.72,
-          "y": 0.9,
-          "width": 0.46,
-          "style": "SPEECH",
-          "tailDir": "UP",
-          "textFa": "اسطرلاب سیمرغ... بعد از هزار سال هنوز گرم است.",
-          "textEn": "The Simorgh Astrolabe... still warm after a thousand years."
-        }
-      ]
-    },
-    {
-      "file": "page_02.webp",
-      "width": 900,
-      "height": 1350,
-      "isCover": false,
-      "titleFa": "صفحه ۲ — نگهبان مفرغی",
-      "titleEn": "Page 2 — The Bronze Sentinel",
-      "panels": [
-        {
-          "left": 0.0378,
-          "top": 0.0252,
-          "right": 0.9622,
-          "bottom": 0.3037
         },
         {
           "left": 0.0378,
-          "top": 0.32,
-          "right": 0.9622,
-          "bottom": 0.7111
-        },
-        {
-          "left": 0.0378,
-          "top": 0.7274,
-          "right": 0.9622,
-          "bottom": 0.9748
-        }
-      ],
-      "bubbles": [
-        {
-          "x": 0.72,
-          "y": 0.08,
-          "width": 0.44,
-          "style": "CAPTION",
-          "textFa": "با نخستین چرخش حلقه‌های طلایی، تالار به لرزه درآمد...",
-          "textEn": "As the first golden ring turned, the obsidian hall trembled..."
-        },
-        {
-          "x": 0.25,
-          "y": 0.38,
-          "width": 0.34,
-          "style": "SFX",
-          "textFa": "غـرّشـشـش!",
-          "textEn": "KRA-KOOM!"
-        },
-        {
-          "x": 0.32,
-          "y": 0.9,
-          "width": 0.52,
-          "style": "SHOUT",
-          "tailDir": "UP",
-          "textFa": "کـاووسِ مفرغی بیدار شد! هیچ غریبه‌ای نباید اسطرلاب را ببرد!",
-          "textEn": "The Bronze Guardian wakes! None may claim the solar key!"
-        }
-      ]
-    },
-    {
-      "file": "page_03.webp",
-      "width": 900,
-      "height": 1350,
-      "isCover": false,
-      "titleFa": "صفحه ۳ — ستون خورشید",
-      "titleEn": "Page 3 — Pillar of Sunlight",
-      "panels": [
-        {
-          "left": 0.0378,
-          "top": 0.0252,
-          "right": 0.4833,
-          "bottom": 0.3333
-        },
-        {
-          "left": 0.5078,
-          "top": 0.0252,
-          "right": 0.9622,
-          "bottom": 0.3333
-        },
-        {
-          "left": 0.0378,
-          "top": 0.3496,
-          "right": 0.9622,
-          "bottom": 0.9748
-        }
-      ],
-      "bubbles": [
-        {
-          "x": 0.72,
-          "y": 0.28,
-          "width": 0.38,
-          "style": "SPEECH",
-          "tailDir": "UP",
-          "textFa": "من برای دزدیدن نیامده‌ام... برای نجات دره آمده‌ام!",
-          "textEn": "I didn't come to steal it... I came to save the valley!"
-        },
-        {
-          "x": 0.28,
-          "y": 0.42,
-          "width": 0.42,
-          "style": "SFX",
-          "textFa": "درخشش!",
-          "textEn": "FWOOSH!"
-        },
-        {
-          "x": 0.64,
-          "y": 0.9,
-          "width": 0.58,
-          "style": "CAPTION",
-          "textFa": "نور کهن شکاف گنبد را درید و پرهای آتشین در دل بوران چرخیدند.",
-          "textEn": "Ancient light pierced the shattered dome as golden feathers danced in the snow."
-        }
-      ]
-    },
-    {
-      "file": "page_04.webp",
-      "width": 900,
-      "height": 1350,
-      "isCover": false,
-      "titleFa": "صفحه ۴ — سپیده‌دم سیمرغ",
-      "titleEn": "Page 4 — Dawn of the Simorgh",
-      "panels": [
-        {
-          "left": 0.0378,
-          "top": 0.0252,
-          "right": 0.9622,
-          "bottom": 0.5704
-        },
-        {
-          "left": 0.0378,
-          "top": 0.5867,
-          "right": 0.5111,
-          "bottom": 0.9748
-        },
-        {
-          "left": 0.5356,
-          "top": 0.5867,
-          "right": 0.9622,
+          "top": 0.4978,
+          "right": 0.4889,
           "bottom": 0.9748
         }
       ],
@@ -246,11 +74,204 @@
           "y": 0.08,
           "width": 0.58,
           "style": "CAPTION",
+          "textFa": "ارتفاعات دماوند — سه شب از آغاز بوران بی‌پایان گذشته است.",
+          "textEn": "Mount Damavand — Three nights into the endless winter storm."
+        },
+        {
+          "x": 0.72,
+          "y": 0.89,
+          "width": 0.39,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "شعله فانوس دارد می‌لرزد... باید پیش از نیمه‌شب به قله برسم.",
+          "textEn": "The lantern flame is fading... I must reach the ridge before midnight."
+        },
+        {
+          "x": 0.25,
+          "y": 0.58,
+          "width": 0.38,
+          "style": "SPEECH",
+          "tailDir": "DOWN",
+          "textFa": "نقشه‌های کهن درست می‌گفتند... دروازه سنگی همین‌جاست!",
+          "textEn": "The ancient maps were right... the carved stone archway is real!"
+        }
+      ]
+    },
+    {
+      "file": "page_02.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۲ — اسطرلاب کهن",
+      "titleEn": "Page 2 — The Ancient Astrolabe",
+      "panels": [
+        {
+          "left": 0.0378,
+          "top": 0.0252,
+          "right": 0.9622,
+          "bottom": 0.5778
+        },
+        {
+          "left": 0.5133,
+          "top": 0.5941,
+          "right": 0.9622,
+          "bottom": 0.9748
+        },
+        {
+          "left": 0.0378,
+          "top": 0.5941,
+          "right": 0.4889,
+          "bottom": 0.9748
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.64,
+          "y": 0.08,
+          "width": 0.56,
+          "style": "CAPTION",
+          "textFa": "در قلب نیایشگاه خاموش، حلقه‌های طلایی اسطرلاب آرام می‌تپیدند.",
+          "textEn": "Inside the silent sanctuary, the golden astrolabe rings pulsed softly."
+        },
+        {
+          "x": 0.26,
+          "y": 0.9,
+          "width": 0.39,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "اسطرلاب سیمرغ... بعد از هزار سال هنوز گرم است!",
+          "textEn": "The Simorgh Astrolabe... still warm after a thousand years!"
+        }
+      ]
+    },
+    {
+      "file": "page_03.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۳ — نگهبان مفرغی",
+      "titleEn": "Page 3 — The Bronze Sentinel",
+      "panels": [
+        {
+          "left": 0.0378,
+          "top": 0.0252,
+          "right": 0.9622,
+          "bottom": 0.637
+        },
+        {
+          "left": 0.0378,
+          "top": 0.6533,
+          "right": 0.9622,
+          "bottom": 0.9748
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.25,
+          "y": 0.11,
+          "width": 0.36,
+          "style": "SFX",
+          "textFa": "غـرّشـشـش!",
+          "textEn": "KRA-KOOM!"
+        },
+        {
+          "x": 0.5,
+          "y": 0.9,
+          "width": 0.66,
+          "style": "SHOUT",
+          "tailDir": "UP",
+          "textFa": "نگهبان مفرغی بیدار شد! هیچ بیگانه‌ای نباید کلید خورشید را ببرد!",
+          "textEn": "The Bronze Guardian wakes! No stranger may claim the solar key!"
+        }
+      ]
+    },
+    {
+      "file": "page_04.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۴ — ستون خورشید",
+      "titleEn": "Page 4 — Pillar of Sunlight",
+      "panels": [
+        {
+          "left": 0.0378,
+          "top": 0.0252,
+          "right": 0.9622,
+          "bottom": 0.3111
+        },
+        {
+          "left": 0.0378,
+          "top": 0.3274,
+          "right": 0.9622,
+          "bottom": 0.9748
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.66,
+          "y": 0.24,
+          "width": 0.5,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "من برای دزدیدن نیامده‌ام... برای نجات مردم دره آمده‌ام!",
+          "textEn": "I didn't come to steal it... I came to save the valley below!"
+        },
+        {
+          "x": 0.26,
+          "y": 0.4,
+          "width": 0.38,
+          "style": "SFX",
+          "textFa": "درخشش!",
+          "textEn": "FWOOSH!"
+        },
+        {
+          "x": 0.62,
+          "y": 0.9,
+          "width": 0.6,
+          "style": "CAPTION",
+          "textFa": "نور کهن شکاف گنبد را درید و پرهای آتشین در دل بوران چرخیدند.",
+          "textEn": "Ancient light pierced the dome as golden feathers danced through the storm."
+        }
+      ]
+    },
+    {
+      "file": "page_05.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۵ — سپیده‌دم سیمرغ",
+      "titleEn": "Page 5 — Dawn of the Simorgh",
+      "panels": [
+        {
+          "left": 0.0378,
+          "top": 0.0252,
+          "right": 0.9622,
+          "bottom": 0.5926
+        },
+        {
+          "left": 0.5133,
+          "top": 0.6089,
+          "right": 0.9622,
+          "bottom": 0.9748
+        },
+        {
+          "left": 0.0378,
+          "top": 0.6089,
+          "right": 0.4889,
+          "bottom": 0.9748
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.38,
+          "y": 0.08,
+          "width": 0.6,
+          "style": "CAPTION",
           "textFa": "بر فراز قله سپید، سیمرغ بال گشود و ابرهای تاریک را کنار زد.",
           "textEn": "Above the white peak, the Simorgh spread its wings and parted the storm."
         },
         {
-          "x": 0.26,
+          "x": 0.72,
           "y": 0.9,
           "width": 0.38,
           "style": "CAPTION",
@@ -258,12 +279,12 @@
           "textEn": "Below, the valley lanterns glowed warm once more."
         },
         {
-          "x": 0.73,
+          "x": 0.25,
           "y": 0.9,
-          "width": 0.38,
+          "width": 0.39,
           "style": "SPEECH",
           "tailDir": "UP",
-          "textFa": "این تازه آغاز سفر ماست. (پایان بخش اول)",
+          "textFa": "این تازه آغاز نگهبانی ماست. (پایان بخش ۱)",
           "textEn": "Our watch has only just begun. (End of Part 1)"
         }
       ]

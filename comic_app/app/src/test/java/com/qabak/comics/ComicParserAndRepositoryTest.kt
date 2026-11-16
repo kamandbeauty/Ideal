@@ -204,12 +204,12 @@ class ComicParserAndRepositoryTest {
         try {
             repo.ensureBundledComicsSeeded()
             val comics = repo.comicsFlow.first()
-            assertEquals(3, comics.size)
+            assertEquals(4, comics.size)
 
             // Verify every bundled comic's pages render cleanly
             for (comic in comics) {
                 BundledPageSource(context, comic.sourcePath).use { src ->
-                    assertTrue(src.pageCount >= 4)
+                    assertTrue(src.pageCount >= 5)
                     val firstBmp = src.renderPage(0, 480, 720)
                     assertNotNull("Failed decoding ${comic.id} page 0", firstBmp)
                 }

@@ -1,8 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "comics": [
     "guardian_of_alborz",
     "neon_tehran_2099",
-    "simorgh_dawn_webtoon"
+    "desert_lantern_webtoon",
+    "ink_blade_manga"
   ]
 }

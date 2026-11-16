@@ -1,0 +1,247 @@
+{
+  "id": "ink_blade_manga",
+  "titleFa": "تیغ مرکب: دوئل پل مه‌آلود",
+  "titleEn": "Blade of Ink: Mist Bridge Duel",
+  "seriesFa": "تیغ مرکب • چپتر ۱",
+  "seriesEn": "Blade of Ink • Ch. 1",
+  "authorFa": "قلم‌کده کازه‌مارو",
+  "authorEn": "Kazemaru Inkworks",
+  "genreFa": "مانگای سامورایی",
+  "genreEn": "Samurai Manga",
+  "descriptionFa": "مانگای کلاسیک سیاه‌وسفید با مرکب سومی و شال سرخ؛ شمشیرزنی سرگردان روی پل چوبی مه‌آلود دره خیزران با نگهبان زره‌پوش روبه‌رو می‌شود و با یک حرکت «هلال مرکب» سرنوشت نبرد را رقم می‌زند.",
+  "descriptionEn": "Classic black-and-white sumi-ink manga accented in crimson—a lone swordswoman faces an armored sentinel on a mist-wrapped bamboo bridge and decides the duel in a single breath.",
+  "accentHex": "#F43F5E",
+  "defaultMode": "PAGED_RTL",
+  "pages": [
+    {
+      "file": "page_00.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": true,
+      "titleFa": "روی جلد — چپتر ۱",
+      "titleEn": "Cover — Chapter 1",
+      "panels": [
+        {
+          "left": 0.0,
+          "top": 0.0,
+          "right": 1.0,
+          "bottom": 1.0
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.9,
+          "width": 0.82,
+          "style": "COVER_TITLE",
+          "textFa": "تیغ مرکب • دوئل پل مه‌آلود",
+          "textEn": "BLADE OF INK • MIST BRIDGE DUEL",
+          "subFa": "مانگای سامورایی • چپتر ۰۱",
+          "subEn": "SAMURAI MANGA • CHAPTER #01"
+        }
+      ]
+    },
+    {
+      "file": "page_01.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۱ — گذرگاه خیزران",
+      "titleEn": "Page 1 — Bamboo Gorge",
+      "panels": [
+        {
+          "left": 0.0378,
+          "top": 0.0252,
+          "right": 0.9622,
+          "bottom": 0.3852
+        },
+        {
+          "left": 0.5133,
+          "top": 0.4015,
+          "right": 0.9622,
+          "bottom": 0.6889
+        },
+        {
+          "left": 0.0378,
+          "top": 0.4015,
+          "right": 0.4889,
+          "bottom": 0.6889
+        },
+        {
+          "left": 0.0378,
+          "top": 0.7052,
+          "right": 0.9622,
+          "bottom": 0.9748
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.34,
+          "y": 0.08,
+          "width": 0.56,
+          "style": "CAPTION",
+          "textFa": "پاییز در دره خیزران — جایی که مه و برگ‌های افرا صدای قدم‌ها را می‌بلعند.",
+          "textEn": "Autumn in Bamboo Gorge — where mist and crimson leaves swallow every footstep."
+        },
+        {
+          "x": 0.25,
+          "y": 0.64,
+          "width": 0.39,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "ده سال است هیچ مسافری از این پل نگذشته، شمشیرزن.",
+          "textEn": "Ten autumns have passed since any traveler crossed my bridge."
+        },
+        {
+          "x": 0.66,
+          "y": 0.9,
+          "width": 0.54,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "من برای جنگ نیامده‌ام... فقط راه عبور می‌خواهم.",
+          "textEn": "I seek no quarrel, guardian—only passage to the northern ridge."
+        }
+      ]
+    },
+    {
+      "file": "page_02.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۲ — سکوت پیش از طوفان",
+      "titleEn": "Page 2 — Stillness Before Steel",
+      "panels": [
+        {
+          "left": 0.0378,
+          "top": 0.0252,
+          "right": 0.9622,
+          "bottom": 0.6963
+        },
+        {
+          "left": 0.0378,
+          "top": 0.7126,
+          "right": 0.9622,
+          "bottom": 0.9748
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.5,
+          "y": 0.08,
+          "width": 0.62,
+          "style": "CAPTION",
+          "textFa": "تا افتادن یک برگ افرا بر چوب خیس پل، سرنوشت دوئل رقم می‌خورد.",
+          "textEn": "Before a single maple leaf touches the wet planks, the duel will end."
+        },
+        {
+          "x": 0.28,
+          "y": 0.63,
+          "width": 0.32,
+          "style": "SFX",
+          "textFa": "شـیـنـگ!",
+          "textEn": "SHIIING!"
+        },
+        {
+          "x": 0.68,
+          "y": 0.9,
+          "width": 0.48,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "بسیار خب... تیغ تو را می‌شکنم، نه جانت را.",
+          "textEn": "Very well... I will shatter your iron, not your life."
+        }
+      ]
+    },
+    {
+      "file": "page_03.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۳ — هلال مرکب",
+      "titleEn": "Page 3 — Crescent of Ink",
+      "panels": [
+        {
+          "left": 0.0378,
+          "top": 0.0252,
+          "right": 0.9622,
+          "bottom": 0.5852
+        },
+        {
+          "left": 0.5133,
+          "top": 0.6015,
+          "right": 0.9622,
+          "bottom": 0.9748
+        },
+        {
+          "left": 0.0378,
+          "top": 0.6015,
+          "right": 0.4889,
+          "bottom": 0.9748
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.28,
+          "y": 0.09,
+          "width": 0.4,
+          "style": "SHOUT",
+          "tailDir": "DOWN",
+          "textFa": "فـنّ اول: هلال بادِ سرخ!",
+          "textEn": "First Form: Crimson Wind Crescent!"
+        },
+        {
+          "x": 0.72,
+          "y": 0.52,
+          "width": 0.34,
+          "style": "SFX",
+          "textFa": "چـکـاخ!",
+          "textEn": "KRA-SHHH!"
+        },
+        {
+          "x": 0.25,
+          "y": 0.9,
+          "width": 0.39,
+          "style": "SPEECH",
+          "tailDir": "UP",
+          "textFa": "باورکردنی نیست... فولاد سنگینم با یک ضربه دو نیم شد!",
+          "textEn": "Impossible... my heavy blade cleaved clean in a single breath!"
+        }
+      ]
+    },
+    {
+      "file": "page_04.webp",
+      "width": 900,
+      "height": 1350,
+      "isCover": false,
+      "titleFa": "صفحه ۴ — راه مهتاب",
+      "titleEn": "Page 4 — Moonlit Path",
+      "panels": [
+        {
+          "left": 0.0378,
+          "top": 0.0252,
+          "right": 0.9622,
+          "bottom": 0.9748
+        }
+      ],
+      "bubbles": [
+        {
+          "x": 0.34,
+          "y": 0.09,
+          "width": 0.56,
+          "style": "SPEECH",
+          "tailDir": "DOWN",
+          "textFa": "راه باز است، بانوی شال سرخ. نام این سبک چیست؟",
+          "textEn": "The bridge is yours, lady of the crimson scarf. What school is that?"
+        },
+        {
+          "x": 0.64,
+          "y": 0.89,
+          "width": 0.58,
+          "style": "CAPTION",
+          "textFa": "«مکتب مرکبِ آرام.» • پایان چپتر اول",
+          "textEn": "\"The School of Still Ink.\" • End of Chapter 1"
+        }
+      ]
+    }
+  ]
+}
