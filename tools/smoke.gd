@@ -285,7 +285,13 @@ func _validate_portrait_layout() -> void:
 			if not button.is_visible_in_tree():
 				continue
 			var rect := button.get_global_rect()
-			assert(rect.position.x >= 0.0 and rect.end.x <= viewport_size.x, "translated world badge is clipped")
+			assert(
+				rect.position.x >= 0.0 and rect.end.x <= viewport_size.x,
+				(
+					"translated world badge is clipped: %s %s in %s"
+					% [button.get_parent().name, str(rect), str(viewport_size)]
+				)
+			)
 			assert(rect.size.y >= 44.0, "world badges need a finger-sized touch target")
 			var arrow: Label = entry["arrow"]
 			if arrow.visible:

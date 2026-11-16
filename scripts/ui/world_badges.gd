@@ -14,6 +14,10 @@ var _styles: Dictionary = {}
 func setup(session_node: Node) -> void:
 	session = session_node
 	state = session.state
+	# This layer uses explicit projected pixel coordinates. Mirroring its
+	# zero-width holders would put an RTL button one full width to the left.
+	# Text still uses automatic bidi shaping; only geometry stays LTR.
+	layout_direction = Control.LAYOUT_DIRECTION_LTR
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# These styles are shared, not reallocated for every badge on every frame.
@@ -97,6 +101,7 @@ func _fit_badge(entry: Dictionary, screen_pt: Vector2, viewport_size: Vector2) -
 	var bar: ProgressBar = entry["bar"]
 	var arrow: Label = entry["arrow"]
 	btn.size = btn.get_combined_minimum_size()
+	btn.position = Vector2.ZERO
 	bar.position = Vector2(8, btn.size.y - 8.0)
 	bar.size = Vector2(btn.size.x - 16.0, 6)
 	arrow.position = Vector2(btn.size.x - 16.0, -10)
