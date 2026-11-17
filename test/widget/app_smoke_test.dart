@@ -136,8 +136,12 @@ void main() {
     return database;
   }
 
+  // A hanging frame must fail fast: the binding's default is ten minutes, which
+  // would make one broken test eat the whole CI budget.
+  const widgetTimeout = Timeout(Duration(seconds: 90));
+
   testWidgets('boots into the assistant tab in RTL with Persian labels',
-      (tester) async {
+      timeout: widgetTimeout, (tester) async {
     await pumpApp(tester);
 
     expect(find.text('دستیار'), findsOneWidget);
@@ -155,7 +159,8 @@ void main() {
     expect(find.textContaining('بخیر'), findsWidgets);
   });
 
-  testWidgets('navigates through all five tabs', (tester) async {
+  testWidgets('navigates through all five tabs', timeout: widgetTimeout,
+      (tester) async {
     await pumpApp(tester);
 
     await tester.tap(find.text('یادداشت‌ها'));
@@ -178,7 +183,7 @@ void main() {
   });
 
   testWidgets('typed assistant input produces a confirmation sheet',
-      (tester) async {
+      timeout: widgetTimeout, (tester) async {
     await pumpApp(tester);
 
     await tester.enterText(find.byType(TextField).first, 'یادداشت جدید بساز: تست ویجت');
@@ -194,7 +199,7 @@ void main() {
   });
 
   testWidgets('notes created through the agent appear in the notes tab',
-      (tester) async {
+      timeout: widgetTimeout, (tester) async {
     final database = await pumpApp(tester);
 
     await tester.enterText(find.byType(TextField).first, 'یادداشت جدید بساز: خرید نان');
