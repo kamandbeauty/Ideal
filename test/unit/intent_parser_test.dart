@@ -37,8 +37,9 @@ void main() {
     test('extracts quoted note bodies', () {
       final intent = parser.parse('این را ذخیره کن «شمارهٔ دفتر: ۰۲۱۱۲۳۴۵»');
       expect(intent.type, IntentType.createNote);
-      // Punctuation/orthography is normalised, content is untouched.
-      expect(intent.slot<String>('body'), 'شماره دفتر: 02112345');
+      // Quoted content is stored exactly as dictated: the user picked those
+      // characters (ZWNJ, Persian digits) on purpose.
+      expect(intent.slot<String>('body'), 'شمارهٔ دفتر: ۰۲۱۱۲۳۴۵');
     });
 
     test('infers the work category', () {

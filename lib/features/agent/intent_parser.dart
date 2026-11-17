@@ -302,7 +302,14 @@ class IntentParser {
           minute,
         );
       }
-      return ScheduleRequest(kind: JobScheduleKind.once, onceAt: fireAt);
+      // `hour`/`minute` are filled in for every kind so callers (and the
+      // confirmation preview) never have to re-derive them from `onceAt`.
+      return ScheduleRequest(
+        kind: JobScheduleKind.once,
+        onceAt: fireAt,
+        hour: fireAt.hour,
+        minute: fireAt.minute,
+      );
     }
 
     if (clock != null) {
@@ -310,7 +317,12 @@ class IntentParser {
       if (!fireAt.isAfter(now)) {
         fireAt = DateTime(now.year, now.month, now.day + 1, clock.$1, clock.$2);
       }
-      return ScheduleRequest(kind: JobScheduleKind.once, onceAt: fireAt);
+      return ScheduleRequest(
+        kind: JobScheduleKind.once,
+        onceAt: fireAt,
+        hour: fireAt.hour,
+        minute: fireAt.minute,
+      );
     }
 
     if (lowered.contains('یادآوری') && !lowered.contains('وظیفه')) {

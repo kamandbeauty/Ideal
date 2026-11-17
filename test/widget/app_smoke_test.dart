@@ -124,7 +124,10 @@ void main() {
   }
 
   Future<TestDatabase> pumpApp(WidgetTester tester) async {
-    final database = await openCleanDatabase();
+    // The database must be opened outside the fake-async zone: `testWidgets`
+    // replaces the clock and the microtask queue, and a real sqflite future can
+    // never complete there.
+    final database = (await tester.runAsync(openCleanDatabase))!;
     final container = ProviderContainer(
       overrides: [
         appDatabaseProvider.overrideWithValue(database),
