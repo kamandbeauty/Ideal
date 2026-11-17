@@ -5,6 +5,12 @@ import 'database_provider.dart';
 import 'permission_providers.dart';
 import 'service_providers.dart';
 
+/// Stops background work before the database is closed.
+///
+/// Production leaves this as a no-op; widget tests override it so a pending
+/// timer or frame callback cannot touch a closed database during teardown.
+final appShutdownProvider = Provider<Future<void> Function()>((ref) => () async {});
+
 /// Runs due jobs and keeps the native alarm armed.
 final jobRunnerProvider = Provider<JobRunner>((ref) {
   return JobRunner(

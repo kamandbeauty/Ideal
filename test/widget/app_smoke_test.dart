@@ -140,14 +140,27 @@ void main() {
         speechRecognizerProvider.overrideWithValue(SilentRecognizer()),
         ttsEngineProvider.overrideWithValue(SilentTts()),
         jobSchedulerProvider.overrideWithValue(FakeTicker()),
+        appShutdownProvider.overrideWithValue(() async {}),
       ],
     );
-    addTearDown(container.dispose);
-    addTearDown(database.close);
 
     if (seed != null) {
       await tester.runAsync(() => seed(container));
     }
+
+    // Stop the scheduler *before* the database closes. A `FutureProvider` that
+    // is still resolving would otherwise hit a closed database during teardown,
+    // which the test framework reports as a failure even though the UI passed.
+    final shutdown = container.read(appShutdownProvider);
+    addTearDown(() async {
+      await shutdown();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 80)),
+      );
+      await tester.pumpWidget(const SizedBox.shrink());
+      container.dispose();
+      await database.close();
+    });
 
     await tester.pumpWidget(
       UncontrolledProviderScope(container: container, child: const JavidApp()),
