@@ -1,4 +1,4 @@
-# CI log (run 44067528045)
+# CI log (run 44068726190)
 
 ```
 Flutter 3.47.9 • channel stable • https://github.com/flutter/flutter.git
@@ -120,25 +120,62 @@ Changed 108 dependencies!
 Try `flutter pub outdated` for more information.
 Analyzing Ideal...                                              
 
-  error • Undefined class 'JobScheduler'. Try changing the name to the name of an existing class, or creating a class with the name 'JobScheduler' • lib/app/router.dart:49:14 • undefined_class
-warning • Unused import: '../../services/job_service.dart'. Try removing the import directive • lib/core/providers/job_providers.dart:4:8 • unused_import
+  error • Undefined name 'speakRepliesProvider'. Try correcting the name to one that is defined, or defining the name • lib/core/providers/voice_providers.dart:34:29 • undefined_identifier
+  error • Undefined name 'jobsRevisionProvider'. Try correcting the name to one that is defined, or defining the name • lib/features/jobs/job_editor_screen.dart:99:16 • undefined_identifier
+  error • Undefined name 'secureStoreProvider'. Try correcting the name to one that is defined, or defining the name • lib/features/settings/ai_settings_screen.dart:39:32 • undefined_identifier
+  error • Undefined name 'secureStoreProvider'. Try correcting the name to one that is defined, or defining the name • lib/features/settings/ai_settings_screen.dart:57:22 • undefined_identifier
+  error • Undefined name 'secureStoreProvider'. Try correcting the name to one that is defined, or defining the name • lib/features/settings/ai_settings_screen.dart:72:20 • undefined_identifier
 
-2 issues found. (ran in 8.0s)
+5 issues found. (ran in 9.8s)
 00:00 +0: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
-lib/app/router.dart:49:14: Error: Type 'JobScheduler' not found.
-  late final JobScheduler _scheduler;
-             ^^^^^^^^^^^^
-lib/app/router.dart:49:14: Error: 'JobScheduler' isn't a type.
-  late final JobScheduler _scheduler;
-             ^^^^^^^^^^^^
+lib/core/providers/voice_providers.dart:34:29: Error: Undefined name 'speakRepliesProvider'.
+    speakReplies: ref.watch(speakRepliesProvider),
+                            ^^^^^^^^^^^^^^^^^^^^
+lib/features/jobs/job_editor_screen.dart:99:16: Error: The getter 'jobsRevisionProvider' isn't defined for the type '_JobEditorScreenState'.
+ - '_JobEditorScreenState' is from 'package:javid_ai/features/jobs/job_editor_screen.dart' ('lib/features/jobs/job_editor_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'jobsRevisionProvider'.
+      ref.read(jobsRevisionProvider.notifier).state++;
+               ^^^^^^^^^^^^^^^^^^^^
+lib/features/settings/ai_settings_screen.dart:39:32: Error: The getter 'secureStoreProvider' isn't defined for the type '_AiSettingsScreenState'.
+ - '_AiSettingsScreenState' is from 'package:javid_ai/features/settings/ai_settings_screen.dart' ('lib/features/settings/ai_settings_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'secureStoreProvider'.
+    final key = await ref.read(secureStoreProvider).readApiKey();
+                               ^^^^^^^^^^^^^^^^^^^
+lib/features/settings/ai_settings_screen.dart:57:22: Error: The getter 'secureStoreProvider' isn't defined for the type '_AiSettingsScreenState'.
+ - '_AiSettingsScreenState' is from 'package:javid_ai/features/settings/ai_settings_screen.dart' ('lib/features/settings/ai_settings_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'secureStoreProvider'.
+      await ref.read(secureStoreProvider).writeApiKey(_apiKey.text.trim());
+                     ^^^^^^^^^^^^^^^^^^^
+lib/features/settings/ai_settings_screen.dart:72:20: Error: The getter 'secureStoreProvider' isn't defined for the type '_AiSettingsScreenState'.
+ - '_AiSettingsScreenState' is from 'package:javid_ai/features/settings/ai_settings_screen.dart' ('lib/features/settings/ai_settings_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'secureStoreProvider'.
+    await ref.read(secureStoreProvider).deleteApiKey();
+                   ^^^^^^^^^^^^^^^^^^^
 00:00 +0 -1: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart [E]
   Failed to load "/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart":
-  Compilation failed for testPath=/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: lib/app/router.dart:49:14: Error: Type 'JobScheduler' not found.
-    late final JobScheduler _scheduler;
-               ^^^^^^^^^^^^
-  lib/app/router.dart:49:14: Error: 'JobScheduler' isn't a type.
-    late final JobScheduler _scheduler;
-               ^^^^^^^^^^^^
+  Compilation failed for testPath=/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: lib/core/providers/voice_providers.dart:34:29: Error: Undefined name 'speakRepliesProvider'.
+      speakReplies: ref.watch(speakRepliesProvider),
+                              ^^^^^^^^^^^^^^^^^^^^
+  lib/features/jobs/job_editor_screen.dart:99:16: Error: The getter 'jobsRevisionProvider' isn't defined for the type '_JobEditorScreenState'.
+   - '_JobEditorScreenState' is from 'package:javid_ai/features/jobs/job_editor_screen.dart' ('lib/features/jobs/job_editor_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'jobsRevisionProvider'.
+        ref.read(jobsRevisionProvider.notifier).state++;
+                 ^^^^^^^^^^^^^^^^^^^^
+  lib/features/settings/ai_settings_screen.dart:39:32: Error: The getter 'secureStoreProvider' isn't defined for the type '_AiSettingsScreenState'.
+   - '_AiSettingsScreenState' is from 'package:javid_ai/features/settings/ai_settings_screen.dart' ('lib/features/settings/ai_settings_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'secureStoreProvider'.
+      final key = await ref.read(secureStoreProvider).readApiKey();
+                                 ^^^^^^^^^^^^^^^^^^^
+  lib/features/settings/ai_settings_screen.dart:57:22: Error: The getter 'secureStoreProvider' isn't defined for the type '_AiSettingsScreenState'.
+   - '_AiSettingsScreenState' is from 'package:javid_ai/features/settings/ai_settings_screen.dart' ('lib/features/settings/ai_settings_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'secureStoreProvider'.
+        await ref.read(secureStoreProvider).writeApiKey(_apiKey.text.trim());
+                       ^^^^^^^^^^^^^^^^^^^
+  lib/features/settings/ai_settings_screen.dart:72:20: Error: The getter 'secureStoreProvider' isn't defined for the type '_AiSettingsScreenState'.
+   - '_AiSettingsScreenState' is from 'package:javid_ai/features/settings/ai_settings_screen.dart' ('lib/features/settings/ai_settings_screen.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'secureStoreProvider'.
+      await ref.read(secureStoreProvider).deleteApiKey();
+                     ^^^^^^^^^^^^^^^^^^^
   .
 00:00 +0 -1: Some tests failed.
 
