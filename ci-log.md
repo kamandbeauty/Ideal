@@ -1,4 +1,4 @@
-# CI log (run 44066732055)
+# CI log (run 44067528045)
 
 ```
 Flutter 3.47.9 • channel stable • https://github.com/flutter/flutter.git
@@ -121,11 +121,9 @@ Try `flutter pub outdated` for more information.
 Analyzing Ideal...                                              
 
   error • Undefined class 'JobScheduler'. Try changing the name to the name of an existing class, or creating a class with the name 'JobScheduler' • lib/app/router.dart:49:14 • undefined_class
-warning • Unused import: '../../services/briefing_service.dart'. Try removing the import directive • lib/core/providers/job_providers.dart:3:8 • unused_import
-warning • Unused import: '../../services/job_service.dart'. Try removing the import directive • lib/core/providers/job_providers.dart:5:8 • unused_import
-warning • Unused import: '../../services/native_bridge.dart'. Try removing the import directive • lib/core/providers/job_providers.dart:6:8 • unused_import
+warning • Unused import: '../../services/job_service.dart'. Try removing the import directive • lib/core/providers/job_providers.dart:4:8 • unused_import
 
-4 issues found. (ran in 8.1s)
+2 issues found. (ran in 8.0s)
 00:00 +0: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
 lib/app/router.dart:49:14: Error: Type 'JobScheduler' not found.
   late final JobScheduler _scheduler;
