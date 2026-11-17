@@ -1,4 +1,4 @@
-# CI log (run 44065396999)
+# CI log (run 44066732055)
 
 ```
 Flutter 3.47.9 • channel stable • https://github.com/flutter/flutter.git
@@ -120,52 +120,27 @@ Changed 108 dependencies!
 Try `flutter pub outdated` for more information.
 Analyzing Ideal...                                              
 
-  error • Undefined class 'JobScheduler'. Try changing the name to the name of an existing class, or creating a class with the name 'JobScheduler' • lib/app/router.dart:48:14 • undefined_class
-  error • Undefined name 'jobsProvider'. Try correcting the name to one that is defined, or defining the name • lib/app/router.dart:79:20 • undefined_identifier
-  error • Undefined name 'notificationRepositoryProvider'. Try correcting the name to one that is defined, or defining the name • lib/core/providers/job_providers.dart:19:41 • undefined_identifier
-   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:14:7 • prefer_const_declarations
-   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:26:7 • prefer_const_declarations
-   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:39:7 • prefer_const_declarations
-   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:52:7 • prefer_const_declarations
-  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • test/unit/job_schedule_test.dart:68:17 • const_with_non_const
-  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • test/unit/job_schedule_test.dart:80:17 • const_with_non_const
-   info • Unnecessary 'const' keyword. Try removing the keyword • test/unit/job_schedule_test.dart:89:24 • unnecessary_const
-   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:97:7 • prefer_const_declarations
-   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:123:7 • prefer_const_declarations
-   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:128:7 • prefer_const_declarations
+  error • Undefined class 'JobScheduler'. Try changing the name to the name of an existing class, or creating a class with the name 'JobScheduler' • lib/app/router.dart:49:14 • undefined_class
+warning • Unused import: '../../services/briefing_service.dart'. Try removing the import directive • lib/core/providers/job_providers.dart:3:8 • unused_import
+warning • Unused import: '../../services/job_service.dart'. Try removing the import directive • lib/core/providers/job_providers.dart:5:8 • unused_import
+warning • Unused import: '../../services/native_bridge.dart'. Try removing the import directive • lib/core/providers/job_providers.dart:6:8 • unused_import
 
-13 issues found. (ran in 9.3s)
+4 issues found. (ran in 8.1s)
 00:00 +0: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
-lib/app/router.dart:48:14: Error: Type 'JobScheduler' not found.
+lib/app/router.dart:49:14: Error: Type 'JobScheduler' not found.
   late final JobScheduler _scheduler;
              ^^^^^^^^^^^^
-lib/core/providers/job_providers.dart:19:41: Error: Undefined name 'notificationRepositoryProvider'.
-    notifications: () async => ref.read(notificationRepositoryProvider).list(),
-                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-lib/app/router.dart:48:14: Error: 'JobScheduler' isn't a type.
+lib/app/router.dart:49:14: Error: 'JobScheduler' isn't a type.
   late final JobScheduler _scheduler;
              ^^^^^^^^^^^^
-lib/app/router.dart:79:20: Error: The getter 'jobsProvider' isn't defined for the type '_AppShellState'.
- - '_AppShellState' is from 'package:javid_ai/app/router.dart' ('lib/app/router.dart').
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'jobsProvider'.
-    ref.invalidate(jobsProvider);
-                   ^^^^^^^^^^^^
 00:00 +0 -1: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart [E]
   Failed to load "/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart":
-  Compilation failed for testPath=/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: lib/app/router.dart:48:14: Error: Type 'JobScheduler' not found.
+  Compilation failed for testPath=/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: lib/app/router.dart:49:14: Error: Type 'JobScheduler' not found.
     late final JobScheduler _scheduler;
                ^^^^^^^^^^^^
-  lib/core/providers/job_providers.dart:19:41: Error: Undefined name 'notificationRepositoryProvider'.
-      notifications: () async => ref.read(notificationRepositoryProvider).list(),
-                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  lib/app/router.dart:48:14: Error: 'JobScheduler' isn't a type.
+  lib/app/router.dart:49:14: Error: 'JobScheduler' isn't a type.
     late final JobScheduler _scheduler;
                ^^^^^^^^^^^^
-  lib/app/router.dart:79:20: Error: The getter 'jobsProvider' isn't defined for the type '_AppShellState'.
-   - '_AppShellState' is from 'package:javid_ai/app/router.dart' ('lib/app/router.dart').
-  Try correcting the name to the name of an existing getter, or defining a getter or field named 'jobsProvider'.
-      ref.invalidate(jobsProvider);
-                     ^^^^^^^^^^^^
   .
 00:00 +0 -1: Some tests failed.
 
