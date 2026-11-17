@@ -17,11 +17,18 @@ class JobValidationException implements Exception {
 /// failures are retried); the WorkManager bridge owns the *transport* (asking
 /// Android to wake the app up).
 class JobService {
-  JobService(this._repository, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now;
+  JobService(
+    this._repository, {
+    DateTime Function()? clock,
+    this.onScheduleChanged,
+  }) : _clock = clock ?? DateTime.now;
 
   final JobRepository _repository;
   final DateTime Function() _clock;
+
+  /// Called after a job's schedule changes so Android can be re-armed.
+  /// Optional: unit tests and the repository-only path leave it null.
+  final Future<void> Function(Job job)? onScheduleChanged;
 
   /// WorkManager cannot schedule periodic work more often than every 15 min.
   static const minimumIntervalMinutes = 15;
@@ -67,6 +74,7 @@ class JobService {
       workId: null,
     );
     await _repository.upsert(job);
+    await onScheduleChanged?.call(job);
     return job;
   }
 
@@ -92,6 +100,7 @@ class JobService {
       clearWorkId: workId == null,
     );
     await _repository.upsert(updated);
+    await onScheduleChanged?.call(updated);
     return updated;
   }
 

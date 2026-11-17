@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../core/providers/job_providers.dart';
 import '../core/providers/repository_providers.dart';
 import '../core/theme/app_colors.dart';
 import '../features/assistant/assistant_screen.dart';
@@ -33,7 +34,7 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends ConsumerState<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver {
   final _pages = const <Widget>[
     AssistantScreen(),
     NotesScreen(),
@@ -41,6 +42,43 @@ class _AppShellState extends ConsumerState<AppShell> {
     MessagesScreen(),
     SettingsScreen(),
   ];
+
+  /// The scheduler lives as long as the shell: a foreground timer while the UI
+  /// is alive, plus the native alarm that covers the app being closed.
+  late final JobScheduler _scheduler;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _scheduler = ref.read(jobSchedulerProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startScheduler());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _scheduler.stop();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Resuming (or an unlock) is exactly when missed jobs matter: catch up
+    // immediately instead of waiting for the next timer tick.
+    if (state == AppLifecycleState.resumed) {
+      _startScheduler();
+    }
+  }
+
+  Future<void> _startScheduler() async {
+    if (!mounted) return;
+    if (!_scheduler.isRunning) await _scheduler.start();
+    final result = await _scheduler.tick();
+    if (!mounted || result == null || result.isEmpty) return;
+    ref.invalidate(jobsProvider);
+    ref.invalidate(assistantMessagesProvider);
+  }
 
   @override
   Widget build(BuildContext context) {
