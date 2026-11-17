@@ -1,14 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../services/briefing_service.dart';
 import '../../services/job_runner.dart';
 import '../../services/job_service.dart';
-import '../../services/native_bridge.dart';
-import 'permission_providers.dart';
 import 'database_provider.dart';
+import 'permission_providers.dart';
 import 'service_providers.dart';
-
-/// Set by the shell after every tick so the dashboard can show the last run.
 
 /// Runs due jobs and keeps the native alarm armed.
 final jobRunnerProvider = Provider<JobRunner>((ref) {
