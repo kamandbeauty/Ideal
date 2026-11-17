@@ -63,6 +63,17 @@ jobs:
       # Informational for now: widget tests are timing sensitive under the
       # headless CI renderer, so a failure here is reported but does not mask
       # unit-test results.
+      - name: Annotate unit-test failures
+        if: failure()
+        shell: bash
+        run: |
+          grep -E '\[E\]|Expected:|Actual:|Error:' ci-log.txt | tail -20 |
+            while IFS= read -r line; do
+              line="${line//'%'/'%25'}"
+              line="${line//$'\r'/}"
+              echo "::error title=test failure::$line"
+            done
+
       - name: Test (widget)
         if: always()
         continue-on-error: true
@@ -95,10 +106,20 @@ jobs:
             echo '```'
             tail -c 55000 ci-log.txt
             echo '```'
-          } > ci-log.md
+          } > /tmp/ci-log.md
           git config user.name "javidai-ci"
           git config user.email "ci@users.noreply.github.com"
-          git add -f ci-log.md
-          git commit -m "ci: log for run $GITHUB_RUN_ID" || true
-          git pull --rebase --autostash || true
-          git push || true
+          for attempt in 1 2 3 4 5; do
+            git fetch -q origin "$GITHUB_REF_NAME"
+            git checkout -q -B "ci-log-$GITHUB_RUN_ID" "origin/$GITHUB_REF_NAME"
+            cp /tmp/ci-log.md ci-log.md
+            git add -f ci-log.md
+            git commit -q -m "ci: log for run $GITHUB_RUN_ID" || true
+            if git push -q origin "HEAD:$GITHUB_REF_NAME"; then
+              echo "published log on attempt $attempt"
+              exit 0
+            fi
+            sleep $((attempt * 3))
+          done
+          echo "could not publish the log; see the job console"
+          exit 0
