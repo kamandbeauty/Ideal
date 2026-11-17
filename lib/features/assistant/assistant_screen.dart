@@ -236,9 +236,9 @@ class _AssistantScreenState extends ConsumerState<AssistantScreen> {
             child: DashboardSummary(),
           ),
         ),
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 4),
             child: SectionHeader(
               title: 'پیشنهادهای آماده',
               icon: Icons.auto_awesome_rounded,

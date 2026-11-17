@@ -113,27 +113,27 @@ class PrivacyScreen extends ConsumerWidget {
             title: 'چه چیزی ذخیره می‌شود؟',
             icon: Icons.inventory_2_outlined,
           ),
-          _Bullet(
+          const _Bullet(
             icon: Icons.sticky_note_2_outlined,
             title: 'یادداشت‌ها',
             body: 'متن، عنوان، دسته و زمان ایجاد/ویرایش — فقط روی دستگاه.',
           ),
-          _Bullet(
+          const _Bullet(
             icon: Icons.alarm_rounded,
             title: 'وظایف',
             body: 'عنوان، زمان‌بندی، وضعیت و تاریخچهٔ اجرا — فقط روی دستگاه.',
           ),
-          _Bullet(
+          const _Bullet(
             icon: Icons.forum_outlined,
             title: 'پیام‌ها',
             body: 'برنامهٔ فرستنده، نام فرستنده، متن اعلان و زمان — با قابلیت حذف.',
           ),
-          _Bullet(
+          const _Bullet(
             icon: Icons.history_rounded,
             title: 'فعالیت دستیار',
             body: 'متن دستورها و پاسخ‌ها برای نمایش تاریخچه — با قابلیت حذف.',
           ),
-          _Bullet(
+          const _Bullet(
             icon: Icons.vpn_key_outlined,
             title: 'کلید API',
             body: 'در Keystore اندروید؛ در پایگاه‌داده یا کد ذخیره نمی‌شود.',

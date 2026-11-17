@@ -89,7 +89,7 @@ class AgentCore {
         );
 
       case IntentType.help:
-        return AgentTurn(reply: _helpText);
+        return const AgentTurn(reply: _helpText);
 
       case IntentType.dailyBriefing:
         final jobs = await _jobs.list();

@@ -25,7 +25,7 @@ void main() {
     final job = await service.create(
       title: 'خلاصهٔ پیام‌ها',
       prompt: 'خلاصهٔ پیام‌ها را بگو',
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 20, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 20, minute: 0),
       action: JobAction.messageSummary,
     );
     expect(job.nextRunAt, DateTime(2026, 11, 16, 20));
@@ -59,7 +59,7 @@ void main() {
     final job = await service.create(
       title: 'روزانه',
       prompt: 'x',
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 20, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 20, minute: 0),
     );
 
     final paused = await service.setEnabled(job, false);
@@ -76,7 +76,7 @@ void main() {
     final job = await service.create(
       title: 'روزانه',
       prompt: 'x',
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 9, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 9, minute: 0),
     );
     final afterRun = await service.recordSuccess(job, output: 'خلاصه آماده است');
     expect(afterRun.lastStatus, JobStatus.success);
@@ -132,7 +132,7 @@ void main() {
     final job = await service.create(
       title: 'حذفی',
       prompt: 'x',
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 9, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 9, minute: 0),
     );
     await service.recordSuccess(job, output: 'ok');
     await service.delete(job.id);
@@ -144,12 +144,12 @@ void main() {
     await service.create(
       title: 'دیرتر',
       prompt: 'x',
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 22, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 22, minute: 0),
     );
     final soon = await service.create(
       title: 'زودتر',
       prompt: 'x',
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 12, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 12, minute: 0),
     );
     expect((await service.nextScheduled())?.id, soon.id);
   });
@@ -158,12 +158,12 @@ void main() {
     final a = await service.create(
       title: 'A',
       prompt: 'x',
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 12, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 12, minute: 0),
     );
     final b = await service.create(
       title: 'B',
       prompt: 'x',
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 8, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 8, minute: 0),
     );
     final jobs = await service.list();
     final ids = jobs.map((job) => job.id).toList();

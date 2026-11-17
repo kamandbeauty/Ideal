@@ -47,7 +47,7 @@ void main() {
       title: 'خلاصه',
       prompt: 'خلاصه بده',
       kind: JobKind.briefing,
-      schedule: JobSchedule(kind: JobScheduleKind.daily, hour: 8, minute: 0),
+      schedule: const JobSchedule(kind: JobScheduleKind.daily, hour: 8, minute: 0),
       action: JobAction.dailyBriefing,
       nextRunAt: DateTime(2026, 11, 17, 8),
       createdAt: DateTime(2026, 11, 16, 8),

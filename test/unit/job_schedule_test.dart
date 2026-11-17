@@ -11,7 +11,7 @@ void main() {
     });
 
     test('daily fires today when the time is still ahead', () {
-      final schedule = JobSchedule(
+      final schedule = const JobSchedule(
         kind: JobScheduleKind.daily,
         hour: 20,
         minute: 0,
@@ -23,7 +23,7 @@ void main() {
     });
 
     test('daily rolls to tomorrow when the time has passed', () {
-      final schedule = JobSchedule(
+      final schedule = const JobSchedule(
         kind: JobScheduleKind.daily,
         hour: 8,
         minute: 0,
@@ -36,7 +36,7 @@ void main() {
 
     test('weekly finds the next matching weekday', () {
       // now is Monday 2026-11-16; weekly on Saturday at 10:00.
-      final schedule = JobSchedule(
+      final schedule = const JobSchedule(
         kind: JobScheduleKind.weekly,
         hour: 10,
         minute: 0,
@@ -49,7 +49,7 @@ void main() {
     });
 
     test('weekly returns today when it is the right day and still ahead', () {
-      final schedule = JobSchedule(
+      final schedule = const JobSchedule(
         kind: JobScheduleKind.weekly,
         hour: 18,
         minute: 0,
@@ -62,7 +62,7 @@ void main() {
     });
 
     test('interval advances from the anchor in fixed steps', () {
-      final schedule = JobSchedule(
+      final schedule = const JobSchedule(
         kind: JobScheduleKind.interval,
         intervalMinutes: 60,
         anchor: DateTime(2026, 11, 16, 8),
@@ -74,7 +74,7 @@ void main() {
     });
 
     test('interval returns the anchor when it is still in the future', () {
-      final schedule = JobSchedule(
+      final schedule = const JobSchedule(
         kind: JobScheduleKind.interval,
         intervalMinutes: 30,
         anchor: DateTime(2026, 11, 16, 12),
@@ -86,7 +86,7 @@ void main() {
     });
 
     test('invalid schedules return null instead of throwing', () {
-      const schedule = JobSchedule(kind: JobScheduleKind.daily);
+      const schedule = const JobSchedule(kind: JobScheduleKind.daily);
       expect(schedule.isValid, isFalse);
       expect(schedule.nextRun(DateTime(2026)), isNull);
     });
@@ -94,7 +94,7 @@ void main() {
 
   group('JobSchedule JSON round-trip', () {
     test('daily schedule survives serialisation', () {
-      final schedule = JobSchedule(
+      final schedule = const JobSchedule(
         kind: JobScheduleKind.daily,
         hour: 8,
         minute: 30,
@@ -120,12 +120,12 @@ void main() {
 
   group('labels', () {
     test('daily label uses 24h times', () {
-      final schedule = JobSchedule(kind: JobScheduleKind.daily, hour: 8, minute: 0);
+      final schedule = const JobSchedule(kind: JobScheduleKind.daily, hour: 8, minute: 0);
       expect(schedule.label, 'هر روز ساعت 08:00');
     });
 
     test('weekly label names the weekday', () {
-      final schedule = JobSchedule(
+      final schedule = const JobSchedule(
         kind: JobScheduleKind.weekly,
         hour: 10,
         minute: 0,

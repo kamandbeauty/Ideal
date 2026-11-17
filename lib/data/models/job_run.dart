@@ -22,8 +22,7 @@ class JobRun {
   final String? error;
   final JobRunTrigger trigger;
 
-  Duration? get duration =>
-      finishedAt == null ? null : finishedAt!.difference(startedAt);
+  Duration? get duration => finishedAt?.difference(startedAt);
 
   Map<String, Object?> toMap() => {
         'id': id,
