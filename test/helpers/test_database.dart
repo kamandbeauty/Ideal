@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:javid_ai/data/local/app_database.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -8,6 +11,9 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 /// runner executes in parallel never touch the same handle.
 class TestDatabase extends AppDatabase {
   TestDatabase() : super(fileName: inMemoryDatabasePath);
+
+  /// On-disk database (data survives `close()`), used by persistence tests.
+  TestDatabase.file(String path) : super(fileName: path);
 }
 
 /// Opens the in-memory database with the production schema, bypassing the
@@ -34,6 +40,32 @@ Future<TestDatabase> openTestDatabase() async {
 }
 
 int _counter = 0;
+
+/// Opens a real on-disk database in a temporary directory, for tests that must
+/// prove data survives `close()` (an in-memory database cannot).
+///
+/// Pass [samePath] to reopen the same file.
+Future<TestDatabase> openFileDatabase({String? samePath}) async {
+  final path = samePath ?? p.join(Directory.systemTemp.path, 'javid_test_${_counter++}.db');
+  final database = TestDatabase.file(path);
+  addTearDown(() async {
+    await database.close();
+    if (samePath == null && await File(path).exists()) {
+      await File(path).delete();
+    }
+  });
+  await database.attachForTests(
+    await databaseFactoryFfi.openDatabase(
+      path,
+      options: OpenDatabaseOptions(
+        version: AppDatabase.schemaVersion,
+        onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
+        onCreate: (db, version) => AppDatabase.createSchema(db),
+      ),
+    ),
+  );
+  return database;
+}
 
 /// Initialises the FFI factory used by the in-memory database (call in setUpAll).
 void setUpSqfliteFfi() {

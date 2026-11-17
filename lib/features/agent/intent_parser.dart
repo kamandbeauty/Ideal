@@ -47,7 +47,7 @@ class IntentParser {
         recovered.contains('زمان بندی') ||
         recovered.contains('زمان‌بندی') ||
         recovered.contains('تنظیم کن');
-    if (recurring || scheduleVerb) {
+    if (recurring || scheduleVerb || _hasTomorrowClock(recovered)) {
       final jobIntent = _parseJobCreation(text, lowered, rawText);
       if (jobIntent != null) return jobIntent;
     }
@@ -323,6 +323,12 @@ class IntentParser {
     }
     return null;
   }
+
+  /// «فردا ساعت ۱۰ و ربع» is a one-off reminder even without the word «یادآوری».
+  /// A bare «ساعت» is not enough: «یادداشت بساز: جلسه ساعت ۱۰» is still a note.
+  bool _hasTomorrowClock(String recovered) =>
+      RegExp(r'(فردا|پس\s*فردا|امروز)').hasMatch(recovered) &&
+      recovered.contains('ساعت');
 
   /// True when the text contains a *recurring* scheduling expression. Notes and
   /// notes-like commands that merely mention a date («جلسهٔ فردا») are not

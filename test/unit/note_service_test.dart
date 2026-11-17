@@ -92,10 +92,14 @@ void main() {
   });
 
   test('data is readable after the database is closed and reopened', () async {
-    final note = await service.create(body: 'ماندگار');
-    await database.close();
+    // An in-memory database disappears with its last connection, so this test
+    // uses a real temporary file — the same code path the app uses on device.
+    final file = await openFileDatabase();
+    final first = NoteService(NoteRepository(file));
+    final note = await first.create(body: 'ماندگار');
+    await file.close();
 
-    final reopened = await openTestDatabase();
+    final reopened = await openFileDatabase(samePath: file.fileName);
     final reloaded = await NoteRepository(reopened).findById(note.id);
     expect(reloaded?.body, 'ماندگار');
   });
