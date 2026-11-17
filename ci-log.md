@@ -1,4 +1,4 @@
-# CI log (run 43971878014)
+# CI log (run 44065396999)
 
 ```
 Flutter 3.47.9 • channel stable • https://github.com/flutter/flutter.git
@@ -120,62 +120,55 @@ Changed 108 dependencies!
 Try `flutter pub outdated` for more information.
 Analyzing Ideal...                                              
 
-   info • Use the null-aware operator '?.' rather than an explicit 'null' comparison. Try using '?.' • lib/data/models/job_run.dart:26:7 • prefer_null_aware_operators
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/agent/agent_core.dart:92:16 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/assistant/assistant_screen.dart:239:9 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/assistant/assistant_screen.dart:240:18 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/assistant/assistant_screen.dart:242:20 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:116:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:121:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:126:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:131:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • lib/features/settings/privacy_screen.dart:136:11 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:14:24 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:26:24 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:39:24 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:52:24 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:97:24 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:123:24 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_schedule_test.dart:128:24 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:28:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:62:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:79:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:135:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:147:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:152:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:161:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/job_service_test.dart:166:17 • prefer_const_constructors
-   info • Use 'const' with the constructor to improve performance. Try adding the 'const' keyword to the constructor invocation • test/unit/models_test.dart:50:17 • prefer_const_constructors
+  error • Undefined class 'JobScheduler'. Try changing the name to the name of an existing class, or creating a class with the name 'JobScheduler' • lib/app/router.dart:48:14 • undefined_class
+  error • Undefined name 'jobsProvider'. Try correcting the name to one that is defined, or defining the name • lib/app/router.dart:79:20 • undefined_identifier
+  error • Undefined name 'notificationRepositoryProvider'. Try correcting the name to one that is defined, or defining the name • lib/core/providers/job_providers.dart:19:41 • undefined_identifier
+   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:14:7 • prefer_const_declarations
+   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:26:7 • prefer_const_declarations
+   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:39:7 • prefer_const_declarations
+   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:52:7 • prefer_const_declarations
+  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • test/unit/job_schedule_test.dart:68:17 • const_with_non_const
+  error • The constructor being called isn't a const constructor. Try removing 'const' from the constructor invocation • test/unit/job_schedule_test.dart:80:17 • const_with_non_const
+   info • Unnecessary 'const' keyword. Try removing the keyword • test/unit/job_schedule_test.dart:89:24 • unnecessary_const
+   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:97:7 • prefer_const_declarations
+   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:123:7 • prefer_const_declarations
+   info • Use 'const' for final variables initialized to a constant value. Try replacing 'final' with 'const' • test/unit/job_schedule_test.dart:128:7 • prefer_const_declarations
 
-26 issues found. (ran in 8.3s)
+13 issues found. (ran in 9.3s)
 00:00 +0: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
-00:00 +0: (setUpAll)
-00:00 +0: boots into the assistant tab in RTL with Persian labels
-10:00 +0 -1: boots into the assistant tab in RTL with Persian labels [E]
-  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
-  dart:isolate  _RawReceivePort._handleMessage
-  
-10:00 +0 -1: navigates through all five tabs
-20:00 +0 -2: navigates through all five tabs [E]
-  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
-  dart:isolate  _RawReceivePort._handleMessage
-  
-20:00 +0 -2: typed assistant input produces a confirmation sheet
-30:00 +0 -3: typed assistant input produces a confirmation sheet [E]
-  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
-  dart:isolate  _RawReceivePort._handleMessage
-  
-30:00 +0 -3: notes created through the agent appear in the notes tab
-40:00 +0 -4: notes created through the agent appear in the notes tab [E]
-  TimeoutException after 0:10:00.000000: Test timed out after 10 minutes.
-  dart:isolate  _RawReceivePort._handleMessage
-  
-40:00 +0 -4: (tearDownAll)
-40:00 +0 -4: Some tests failed.
+lib/app/router.dart:48:14: Error: Type 'JobScheduler' not found.
+  late final JobScheduler _scheduler;
+             ^^^^^^^^^^^^
+lib/core/providers/job_providers.dart:19:41: Error: Undefined name 'notificationRepositoryProvider'.
+    notifications: () async => ref.read(notificationRepositoryProvider).list(),
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+lib/app/router.dart:48:14: Error: 'JobScheduler' isn't a type.
+  late final JobScheduler _scheduler;
+             ^^^^^^^^^^^^
+lib/app/router.dart:79:20: Error: The getter 'jobsProvider' isn't defined for the type '_AppShellState'.
+ - '_AppShellState' is from 'package:javid_ai/app/router.dart' ('lib/app/router.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'jobsProvider'.
+    ref.invalidate(jobsProvider);
+                   ^^^^^^^^^^^^
+00:00 +0 -1: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart [E]
+  Failed to load "/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart":
+  Compilation failed for testPath=/home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: lib/app/router.dart:48:14: Error: Type 'JobScheduler' not found.
+    late final JobScheduler _scheduler;
+               ^^^^^^^^^^^^
+  lib/core/providers/job_providers.dart:19:41: Error: Undefined name 'notificationRepositoryProvider'.
+      notifications: () async => ref.read(notificationRepositoryProvider).list(),
+                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  lib/app/router.dart:48:14: Error: 'JobScheduler' isn't a type.
+    late final JobScheduler _scheduler;
+               ^^^^^^^^^^^^
+  lib/app/router.dart:79:20: Error: The getter 'jobsProvider' isn't defined for the type '_AppShellState'.
+   - '_AppShellState' is from 'package:javid_ai/app/router.dart' ('lib/app/router.dart').
+  Try correcting the name to the name of an existing getter, or defining a getter or field named 'jobsProvider'.
+      ref.invalidate(jobsProvider);
+                     ^^^^^^^^^^^^
+  .
+00:00 +0 -1: Some tests failed.
 
 Failing tests:
-  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: boots into the assistant tab in RTL with Persian labels
-  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: navigates through all five tabs
-  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: notes created through the agent appear in the notes tab
-  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: typed assistant input produces a confirmation sheet
+  /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
 ```
