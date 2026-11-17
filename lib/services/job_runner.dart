@@ -195,11 +195,19 @@ class JobRunner {
   }
 }
 
+/// Contract the UI uses to drive jobs, so widget tests can supply a no-op.
+abstract class JobTicker {
+  Future<void> start();
+  Future<JobTickResult?> tick();
+  void stop();
+  bool get isRunning;
+}
+
 /// Keeps [JobRunner] ticking while the app is in the foreground.
 ///
 /// The timer only fires for the soonest job (never a busy loop) and is capped at
 /// one minute so a changed clock or a resumed app converges quickly.
-class JobScheduler {
+class JobScheduler implements JobTicker {
   JobScheduler(this._runner, {DateTime Function()? clock})
       : _clock = clock ?? DateTime.now;
 
@@ -213,6 +221,7 @@ class JobScheduler {
   static const _catchUpDelay = Duration(milliseconds: 250);
 
   /// Starts periodic execution. Safe to call twice.
+  @override
   Future<void> start() async {
     if (_running) return;
     _running = true;
@@ -220,6 +229,7 @@ class JobScheduler {
   }
 
   /// Runs one tick; returns null when the scheduler is stopped.
+  @override
   Future<JobTickResult?> tick() async {
     if (!_running) return null;
     JobTickResult? result;
@@ -256,11 +266,13 @@ class JobScheduler {
     _timer = Timer(delay, () => unawaited(tick()));
   }
 
+  @override
   void stop() {
     _running = false;
     _timer?.cancel();
     _timer = null;
   }
 
+  @override
   bool get isRunning => _running;
 }

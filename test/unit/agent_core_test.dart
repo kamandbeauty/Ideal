@@ -101,7 +101,9 @@ void main() {
       final created = await jobs.list();
       expect(created, hasLength(1));
       expect(created.single.action, JobAction.messageSummary);
-      expect(created.single.nextRunAt, DateTime(2026, 11, 16, 20));
+      // «هر روز ساعت ۸ صبح» is a daily 08:00 schedule; the first run is the
+      // next 08:00 after the injected clock (10:00 on the 16th).
+      expect(created.single.nextRunAt, DateTime(2026, 11, 17, 8));
     });
 
     test('creates a one-off reminder for tomorrow', () async {

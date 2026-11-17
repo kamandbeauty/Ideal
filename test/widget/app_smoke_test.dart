@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:javid_ai/app/app.dart';
 import 'package:javid_ai/core/providers/database_provider.dart';
 import 'package:javid_ai/core/providers/permission_providers.dart';
+import 'package:javid_ai/core/providers/job_providers.dart';
 import 'package:javid_ai/core/providers/voice_providers.dart';
+import 'package:javid_ai/services/job_runner.dart';
 import 'package:javid_ai/services/native_bridge.dart';
 import 'package:javid_ai/services/permission_service.dart';
 import 'package:javid_ai/services/voice/speech_recognizer.dart';
@@ -28,6 +30,24 @@ class FakeBridge extends NativeBridge {
 
   @override
   Future<bool> openNotificationSettings() async => true;
+}
+
+/// No-op scheduler: the real one starts a timer and hits the database from a
+/// `Timer`, which keeps `pump` busy forever inside a widget test.
+class FakeTicker implements JobTicker {
+  bool started = false;
+
+  @override
+  bool get isRunning => started;
+
+  @override
+  Future<void> start() async => started = true;
+
+  @override
+  Future<JobTickResult?> tick() async => null;
+
+  @override
+  void stop() => started = false;
 }
 
 class FakePerms extends PermissionService {
@@ -100,6 +120,7 @@ void main() {
         permissionServiceProvider.overrideWithValue(FakePerms()),
         speechRecognizerProvider.overrideWithValue(SilentRecognizer()),
         ttsEngineProvider.overrideWithValue(SilentTts()),
+        jobSchedulerProvider.overrideWithValue(FakeTicker()),
       ],
     );
     addTearDown(container.dispose);

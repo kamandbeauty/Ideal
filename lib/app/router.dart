@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../core/providers/job_providers.dart';
 import '../core/providers/repository_providers.dart';
 import '../core/providers/service_providers.dart';
@@ -46,14 +49,16 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
 
   /// The scheduler lives as long as the shell: a foreground timer while the UI
   /// is alive, plus the native alarm that covers the app being closed.
-  late final JobScheduler _scheduler;
+  late final JobTicker _scheduler;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _scheduler = ref.read(jobSchedulerProvider);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _startScheduler());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_startScheduler());
+    });
   }
 
   @override
@@ -66,9 +71,10 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Resuming (or an unlock) is exactly when missed jobs matter: catch up
-    // immediately instead of waiting for the next timer tick.
+    // immediately instead of waiting for the next timer tick. Deliberately not
+    // awaited — the lifecycle callback must not block the frame pipeline.
     if (state == AppLifecycleState.resumed) {
-      _startScheduler();
+      unawaited(_startScheduler());
     }
   }
 

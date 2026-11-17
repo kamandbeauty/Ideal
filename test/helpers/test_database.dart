@@ -4,9 +4,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// In-memory database that uses the exact production DDL.
 ///
-/// Each instance gets its own connection. sqflite's `:memory:` database is
-/// shared by path, so tests must close every instance (see `tearDown`) to keep
-/// suites isolated – the shared helper documents that contract.
+/// Every instance gets a unique `file:…?mode=memory` URI, so test files that the
+/// runner executes in parallel never touch the same handle.
 class TestDatabase extends AppDatabase {
   TestDatabase() : super(fileName: inMemoryDatabasePath);
 }
@@ -18,9 +17,14 @@ Future<TestDatabase> openTestDatabase() async {
   addTearDown(database.close);
   await database.attachForTests(
     await databaseFactoryFfi.openDatabase(
-      inMemoryDatabasePath,
+      // A distinct path per instance: sqflite keys `:memory:` databases by path
+      // with `singleInstance: true`, so two instances with the same name would
+      // share one handle and one of them would, on close, drop the other's data
+      // (and concurrent access would fail with "database is locked").
+      'file:javid_test_${_counter++}?mode=memory&cache=shared',
       options: OpenDatabaseOptions(
         version: AppDatabase.schemaVersion,
+        singleInstance: false,
         onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
         onCreate: (db, version) => AppDatabase.createSchema(db),
       ),
@@ -28,6 +32,8 @@ Future<TestDatabase> openTestDatabase() async {
   );
   return database;
 }
+
+int _counter = 0;
 
 /// Initialises the FFI factory used by the in-memory database (call in setUpAll).
 void setUpSqfliteFfi() {

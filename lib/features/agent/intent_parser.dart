@@ -56,15 +56,9 @@ class IntentParser {
     final jobManagement = _parseJobManagement(lowered, rawText);
     if (jobManagement != null) return jobManagement;
 
-    // 4) One-off summaries. «پیام‌ها را خلاصه کن» only reaches this point when it
-    //    was not claimed by the scheduler above.
-    if (_isMessageSummaryRequest(lowered)) {
-      return AgentIntent(
-        type: IntentType.messageSummary,
-        rawText: rawText,
-        confidence: 0.9,
-      );
-    }
+    // 4) One-off summaries. A phrase that asks about *today* in general terms
+    //    («پیام‌های امروز را خلاصه کن») is the daily briefing; the narrower
+    //    message-summary action is for phrasing about the messages themselves.
     if (_isBriefingRequest(lowered)) {
       return AgentIntent(
         type: IntentType.dailyBriefing,
@@ -75,6 +69,13 @@ class IntentParser {
               lowered.contains('بخوان') ||
               lowered.contains('جزئیات'),
         },
+      );
+    }
+    if (_isMessageSummaryRequest(lowered)) {
+      return AgentIntent(
+        type: IntentType.messageSummary,
+        rawText: rawText,
+        confidence: 0.9,
       );
     }
 
@@ -338,8 +339,18 @@ class IntentParser {
         .replaceAll('\u200c', ' ')
         .replaceAll(RegExp(r'[،,.؛;]'), ' ')
         .trim();
-    final words = tail.split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
+    var words = tail.split(RegExp(r'\s+')).where((word) => word.isNotEmpty).toList();
     if (words.isEmpty) return null;
+
+    // «هر شب ساعت ۸» — the period word may precede «ساعت», so it is not part of
+    // the tail. Remember it as a fallback for when the tail has none of its own.
+    const periodWords = {'صبح', 'ظهر', 'عصر', 'شب', 'بامداد', 'بعدازظهر', 'بعد از ظهر'};
+    final prefix = text.substring(0, match.start).trim();
+    final prefixWords = toAsciiDigits(prefix).split(RegExp(r'\s+'));
+    final inheritedPeriod = prefixWords.isNotEmpty &&
+            periodWords.contains(prefixWords.last.trim())
+        ? prefixWords.last.trim()
+        : null;
 
     // Collect the leading tokens that can belong to a time expression, stopping
     // at the first token that starts the thing being reminded about.
@@ -366,7 +377,11 @@ class IntentParser {
     }
 
     for (var count = tokens.length; count >= 1; count--) {
-      final candidate = tokens.take(count).join(' ');
+      var candidate = tokens.take(count).join(' ');
+      if (inheritedPeriod != null &&
+          !tokens.take(count).any(periodWords.contains)) {
+        candidate = '$candidate $inheritedPeriod';
+      }
       final parsed = PersianTime.parseClock(candidate);
       if (parsed != null && parsed.$1 >= 0 && parsed.$1 <= 23 && parsed.$2 >= 0 && parsed.$2 <= 59) {
         return parsed;
@@ -400,7 +415,7 @@ class IntentParser {
     // Creating a note takes precedence over listing/reading it: the phrases
     // «یادداشت جدید بساز» and «یادداشت‌هایم را نشان بده» differ only in verbs.
     if (saveVerb || (noteVerb && newVerb)) {
-      final body = _extractNoteBody(text);
+      final body = _extractNoteBody(raw);
       if (body.isEmpty) {
         return AgentIntent(
           type: IntentType.createNote,
@@ -450,7 +465,7 @@ class IntentParser {
     }
 
     if (save || create) {
-      final body = _extractNoteBody(text);
+      final body = _extractNoteBody(raw);
       if (body.isEmpty) {
         return AgentIntent(
           type: IntentType.createNote,
@@ -476,20 +491,32 @@ class IntentParser {
     return null;
   }
 
-  static String _extractNoteBody(String text) {
+  /// Extracts the dictated body from [raw], the text exactly as the user wrote
+  /// or spoke it. Normalising first would strip ZWNJ/harakat and rewrite digits,
+  /// which changes what the user asked us to store.
+  static String _extractNoteBody(String raw) {
+    final text = raw.replaceAll(RegExp(r'\s+'), ' ').trim();
     final quoted = RegExp('«([^»]+)»').firstMatch(text) ??
         RegExp('"([^"]+)"').firstMatch(text);
     if (quoted != null && quoted.group(1)!.trim().isNotEmpty) {
       return quoted.group(1)!.trim();
     }
-    final commandEnd = RegExp(
-      r'(این متن را|این را|متن زیر را|متن را|یادداشت جدید(?:ی)?(?: بساز)?|یادداشت|'
-      r'نوت جدید(?: بساز)?|نوت|ذخیره کن|ذخیره|ثبت کن|ثبت|بساز|برای من|لطفاً|لطفا)',
-    ).allMatches(text).lastOrNull;
-    var body = commandEnd == null
-        ? text
-        : text.substring(commandEnd.end).trimLeft();
-    body = body.replaceFirst(RegExp(r'^[:\-–—]+\s*'), '');
+    // The command is a *prefix* («این متن را ذخیره کن: …») and may chain several
+    // phrases, so keep stripping leading command words until real content starts.
+    // Matching the last occurrence anywhere would eat words that belong to the note.
+    final commandWord = RegExp(
+      r'(?:(?:لطفاً|لطفا|برای من)[\s،]*)?'
+      r'(?:این متن را|این را|متن زیر را|متن را|یادداشت جدیدی?(?: بساز)?|'
+      r'یادداشت|نوت جدید(?: بساز)?|نوت|ذخیره کن|ذخیره|ثبت کن|ثبت|بساز)'
+      r'[\s:،\-]*',
+    );
+    var body = text;
+    for (var i = 0; i < 4; i++) {
+      final match = commandWord.matchAsPrefix(body);
+      if (match == null) break;
+      body = body.substring(match.end);
+    }
+    body = body.replaceFirst(RegExp(r'^[:\-–—\s]+'), '');
     body = body.replaceAll(RegExp(r'\s+'), ' ').trim();
     return body.replaceAll(RegExp(r'^[،,.؛;\-]+|[،,.؛;\-]+$'), '').trim();
   }

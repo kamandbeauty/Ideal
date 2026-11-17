@@ -16,7 +16,7 @@ final jobRunnerProvider = Provider<JobRunner>((ref) {
 });
 
 /// Foreground ticker; started by the shell and stopped when it is disposed.
-final jobSchedulerProvider = Provider<JobScheduler>((ref) {
+final jobSchedulerProvider = Provider<JobTicker>((ref) {
   final scheduler = JobScheduler(ref.watch(jobRunnerProvider));
   ref.onDispose(scheduler.stop);
   return scheduler;
