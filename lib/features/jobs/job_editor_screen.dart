@@ -5,7 +5,6 @@ import '../../core/providers/service_providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/persian_date.dart';
 import '../../data/models/job.dart';
-import 'jobs_screen.dart';
 import '../../services/job_service.dart';
 
 /// Create or edit a job. Every field is functional and validated.

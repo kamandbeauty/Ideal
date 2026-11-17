@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../services/job_runner.dart';
-import '../../services/job_service.dart';
 import 'database_provider.dart';
 import 'permission_providers.dart';
 import 'service_providers.dart';
