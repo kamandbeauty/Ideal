@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart' show GlobalCupertinoLocalizations;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,9 +24,15 @@ class JavidApp extends ConsumerWidget {
       themeMode: themeMode,
       locale: const Locale('fa', 'IR'),
       supportedLocales: const [Locale('fa', 'IR')],
+      // GlobalMaterialLocalizations delegates are required as well: without them
+      // any widget that needs Cupertino/Material strings logs a "locale not
+      // supported by all delegates" warning, and the Persian class only has to
+      // override what actually differs.
       localizationsDelegates: const [
         PersianMaterialLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
       ],
       builder: (context, child) {
         // Force a right-to-left layout regardless of the device locale.

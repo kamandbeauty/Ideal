@@ -22,7 +22,7 @@ Future<TestDatabase> openTestDatabase() async {
   final database = TestDatabase();
   addTearDown(database.close);
   await database.attachForTests(
-    await databaseFactoryFfi.openDatabase(
+    await databaseFactoryFfiNoIsolate.openDatabase(
       // A distinct path per instance: sqflite keys `:memory:` databases by path
       // with `singleInstance: true`, so two instances with the same name would
       // share one handle and one of them would, on close, drop the other's data
@@ -55,7 +55,7 @@ Future<TestDatabase> openFileDatabase({String? samePath}) async {
     }
   });
   await database.attachForTests(
-    await databaseFactoryFfi.openDatabase(
+    await databaseFactoryFfiNoIsolate.openDatabase(
       path,
       options: OpenDatabaseOptions(
         version: AppDatabase.schemaVersion,
@@ -67,10 +67,14 @@ Future<TestDatabase> openFileDatabase({String? samePath}) async {
   return database;
 }
 
-/// Initialises the FFI factory used by the in-memory database (call in setUpAll).
+/// Initialises the FFI factory used by the tests (call in setUpAll).
+///
+/// The no-isolate factory runs SQLite on the current isolate. That matters for
+/// widget tests: `testWidgets` uses a fake async zone, and a future completing
+/// on a background isolate can never be awaited there.
 void setUpSqfliteFfi() {
   sqfliteFfiInit();
-  databaseFactory = databaseFactoryFfi;
+  databaseFactory = databaseFactoryFfiNoIsolate;
 }
 
 /// Opens a clean in-memory database and wipes any rows left by a previous test.
