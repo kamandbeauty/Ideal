@@ -111,6 +111,18 @@ void main() {
     }
   }
 
+  /// Lets real asynchronous work finish.
+  ///
+  /// `testWidgets` runs in a fake-async zone where a real file/SQLite future
+  /// never completes, so any step that touches the database must go through
+  /// `runAsync`; the frames are pumped afterwards on the test's own clock.
+  Future<void> settleIo(WidgetTester tester) async {
+    await tester.runAsync(() => Future<void>.delayed(
+          const Duration(milliseconds: 60),
+        ));
+    await settle(tester);
+  }
+
   Future<TestDatabase> pumpApp(WidgetTester tester) async {
     final database = await openCleanDatabase();
     final container = ProviderContainer(
@@ -164,19 +176,19 @@ void main() {
     await pumpApp(tester);
 
     await tester.tap(find.text('یادداشت‌ها'));
-    await settle(tester);
+    await settleIo(tester);
     expect(find.text('اولین یادداشتت را بساز'), findsOneWidget);
 
     await tester.tap(find.text('وظایف'));
-    await settle(tester);
+    await settleIo(tester);
     expect(find.text('هنوز وظیفه‌ای نداری'), findsOneWidget);
 
     await tester.tap(find.text('پیام‌ها'));
-    await settle(tester);
+    await settleIo(tester);
     expect(find.textContaining('دسترسی'), findsWidgets);
 
     await tester.tap(find.text('تنظیمات'));
-    await settle(tester);
+    await settleIo(tester);
     expect(find.text('ظاهر'), findsOneWidget);
     expect(find.text('هوش مصنوعی'), findsWidgets);
     expect(find.text('حریم خصوصی'), findsOneWidget);
@@ -188,13 +200,13 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, 'یادداشت جدید بساز: تست ویجت');
     await tester.tap(find.byIcon(Icons.send_rounded));
-    await settle(tester);
+    await settleIo(tester);
 
     expect(find.text('ذخیرهٔ یادداشت'), findsWidgets);
     expect(find.text('تأیید و انجام'), findsOneWidget);
 
     await tester.tap(find.text('تأیید و انجام'));
-    await settle(tester);
+    await settleIo(tester);
     expect(find.textContaining('ذخیره شد'), findsWidgets);
   });
 
@@ -204,16 +216,20 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, 'یادداشت جدید بساز: خرید نان');
     await tester.tap(find.byIcon(Icons.send_rounded));
-    await settle(tester);
+    await settleIo(tester);
     await tester.tap(find.text('تأیید و انجام'));
-    await settle(tester);
+    await settleIo(tester);
 
-    final rows = await (await database.open()).query('notes');
+    final rows = await tester.runAsync(() async {
+      final db = await database.open();
+      return db.query('notes');
+    });
+    expect(rows, isNotNull);
     expect(rows, hasLength(1));
-    expect(rows.single['body'], contains('خرید نان'));
+    expect(rows!.single['body'], contains('خرید نان'));
 
     await tester.tap(find.text('یادداشت‌ها'));
-    await settle(tester);
+    await settleIo(tester);
     expect(find.textContaining('خرید نان'), findsWidgets);
   });
 }
