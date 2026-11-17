@@ -4,9 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/providers/database_provider.dart';
 import '../../core/providers/settings_providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../../data/repositories/settings_repository.dart';
+import '../../services/secure_store.dart';
 import '../../ui/widgets/section_header.dart';
 import '../../ui/widgets/status_chip.dart';
-import '../../data/repositories/settings_repository.dart';
 
 /// Cloud AI configuration (optional). Credentials live in the Android keystore.
 class AiSettingsScreen extends ConsumerStatefulWidget {

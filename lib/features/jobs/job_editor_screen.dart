@@ -6,6 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utils/persian_date.dart';
 import '../../data/models/job.dart';
 import '../../services/job_service.dart';
+import 'jobs_screen.dart';
 
 /// Create or edit a job. Every field is functional and validated.
 class JobEditorScreen extends ConsumerStatefulWidget {

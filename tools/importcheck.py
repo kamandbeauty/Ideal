@@ -91,32 +91,42 @@ def analyze(path):
         target.append((uri, is_proj, resolved))
         if not is_proj:
             info.package_imports.append(uri)
-    # Names introduced by a declaration node, top-level or not. Nested names
-    # only shadow; for import resolution this is close enough and avoids the
-    # tree-sitter-dart quirk where the first import swallows the next node.
-    def decls(node):
-        if node.type in ('function_signature', 'getter_signature', 'setter_signature'):
-            # the declared name is the identifier right before the parameter list
-            children = list(node.named_children)
-            for i, c in enumerate(children):
-                nxt = children[i + 1].type if i + 1 < len(children) else ''
+    # Only *top-level* declarations introduce importable symbols, so walk the
+    # program's direct children instead of the whole tree.
+    def first_ident(node):
+        for c in node.named_children:
+            if c.type in ('identifier', 'type_identifier'):
+                return node_text(src, c)
+        return None
+
+    for decl in tree.root_node.children:
+        t = decl.type
+        if t in ('class_definition', 'enum_declaration', 'mixin_declaration',
+                 'extension_declaration', 'extension_type_declaration',
+                 'mixin_definition', 'extension_definition'):
+            name = first_ident(decl)
+            if name:
+                info.declared.add(name)
+        elif t in ('function_signature', 'getter_signature', 'setter_signature'):
+            kids = list(decl.named_children)
+            for i, c in enumerate(kids):
+                nxt = kids[i + 1].type if i + 1 < len(kids) else ''
                 if c.type == 'identifier' and nxt in ('formal_parameter_list', ''):
                     info.declared.add(node_text(src, c))
                     break
-        elif node.type in NAMED_DECLS:
-            for c in node.named_children:
-                if c.type in ('identifier', 'type_identifier'):
-                    info.declared.add(node_text(src, c))
-                    break
-        elif node.type == 'variable_declaration':
-            # Only a *top-level* var introduces a file symbol; locals are noise.
-            pass
-        elif node.type == 'initialized_variable_definition':
-            pass
-        for c in node.children:
-            decls(c)
-
-    decls(tree.root_node)
+        elif t in ('final_builtin', 'var_builtin', 'const_builtin'):
+            for group in decl.named_children:
+                if group.type != 'static_final_declaration_list':
+                    continue
+                for entry in group.named_children:
+                    name = first_ident(entry)
+                    if name:
+                        info.declared.add(name)
+        elif t == 'static_final_declaration_list':
+            for entry in decl.named_children:
+                name = first_ident(entry)
+                if name:
+                    info.declared.add(name)
 
     def collect(node):
         if node.type in ('identifier', 'type_identifier'):

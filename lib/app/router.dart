@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import '../core/providers/job_providers.dart';
-import '../core/providers/service_providers.dart';
-import '../services/job_runner.dart';
 import '../core/providers/repository_providers.dart';
+import '../core/providers/service_providers.dart';
 import '../core/theme/app_colors.dart';
 import '../features/assistant/assistant_screen.dart';
 import '../features/jobs/jobs_screen.dart';
 import '../features/messages/messages_screen.dart';
 import '../features/notes/notes_screen.dart';
 import '../features/settings/settings_screen.dart';
+import '../services/job_runner.dart';
 
 /// Bottom navigation destinations, in Persian.
 enum AppTab {
