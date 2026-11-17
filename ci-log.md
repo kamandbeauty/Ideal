@@ -1,9 +1,9 @@
-# CI log (run 44091880819)
+# CI log (run 44092785838)
 
 ```
 Flutter 3.47.9 • channel stable • https://github.com/flutter/flutter.git
 Framework • revision c197ca5199 (3 weeks ago) • 2026-10-29 10:10:20 -0400
-Engine • hash 9e025265bef30b838c0c1b68cad19decf97048f2 (revision 89c39edfdf) (20 days ago) • 2026-10-27 19:51:20.000Z
+Engine • hash 9e025265bef30b838c0c1b68cad19decf97048f2 (revision 89c39edfdf) (21 days ago) • 2026-10-27 19:51:20.000Z
 Tools • Dart 3.13.7 • DevTools 2.60.0
 Resolving dependencies...
 Downloading packages...
@@ -119,29 +119,29 @@ Changed 108 dependencies!
 16 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Analyzing Ideal...                                              
-No issues found! (ran in 6.3s)
+No issues found! (ran in 9.8s)
 00:00 +0: loading /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart
 00:00 +0: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (setUpAll)
 00:00 +0: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
-00:00 +1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: keeps an explicit title
-00:00 +2: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
-00:00 +3: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: searches title and body
-00:00 +4: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: filters by category
-00:00 +5: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: falls back to general for unknown categories
-00:00 +6: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: updates content and bumps updatedAt
-00:00 +7: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: pins notes to the top of the list
-00:00 +8: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: deletes a note
-00:00 +9: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: latest returns the most recently updated note
-00:00 +10: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: data is readable after the database is closed and reopened
-00:00 +11: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (tearDownAll)
-00:00 +11: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: converts a valid native entry
-00:00 +12: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: skips entries from disabled sources
-00:00 +13: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: keeps unknown packages only when "other" is enabled
-00:00 +14: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: drops empty and malformed rows
-00:00 +15: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: falls back to capture time for invalid timestamps
-00:00 +16: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: builds a dedupe key when the native one is missing
-00:00 +17: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: flags urgent messages without inventing content
-00:00 +18: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: import() writes through and reports new rows only
+00:00 +1: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +2: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +3: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +4: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +5: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +6: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +7: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +8: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
+00:00 +9: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: keeps an explicit title
+00:00 +10: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
+00:00 +11: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: searches title and body
+00:00 +12: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: filters by category
+00:00 +13: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: falls back to general for unknown categories
+00:00 +14: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: updates content and bumps updatedAt
+00:00 +15: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: pins notes to the top of the list
+00:00 +16: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: deletes a note
+00:00 +17: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: latest returns the most recently updated note
+00:00 +18: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: data is readable after the database is closed and reopened
+00:00 +19: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (tearDownAll)
 00:00 +19: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (setUpAll)
 00:00 +19: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: stores and lists notifications newest first
 00:00 +20: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deduplicates by dedupe key
@@ -153,14 +153,14 @@ No issues found! (ran in 6.3s)
 00:00 +26: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: source labels map packages to Persian names
 00:00 +27: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: package classification matches the Kotlin implementation
 00:00 +28: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (tearDownAll)
-00:01 +28: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note round-trips through a map
-00:01 +29: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note displayTitle falls back to the body
-00:01 +30: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note preview flattens newlines
-00:01 +31: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note category labels are Persian
-00:01 +32: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job round-trips through a map
-00:01 +33: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job isRecurring and isActive reflect the schedule
-00:01 +34: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job copyWith can clear nullable fields
-00:01 +35: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: JobRun round-trips and computes duration
+00:00 +28: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note round-trips through a map
+00:00 +29: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note displayTitle falls back to the body
+00:00 +30: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note preview flattens newlines
+00:00 +31: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note category labels are Persian
+00:00 +32: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job round-trips through a map
+00:00 +33: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job isRecurring and isActive reflect the schedule
+00:00 +34: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job copyWith can clear nullable fields
+00:00 +35: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: JobRun round-trips and computes duration
 00:01 +36: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: AssistantMessage round-trips meta
 00:01 +37: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a greeting
 00:01 +38: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a help request
@@ -185,36 +185,36 @@ No issues found! (ran in 6.3s)
 00:01 +57: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input falls back to unknown
 00:01 +58: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input empty input is unknown
 00:01 +59: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (setUpAll)
-00:01 +59: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: starts in the idle state
+00:02 +59: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: starts in the idle state
 00:02 +60: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: listening captures partial transcripts
 00:02 +61: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: processing a final transcript produces and speaks a reply
 00:02 +62: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
 00:02 +63: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +64: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +65: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +66: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +67: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +68: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +69: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +70: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +71: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +72: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:02 +73: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +64: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: rejects one-off jobs in the past
+00:02 +65: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +66: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +67: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +68: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +69: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +70: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +71: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +72: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:02 +73: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: list ordering is stable and deterministic
 00:02 +74: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: recognition errors surface a Persian message and return to idle
 00:02 +75: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: repeat replays the last assistant reply
 00:02 +76: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
 00:02 +77: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: typed input is recorded in the activity log
-00:02 +78: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: typed input is recorded in the activity log
-00:02 +79: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: typed input is recorded in the activity log
-00:02 +80: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: typed input is recorded in the activity log
-00:02 +81: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali round-trips 500 consecutive days
-00:02 +82: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali round-trips 500 consecutive days
-00:02 +83: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
-00:02 +84: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
-00:02 +85: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
-00:02 +86: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
-00:02 +87: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
-00:02 +88: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (tearDownAll)
+00:02 +78: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: stopAll returns to idle and stops audio
+00:02 +79: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
+00:02 +80: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (tearDownAll)
+00:03 +80: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts the start of Nowruz 1403
+00:03 +81: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts a day in Aban 1405
+00:03 +82: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian handles the last day of Esfand in a leap year
+00:03 +83: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali round-trips 500 consecutive days
+00:03 +84: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali Nowruz 1404 is 2025-03-21
+00:03 +85: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths first six months have 31 days
+00:03 +86: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths months seven to eleven have 30 days
+00:03 +87: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths Esfand has 29 days in a common year and 30 in a leap year
 00:03 +88: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (setUpAll)
 00:03 +88: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: writes and reads a string
 00:03 +89: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: overwriting replaces the previous value
@@ -227,17 +227,17 @@ No issues found! (ran in 6.3s)
 00:03 +94: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: nothing happens when no job is due
 00:03 +95: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a recurring job advances to its next slot after running
 00:03 +96: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the briefing summarises captured notifications instead of inventing
-00:03 +97: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a failing job is recorded as failed and does not throw
-00:03 +98: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
-00:03 +99: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
-00:03 +100: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
-00:03 +101: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
-00:03 +102: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
-00:03 +103: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
-00:03 +104: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: scheduleLabel distinguishes today and tomorrow
-00:03 +105: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: greeting follows the hour of day
-00:03 +106: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: addDays keeps the wall-clock time across month boundaries
-00:03 +107: loading /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart
+00:04 +97: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a failing job is recorded as failed and does not throw
+00:04 +98: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
+00:04 +99: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: (tearDownAll)
+00:04 +99: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: shortDate formats a Jalali date with Persian digits
+00:04 +100: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: longDate uses Persian month names
+00:04 +101: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: weekdayDate knows Persian weekday names
+00:04 +102: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: clock pads hours and minutes
+00:04 +103: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: relative describes recent times
+00:04 +104: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: scheduleLabel distinguishes today and tomorrow
+00:04 +105: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: greeting follows the hour of day
+00:04 +106: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: addDays keeps the wall-clock time across month boundaries
 00:04 +107: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles units and teens
 00:04 +108: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles tens and compounds
 00:04 +109: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles hundreds and thousands
@@ -260,51 +260,51 @@ No issues found! (ran in 6.3s)
 00:04 +126: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels daily label uses 24h times
 00:04 +127: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels weekly label names the weekday
 00:04 +128: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels interval label prefers hours for whole hours
-00:04 +129: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: Persian weekday names line up with DateTime.weekday
-00:04 +130: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: month names are in calendar order
-00:04 +131: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: JalaliDate equality and comparison
-00:04 +132: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits converts ASCII digits
-00:04 +133: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits keeps letters and punctuation
-00:04 +134: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits accepts non-string input
-00:04 +135: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Persian digits
-00:04 +136: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Arabic-Indic digits
-00:04 +137: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput unifies Arabic yeh and kaf
-00:04 +138: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput removes diacritics and tatweel
-00:04 +139: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput converts digits and collapses whitespace
-00:04 +140: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput replaces zero-width non-joiners with spaces
-00:04 +141: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (setUpAll)
-00:04 +141: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent note creation asks for confirmation and only saves on execute
-00:05 +142: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent lists notes as a bullet list
-00:05 +143: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent reading the latest note returns its body
-00:05 +144: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent empty note commands ask for text instead of creating junk
-00:05 +145: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent deleting a note needs confirmation and reports no data without it
-00:05 +146: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
-00:05 +147: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a one-off reminder for tomorrow
-00:05 +148: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
-00:05 +149: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
-00:05 +150: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
-00:05 +151: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent greeting mentions the time of day
-00:05 +152: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent help lists real capabilities
-00:05 +153: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
-00:05 +154: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (tearDownAll)
-00:05 +154: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
-00:05 +155: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «فردا» resolves to the next day
-00:05 +156: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «پس‌فردا» resolves two days ahead
-00:05 +157: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: day + month names resolve in the Jalali calendar
-00:05 +158: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: a past Jalali day/month rolls to next year
-00:05 +159: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: Persian ordinals are understood
-00:05 +160: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: weekday names find the next occurrence
-00:05 +161: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «سه روز دیگر» offsets by days
-00:05 +162: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: explicit dotted Jalali dates are accepted
-00:05 +163: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: returns null when no date expression exists
-00:05 +164: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing says so honestly when nothing happened
-00:05 +165: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing counts messages per source with Persian digits
-00:05 +166: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing highlights the next job and urgent items
-00:05 +167: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing ignores notifications from previous days
-00:05 +168: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing never invents content when asked for details
-00:05 +169: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: urge detector matches Persian and English keywords
-00:05 +170: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: summarize builds a compact one-liner
-00:05 +171: All tests passed!
+00:05 +129: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: Persian weekday names line up with DateTime.weekday
+00:05 +130: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: month names are in calendar order
+00:05 +131: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: JalaliDate equality and comparison
+00:05 +132: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits converts ASCII digits
+00:05 +133: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits keeps letters and punctuation
+00:05 +134: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits accepts non-string input
+00:05 +135: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Persian digits
+00:05 +136: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Arabic-Indic digits
+00:05 +137: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput unifies Arabic yeh and kaf
+00:05 +138: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput removes diacritics and tatweel
+00:05 +139: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput converts digits and collapses whitespace
+00:05 +140: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput replaces zero-width non-joiners with spaces
+00:05 +141: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (setUpAll)
+00:05 +141: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent note creation asks for confirmation and only saves on execute
+00:06 +142: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent lists notes as a bullet list
+00:06 +143: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent reading the latest note returns its body
+00:06 +144: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent empty note commands ask for text instead of creating junk
+00:06 +145: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent deleting a note needs confirmation and reports no data without it
+00:06 +146: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:06 +147: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a one-off reminder for tomorrow
+00:06 +148: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
+00:06 +149: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
+00:06 +150: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
+00:06 +151: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «فردا» resolves to the next day
+00:06 +152: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
+00:06 +153: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
+00:06 +154: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
+00:06 +155: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
+00:06 +156: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
+00:06 +157: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
+00:06 +158: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «سه روز دیگر» offsets by days
+00:06 +159: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent greeting mentions the time of day
+00:06 +160: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent greeting mentions the time of day
+00:06 +161: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent greeting mentions the time of day
+00:06 +162: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent help lists real capabilities
+00:06 +163: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
+00:06 +164: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (tearDownAll)
+00:06 +164: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing says so honestly when nothing happened
+00:06 +165: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing counts messages per source with Persian digits
+00:06 +166: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing highlights the next job and urgent items
+00:06 +167: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing ignores notifications from previous days
+00:06 +168: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing never invents content when asked for details
+00:06 +169: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: urge detector matches Persian and English keywords
+00:06 +170: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: summarize builds a compact one-liner
+00:06 +171: All tests passed!
 00:00 +0: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
 00:00 +0: (setUpAll)
 00:00 +0: boots into the assistant tab in RTL with Persian labels
@@ -323,12 +323,12 @@ The declared supported locales for this app are: fa_IR
 See https://flutter.dev/to/internationalization/ for more information about configuring an app's
 locale, supportedLocales, and localizationsDelegates parameters.
 ════════════════════════════════════════════════════════════════════════════════════════════════════
-00:00 +0 -1: boots into the assistant tab in RTL with Persian labels [E]
+00:01 +0 -1: boots into the assistant tab in RTL with Persian labels [E]
   Test failed. See exception logs above.
   The test description was: boots into the assistant tab in RTL with Persian labels
   
-00:00 +0 -1: navigates through all five tabs
-00:00 +0 -1: boots into the assistant tab in RTL with Persian labels
+00:01 +0 -1: navigates through all five tabs
+00:01 +0 -1: boots into the assistant tab in RTL with Persian labels
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
 The following SqfliteFfiException was thrown running a test (but after the test had completed):
 DatabaseException(ffi error: Bad state: This database has already been closed) sql 'SELECT * FROM
@@ -355,7 +355,7 @@ When the exception was thrown, this was the stack:
 #9      AssistantActivity.reload (package:javid_ai/features/assistant/assistant_controller.dart:249:22)
 <asynchronous suspension>
 ════════════════════════════════════════════════════════════════════════════════════════════════════
-00:00 +0 -1: boots into the assistant tab in RTL with Persian labels [E]
+00:01 +0 -1: boots into the assistant tab in RTL with Persian labels [E]
   Test failed. See exception logs above.
   The test description was: boots into the assistant tab in RTL with Persian labels
   
@@ -390,7 +390,7 @@ When the exception was thrown, this was the stack:
   Test failed. See exception logs above.
   The test description was: boots into the assistant tab in RTL with Persian labels
   
-00:01 +0 -1: navigates through all five tabs
+00:02 +0 -1: navigates through all five tabs
 ══╡ EXCEPTION CAUGHT BY WIDGETS ╞═══════════════════════════════════════════════════════════════════
 The following message was thrown:
 Warning: This application's locale, fa_IR, is not supported by all of its localization delegates.
@@ -413,7 +413,7 @@ Expected: exactly one matching candidate
    Which: means none were found but one was expected
 
 When the exception was thrown, this was the stack:
-#4      main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:191:5)
+#4      main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:204:5)
 <asynchronous suspension>
 #5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -423,7 +423,7 @@ When the exception was thrown, this was the stack:
 (elided one frame from package:stack_trace)
 
 This was caught by the test expectation on the following line:
-  file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart line 191
+  file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart line 204
 The test description was:
   navigates through all five tabs
 ════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -432,74 +432,11 @@ The following message was thrown:
 Multiple exceptions (2) were detected during the running of the current test, and at least one was
 unexpected.
 ════════════════════════════════════════════════════════════════════════════════════════════════════
-00:01 +0 -2: navigates through all five tabs [E]
+00:02 +0 -2: navigates through all five tabs [E]
   Test failed. See exception logs above.
   The test description was: navigates through all five tabs
   
-00:01 +0 -2: typed assistant input opens the confirmation sheet
-00:01 +0 -2: navigates through all five tabs
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following SqfliteFfiException was thrown running a test (but after the test had completed):
-DatabaseException(ffi error: Bad state: This database has already been closed) sql 'SELECT * FROM
-assistant_messages ORDER BY created_at DESC LIMIT 20'
-
-When the exception was thrown, this was the stack:
-#0      responseToResultOrThrow (package:sqflite_common_ffi/src/method_call.dart:126:9)
-#1      SqfliteIsolate.handle (package:sqflite_common_ffi/src/isolate_io.dart:85:12)
-<asynchronous suspension>
-#2      _isolateHandle (package:sqflite_common_ffi/src/database_factory_ffi_io.dart:115:10)
-<asynchronous suspension>
-#3      ffiMethodCallhandleInIsolate (package:sqflite_common_ffi/src/database_factory_ffi_io.dart:67:18)
-<asynchronous suspension>
-#4      _SqfliteDatabaseFactoryImpl.invokeMethod (package:sqflite_common/src/mixin/factory.dart:22:8)
-<asynchronous suspension>
-#5      SqfliteDatabaseMixin.txnRawQuery.<anonymous closure> (package:sqflite_common/src/database_mixin.dart:681:30)
-<asynchronous suspension>
-#6      BasicLock.synchronized (package:synchronized/src/basic_lock.dart:41:16)
-<asynchronous suspension>
-#7      SqfliteDatabaseMixin.txnSynchronized (package:sqflite_common/src/database_mixin.dart:592:14)
-<asynchronous suspension>
-#8      AssistantRepository.recent (package:javid_ai/data/repositories/assistant_repository.dart:11:18)
-<asynchronous suspension>
-#9      AssistantActivity.reload (package:javid_ai/features/assistant/assistant_controller.dart:249:22)
-<asynchronous suspension>
-════════════════════════════════════════════════════════════════════════════════════════════════════
-00:01 +0 -2: navigates through all five tabs [E]
-  Test failed. See exception logs above.
-  The test description was: navigates through all five tabs
-  
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following SqfliteFfiException was thrown running a test (but after the test had completed):
-DatabaseException(ffi error: Bad state: This database has already been closed) sql 'SELECT value
-FROM settings WHERE key = ? LIMIT 1' args [speak_replies]
-
-When the exception was thrown, this was the stack:
-#0      responseToResultOrThrow (package:sqflite_common_ffi/src/method_call.dart:126:9)
-#1      SqfliteIsolate.handle (package:sqflite_common_ffi/src/isolate_io.dart:85:12)
-<asynchronous suspension>
-#2      _isolateHandle (package:sqflite_common_ffi/src/database_factory_ffi_io.dart:115:10)
-<asynchronous suspension>
-#3      ffiMethodCallhandleInIsolate (package:sqflite_common_ffi/src/database_factory_ffi_io.dart:67:18)
-<asynchronous suspension>
-#4      _SqfliteDatabaseFactoryImpl.invokeMethod (package:sqflite_common/src/mixin/factory.dart:22:8)
-<asynchronous suspension>
-#5      SqfliteDatabaseMixin.txnRawQuery.<anonymous closure> (package:sqflite_common/src/database_mixin.dart:681:30)
-<asynchronous suspension>
-#6      BasicLock.synchronized (package:synchronized/src/basic_lock.dart:41:16)
-<asynchronous suspension>
-#7      SqfliteDatabaseMixin.txnSynchronized (package:sqflite_common/src/database_mixin.dart:592:14)
-<asynchronous suspension>
-#8      SettingsRepository.read (package:javid_ai/data/repositories/settings_repository.dart:15:18)
-<asynchronous suspension>
-#9      SettingsRepository.readBool (package:javid_ai/data/repositories/settings_repository.dart:26:19)
-<asynchronous suspension>
-#10     BoolSettingController._load (package:javid_ai/core/providers/settings_providers.dart:144:19)
-<asynchronous suspension>
-════════════════════════════════════════════════════════════════════════════════════════════════════
-  Test failed. See exception logs above.
-  The test description was: navigates through all five tabs
-  
-00:01 +0 -2: typed assistant input opens the confirmation sheet
+00:02 +0 -2: typed assistant input opens the confirmation sheet
 ══╡ EXCEPTION CAUGHT BY WIDGETS ╞═══════════════════════════════════════════════════════════════════
 The following message was thrown:
 Warning: This application's locale, fa_IR, is not supported by all of its localization delegates.
@@ -515,75 +452,8 @@ The declared supported locales for this app are: fa_IR
 See https://flutter.dev/to/internationalization/ for more information about configuring an app's
 locale, supportedLocales, and localizationsDelegates parameters.
 ════════════════════════════════════════════════════════════════════════════════════════════════════
-00:01 +0 -3: typed assistant input opens the confirmation sheet [E]
-  Test failed. See exception logs above.
-  The test description was: typed assistant input opens the confirmation sheet
-  
-00:02 +0 -3: a stored note appears in the notes tab
-00:02 +0 -3: typed assistant input opens the confirmation sheet
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following SqfliteFfiException was thrown running a test (but after the test had completed):
-DatabaseException(ffi error: Bad state: This database has already been closed) sql 'SELECT * FROM
-assistant_messages ORDER BY created_at DESC LIMIT 20'
-
-When the exception was thrown, this was the stack:
-#0      responseToResultOrThrow (package:sqflite_common_ffi/src/method_call.dart:126:9)
-#1      SqfliteIsolate.handle (package:sqflite_common_ffi/src/isolate_io.dart:85:12)
-<asynchronous suspension>
-#2      _isolateHandle (package:sqflite_common_ffi/src/database_factory_ffi_io.dart:115:10)
-<asynchronous suspension>
-#3      ffiMethodCallhandleInIsolate (package:sqflite_common_ffi/src/database_factory_ffi_io.dart:67:18)
-<asynchronous suspension>
-#4      _SqfliteDatabaseFactoryImpl.invokeMethod (package:sqflite_common/src/mixin/factory.dart:22:8)
-<asynchronous suspension>
-#5      SqfliteDatabaseMixin.txnRawQuery.<anonymous closure> (package:sqflite_common/src/database_mixin.dart:681:30)
-<asynchronous suspension>
-#6      BasicLock.synchronized (package:synchronized/src/basic_lock.dart:41:16)
-<asynchronous suspension>
-#7      SqfliteDatabaseMixin.txnSynchronized (package:sqflite_common/src/database_mixin.dart:592:14)
-<asynchronous suspension>
-#8      AssistantRepository.recent (package:javid_ai/data/repositories/assistant_repository.dart:11:18)
-<asynchronous suspension>
-#9      AssistantActivity.reload (package:javid_ai/features/assistant/assistant_controller.dart:249:22)
-<asynchronous suspension>
-════════════════════════════════════════════════════════════════════════════════════════════════════
-00:02 +0 -3: typed assistant input opens the confirmation sheet [E]
-  Test failed. See exception logs above.
-  The test description was: typed assistant input opens the confirmation sheet
-  
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following SqfliteFfiException was thrown running a test (but after the test had completed):
-DatabaseException(ffi error: Bad state: This database has already been closed) sql 'SELECT value
-FROM settings WHERE key = ? LIMIT 1' args [speak_replies]
-
-When the exception was thrown, this was the stack:
-#0      responseToResultOrThrow (package:sqflite_common_ffi/src/method_call.dart:126:9)
-#1      SqfliteIsolate.handle (package:sqflite_common_ffi/src/isolate_io.dart:85:12)
-<asynchronous suspension>
-#2      _isolateHandle (package:sqflite_common_ffi/src/database_factory_ffi_io.dart:115:10)
-<asynchronous suspension>
-#3      ffiMethodCallhandleInIsolate (package:sqflite_common_ffi/src/database_factory_ffi_io.dart:67:18)
-<asynchronous suspension>
-#4      _SqfliteDatabaseFactoryImpl.invokeMethod (package:sqflite_common/src/mixin/factory.dart:22:8)
-<asynchronous suspension>
-#5      SqfliteDatabaseMixin.txnRawQuery.<anonymous closure> (package:sqflite_common/src/database_mixin.dart:681:30)
-<asynchronous suspension>
-#6      BasicLock.synchronized (package:synchronized/src/basic_lock.dart:41:16)
-<asynchronous suspension>
-#7      SqfliteDatabaseMixin.txnSynchronized (package:sqflite_common/src/database_mixin.dart:592:14)
-<asynchronous suspension>
-#8      SettingsRepository.read (package:javid_ai/data/repositories/settings_repository.dart:15:18)
-<asynchronous suspension>
-#9      SettingsRepository.readBool (package:javid_ai/data/repositories/settings_repository.dart:26:19)
-<asynchronous suspension>
-#10     BoolSettingController._load (package:javid_ai/core/providers/settings_providers.dart:144:19)
-<asynchronous suspension>
-════════════════════════════════════════════════════════════════════════════════════════════════════
-  Test failed. See exception logs above.
-  The test description was: typed assistant input opens the confirmation sheet
-  
-══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following StateError was thrown running a test (but after the test had completed):
+══╡ EXCEPTION CAUGHT BY GESTURE ╞═══════════════════════════════════════════════════════════════════
+The following StateError was thrown while handling a gesture:
 Bad state: Tried to use AssistantController after `dispose` was called.
 
 Consider checking `mounted`.
@@ -592,17 +462,55 @@ When the exception was thrown, this was the stack:
 #0      StateNotifier._debugIsMounted.<anonymous closure> (package:state_notifier/state_notifier.dart:175:9)
 #1      StateNotifier._debugIsMounted (package:state_notifier/state_notifier.dart:182:6)
 #2      StateNotifier.state (package:state_notifier/state_notifier.dart:197:12)
-#3      AssistantController._handleUtterance (package:javid_ai/features/assistant/assistant_controller.dart:136:15)
+#3      AssistantController._toConfirmation.<anonymous closure> (package:javid_ai/features/assistant/assistant_controller.dart:153:17)
+#4      _ConfirmSheet.build.<anonymous closure> (package:javid_ai/features/assistant/confirm_action_sheet.dart:80:44)
+#5      _InkResponseState.handleTap (package:flutter/src/material/ink_well.dart:1224:21)
+#6      GestureRecognizer.invokeCallback (package:flutter/src/gestures/recognizer.dart:362:24)
+#7      TapGestureRecognizer.handleTapUp (package:flutter/src/gestures/tap.dart:758:11)
+#8      BaseTapGestureRecognizer._checkUp (package:flutter/src/gestures/tap.dart:383:5)
+#9      BaseTapGestureRecognizer.acceptGesture (package:flutter/src/gestures/tap.dart:353:7)
+#10     GestureArenaManager.sweep (package:flutter/src/gestures/arena.dart:173:27)
+#11     GestureBinding.handleEvent (package:flutter/src/gestures/binding.dart:542:20)
+#12     GestureBinding.dispatchEvent (package:flutter/src/gestures/binding.dart:508:22)
+#13     RendererBinding.dispatchEvent (package:flutter/src/rendering/binding.dart:473:11)
+#14     GestureBinding._handlePointerEventImmediately (package:flutter/src/gestures/binding.dart:447:7)
+#15     GestureBinding.handlePointerEvent (package:flutter/src/gestures/binding.dart:404:5)
+#16     TestWidgetsFlutterBinding.handlePointerEventForSource.<anonymous closure> (package:flutter_test/src/binding.dart:1571:42)
+#17     TestWidgetsFlutterBinding.withPointerEventSource (package:flutter_test/src/binding.dart:1581:11)
+#18     TestWidgetsFlutterBinding.handlePointerEventForSource (package:flutter_test/src/binding.dart:1571:5)
+#19     WidgetTester.sendEventToBinding.<anonymous closure> (package:flutter_test/src/widget_tester.dart:869:15)
+#22     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#23     WidgetTester.sendEventToBinding (package:flutter_test/src/widget_tester.dart:868:27)
+#24     TestGesture.up.<anonymous closure> (package:flutter_test/src/test_pointer.dart:587:26)
+#27     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#28     TestGesture.up (package:flutter_test/src/test_pointer.dart:580:27)
+#29     WidgetController.tapAt.<anonymous closure> (package:flutter_test/src/controller.dart:1155:21)
 <asynchronous suspension>
-#4      AssistantController.submitText (package:javid_ai/features/assistant/assistant_controller.dart:104:5)
+#30     TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
 <asynchronous suspension>
-#5      _AssistantScreenState._submitTyped (package:javid_ai/features/assistant/assistant_screen.dart:63:5)
+#31     main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:236:5)
 <asynchronous suspension>
+#32     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#33     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 5 frames from dart:async and package:stack_trace)
+
+Handler: "onTap"
+Recognizer:
+  TapGestureRecognizer#82830
 ════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (2) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:03 +0 -3: typed assistant input opens the confirmation sheet [E]
   Test failed. See exception logs above.
   The test description was: typed assistant input opens the confirmation sheet
   
-00:02 +0 -3: a stored note appears in the notes tab
+00:03 +0 -3: a stored note appears in the notes tab
 ══╡ EXCEPTION CAUGHT BY WIDGETS ╞═══════════════════════════════════════════════════════════════════
 The following message was thrown:
 Warning: This application's locale, fa_IR, is not supported by all of its localization delegates.
@@ -625,7 +533,7 @@ Expected: at least one matching candidate
    Which: means none were found but some were expected
 
 When the exception was thrown, this was the stack:
-#4      main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:238:5)
+#4      main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:251:5)
 <asynchronous suspension>
 #5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -635,7 +543,7 @@ When the exception was thrown, this was the stack:
 (elided one frame from package:stack_trace)
 
 This was caught by the test expectation on the following line:
-  file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart line 238
+  file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart line 251
 The test description was:
   a stored note appears in the notes tab
 ════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -644,12 +552,12 @@ The following message was thrown:
 Multiple exceptions (2) were detected during the running of the current test, and at least one was
 unexpected.
 ════════════════════════════════════════════════════════════════════════════════════════════════════
-00:02 +0 -4: a stored note appears in the notes tab [E]
+00:04 +0 -4: a stored note appears in the notes tab [E]
   Test failed. See exception logs above.
   The test description was: a stored note appears in the notes tab
   
-00:02 +0 -4: (tearDownAll)
-00:02 +0 -4: Some tests failed.
+00:04 +0 -4: (tearDownAll)
+00:04 +0 -4: Some tests failed.
 
 Failing tests:
   /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: a stored note appears in the notes tab
