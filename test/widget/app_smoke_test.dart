@@ -118,10 +118,12 @@ void main() {
   /// never completes, so any step that touches the database must go through
   /// `runAsync`; the frames are pumped afterwards on the test's own clock.
   Future<void> settleIo(WidgetTester tester) async {
-    await tester.runAsync(() => Future<void>.delayed(
-          const Duration(milliseconds: 60),
-        ));
-    await settle(tester);
+    for (var i = 0; i < 3; i++) {
+      await tester.runAsync(() => Future<void>.delayed(
+            const Duration(milliseconds: 40),
+          ));
+      await settle(tester);
+    }
   }
 
   Future<TestDatabase> pumpApp(

@@ -66,13 +66,14 @@ jobs:
       - name: Annotate unit-test failures
         if: failure()
         shell: bash
+        continue-on-error: true
         run: |
           grep -E '\[E\]|Expected:|Actual:|Error:' ci-log.txt | tail -20 |
             while IFS= read -r line; do
               line="${line//'%'/'%25'}"
               line="${line//$'\r'/}"
               echo "::error title=test failure::$line"
-            done
+            done || true
 
       - name: Test (widget)
         if: always()
