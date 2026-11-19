@@ -475,7 +475,7 @@ func _six_barrels() -> void:
 	for i: int in Profile.GUNS.size():
 		game.menus.gun_choices.buttons[i].pressed.emit()
 		await frames(4)
-		check(game.menus.weapon_photo.texture.resource_path.ends_with("stand_%s.jpg" % Profile.GUNS[i]), "the armory previews " + Profile.GUNS[i])
+		check(game.menus.weapon_photo.texture.resource_path.ends_with("stand_%s_cutout.png" % Profile.GUNS[i]), "the armory previews " + Profile.GUNS[i])
 		await shot("40-armory-" + Profile.GUNS[i], "screen")
 	game.menus.gun_choices.buttons[1].pressed.emit()
 	await frames(4)
