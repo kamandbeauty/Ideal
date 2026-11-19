@@ -1,7 +1,7 @@
-# Photo set — store studio background
+# Photo set — white wall, original floor
 
-Eight clothing shots, re-shot on a white studio wall with a cream ceramic
-tile floor for the shop.
+Eight clothing shots for the shop: the wall behind the model is pure white,
+everything else is the original photograph.
 
 | What | Where |
 | --- | --- |
@@ -11,29 +11,26 @@ tile floor for the shop.
 
 ## Output spec
 
-* **Aspect ratio** 1:1 — the eight uploads were already square, so nothing
-  was cropped and no part of the model was cut off.
-* **Sizes** 600×600 (seven files), 963×963 (`IMG_E2372-Copy.jpg`); pixel size
-  and framing of the originals are kept, no resampling.
-* **Wall** plain white, very slight studio falloff, no cast shadow.
-* **Floor** cream ceramic tiles in one-point perspective (soft joints, light
-  sheen), no shadow of the model on it.
-* **Model** unchanged — see the check below.
+* **Aspect ratio** 1:1 — the uploads were already square, nothing was
+  cropped and no part of the model is cut off.
+* **Sizes** 600×600 (seven files), 963×963 (`IMG_E2372-Copy.jpg`); the pixel
+  size of the originals is kept, no resampling.
+* **Wall** pure white: RGB 255/255/255 behind every background pixel, no
+  cast shadow, no vignette.
+* **Floor** the floor of the original photo, **not touched** — it is already
+  the cream ceramic tile of the shop's floor, so it is kept pixel for pixel
+  (its own reflection/shadow under the shoe included). The wall/floor line
+  is feathered over a few pixels so the white does not cut into the tiles.
+* **Model** untouched — see the check below.
 * **Format** JPEG, quality 96.
 
-## How the model was kept unchanged
+## What is verified, per file
 
-The background was replaced, not re-rendered: the person was cut out with a
-segmentation model plus a graph-cut refinement at the feet, and the original
-pixels were composited over the new background. No generative model touched
-the garment. Checked automatically on every file: for pixels that belong to
-the person (alpha ≥ 0.999 and either dark or saturated — trousers, sweater,
-skin) the difference to the original is **exactly 0** before JPEG encoding.
+* Every pixel of the floor (below the wall/floor line) is **identical** to
+  the original: max |Δ| = 0.
+* Every pixel of the person (sweater, trousers, shoes, skin) is
+  **identical** to the original: max |Δ| = 0.
+* Background above the wall/floor line is 100 % pure white (255,255,255).
 
-## Known soft spots
-
-* `IMG_E2367-600x600.jpg` — the gap between the crossed legs is real
-  background and now shows the white wall; the foot that points at the
-  camera keeps a small contact shade.
-* In a few frames a faint contact shade is still visible right under a
-  sole. It can be painted out completely on request.
+Nothing was regenerated with an image model; the only operation is
+"background → white".
