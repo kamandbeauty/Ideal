@@ -7,6 +7,9 @@ const TICK: float = 1.0 / 30.0
 
 func run(t: TestContext) -> void:
 	await _pools_and_volumes(t)
+	Zombie.mix_extras = true
+	await _pools_and_volumes(t)
+	Zombie.mix_extras = false
 	await _movement_and_damage(t)
 	await _wide_places(t)
 	await _pecking_order(t)
@@ -62,6 +65,12 @@ func _pools_and_volumes(t: TestContext) -> void:
 				"the extra look's head volume sits on its own shoulders (%.2f m up)" % head.y)
 		t.near(zombie.anim.speed_scale, zombie.speed / zombie.gait_stride_speed * zombie.gait_rate, 0.001, "the %s walk clip is paced to its ground speed" % id)
 		t.check(zombie.body_mesh != null and zombie.body_mesh.material_override != null, "the %s wears one of its skins" % id)
+		if Zombie.mix_extras:
+			t.equal(zombie.look_index, 1, "%s uses the realistic model in play" % id)
+			t.check(zombie.anim.has_animation("walk_clean") and zombie.anim.has_animation("run_clean") and zombie.anim.has_animation("attack") and zombie.anim.has_animation("hit") and zombie.anim.has_animation("death_back"), "%s realistic model supports the game states" % id)
+			var head_shape: CollisionShape3D = zombie.head_area.get_child(0) as CollisionShape3D
+			t.near(head_shape.scale.x * zombie.model.scale.x, 1.0, 0.001, "%s scaled model preserves the headshot radius" % id)
+			t.check(zombie.head_area.collision_layer == Layers.ZOMBIE_HEAD and zombie.head_area.get_parent() is BoneAttachment3D, "%s head target follows the animated rig" % id)
 	t.equal(horde.alive_count(), 4, "one of each is on the field")
 	t.check(horde.boss != null and horde.boss.data.is_boss, "the horde knows which one is the boss")
 	await t.discard(level)

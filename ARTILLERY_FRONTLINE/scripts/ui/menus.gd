@@ -44,6 +44,8 @@ var map_page: int = 0
 var neighborhood_button: Button
 var hospital_button: Button
 var metro_button: Button
+var region_buttons: Array[Button] = []
+var region_label: Label
 var gun_choices: MenuWidgets.Choices
 var gun_note: Label
 var gun_preview: WeaponPreview
@@ -144,6 +146,8 @@ func _clear() -> void:
 	neighborhood_button = null
 	hospital_button = null
 	metro_button = null
+	region_buttons.clear()
+	region_label = null
 	gun_choices = null
 	gun_note = null
 	gun_preview = null
@@ -432,11 +436,10 @@ func _build_main() -> void:
 # -- Campaign map ----------------------------------------------------------------------
 ## Three real stage choices, not decorative map pins: locked stages stay locked.
 func _build_campaign() -> void:
-	_background("res://assets/textures/branding/design_map.png")
+	_background("res://assets/textures/branding/tehran_campaign_map.jpg")
 	var map_art: TextureRect = holder.get_child(holder.get_child_count() - 1) as TextureRect
-	_zone(UITheme.button(Loc.t("back"), show_main, "plain", "ui_back"), Rect2(0.01, 0.01, 0.16, 0.11), "CampaignBack")
-	_zone(UITheme.outline(_text(Loc.t("choose_neighborhood"), 20, UITheme.TEXT, false), 3), Rect2(0.03, 0.17, 0.31, 0.05), "MapPrompt")
-	_zone(UITheme.outline(_text(Loc.t("choose_stage"), 20, UITheme.TEXT, false), 3), Rect2(0.03, 0.25, 0.31, 0.05), "StagePrompt")
+	_zone(UITheme.button(Loc.t("back"), show_main, "plain", "ui_back"), Rect2(0.01, 0.01, 0.15, 0.11), "CampaignBack")
+	_zone(UITheme.outline(_heading(Loc.t("choose_neighborhood"), 30, UITheme.TEXT), 4), Rect2(0.25, 0.02, 0.50, 0.08), "MapPrompt")
 	var names: Array = []
 	var open: int = Campaign.open_stages(int(Profile.data.stats.stages_cleared))
 	for index: int in Campaign.count():
@@ -451,42 +454,34 @@ func _build_campaign() -> void:
 		stage = index
 		stage_brief.text = stage_brief_for(index)
 		stage_chosen.emit(index))
-	# The three actual choices occupy the diagonal map pins in the concept.
 	for index: int in stage_choices.buttons.size():
 		var button: Button = stage_choices.buttons[index]
 		stage_choices.remove_child(button)
-		_zone(button, Rect2(0.62 - 0.12 * (index % 3), 0.40 + 0.13 * (index % 3), 0.11, 0.12), "MapStage%d" % (index + 1))
+		button.text = Loc.number(index + 1)
+		_zone(button, Rect2(0.05 + 0.135 * (index % 3), 0.68, 0.12, 0.12), "MapStage%d" % (index + 1))
 		button.visible = false
 	stage_choices.visible = false
 	var region_keys: Array[String] = ["neighborhood_city", "neighborhood_hospital", "neighborhood_metro",
 		"neighborhood_industrial", "neighborhood_bazaar", "neighborhood_terminal", "neighborhood_towers",
 		"neighborhood_stadium", "neighborhood_refinery", "neighborhood_citadel"]
-	var regions: Array[Button] = []
-	for slot: int in 3:
-		var district: int = map_page * 3 + slot
-		var button: Button = UITheme.button(Loc.t(region_keys[district]) if district < region_keys.size() else "—", func() -> void:
-			_select_district(district, map_art), "accent")
-		button.disabled = district >= region_keys.size()
-		var location: Rect2 = [Rect2(0.57, 0.18, 0.30, 0.11), Rect2(0.03, 0.36, 0.27, 0.11), Rect2(0.03, 0.50, 0.27, 0.11)][slot]
-		_zone(button, location, ["Neighborhood", "HospitalNeighborhood", "MetroNeighborhood"][slot])
-		regions.append(button)
-	neighborhood_button = regions[0]
-	hospital_button = regions[1]
-	metro_button = regions[2]
-	var previous := UITheme.button("‹", func() -> void:
-		map_page -= 1
-		_show("campaign", false))
-	previous.disabled = map_page <= 0
-	_zone(previous, Rect2(0.03, 0.64, 0.12, 0.11), "PreviousDistrictPage")
-	var next := UITheme.button("›", func() -> void:
-		map_page += 1
-		_show("campaign", false))
-	next.disabled = map_page >= 3
-	_zone(next, Rect2(0.18, 0.64, 0.12, 0.11), "NextDistrictPage")
-	_zone(UITheme.outline(_text(Loc.t("region_page", [Loc.number(map_page + 1), Loc.number(4)]), 18, UITheme.TEXT), 3), Rect2(0.03, 0.77, 0.27, 0.05), "DistrictPage")
-
+	for district: int in region_keys.size():
+		var name: String = Loc.t(region_keys[district]).split("  •")[0]
+		var button: Button = UITheme.button(name, func() -> void:
+			_select_district(district, map_art), "plain")
+		button.add_theme_font_size_override("font_size", UITheme.font_size(18))
+		button.clip_text = true
+		var pos := Vector2(0.01 + (district % 5) * 0.198, 0.18 + (district / 5) * 0.14)
+		var node_name: String = ["Neighborhood", "HospitalNeighborhood", "MetroNeighborhood"][district] if district < 3 else "Region%d" % district
+		_zone(button, Rect2(pos, Vector2(0.185, 0.115)), node_name)
+		region_buttons.append(button)
+	neighborhood_button = region_buttons[0]
+	hospital_button = region_buttons[1]
+	metro_button = region_buttons[2]
+	_zone(UITheme.outline(_text(Loc.t("choose_stage"), 22, UITheme.TEXT), 3), Rect2(0.05, 0.57, 0.39, 0.06), "StagePrompt")
+	region_label = UITheme.outline(_text(Loc.t("region_page", [Loc.number(Campaign.district(stage) + 1), Loc.number(10)]), 18, UITheme.TEXT), 3)
+	_zone(region_label, Rect2(0.05, 0.85, 0.39, 0.05), "DistrictPage")
 	var info := _plate()
-	_zone(info, Rect2(0.68, 0.66, 0.30, 0.31), "MissionBrief")
+	_zone(info, Rect2(0.61, 0.58, 0.37, 0.38), "MissionBrief")
 	var details := _column()
 	info.add_child(details)
 	details.add_child(_heading(Loc.t("mission_brief"), 23, UITheme.AMBER))
@@ -498,12 +493,20 @@ func _build_campaign() -> void:
 func _select_district(district: int, map_art: TextureRect) -> void:
 	if district < 0 or district >= 10:
 		return
-	var art: String = "res://assets/textures/branding/design_map.png"
-	if district == 1:
+	# The first three areas retain their individual illustrations; the other
+	# districts share the Tehran overview so all locations remain navigable.
+	var art: String = "res://assets/textures/branding/tehran_campaign_map.jpg"
+	if district == 0:
+		art = "res://assets/textures/branding/design_map.png"
+	elif district == 1:
 		art = "res://assets/textures/branding/hospital_district.png"
 	elif district == 2:
 		art = "res://assets/textures/branding/metro_district.png"
 	map_art.texture = load(art)
+	for index: int in region_buttons.size():
+		UITheme.paint_button(region_buttons[index], "accent" if index == district else "plain")
+	region_label.text = Loc.t("region_page", [Loc.number(district + 1), Loc.number(10)])
+	map_page = district / 3
 	var first: int = district * 3
 	if stage < first or stage >= first + 3:
 		stage_choices._choose(first)
@@ -512,12 +515,11 @@ func _select_district(district: int, map_art: TextureRect) -> void:
 		stage_choices.buttons[index].visible = index >= first and index < first + 3
 	stage_brief.text = stage_brief_for(stage)
 
-
 # -- Armory ----------------------------------------------------------------------------
 ## After PLAY: pick the stage and the gun, then go to the wall. The street behind
 ## the menu shows the gun that is lit.
 func _build_arsenal() -> void:
-	_background("res://assets/textures/branding/armory_studio.jpg")
+	_background("res://assets/textures/branding/armory_bunker.jpg")
 	_zone(UITheme.outline(_heading(Loc.t("armory"), 40, UITheme.TEXT), 4), Rect2(0.25, 0.01, 0.50, 0.07), "ArsenalTitle")
 	_zone(UITheme.button(Loc.t("back"), show_campaign, "plain", "ui_back"), Rect2(0.84, 0.01, 0.14, 0.11), "ArsenalBack")
 	var gallery := _column()
@@ -552,13 +554,16 @@ void fragment() {
 	_zone(card, Rect2(0.60, 0.13, 0.38, 0.84), "ArsenalControls")
 	var plan := _column()
 	card.add_child(plan)
+	var heading := _heading(Loc.t("machine_guns"), 22, UITheme.AMBER)
+	heading.custom_minimum_size.y = 26.0
+	plan.add_child(heading)
 	var open: int = Campaign.open_stages(int(Profile.data.stats.stages_cleared))
 	var stages: Array = []
 	for index: int in Campaign.count():
 		stages.append(Loc.t("stage_n", [index + 1]))
 	stage = clampi(stage, 0, open - 1)
 	stage_brief = _text(stage_brief_for(stage), 19, UITheme.TEXT)
-	stage_brief.custom_minimum_size.y = 40.0
+	stage_brief.custom_minimum_size.y = 30.0
 	plan.add_child(stage_brief)
 	stage_choices = MenuWidgets.Choices.new(stages, stage)
 	stage_choices.name = "ArsenalStages"
@@ -582,7 +587,24 @@ void fragment() {
 		outlines.append(gun.icon)
 	gun_choices = MenuWidgets.Choices.new(names, maxi(Profile.GUNS.find(String(Profile.setting("gun"))), 0), outlines, 2)
 	gun_choices.name = "ArsenalWeapons"
-	_add_weapon_thumbnails(gun_choices, Profile.GUNS)
+	gun_choices.glyph_strip = 52.0
+	gun_choices.content_bottom = 22.0
+	for index: int in gun_choices.buttons.size():
+		var choice: Button = gun_choices.buttons[index]
+		choice.custom_minimum_size.y = 100.0
+		choice.add_theme_font_size_override("font_size", UITheme.font_size(16))
+		var specs: Label = _text(gun_stats_for(Profile.GUNS[index]), 12, UITheme.MUTED)
+		specs.name = "WeaponStats"
+		specs.autowrap_mode = TextServer.AUTOWRAP_OFF
+		specs.clip_text = true
+		specs.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		specs.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+		specs.offset_left = 4.0
+		specs.offset_right = -4.0
+		specs.offset_top = -21.0
+		specs.offset_bottom = -3.0
+		choice.add_child(specs)
+	_add_weapon_thumbnails(gun_choices, Profile.GUNS, 50.0)
 	gun_choices.select(gun_choices.selected)
 	gun_choices.chosen.connect(func(index: int) -> void:
 		gun_note.text = gun_note_for(Profile.GUNS[index])
@@ -679,7 +701,7 @@ func _build_equipment() -> void:
 
 
 func _build_upgrade() -> void:
-	_background("res://assets/textures/branding/design_workshop.png")
+	_background("res://assets/textures/branding/armory_studio.jpg")
 	_zone(UITheme.button(Loc.t("back"), func() -> void: _show("equipment"), "plain", "ui_back"), Rect2(0.01, 0.01, 0.16, 0.11), "UpgradeBack")
 	gun_preview = WeaponPreview.new()
 	_zone(gun_preview, Rect2(0.02, 0.16, 0.62, 0.72), "UpgradePreview")

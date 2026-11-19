@@ -167,6 +167,7 @@ class Choices:
 	var locked: Array[int] = []
 	var selected: int = -1
 	var glyph_strip: float = GLYPH_STRIP
+	var content_bottom: float = 4.0
 	var allow_reselect: bool = false
 	var accent: Color = UITheme.AMBER
 	var corner_radius: int = 6
@@ -231,7 +232,7 @@ class Choices:
 				if glyphs[place] != null:
 					# The name sits under its outline.
 					style.content_margin_top = glyph_strip
-					style.content_margin_bottom = 4.0
+					style.content_margin_bottom = content_bottom
 				button.add_theme_stylebox_override(key, style)
 			for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_disabled_color"]:
 				button.add_theme_color_override(key, ink)

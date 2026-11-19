@@ -654,10 +654,7 @@ func _later_districts() -> void:
 	await wait_transition()
 	game.menus.show_campaign()
 	await frames(2)
-	var next_page := game.menus.holder.find_child("NextDistrictPage", true, false) as Button
-	next_page.pressed.emit()
-	await frames(2)
-	game.menus.neighborhood_button.pressed.emit()
+	game.menus.region_buttons[3].pressed.emit()
 	await frames(2)
 	check(game.stage == 9 and game.menus.stage_choices.buttons[11].visible, "industrial district offers stages ten to twelve")
 	await shot("48-industrial-map", "screen")
@@ -671,14 +668,10 @@ func _later_districts() -> void:
 	await wait_transition()
 	game.menus.show_campaign()
 	await frames(2)
-	for page: int in 2:
-		next_page = game.menus.holder.find_child("NextDistrictPage", true, false) as Button
-		next_page.pressed.emit()
-		await frames(2)
-	game.menus.neighborhood_button.pressed.emit()
+	game.menus.region_buttons[9].pressed.emit()
 	game.menus.stage_choices.buttons[29].pressed.emit()
 	await frames(2)
-	check(game.stage == 29, "the thirtieth stage can be picked on the last page")
+	check(game.stage == 29, "the thirtieth stage can be picked on the map")
 	await shot("50-final-district-map", "screen")
 	game.start_match()
 	await wait_transition()

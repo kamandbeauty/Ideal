@@ -90,18 +90,14 @@ func run(t: TestContext) -> void:
 	menus.stage_choices.buttons[1].pressed.emit()
 	t.equal(game.stage, 1, "the map selects an unlocked stage")
 	t.equal(menus.stage_brief.text, Menus.stage_brief_for(1), "the mission brief follows the selected stage")
-	# Page through all ten districts and select the final mission from the map.
-	for page: int in range(1, 4):
-		var next_page := menus.holder.find_child("NextDistrictPage", true, false) as Button
-		t.check(next_page != null and not next_page.disabled, "next district page is available")
-		next_page.pressed.emit()
-		await t.frames(1)
-		t.equal(menus.map_page, page, "district page advances")
-	menus.neighborhood_button.pressed.emit()
-	t.check(game.stage == 27 and menus.stage_choices.buttons[29].visible, "final district exposes stages 28 to 30")
+	# All ten region pins are available on the same map, not hidden behind pages.
+	t.equal(menus.region_buttons.size(), 10, "all ten districts are on the map")
+	for district: int in 10:
+		menus.region_buttons[district].pressed.emit()
+		t.equal(game.stage, district * 3, "district %d chooses its first mission" % district)
+		t.check(menus.stage_choices.buttons[district * 3 + 2].visible, "district %d exposes three mission pins" % district)
 	menus.stage_choices.buttons[29].pressed.emit()
 	t.equal(game.stage, 29, "the thirtieth stage can be selected")
-	t.check((menus.holder.find_child("NextDistrictPage", true, false) as Button).disabled, "last page cannot be passed")
 	menus.show_campaign()
 	t.equal(menus.map_page, 3, "returning to the map keeps the selected district in view")
 	Profile.data.stats.stages_cleared = 0

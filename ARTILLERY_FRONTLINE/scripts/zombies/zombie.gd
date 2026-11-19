@@ -124,8 +124,18 @@ func _ensure_look(index: int) -> void:
 		if packed == null:
 			return
 		var extra: Node3D = packed.instantiate() as Node3D
+		if packed.resource_path.ends_with("zombie_city.glb"):
+			extra.scale = Vector3.ONE * _city_model_scale()
 		add_child(extra)
 		_register_look(extra)
+
+
+## The shared realistic body is scaled only visually for heavy types. The
+## gameplay body volume remains the type's own size and health.
+func _city_model_scale() -> float:
+	if data == null:
+		return 1.0
+	return {&"brute": 1.28, &"boss": 1.82}.get(data.id, 1.0)
 
 
 func _set_look_active(index: int, on: bool) -> void:
@@ -203,6 +213,12 @@ func _attach_head(index: int) -> void:
 	head_shape.shape = sphere
 	# The skull sits half a radius above the joint that carries it.
 	head_shape.position = Vector3(0.0, head_radius * 0.5, head_radius * 0.15)
+	# The larger city bodies are visually scaled under the zombie. Counteract
+	# that scale on the sphere so headshots keep the intended type radius.
+	if index > 0 and data and index - 1 < data.extra_looks.size() and data.extra_looks[index - 1].resource_path.ends_with("zombie_city.glb"):
+		var visual_scale: float = _city_model_scale()
+		head_shape.scale = Vector3.ONE / visual_scale
+		head_shape.position /= visual_scale
 	head.add_child(head_shape)
 	var bone: int = skel.find_bone("Head") if skel else -1
 	if bone >= 0:
@@ -305,7 +321,7 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	# sped-up slow shamble. Clip choice does not alter movement or health.
 	if chosen > 0 and data.extra_looks[chosen - 1].resource_path.ends_with("zombie_city.glb"):
 		running = speed >= 1.6
-		gait_stride_speed = bulk * (3.3 if running else 0.55)
+		gait_stride_speed = bulk * _city_model_scale() * (3.3 if running else 0.55)
 	scale = Vector3(bulk * rng.randf_range(0.93, 1.07), bulk * rng.randf_range(0.90, 1.12), bulk)
 	gait_lean = Vector3(rng.randf_range(-0.02, 0.08), rng.randf_range(-0.04, 0.04), rng.randf_range(-0.06, 0.06))
 	gait_rate = rng.randf_range(0.88, 1.12)
@@ -328,14 +344,14 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 		anim.advance(0.0)
 
 
-func _pick_look(rng: RandomNumberGenerator) -> int:
-	if data == null or not mix_extras or data.extra_looks.is_empty() or rng.randf() >= 0.55:
+func _pick_look(_rng: RandomNumberGenerator) -> int:
+	# All shipped enemy types use the textured human rig in normal play.
+	# The original rigs stay available when compatibility tests disable extras.
+	if data == null or not mix_extras or data.extra_looks.is_empty():
 		return 0
-	# City zombie has a realistic atlas and is the preferred extra; keep
-	# the other variants occasionally for a more varied crowd.
-	if data.extra_looks[0].resource_path.ends_with("zombie_city.glb") and rng.randf() < 0.75:
+	if data.extra_looks[0].resource_path.ends_with("zombie_city.glb"):
 		return 1
-	return 1 + rng.randi_range(0, data.extra_looks.size() - 1)
+	return 0
 
 
 func _paint_look(chosen: int, rng: RandomNumberGenerator) -> void:
