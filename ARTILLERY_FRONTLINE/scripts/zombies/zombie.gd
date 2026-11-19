@@ -300,6 +300,12 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	blows = 0
 	_settle_rock()
 	var bulk: float = rng.randf_range(data.scale_min, data.scale_max) * size_mul
+	# The city model has its own stride lengths, not the procedural rig's.
+	# At normal combat speeds its running cycle reads more naturally than a
+	# sped-up slow shamble. Clip choice does not alter movement or health.
+	if chosen > 0 and data.extra_looks[chosen - 1].resource_path.ends_with("zombie_city.glb"):
+		running = speed >= 1.6
+		gait_stride_speed = bulk * (3.3 if running else 0.55)
 	scale = Vector3(bulk * rng.randf_range(0.93, 1.07), bulk * rng.randf_range(0.90, 1.12), bulk)
 	gait_lean = Vector3(rng.randf_range(-0.02, 0.08), rng.randf_range(-0.04, 0.04), rng.randf_range(-0.06, 0.06))
 	gait_rate = rng.randf_range(0.88, 1.12)
@@ -338,7 +344,7 @@ func _paint_look(chosen: int, rng: RandomNumberGenerator) -> void:
 	var skin: Material
 	if chosen > 0 and chosen - 1 < data.extra_looks.size():
 		var name: String = data.extra_looks[chosen - 1].resource_path.get_file().get_basename().trim_prefix("zombie_")
-		skin = MaterialLibrary.extra_skin(name)
+		skin = MaterialLibrary.city_zombie_skin(rng.randi_range(0, 3)) if name == "city" else MaterialLibrary.extra_skin(name)
 	else:
 		skin = MaterialLibrary.zombie_skin(String(data.id), rng.randi() % maxi(data.skins, 1))
 	var look: Node = looks[look_index]

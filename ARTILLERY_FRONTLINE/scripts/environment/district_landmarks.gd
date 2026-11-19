@@ -54,6 +54,98 @@ func build(district: int) -> void:
 					_box(Vector3(side * 38 + offset, 47, -101), Vector3(4, 6, 4), concrete)
 				_box(Vector3(side * 38, 29, -101.5), Vector3(4, 11, 1), steel)
 
+	_build_details(district)
+
+
+## Shared unit-box batches: windows, metalwork and pale fittings. These add
+## readable architecture without one draw call per pane, and have no collision.
+func _build_details(district: int) -> void:
+	var panes: Array[Transform3D] = []
+	var trim: Array[Transform3D] = []
+	var fittings: Array[Transform3D] = []
+	for side: int in [-1, 1]:
+		match district:
+			3: # factory windows, lintels and chimney collars
+				for floor_index: int in 3:
+					for col: int in 4:
+						_detail(panes, Vector3(side * 39 + (col - 1.5) * 4.5, 5.0 + floor_index * 6.0, -99.9), Vector3(3.2, 3.2, 0.16))
+					_detail(trim, Vector3(side * 39, 3.0 + floor_index * 6.0, -99.75), Vector3(20.0, 0.24, 0.28))
+				for offset: int in [-1, 1]:
+					for y: float in [24.0, 33.0, 42.0]:
+						_detail(trim, Vector3(side * 39 + offset * 6, y, -116.9), Vector3(4.2, 0.4, 0.3))
+			4: # bazaar openings and repeated stone piers
+				for col: int in 5:
+					var x: float = side * 38 + (col - 2) * 4.5
+					_detail(panes, Vector3(x, 9.0, -90.9), Vector3(3.2, 9.0, 0.16))
+					_detail(trim, Vector3(x, 14.0, -90.75), Vector3(3.7, 0.4, 0.3))
+					_detail(fittings, Vector3(x - 2.0, 9.0, -90.75), Vector3(0.35, 12.0, 0.3))
+				_detail(trim, Vector3(side * 38, 17.2, -90.7), Vector3(25.0, 0.5, 0.35))
+			5: # station bays, timetable boards and canopy ribs
+				for col: int in 4:
+					var x: float = side * 37 + (col - 1.5) * 4.6
+					_detail(panes, Vector3(x, 20.7, -109.3), Vector3(4.0, 4.0, 0.2))
+					_detail(fittings, Vector3(x, 20.7, -109.1), Vector3(0.13, 3.5, 0.25))
+				for z: float in [-122.0, -113.0, -104.0, -95.0]:
+					_detail(trim, Vector3(side * 37, 17.0, z), Vector3(23.0, 0.45, 0.45))
+			6: # apartment windows and ledges: nine storeys
+				for floor_index: int in 9:
+					for col: int in 4:
+						var x: float = side * 41 + (col - 1.5) * 4.0
+						var y: float = 5.0 + floor_index * 7.0
+						_detail(panes, Vector3(x, y, -109.85), Vector3(2.5, 3.4, 0.16))
+						_detail(fittings, Vector3(x, y - 1.85, -109.65), Vector3(3.0, 0.25, 0.45))
+			7: # light housings and railings over the stands
+				for col: int in 5:
+					var x: float = side * 43 + (col - 2) * 2.3
+					_detail(fittings, Vector3(x, 59.0, -113.9), Vector3(1.65, 2.5, 0.18))
+				for step: int in 4:
+					_detail(trim, Vector3(side * (33 + step * 3), 8.0 + step * 4.0, -113), Vector3(0.22, 1.8, 36.0))
+			8: # tank ladders, seams and pipe brackets
+				for y: float in [5.0, 12.0, 19.0, 26.0]:
+					_detail(trim, Vector3(side * 40, y, -98.9), Vector3(18.0, 0.32, 0.25))
+				for rung: int in 10:
+					_detail(fittings, Vector3(side * 40, 2.5 + rung * 2.5, -98.65), Vector3(2.0, 0.2, 0.3))
+				for x_offset: float in [-1.0, 1.0]:
+					_detail(trim, Vector3(side * 40 + x_offset, 14.0, -98.7), Vector3(0.2, 26.0, 0.3))
+			9: # fortress narrow openings and masonry courses
+				for floor_index: int in 4:
+					for col: int in 3:
+						_detail(panes, Vector3(side * 38 + (col - 1) * 6.0, 8.0 + floor_index * 8.0, -101.9), Vector3(1.3, 4.0, 0.2))
+					_detail(trim, Vector3(side * 38, 4.0 + floor_index * 8.0, -101.75), Vector3(23.5, 0.3, 0.25))
+	_batch_details("DistrictWindows", panes, _plain(Color(0.07, 0.10, 0.11)))
+	_batch_details("DistrictMetalwork", trim, steel)
+	_batch_details("DistrictFittings", fittings, _plain(Color(0.54, 0.51, 0.42)))
+
+
+func _detail(items: Array[Transform3D], at: Vector3, dimensions: Vector3) -> void:
+	items.append(Transform3D(Basis.IDENTITY.scaled(dimensions), at))
+
+
+func _batch_details(batch_name: String, items: Array[Transform3D], material: Material) -> void:
+	if items.is_empty():
+		return
+	var unit := BoxMesh.new()
+	unit.size = Vector3.ONE
+	unit.material = material
+	var multi := MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.mesh = unit
+	multi.instance_count = items.size()
+	for i: int in items.size():
+		multi.set_instance_transform(i, items[i])
+	var batch := MultiMeshInstance3D.new()
+	batch.name = batch_name
+	batch.multimesh = multi
+	batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(batch)
+
+
+func _plain(color: Color) -> StandardMaterial3D:
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 0.9
+	return material
+
 
 func _material(color: Color, texture: String) -> StandardMaterial3D:
 	var material := StandardMaterial3D.new()

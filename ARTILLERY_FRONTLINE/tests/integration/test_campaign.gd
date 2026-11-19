@@ -288,7 +288,20 @@ func run(t: TestContext) -> void:
 			t.check(level.geometry.find_child("GateLeafA", true, false) != null and level.geometry.find_child("WallPatch", true, false) != null, "metro doors coincide with the two attack targets")
 			t.check(level.environment.background_mode == Environment.BG_COLOR and level.geometry.find_child("TunnelLeft", true, false) != null, "metro is enclosed with a deep dark tunnel")
 		if index >= 9:
-			t.check(level.geometry.get_node_or_null("DistrictLandmarks%d" % Campaign.district(index)) != null, "stage %d has its district landmarks" % (index + 1))
+			var landmarks: Node3D = level.geometry.get_node_or_null("DistrictLandmarks%d" % Campaign.district(index))
+			t.check(landmarks != null, "stage %d has its district landmarks" % (index + 1))
+			if index % 3 == 0 and landmarks != null:
+				var batches: Array[Node] = landmarks.find_children("*", "MultiMeshInstance3D", true, false)
+				var details: int = 0
+				var clear_lanes: bool = true
+				for node: Node in batches:
+					var batch: MultiMeshInstance3D = node as MultiMeshInstance3D
+					details += batch.multimesh.instance_count
+					for item: int in batch.multimesh.instance_count:
+						var at: Vector3 = batch.multimesh.get_instance_transform(item).origin
+						clear_lanes = clear_lanes and absf(at.x) > 20.0 and at.z < -90.0
+				t.check(batches.size() >= 2 and batches.size() <= 3 and details >= 12, "district %d has detailed, batched architecture" % Campaign.district(index))
+				t.check(clear_lanes and landmarks.find_children("*", "CollisionObject3D", true, false).is_empty(), "district %d details stay out of combat lanes and do not collide" % Campaign.district(index))
 		_end(game, true, last.waves.size())
 		await t.frames(2)
 	t.check(menus.result_victory and not menus.result_onward and not game.won_onward, "winning the thirtieth ends the campaign")

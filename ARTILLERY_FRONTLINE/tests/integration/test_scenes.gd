@@ -123,6 +123,11 @@ func run(t: TestContext) -> void:
 	t.check(zombie.anim.has_animation("attack") and zombie.anim.has_animation("hit") and zombie.anim.has_animation("death_back") and zombie.anim.has_animation("death_front"), "the city model supports combat and death clips")
 	var city_skin: StandardMaterial3D = zombie.body_mesh.material_override as StandardMaterial3D
 	t.check(city_skin.albedo_texture.resource_path.ends_with("zombie_city.png"), "the realistic model uses its matching atlas")
+	t.check(MaterialLibrary.city_zombie_skin(0) != MaterialLibrary.city_zombie_skin(1), "the city model has distinct shared colour variants")
+	t.check(MaterialLibrary.city_zombie_skin(0) == MaterialLibrary.city_zombie_skin(4), "city zombie variants are bounded and cached")
+	for variant: int in 4:
+		var material: StandardMaterial3D = MaterialLibrary.city_zombie_skin(variant) as StandardMaterial3D
+		t.check(material.albedo_texture == city_skin.albedo_texture, "city zombie variant %d shares the atlas" % variant)
 	var city_uv: PackedVector2Array = zombie.body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV]
 	t.check(city_uv.size() > 1000, "the realistic model retains UVs for its atlas")
 	var city_indices: PackedInt32Array = zombie.body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX]
@@ -132,6 +137,22 @@ func run(t: TestContext) -> void:
 	await t.physics_frames(2)
 	var head_height: float = zombie.head_area.get_child(0).global_position.y - zombie.global_position.y
 	t.check(head_height > 1.0 and head_height < 2.0, "the city zombie head target is in metre-scale space (%.2f m)" % head_height)
+	# Exercise both native city gaits through the real pooled spawn path.
+	Zombie.mix_extras = true
+	var city_seed: int = 0
+	for seed_index: int in range(1, 100):
+		walk_rng.seed = seed_index
+		if zombie._pick_look(walk_rng) == 1:
+			city_seed = seed_index
+			break
+	t.check(city_seed > 0, "a city zombie can be selected for a pooled life")
+	for speed_factor: float in [0.2, 1.0]:
+		walk_rng.seed = city_seed
+		zombie.activate(PackedVector3Array([Vector3.ZERO, Vector3(0, 0, 10)]), null, "gate", "right", 0.0, 1.0, speed_factor, walk_rng)
+		t.equal(zombie.look_index, 1, "city look survives activation")
+		t.equal(zombie.walk_clip, "run_clean" if zombie.running else "walk_clean", "city gait matches its movement speed")
+		t.near(zombie.gait_stride_speed / zombie.scale.z, 3.3 if zombie.running else 0.55, 0.001, "city gait uses its native stride speed")
+	Zombie.mix_extras = false
 	zombie._use_look(0)
 	zombie._sleep()
 	zombie.running = false

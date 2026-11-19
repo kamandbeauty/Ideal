@@ -148,5 +148,20 @@ static func extra_skin(look_name: String) -> Material:
 	return material
 
 
+## Shared, subtly different colour grades of the same city-zombie atlas.
+## Caching bounds material count even when a horde is recycled many times.
+static func city_zombie_skin(variant: int) -> Material:
+	var tones: Array[Color] = [Color(0.88, 0.84, 0.77), Color(0.73, 0.81, 0.72), Color(0.82, 0.75, 0.73), Color(0.75, 0.78, 0.80)]
+	var index: int = posmod(variant, tones.size())
+	var key: String = "city_zombie_tone_%d" % index
+	if cache.has(key):
+		return cache[key]
+	var material: StandardMaterial3D = extra_skin("city").duplicate() as StandardMaterial3D
+	material.resource_name = key
+	material.albedo_color = tones[index]
+	cache[key] = material
+	return material
+
+
 static func clear() -> void:
 	cache.clear()
