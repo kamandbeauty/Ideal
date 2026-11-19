@@ -2,12 +2,12 @@
   "passed": true,
   "problems": [],
   "counted": {
-    "paths_checked": 338,
+    "paths_checked": 339,
     "scripts": 54,
     "scenes": 15,
     "resources": 49,
-    "assets": 129,
-    "asset_megabytes": 59.4,
+    "assets": 134,
+    "asset_megabytes": 62.7,
     "sounds": 49,
     "text_keys": 144
   },
