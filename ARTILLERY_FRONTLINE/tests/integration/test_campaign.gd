@@ -92,6 +92,7 @@ func run(t: TestContext) -> void:
 	t.equal(menus.stage_brief.text, Menus.stage_brief_for(1), "the mission brief follows the selected stage")
 	# All ten region pins are available on the same map, not hidden behind pages.
 	t.equal(menus.region_buttons.size(), 10, "all ten districts are on the map")
+	menus.stage_choices._choose(0)
 	for district: int in 10:
 		menus.region_buttons[district].pressed.emit()
 		t.equal(game.stage, district * 3, "district %d chooses its first mission" % district)

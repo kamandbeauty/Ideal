@@ -554,16 +554,15 @@ void fragment() {
 	_zone(card, Rect2(0.60, 0.13, 0.38, 0.84), "ArsenalControls")
 	var plan := _column()
 	card.add_child(plan)
-	var heading := _heading(Loc.t("machine_guns"), 22, UITheme.AMBER)
-	heading.custom_minimum_size.y = 26.0
-	plan.add_child(heading)
 	var open: int = Campaign.open_stages(int(Profile.data.stats.stages_cleared))
 	var stages: Array = []
 	for index: int in Campaign.count():
 		stages.append(Loc.t("stage_n", [index + 1]))
 	stage = clampi(stage, 0, open - 1)
 	stage_brief = _text(stage_brief_for(stage), 19, UITheme.TEXT)
-	stage_brief.custom_minimum_size.y = 30.0
+	stage_brief.custom_minimum_size.y = 40.0
+	stage_brief.autowrap_mode = TextServer.AUTOWRAP_OFF
+	stage_brief.clip_text = true
 	plan.add_child(stage_brief)
 	stage_choices = MenuWidgets.Choices.new(stages, stage)
 	stage_choices.name = "ArsenalStages"
@@ -591,7 +590,7 @@ void fragment() {
 	gun_choices.content_bottom = 22.0
 	for index: int in gun_choices.buttons.size():
 		var choice: Button = gun_choices.buttons[index]
-		choice.custom_minimum_size.y = 100.0
+		choice.custom_minimum_size.y = 110.0
 		choice.add_theme_font_size_override("font_size", UITheme.font_size(16))
 		var specs: Label = _text(gun_stats_for(Profile.GUNS[index]), 12, UITheme.MUTED)
 		specs.name = "WeaponStats"
