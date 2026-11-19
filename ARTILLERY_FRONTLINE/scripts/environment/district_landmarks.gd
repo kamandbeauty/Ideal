@@ -6,6 +6,8 @@ extends Node3D
 var steel: StandardMaterial3D
 var concrete: StandardMaterial3D
 var warning: StandardMaterial3D
+## Source positions retained for navigation-safety checks in headless builds.
+var detail_origins: Array[Vector3] = []
 
 
 func build(district: int) -> void:
@@ -118,6 +120,7 @@ func _build_details(district: int) -> void:
 
 
 func _detail(items: Array[Transform3D], at: Vector3, dimensions: Vector3) -> void:
+	detail_origins.append(at)
 	items.append(Transform3D(Basis.IDENTITY.scaled(dimensions), at))
 
 

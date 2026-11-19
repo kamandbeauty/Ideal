@@ -297,11 +297,12 @@ func run(t: TestContext) -> void:
 				for node: Node in batches:
 					var batch: MultiMeshInstance3D = node as MultiMeshInstance3D
 					details += batch.multimesh.instance_count
-					for item: int in batch.multimesh.instance_count:
-						var at: Vector3 = batch.multimesh.get_instance_transform(item).origin
-						clear_lanes = clear_lanes and absf(at.x) > 20.0 and at.z < -90.0
-				t.check(batches.size() >= 2 and batches.size() <= 3 and details >= 12, "district %d has detailed, batched architecture" % Campaign.district(index))
-				t.check(clear_lanes and landmarks.find_children("*", "CollisionObject3D", true, false).is_empty(), "district %d details stay out of combat lanes and do not collide" % Campaign.district(index))
+				var district_details: DistrictLandmarks = landmarks as DistrictLandmarks
+				for at: Vector3 in district_details.detail_origins:
+					clear_lanes = clear_lanes and absf(at.x) > 20.0 and at.z < -90.0
+				t.check(batches.size() >= 2 and batches.size() <= 3 and details >= 12 and details == district_details.detail_origins.size(), "district %d has detailed, batched architecture" % Campaign.district(index))
+				t.check(clear_lanes, "district %d details stay out of combat lanes" % Campaign.district(index))
+				t.check(landmarks.find_children("*", "CollisionObject3D", true, false).is_empty(), "district %d landmarks have no collision" % Campaign.district(index))
 		_end(game, true, last.waves.size())
 		await t.frames(2)
 	t.check(menus.result_victory and not menus.result_onward and not game.won_onward, "winning the thirtieth ends the campaign")
