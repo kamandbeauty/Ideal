@@ -308,7 +308,7 @@ func _the_choice(t: TestContext) -> void:
 	await t.frames(3)
 	t.equal(String(Profile.setting("gun")), "rotary_gun", "a tap on the other gun makes it the player's")
 	t.equal(menus.gun_choices.selected, rotary_at, "it is the one lit now")
-	t.check(menus.weapon_photo.texture.resource_path.ends_with("stand_rotary_gun.jpg"), "the preview follows the selected weapon")
+	t.check(menus.weapon_photo.texture.resource_path.ends_with("stand_rotary_gun_cutout.png"), "the preview follows the selected weapon")
 	t.equal(menus.gun_note.text, Menus.gun_note_for("rotary_gun"), "the line under the choice describes it")
 	t.equal(menus.gun_stats.text, Menus.gun_stats_for("rotary_gun"), "the real weapon stats follow the selection")
 	t.near((menus.gun_note.get_parent().get_parent() as Control).size.y, card_height, 0.5, "and the card does not change its size for it")

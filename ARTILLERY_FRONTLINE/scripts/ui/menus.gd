@@ -626,7 +626,9 @@ void fragment() {
 ## One static, compressed render per gun: no extra 3D world on this screen.
 func _show_weapon_photo(id: String) -> void:
 	if weapon_photo != null:
-		weapon_photo.texture = load("res://assets/textures/branding/weapons/stand_%s.jpg" % id)
+		var cutout: String = "res://assets/textures/branding/weapons/stand_%s_cutout.png" % id
+		var fallback: String = "res://assets/textures/branding/weapons/stand_%s.jpg" % id
+		weapon_photo.texture = load(cutout if ResourceLoader.exists(cutout) else fallback)
 
 
 func _add_weapon_thumbnails(choices: MenuWidgets.Choices, ids: Array, image_height: float = 40.0) -> void:
