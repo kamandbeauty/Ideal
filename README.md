@@ -1,19 +1,17 @@
 # Ideal — photo workspace
 
-This branch (`arena/b783147b-ideal`) has been cleared so that a set of
-clothing-store model photos can be uploaded here.
+Clothing-store photo set: the eight originals sit in `photos/source/`, the
+finished shots (1:1, white studio wall, cream ceramic floor) in
+`photos/edited/`. See [`photos/README.md`](photos/README.md) for the details
+and `photos/contact-sheet.jpg` for a contact sheet.
 
-- `photos/source/` — the original photos, uploaded untouched.
-- `photos/edited/` — the finished shots: 1:1 square, white wall, cream
-  ceramic floor, model unchanged, no shadow, shop lighting.
-
-The earlier game project (LAST WALL) is not lost: it is untouched on
-`main` and in this branch's history at commit `cd15fd02801cb403e7f2a760ea94da6a8a2dafb1`.
-Nothing from it was deleted outside this branch.
+The earlier game project (LAST WALL) is not lost: it is untouched on `main`
+and in this branch's history at commit `cd15fd02801cb403e7f2a760ea94da6a8a2dafb1`.
 
 ---
 
-این برنچ خالی شده تا عکس‌های مانکن فروشگاه لباس اینجا آپلود شود.
-عکس‌های خام در `photos/source/` و خروجی‌های نهایی ۱:۱ در `photos/edited/`
-قرار می‌گیرند. پروژهٔ قبلی (بازی) روی `main` و در تاریخچهٔ همین برنچ
-(کامیت `cd15fd0`) کاملاً سالم است.
+این برنچ برای عکس‌های فروشگاه لباس استفاده می‌شود: عکس‌های خام در
+`photos/source/` و خروجی‌های نهایی ۱:۱ (دیوار سفید، کف سرامیک کرمی، مدل
+بدون تغییر) در `photos/edited/` هستند. جزئیات در `photos/README.md`.
+پروژهٔ قبلی (بازی) روی `main` و در تاریخچهٔ همین برنچ (کامیت `cd15fd0`)
+کاملاً سالم است.
