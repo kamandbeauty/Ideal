@@ -19,6 +19,7 @@ func _game() -> Node3D:
 
 
 func test_the_world_has_every_station() -> void:
+	print("GAME: test_the_world_has_every_station")
 	_clear_save()
 	var game := _game()
 	var kinds: Array = []
@@ -37,6 +38,7 @@ func test_the_world_has_every_station() -> void:
 
 
 func test_a_new_guild_starts_with_gold_and_goods() -> void:
+	print("GAME: test_a_new_guild_starts_with_gold_and_goods")
 	_clear_save()
 	var game := _game()
 	check(not game.boot(), "with no save the guild starts new")
@@ -49,6 +51,7 @@ func test_a_new_guild_starts_with_gold_and_goods() -> void:
 
 
 func test_a_saved_guild_is_picked_up() -> void:
+	print("GAME: test_a_saved_guild_is_picked_up")
 	_clear_save()
 	var builder := _game()
 	builder.treasury.cash = 99.0
@@ -71,6 +74,7 @@ func test_a_saved_guild_is_picked_up() -> void:
 
 
 func test_saving_writes_the_live_values() -> void:
+	print("GAME: test_saving_writes_the_live_values")
 	_clear_save()
 	var game := _game()
 	game.boot()
@@ -85,6 +89,7 @@ func test_saving_writes_the_live_values() -> void:
 
 
 func test_a_pushed_stick_walks_away_from_the_camera() -> void:
+	print("GAME: test_a_pushed_stick_walks_away_from_the_camera")
 	var ahead := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(GuildGameScript.forward_yaw(0.0)))
 	almost(ahead.z, -1.0, "with the camera behind at yaw 0, forward is -Z")
 	ahead = Vector3.BACK.rotated(Vector3.UP, deg_to_rad(GuildGameScript.forward_yaw(90.0)))
@@ -92,6 +97,7 @@ func test_a_pushed_stick_walks_away_from_the_camera() -> void:
 
 
 func test_the_stick_drives_the_master() -> void:
+	print("GAME: test_the_stick_drives_the_master")
 	_clear_save()
 	var game := _game()
 	game.boot()
@@ -105,6 +111,7 @@ func test_the_stick_drives_the_master() -> void:
 
 
 func test_the_clock_feeds_the_queue_and_the_missions() -> void:
+	print("GAME: test_the_clock_feeds_the_queue_and_the_missions")
 	_clear_save()
 	var game := _game()
 	game.boot()
@@ -118,6 +125,7 @@ func test_the_clock_feeds_the_queue_and_the_missions() -> void:
 
 
 func test_describe_reads_the_live_guild() -> void:
+	print("GAME: test_describe_reads_the_live_guild")
 	_clear_save()
 	var game := _game()
 	game.boot()

@@ -77,34 +77,41 @@ func _build_environment() -> void:
 func build_world() -> void:
 	if hall != null:
 		return
+	print("GAME: hall")
 	hall = GuildHall.new()
 	hall.name = "GuildHall"
 	add_child(hall)
 
+	print("GAME: wallet")
 	treasury = GuildTreasury.new()
 	stock = GuildStock.new(40)
 
+	print("GAME: shelf")
 	var shelf := GuildStation.new(GuildStation.SHELF)
 	shelf.name = "Shelf"
 	shelf.position = Vector3(9.0, 0.0, 9.0)
 	add_child(shelf)
 	shelf.bind_stock(stock)
 
+	print("GAME: counter")
 	var counter := GuildStation.new(GuildStation.COUNTER)
 	counter.name = "Counter"
 	counter.position = Vector3(-9.6, 0.0, 7.4)
 	add_child(counter)
 
+	print("GAME: vault")
 	var vault := GuildStation.new(GuildStation.VAULT)
 	vault.name = "Vault"
 	vault.position = Vector3(9.6, 0.0, 2.6)
 	add_child(vault)
 	vault.bind_treasury(treasury)
 
+	print("GAME: desk")
 	desk = GuildMissionDesk.new()
 	desk.setup(treasury, stock, 31)
 	desk.hire_default_roster()
 
+	print("GAME: board")
 	var board := GuildStation.new(GuildStation.BOARD)
 	board.name = "Board"
 	board.position = Vector3(-10.0, 0.0, 3.4)
@@ -113,34 +120,40 @@ func build_world() -> void:
 
 	stations = [shelf, counter, vault, board]
 
+	print("GAME: hero")
 	hero = GuildPlayer.new()
 	hero.name = "GuildMaster"
 	hero.position = STARTING_HERO
 	hero.rotation.y = PI
 	add_child(hero)
 
+	print("GAME: flow")
 	flow = GuildCustomerFlow.new()
 	flow.name = "CustomerFlow"
 	add_child(flow)
 	flow.setup(hall, counter, 11)
 
+	print("GAME: interaction")
 	interaction = GuildInteraction.new()
 	interaction.name = "Interaction"
 	add_child(interaction)
 	interaction.setup(hero, stations, treasury, stock)
 	interaction.traded.connect(_on_traded)
 
+	print("GAME: hud")
 	hud = GuildHud.new()
 	add_child(hud)
 	hud.bind(interaction, treasury, stock)
 	hud.language_changed.connect(_on_language_changed)
 
+	print("GAME: panel")
 	panel = GuildBoardPanel.new()
 	add_child(panel)
 	panel.bind(desk)
 	hud.board_pressed.connect(panel.open)
 	panel.dispatched.connect(_on_traded)
 
+	print("GAME: camera")
 	camera_rig = GuildPlayerCamera.new()
 	camera_rig.name = "CameraRig"
 	add_child(camera_rig)
