@@ -1,5 +1,5 @@
 {
-  "checks": 218,
+  "checks": 219,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -181,21 +181,21 @@
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
     "blast_kills": 11,
-    "boss_reached_gate_after_s": 69.0,
-    "defeat_time_s": 190.7,
-    "gate_attackers": 4,
-    "gate_fell_after_s": 9.0,
-    "gate_left_with_boss": 0.59,
+    "boss_reached_gate_after_s": 68.0,
+    "defeat_time_s": 191.4,
+    "gate_attackers": 3,
+    "gate_fell_after_s": 10.0,
+    "gate_left_with_boss": 0.63,
     "grenade_kills": 7,
-    "hits": 3,
+    "hits": 4,
     "kills": 2,
     "peak_load": {
       "alive": 50,
-      "draw_calls": 408,
-      "fps": 10.4,
+      "draw_calls": 421,
+      "fps": 8.2,
       "nodes": 1505,
       "orphan_nodes": 0,
-      "primitives": 327846,
+      "primitives": 328198,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 120.5,
@@ -204,8 +204,8 @@
       "tier": "medium",
       "video_memory_mb": 115.1,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 153.62,
-      "worst_physics_tick_ms_in_a_second": 0.6,
+      "worst_frame_ms_in_a_second": 222.1,
+      "worst_physics_tick_ms_in_a_second": 0.89,
       "zombie_nodes": 50
     },
     "phone_20x9": {
@@ -247,7 +247,7 @@
     },
     "render": {
       "draw_calls": 368,
-      "fps": 6.4,
+      "fps": 4.5,
       "nodes": 1081,
       "orphan_nodes": 0,
       "primitives": 275438,
@@ -272,7 +272,7 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 56.0,
+    "sight_target_m": 58.3,
     "six_barrel_kills": 1,
     "six_barrel_shots": 31,
     "stage_held_preview": {
@@ -333,7 +333,7 @@
       "waves_cleared": 3,
       "waves_total": 3
     },
-    "wall_fell_after_s": 4.0,
+    "wall_fell_after_s": 5.0,
     "window": [
       1440,
       810
