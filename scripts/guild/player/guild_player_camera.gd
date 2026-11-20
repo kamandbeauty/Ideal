@@ -31,6 +31,12 @@ var _look_at := Vector3.ZERO
 
 
 func _ready() -> void:
+	ensure_built()
+
+
+## Builds the pivot, the arm and the camera once. `_ready` does it inside the tree;
+## a suite that never enters one can ask for it directly.
+func ensure_built() -> void:
 	if pivot == null:
 		_build()
 
@@ -101,6 +107,8 @@ func reset_view() -> void:
 
 ## Trails the player smoothly; call every frame with the player's feet position.
 func follow_feet(feet: Vector3, delta: float, height: float = 1.25) -> void:
+	if pivot == null:
+		return
 	var wanted := feet + Vector3(0.0, height, 0.0)
 	var weight := minf(1.0, delta * FOLLOW_DAMPING)
 	_look_at = _look_at.lerp(wanted, weight)

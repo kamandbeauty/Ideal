@@ -11,6 +11,24 @@ func _clear_save() -> void:
 	GuildSave.delete()
 
 
+## Moves the save's own clock into the past: the writer stamps the moment it wrote,
+## so a suite that wants "forty seconds away" has to rewrite that one field.
+func _backdate_save(seconds: float) -> void:
+	var file := FileAccess.open(GuildSave.SAVE_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	file.close()
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	parsed["last_seen"] = int(Time.get_unix_time_from_system() - seconds)
+	var out := FileAccess.open(GuildSave.SAVE_PATH, FileAccess.WRITE)
+	if out == null:
+		return
+	out.store_string(JSON.stringify(parsed))
+	out.close()
+
+
 func _game() -> Node3D:
 	TestCase.mark("    game: new")
 	var game: Node3D = _script().new()
@@ -87,7 +105,7 @@ func test_the_world_has_every_station() -> void:
 	var game := _game()
 	var kinds: Array = []
 	for station in game.stations:
-		kinds.append(int(station.kind))
+		kinds.append(str(station.kind))
 	equal(kinds.size(), 4, "four stations are placed")
 	check(kinds.has(GuildStation.SHELF), "the shelf is there")
 	check(kinds.has(GuildStation.COUNTER), "the counter is there")
@@ -115,13 +133,13 @@ func test_a_new_guild_starts_with_gold_and_goods() -> void:
 func test_a_saved_guild_is_picked_up() -> void:
 	_clear_save()
 	var builder := _game()
-	builder.treasury.cash = 99.0
 	builder.stock.clear()
 	builder.stock.add("iron_ore", 3)
 	builder.desk.dispatch_with(builder.desk.adventurers[0], "gather_herbs")
+	builder.treasury.cash = 99.0
 	var payload := GuildSave.snapshot(builder.treasury, builder.stock, builder.hero.state, builder.desk)
-	payload["last_seen"] = Time.get_unix_time_from_system() - 40.0
 	check(GuildSave.write(payload), "the save is written")
+	_backdate_save(40.0)
 	builder.free()
 
 	var game := _game()
