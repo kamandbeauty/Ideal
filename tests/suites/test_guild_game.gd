@@ -131,10 +131,12 @@ func test_a_saved_guild_is_picked_up() -> void:
 	var builder := _game()
 	builder.stock.clear()
 	builder.stock.add("iron_ore", 3)
-	builder.desk.dispatch_with(builder.desk.adventurers[0], "gather_herbs")
+	var mage: GuildAdventurer = builder.desk.adventurers[2]
+	var sent: Dictionary = builder.desk.dispatch_with(mage, "ore_run")
+	check(sent.has("mission_id"), "the guild sends the mage out")
 	builder.treasury.cash = 99.0
 	var payload := GuildSave.snapshot(builder.treasury, builder.stock, builder.hero.state, builder.desk)
-	check(_store_old(payload, 40.0), "the save is written")
+	check(_store_old(payload, 60.0), "the save is written")
 	builder.free()
 
 	var game := _game()
@@ -142,8 +144,8 @@ func test_a_saved_guild_is_picked_up() -> void:
 	equal(int(game.treasury.cash), 99, "gold came back")
 	equal(game.stock.total(), 3, "stock came back")
 	equal(game.stock.count("iron_ore"), 3, "and it is iron ore")
-	check(game.away > 30.0, "the game knows it was away %.0f s" % game.away)
-	equal(game.caught_up, 1, "the expedition that was out came home")
+	check(game.away > 50.0, "the game knows it was away %.0f s" % game.away)
+	equal(game.caught_up, 1, "the expedition came home: " + game.desk.report())
 	game.free()
 	_clear_save()
 
