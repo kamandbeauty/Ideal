@@ -129,11 +129,12 @@ func test_a_new_guild_starts_with_gold_and_goods() -> void:
 func test_a_saved_guild_is_picked_up() -> void:
 	_clear_save()
 	var builder := _game()
+	check(builder.boot(), "a new guild opens")
 	builder.stock.clear()
 	builder.stock.add("iron_ore", 3)
 	var mage: GuildAdventurer = builder.desk.adventurers[2]
 	var sent: Dictionary = builder.desk.dispatch_with(mage, "ore_run")
-	check(sent.has("mission_id"), "the guild sends the mage out")
+	check(sent.has("mission_id"), "the guild sends the mage out: %s" % str(sent))
 	builder.treasury.cash = 99.0
 	var payload := GuildSave.snapshot(builder.treasury, builder.stock, builder.hero.state, builder.desk)
 	check(_store_old(payload, 60.0), "the save is written")
