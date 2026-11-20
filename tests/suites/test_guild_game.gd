@@ -7,10 +7,6 @@ func _script() -> GDScript:
 	return load("res://scripts/guild/game/guild_game.gd") as GDScript
 
 
-func suite_name() -> String:
-	return "guild_game"
-
-
 func _clear_save() -> void:
 	GuildSave.delete()
 
