@@ -99,6 +99,12 @@ jobs:
             tail -40 "$RUNNER_TEMP/boot.log"
             exit 1
           fi
+          # The scene must actually open a guild, not merely start.
+          grep -q "GUILD: ready guild gold=60 stock=6 roster=5" "$RUNNER_TEMP/boot.log" || {
+            echo "::error title=Boot::the guild did not open"
+            tail -20 "$RUNNER_TEMP/boot.log"
+            exit 1
+          }
 
       - name: Run the headless test suites
         run: |

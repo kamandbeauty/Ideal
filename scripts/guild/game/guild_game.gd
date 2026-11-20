@@ -16,7 +16,9 @@ const AUTOSAVE_SECONDS := 30.0
 const CUSTOMER_EVERY := 18.0
 const STARTING_GOLD := 60.0
 const STARTING_STOCK := {"slime_gel": 4, "healing_herb": 2}
-const STARTING_HERO := Vector3(0.0, 0.05, 8.0)
+## Inside the hall, not in the doorway: the follow camera needs room behind the master
+## and the first frame should show the room, not a wall.
+const STARTING_HERO := Vector3(0.0, 0.05, 4.6)
 
 var hall: GuildHall
 var hero: GuildPlayer

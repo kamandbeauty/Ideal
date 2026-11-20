@@ -260,11 +260,16 @@ in the loop; no per-frame allocations in the logic classes (verified by review).
 
 1. `gdlint scripts tests tools` + per-file parse.
 2. `python3 -m gdtoolkit` check on changed files (local), CI for the real import.
-3. Headless tests (new suite per system).
-4. `guild_smoke` screenshots on xvfb; previews committed by CI.
-5. APK build on the branch (`[apk]` in the commit message) with the APK inspector
+3. Headless tests (new suite per system). Every suite is first loaded and
+   instantiated on its own (`tools/suite_probe.gd`): a suite that will not parse
+   used to fail as "the job timed out", which hid the real error for 20 minutes.
+4. The real scene is booted headlessly before the suites and must print
+   `GUILD: ready guild gold=60 stock=6 roster=5`; the test step is wrapped in a
+   180 s timeout that reports the last flushed line of `documentation/qa/run-trace.txt`.
+5. `guild_smoke` screenshots on xvfb; previews committed by CI.
+6. APK build on the branch (`[apk]` in the commit message) with the APK inspector
    reporting package/version/ABI.
-6. Phase report: branch, commit, files created/modified, reused, replaced, tests,
+7. Phase report: branch, commit, files created/modified, reused, replaced, tests,
    results, open problems, next step.
 
 ---
@@ -314,7 +319,7 @@ in the loop; no per-frame allocations in the logic classes (verified by review).
 | 3e | the guild's own save file: vault, warehouse, hands and roster, with a backup copy, a version guard that refuses whole, and offline time that advances the same mission clock (capped at eight hours) | `test_guild_save` (8), report line `save exists=... cash=14 stock=13 roster=5` |
 | 3f | the board screen: every job with rank, fee, time and loot table, the member the guild would send, refusals with a reason, opened from the missions fact in the HUD; Persian moves no rectangle | `test_guild_board_panel` (6), captures `27-guild-board-en` / `28-guild-board-fa` |
 | 3d | the mission board: a four-job table with ranks, fees and loot tables; a five-person roster; dispatch debits the vault, the clock runs, the pack comes home, and buying it pays the buy price into the warehouse; the HUD's mission counter and the board's sign read the desk; `data/**` added to the CI path filter (a data-only fix never ran the check) | `test_guild_missions` (8), captures `24-guild-board` / `25-guild-loot-bought` |
-| 3g | the guild scene itself: `scenes/guild.tscn` + `scripts/guild/game/guild_game.gd` builds the hall, the master, the four stations, the queue and the HUD; the app boots into it (`START_IN_GUILD` in `scripts/main.gd`); saving every 30 s, on Esc and on leaving the scene; a new guild starts with 60 gold and six goods, an old one loads and its expeditions come home | `test_guild_game` (7), captures `29-guild-scene` / `30-guild-walking`, report line `GUILD: ready ...` |
+| 3g | the guild scene itself: `scenes/guild.tscn` + `scripts/guild/game/guild_game.gd` build one world in six named parts (hall, stations, master, customers, ui, camera); the app boots straight into it (`START_IN_GUILD` in `scripts/main.gd`); a new guild starts with 60 gold and six goods, a saved one loads and its expeditions come home; it saves every 30 s, on Esc and when the scene leaves the tree | `test_guild_game` (13), headless boot line, captures `29-guild-scene` / `30-guild-walking` |
 | 3b | touch HUD: facts bar, joystick, contextual action button, toast, language pill; world signs follow the language | `test_guild_hud` (7), captures `20-guild-hud-en` / `21-guild-hud-fa` |
 
 Still open, in this order: upgrades (carry, speed, warehouse, hands, deposit) and
