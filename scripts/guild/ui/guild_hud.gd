@@ -8,6 +8,9 @@ extends CanvasLayer
 ## is built once in `build()` and only ever has its text replaced.
 
 signal language_changed(language: String)
+## The missions counter doubles as the door to the board: tapping the fact opens the
+## screen where the player chooses the job.
+signal board_pressed()
 
 const TOP_BAR_HEIGHT := 62.0
 const STICK_SIZE := 186.0
@@ -41,6 +44,7 @@ var stick_base: Panel
 var stick_knob: Panel
 var toast: Label
 var language_button: Button
+var missions_button: Button
 var warehouse_meter: ColorRect
 
 var _toast_left := 0.0
@@ -191,6 +195,16 @@ func _build_top_bar() -> void:
 	warehouse_label = _place(bar, "Warehouse", 360.0, 5.0, 17)
 	missions_label = _place(bar, "Missions", 540.0, 8.0, 15)
 	missions_label.add_theme_color_override("font_color", GuildTheme.MUTED)
+	# A flat button laid exactly over the missions fact, so the counter is the way in
+	# to the board without a seventeenth control on a phone screen.
+	missions_button = Button.new()
+	missions_button.name = "MissionsButton"
+	missions_button.flat = true
+	missions_button.focus_mode = Control.FOCUS_NONE
+	missions_button.position = Vector2(536.0, 2.0)
+	missions_button.size = Vector2(136.0, 32.0)
+	missions_button.pressed.connect(func() -> void: board_pressed.emit())
+	bar.add_child(missions_button)
 	customers_label = _place(bar, "Customers", 680.0, 8.0, 15)
 	customers_label.add_theme_color_override("font_color", GuildTheme.MUTED)
 

@@ -18,6 +18,7 @@ var stock: GuildStock
 var treasury: GuildTreasury
 var interaction: GuildInteraction
 var hud: GuildHud
+var panel: GuildBoardPanel
 var last_result: Dictionary = {}
 var camera_rig: GuildPlayerCamera
 var flow: GuildCustomerFlow
@@ -478,6 +479,37 @@ func _build_hud() -> void:
 	add_child(hud)
 	hud.bind(interaction, treasury, stock)
 	hud.language_changed.connect(_on_language_changed)
+	panel = GuildBoardPanel.new()
+	add_child(panel)
+	panel.bind(desk)
+	hud.board_pressed.connect(panel.open)
+	panel.dispatched.connect(_on_panel_dispatched)
+
+
+func _on_panel_dispatched(result: Dictionary) -> void:
+	last_result = result
+	interaction.last_result = result
+
+
+## Opens the board screen with a job already chosen, for the capture.
+func open_board(mission_id: String = "ore_run") -> void:
+	if panel == null:
+		return
+	panel.open()
+	if not mission_id.is_empty():
+		panel.select(mission_id)
+
+
+func board_report() -> String:
+	if panel == null:
+		return "board: none"
+	return "board open=%s selected=%s sends=%s refusal=%s confirm_disabled=%s" % [
+		str(panel.is_open()),
+		panel.selected if not panel.selected.is_empty() else "-",
+		panel.candidate().class_id if panel.candidate() != null else "-",
+		panel.refusal() if not panel.refusal().is_empty() else "-",
+		str(panel.confirm_button.disabled),
+	]
 
 
 func _on_language_changed(language: String) -> void:
@@ -485,6 +517,8 @@ func _on_language_changed(language: String) -> void:
 		hall.set_language(language)
 	if flow != null:
 		flow.set_language(language)
+	if panel != null:
+		panel.set_language(language)
 
 
 func _build_camera() -> void:

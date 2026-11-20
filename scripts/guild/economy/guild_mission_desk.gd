@@ -101,30 +101,54 @@ func next_verb() -> String:
 	return ""
 
 
-## Sends the cheapest suitable adventurer out on the cheapest mission they can take.
-## The fee leaves the vault first; if it cannot, nobody leaves.
+## Whether this exact pairing is allowed right now. An empty reason means yes, and
+## every refusal is one word the panel and the toast can translate.
+func dispatch_reason(adventurer: GuildAdventurer, mission_id: String) -> String:
+	if adventurer == null:
+		return "no adventurer"
+	if not GuildMissions.exists(mission_id):
+		return "no mission"
+	if not adventurer.is_free():
+		return "busy"
+	if not GuildMissions.fits_rank(adventurer.rank, mission_id):
+		return "rank low"
+	var fee := float(GuildMissions.mission(mission_id).get("fee", 0.0))
+	if treasury == null or not treasury.can_afford(fee):
+		return "no gold"
+	return ""
+
+
+## Sends one specific adventurer on one specific mission, paying that mission's fee.
+func dispatch_with(adventurer: GuildAdventurer, mission_id: String) -> Dictionary:
+	var reason := dispatch_reason(adventurer, mission_id)
+	if not reason.is_empty():
+		return _result("dispatch", reason)
+	var fee := float(GuildMissions.mission(mission_id).get("fee", 0.0))
+	if not treasury.spend(fee):
+		return _result("dispatch", "no gold")
+	adventurer.send_out(mission_id)
+	changed.emit()
+	departed.emit(adventurer, mission_id)
+	return {
+		"verb": "dispatch",
+		"amount": fee,
+		"reason": "",
+		"class_id": adventurer.class_id,
+		"mission_id": mission_id,
+	}
+
+
+## The quick path the one-button board uses: the most junior suitable member goes on
+## the cheapest job they can take.
 func dispatch() -> Dictionary:
-	if treasury == null:
-		return _result("dispatch", "no desk")
 	for mission_id in GuildMissions.ids():
 		var adventurer := next_free_for(mission_id)
 		if adventurer == null:
 			continue
-		var fee := float(GuildMissions.mission(mission_id).get("fee", 0.0))
-		if not treasury.can_afford(fee):
-			return _result("dispatch", "no gold")
-		if not treasury.spend(fee):
-			return _result("dispatch", "no gold")
-		adventurer.send_out(mission_id)
-		changed.emit()
-		departed.emit(adventurer, mission_id)
-		return {
-			"verb": "dispatch",
-			"amount": fee,
-			"reason": "",
-			"class_id": adventurer.class_id,
-			"mission_id": mission_id,
-		}
+		var result := dispatch_with(adventurer, mission_id)
+		if str(result.get("reason", "")).is_empty():
+			return result
+		return result
 	return _result("dispatch", "everyone out")
 
 
