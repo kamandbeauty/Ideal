@@ -22,12 +22,12 @@ func _initialize() -> void:
 			quit(1)
 			return
 		print("probe: new " + str(path))
-		var suite := script.new()
+		var suite: Object = script.new()
 		if suite == null:
 			printerr("probe: FAILED to instantiate " + str(path))
 			quit(1)
 			return
 		print("probe: ok " + str(path))
-		print("probe: methods " + str((suite as Object).get_method_list().size()) + " on " + str(path))
+		print("probe: methods %d on %s" % [suite.get_method_list().size(), path])
 	print("SUITES OK")
 	quit(0)
