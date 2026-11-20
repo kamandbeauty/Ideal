@@ -79,8 +79,16 @@ jobs:
       - name: Run the headless test suites
         run: |
           set +e
-          godot --headless --path . --script res://tests/run_tests.gd 2>&1 | tee "$RUNNER_TEMP/tests.log"
+          # A hung suite must fail in minutes, not eat the whole job: the timeout
+          # names the suite that stalled and the run stops there.
+          timeout 240 godot --headless --path . --script res://tests/run_tests.gd 2>&1 | tee "$RUNNER_TEMP/tests.log"
           status=${PIPESTATUS[0]}
+          if [ "$status" -eq 124 ]; then
+            stuck=$(grep -E '^RUN ' "$RUNNER_TEMP/tests.log" | tail -1)
+            echo "::error title=Tests::timed out after 240s at ${stuck}"
+            tail -20 "$RUNNER_TEMP/tests.log"
+            exit 1
+          fi
           if [ "$status" -ne 0 ] || grep -qE 'SCRIPT ERROR|Parse Error' "$RUNNER_TEMP/tests.log"; then
             grep -nE '^  - |TESTS FAILED|SCRIPT ERROR|Parse Error' "$RUNNER_TEMP/tests.log" \
               > "$RUNNER_TEMP/test-failures.txt" || true

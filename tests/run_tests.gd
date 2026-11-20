@@ -40,6 +40,8 @@ func _initialize() -> void:
 	var methods := 0
 
 	for path in SUITES:
+		# Printed as it starts: if a suite ever hangs, the log says which one.
+		print("RUN " + path)
 		var script := load(path) as GDScript
 		if script == null:
 			failures.append("%s: suite could not be loaded" % path)
