@@ -169,6 +169,12 @@ static func nearest(stations: Array, point: Vector3, radius: float = 2.4) -> Gui
 	return best
 
 
+## Redraws what this station shows. Public so the game can refresh every station
+## after a load without reaching into a private method.
+func refresh() -> void:
+	_refresh()
+
+
 func _refresh() -> void:
 	for child in _visuals.get_children():
 		_visuals.remove_child(child)

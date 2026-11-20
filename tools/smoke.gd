@@ -10,6 +10,7 @@ extends Node
 
 const MENU_SCENE := preload("res://scenes/ui/main_menu.tscn")
 const TOWN_SCENE := preload("res://scenes/town/town.tscn")
+const GUILD_SCENE := preload("res://scenes/guild.tscn")
 const CAPTURE_DIR := "res://documentation/qa"
 const PREVIEW_DIR := "res://documentation/qa/preview"
 
@@ -255,6 +256,26 @@ func _run() -> void:
 			+ "\n" + probe.board_report()
 	)
 	probe.queue_free()
+	await _settle(4)
+
+	# The real thing: the guild scene the game boots into, loading the save the probe
+	# left behind, with the follow camera and the HUD a player actually gets. Nothing
+	# is staged here - the hall, the master and the customers come up on their own.
+	var guild = GUILD_SCENE.instantiate()
+	add_child(guild)
+	await _settle(40)
+	print("SMOKE: " + guild.describe())
+	await _capture("29-guild-scene")
+	# Walking: the stick pushes the master forward for a moment, then hands over.
+	var walked_from: Vector3 = guild.hero.position
+	guild.hud.set_stick_input(Vector2(0.0, 1.0))
+	await _settle(30)
+	guild.hud.set_stick_input(Vector2.ZERO)
+	await _settle(6)
+	print("SMOKE: walked %.2f m" % walked_from.distance_to(guild.hero.position))
+	await _capture("30-guild-walking")
+	print("SMOKE: " + guild.describe())
+	guild.queue_free()
 	await _settle(4)
 
 	print("SMOKE OK")

@@ -1,13 +1,34 @@
 extends Node
-## Switches between the title screen and a town session.
+## The game's front door: the guild hall, and - while the Roadstop town is still in
+## the tree - the title screen that leads back into it.
+##
+## `START_IN_GUILD` is the switch that makes this build Guild Tycoon: the app boots
+## straight into the hall, while the Roadstop town stays reachable from the title
+## screen for the play-through captures.
 
 const MENU_SCENE := preload("res://scenes/ui/main_menu.tscn")
 const TOWN_SCENE := preload("res://scenes/town/town.tscn")
+const GUILD_SCENE := preload("res://scenes/guild.tscn")
+const START_IN_GUILD := true
 
 var _current: Node
 
 
 func _ready() -> void:
+	if START_IN_GUILD:
+		start_guild()
+		return
+	show_menu()
+
+
+## Opens the hall. Leaving it saves and returns to the title screen.
+func start_guild() -> void:
+	var guild = GUILD_SCENE.instantiate()
+	_replace(guild)
+	guild.exit_requested.connect(_on_guild_exit)
+
+
+func _on_guild_exit() -> void:
 	show_menu()
 
 

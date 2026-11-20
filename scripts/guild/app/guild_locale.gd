@@ -21,6 +21,7 @@ const LANGUAGES: Array[String] = ["en", "fa"]
 const STRINGS := {
 	# Brand and menu
 	"app.title": "Guild Tycoon",
+	"guild.ready": "The guild is open",
 	"app.subtitle": "Build the guild. Trade the loot. Own the frontier.",
 	"menu.play": "Enter the guild",
 	"menu.continue": "Continue",
@@ -153,6 +154,7 @@ const STRINGS := {
 
 const PERSIAN := {
 	"app.title": "گیلد تایکون",
+	"guild.ready": "صنف باز است",
 	"app.subtitle": "گیلد را بساز، غنیمت را بفروش، مرزها را بگیر.",
 	"menu.play": "ورود به گیلد",
 	"menu.continue": "ادامه",

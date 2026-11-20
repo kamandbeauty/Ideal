@@ -98,6 +98,17 @@ func bind(new_interaction: GuildInteraction, new_treasury: GuildTreasury, new_st
 
 
 ## Left/right language switch. Only words change: every rect stays where it was.
+## Shows the toast without a trade behind it: used for loading, saving and for the
+## line that says the guild is ready. The wording is the caller's.
+func say(text: String) -> void:
+	if toast == null or text.is_empty():
+		return
+	toast.text = text
+	toast.visible = true
+	toast.modulate.a = 1.0
+	_toast_left = 3.0
+
+
 func toggle_language() -> void:
 	set_language("fa" if language == "en" else "en")
 
