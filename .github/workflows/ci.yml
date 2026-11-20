@@ -81,12 +81,13 @@ jobs:
           set +e
           # A hung suite must fail in minutes, not eat the whole job: the timeout
           # names the suite that stalled and the run stops there.
+          rm -f documentation/qa/run-trace.txt
           timeout 240 godot --headless --path . --script res://tests/run_tests.gd 2>&1 | tee "$RUNNER_TEMP/tests.log"
           status=${PIPESTATUS[0]}
           if [ "$status" -eq 124 ]; then
             stuck=$(grep -E '^RUN ' "$RUNNER_TEMP/tests.log" | tail -1)
             echo "::error title=Tests::timed out after 240s at ${stuck}"
-            tail -24 "$RUNNER_TEMP/tests.log" | while IFS= read -r line; do
+            tail -6 documentation/qa/run-trace.txt 2>/dev/null | while IFS= read -r line; do
               echo "::error title=Stuck::${line:0:900}"
             done
             exit 1

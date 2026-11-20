@@ -30,3 +30,4 @@ local.properties
 .DS_Store
 __pycache__/
 *.pyc
+documentation/qa/run-trace.txt

@@ -13,13 +13,77 @@ func _clear_save() -> void:
 
 
 func _game() -> Node3D:
+	TestCase.mark("    game: new")
 	var game := GuildGameScript.new()
+	TestCase.mark("    game: build")
 	game.build_world()
+	TestCase.mark("    game: built")
 	return game
 
 
+func test_the_hall_builds_on_its_own() -> void:
+	TestCase.mark("    part hall")
+	var game := GuildGameScript.new()
+	game.build_hall()
+	TestCase.mark("    part hall done")
+	check(game.hall != null, "the hall is there")
+	game.free()
+
+
+func test_the_stations_build_on_their_own() -> void:
+	TestCase.mark("    part stations")
+	var game := GuildGameScript.new()
+	game.build_stations()
+	TestCase.mark("    part stations done")
+	check(game.stations.size() == 4, "four stations")
+	check(game.counter_station != null, "the counter is remembered")
+	game.free()
+
+
+func test_the_master_builds_on_his_own() -> void:
+	TestCase.mark("    part master")
+	var game := GuildGameScript.new()
+	game.build_stations()
+	game.build_master()
+	TestCase.mark("    part master done")
+	check(game.hero != null and game.interaction != null, "the master can act")
+	game.free()
+
+
+func test_the_ui_builds_on_its_own() -> void:
+	TestCase.mark("    part ui")
+	var game := GuildGameScript.new()
+	game.build_stations()
+	game.build_master()
+	game.build_ui()
+	TestCase.mark("    part ui done")
+	check(game.hud != null and game.panel != null, "the hud and the sheet are built")
+	game.free()
+
+
+func test_the_camera_builds_on_its_own() -> void:
+	TestCase.mark("    part camera")
+	var game := GuildGameScript.new()
+	game.build_stations()
+	game.build_master()
+	game.build_camera()
+	TestCase.mark("    part camera done")
+	check(game.camera_rig != null, "the camera rig is there")
+	game.free()
+
+
+func test_the_customers_build_on_their_own() -> void:
+	TestCase.mark("    part customers")
+	var game := GuildGameScript.new()
+	game.build_hall()
+	game.build_stations()
+	game.build_customers()
+	TestCase.mark("    part customers done")
+	check(game.flow != null, "the queue exists")
+	game.free()
+
+
 func test_the_world_has_every_station() -> void:
-	printerr("GAME: test_the_world_has_every_station")
 	_clear_save()
 	var game := _game()
 	var kinds: Array = []
@@ -38,7 +102,6 @@ func test_the_world_has_every_station() -> void:
 
 
 func test_a_new_guild_starts_with_gold_and_goods() -> void:
-	printerr("GAME: test_a_new_guild_starts_with_gold_and_goods")
 	_clear_save()
 	var game := _game()
 	check(not game.boot(), "with no save the guild starts new")
@@ -51,7 +114,6 @@ func test_a_new_guild_starts_with_gold_and_goods() -> void:
 
 
 func test_a_saved_guild_is_picked_up() -> void:
-	printerr("GAME: test_a_saved_guild_is_picked_up")
 	_clear_save()
 	var builder := _game()
 	builder.treasury.cash = 99.0
@@ -74,7 +136,6 @@ func test_a_saved_guild_is_picked_up() -> void:
 
 
 func test_saving_writes_the_live_values() -> void:
-	printerr("GAME: test_saving_writes_the_live_values")
 	_clear_save()
 	var game := _game()
 	game.boot()
@@ -89,7 +150,6 @@ func test_saving_writes_the_live_values() -> void:
 
 
 func test_a_pushed_stick_walks_away_from_the_camera() -> void:
-	printerr("GAME: test_a_pushed_stick_walks_away_from_the_camera")
 	var ahead := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(GuildGameScript.forward_yaw(0.0)))
 	almost(ahead.z, -1.0, "with the camera behind at yaw 0, forward is -Z")
 	ahead = Vector3.BACK.rotated(Vector3.UP, deg_to_rad(GuildGameScript.forward_yaw(90.0)))
@@ -97,7 +157,6 @@ func test_a_pushed_stick_walks_away_from_the_camera() -> void:
 
 
 func test_the_stick_drives_the_master() -> void:
-	printerr("GAME: test_the_stick_drives_the_master")
 	_clear_save()
 	var game := _game()
 	game.boot()
@@ -111,7 +170,6 @@ func test_the_stick_drives_the_master() -> void:
 
 
 func test_the_clock_feeds_the_queue_and_the_missions() -> void:
-	printerr("GAME: test_the_clock_feeds_the_queue_and_the_missions")
 	_clear_save()
 	var game := _game()
 	game.boot()
@@ -125,7 +183,6 @@ func test_the_clock_feeds_the_queue_and_the_missions() -> void:
 
 
 func test_describe_reads_the_live_guild() -> void:
-	printerr("GAME: test_describe_reads_the_live_guild")
 	_clear_save()
 	var game := _game()
 	game.boot()

@@ -29,6 +29,7 @@ var interaction: GuildInteraction
 var hud: GuildHud
 var panel: GuildBoardPanel
 var stations: Array = []
+var counter_station: GuildStation
 
 var booted_from_save := false
 var caught_up := 0
@@ -73,45 +74,56 @@ func _build_environment() -> void:
 	_environment.fog_density = 0.005
 
 
-## Builds the world without booting a save, so a suite can inspect it.
+## Builds the world without booting a save, so a suite can inspect it - and so each
+## part can be built on its own.
 func build_world() -> void:
 	if hall != null:
 		return
-	printerr("GAME: hall")
+	build_hall()
+	build_stations()
+	build_master()
+	build_customers()
+	build_ui()
+	build_camera()
+
+
+func build_hall() -> void:
+	if hall != null:
+		return
 	hall = GuildHall.new()
 	hall.name = "GuildHall"
 	add_child(hall)
 
-	printerr("GAME: wallet")
+
+## The four places the player walks up to, and the desk that pays for the missions.
+func build_stations() -> void:
+	if desk != null:
+		return
 	treasury = GuildTreasury.new()
 	stock = GuildStock.new(40)
 
-	printerr("GAME: shelf")
 	var shelf := GuildStation.new(GuildStation.SHELF)
 	shelf.name = "Shelf"
 	shelf.position = Vector3(9.0, 0.0, 9.0)
 	add_child(shelf)
 	shelf.bind_stock(stock)
 
-	printerr("GAME: counter")
 	var counter := GuildStation.new(GuildStation.COUNTER)
 	counter.name = "Counter"
 	counter.position = Vector3(-9.6, 0.0, 7.4)
 	add_child(counter)
+	counter_station = counter
 
-	printerr("GAME: vault")
 	var vault := GuildStation.new(GuildStation.VAULT)
 	vault.name = "Vault"
 	vault.position = Vector3(9.6, 0.0, 2.6)
 	add_child(vault)
 	vault.bind_treasury(treasury)
 
-	printerr("GAME: desk")
 	desk = GuildMissionDesk.new()
 	desk.setup(treasury, stock, 31)
 	desk.hire_default_roster()
 
-	printerr("GAME: board")
 	var board := GuildStation.new(GuildStation.BOARD)
 	board.name = "Board"
 	board.position = Vector3(-10.0, 0.0, 3.4)
@@ -120,40 +132,52 @@ func build_world() -> void:
 
 	stations = [shelf, counter, vault, board]
 
-	printerr("GAME: hero")
+
+## The guild master and the verbs the action button plays out.
+func build_master() -> void:
+	if hero != null:
+		return
 	hero = GuildPlayer.new()
 	hero.name = "GuildMaster"
 	hero.position = STARTING_HERO
 	hero.rotation.y = PI
 	add_child(hero)
 
-	printerr("GAME: flow")
-	flow = GuildCustomerFlow.new()
-	flow.name = "CustomerFlow"
-	add_child(flow)
-	flow.setup(hall, counter, 11)
-
-	printerr("GAME: interaction")
 	interaction = GuildInteraction.new()
 	interaction.name = "Interaction"
 	add_child(interaction)
 	interaction.setup(hero, stations, treasury, stock)
 	interaction.traded.connect(_on_traded)
 
-	printerr("GAME: hud")
+
+func build_customers() -> void:
+	if flow != null:
+		return
+	flow = GuildCustomerFlow.new()
+	flow.name = "CustomerFlow"
+	add_child(flow)
+	flow.setup(hall, counter_station, 11)
+
+
+## The phone HUD and the board sheet, wired to the desk and the trades.
+func build_ui() -> void:
+	if hud != null:
+		return
 	hud = GuildHud.new()
 	add_child(hud)
 	hud.bind(interaction, treasury, stock)
 	hud.language_changed.connect(_on_language_changed)
 
-	printerr("GAME: panel")
 	panel = GuildBoardPanel.new()
 	add_child(panel)
 	panel.bind(desk)
 	hud.board_pressed.connect(panel.open)
 	panel.dispatched.connect(_on_traded)
 
-	printerr("GAME: camera")
+
+func build_camera() -> void:
+	if camera_rig != null:
+		return
 	camera_rig = GuildPlayerCamera.new()
 	camera_rig.name = "CameraRig"
 	add_child(camera_rig)
