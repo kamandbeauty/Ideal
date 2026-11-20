@@ -178,7 +178,7 @@ const PERSIAN := {
 	"board.fee": "دستمزد {0}",
 	"board.time": "{0} ثانیه",
 	"board.loot": "غنیمت: {0}",
-	"board.sends": "می‌فرستد {0}",
+	"board.sends": "{0} فرستاده می‌شود",
 	"board.choose": "یک مأموریت انتخاب کن",
 	"action.read_board": "تختهٔ مأموریت",
 	"action.open_shop": "باز کردن فروشگاه",

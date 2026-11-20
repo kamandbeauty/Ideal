@@ -233,12 +233,13 @@ func _run() -> void:
 	await _settle(14)
 	await _capture("27-guild-board-en")
 	print("SMOKE: " + probe.board_report())
-	probe.panel.set_language("fa")
+	# The language switch is global: the HUD, the hall signs, the plates and the sheet
+	# all follow it, so a Persian screenshot is Persian all the way out.
+	probe.hud.set_language("fa")
 	await _settle(12)
 	await _capture("28-guild-board-fa")
-	probe.panel.set_language("en")
 	probe.panel.close()
-	probe.hud.set_language("fa")
+	probe.hud.set_language("en")
 
 	print("SMOKE: " + probe.describe())
 	print("SMOKE: " + probe.trade_report())
