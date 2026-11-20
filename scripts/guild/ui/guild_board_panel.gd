@@ -11,7 +11,9 @@ signal opened()
 signal closed()
 signal dispatched(result: Dictionary)
 
-const SHEET_SIZE := Vector2(760.0, 470.0)
+## Tall enough that the four rows, the sentence about the member and the confirm
+## button never share a line: the first draft at 470 overlapped row four.
+const SHEET_SIZE := Vector2(760.0, 586.0)
 const ROW_HEIGHT := 86.0
 const ROW_GAP := 8.0
 const PAD := 26.0
@@ -86,26 +88,26 @@ func build() -> void:
 
 	hint_label = GuildTheme.label("", 14, GuildTheme.MUTED)
 	hint_label.name = "Hint"
-	hint_label.position = Vector2(PAD, SHEET_SIZE.y - 132.0)
+	hint_label.position = Vector2(PAD, SHEET_SIZE.y - 146.0)
 	hint_label.size = Vector2(SHEET_SIZE.x - PAD * 2.0, 22.0)
 	sheet.add_child(hint_label)
 
 	send_label = GuildTheme.label("", 15, GuildTheme.TURQUOISE)
 	send_label.name = "Sends"
-	send_label.position = Vector2(PAD, SHEET_SIZE.y - 108.0)
+	send_label.position = Vector2(PAD, SHEET_SIZE.y - 120.0)
 	send_label.size = Vector2(SHEET_SIZE.x - PAD * 2.0, 22.0)
 	sheet.add_child(send_label)
 
 	status_label = GuildTheme.label("", 14, GuildTheme.DANGER)
 	status_label.name = "Status"
-	status_label.position = Vector2(PAD, SHEET_SIZE.y - 82.0)
+	status_label.position = Vector2(PAD, SHEET_SIZE.y - 92.0)
 	status_label.size = Vector2(SHEET_SIZE.x - PAD * 2.0 - 200.0, 22.0)
 	sheet.add_child(status_label)
 
 	confirm_button = _button("Confirm")
 	confirm_button.text = "Dispatch"
 	confirm_button.size = Vector2(200.0, 52.0)
-	confirm_button.position = Vector2(SHEET_SIZE.x - PAD - 200.0, SHEET_SIZE.y - 96.0)
+	confirm_button.position = Vector2(SHEET_SIZE.x - PAD - 200.0, SHEET_SIZE.y - 106.0)
 	confirm_button.pressed.connect(confirm)
 	sheet.add_child(confirm_button)
 

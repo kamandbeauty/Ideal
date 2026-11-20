@@ -228,7 +228,8 @@ func _run() -> void:
 
 	# The board screen: choose a job, see who the guild would send, and read the
 	# loot table - then the same screen in Persian, which must move nothing.
-	probe.open_board("ore_run")
+	probe.hud.set_language("en")
+	probe.open_board("gather_herbs")
 	await _settle(14)
 	await _capture("27-guild-board-en")
 	print("SMOKE: " + probe.board_report())
@@ -237,6 +238,7 @@ func _run() -> void:
 	await _capture("28-guild-board-fa")
 	probe.panel.set_language("en")
 	probe.panel.close()
+	probe.hud.set_language("fa")
 
 	print("SMOKE: " + probe.describe())
 	print("SMOKE: " + probe.trade_report())
