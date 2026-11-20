@@ -1,13 +1,15 @@
 {
-  "passed": true,
-  "problems": [],
+  "passed": false,
+  "problems": [
+    "nothing uses: scripts/ui/weapon_preview.gd"
+  ],
   "counted": {
-    "paths_checked": 339,
+    "paths_checked": 343,
     "scripts": 54,
     "scenes": 15,
     "resources": 49,
-    "assets": 134,
-    "asset_megabytes": 62.7,
+    "assets": 136,
+    "asset_megabytes": 62.9,
     "sounds": 49,
     "text_keys": 144
   },
