@@ -48,7 +48,6 @@ func _ready() -> void:
 	build_world()
 	_activate_camera()
 	boot()
-	_wire_input()
 	print("GUILD: ready " + describe())
 
 
@@ -251,10 +250,6 @@ func _refresh_stations() -> void:
 ## The HUD owns the stick and the action button and the player owns its own movement;
 ## the scene only keeps "forward" pointing away from the camera. The HUD's stick is
 ## already a game direction (x right, y forward), the same convention the player uses.
-func _wire_input() -> void:
-	set_physics_process(true)
-
-
 func _physics_process(_delta: float) -> void:
 	if hero == null or hud == null or camera_rig == null:
 		return
