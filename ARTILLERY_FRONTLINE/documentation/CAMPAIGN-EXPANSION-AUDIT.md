@@ -28,3 +28,12 @@ Baseline reviewed: branch `arena/1f525ed9-ideal`, commit `3f834f242cf8694a246b83
 ## Delivery discipline
 
 Keep defense, camera, controls, current saves and weapon behavior intact. Integrate changes incrementally with engine tests and screenshots; profile on target hardware before claiming the mobile performance target. An individual region is complete only after its own eight-wave gameplay, navigation, boss mechanics, environmental systems, localization and performance have been verified. This audit is not a claim that stages 7–30 meet that standard.
+
+## First implementation increment (not campaign completion)
+
+- Commits: `d554fab` (baseline audit), `5f875ed` (metro detail batches and tests), `94211a8` (softened wet-floor patches). All are on `arena/1f525ed9-ideal`.
+- Modified scene script: `scripts/environment/metro_geometry.gd`. The existing scene is reused; no new scene, script, external texture or model was introduced. Added non-colliding, batched escalator treads/rails, control-booth details, ceiling utilities, wet-floor patches, and inexpensive flickering emissive indicators. The sampled gameplay view is [`qa/47-metro-attack.png`](qa/47-metro-attack.png). Not all details are prominent from the gunner's view; further art and readability work is required.
+- Added batch-presence and collision checks for the three metro stages to `tests/integration/test_campaign.gd` and a smoke assertion to `tools/game_smoke.gd`. This does not validate all requested new mechanics.
+- CI `44815632732`, source `94211a8037c937646b530aae0ca4d98ef237852a`: asset import/audit passed, 4,825 headless checks passed, 219 software-rendered smoke checks passed, Android ARM64 export and signature/manifest checks passed. The Android build is signed with an ephemeral development key, not tested on a device.
+- Its software Compatibility renderer reported 377 draw calls, 273,166 primitives, 6.1 FPS in the recorded test scene. This desktop software-renderer measurement cannot establish mobile performance; target POCO X5 Pro remains untested.
+- Remaining: **all 24 requested stages remain incomplete**. No stage was changed to eight waves; none of the eight new bosses, the two new enemies, district-specific playable layouts after metro, hazards, story ending, higher-difficulty unlock or new save migration/unlock behavior has been implemented. Metro itself lacks several requested assets and events. These require further design, implementation, balancing and end-to-end/device validation; they are not represented by substitute bosses or placeholder mechanics.
