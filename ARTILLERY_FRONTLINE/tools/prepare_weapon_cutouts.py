@@ -11,7 +11,8 @@ import numpy as np
 from PIL import Image
 
 root = Path(__file__).resolve().parent.parent / 'assets/textures/branding/weapons'
-for path in sorted(root.glob('stand_*.jpg')):
+# These masks were designed for the five turret renders, not explosive portraits.
+for path in [root / f'stand_{gun}.jpg' for gun in ('twin_hmg', 'rotary_gun', 'dual_mauler', 'bushmaster', 'gilded_minigun')]:
     image = cv2.imread(str(path))
     height, width = image.shape[:2]
     mask = np.full((height, width), cv2.GC_BGD, dtype=np.uint8)

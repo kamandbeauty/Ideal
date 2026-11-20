@@ -11,6 +11,7 @@ func _until(t: TestContext, level: CityLevel, limit: float, done: Callable) -> f
 
 
 func run(t: TestContext) -> void:
+	await _corpse_clearance(t)
 	var level: CityLevel = t.make_level()
 	await t.frames(2)
 	var horde: Horde = level.horde
@@ -214,3 +215,44 @@ func run(t: TestContext) -> void:
 	t.check(reused == visible_zombie and not reused.seen_announced, "pool reuse resets first-sighting state")
 	horde.clear()
 	await t.discard(level)
+
+
+## Sample both impact types at the real gate and wall, at every type's scale.
+func _corpse_clearance(t: TestContext) -> void:
+	for stage: int in [0, 3, 6]:
+		var level: CityLevel = t.make_level(stage)
+		await t.frames(2)
+		var horde: Horde = level.horde
+		for extra: bool in [false, true]:
+			Zombie.mix_extras = extra
+			for kind: StringName in [&"walker", &"runner", &"brute", &"boss"]:
+				for side: String in ["gate", "wall"]:
+					var zombie: Zombie = horde.spawn(kind, "ring_right" if side == "gate" else "alley_left", side)
+					t.check(zombie != null and zombie.slot != null, "corpse test has a wall slot")
+					if zombie == null or zombie.slot == null:
+						horde.clear()
+						continue
+					var facing: Vector3 = zombie.slot.facing
+					zombie.position = zombie.slot.position
+					zombie.rotation.y = atan2(facing.x, facing.z)
+					zombie.state = Zombie.State.ATTACK
+					if side == "gate":
+						var blast: ExplosionData = load("res://resources/explosions/grenade_blast.tres")
+						zombie.take_blast(100000.0, zombie.position - facing * 5.0, 1.0, blast)
+					else:
+						zombie.kill(false, facing)
+					var margin: float = zombie.data.height() * maxf(zombie.scale.x, maxf(zombie.scale.y, zombie.scale.z)) + 0.35
+					var limit: float = level.layout.court_half_width - margin
+					t.check(absf(zombie.position.x) <= limit + 0.001, "%s %s corpse has room to fall" % [kind, side])
+					t.check(absf(zombie.position.x + zombie.knock.x) <= limit + 0.001, "%s %s blast cannot throw corpse into wall" % [kind, side])
+					if zombie.anim and zombie.skeleton:
+						zombie.anim.seek(zombie.anim.current_animation_length * 0.9, true)
+						await t.frames(2)
+						var extreme: float = 0.0
+						for bone: int in zombie.skeleton.get_bone_count():
+							var world: Vector3 = zombie.skeleton.global_transform * zombie.skeleton.get_bone_global_pose(bone).origin
+							extreme = maxf(extreme, absf(world.x))
+						t.check(extreme < level.layout.court_half_width, "%s %s bones stay inside wall (%.2f)" % [kind, side, extreme])
+					horde.clear()
+		Zombie.mix_extras = false
+		await t.discard(level)

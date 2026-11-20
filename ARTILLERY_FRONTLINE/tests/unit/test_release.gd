@@ -4,10 +4,10 @@ extends RefCounted
 ## quality survives a restart, and the three volume sliders reach three buses.
 
 const ZOMBIES: Dictionary = {
-	&"walker": {"health": 80.0, "breach": 25.0, "places": 1, "boss": false, "fielded": 184},
-	&"runner": {"health": 45.0, "breach": 15.0, "places": 1, "boss": false, "fielded": 118},
-	&"brute": {"health": 520.0, "breach": 90.0, "places": 2, "boss": false, "fielded": 22},
-	&"boss": {"health": 7000.0, "breach": 600.0, "places": 3, "boss": true, "fielded": 1},
+	&"walker": {"health": 74.0, "breach": 25.0, "places": 1, "boss": false, "fielded": 184},
+	&"runner": {"health": 42.0, "breach": 15.0, "places": 1, "boss": false, "fielded": 118},
+	&"brute": {"health": 480.0, "breach": 90.0, "places": 2, "boss": false, "fielded": 22},
+	&"boss": {"health": 6500.0, "breach": 600.0, "places": 3, "boss": true, "fielded": 1},
 }
 
 
@@ -25,9 +25,12 @@ func _approved_play(t: TestContext) -> void:
 	t.near(aim.pitch_max_degrees, 45.0, 0.0001, "and elevates 45")
 	t.check(is_equal_approx(aim.yaw_min_degrees, -70.0) and is_equal_approx(aim.yaw_max_degrees, 70.0), "it traverses 70 degrees to either side")
 	var gun: WeaponData = load("res://resources/weapons/twin_hmg.tres")
-	t.check(is_equal_approx(gun.damage, 34.0) and is_equal_approx(gun.headshot_multiplier, 2.5) and is_equal_approx(gun.fire_interval, 0.085)
+	t.check(is_equal_approx(gun.damage, 38.0) and is_equal_approx(gun.headshot_multiplier, 2.5) and is_equal_approx(gun.fire_interval, 0.085)
 		and gun.magazine_size == 160 and is_equal_approx(gun.reload_time, 2.6) and gun.reserve < 0,
-		"the machine gun: 34 a round, 2.5 times to the head, a round every 0.085 s, 160 to a belt, 2.6 s to reload, belts without end")
+		"the machine gun: 38 a round, 2.5 times to the head, a round every 0.085 s, 160 to a belt, 2.6 s to reload, belts without end")
+	var walker: ZombieData = load("res://resources/zombies/walker.tres")
+	t.check(gun.damage * 2.0 >= walker.max_health, "two body hits now bring down a base walker")
+	t.check((walker.max_health / gun.damage) < (80.0 / 34.0) * 0.85, "base walker takes substantially less sustained fire than before")
 	var launcher: WeaponData = load("res://resources/weapons/rpg_launcher.tres")
 	t.check(is_equal_approx(launcher.damage, 260.0) and launcher.magazine_size == 1 and launcher.reserve == 3 and launcher.reserve_max == 6,
 		"the launcher: 260 on a direct hit, one in the tube, three spare, six at most")
@@ -42,10 +45,10 @@ func _approved_play(t: TestContext) -> void:
 	t.check(is_equal_approx(wall.wall_max_health, 1000.0) and is_equal_approx(wall.gate_max_health, 700.0), "the wall holds 1000 and the gate 700")
 	# The second gun the player may choose, and the sight both guns and the launcher share.
 	var rotary: WeaponData = load("res://resources/weapons/rotary_gun.tres")
-	t.check(is_equal_approx(rotary.damage, 17.0) and is_equal_approx(rotary.headshot_multiplier, 2.0) and is_equal_approx(rotary.fire_interval, 0.04)
+	t.check(is_equal_approx(rotary.damage, 19.0) and is_equal_approx(rotary.headshot_multiplier, 2.0) and is_equal_approx(rotary.fire_interval, 0.04)
 		and rotary.magazine_size == 500 and is_equal_approx(rotary.reload_time, 3.6) and rotary.reserve < 0 and rotary.penetration == 0
 		and is_equal_approx(rotary.spin_up_time, 0.3),
-		"the six-barrel gun: 17 a round, twice to the head, a round every 0.04 s, 500 to a belt, 3.6 s to reload, 0.3 s to spin up, no round passes through")
+		"the six-barrel gun: 19 a round, twice to the head, a round every 0.04 s, 500 to a belt, 3.6 s to reload, 0.3 s to spin up, no round passes through")
 	t.check(rotary.damage / rotary.fire_interval < gun.damage / gun.fire_interval * 1.1 and rotary.damage / rotary.fire_interval > gun.damage / gun.fire_interval * 0.9,
 		"held on a body the two guns do the same work to within a tenth (%.0f against %.0f a second)" % [
 			rotary.damage / rotary.fire_interval, gun.damage / gun.fire_interval])

@@ -673,11 +673,21 @@ func kill(headshot: bool = false, direction: Vector3 = Vector3.BACK) -> void:
 
 
 func _die(headshot: bool, direction: Vector3) -> void:
+	var state_before_death: State = state
 	alive = false
 	state = State.DYING
 	_set_hittable(false)
 	stagger_left = 0.0
 	reel_left = 0.0
+	# Animations are skeletal, not physics bodies. Make enough space for the
+	# whole fall before releasing the slot, then constrain any blast throw too.
+	# Avoid pulling a zombie back through an already-breached wall.
+	if horde and horde.layout and state_before_death != State.BREACH:
+		var clearance: float = data.height() * maxf(scale.x, maxf(scale.y, scale.z)) + 0.35
+		position = horde.corpse_safe_position(position, clearance)
+		if knock_left > 0.0 and position.z >= horde.layout.court_mouth_z and absf(position.x) <= horde.layout.court_half_width:
+			var limit: float = maxf(0.0, horde.layout.court_half_width - clearance)
+			knock.x = clampf(position.x + knock.x, -limit, limit) - position.x
 	horde.release_place(self)
 	# Shot from the front it goes over backwards; caught from behind or the side it pitches forward.
 	var forward := Vector3(sin(rotation.y), 0.0, cos(rotation.y))

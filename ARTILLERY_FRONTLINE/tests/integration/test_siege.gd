@@ -199,7 +199,7 @@ func _campaign(t: TestContext, dps: float, explosives: bool, label: String) -> A
 
 ## The whole siege at five levels of skill. Damage per second is what lands on
 ## bodies after every miss, reload and change of target: the machine gun's
-## ceiling is 400.
+## ceiling is about 447 after the balance update.
 func _sieges(t: TestContext) -> void:
 	var stages: int = Campaign.count()
 	var strong: Array = await _campaign(t, 240.0, true, "strong gunner (240 dps, explosives)")
@@ -257,6 +257,10 @@ func _sieges(t: TestContext) -> void:
 
 	var average: Array = await _campaign(t, 150.0, true, "average gunner (150 dps, explosives)")
 	t.check(average.size() == stages and not average[average.size() - 1].breached, "an average gunner who uses the explosives wins every stage")
+	# Hospital stages (4–6), replayed independently for a modest gunner.
+	for stage: int in range(3, 6):
+		var hospital: Dictionary = await _play(t, stage, 130.0, true, "hospital, 130 dps with explosives")
+		t.check(hospital.over and not hospital.breached, "hospital stage %d can be held at 130 dps with explosives" % (stage + 1))
 	# Printed for the balance record; a gunner this weak may win or lose a stage by a hair.
 	await _campaign(t, 110.0, true, "modest gunner (110 dps, explosives)")
 	await _campaign(t, 90.0, true, "weak gunner (90 dps, explosives)")

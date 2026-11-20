@@ -370,6 +370,17 @@ func clamp_throw(from: Vector3, push: Vector3) -> Vector3:
 	return landing - from
 
 
+## Leave room for the entire animated body, including a large boss, on the
+## court side of a wall or gate. Zombies already outside a breach stay outside.
+func corpse_safe_position(at: Vector3, clearance: float) -> Vector3:
+	if layout == null or at.z < layout.court_mouth_z or absf(at.x) > layout.court_half_width:
+		return at
+	var safe: Vector3 = at
+	var limit: float = maxf(0.0, layout.court_half_width - clearance)
+	safe.x = clampf(safe.x, -limit, limit)
+	return safe
+
+
 func alive_count() -> int:
 	return living
 

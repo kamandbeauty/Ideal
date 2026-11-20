@@ -781,12 +781,12 @@ func _run() -> void:
 	game.menus.show_equipment()
 	await frames(3)
 	await shot("42-equipment-selection-fa", "screen")
-	for id: String in ["rpg_launcher", "frag_grenade"]:
+	for id: String in ["twin_hmg", "rpg_launcher", "frag_grenade"]:
 		game.menus.show_equipment()
 		await frames(2)
 		game.menus.equipment_choices.buttons[Profile.EQUIPMENT.find(id)].pressed.emit()
 		await frames(4)
-		check(game.menus.gun_preview.displayed_id == id, "workshop shows " + id)
+		check(game.menus.upgrade_photo.texture != null and game.menus.upgrade_photo.texture.resource_path == Menus.upgrade_photo_path(id), "workshop shows " + id)
 		await shot("42-equipment-" + id, "screen")
 	game.menus.show_main()
 	await frames(2)

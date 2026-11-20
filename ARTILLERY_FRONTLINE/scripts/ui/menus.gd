@@ -48,7 +48,7 @@ var region_buttons: Array[Button] = []
 var region_label: Label
 var gun_choices: MenuWidgets.Choices
 var gun_note: Label
-var gun_preview: WeaponPreview
+var upgrade_photo: TextureRect
 var weapon_photo: TextureRect
 var gun_preview_name: Label
 var gun_stats: Label
@@ -150,7 +150,7 @@ func _clear() -> void:
 	region_label = null
 	gun_choices = null
 	gun_note = null
-	gun_preview = null
+	upgrade_photo = null
 	weapon_photo = null
 	gun_preview_name = null
 	gun_stats = null
@@ -704,8 +704,11 @@ func _build_equipment() -> void:
 func _build_upgrade() -> void:
 	_background("res://assets/textures/branding/armory_studio.jpg")
 	_zone(UITheme.button(Loc.t("back"), func() -> void: _show("equipment"), "plain", "ui_back"), Rect2(0.01, 0.01, 0.16, 0.11), "UpgradeBack")
-	gun_preview = WeaponPreview.new()
-	_zone(gun_preview, Rect2(0.02, 0.16, 0.62, 0.72), "UpgradePreview")
+	upgrade_photo = TextureRect.new()
+	upgrade_photo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	upgrade_photo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	upgrade_photo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_zone(upgrade_photo, Rect2(0.02, 0.16, 0.62, 0.72), "UpgradePhoto")
 	var card := _plate()
 	_zone(card, Rect2(0.67, 0.06, 0.31, 0.86), "UpgradeDetails")
 	var plan := _column()
@@ -758,7 +761,19 @@ func _refresh_equipment(rebuild_preview: bool) -> void:
 	upgrade_button.text = Loc.t("upgrade_max") if cost == 0 else Loc.t("upgrade_cost", [Loc.number(cost)])
 	upgrade_button.disabled = cost == 0 or int(Profile.data.economy.coins) < cost
 	if rebuild_preview:
-		gun_preview.show_weapon(equipment_id)
+		upgrade_photo.texture = load(upgrade_photo_path(equipment_id))
+
+
+## Alternate explosive variants share the family portrait; selection and stats remain distinct.
+static func upgrade_photo_path(id: String) -> String:
+	var portrait: String = {"heavy_rpg": "rpg_launcher", "blast_grenade": "frag_grenade"}.get(id, id)
+	var cutout: String = "res://assets/textures/branding/weapons/stand_%s_cutout.png" % portrait
+	var image: String = "res://assets/textures/branding/weapons/stand_%s.jpg" % portrait
+	if ResourceLoader.exists(cutout):
+		return cutout
+	if ResourceLoader.exists(image):
+		return image
+	return "res://assets/textures/branding/weapons/%s.png" % portrait
 
 
 func _build_loading() -> void:
