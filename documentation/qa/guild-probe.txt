@@ -26,5 +26,5 @@ flow spawned=3 served=0 waiting=1 abandoned=0 order=slime_gel x2
   customer mage state=queued slot=1 at=(-9.2, 7.3) off=0.00 travelled=13.9 waypoints=0 routed=true
   customer archer state=queued slot=2 at=(-7.8, 7.3) off=0.00 travelled=12.5 waypoints=0 routed=true
 desk roster=5 out=0 back=0 [warrior:idle, archer:idle, mage:idle, rogue:idle, knight:idle] verb=dispatch | out 0 / back 0
-save exists=true bytes=688 away=0 caught_up=0 cash=14 stock=13 roster=5
+save exists=true bytes=688 away=1 caught_up=0 cash=14 stock=13 roster=5
 board open=false selected=gather_herbs sends=warrior refusal=- confirm_disabled=false
