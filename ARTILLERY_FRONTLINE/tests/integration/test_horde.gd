@@ -228,6 +228,8 @@ func _corpse_clearance(t: TestContext) -> void:
 			for kind: StringName in [&"walker", &"runner", &"brute", &"boss"]:
 				for side: String in ["gate", "wall"]:
 					var zombie: Zombie = horde.spawn(kind, "ring_right" if side == "gate" else "alley_left", side)
+					if zombie != null and zombie.slot == null:
+						horde.find_place(zombie) # Wide zombies claim a place on arrival.
 					t.check(zombie != null and zombie.slot != null, "corpse test has a wall slot")
 					if zombie == null or zombie.slot == null:
 						horde.clear()
