@@ -44,8 +44,11 @@ func _initialize() -> void:
 		TestCase.mark("suite " + path)
 		var script := load(path) as GDScript
 		TestCase.mark("loaded " + path)
-		if script == null:
-			failures.append("%s: suite could not be loaded" % path)
+		# A suite with a parse error loads as a script that cannot make anything; the
+		# engine repeats that complaint often enough to stall the run, so stop here.
+		if script == null or not script.can_instantiate():
+			failures.append("%s: suite could not be loaded (parse error?)" % path)
+			printerr("SUITE BROKEN: " + path)
 			continue
 		var suite := script.new() as TestCase
 		TestCase.mark("made " + path)

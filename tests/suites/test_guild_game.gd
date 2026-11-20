@@ -17,7 +17,7 @@ func _clear_save() -> void:
 
 func _game() -> Node3D:
 	TestCase.mark("    game: new")
-	var game := _script().new()
+	var game: Node3D = _script().new()
 	TestCase.mark("    game: build")
 	game.build_world()
 	TestCase.mark("    game: built")
@@ -26,7 +26,7 @@ func _game() -> Node3D:
 
 func test_the_hall_builds_on_its_own() -> void:
 	TestCase.mark("    part hall")
-	var game := _script().new()
+	var game: Node3D = _script().new()
 	game.build_hall()
 	TestCase.mark("    part hall done")
 	check(game.hall != null, "the hall is there")
@@ -35,7 +35,7 @@ func test_the_hall_builds_on_its_own() -> void:
 
 func test_the_stations_build_on_their_own() -> void:
 	TestCase.mark("    part stations")
-	var game := _script().new()
+	var game: Node3D = _script().new()
 	game.build_stations()
 	TestCase.mark("    part stations done")
 	check(game.stations.size() == 4, "four stations")
@@ -45,7 +45,7 @@ func test_the_stations_build_on_their_own() -> void:
 
 func test_the_master_builds_on_his_own() -> void:
 	TestCase.mark("    part master")
-	var game := _script().new()
+	var game: Node3D = _script().new()
 	game.build_stations()
 	game.build_master()
 	TestCase.mark("    part master done")
@@ -55,7 +55,7 @@ func test_the_master_builds_on_his_own() -> void:
 
 func test_the_ui_builds_on_its_own() -> void:
 	TestCase.mark("    part ui")
-	var game := _script().new()
+	var game: Node3D = _script().new()
 	game.build_stations()
 	game.build_master()
 	game.build_ui()
@@ -66,7 +66,7 @@ func test_the_ui_builds_on_its_own() -> void:
 
 func test_the_camera_builds_on_its_own() -> void:
 	TestCase.mark("    part camera")
-	var game := _script().new()
+	var game: Node3D = _script().new()
 	game.build_stations()
 	game.build_master()
 	game.build_camera()
@@ -77,7 +77,7 @@ func test_the_camera_builds_on_its_own() -> void:
 
 func test_the_customers_build_on_their_own() -> void:
 	TestCase.mark("    part customers")
-	var game := _script().new()
+	var game: Node3D = _script().new()
 	game.build_hall()
 	game.build_stations()
 	game.build_customers()
