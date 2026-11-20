@@ -215,6 +215,17 @@ func _run() -> void:
 	await _capture("25-guild-loot-bought")
 	print("SMOKE: " + probe.mission_report())
 
+	# Saving: write the guild, change it, then read it back and prove it returned.
+	probe.save_state()
+	print("SMOKE: " + probe.save_report())
+	probe.treasury.spend(10.0)
+	probe.advance_desk(120.0)
+	probe.load_state()
+	print("SMOKE: " + probe.save_report())
+	probe.hud.refresh()
+	await _settle(16)
+	await _capture("26-guild-loaded")
+
 	print("SMOKE: " + probe.describe())
 	print("SMOKE: " + probe.trade_report())
 	_write_probe_report(
@@ -225,6 +236,7 @@ func _run() -> void:
 			+ "\n" + probe.hud_report()
 			+ "\n" + probe.flow_report()
 			+ "\n" + probe.mission_report()
+			+ "\n" + probe.save_report()
 	)
 	probe.queue_free()
 	await _settle(4)

@@ -35,6 +35,9 @@ var auto_desk := true
 var _pose := "idle"
 var _speed := 0.0
 var _environment: Environment
+var _save_bytes := 0
+var _save_away := 0.0
+var _save_caught_up := 0
 
 
 func _ready() -> void:
@@ -375,6 +378,38 @@ func advance_desk(seconds: float) -> void:
 		var step := minf(0.25, left)
 		desk.tick(step)
 		left -= step
+
+
+## Writes the guild to its own save file and reports what went in.
+func save_state() -> bool:
+	var payload := GuildSave.snapshot(treasury, stock, hero.state, desk)
+	_save_bytes = JSON.stringify(payload).length()
+	return GuildSave.write(payload)
+
+
+## Reads the file back onto the live objects, which is the whole point of a save.
+func load_state() -> bool:
+	var data := GuildSave.read()
+	if data.is_empty():
+		return false
+	_save_bytes = JSON.stringify(data).length()
+	_save_away = GuildSave.away_seconds(data)
+	if not GuildSave.apply(data, treasury, stock, hero.state, desk):
+		return false
+	_save_caught_up = GuildSave.catch_up(desk, _save_away)
+	return true
+
+
+func save_report() -> String:
+	return "save exists=%s bytes=%d away=%.0f caught_up=%d cash=%.0f stock=%d roster=%d" % [
+		str(GuildSave.has_save()),
+		_save_bytes,
+		_save_away,
+		_save_caught_up,
+		treasury.cash if treasury != null else -1.0,
+		stock.total() if stock != null else -1,
+		desk.adventurers.size() if desk != null else -1,
+	]
 
 
 func mission_report() -> String:
