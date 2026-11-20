@@ -4,6 +4,10 @@ extends RefCounted
 
 const TRACE_PATH := "res://documentation/qa/run-trace.txt"
 
+## Every mark ever made in this run, so the file is rewritten whole instead of
+## seeking to an end that a sandboxed path may not honour.
+static var trace_lines: PackedStringArray = PackedStringArray()
+
 var suite_name := ""
 var checks := 0
 var failures: Array[String] = []
@@ -12,13 +16,11 @@ var failures: Array[String] = []
 ## Leaves one flushed line on disk. stdout is buffered when CI pipes it, so a suite
 ## that hangs takes its prints with it - but not this file.
 static func mark(text: String) -> void:
-	var file := FileAccess.open(TRACE_PATH, FileAccess.READ_WRITE)
-	if file == null:
-		file = FileAccess.open(TRACE_PATH, FileAccess.WRITE)
+	trace_lines.append(text)
+	var file := FileAccess.open(TRACE_PATH, FileAccess.WRITE)
 	if file == null:
 		return
-	file.seek_end()
-	file.store_line(text)
+	file.store_string("\n".join(trace_lines) + "\n")
 	file.flush()
 
 
