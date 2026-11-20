@@ -18,8 +18,9 @@ func _ready() -> void:
 	materials["train_body"] = _material(Color(0.82, 0.82, 0.78), 0.15)
 	_textured("train_body", "metro_train_detail", Vector3(5, 1, 1))
 	materials["sandbag"] = _material(Color(0.36, 0.32, 0.24))
-	materials["wet"] = _material(Color(0.10, 0.14, 0.15), 0.25)
+	materials["wet"] = _material(Color(0.28, 0.32, 0.31, 0.28), 0.12)
 	(materials["wet"] as StandardMaterial3D).roughness = 0.25
+	(materials["wet"] as StandardMaterial3D).transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	emergency_material = _material(Color(0.45, 0.025, 0.02))
 	emergency_material.emission_enabled = true
 	emergency_material.emission = Color(0.9, 0.03, 0.015)
@@ -145,7 +146,16 @@ func _detail(target: Array[Transform3D], at: Vector3, dimensions: Vector3) -> vo
 
 
 func _batch_details(batch_name: String, instances: Array[Transform3D], material_key: String) -> void:
-	var mesh := BoxMesh.new()
+	var mesh: PrimitiveMesh
+	if material_key == "wet":
+		var puddle := CylinderMesh.new()
+		puddle.top_radius = 0.5
+		puddle.bottom_radius = 0.5
+		puddle.height = 1.0
+		puddle.radial_segments = 12
+		mesh = puddle
+	else:
+		mesh = BoxMesh.new()
 	mesh.material = materials[material_key]
 	var batch := MultiMesh.new()
 	batch.transform_format = MultiMesh.TRANSFORM_3D
