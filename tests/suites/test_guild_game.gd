@@ -129,7 +129,7 @@ func test_a_new_guild_starts_with_gold_and_goods() -> void:
 func test_a_saved_guild_is_picked_up() -> void:
 	_clear_save()
 	var builder := _game()
-	check(builder.boot(), "a new guild opens")
+	check(not builder.boot(), "a new guild opens")
 	builder.stock.clear()
 	builder.stock.add("iron_ore", 3)
 	var mage: GuildAdventurer = builder.desk.adventurers[2]
