@@ -11,22 +11,18 @@ func _clear_save() -> void:
 	GuildSave.delete()
 
 
-## Moves the save's own clock into the past: the writer stamps the moment it wrote,
-## so a suite that wants "forty seconds away" has to rewrite that one field.
-func _backdate_save(seconds: float) -> void:
-	var file := FileAccess.open(GuildSave.SAVE_PATH, FileAccess.READ)
-	if file == null:
-		return
-	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	file.close()
-	if typeof(parsed) != TYPE_DICTIONARY:
-		return
-	parsed["last_seen"] = int(Time.get_unix_time_from_system() - seconds)
+## Writes a payload as if it had been saved `seconds` ago. `GuildSave.write` stamps
+## the moment it writes, so the file is written here instead - that clock field is
+## exactly what this test is about.
+func _store_old(payload: Dictionary, seconds: float) -> bool:
+	var body := payload.duplicate()
+	body["last_seen"] = int(Time.get_unix_time_from_system() - seconds)
 	var out := FileAccess.open(GuildSave.SAVE_PATH, FileAccess.WRITE)
 	if out == null:
-		return
-	out.store_string(JSON.stringify(parsed))
+		return false
+	out.store_string(JSON.stringify(body))
 	out.close()
+	return true
 
 
 func _game() -> Node3D:
@@ -138,8 +134,7 @@ func test_a_saved_guild_is_picked_up() -> void:
 	builder.desk.dispatch_with(builder.desk.adventurers[0], "gather_herbs")
 	builder.treasury.cash = 99.0
 	var payload := GuildSave.snapshot(builder.treasury, builder.stock, builder.hero.state, builder.desk)
-	check(GuildSave.write(payload), "the save is written")
-	_backdate_save(40.0)
+	check(_store_old(payload, 40.0), "the save is written")
 	builder.free()
 
 	var game := _game()
@@ -147,6 +142,7 @@ func test_a_saved_guild_is_picked_up() -> void:
 	equal(int(game.treasury.cash), 99, "gold came back")
 	equal(game.stock.total(), 3, "stock came back")
 	equal(game.stock.count("iron_ore"), 3, "and it is iron ore")
+	check(game.away > 30.0, "the game knows it was away %.0f s" % game.away)
 	equal(game.caught_up, 1, "the expedition that was out came home")
 	game.free()
 	_clear_save()
