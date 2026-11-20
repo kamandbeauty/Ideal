@@ -81,8 +81,8 @@ jobs:
           set +e
           stdbuf -oL -eL timeout 60 godot --headless --path . --script res://tools/suite_probe.gd > "$RUNNER_TEMP/suites.log" 2>&1
           status=$?
-          tail -6 "$RUNNER_TEMP/suites.log"
-          echo "::error title=Suites::status=${status} :: $(tail -3 "$RUNNER_TEMP/suites.log" | tr '\n' '|' | tr -s ' ')"
+          tail -12 "$RUNNER_TEMP/suites.log"
+          echo "::error title=Suites::status=${status} :: $(grep -E 'ERROR|probe:' "$RUNNER_TEMP/suites.log" | tail -6 | tr '\n' '|' | tr -s ' ')"
           exit $status
 
       # Booting the real scene first: if the guild itself stalls, this says so in
