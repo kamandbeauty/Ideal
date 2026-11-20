@@ -41,12 +41,15 @@ func _initialize() -> void:
 
 	for path in SUITES:
 		# Printed as it starts: if a suite ever hangs, the log says which one.
-		print("RUN " + path)
+		printerr("RUN " + path)
 		var script := load(path) as GDScript
+		printerr("LOADED " + path)
 		if script == null:
 			failures.append("%s: suite could not be loaded" % path)
 			continue
+		printerr("NEW " + path)
 		var suite := script.new() as TestCase
+		printerr("MADE " + path)
 		if suite == null:
 			failures.append("%s: suite is not a TestCase" % path)
 			continue
