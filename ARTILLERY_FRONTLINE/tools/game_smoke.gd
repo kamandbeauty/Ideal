@@ -643,6 +643,7 @@ func _metro_stage() -> void:
 	check(level.stage == 6 and level.geometry.find_child("TunnelEnd", true, false) != null, "the metro scene is loaded")
 	check(level.geometry.find_child("SandbagLine", true, false) != null and level.geometry.find_child("FiringPlatform", true, false) != null, "the metro gunner is behind the full sandbag line")
 	check(level.geometry.find_child("MetalDoorHeader-1", true, false) != null and level.geometry.find_child("MetalDoorHeader1", true, false) != null, "the metro has metal doors on both sides")
+	check(level.geometry.get_node_or_null("MetroEmergencyIndicators") != null and level.geometry.get_node_or_null("MetroWetFloor") != null, "the metro has emergency indicators and a wet floor")
 	simulate(20.0)
 	await frames(6)
 	check(level.horde.spawned_total > 0, "the metro sends attackers")

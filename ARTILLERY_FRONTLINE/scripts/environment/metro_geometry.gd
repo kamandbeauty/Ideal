@@ -2,6 +2,10 @@ extends "res://scripts/environment/hospital_geometry.gd"
 ## Enclosed station: the far portal continues into a dark tunnel, while the
 ## two side doors coincide with the existing attack lines and breach plates.
 
+var emergency_material: StandardMaterial3D
+var emergency_clock: float = 0.0
+
+
 func is_underground() -> bool:
 	return true
 
@@ -14,6 +18,13 @@ func _ready() -> void:
 	materials["train_body"] = _material(Color(0.82, 0.82, 0.78), 0.15)
 	_textured("train_body", "metro_train_detail", Vector3(5, 1, 1))
 	materials["sandbag"] = _material(Color(0.36, 0.32, 0.24))
+	materials["wet"] = _material(Color(0.10, 0.14, 0.15), 0.25)
+	(materials["wet"] as StandardMaterial3D).roughness = 0.25
+	emergency_material = _material(Color(0.45, 0.025, 0.02))
+	emergency_material.emission_enabled = true
+	emergency_material.emission = Color(0.9, 0.03, 0.015)
+	emergency_material.emission_energy_multiplier = 1.2
+	materials["emergency"] = emergency_material
 	_textured("sandbag", "burlap", Vector3(2, 1, 1))
 	_metro_defenses()
 	_box("MetroFloor", Vector3(0, -0.25, -77), Vector3(150, 0.5, 190), "concrete", true)
@@ -53,6 +64,7 @@ func _ready() -> void:
 	for index: int in 31:
 		_box("Sleeper%d" % index, Vector3(0, 0.03, -52 - index * 3), Vector3(10, 0.08, 0.35), "trim")
 	_box("StationSign", Vector3(0, 15.5, -134.1), Vector3(14, 1.2, 0.2), "red")
+	_station_details()
 
 
 func _metro_defenses() -> void:
@@ -88,3 +100,70 @@ func _sandbags() -> void:
 	instance.name = "SandbagLine"
 	instance.multimesh = batch
 	add_child(instance)
+
+
+## Decorative details stay outside the existing attack paths and have no
+## collision. Each material is batched into a single draw call.
+func _station_details() -> void:
+	var metal: Array[Transform3D] = []
+	var panels: Array[Transform3D] = []
+	var glass: Array[Transform3D] = []
+	var warning: Array[Transform3D] = []
+	var wet: Array[Transform3D] = []
+	for side: int in [-1, 1]:
+		# Broken escalators behind the court: stepped treads and two handrails.
+		for step: int in 11:
+			_detail(metal, Vector3(side * 34.5, 0.18 + step * 0.19, -51.0 - step * 0.7), Vector3(4.0, 0.18, 0.65))
+		for offset: float in [-2.1, 2.1]:
+			var rail := Transform3D(Basis(Vector3.RIGHT, -0.26).scaled(Vector3(0.18, 0.2, 8.2)), Vector3(side * 34.5 + offset, 1.6, -54.5))
+			metal.append(rail)
+		# Elevated abandoned control booth; its openings face the gunner.
+		_detail(panels, Vector3(side * 33.8, 6.0, -77.0), Vector3(7.0, 0.35, 6.0))
+		_detail(panels, Vector3(side * 33.8, 2.9, -79.8), Vector3(7.0, 5.8, 0.25))
+		_detail(glass, Vector3(side * 33.8, 4.1, -73.9), Vector3(6.5, 2.2, 0.15))
+		for post: float in [-3.2, 0.0, 3.2]:
+			_detail(metal, Vector3(side * 33.8 + post, 3.5, -73.7), Vector3(0.22, 5.0, 0.2))
+		# Utility pipes and dangling cable sections are high over the lanes.
+		for z: float in [-110.0, -86.0, -62.0]:
+			_detail(metal, Vector3(side * 35.7, 13.7, z), Vector3(0.2, 0.2, 21.0))
+			_detail(metal, Vector3(side * 29.5, 14.7, z), Vector3(0.13, 3.6, 0.13))
+			_detail(warning, Vector3(side * 29.3, 13.0, z), Vector3(0.35, 0.35, 0.35))
+		for z: float in [-118.0, -96.0, -74.0, -52.0]:
+			_detail(warning, Vector3(side * 30.0, 11.0, z), Vector3(0.3, 0.6, 1.2))
+		# Slick reflective patches remain flush with the floor and do not collide.
+		for index: int in 5:
+			_detail(wet, Vector3(side * (10.0 + (index % 2) * 3.0), 0.008, -61.0 - index * 12.0), Vector3(3.2, 0.012, 5.0))
+	_batch_details("MetroUtilityMetal", metal, "trim")
+	_batch_details("MetroBoothPanels", panels, "concrete")
+	_batch_details("MetroBoothGlass", glass, "glass")
+	_batch_details("MetroEmergencyIndicators", warning, "emergency")
+	_batch_details("MetroWetFloor", wet, "wet")
+
+
+func _detail(target: Array[Transform3D], at: Vector3, dimensions: Vector3) -> void:
+	target.append(Transform3D(Basis.IDENTITY.scaled(dimensions), at))
+
+
+func _batch_details(batch_name: String, instances: Array[Transform3D], material_key: String) -> void:
+	var mesh := BoxMesh.new()
+	mesh.material = materials[material_key]
+	var batch := MultiMesh.new()
+	batch.transform_format = MultiMesh.TRANSFORM_3D
+	batch.mesh = mesh
+	batch.instance_count = instances.size()
+	for index: int in instances.size():
+		batch.set_instance_transform(index, instances[index])
+	var node := MultiMeshInstance3D.new()
+	node.name = batch_name
+	node.multimesh = batch
+	node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(node)
+
+
+func _process(delta: float) -> void:
+	# Cheap emissive flicker: no shadow maps, extra lights or per-lamp scripts.
+	if emergency_material == null:
+		return
+	emergency_clock += delta
+	var flicker: float = 0.35 if sin(emergency_clock * 9.0) > 0.94 else 1.0
+	emergency_material.emission_energy_multiplier = 1.2 * flicker

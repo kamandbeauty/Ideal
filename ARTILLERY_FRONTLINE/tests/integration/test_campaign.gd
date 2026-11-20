@@ -284,6 +284,11 @@ func run(t: TestContext) -> void:
 			t.check(level.geometry.find_child("SandbagLine", true, false) != null and level.geometry.find_child("FiringPlatform", true, false) != null, "metro gunner stands behind a full sandbag line")
 			t.check(level.geometry.find_child("GateLeafA", true, false) != null and level.geometry.find_child("WallPatch", true, false) != null, "metro doors coincide with the two attack targets")
 			t.check(level.environment.background_mode == Environment.BG_COLOR and level.geometry.find_child("TunnelLeft", true, false) != null, "metro is enclosed with a deep dark tunnel")
+			for batch_name: String in ["MetroUtilityMetal", "MetroBoothPanels", "MetroBoothGlass", "MetroEmergencyIndicators", "MetroWetFloor"]:
+				var batch: MultiMeshInstance3D = level.geometry.get_node_or_null(batch_name) as MultiMeshInstance3D
+				t.check(batch != null and batch.multimesh.instance_count > 0, "metro detail %s is batched" % batch_name)
+				if batch != null:
+					t.check(batch.find_children("*", "CollisionObject3D", true, false).is_empty(), "metro decoration does not block routes")
 		if index >= 9:
 			var landmarks: Node3D = level.geometry.get_node_or_null("DistrictLandmarks%d" % Campaign.district(index))
 			t.check(landmarks != null, "stage %d has its district landmarks" % (index + 1))
