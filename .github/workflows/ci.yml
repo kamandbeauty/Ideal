@@ -76,6 +76,21 @@ jobs:
             exit 1
           fi
 
+      # Booting the real scene first: if the guild itself stalls, this says so in
+      # 90 seconds instead of leaving the suite run to guess. stdbuf keeps the log
+      # line-buffered so a killed process still leaves its last words behind.
+      - name: Boot the guild headlessly
+        if: always()
+        run: |
+          set +e
+          stdbuf -oL -eL timeout 90 godot --headless --path . --quit-after 90 > "$RUNNER_TEMP/boot.log" 2>&1
+          status=$?
+          echo "::error title=Boot::status=${status} :: $(grep -c '' "$RUNNER_TEMP/boot.log") lines :: $(tail -6 "$RUNNER_TEMP/boot.log" | tr '\n' '|' | tr -s ' ')"
+          if [ "$status" -ne 0 ]; then
+            tail -40 "$RUNNER_TEMP/boot.log"
+            exit 1
+          fi
+
       - name: Run the headless test suites
         run: |
           set +e

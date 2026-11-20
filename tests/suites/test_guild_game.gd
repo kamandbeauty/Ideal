@@ -1,7 +1,10 @@
 extends TestCase
 ## The playable guild scene: what it builds, what it boots, and how it saves.
 
-const GuildGameScript := preload("res://scripts/guild/game/guild_game.gd")
+## Loaded at run time, not preloaded: the suite must not drag the scene's whole
+## class graph into the test runner's own load.
+func _script() -> GDScript:
+	return load("res://scripts/guild/game/guild_game.gd") as GDScript
 
 
 func suite_name() -> String:
@@ -14,7 +17,7 @@ func _clear_save() -> void:
 
 func _game() -> Node3D:
 	TestCase.mark("    game: new")
-	var game := GuildGameScript.new()
+	var game := _script().new()
 	TestCase.mark("    game: build")
 	game.build_world()
 	TestCase.mark("    game: built")
@@ -23,7 +26,7 @@ func _game() -> Node3D:
 
 func test_the_hall_builds_on_its_own() -> void:
 	TestCase.mark("    part hall")
-	var game := GuildGameScript.new()
+	var game := _script().new()
 	game.build_hall()
 	TestCase.mark("    part hall done")
 	check(game.hall != null, "the hall is there")
@@ -32,7 +35,7 @@ func test_the_hall_builds_on_its_own() -> void:
 
 func test_the_stations_build_on_their_own() -> void:
 	TestCase.mark("    part stations")
-	var game := GuildGameScript.new()
+	var game := _script().new()
 	game.build_stations()
 	TestCase.mark("    part stations done")
 	check(game.stations.size() == 4, "four stations")
@@ -42,7 +45,7 @@ func test_the_stations_build_on_their_own() -> void:
 
 func test_the_master_builds_on_his_own() -> void:
 	TestCase.mark("    part master")
-	var game := GuildGameScript.new()
+	var game := _script().new()
 	game.build_stations()
 	game.build_master()
 	TestCase.mark("    part master done")
@@ -52,7 +55,7 @@ func test_the_master_builds_on_his_own() -> void:
 
 func test_the_ui_builds_on_its_own() -> void:
 	TestCase.mark("    part ui")
-	var game := GuildGameScript.new()
+	var game := _script().new()
 	game.build_stations()
 	game.build_master()
 	game.build_ui()
@@ -63,7 +66,7 @@ func test_the_ui_builds_on_its_own() -> void:
 
 func test_the_camera_builds_on_its_own() -> void:
 	TestCase.mark("    part camera")
-	var game := GuildGameScript.new()
+	var game := _script().new()
 	game.build_stations()
 	game.build_master()
 	game.build_camera()
@@ -74,7 +77,7 @@ func test_the_camera_builds_on_its_own() -> void:
 
 func test_the_customers_build_on_their_own() -> void:
 	TestCase.mark("    part customers")
-	var game := GuildGameScript.new()
+	var game := _script().new()
 	game.build_hall()
 	game.build_stations()
 	game.build_customers()
@@ -108,7 +111,7 @@ func test_a_new_guild_starts_with_gold_and_goods() -> void:
 	equal(int(game.treasury.cash), 60, "it starts with 60 gold")
 	equal(game.stock.total(), 6, "it starts with six goods")
 	equal(game.stock.count("slime_gel"), 4, "four slime gels")
-	equal(game.hero.position, GuildGameScript.STARTING_HERO, "the master stands in the hall")
+	equal(game.hero.position, _script().STARTING_HERO, "the master stands in the hall")
 	check(not game.booted_from_save, "and it says it is a new guild")
 	game.free()
 
@@ -150,9 +153,9 @@ func test_saving_writes_the_live_values() -> void:
 
 
 func test_a_pushed_stick_walks_away_from_the_camera() -> void:
-	var ahead := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(GuildGameScript.forward_yaw(0.0)))
+	var ahead := Vector3.BACK.rotated(Vector3.UP, deg_to_rad(_script().forward_yaw(0.0)))
 	almost(ahead.z, -1.0, "with the camera behind at yaw 0, forward is -Z")
-	ahead = Vector3.BACK.rotated(Vector3.UP, deg_to_rad(GuildGameScript.forward_yaw(90.0)))
+	ahead = Vector3.BACK.rotated(Vector3.UP, deg_to_rad(_script().forward_yaw(90.0)))
 	almost(ahead.x, -1.0, "with the camera turned a quarter, forward turns with it")
 
 

@@ -77,6 +77,7 @@ func _build_environment() -> void:
 ## Builds the world without booting a save, so a suite can inspect it - and so each
 ## part can be built on its own.
 func build_world() -> void:
+	print("GAME: build_world")
 	if hall != null:
 		return
 	build_hall()
@@ -88,6 +89,7 @@ func build_world() -> void:
 
 
 func build_hall() -> void:
+	print("GAME: build_hall")
 	if hall != null:
 		return
 	hall = GuildHall.new()
@@ -97,6 +99,7 @@ func build_hall() -> void:
 
 ## The four places the player walks up to, and the desk that pays for the missions.
 func build_stations() -> void:
+	print("GAME: build_stations")
 	if desk != null:
 		return
 	treasury = GuildTreasury.new()
@@ -135,6 +138,7 @@ func build_stations() -> void:
 
 ## The guild master and the verbs the action button plays out.
 func build_master() -> void:
+	print("GAME: build_master")
 	if hero != null:
 		return
 	hero = GuildPlayer.new()
@@ -151,6 +155,7 @@ func build_master() -> void:
 
 
 func build_customers() -> void:
+	print("GAME: build_customers")
 	if flow != null:
 		return
 	flow = GuildCustomerFlow.new()
@@ -161,6 +166,7 @@ func build_customers() -> void:
 
 ## The phone HUD and the board sheet, wired to the desk and the trades.
 func build_ui() -> void:
+	print("GAME: build_ui")
 	if hud != null:
 		return
 	hud = GuildHud.new()
@@ -176,6 +182,7 @@ func build_ui() -> void:
 
 
 func build_camera() -> void:
+	print("GAME: build_camera")
 	if camera_rig != null:
 		return
 	camera_rig = GuildPlayerCamera.new()
