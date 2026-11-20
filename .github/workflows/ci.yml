@@ -76,6 +76,15 @@ jobs:
             exit 1
           fi
 
+      - name: Every suite loads and instantiates
+        run: |
+          set +e
+          stdbuf -oL -eL timeout 60 godot --headless --path . --script res://tools/suite_probe.gd > "$RUNNER_TEMP/suites.log" 2>&1
+          status=$?
+          tail -6 "$RUNNER_TEMP/suites.log"
+          echo "::error title=Suites::status=${status} :: $(tail -3 "$RUNNER_TEMP/suites.log" | tr '\n' '|' | tr -s ' ')"
+          exit $status
+
       # Booting the real scene first: if the guild itself stalls, this says so in
       # 90 seconds instead of leaving the suite run to guess. stdbuf keeps the log
       # line-buffered so a killed process still leaves its last words behind.
