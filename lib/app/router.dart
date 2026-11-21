@@ -107,10 +107,10 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
         ),
         child: SafeArea(
           bottom: false,
-          // A cross-fade of two *sliver* trees is not supported by Flutter's
-          // viewport (the outgoing tree is detached mid-transition, which trips
-          // an assertion when the framework walks the viewport). Fading a single
-          // child per tab gives the same feel without the broken tree.
+          // Only the incoming page may exist in the tree: every tab is a
+          // CustomScrollView, and keeping the outgoing sliver around makes
+          // Flutter's viewport walk a detached sliver (which asserts). A fade-in
+          // on the new tab keeps the transition smooth and the tree valid.
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 220),
             switchInCurve: Curves.easeOutCubic,
@@ -118,13 +118,8 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
               opacity: animation,
               child: child,
             ),
-            layoutBuilder: (currentChild, previousChildren) => Stack(
-              fit: StackFit.expand,
-              children: [
-                ...previousChildren,
-                if (currentChild != null) currentChild,
-              ],
-            ),
+            layoutBuilder: (currentChild, previousChildren) =>
+                currentChild ?? const SizedBox.shrink(),
             child: KeyedSubtree(key: ValueKey(tab), child: _pages[tab.index]),
           ),
         ),
