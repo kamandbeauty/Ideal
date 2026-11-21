@@ -199,40 +199,43 @@ void main() {
     expect(directionality.textDirection, TextDirection.rtl);
 
     // The greeting uses Persian digits and a Jalali weekday.
-    expect(find.textContaining('بخیر'), findsWidgets);
+    expect(find.textContaining('بخیر'), findsAtLeastNWidgets(1));
   });
 
   testWidgets('navigates through all five tabs', timeout: widgetTimeout,
       (tester) async {
     await pumpApp(tester);
-    expect(find.byType(AssistantScreen), findsOneWidget);
+    expect(find.byType(AssistantScreen, skipOffstage: false), findsOneWidget);
 
     await tester.tap(find.text('یادداشت‌ها'));
     await settleIo(tester);
-    expect(find.byType(NotesScreen), findsOneWidget);
+    // Offstage pages stay mounted, so look for what is actually on screen.
     expect(find.text('اولین یادداشتت را بساز'), findsOneWidget);
+    expect(find.byType(NotesScreen, skipOffstage: false), findsOneWidget);
+    expect(find.byType(AssistantScreen), findsNothing,
+        reason: 'the assistant tab must be offstage after switching');
 
     await tester.tap(find.text('وظایف'));
     await settleIo(tester);
-    expect(find.byType(JobsScreen), findsOneWidget);
-    // Whatever the data state, it must not be stuck on the spinner.
+    expect(find.text('وظایف'), findsAtLeastNWidgets(1));
+    // Whatever the data state, the jobs screen must not be stuck loading.
     expect(find.byType(CircularProgressIndicator), findsNothing);
 
     await tester.tap(find.text('پیام‌ها'));
     await settleIo(tester);
-    expect(find.byType(MessagesScreen), findsOneWidget);
-    expect(find.textContaining('دسترسی'), findsWidgets);
+    expect(find.byType(MessagesScreen, skipOffstage: false), findsOneWidget);
+    expect(find.textContaining('دسترسی'), findsAtLeastNWidgets(1));
 
     await tester.tap(find.text('تنظیمات'));
     await settleIo(tester);
-    expect(find.byType(SettingsScreen), findsOneWidget);
+    expect(find.byType(SettingsScreen, skipOffstage: false), findsOneWidget);
     expect(find.text('ظاهر'), findsOneWidget);
     expect(find.text('حریم خصوصی'), findsOneWidget);
 
     // Back to the assistant: the tab bar keeps working both ways.
     await tester.tap(find.text('دستیار'));
     await settleIo(tester);
-    expect(find.byType(AssistantScreen), findsOneWidget);
+    expect(find.byType(AssistantScreen, skipOffstage: false), findsOneWidget);
   });
 
   testWidgets('typed assistant input opens the confirmation sheet',

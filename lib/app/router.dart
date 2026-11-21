@@ -107,21 +107,12 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
         ),
         child: SafeArea(
           bottom: false,
-          // Only the incoming page may exist in the tree: every tab is a
-          // CustomScrollView, and keeping the outgoing sliver around makes
-          // Flutter's viewport walk a detached sliver (which asserts). A fade-in
-          // on the new tab keeps the transition smooth and the tree valid.
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 220),
-            switchInCurve: Curves.easeOutCubic,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: child,
-            ),
-            layoutBuilder: (currentChild, previousChildren) =>
-                currentChild ?? const SizedBox.shrink(),
-            child: KeyedSubtree(key: ValueKey(tab), child: _pages[tab.index]),
-          ),
+          // `IndexedStack` keeps each tab mounted but offstage: the scroll
+          // position and any loaded data survive a tab switch, and only one
+          // page is ever painted. Wrapping tabs in `AnimatedSwitcher` is what
+          // broke semantics: every tab is a CustomScrollView, and animating a
+          // sliver out of the tree invalidates parent data mid-flush.
+          child: IndexedStack(index: tab.index, children: _pages),
         ),
       ),
       bottomNavigationBar: NavigationBarTheme(
