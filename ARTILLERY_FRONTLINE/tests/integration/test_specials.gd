@@ -96,6 +96,10 @@ func _movement_and_damage(t: TestContext) -> void:
 	t.check(covered[brute] < covered[walker] and covered[boss] < covered[walker], "the brute and the boss are slower than a walker")
 	t.near(covered[runner], runner.speed * 6.0, runner.speed * 1.2, "a runner moves at its own speed")
 
+	# This fixture exercises several nonlethal hits and blasts on the same
+	# brute. Give it test-only health; the real three-hit limit is covered in
+	# test_damage_balance.
+	brute.health = 5000.0
 	# Bullets: a body round staggers a walker and slows it; a brute walks through it.
 	var gun: WeaponData = level.defender.weapons[0].data
 	walker.take_hit(gun.damage, false, walker.position, Vector3.FORWARD)
