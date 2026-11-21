@@ -35,6 +35,7 @@ func run_test() -> void:
 				var error: float = rig.solved_hand.distance_to(rig.solved_target)
 				var reach: float = rig.solved_root.distance_to(rig.solved_elbow) + rig.solved_elbow.distance_to(rig.solved_hand)
 				print("IK_SAMPLE clip=", clip, " time=", t, " error=", error, " root_target=", rig.solved_root.distance_to(rig.solved_target), " arm_length=", reach)
+				check(error < 0.03, "%s at %.1f: support hand bone within 3 cm of target" % [clip, t])
 	rig.queue_free()
 	await process_frame
 	quit(1 if failures else 0)
