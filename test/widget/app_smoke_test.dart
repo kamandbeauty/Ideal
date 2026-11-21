@@ -231,8 +231,12 @@ void main() {
     await tester.tap(find.text('تنظیمات'));
     await settleIo(tester);
     expect(find.byType(SettingsScreen, skipOffstage: false), findsOneWidget);
+    // The tab must actually be on screen, not merely mounted: the first
+    // section header is inside the initial viewport, later ones are lazily
+    // built and would not be found here.
     expect(find.text('ظاهر'), findsOneWidget);
-    expect(find.text('حریم خصوصی'), findsOneWidget);
+    expect(find.byType(SettingsScreen), findsOneWidget,
+        reason: 'the settings tab must be on stage after tapping it');
 
     // Back to the assistant: the tab bar keeps working both ways.
     await tester.tap(find.text('دستیار'));
