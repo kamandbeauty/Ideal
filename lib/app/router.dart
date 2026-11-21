@@ -107,19 +107,23 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
         ),
         child: SafeArea(
           bottom: false,
+          // A cross-fade of two *sliver* trees is not supported by Flutter's
+          // viewport (the outgoing tree is detached mid-transition, which trips
+          // an assertion when the framework walks the viewport). Fading a single
+          // child per tab gives the same feel without the broken tree.
           child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 260),
+            duration: const Duration(milliseconds: 220),
             switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
             transitionBuilder: (child, animation) => FadeTransition(
               opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.02),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
+              child: child,
+            ),
+            layoutBuilder: (currentChild, previousChildren) => Stack(
+              fit: StackFit.expand,
+              children: [
+                ...previousChildren,
+                if (currentChild != null) currentChild,
+              ],
             ),
             child: KeyedSubtree(key: ValueKey(tab), child: _pages[tab.index]),
           ),
