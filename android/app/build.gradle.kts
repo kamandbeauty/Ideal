@@ -57,6 +57,16 @@ dependencies {
     testImplementation("androidx.test.ext:junit:1.3.0")
 }
 
+// Print every test result. Without this Gradle logs only the task name, so a
+// green "Kotlin unit tests" step cannot be distinguished from a step where the
+// tests were silently up-to-date or filtered out.
+tasks.withType<Test>().configureEach {
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = false
+    }
+}
+
 flutter {
     source = "../.."
 }
