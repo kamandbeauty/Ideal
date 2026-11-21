@@ -11,8 +11,8 @@
     <!-- Local reminders posted by the job manager (Android 13+). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Recurring job scheduling may need to survive Doze; WorkManager falls back
-         gracefully when these are not granted. -->
+    <!-- Reminders are AlarmManager alarms, which the system forgets on reboot:
+         the boot receiver below re-arms them from the jobs table. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -71,10 +71,21 @@
             </intent-filter>
         </service>
 
-        <!-- WorkManager entry point is declared by the AndroidX library itself. -->
+        <!-- Fires a scheduled reminder. -->
         <receiver
             android:name=".reminders.ReminderActionReceiver"
             android:exported="false" />
+
+        <!-- AlarmManager alarms do not survive a reboot, so re-arm them. -->
+        <receiver
+            android:name=".reminders.BootReceiver"
+            android:exported="true"
+            android:directBootAware="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <meta-data
             android:name="flutterEmbedding"

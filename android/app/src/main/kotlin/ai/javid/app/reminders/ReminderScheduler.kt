@@ -17,9 +17,10 @@ import androidx.core.app.NotificationManagerCompat
  * Why AlarmManager instead of only WorkManager: WorkManager defers work under
  * Doze and battery restrictions (a job requested for 08:00 may run at 08:40).
  * For a *user-visible reminder* we use a precise, allow-while-idle alarm when
- * the platform permits it, and fall back to an inexact alarm otherwise. We never
- * ask for `SCHEDULE_EXACT_ALARM` – on Android 12+ an app without that permission
- * simply gets the inexact fallback, which is honest and Play-policy friendly.
+ * the platform permits it, and fall back to an inexact alarm otherwise.
+ * `SCHEDULE_EXACT_ALARM` is declared in the manifest, but it is a special
+ * access the user can revoke (and that the system may grant by default), so the
+ * runtime check below is what actually decides: no check-in, no crash.
  */
 class ReminderScheduler(private val context: Context) {
 
@@ -45,6 +46,11 @@ class ReminderScheduler(private val context: Context) {
         } else {
             alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, atMillis, pending)
         }
+        // Mirror the alarm so BootReceiver can restore it after a restart: the
+        // jobs table lives in Flutter's sqflite file, unreachable from a receiver.
+        ReminderAlarmStore(context).upsert(
+            ReminderAlarmStore.Entry(id, title, body, atMillis),
+        )
     }
 
     fun cancel(id: Int) {
@@ -58,6 +64,7 @@ class ReminderScheduler(private val context: Context) {
             PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
         )
         if (pending != null) alarmManager.cancel(pending)
+        ReminderAlarmStore(context).remove(id)
     }
 }
 
@@ -127,5 +134,114 @@ object ReminderNotifications {
             // POST_NOTIFICATIONS not granted (Android 13+): the reminder is
             // still recorded in the app, so nothing is silently lost.
         }
+    }
+}
+
+/**
+ * Re-arms reminders after a reboot or an app update.
+ *
+ * `AlarmManager` forgets every alarm when the device powers off, and there is no
+ * way for a receiver to query the jobs table inside Flutter's sqflite database
+ * before the Dart isolate exists. So [ReminderScheduler] mirrors each armed
+ * reminder into SharedPreferences as it is scheduled, and this receiver restores
+ * that mirror. The Dart side re-arms authoritatively on next launch; this only
+ * makes sure a reminder set for tomorrow morning still fires if the phone was
+ * restarted overnight.
+ */
+class BootReceiver : BroadcastReceiver() {
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        val ctx = context ?: return
+        val action = intent?.action ?: return
+        if (action != Intent.ACTION_BOOT_COMPLETED && action != Intent.ACTION_MY_PACKAGE_REPLACED) {
+            return
+        }
+        // BOOT_COMPLETED is delivered while the device is still unlocking; the
+        // direct-boot unaware receiver runs after the user unlock, which is when
+        // the app's private storage is readable.
+        rearmAll(ctx, System.currentTimeMillis())
+    }
+
+    companion object {
+        /** A reminder missed by more than this window is stale and is dropped. */
+        const val MISSED_WINDOW_MILLIS = 12L * 60 * 60 * 1000
+
+        /** Restores every alarm still worth firing. Exposed for Robolectric tests. */
+        @JvmStatic
+        fun rearmAll(context: Context, nowMillis: Long) {
+            val scheduler = ReminderScheduler(context)
+            val pending = ReminderAlarmStore(context).load()
+            val keep = mutableListOf<ReminderAlarmStore.Entry>()
+            for (entry in pending) {
+                if (entry.atMillis > nowMillis) {
+                    scheduler.schedule(entry.id, entry.title, entry.body, entry.atMillis)
+                    keep.add(entry)
+                } else if (nowMillis - entry.atMillis <= MISSED_WINDOW_MILLIS) {
+                    // Missed while the phone was off: show it once, don't re-arm.
+                    ReminderNotifications.show(context, entry.id, entry.title, entry.body)
+                }
+                // Anything older than the window is silently forgotten.
+            }
+            ReminderAlarmStore(context).replaceAll(keep)
+        }
+    }
+}
+
+/**
+ * Small durable mirror of the alarms that are currently armed.
+ *
+ * This is deliberately *not* a source of truth: the jobs table is. It exists
+ * only because [BootReceiver] has to restore alarms before any Dart code runs.
+ * Every value is last-writer-wins and is re-armed from the database on the next
+ * app launch, so a stale entry can at worst post one extra reminder.
+ */
+class ReminderAlarmStore(context: Context) {
+
+    private val prefs = context.applicationContext
+        .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    data class Entry(
+        val id: Int,
+        val title: String,
+        val body: String,
+        val atMillis: Long,
+    )
+
+    fun upsert(entry: Entry) {
+        val all = load().filterNot { it.id == entry.id } + entry
+        replaceAll(all)
+    }
+
+    fun remove(id: Int) {
+        replaceAll(load().filterNot { it.id == id })
+    }
+
+    fun load(): List<Entry> {
+        val raw = prefs.getString(KEY_ALARMS, null) ?: return emptyList()
+        return raw.lines().mapNotNull { line ->
+            val parts = line.split(SEPARATOR)
+            if (parts.size < 4) return@mapNotNull null
+            val id = parts[0].toIntOrNull() ?: return@mapNotNull null
+            val atMillis = parts[3].toLongOrNull() ?: return@mapNotNull null
+            Entry(id, parts[1], parts[2], atMillis)
+        }
+    }
+
+    fun replaceAll(entries: List<Entry>) {
+        val encoded = entries.joinToString("\n") { entry ->
+            listOf(entry.id, entry.title, entry.body, entry.atMillis)
+                .joinToString(SEPARATOR.toString()) { sanitise(it.toString()) }
+        }
+        prefs.edit().putString(KEY_ALARMS, encoded).apply()
+    }
+
+    /** Keeps the line/field delimiters out of user-supplied reminder text. */
+    private fun sanitise(value: String): String =
+        value.replace("\n", " ").replace(SEPARATOR, ' ')
+
+    companion object {
+        private const val PREFS_NAME = "javid_reminder_alarms"
+        private const val KEY_ALARMS = "alarms"
+        private const val SEPARATOR = '\u001F'
     }
 }

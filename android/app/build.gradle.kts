@@ -52,6 +52,9 @@ dependencies {
     // Kotlin unit tests for the notification capture/normalisation logic.
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16")
+    // ApplicationProvider, for tests that need a real (Robolectric) Context.
+    testImplementation("androidx.test:core:1.7.0")
+    testImplementation("androidx.test.ext:junit:1.3.0")
 }
 
 flutter {
