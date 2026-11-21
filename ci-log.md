@@ -1,9 +1,9 @@
-# CI log (run 44906144629)
+# CI log (run 44907114033)
 
 ```
 ----- analyze -----
 Analyzing Ideal...                                              
-No issues found! (ran in 9.2s)
+No issues found! (ran in 7.4s)
 ----- test/build -----
 Flutter 3.47.9 • channel stable • https://github.com/flutter/flutter.git
 Framework • revision c197ca5199 (3 weeks ago) • 2026-10-29 10:10:20 -0400
@@ -123,946 +123,258 @@ Changed 108 dependencies!
 16 packages have newer versions incompatible with dependency constraints.
 Try `flutter pub outdated` for more information.
 Analyzing Ideal...                                              
-No issues found! (ran in 9.2s)
-00:00 +0: loading /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart
-00:00 +0: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
-00:00 +1: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «امروز» resolves to the current day
-00:00 +2: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles tens and compounds
-00:00 +3: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «فردا» resolves to the next day
-00:00 +4: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles hundreds and thousands
-00:00 +5: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «پس‌فردا» resolves two days ahead
-00:00 +6: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.fromWord parses digits and words
-00:00 +7: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.fromWord parses digits and words
-00:00 +8: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: a past Jalali day/month rolls to next year
-00:00 +9: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock parses a plain hour
-00:00 +10: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock parses a plain hour
-00:00 +11: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: weekday names find the next occurrence
-00:00 +12: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock parses «و نیم» and «و ربع»
-00:00 +13: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: «سه روز دیگر» offsets by days
-00:00 +14: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock applies Persian meridiems
-00:00 +15: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: explicit dotted Jalali dates are accepted
-00:00 +16: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock rejects nonsense instead of guessing
-00:00 +17: /home/runner/work/Ideal/Ideal/test/unit/persian_date_parse_test.dart: returns null when no date expression exists
-00:00 +18: loading /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart
-00:00 +18: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits converts ASCII digits
-00:00 +19: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits keeps letters and punctuation
-00:00 +20: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits accepts non-string input
-00:00 +21: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Persian digits
-00:00 +22: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Arabic-Indic digits
-00:00 +23: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput unifies Arabic yeh and kaf
-00:00 +24: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput removes diacritics and tatweel
-00:00 +25: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput converts digits and collapses whitespace
-00:00 +26: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput replaces zero-width non-joiners with spaces
-00:01 +27: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a greeting
-00:01 +28: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a help request
-00:01 +29: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from an explicit save command
-00:01 +30: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from «یادداشت جدید بساز»
-00:01 +31: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes extracts quoted note bodies
-00:01 +32: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes infers the work category
-00:01 +33: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes asks for the body when the command has none
-00:01 +34: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes lists notes
-00:01 +35: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes deletes the latest note with confirmation
-00:01 +36: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily reminder with a Persian word hour
-00:01 +37: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily news summary keeps the briefing action
-00:01 +38: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation one-off reminder for tomorrow at 09:00
-00:01 +39: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «نه و نیم» clock expressions
-00:01 +40: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «و ربع» quarter hours
-00:01 +41: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation «۸ شب» becomes 20:00
-00:01 +42: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation interval schedules respect the 15 minute minimum
-00:01 +43: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation weekly schedule on Saturday
-00:01 +44: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation a past clock time rolls over to tomorrow
-00:01 +45: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing recognises a spoken briefing request
-00:01 +46: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing message summary without a schedule is not a job
-00:01 +47: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input falls back to unknown
-00:01 +48: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input empty input is unknown
-00:02 +49: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (setUpAll)
-00:02 +49: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: creates a note and derives a title from the body
-00:02 +50: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: keeps an explicit title
-00:02 +51: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
-00:02 +52: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: searches title and body
-00:02 +53: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: filters by category
-00:02 +54: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: falls back to general for unknown categories
-00:02 +55: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: updates content and bumps updatedAt
-00:02 +56: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: pins notes to the top of the list
-00:02 +57: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: deletes a note
-00:02 +58: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: latest returns the most recently updated note
-00:02 +59: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: data is readable after the database is closed and reopened
-00:02 +60: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (tearDownAll)
-00:02 +60: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: (setUpAll)
-00:02 +60: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a due reminder runs, posts a notification and records history
-00:02 +61: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: nothing happens when no job is due
-00:02 +62: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a recurring job advances to its next slot after running
-00:02 +63: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the briefing summarises captured notifications instead of inventing
-00:02 +64: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a failing job is recorded as failed and does not throw
-00:02 +65: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
-00:02 +66: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: (tearDownAll)
-00:02 +66: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: (setUpAll)
-00:02 +66: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: creates a recurring job with the next run
-00:03 +67: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: rejects one-off jobs in the past
-00:03 +68: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: rejects intervals under the WorkManager minimum
-00:03 +69: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: disabling clears the next run and enabling recomputes it
-00:03 +70: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: records a successful run, advances the schedule and stores history
-00:03 +71: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: a failed one-off job keeps its time so it can be retried
-00:03 +72: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: due jobs only include active jobs whose time has come
-00:03 +73: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: deleting a job also deletes its run history
-00:03 +74: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: nextScheduled returns the soonest active job
-00:03 +75: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: list ordering is stable and deterministic
-00:03 +76: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: (tearDownAll)
-00:03 +76: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: shortDate formats a Jalali date with Persian digits
-00:03 +77: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: longDate uses Persian month names
-00:03 +78: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: weekdayDate knows Persian weekday names
-00:03 +79: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: clock pads hours and minutes
-00:03 +80: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: relative describes recent times
-00:03 +81: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: scheduleLabel distinguishes today and tomorrow
-00:03 +82: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: greeting follows the hour of day
-00:03 +83: /home/runner/work/Ideal/Ideal/test/unit/persian_date_test.dart: addDays keeps the wall-clock time across month boundaries
-00:03 +84: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun one-off returns its anchor only when in the future
-00:03 +85: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun daily fires today when the time is still ahead
-00:03 +86: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun daily rolls to tomorrow when the time has passed
-00:03 +87: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun weekly finds the next matching weekday
-00:03 +88: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun weekly returns today when it is the right day and still ahead
-00:03 +89: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun interval advances from the anchor in fixed steps
-00:03 +90: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun interval returns the anchor when it is still in the future
-00:03 +91: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun invalid schedules return null instead of throwing
-00:03 +92: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip daily schedule survives serialisation
-00:03 +93: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip one-off anchor survives serialisation
-00:03 +94: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip malformed JSON yields an invalid schedule rather than crashing
-00:03 +95: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels daily label uses 24h times
-00:03 +96: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels weekly label names the weekday
-00:03 +97: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels interval label prefers hours for whole hours
-00:04 +98: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing says so honestly when nothing happened
-00:04 +99: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing counts messages per source with Persian digits
-00:04 +100: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing highlights the next job and urgent items
-00:04 +101: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing ignores notifications from previous days
-00:04 +102: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing never invents content when asked for details
-00:04 +103: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: urge detector matches Persian and English keywords
-00:04 +104: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: summarize builds a compact one-liner
-00:05 +105: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: converts a valid native entry
-00:05 +106: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: skips entries from disabled sources
-00:05 +107: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: keeps unknown packages only when "other" is enabled
-00:05 +108: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: drops empty and malformed rows
-00:05 +109: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: falls back to capture time for invalid timestamps
-00:05 +110: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: builds a dedupe key when the native one is missing
-00:05 +111: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: flags urgent messages without inventing content
-00:05 +112: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: import() writes through and reports new rows only
-00:05 +113: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note round-trips through a map
-00:05 +114: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note displayTitle falls back to the body
-00:05 +115: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note preview flattens newlines
-00:05 +116: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note category labels are Persian
-00:05 +117: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job round-trips through a map
-00:05 +118: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job isRecurring and isActive reflect the schedule
-00:05 +119: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job copyWith can clear nullable fields
-00:05 +120: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: JobRun round-trips and computes duration
-00:05 +121: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: AssistantMessage round-trips meta
-00:05 +122: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (setUpAll)
-00:05 +122: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: stores and lists notifications newest first
-00:05 +123: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deduplicates by dedupe key
-00:06 +124: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: group summaries are never surfaced
-00:06 +125: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: unread counts only unread, non-summary rows
-00:06 +126: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: markRead and markAllRead update rows
-00:06 +127: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: since filters by post time
-00:06 +128: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deleteBefore removes old rows and deleteAll clears everything
-00:06 +129: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: source labels map packages to Persian names
-00:06 +130: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: package classification matches the Kotlin implementation
-00:06 +131: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (tearDownAll)
-00:06 +131: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (setUpAll)
-00:06 +131: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent note creation asks for confirmation and only saves on execute
-00:06 +132: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent lists notes as a bullet list
-00:06 +133: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent reading the latest note returns its body
-00:06 +134: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent empty note commands ask for text instead of creating junk
-00:06 +135: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent deleting a note needs confirmation and reports no data without it
-00:06 +136: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
-00:06 +137: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a one-off reminder for tomorrow
-00:06 +138: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
-00:06 +139: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
-00:06 +140: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
-00:06 +141: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent greeting mentions the time of day
-00:06 +142: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent help lists real capabilities
-00:06 +143: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
-00:06 +144: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (tearDownAll)
-00:07 +144: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (setUpAll)
-00:07 +144: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: starts in the idle state
-00:07 +145: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: listening captures partial transcripts
-00:07 +146: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: processing a final transcript produces and speaks a reply
-00:07 +147: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
-00:08 +148: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: Persian weekday names line up with DateTime.weekday
-00:08 +149: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
-00:08 +150: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
-00:08 +151: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
-00:08 +152: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: recognition errors surface a Persian message and return to idle
-00:08 +153: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: repeat replays the last assistant reply
-00:08 +154: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
-00:08 +155: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: typed input is recorded in the activity log
-00:08 +156: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: stopAll returns to idle and stops audio
-00:08 +157: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
-00:08 +158: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (tearDownAll)
-00:08 +158: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (setUpAll)
-00:08 +158: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: writes and reads a string
-00:08 +159: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: overwriting replaces the previous value
-00:08 +160: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: booleans round-trip with a fallback for missing keys
-00:08 +161: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: readAll returns every stored key
-00:08 +162: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
-00:08 +163: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (tearDownAll)
-00:09 +163: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts the start of Nowruz 1403
-00:09 +164: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts a day in Aban 1405
-00:09 +165: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian handles the last day of Esfand in a leap year
-00:09 +166: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali round-trips 500 consecutive days
-00:09 +167: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali Nowruz 1404 is 2025-03-21
-00:09 +168: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths first six months have 31 days
-00:09 +169: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths months seven to eleven have 30 days
-00:09 +170: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths Esfand has 29 days in a common year and 30 in a leap year
-00:09 +171: All tests passed!
+No issues found! (ran in 7.4s)
+00:00 +0: loading /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart
+00:00 +0: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: (setUpAll)
+00:00 +0: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a due reminder runs, posts a notification and records history
+00:00 +1: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a due reminder runs, posts a notification and records history
+00:00 +2: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a due reminder runs, posts a notification and records history
+00:00 +3: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: truncates very long derived titles
+00:00 +4: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: nothing happens when no job is due
+00:00 +5: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: searches title and body
+00:00 +6: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a recurring job advances to its next slot after running
+00:00 +7: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a recurring job advances to its next slot after running
+00:00 +8: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: falls back to general for unknown categories
+00:00 +9: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the briefing summarises captured notifications instead of inventing
+00:00 +10: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the briefing summarises captured notifications instead of inventing
+00:00 +11: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: pins notes to the top of the list
+00:00 +12: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a failing job is recorded as failed and does not throw
+00:00 +13: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: a failing job is recorded as failed and does not throw
+00:00 +14: /home/runner/work/Ideal/Ideal/test/unit/note_service_test.dart: latest returns the most recently updated note
+00:00 +15: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
+00:00 +16: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: the scheduler ticks, then stops cleanly
+00:00 +17: /home/runner/work/Ideal/Ideal/test/unit/job_runner_test.dart: (tearDownAll)
+00:00 +17: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (setUpAll)
+00:00 +17: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent note creation asks for confirmation and only saves on execute
+00:00 +18: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent lists notes as a bullet list
+00:00 +19: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent reading the latest note returns its body
+00:00 +20: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent empty note commands ask for text instead of creating junk
+00:00 +21: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: notes through the agent deleting a note needs confirmation and reports no data without it
+00:00 +22: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a daily job after confirmation
+00:00 +23: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun one-off returns its anchor only when in the future
+00:00 +24: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a one-off reminder for tomorrow
+00:00 +25: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a one-off reminder for tomorrow
+00:00 +26: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent creates a one-off reminder for tomorrow
+00:00 +27: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule.nextRun weekly finds the next matching weekday
+00:00 +28: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
+00:00 +29: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
+00:00 +30: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
+00:00 +31: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
+00:00 +32: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent lists active jobs
+00:00 +33: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: JobSchedule JSON round-trip daily schedule survives serialisation
+00:00 +34: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
+00:00 +35: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
+00:00 +36: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
+00:00 +37: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
+00:00 +38: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: jobs through the agent pausing a job requires confirmation
+00:00 +39: /home/runner/work/Ideal/Ideal/test/unit/job_schedule_test.dart: labels interval label prefers hours for whole hours
+00:00 +40: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent briefing uses injected notifications and never invents data
+00:00 +41: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent greeting mentions the time of day
+00:00 +42: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent help lists real capabilities
+00:00 +43: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: briefing through the agent unknown input gets a helpful fallback with examples
+00:00 +44: /home/runner/work/Ideal/Ideal/test/unit/agent_core_test.dart: (tearDownAll)
+00:01 +44: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: (setUpAll)
+00:01 +44: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: creates a recurring job with the next run
+00:01 +45: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: rejects one-off jobs in the past
+00:01 +46: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: rejects intervals under the WorkManager minimum
+00:01 +47: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles units and teens
+00:01 +48: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianNumbers.toWords handles units and teens
+00:01 +49: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: records a successful run, advances the schedule and stores history
+00:01 +50: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: records a successful run, advances the schedule and stores history
+00:01 +51: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: records a successful run, advances the schedule and stores history
+00:01 +52: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: records a successful run, advances the schedule and stores history
+00:01 +53: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock parses a plain hour
+00:01 +54: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: a failed one-off job keeps its time so it can be retried
+00:01 +55: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: a failed one-off job keeps its time so it can be retried
+00:01 +56: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: a failed one-off job keeps its time so it can be retried
+00:01 +57: /home/runner/work/Ideal/Ideal/test/unit/persian_time_test.dart: PersianTime.parseClock rejects nonsense instead of guessing
+00:01 +58: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: due jobs only include active jobs whose time has come
+00:01 +59: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: deleting a job also deletes its run history
+00:01 +60: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: nextScheduled returns the soonest active job
+00:01 +61: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: list ordering is stable and deterministic
+00:01 +62: /home/runner/work/Ideal/Ideal/test/unit/job_service_test.dart: (tearDownAll)
+00:01 +62: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts the start of Nowruz 1403
+00:01 +63: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian converts a day in Aban 1405
+00:01 +64: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: jalaliFromGregorian handles the last day of Esfand in a leap year
+00:01 +65: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali round-trips 500 consecutive days
+00:01 +66: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: gregorianFromJalali Nowruz 1404 is 2025-03-21
+00:01 +67: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths first six months have 31 days
+00:01 +68: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths months seven to eleven have 30 days
+00:01 +69: /home/runner/work/Ideal/Ideal/test/unit/jalali_test.dart: month lengths Esfand has 29 days in a common year and 30 in a leap year
+00:01 +70: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a greeting
+00:01 +71: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: greetings and help recognises a help request
+00:01 +72: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from an explicit save command
+00:01 +73: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes creates a note from «یادداشت جدید بساز»
+00:01 +74: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes extracts quoted note bodies
+00:01 +75: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes infers the work category
+00:01 +76: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes asks for the body when the command has none
+00:01 +77: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes lists notes
+00:01 +78: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: notes deletes the latest note with confirmation
+00:01 +79: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily reminder with a Persian word hour
+00:01 +80: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation daily news summary keeps the briefing action
+00:01 +81: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation one-off reminder for tomorrow at 09:00
+00:01 +82: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «نه و نیم» clock expressions
+00:01 +83: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation handles «و ربع» quarter hours
+00:01 +84: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation «۸ شب» becomes 20:00
+00:01 +85: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation interval schedules respect the 15 minute minimum
+00:01 +86: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation weekly schedule on Saturday
+00:01 +87: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: job creation a past clock time rolls over to tomorrow
+00:01 +88: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing recognises a spoken briefing request
+00:01 +89: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: briefing message summary without a schedule is not a job
+00:01 +90: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input falls back to unknown
+00:01 +91: /home/runner/work/Ideal/Ideal/test/unit/intent_parser_test.dart: unrecognised input empty input is unknown
+00:02 +92: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (setUpAll)
+00:02 +92: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: writes and reads a string
+00:02 +93: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: overwriting replaces the previous value
+00:02 +94: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: booleans round-trip with a fallback for missing keys
+00:02 +95: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: readAll returns every stored key
+00:02 +96: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: delete removes a key
+00:02 +97: /home/runner/work/Ideal/Ideal/test/unit/settings_repository_test.dart: (tearDownAll)
+00:02 +97: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: converts a valid native entry
+00:02 +98: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: skips entries from disabled sources
+00:02 +99: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: keeps unknown packages only when "other" is enabled
+00:02 +100: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: drops empty and malformed rows
+00:02 +101: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: falls back to capture time for invalid timestamps
+00:02 +102: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: builds a dedupe key when the native one is missing
+00:02 +103: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: flags urgent messages without inventing content
+00:02 +104: /home/runner/work/Ideal/Ideal/test/unit/notification_ingestor_test.dart: import() writes through and reports new rows only
+00:02 +105: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (setUpAll)
+00:02 +105: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: stores and lists notifications newest first
+00:02 +106: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deduplicates by dedupe key
+00:02 +107: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: group summaries are never surfaced
+00:02 +108: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: unread counts only unread, non-summary rows
+00:02 +109: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing says so honestly when nothing happened
+00:02 +110: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: markRead and markAllRead update rows
+00:02 +111: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing counts messages per source with Persian digits
+00:02 +112: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: since filters by post time
+00:02 +113: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: since filters by post time
+00:02 +114: /home/runner/work/Ideal/Ideal/test/unit/briefing_service_test.dart: briefing ignores notifications from previous days
+00:02 +115: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deleteBefore removes old rows and deleteAll clears everything
+00:02 +116: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deleteBefore removes old rows and deleteAll clears everything
+00:02 +117: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deleteBefore removes old rows and deleteAll clears everything
+00:02 +118: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: deleteBefore removes old rows and deleteAll clears everything
+00:02 +119: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: source labels map packages to Persian names
+00:02 +120: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: package classification matches the Kotlin implementation
+00:02 +121: /home/runner/work/Ideal/Ideal/test/unit/notification_repository_test.dart: (tearDownAll)
+00:03 +121: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note round-trips through a map
+00:03 +122: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note displayTitle falls back to the body
+00:03 +123: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note preview flattens newlines
+00:03 +124: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Note category labels are Persian
+00:03 +125: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job round-trips through a map
+00:03 +126: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job isRecurring and isActive reflect the schedule
+00:03 +127: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: Job copyWith can clear nullable fields
+00:03 +128: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: JobRun round-trips and computes duration
+00:03 +129: /home/runner/work/Ideal/Ideal/test/unit/models_test.dart: AssistantMessage round-trips meta
+00:03 +130: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits converts ASCII digits
+00:03 +131: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits keeps letters and punctuation
+00:03 +132: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toPersianDigits accepts non-string input
+00:03 +133: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Persian digits
+00:03 +134: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: toAsciiDigits converts Arabic-Indic digits
+00:03 +135: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput unifies Arabic yeh and kaf
+00:03 +136: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput removes diacritics and tatweel
+00:03 +137: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput converts digits and collapses whitespace
+00:03 +138: /home/runner/work/Ideal/Ideal/test/unit/persian_digits_test.dart: normalizePersianInput replaces zero-width non-joiners with spaces
+00:03 +139: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (setUpAll)
+00:03 +139: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: starts in the idle state
+00:03 +140: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: listening captures partial transcripts
+00:03 +141: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: processing a final transcript produces and speaks a reply
+00:03 +142: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +143: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +144: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +145: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +146: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +147: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +148: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +149: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +150: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +151: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:03 +152: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: confirmation-gated intents do not execute before approval
+00:04 +153: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: cancel on the confirmation sheet keeps data untouched
+00:04 +154: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: recognition errors surface a Persian message and return to idle
+00:04 +155: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: repeat replays the last assistant reply
+00:04 +156: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +157: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +158: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +159: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +160: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +161: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +162: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +163: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +164: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: missing Persian TTS voice is reported, text answer still works
+00:04 +165: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: typed input is recorded in the activity log
+00:04 +166: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: stopAll returns to idle and stops audio
+00:04 +167: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: mute prevents speech output
+00:04 +168: /home/runner/work/Ideal/Ideal/test/unit/assistant_controller_test.dart: (tearDownAll)
+00:04 +168: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: Persian weekday names line up with DateTime.weekday
+00:04 +169: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: month names are in calendar order
+00:04 +170: /home/runner/work/Ideal/Ideal/test/unit/jalali_weekday_test.dart: JalaliDate equality and comparison
+00:04 +171: All tests passed!
 00:00 +0: loading /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart
 00:00 +0: (setUpAll)
 00:00 +0: boots into the assistant tab in RTL with Persian labels
 00:01 +1: navigates through all five tabs
-00:03 +2: typed assistant input opens the confirmation sheet
-00:04 +3: a stored note appears in the notes tab
-00:05 +4: (tearDownAll)
-00:05 +4: All tests passed!
+00:02 +2: typed assistant input opens the confirmation sheet
+00:03 +3: a stored note appears in the notes tab
+00:04 +4: (tearDownAll)
+00:04 +4: All tests passed!
 Running Gradle task 'assembleDebug'...                          
-Loading package information...                                                  
-Loading local repository...                                                     
-[                                       ] 3% Loading local repository...        
-[                                       ] 3% Fetch remote repository...         
-[=                                      ] 3% Fetch remote repository...         
-[=                                      ] 4% Fetch remote repository...         
-[=                                      ] 5% Fetch remote repository...         
-[==                                     ] 5% Fetch remote repository...         
-[==                                     ] 6% Fetch remote repository...         
-[==                                     ] 7% Fetch remote repository...         
-[==                                     ] 7% Computing updates...               
-[===                                    ] 8% Computing updates...               
-[===                                    ] 10% Computing updates...              
-[===                                    ] 10% Installing NDK (Side by side) 28.2
-[===                                    ] 10% Downloading android-ndk-r28c-linux
-[====                                   ] 10% Downloading android-ndk-r28c-linux
-[====                                   ] 11% Downloading android-ndk-r28c-linux
-[====                                   ] 12% Downloading android-ndk-r28c-linux
-[=====                                  ] 13% Downloading android-ndk-r28c-linux
-[=====                                  ] 14% Downloading android-ndk-r28c-linux
-[=====                                  ] 15% Downloading android-ndk-r28c-linux
-[======                                 ] 15% Downloading android-ndk-r28c-linux
-[======                                 ] 16% Downloading android-ndk-r28c-linux
-[======                                 ] 17% Downloading android-ndk-r28c-linux
-[=======                                ] 18% Downloading android-ndk-r28c-linux
-[=======                                ] 19% Downloading android-ndk-r28c-linux
-[=======                                ] 20% Downloading android-ndk-r28c-linux
-[========                               ] 20% Downloading android-ndk-r28c-linux
-[========                               ] 21% Downloading android-ndk-r28c-linux
-[========                               ] 22% Downloading android-ndk-r28c-linux
-[=========                              ] 23% Downloading android-ndk-r28c-linux
-[=========                              ] 24% Downloading android-ndk-r28c-linux
-[=========                              ] 25% Downloading android-ndk-r28c-linux
-[==========                             ] 25% Downloading android-ndk-r28c-linux
-[==========                             ] 26% Downloading android-ndk-r28c-linux
-[==========                             ] 27% Downloading android-ndk-r28c-linux
-[===========                            ] 28% Downloading android-ndk-r28c-linux
-[===========                            ] 29% Downloading android-ndk-r28c-linux
-[===========                            ] 30% Downloading android-ndk-r28c-linux
-[============                           ] 30% Downloading android-ndk-r28c-linux
-[============                           ] 31% Downloading android-ndk-r28c-linux
-[============                           ] 32% Downloading android-ndk-r28c-linux
-[============                           ] 33% Downloading android-ndk-r28c-linux
-[============                           ] 33% Unzipping...                      
-[============                           ] 33% Unzipping... android-ndk-r28c/    
-[============                           ] 33% Unzipping... android-ndk-r28c/READ
-[=============                          ] 33% Unzipping... android-ndk-r28c/READ
-[=============                          ] 33% Unzipping... android-ndk-r28c/meta
-[=============                          ] 33% Unzipping... android-ndk-r28c/shad
-[=============                          ] 33% Unzipping... android-ndk-r28c/ndk-
-[=============                          ] 33% Unzipping... android-ndk-r28c/wrap
-[=============                          ] 33% Unzipping... android-ndk-r28c/ndk-
-[=============                          ] 33% Unzipping... android-ndk-r28c/tool
-[=============                          ] 34% Unzipping... android-ndk-r28c/tool
-[=============                          ] 35% Unzipping... android-ndk-r28c/tool
-[==============                         ] 35% Unzipping... android-ndk-r28c/tool
-[==============                         ] 36% Unzipping... android-ndk-r28c/tool
-[==============                         ] 37% Unzipping... android-ndk-r28c/tool
-[===============                        ] 38% Unzipping... android-ndk-r28c/tool
-[===============                        ] 39% Unzipping... android-ndk-r28c/tool
-[===============                        ] 40% Unzipping... android-ndk-r28c/tool
-[================                       ] 40% Unzipping... android-ndk-r28c/tool
-[================                       ] 41% Unzipping... android-ndk-r28c/tool
-[================                       ] 42% Unzipping... android-ndk-r28c/tool
-[=================                      ] 43% Unzipping... android-ndk-r28c/tool
-[=================                      ] 44% Unzipping... android-ndk-r28c/tool
-[=================                      ] 45% Unzipping... android-ndk-r28c/tool
-[==================                     ] 45% Unzipping... android-ndk-r28c/tool
-[==================                     ] 46% Unzipping... android-ndk-r28c/tool
-[==================                     ] 47% Unzipping... android-ndk-r28c/tool
-[===================                    ] 48% Unzipping... android-ndk-r28c/tool
-[===================                    ] 49% Unzipping... android-ndk-r28c/tool
-[===================                    ] 50% Unzipping... android-ndk-r28c/tool
-[====================                   ] 50% Unzipping... android-ndk-r28c/tool
-[====================                   ] 51% Unzipping... android-ndk-r28c/tool
-[====================                   ] 52% Unzipping... android-ndk-r28c/tool
-[=====================                  ] 53% Unzipping... android-ndk-r28c/tool
-[=====================                  ] 54% Unzipping... android-ndk-r28c/tool
-[=====================                  ] 54% Unzipping... android-ndk-r28c/buil
-[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
-[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
-[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
-[=====================                  ] 54% Unzipping... android-ndk-r28c/NOTI
-[=====================                  ] 54% Unzipping... android-ndk-r28c/pyth
-[=====================                  ] 54% Unzipping... android-ndk-r28c/preb
-[=====================                  ] 54% Unzipping... android-ndk-r28c/ndk-
-[=====================                  ] 54% Unzipping... android-ndk-r28c/sour
-[=====================                  ] 54% Unzipping... android-ndk-r28c/simp
-[=====================                  ] 55% Unzipping... android-ndk-r28c/simp
-[=====================                  ] 55% Unzipping... android-ndk-r28c/CHAN
-[=======================================] 100% Unzipping... android-ndk-r28c/CHA
 
-WARNING: Your Android app project: app located at: /home/runner/work/Ideal/Ideal/android/app/build.gradle.kts
-applies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter.
-Please migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers
-
-WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): flutter_tts
-Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
-
-Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
-If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
-an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
-
-If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-warning: [options] source value 8 is obsolete and will be removed in a future release
-warning: [options] target value 8 is obsolete and will be removed in a future release
-warning: [options] To suppress warnings about obsolete options, use -Xlint:-options.
-3 warnings
-Checking the license for package CMake 3.22.1 in /usr/local/lib/android/sdk/licenses
-License for package CMake 3.22.1 accepted.
-Preparing "Install CMake 3.22.1 v.3.22.1".
-"Install CMake 3.22.1 v.3.22.1" ready.
-Installing CMake 3.22.1 in /usr/local/lib/android/sdk/cmake/3.22.1
-"Install CMake 3.22.1 v.3.22.1" complete.
-"Install CMake 3.22.1 v.3.22.1" finished.
-Running Gradle task 'assembleDebug'...                            296.8s
-✓ Built build/app/outputs/flutter-apk/app-debug.apk
-
-Welcome to Gradle 9.3.1!
-
-Here are the highlights of this release:
- - Test reporting improvements
- - Error and warning improvements
- - Build authoring improvements
-
-For more details see https://docs.gradle.org/9.3.1/release-notes.html
-
-> Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :gradle:compileKotlin UP-TO-DATE
-> Task :gradle:compileJava NO-SOURCE
-> Task :gradle:compileGroovy NO-SOURCE
-> Task :gradle:pluginDescriptors UP-TO-DATE
-> Task :gradle:processResources UP-TO-DATE
-> Task :gradle:classes UP-TO-DATE
-> Task :gradle:jar UP-TO-DATE
-
-> Configure project :app
-WARNING: The option setting 'android.builtInKotlin=false' is deprecated.
-The current default is 'true'.
-It will be removed in version 10.0 of the Android Gradle plugin.
-WARNING: The option setting 'android.newDsl=false' is deprecated.
-The current default is 'true'.
-It will be removed in version 10.0 of the Android Gradle plugin.
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':app' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :flutter_secure_storage
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':flutter_secure_storage' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :flutter_tts
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':flutter_tts' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :jni
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':jni' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :jni_flutter
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':jni_flutter' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :permission_handler_android
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':permission_handler_android' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :shared_preferences_android
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':shared_preferences_android' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :speech_to_text
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':speech_to_text' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :sqflite_android
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':sqflite_android' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-
-> Configure project :url_launcher_android
-w: ⚠️ Deprecated 'org.jetbrains.kotlin.android' plugin usage
-The 'org.jetbrains.kotlin.android' plugin in project ':url_launcher_android' is no longer required for Kotlin support since AGP 9.0.
-Solution: Remove both `android.builtInKotlin=true` and `android.newDsl=false` from `gradle.properties`, then migrate to built-in Kotlin.
-See https://kotl.in/gradle/agp-built-in-kotlin for more details.
-
-WARNING: Your Android app project: app located at: /home/runner/work/Ideal/Ideal/android/app/build.gradle.kts
-applies the Kotlin Gradle Plugin, which will cause build failures in future versions of Flutter.
-Please migrate your app to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers
-
-WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): flutter_tts
-Future versions of Flutter will fail to build if your app uses plugins that apply KGP.
-
-Please check the changelogs of these plugins and upgrade to a version that supports Built-in Kotlin.
-If no such version exists, report the issue to the plugin. If necessary, here is a guide on filing
-an issue against a plugin: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers#report-incompatible-kotlin-gradle-plugin-usage-to-plugin-authors
-
-If you are a plugin author, please migrate your plugin to Built-in Kotlin using this guide: https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors
-
-> Task :jni:generateDebugAssets UP-TO-DATE
-> Task :flutter_tts:generateDebugAssets UP-TO-DATE
-> Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :flutter_tts:preBuild UP-TO-DATE
-> Task :flutter_tts:preDebugBuild UP-TO-DATE
-> Task :jni:preBuild UP-TO-DATE
-> Task :jni:preDebugBuild UP-TO-DATE
-> Task :jni:mergeDebugAssets UP-TO-DATE
-> Task :jni_flutter:generateDebugAssets UP-TO-DATE
-> Task :jni_flutter:preBuild UP-TO-DATE
-> Task :flutter_secure_storage:generateDebugAssets UP-TO-DATE
-> Task :jni_flutter:preDebugBuild UP-TO-DATE
-> Task :flutter_secure_storage:preBuild UP-TO-DATE
-> Task :flutter_secure_storage:preDebugBuild UP-TO-DATE
-> Task :flutter_tts:mergeDebugAssets UP-TO-DATE
-> Task :permission_handler_android:generateDebugAssets UP-TO-DATE
-> Task :permission_handler_android:preBuild UP-TO-DATE
-> Task :permission_handler_android:preDebugBuild UP-TO-DATE
-> Task :jni_flutter:mergeDebugAssets UP-TO-DATE
-> Task :shared_preferences_android:generateDebugAssets UP-TO-DATE
-> Task :shared_preferences_android:preBuild UP-TO-DATE
-> Task :shared_preferences_android:preDebugBuild UP-TO-DATE
-> Task :flutter_secure_storage:mergeDebugAssets UP-TO-DATE
-> Task :speech_to_text:generateDebugAssets UP-TO-DATE
-> Task :speech_to_text:preBuild UP-TO-DATE
-> Task :speech_to_text:preDebugBuild UP-TO-DATE
-> Task :permission_handler_android:mergeDebugAssets UP-TO-DATE
-> Task :sqflite_android:generateDebugAssets UP-TO-DATE
-> Task :sqflite_android:preBuild UP-TO-DATE
-> Task :sqflite_android:preDebugBuild UP-TO-DATE
-> Task :shared_preferences_android:mergeDebugAssets UP-TO-DATE
-> Task :url_launcher_android:generateDebugAssets UP-TO-DATE
-> Task :url_launcher_android:preBuild UP-TO-DATE
-> Task :url_launcher_android:preDebugBuild UP-TO-DATE
-> Task :speech_to_text:mergeDebugAssets UP-TO-DATE
-> Task :sqflite_android:mergeDebugAssets UP-TO-DATE
-> Task :url_launcher_android:mergeDebugAssets UP-TO-DATE
-> Task :flutter_secure_storage:processDebugNavigationResources UP-TO-DATE
-> Task :jni:processDebugNavigationResources UP-TO-DATE
-> Task :flutter_tts:processDebugNavigationResources UP-TO-DATE
-> Task :jni_flutter:processDebugNavigationResources UP-TO-DATE
-> Task :permission_handler_android:processDebugNavigationResources UP-TO-DATE
-> Task :app:cleanMergeDebugAssets
-> Task :shared_preferences_android:processDebugNavigationResources UP-TO-DATE
-> Task :speech_to_text:processDebugNavigationResources UP-TO-DATE
-> Task :flutter_secure_storage:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :sqflite_android:processDebugNavigationResources UP-TO-DATE
-> Task :flutter_secure_storage:generateDebugBuildConfig UP-TO-DATE
-> Task :flutter_tts:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :url_launcher_android:processDebugNavigationResources UP-TO-DATE
-> Task :flutter_tts:generateDebugResources UP-TO-DATE
-> Task :flutter_secure_storage:generateDebugResources UP-TO-DATE
-> Task :jni:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :flutter_secure_storage:packageDebugResources UP-TO-DATE
-> Task :jni:generateDebugResources UP-TO-DATE
-> Task :flutter_tts:packageDebugResources UP-TO-DATE
-> Task :jni:packageDebugResources UP-TO-DATE
-> Task :flutter_secure_storage:parseDebugLocalResources UP-TO-DATE
-> Task :flutter_secure_storage:generateDebugRFile UP-TO-DATE
-> Task :jni:parseDebugLocalResources UP-TO-DATE
-> Task :flutter_tts:parseDebugLocalResources UP-TO-DATE
-> Task :flutter_tts:generateDebugRFile UP-TO-DATE
-> Task :jni:generateDebugRFile UP-TO-DATE
-> Task :flutter_secure_storage:compileDebugKotlin NO-SOURCE
-> Task :flutter_secure_storage:javaPreCompileDebug UP-TO-DATE
-> Task :jni:compileDebugKotlin NO-SOURCE
-> Task :jni:javaPreCompileDebug UP-TO-DATE
-> Task :flutter_secure_storage:compileDebugJavaWithJavac UP-TO-DATE
-> Task :flutter_secure_storage:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :jni_flutter:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :jni:compileDebugJavaWithJavac UP-TO-DATE
-> Task :jni_flutter:generateDebugResources UP-TO-DATE
-> Task :jni:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :permission_handler_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :permission_handler_android:generateDebugResources UP-TO-DATE
-> Task :jni_flutter:packageDebugResources UP-TO-DATE
-> Task :permission_handler_android:packageDebugResources UP-TO-DATE
-> Task :jni_flutter:parseDebugLocalResources UP-TO-DATE
-> Task :flutter_tts:compileDebugKotlin UP-TO-DATE
-> Task :permission_handler_android:parseDebugLocalResources UP-TO-DATE
-> Task :flutter_tts:javaPreCompileDebug UP-TO-DATE
-> Task :jni_flutter:generateDebugRFile UP-TO-DATE
-> Task :flutter_tts:compileDebugJavaWithJavac NO-SOURCE
-> Task :flutter_tts:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :shared_preferences_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :permission_handler_android:generateDebugRFile UP-TO-DATE
-> Task :shared_preferences_android:generateDebugResources UP-TO-DATE
-> Task :jni_flutter:compileDebugKotlin NO-SOURCE
-> Task :permission_handler_android:compileDebugKotlin NO-SOURCE
-> Task :shared_preferences_android:packageDebugResources UP-TO-DATE
-> Task :jni_flutter:javaPreCompileDebug UP-TO-DATE
-> Task :permission_handler_android:javaPreCompileDebug UP-TO-DATE
-> Task :shared_preferences_android:parseDebugLocalResources UP-TO-DATE
-> Task :shared_preferences_android:generateDebugRFile UP-TO-DATE
-> Task :permission_handler_android:compileDebugJavaWithJavac UP-TO-DATE
-> Task :permission_handler_android:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :speech_to_text:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :jni_flutter:compileDebugJavaWithJavac UP-TO-DATE
-> Task :speech_to_text:generateDebugResources UP-TO-DATE
-> Task :jni_flutter:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :sqflite_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :speech_to_text:packageDebugResources UP-TO-DATE
-> Task :sqflite_android:generateDebugResources UP-TO-DATE
-> Task :speech_to_text:parseDebugLocalResources UP-TO-DATE
-> Task :sqflite_android:packageDebugResources UP-TO-DATE
-> Task :sqflite_android:parseDebugLocalResources UP-TO-DATE
-> Task :speech_to_text:generateDebugRFile UP-TO-DATE
-> Task :sqflite_android:generateDebugRFile UP-TO-DATE
-> Task :sqflite_android:compileDebugKotlin NO-SOURCE
-> Task :sqflite_android:javaPreCompileDebug UP-TO-DATE
-> Task :shared_preferences_android:compileDebugKotlin UP-TO-DATE
-> Task :shared_preferences_android:javaPreCompileDebug UP-TO-DATE
-> Task :shared_preferences_android:compileDebugJavaWithJavac NO-SOURCE
-> Task :shared_preferences_android:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :url_launcher_android:checkKotlinGradlePluginConfigurationErrors SKIPPED
-> Task :url_launcher_android:generateDebugBuildConfig UP-TO-DATE
-> Task :sqflite_android:compileDebugJavaWithJavac UP-TO-DATE
-> Task :url_launcher_android:generateDebugResources UP-TO-DATE
-> Task :url_launcher_android:packageDebugResources UP-TO-DATE
-> Task :sqflite_android:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :flutter_secure_storage:writeDebugAarMetadata UP-TO-DATE
-> Task :url_launcher_android:parseDebugLocalResources UP-TO-DATE
-> Task :flutter_tts:writeDebugAarMetadata UP-TO-DATE
-> Task :jni:writeDebugAarMetadata UP-TO-DATE
-> Task :url_launcher_android:generateDebugRFile UP-TO-DATE
-> Task :jni_flutter:writeDebugAarMetadata UP-TO-DATE
-> Task :speech_to_text:compileDebugKotlin UP-TO-DATE
-> Task :permission_handler_android:writeDebugAarMetadata UP-TO-DATE
-> Task :shared_preferences_android:writeDebugAarMetadata UP-TO-DATE
-> Task :speech_to_text:javaPreCompileDebug UP-TO-DATE
-> Task :sqflite_android:writeDebugAarMetadata UP-TO-DATE
-> Task :flutter_secure_storage:extractDeepLinksDebug UP-TO-DATE
-> Task :speech_to_text:compileDebugJavaWithJavac NO-SOURCE
-> Task :speech_to_text:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :speech_to_text:writeDebugAarMetadata UP-TO-DATE
-> Task :flutter_secure_storage:processDebugManifest UP-TO-DATE
-> Task :flutter_tts:extractDeepLinksDebug UP-TO-DATE
-> Task :jni:extractDeepLinksDebug UP-TO-DATE
-> Task :jni:processDebugManifest UP-TO-DATE
-> Task :flutter_tts:processDebugManifest UP-TO-DATE
-> Task :jni_flutter:extractDeepLinksDebug UP-TO-DATE
-> Task :permission_handler_android:extractDeepLinksDebug UP-TO-DATE
-> Task :permission_handler_android:processDebugManifest UP-TO-DATE
-> Task :shared_preferences_android:extractDeepLinksDebug UP-TO-DATE
-> Task :jni_flutter:processDebugManifest UP-TO-DATE
-> Task :speech_to_text:extractDeepLinksDebug UP-TO-DATE
-> Task :shared_preferences_android:processDebugManifest UP-TO-DATE
-> Task :speech_to_text:processDebugManifest UP-TO-DATE
-> Task :sqflite_android:extractDeepLinksDebug UP-TO-DATE
-> Task :flutter_secure_storage:mapDebugSourceSetPaths UP-TO-DATE
-> Task :sqflite_android:processDebugManifest UP-TO-DATE
-> Task :flutter_secure_storage:compileDebugLibraryResources UP-TO-DATE
-> Task :flutter_tts:mapDebugSourceSetPaths UP-TO-DATE
-> Task :jni:mapDebugSourceSetPaths UP-TO-DATE
-> Task :url_launcher_android:compileDebugKotlin UP-TO-DATE
-> Task :jni:compileDebugLibraryResources UP-TO-DATE
-> Task :flutter_tts:compileDebugLibraryResources UP-TO-DATE
-> Task :jni_flutter:mapDebugSourceSetPaths UP-TO-DATE
-> Task :url_launcher_android:javaPreCompileDebug UP-TO-DATE
-> Task :permission_handler_android:mapDebugSourceSetPaths UP-TO-DATE
-> Task :jni_flutter:compileDebugLibraryResources UP-TO-DATE
-> Task :permission_handler_android:compileDebugLibraryResources UP-TO-DATE
-> Task :speech_to_text:mapDebugSourceSetPaths UP-TO-DATE
-> Task :shared_preferences_android:mapDebugSourceSetPaths UP-TO-DATE
-> Task :speech_to_text:compileDebugLibraryResources UP-TO-DATE
-> Task :shared_preferences_android:compileDebugLibraryResources UP-TO-DATE
-> Task :sqflite_android:mapDebugSourceSetPaths UP-TO-DATE
-> Task :flutter_secure_storage:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :sqflite_android:compileDebugLibraryResources UP-TO-DATE
-> Task :flutter_tts:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :flutter_tts:processDebugJavaRes UP-TO-DATE
-> Task :url_launcher_android:compileDebugJavaWithJavac UP-TO-DATE
-> Task :jni:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :flutter_secure_storage:processDebugJavaRes NO-SOURCE
-> Task :jni:processDebugJavaRes NO-SOURCE
-> Task :url_launcher_android:bundleLibCompileToJarDebug UP-TO-DATE
-> Task :jni_flutter:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :permission_handler_android:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :url_launcher_android:writeDebugAarMetadata UP-TO-DATE
-> Task :jni_flutter:processDebugJavaRes NO-SOURCE
-> Task :permission_handler_android:processDebugJavaRes NO-SOURCE
-> Task :speech_to_text:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :url_launcher_android:extractDeepLinksDebug UP-TO-DATE
-> Task :shared_preferences_android:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :url_launcher_android:processDebugManifest UP-TO-DATE
-> Task :shared_preferences_android:processDebugJavaRes UP-TO-DATE
-> Task :url_launcher_android:mapDebugSourceSetPaths UP-TO-DATE
-> Task :speech_to_text:processDebugJavaRes UP-TO-DATE
-> Task :sqflite_android:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :url_launcher_android:compileDebugLibraryResources UP-TO-DATE
-> Task :flutter_secure_storage:preDebugUnitTestBuild UP-TO-DATE
-> Task :sqflite_android:processDebugJavaRes NO-SOURCE
-> Task :flutter_tts:preDebugUnitTestBuild UP-TO-DATE
-> Task :url_launcher_android:bundleLibRuntimeToJarDebug UP-TO-DATE
-> Task :url_launcher_android:processDebugJavaRes UP-TO-DATE
-> Task :jni:preDebugUnitTestBuild UP-TO-DATE
-> Task :flutter_secure_storage:generateDebugUnitTestStubRFile
-> Task :jni:generateDebugUnitTestStubRFile
-> Task :flutter_secure_storage:compileDebugUnitTestKotlin NO-SOURCE
-> Task :flutter_tts:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :flutter_secure_storage:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :flutter_secure_storage:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :flutter_tts:generateDebugUnitTestStubRFile
-> Task :flutter_tts:compileDebugUnitTestKotlin NO-SOURCE
-> Task :jni:compileDebugUnitTestKotlin NO-SOURCE
-> Task :flutter_secure_storage:processDebugUnitTestJavaRes NO-SOURCE
-> Task :flutter_tts:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :jni:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :flutter_secure_storage:testDebugUnitTest NO-SOURCE
-> Task :jni:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :flutter_tts:processDebugUnitTestJavaRes NO-SOURCE
-> Task :jni_flutter:preDebugUnitTestBuild UP-TO-DATE
-> Task :jni:processDebugUnitTestJavaRes NO-SOURCE
-> Task :jni:testDebugUnitTest NO-SOURCE
-> Task :permission_handler_android:preDebugUnitTestBuild UP-TO-DATE
-> Task :flutter_tts:testDebugUnitTest NO-SOURCE
-> Task :shared_preferences_android:preDebugUnitTestBuild UP-TO-DATE
-> Task :permission_handler_android:generateDebugUnitTestStubRFile
-> Task :jni_flutter:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :permission_handler_android:compileDebugUnitTestKotlin NO-SOURCE
-> Task :permission_handler_android:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :permission_handler_android:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :permission_handler_android:processDebugUnitTestJavaRes NO-SOURCE
-> Task :permission_handler_android:testDebugUnitTest NO-SOURCE
-> Task :speech_to_text:preDebugUnitTestBuild UP-TO-DATE
-> Task :jni_flutter:generateDebugUnitTestStubRFile
-> Task :jni_flutter:compileDebugUnitTestKotlin NO-SOURCE
-> Task :jni_flutter:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :jni_flutter:processDebugUnitTestJavaRes NO-SOURCE
-> Task :jni_flutter:testDebugUnitTest NO-SOURCE
-> Task :speech_to_text:generateDebugUnitTestStubRFile
-> Task :sqflite_android:preDebugUnitTestBuild UP-TO-DATE
-> Task :speech_to_text:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :speech_to_text:compileDebugUnitTestKotlin NO-SOURCE
-> Task :speech_to_text:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :speech_to_text:processDebugUnitTestJavaRes NO-SOURCE
-> Task :speech_to_text:testDebugUnitTest NO-SOURCE
-> Task :url_launcher_android:preDebugUnitTestBuild UP-TO-DATE
-> Task :sqflite_android:generateDebugUnitTestStubRFile
-> Task :sqflite_android:compileDebugUnitTestKotlin NO-SOURCE
-> Task :sqflite_android:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :sqflite_android:compileDebugUnitTestJavaWithJavac
-> Task :sqflite_android:processDebugUnitTestJavaRes NO-SOURCE
-> Task :url_launcher_android:checkDebugUnitTestAarMetadata
-> Task :url_launcher_android:mapDebugUnitTestSourceSetPaths
-> Task :url_launcher_android:generateDebugUnitTestResources FROM-CACHE
-> Task :url_launcher_android:mergeDebugUnitTestResources
-> Task :shared_preferences_android:checkDebugUnitTestAarMetadata
-> Task :shared_preferences_android:mapDebugUnitTestSourceSetPaths
-> Task :shared_preferences_android:generateDebugUnitTestResources FROM-CACHE
-> Task :url_launcher_android:processDebugUnitTestManifest
-> Task :url_launcher_android:processDebugUnitTestResources
-> Task :shared_preferences_android:mergeDebugUnitTestResources
-> Task :shared_preferences_android:processDebugUnitTestManifest
-> Task :shared_preferences_android:processDebugUnitTestResources
-> Task :url_launcher_android:compileDebugUnitTestKotlin
-> Task :url_launcher_android:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :url_launcher_android:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :url_launcher_android:generateDebugUnitTestAssets UP-TO-DATE
-> Task :sqflite_android:testDebugUnitTest
-> Task :url_launcher_android:mergeDebugUnitTestAssets
-> Task :url_launcher_android:packageDebugUnitTestForUnitTest
-> Task :url_launcher_android:processDebugUnitTestJavaRes
-> Task :url_launcher_android:generateDebugUnitTestConfig
-> Task :shared_preferences_android:javaPreCompileDebugUnitTest FROM-CACHE
-> Task :shared_preferences_android:generateDebugUnitTestAssets UP-TO-DATE
-> Task :shared_preferences_android:mergeDebugUnitTestAssets
-> Task :shared_preferences_android:packageDebugUnitTestForUnitTest
-> Task :shared_preferences_android:generateDebugUnitTestConfig
-> Task :shared_preferences_android:compileDebugUnitTestKotlin
-> Task :shared_preferences_android:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :shared_preferences_android:processDebugUnitTestJavaRes
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :shared_preferences_android:testDebugUnitTest
-
-LegacySharedPreferencesTest > executesOnBackgroundThreadSeriallyInFifoOrder STANDARD_ERROR
-    WARNING: A Java agent has been loaded dynamically (/home/runner/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.18.2/62f38a6faf7f069d661b79a07d566f504b0b20c4/byte-buddy-agent-1.18.2.jar)
-    WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
-    WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
-    WARNING: Dynamic loading of agents will be disallowed by default in a future release
-
-LegacySharedPreferencesTest > executesOnBackgroundThreadSeriallyInFifoOrder PASSED
-
-LegacySharedPreferencesTest > getAll PASSED
-
-LegacySharedPreferencesTest > setInt PASSED
-
-LegacySharedPreferencesTest > onAttachedToEngine_doesNotEagerlyInitializePreferences PASSED
-
-LegacySharedPreferencesTest > setDouble PASSED
-
-LegacySharedPreferencesTest > setEncodedStringListSetsAndGetsString PASSED
-
-LegacySharedPreferencesTest > allowList PASSED
-
-LegacySharedPreferencesTest > clearWithNoAllowList PASSED
-
-LegacySharedPreferencesTest > setString PASSED
-
-LegacySharedPreferencesTest > clearWithAllowList PASSED
-
-LegacySharedPreferencesTest > clearAll PASSED
-
-LegacySharedPreferencesTest > testRemove PASSED
-
-LegacySharedPreferencesTest > setBool PASSED
-
-> Task :app:compileFlutterBuildDebug
-> Task :app:generateDebugAssets UP-TO-DATE
-> Task :app:validateCompileSdkVersion
-> Task :app:preBuild
-> Task :app:preDebugBuild
-> Task :app:mergeDebugAssets
-> Task :app:copyFlutterAssetsDebug
-> Task :app:generateDebugResources UP-TO-DATE
-> Task :app:packageDebugResources UP-TO-DATE
-> Task :app:processDebugNavigationResources UP-TO-DATE
-> Task :app:parseDebugLocalResources UP-TO-DATE
-> Task :app:generateDebugRFile UP-TO-DATE
-> Task :app:compileDebugKotlin UP-TO-DATE
-> Task :app:javaPreCompileDebug UP-TO-DATE
-> Task :app:compileDebugJavaWithJavac UP-TO-DATE
-> Task :app:checkDebugAarMetadata UP-TO-DATE
-> Task :app:mapDebugSourceSetPaths UP-TO-DATE
-> Task :app:compileDebugNavigationResources UP-TO-DATE
-> Task :app:mergeDebugResources UP-TO-DATE
-> Task :app:createDebugCompatibleScreenManifests UP-TO-DATE
-> Task :app:extractDeepLinksDebug UP-TO-DATE
-> Task :app:processDebugMainManifest UP-TO-DATE
-> Task :app:outputDebugAppLinkSettings UP-TO-DATE
-> Task :app:processDebugManifest UP-TO-DATE
-> Task :app:processDebugManifestForPackage UP-TO-DATE
-> Task :app:processDebugResources UP-TO-DATE
-> Task :app:bundleDebugClassesToRuntimeJar
-> Task :app:preDebugUnitTestBuild
-> Task :app:bundleDebugClassesToCompileJar
-> Task :app:javaPreCompileDebugUnitTest FROM-CACHE
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-> Task :app:processDebugJavaRes UP-TO-DATE
-
-> Task :shared_preferences_android:testDebugUnitTest
-
-SharedPreferencesTest > testSharedPreferencesWithMultipleFiles PASSED
-
-SharedPreferencesTest > testSetAndGetStringListWithSharedPreferencesRedirectsForPlatformEncoded PASSED
-
-SharedPreferencesTest > testSetAndGetStringWithDataStore PASSED
-
-SharedPreferencesTest > testSharedPreferencesDefaultFile PASSED
-
-SharedPreferencesTest > testClearWithDataStore PASSED
-
-> Task :app:compileDebugUnitTestKotlin
-> Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :app:processDebugUnitTestJavaRes
-
-> Task :shared_preferences_android:testDebugUnitTest
-
-SharedPreferencesTest > testGetKeysWithSharedPreferences PASSED
-
-SharedPreferencesTest > testSetAndGetIntWithSharedPreferences PASSED
-
-SharedPreferencesTest > testSetAndGetDoubleWithSharedPreferences PASSED
-
-SharedPreferencesTest > testExecutesOnBackgroundThreadSeriallyInFifoOrder PASSED
-
-SharedPreferencesTest > testGetAllWithSharedPreferences PASSED
-
-SharedPreferencesTest > testGetAllWithAllowListWithDataStore PASSED
-
-SharedPreferencesTest > testSetAndGetStringListWithDataStoreReportsRawString PASSED
-
-SharedPreferencesTest > testClearWithAllowListWithSharedPreferences PASSED
-
-SharedPreferencesTest > testSetAndGetBoolWithSharedPreferences PASSED
-
-SharedPreferencesTest > testSetAndGetStringListWithSharedPreferencesReportsRawString PASSED
-
-SharedPreferencesTest > testSetAndGetBoolWithDataStore PASSED
-
-SharedPreferencesTest > testGetAllWithAllowListWithSharedPreferences PASSED
-
-SharedPreferencesTest > testGetKeysWithDataStore PASSED
-
-SharedPreferencesTest > testSetAndGetStringWithSharedPreferences PASSED
-
-SharedPreferencesTest > testSetAndGetDoubleWithDataStore PASSED
-
-SharedPreferencesTest > testSetAndGetIntWithDataStore PASSED
-
-SharedPreferencesTest > testSetAndGetStringListWithSharedPreferences PASSED
-
-SharedPreferencesTest > testClearWithSharedPreferences PASSED
-
-SharedPreferencesTest > testClearWithAllowListWithDataStore PASSED
-
-SharedPreferencesTest > testSetAndGetStringListWithDataStore PASSED
-
-SharedPreferencesTest > testGetAllWithDataStore PASSED
-
-SharedPreferencesTest > testUnexpectedClassDecodeThrows PASSED
-
-SharedPreferencesTest > testSetAndGetStringListWithDataStoreRedirectsForPlatformEncoded PASSED
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested[30] STANDARD_ERROR
-    Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
-    WARNING: A Java agent has been loaded dynamically (/tmp/byteBuddyAgent9319443006402236309.jar)
-    WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
-    WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
-    WARNING: Dynamic loading of agents will be disallowed by default in a future release
-
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :app:testDebugUnitTest
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested[30] PASSED
-
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested[31] PASSED
-
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested[32] PASSED
-
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested[33] PASSED
-
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested[34] PASSED
-
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested[35] PASSED
-
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested[36] PASSED
-
-UrlLauncherTest > openWebView_fallsBackToWebViewIfCustomTabFails PASSED
-
-UrlLauncherTest > openWebView_throwsForNoCurrentActivity PASSED
-
-UrlLauncherTest > openWebView_opensUrlInCustomTabsWithShowTitle PASSED
-
-UrlLauncherTest > openWebView_opensUrlInCustomTabsWithoutShowTitle PASSED
-
-UrlLauncherTest > openUrlInApp_opensUrlInWebViewIfNecessary PASSED
-
-UrlLauncherTest > openWebView_opensUrlInCustomTabs PASSED
-
-UrlLauncherTest > canLaunch_returnsFalseForEmulatorFallbackComponent PASSED
-
-UrlLauncherTest > openWebView_handlesEnableJavaScript PASSED
-
-UrlLauncherTest > canLaunch_createsIntentWithPassedUrl PASSED
-
-UrlLauncherTest > launch_returnsTrue PASSED
-
-UrlLauncherTest > openWebView_handlesEnableDomStorage PASSED
-
-UrlLauncherTest > openWebView_handlesEnableShowTitle PASSED
-
-UrlLauncherTest > canLaunch_returnsFalse PASSED
-
-UrlLauncherTest > launch_throwsForNoCurrentActivity PASSED
-
-UrlLauncherTest > openWebView_returnsFalse PASSED
-
-UrlLauncherTest > closeWebView_closes PASSED
-
-UrlLauncherTest > canLaunch_returnsTrue PASSED
-
-UrlLauncherTest > openWebView_handlesHeaders PASSED
-
-UrlLauncherTest > openWebView_opensUrlInCustomTabsWithCORSAllowedHeader PASSED
-
-UrlLauncherTest > launch_returnsFalse PASSED
-
-UrlLauncherTest > openWebView_opensUrlInWebViewIfRequested PASSED
-
-UrlLauncherTest > launch_createsIntentWithPassedUrl PASSED
-
-OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
-
-> Task :url_launcher_android:testDebugUnitTest
-
-UrlLauncherTest > launch_setsRequireNonBrowserWhenRequested PASSED
-
-WebViewActivityTest > extractHeaders_returnsEmptyMapWhenHeadersBundleNull PASSED
-
-[Incubating] Problems report is available at: file:///home/runner/work/Ideal/Ideal/build/reports/problems/problems-report.html
-
-Deprecated Gradle features were used in this build, making it incompatible with Gradle 10.
-
-You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
-
-For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
-
-BUILD SUCCESSFUL in 1m 18s
-219 actionable tasks: 41 executed, 12 from cache, 166 up-to-date
+FAILURE: Build failed with an exception.
+
+* Where:
+Settings file '/home/runner/work/Ideal/Ideal/android/settings.gradle.kts' line: 20
+
+* What went wrong:
+Error resolving plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0']
+> A problem occurred configuring project ':gradle'.
+   > Could not resolve all artifacts for configuration 'classpath'.
+      > Could not resolve org.jetbrains.kotlin:kotlin-stdlib:2.2.21.
+        Required by:
+            buildscript of project ':gradle'
+         > Repository Gradle Central Plugin Repository is disabled due to earlier error below:
+            > Could not resolve org.jetbrains.kotlin:kotlin-gradle-plugins-bom:2.2.20.
+               > Could not get resource 'https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.2.20/kotlin-gradle-plugins-bom-2.2.20.pom'.
+                  > Could not GET 'https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.2.20/kotlin-gradle-plugins-bom-2.2.20.pom'. Received status code 429 from server: Too Many Requests
+> There are 6 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 27s
+Running Gradle task 'assembleDebug'...                             29.8s
+[!] Gradle threw an error while downloading artifacts from the network.
+Retrying Gradle Build: #1, wait time: 100ms
+Running Gradle task 'assembleDebug'...                          
+
+FAILURE: Build failed with an exception.
+
+* Where:
+Settings file '/home/runner/work/Ideal/Ideal/android/settings.gradle.kts' line: 20
+
+* What went wrong:
+Error resolving plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0']
+> A problem occurred configuring project ':gradle'.
+   > Could not resolve all artifacts for configuration 'classpath'.
+      > Could not resolve org.jetbrains.kotlin:kotlin-stdlib:2.2.21.
+        Required by:
+            buildscript of project ':gradle'
+         > Repository Gradle Central Plugin Repository is disabled due to earlier error below:
+            > Could not resolve org.jetbrains.kotlin:kotlin-gradle-plugins-bom:2.2.20.
+               > Could not get resource 'https://plugins.gradle.org/m2/org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.2.20/kotlin-gradle-plugins-bom-2.2.20.pom'.
+                  > Could not GET 'https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.2.20/kotlin-gradle-plugins-bom-2.2.20.pom'. Received status code 429 from server: Too Many Requests
+> There are 6 more failures with identical causes.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 6s
+Running Gradle task 'assembleDebug'...                              6.9s
+[!] Gradle threw an error while downloading artifacts from the network.
+Gradle task assembleDebug failed with exit code 1
 ```
