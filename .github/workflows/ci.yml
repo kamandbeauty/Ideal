@@ -112,7 +112,7 @@ jobs:
             echo "# CI log (run $GITHUB_RUN_ID)"
             echo ''
             echo '```'
-            tail -c 55000 ci-log.txt
+            tail -c 400000 ci-log.txt
             echo '```'
           } > /tmp/ci-log.md
           git config user.name "javidai-ci"
