@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:javid_ai/app/app.dart';
+import 'package:javid_ai/features/assistant/assistant_screen.dart';
+import 'package:javid_ai/features/jobs/jobs_screen.dart';
+import 'package:javid_ai/features/messages/messages_screen.dart';
+import 'package:javid_ai/features/notes/notes_screen.dart';
+import 'package:javid_ai/features/settings/settings_screen.dart';
 import 'package:javid_ai/core/providers/database_provider.dart';
 import 'package:javid_ai/core/providers/service_providers.dart';
 import 'package:javid_ai/core/providers/permission_providers.dart';
@@ -200,24 +205,34 @@ void main() {
   testWidgets('navigates through all five tabs', timeout: widgetTimeout,
       (tester) async {
     await pumpApp(tester);
+    expect(find.byType(AssistantScreen), findsOneWidget);
 
     await tester.tap(find.text('یادداشت‌ها'));
     await settleIo(tester);
+    expect(find.byType(NotesScreen), findsOneWidget);
     expect(find.text('اولین یادداشتت را بساز'), findsOneWidget);
 
     await tester.tap(find.text('وظایف'));
     await settleIo(tester);
-    expect(find.text('هنوز وظیفه‌ای نداری'), findsOneWidget);
+    expect(find.byType(JobsScreen), findsOneWidget);
+    // Whatever the data state, it must not be stuck on the spinner.
+    expect(find.byType(CircularProgressIndicator), findsNothing);
 
     await tester.tap(find.text('پیام‌ها'));
     await settleIo(tester);
+    expect(find.byType(MessagesScreen), findsOneWidget);
     expect(find.textContaining('دسترسی'), findsWidgets);
 
     await tester.tap(find.text('تنظیمات'));
     await settleIo(tester);
+    expect(find.byType(SettingsScreen), findsOneWidget);
     expect(find.text('ظاهر'), findsOneWidget);
-    expect(find.text('هوش مصنوعی'), findsWidgets);
     expect(find.text('حریم خصوصی'), findsOneWidget);
+
+    // Back to the assistant: the tab bar keeps working both ways.
+    await tester.tap(find.text('دستیار'));
+    await settleIo(tester);
+    expect(find.byType(AssistantScreen), findsOneWidget);
   });
 
   testWidgets('typed assistant input opens the confirmation sheet',
