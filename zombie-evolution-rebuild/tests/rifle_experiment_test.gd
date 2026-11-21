@@ -25,7 +25,16 @@ func run_test() -> void:
 		check(hand_position.distance_to(grip_position) < 0.03, "rifle grip follows right-hand attachment")
 		check(rig.solver.is_running(), "support-hand IK runs on animated skeleton")
 		check(rig.support_target.global_position.distance_to(rig.rifle.to_global(rig.SUPPORT_GRIP)) < 0.01, "IK target follows rifle support point")
-		print("Post-modifier support hand distance: ", rig.left_attachment.global_position.distance_to(rig.support_target.global_position))
+		check(rig.solved_frames > 0, "support IK emitted post-modifier callbacks")
+		for clip in ["PistolAimWalk", "PistolAimIdle", "PistolFire"]:
+			rig.animation.play(clip)
+			for t in [0.0, 0.2, 0.4, 0.6]:
+				rig.animation.seek(t, true)
+				await process_frame
+				await process_frame
+				var error: float = rig.solved_hand.distance_to(rig.solved_target)
+				var reach: float = rig.solved_root.distance_to(rig.solved_elbow) + rig.solved_elbow.distance_to(rig.solved_hand)
+				print("IK_SAMPLE clip=", clip, " time=", t, " error=", error, " root_target=", rig.solved_root.distance_to(rig.solved_target), " arm_length=", reach)
 	rig.queue_free()
 	await process_frame
 	quit(1 if failures else 0)

@@ -53,6 +53,12 @@ jobs:
           text = '\n'.join(lines).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
           print('::notice::' + (text or 'No headless summary available'))
           PYCODE
+      - name: Publish experimental IK measurements
+        if: always()
+        run: |
+          if [ -f ci-artifacts/headless/rifle_experiment_test.log ]; then
+            grep 'IK_SAMPLE' ci-artifacts/headless/rifle_experiment_test.log | sed 's/^/::notice::/' || true
+          fi
       - name: Publish detailed headless errors
         if: always()
         run: |

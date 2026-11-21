@@ -16,6 +16,11 @@ var support_target: Node3D
 var rifle: Node3D
 var solver: SkeletonIK3D
 var ready_ok := false
+var solved_hand: Vector3 = Vector3.ZERO
+var solved_target: Vector3 = Vector3.ZERO
+var solved_root: Vector3 = Vector3.ZERO
+var solved_elbow: Vector3 = Vector3.ZERO
+var solved_frames := 0
 
 func find_type(node: Node, type_name: String) -> Node:
 	if node.is_class(type_name):
@@ -59,7 +64,10 @@ func _ready() -> void:
 	solver.override_tip_basis = false
 	solver.interpolation = 1.0
 	skeleton.add_child(solver)
+	solver.modification_processed.connect(_on_ik_processed)
 	solver.target_node = solver.get_path_to(support_target)
+	solver.max_iterations = 30
+	solver.min_distance = 0.001
 	animation.play("PistolAimWalk")
 	animation.advance(0.4)
 	ready_ok = true
@@ -79,6 +87,15 @@ func update_mount() -> void:
 	var basis := Basis(forward, Vector3.UP, forward.cross(Vector3.UP).normalized())
 	rifle.global_transform = Transform3D(basis.scaled(Vector3.ONE * RIFLE_SCALE), right - basis * (RIGHT_GRIP * RIFLE_SCALE))
 	support_target.global_position = rifle.to_global(SUPPORT_GRIP)
+
+# Read the modified bone pose during the modifier callback; Godot restores the
+# animation pose after modification, so normal-frame bone queries are misleading.
+func _on_ik_processed() -> void:
+	solved_hand = skeleton.to_global(skeleton.get_bone_global_pose(skeleton.find_bone("LeftHand")).origin)
+	solved_elbow = skeleton.to_global(skeleton.get_bone_global_pose(skeleton.find_bone("LeftForeArm")).origin)
+	solved_root = skeleton.to_global(skeleton.get_bone_global_pose(skeleton.find_bone("LeftArm")).origin)
+	solved_target = support_target.global_position
+	solved_frames += 1
 
 func _process(_delta: float) -> void:
 	update_mount()
