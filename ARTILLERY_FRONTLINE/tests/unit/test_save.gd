@@ -98,6 +98,21 @@ func run(t: TestContext) -> void:
 	Profile.adopt({"stats": {"stages_cleared": 99}, "settings": {"gun": "pea_shooter"}})
 	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "a nonsense count of stages is brought into range")
 	t.equal(String(Profile.setting("gun")), "twin_hmg", "and a gun that does not exist becomes the twin gun")
+	# V1 records use three metro waves per stage. Preserve their stage and
+	# remap progress within those stages, including records beyond metro.
+	var record_map: Dictionary = {0: 0, 17: 17, 18: 18, 19: 21, 20: 25,
+		21: 26, 22: 29, 23: 33, 24: 34, 25: 37, 26: 41, 27: 42, 89: 104}
+	for old_wave: int in record_map:
+		Profile.adopt({"version": 1, "stats": {"best_wave": old_wave, "stages_cleared": 7, "kills": 50},
+			"economy": {"coins": 123, "upgrades": {"twin_hmg": 2}}, "settings": {"language": "en"}})
+		t.equal(int(Profile.data.stats.best_wave), record_map[old_wave], "legacy wave %d maps to the expanded campaign" % old_wave)
+		t.equal(int(Profile.data.version), 2, "migration writes schema version 2")
+		t.check(int(Profile.data.stats.stages_cleared) == 7 and int(Profile.data.stats.kills) == 50
+			and int(Profile.data.economy.coins) == 123 and Profile.upgrade_level("twin_hmg") == 2
+			and Profile.setting("language") == "en", "migration preserves career, currency, upgrades and settings")
+		var migrated: Dictionary = Profile.data.duplicate(true)
+		Profile.adopt(migrated)
+		t.equal(Profile.data, migrated, "the migrated profile is not shifted twice")
 	Profile.adopt({})
 	t.equal(int(Profile.data.stats.stages_cleared), 0, "no save at all is a new player")
 	Profile.reset()

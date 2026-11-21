@@ -11,11 +11,16 @@ extends Resource
 @export_range(0.0, 0.5, 0.005) var speed_growth: float = 0.03
 ## Waves of the siege that came before this stage: the horde arrives already that much harder.
 @export_range(0, 200) var waves_before: int = 0
+## A stage's real wave count may change without unexpectedly accelerating
+## enemies in every stage after it. -1 uses waves_before (the legacy default).
+@export_range(-1, 200) var difficulty_waves_before: int = -1
+@export_range(0.0, 1.0, 0.000001) var difficulty_wave_step: float = 1.0
 
 
 func _effective_wave(wave_index: int) -> float:
-	var overall: int = maxi(waves_before + wave_index, 0)
-	return float(mini(overall, 25)) + float(maxi(overall - 25, 0)) * 0.035
+	var start: int = difficulty_waves_before if difficulty_waves_before >= 0 else waves_before
+	var overall: float = maxf(float(start) + float(wave_index) * difficulty_wave_step, 0.0)
+	return minf(overall, 25.0) + maxf(overall - 25.0, 0.0) * 0.035
 
 
 func health_scale(wave_index: int) -> float:

@@ -4,7 +4,7 @@ extends Node
 signal changed
 
 const DEFAULTS: Dictionary = {
-	"version": 1,
+	"version": 2,
 	"settings": {
 		"language": "fa",
 		"sensitivity": 1.0,
@@ -59,9 +59,28 @@ func load_profile() -> void:
 ## Takes a stored profile as the player's own: unknown keys dropped, missing ones filled in, every value made sane.
 func adopt(stored: Dictionary) -> void:
 	data = SaveManager.merge_defaults(DEFAULTS, stored)
+	_migrate_wave_record(stored)
 	_credit_old_career(stored)
 	_sanitize()
 	Loc.language = data.settings.language
+
+
+## V1 had three waves in each metro stage. Preserve the stage and approximate
+## within-stage progress; later stages simply move forward by fifteen waves.
+## Keep the schema marker in the data so saving/reloading cannot migrate twice.
+func _migrate_wave_record(stored: Dictionary) -> void:
+	var old_version: Variant = stored.get("version", 1)
+	if (old_version is int or old_version is float) and int(old_version) >= 2:
+		return
+	var best: int = maxi(int(data.stats.best_wave), 0)
+	if best > 17 and best <= 26:
+		var offset: int = best - 18
+		var metro_stage: int = offset / 3
+		var old_wave: int = offset % 3
+		data.stats.best_wave = 18 + metro_stage * 8 + (old_wave * 7 / 2)
+	elif best > 26:
+		data.stats.best_wave = best + 15
+	data.version = 2
 
 
 ## A save from before the siege was cut into stages only knows how far its player got through the

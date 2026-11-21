@@ -111,8 +111,17 @@ func _stages(t: TestContext) -> void:
 		var part: WaveSet = Campaign.waves(stage)
 		t.check(part != null and part.waves.size() >= 2, "stage %d loads with its waves" % (stage + 1))
 		t.equal(part.waves_before, before, "stage %d knows how many waves came before it" % (stage + 1))
-		t.near(part.health_scale(0), whole.health_scale(before), 0.0001, "and opens as hard as that wave of the whole siege")
-		t.near(part.speed_scale(part.waves.size() - 1), whole.speed_scale(before + part.waves.size() - 1), 0.0001, "its last wave as fast")
+		var difficulty_start: int = part.difficulty_waves_before if part.difficulty_waves_before >= 0 else before
+		var reference := WaveSet.new()
+		reference.speed_growth = part.speed_growth
+		reference.health_growth = part.health_growth
+		t.near(part.health_scale(0), reference.health_scale(difficulty_start), 0.0001, "stage %d keeps its prior difficulty baseline" % (stage + 1))
+		t.near(part.speed_scale(0), reference.speed_scale(difficulty_start), 0.0001, "stage %d keeps its prior opening speed" % (stage + 1))
+		if stage >= 6 and stage <= 8:
+			t.equal(part.waves.size(), 8, "metro stage %d has eight waves" % (stage + 1))
+			t.near(part.speed_scale(7), reference.speed_scale(difficulty_start + 2), 0.0001, "metro expansion does not accelerate enemy speed")
+		else:
+			t.near(part.speed_scale(part.waves.size() - 1), reference.speed_scale(difficulty_start + part.waves.size() - 1), 0.0001, "stage %d retains its speed curve" % (stage + 1))
 		for index: int in part.waves.size():
 			t.check(part.waves[index].total() == whole.waves[before + index].total(), "stage %d wave %d is that wave, unchanged" % [stage + 1, index + 1])
 			t.equal(Campaign.place_of(before + index + 1), Vector2i(stage + 1, index + 1), "wave %d of the siege is found in its stage" % (before + index + 1))
