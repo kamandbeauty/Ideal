@@ -115,19 +115,25 @@ class SurfaceCard extends StatelessWidget {
           ),
           child: accent == null
               ? child
-              : Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      width: 4,
-                      margin: const EdgeInsets.only(left: 12),
-                      decoration: BoxDecoration(
-                        color: accent,
-                        borderRadius: BorderRadius.circular(4),
+              // `CrossAxisAlignment.stretch` needs a bounded height, and inside
+              // a `CustomScrollView` a card gets unbounded height. Intrinsic
+              // height gives the accent bar the card's real height without
+              // depending on the incoming constraints.
+              : IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Container(
+                        width: 4,
+                        margin: const EdgeInsets.only(left: 12),
+                        decoration: BoxDecoration(
+                          color: accent,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
                       ),
-                    ),
-                    Expanded(child: child),
-                  ],
+                      Expanded(child: child),
+                    ],
+                  ),
                 ),
         ),
       ),

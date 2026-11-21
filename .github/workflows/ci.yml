@@ -50,7 +50,9 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          flutter analyze 2>&1 | tee -a ci-log.txt
+          # Analyzer output is short but sits at the head of the log, which the
+          # published tail below would cut. Keep its own copy.
+          flutter analyze 2>&1 | tee -a ci-log.txt analyze-log.txt
 
       # Unit tests only in the blocking step: widget tests need a full frame
       # pipeline and are run separately so they can never hide a unit failure.
@@ -112,7 +114,12 @@ jobs:
             echo "# CI log (run $GITHUB_RUN_ID)"
             echo ''
             echo '```'
-            tail -c 400000 ci-log.txt
+            if [ -s analyze-log.txt ]; then
+              echo '----- analyze -----'
+              cat analyze-log.txt
+              echo '----- test/build -----'
+            fi
+            tail -c 300000 ci-log.txt
             echo '```'
           } > /tmp/ci-log.md
           git config user.name "javidai-ci"

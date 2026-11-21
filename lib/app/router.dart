@@ -107,12 +107,14 @@ class _AppShellState extends ConsumerState<AppShell> with WidgetsBindingObserver
         ),
         child: SafeArea(
           bottom: false,
-          // `IndexedStack` keeps each tab mounted but offstage: the scroll
-          // position and any loaded data survive a tab switch, and only one
-          // page is ever painted. Wrapping tabs in `AnimatedSwitcher` is what
-          // broke semantics: every tab is a CustomScrollView, and animating a
-          // sliver out of the tree invalidates parent data mid-flush.
-          child: IndexedStack(index: tab.index, children: _pages),
+          // Each tab is a `CustomScrollView`, so only the selected one may be
+          // laid out: `IndexedStack` gives children loose constraints and a
+          // viewport needs bounded ones. `Offstage` keeps the others mounted
+          // (state, scroll position and loaded data survive) without laying
+          // them out. Animating slivers in or out is what made the framework
+          // assert, so the switch itself is instant and the page content fades
+          // in on its own.
+          child: _TabHost(index: tab.index, pages: _pages),
         ),
       ),
       bottomNavigationBar: NavigationBarTheme(
@@ -162,6 +164,28 @@ class _BadgeIcon extends StatelessWidget {
       label: Text('$count'),
       backgroundColor: AppColors.coral,
       child: Icon(icon, color: color),
+    );
+  }
+}
+
+/// Mounts every tab but lays out only the selected one.
+class _TabHost extends StatelessWidget {
+  const _TabHost({required this.index, required this.pages});
+
+  final int index;
+  final List<Widget> pages;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        for (var i = 0; i < pages.length; i++)
+          Offstage(offstage: i != index, child: TickerMode(
+            enabled: i == index,
+            child: pages[i],
+          )),
+      ],
     );
   }
 }

@@ -217,7 +217,9 @@ void main() {
 
     await tester.tap(find.text('وظایف'));
     await settleIo(tester);
-    expect(find.text('وظایف'), findsAtLeastNWidgets(1));
+    expect(find.byType(JobsScreen, skipOffstage: false), findsOneWidget);
+    expect(find.byType(JobsScreen), findsOneWidget,
+        reason: 'the jobs tab must be on stage after tapping it');
     // Whatever the data state, the jobs screen must not be stuck loading.
     expect(find.byType(CircularProgressIndicator), findsNothing);
 
