@@ -4,10 +4,10 @@ extends RefCounted
 ## quality survives a restart, and the three volume sliders reach three buses.
 
 const ZOMBIES: Dictionary = {
-	&"walker": {"health": 74.0, "breach": 25.0, "places": 1, "boss": false, "fielded": 184},
-	&"runner": {"health": 42.0, "breach": 15.0, "places": 1, "boss": false, "fielded": 118},
-	&"brute": {"health": 480.0, "breach": 90.0, "places": 2, "boss": false, "fielded": 22},
-	&"boss": {"health": 6500.0, "breach": 600.0, "places": 3, "boss": true, "fielded": 1},
+	&"walker": {"health": 70.0, "breach": 25.0, "places": 1, "boss": false, "fielded": 184},
+	&"runner": {"health": 50.0, "breach": 15.0, "places": 1, "boss": false, "fielded": 118},
+	&"brute": {"health": 90.0, "breach": 90.0, "places": 2, "boss": false, "fielded": 22},
+	&"boss": {"health": 1900.0, "breach": 600.0, "places": 3, "boss": true, "fielded": 1},
 }
 
 

@@ -14,19 +14,16 @@ func run(t: TestContext) -> void:
 		known[id] = load("res://resources/zombies/%s.tres" % id)
 	t.check(siege.waves.size() >= 5, "the siege has at least five waves")
 	t.check(siege.total_zombies() >= 150, "the siege fields at least 150 zombies (got %d)" % siege.total_zombies())
-	var previous: float = 0.0
-	var growing: bool = true
+	var total_weight: float = 0.0
 	for index: int in siege.waves.size():
 		var wave: WaveData = siege.waves[index]
 		t.check(wave != null and not wave.groups.is_empty(), "wave %d has spawn groups" % (index + 1))
-		# The weight of a wave is the health it fields, hardened by its number: a brute counts for six walkers.
+		# Scheduled health stays positive; the player's chosen balance no longer requires each wave to outweigh the last.
 		var weight: float = 0.0
 		for group: SpawnGroup in wave.groups:
 			if known.has(String(group.zombie)):
 				weight += float(group.count) * (known[String(group.zombie)] as ZombieData).max_health * siege.health_scale(index)
-		if weight <= previous:
-			growing = false
-		previous = weight
+		total_weight += weight
 		t.check(wave.hint_key == "" or Loc.TEXT.en.has(wave.hint_key), "wave %d's hint has its text" % (index + 1))
 		t.check(wave.max_alive >= 10 and wave.intermission >= 0.0, "wave %d has sane limits" % (index + 1))
 		t.check(wave.resupply_rockets >= 0 and wave.resupply_grenades >= 0, "wave %d hands out no negative supplies" % (index + 1))
@@ -49,7 +46,7 @@ func run(t: TestContext) -> void:
 			if schedule[entry][0] < schedule[entry - 1][0]:
 				ordered = false
 		t.check(ordered, "wave %d's schedule is in time order" % (index + 1))
-	t.check(growing, "each wave fields more health than the one before")
+	t.check(total_weight > 0.0, "the siege fields positive total health")
 	# How the siege unfolds: walkers alone, then runners, then brutes, and one boss to end it.
 	var first_with: Dictionary = {}
 	for index: int in siege.waves.size():

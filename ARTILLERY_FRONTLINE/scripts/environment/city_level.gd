@@ -95,6 +95,7 @@ func _ready() -> void:
 	horde.name = "Horde"
 	add_child(horde)
 	horde.setup(layout, defense, effects, zombie_types)
+	horde.health_scale = Campaign.zombie_health_scale(stage)
 	horde.camera = defender.camera
 	horde.marks = marks
 	explosions.setup(horde, defense, effects, defender, layout)
@@ -104,6 +105,7 @@ func _ready() -> void:
 	director = WaveDirector.new()
 	director.name = "WaveDirector"
 	director.wave_set = wave_set
+	director.campaign_stage = stage
 	director.horde = horde
 	add_child(director)
 	_build_defenses()

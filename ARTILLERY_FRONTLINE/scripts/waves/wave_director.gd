@@ -10,6 +10,8 @@ enum Phase { IDLE, OPENING, SPAWNING, CLEARING, INTERMISSION, COMPLETE }
 @export var wave_set: WaveSet
 
 var horde: Horde
+## -1 keeps standalone/custom WaveSet behavior; campaign levels set their stage.
+var campaign_stage: int = -1
 var phase: Phase = Phase.IDLE
 var index: int = -1
 var clock: float = 0.0
@@ -70,7 +72,7 @@ func _start_wave(wave_index: int) -> void:
 	queue = wave.schedule()
 	clock = 0.0
 	spawned_in_wave = 0
-	horde.health_scale = wave_set.health_scale(index)
+	horde.health_scale = Campaign.zombie_health_scale(campaign_stage) if campaign_stage >= 0 else wave_set.health_scale(index)
 	horde.speed_scale = wave_set.speed_scale(index)
 	phase = Phase.SPAWNING
 	Events.wave_started.emit(index, wave_set.waves.size())

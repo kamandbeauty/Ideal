@@ -66,7 +66,7 @@ func run(t: TestContext) -> void:
 	t.check(runner.body_lean_degrees > walker.body_lean_degrees, "it runs bent forward")
 	t.check(runner.voice_pitch > 1.0, "and its voice is higher")
 	# Heavy: slow, tough, hard to stop.
-	t.check(brute.speed < walker.speed and brute.max_health >= walker.max_health * 5.0, "the brute is slower and takes at least five times the punishment")
+	t.check(brute.speed < walker.speed and brute.max_health > walker.max_health, "the brute is slower and has more health")
 	t.check(brute.attack_damage / brute.attack_interval > 2.0 * walker.attack_damage / walker.attack_interval, "it hurts the gate at least twice as fast")
 	t.check(brute.flinch_slow > walker.flinch_slow and brute.blast_reel_scale < 1.0 and brute.knockback_scale < 1.0, "bullets and blasts barely slow it")
 	t.check(brute.footprint == 2 and walker.footprint == 1 and runner.footprint == 1, "it takes two places at the wall")
@@ -93,11 +93,10 @@ func run(t: TestContext) -> void:
 	var direct: float = launcher.damage + launcher.explosion.damage
 	t.check(gun.damage * 2.0 > runner.max_health and gun.damage < runner.max_health, "a runner falls to two body rounds")
 	t.check(gun.damage * gun.headshot_multiplier >= runner.max_health, "or to one in the head")
-	t.check(brute.max_health / gun.damage >= 12.0, "a brute soaks up a dozen body rounds or more")
-	t.check(direct >= brute.max_health * 0.8 and direct < brute.max_health * 1.5, "a direct rocket all but kills a fresh brute (%.0f of %.0f)" % [
-		direct, brute.max_health])
-	t.check(direct * float(launcher.magazine_size + launcher.reserve_max) < boss.max_health, "every rocket the gunner can carry does not kill the boss alone")
-	t.check(boss.max_health / (gun.damage / gun.fire_interval) > 10.0, "the boss stands more than ten seconds of perfect machine-gun fire")
+	t.check(brute.max_health > gun.damage * 2.0 and brute.max_health <= gun.damage * 3.0, "a brute takes exactly three base body rounds")
+	t.check(gun.damage * gun.headshot_multiplier * brute.head_damage_scale >= brute.max_health, "one base headshot drops a brute")
+	t.check(direct >= brute.max_health, "a direct rocket kills a fresh brute")
+	t.check(boss.max_health > gun.damage * 49.0 and boss.max_health <= gun.damage * 50.0, "the boss takes exactly fifty base body rounds")
 	var wall: DefenseData = load("res://resources/defense/city_wall.tres")
 	t.check(boss.breach_damage >= wall.wall_max_health * 0.5 and boss.breach_damage < wall.wall_max_health,
 		"a boss inside the city costs most of the wall, but not all of it")
