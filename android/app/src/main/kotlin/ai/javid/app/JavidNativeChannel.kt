@@ -95,11 +95,25 @@ class JavidNativeChannel(
 
     private fun requestIgnoreBatteryOptimizations(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        if (isIgnoringBatteryOptimizations()) return true
+        // The direct request dialog is gated on the permission being declared
+        // and does not exist on every OEM ROM, so fall back to the user-facing
+        // battery optimisation list instead of failing silently.
+        val direct = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+            data = Uri.parse("package:${context.packageName}")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        if (startSafely(direct)) return true
+        val list = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        return startSafely(list)
+    }
+
+    /** Starts an activity only when something can actually handle it. */
+    private fun startSafely(intent: Intent): Boolean {
         return try {
-            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                data = Uri.parse("package:${context.packageName}")
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
+            if (intent.resolveActivity(context.packageManager) == null) return false
             context.startActivity(intent)
             true
         } catch (error: Exception) {

@@ -10,8 +10,24 @@ provider **and** type an API key in Settings → هوش مصنوعی.
 | `RECORD_AUDIO` (میکروفون) | Speech-to-text while you hold/tap the mic button. Recording starts only on a tap and stops when listening stops. | No background recording. No audio is ever uploaded by the app; Android's own recogniser handles it under its own policy. |
 | `POST_NOTIFICATIONS` (اعلان‌ها) | Show reminders and the daily briefing as system notifications. | Nothing is read. Declining only means reminders appear inside the app instead. |
 | Notification access (`BIND_NOTIFICATION_LISTENER_SERVICE`) | Read the notification shade so WhatsApp/Telegram/SMS messages can be listed and summarised. Granting happens in Android Settings, never inside the app. | **Not** chat history, not message content older than the grant, not media, not other apps' storage. Android has no API for those, and the app does not try to find one. |
-| `SCHEDULE_EXACT_ALARM` | Fire a reminder at the exact minute the user asked for. | No access to other alarms. If exact alarms are unavailable the app degrades to inexact scheduling and says so. |
-| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Ask the user (via a system dialog) to exempt JavidAI from battery optimisation so reminders are not delayed. | The user can refuse; the app keeps working with less reliable timing. |
+| `SCHEDULE_EXACT_ALARM` | Fire a reminder at the exact minute the user asked for. | No access to other apps' alarms. If the user has not allowed exact alarms, `ReminderScheduler` checks `canScheduleExactAlarms()` first and falls back to `setAndAllowWhileIdle`, so the reminder still arrives — possibly a few minutes late. |
+| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Let Settings → پایداری در پس‌زمینه show the system "don't optimise" dialog, so Doze does not delay reminders. | The user can refuse. If the ROM has no such dialog the app opens the system battery-optimisation list instead, and the app keeps working with less reliable timing. |
+| `RECEIVE_BOOT_COMPLETED` | Re-arm scheduled jobs after a reboot. | No access to boot-time data; nothing is read or uploaded. |
+| `WAKE_LOCK`, `FOREGROUND_SERVICE` | Finish a scheduled job or briefing that is already running when the screen turns off. | No always-on service; the lock is held only for the duration of a job. |
+| `INTERNET`, `ACCESS_NETWORK_STATE` | Optional cloud AI provider. The connectivity check keeps the UI honest while offline. | The app works fully offline; with no key configured it makes no network calls at all. |
+
+Verify the list against the shipped manifest with:
+
+```bash
+grep uses-permission android/app/src/main/AndroidManifest.xml
+```
+
+### SMS and battery-optimisation Play policy
+
+`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` is allowed only for apps whose core
+function genuinely needs it (scheduled local reminders do), and the permission is
+declared next to the code that uses it. Both permissions are user-revocable and
+every degraded path is implemented, so nothing crashes when they are denied.
 
 ### Notification access is not chat history
 

@@ -12,6 +12,8 @@
 > **Status:** Milestones 1–6 of the build spec are implemented in source. CI runs
 > `flutter analyze`, unit tests, widget tests, the debug APK build and the Kotlin
 > unit tests on every push (see the badge section below for the current state).
+> A green run also publishes a sideloadable **`javidai-debug-apk`** artifact, so
+> the app can be tried on a phone without a local Flutter toolchain.
 > Real-device verification items that cannot be reproduced on a headless CI
 > runner are listed in [docs/SETUP.md](docs/SETUP.md#what-still-needs-a-real-device).
 

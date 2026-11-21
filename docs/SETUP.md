@@ -60,13 +60,21 @@ Then `flutter build apk --release` / `flutter build appbundle --release`.
 1. `flutter pub get`
 2. `flutter analyze` — blocking, `pipefail` so a failure really fails
 3. `flutter test test/unit` — blocking
-4. `flutter test test/widget` — reported separately
+4. `flutter test test/widget` — blocking (boots the real widget tree on an
+   in-memory database; no device needed)
 5. `flutter build apk --debug` — proves the Android side compiles
 6. `./gradlew testDebugUnitTest` — Kotlin unit tests
-7. Publishes the whole console log to `ci-log.md` on the same branch
+7. Publishes the analyzer output plus the tail of the console log to `ci-log.md`
+   on the same branch
 
-Artifacts: the workflow uploads the debug APK so it can be sideloaded without a
-local toolchain.
+Artifacts: the workflow uploads **`javidai-debug-apk`**
+(`build/app/outputs/flutter-apk/app-debug.apk`, 14-day retention) so it can be
+sideloaded without a local toolchain. Download it from the run summary page or:
+
+```bash
+gh run download --name javidai-debug-apk --dir /tmp/javidai
+adb install -r /tmp/javidai/app-debug.apk
+```
 
 ## What still needs a real device
 
@@ -83,4 +91,5 @@ These cannot be verified on a headless runner and must be checked by hand once:
 | Job scheduling | Create a job one minute out, lock the phone; the reminder must fire and appear in history. |
 | Notification access | Grant access, receive a WhatsApp message; it appears under پیام‌ها with app + sender + time. |
 | Restart behaviour | Kill the app, receive notifications, reopen: `bootstrap()` imports what the listener captured. |
-| Battery optimisation | Toggle the exemption from Settings and confirm the state persists. |
+| Battery optimisation | Toggle the exemption from Settings → پایداری در پس‌زمینه; the system dialog (or the battery-optimisation list on ROMs without it) must appear and the state must persist. |
+| Exact alarms | On Android 12+, Settings shows whether exact alarms are allowed. If not, the job is still scheduled inexactly and the reminder still fires, only later. |

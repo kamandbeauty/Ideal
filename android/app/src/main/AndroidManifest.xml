@@ -17,6 +17,16 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
+    <!-- Exact reminders (Android 12+). The scheduler checks
+         `canScheduleExactAlarms()` first and silently degrades to
+         `setAndAllowWhileIdle`, so a user who revokes this keeps working
+         reminders, just with a few minutes of slack. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <!-- Lets Settings offer the system "don't optimise" dialog. The dialog is
+         only a request, the user can refuse, and the app works either way. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <!-- Deliberately NOT requested:
          * READ_SMS / RECEIVE_SMS  — Google Play restricts SMS access to default
            SMS handlers; JavidAI reads SMS through the notification listener only.
