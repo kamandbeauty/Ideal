@@ -59,11 +59,12 @@ static func district(stage: int) -> int:
 	return clampi(stage, 0, count() - 1) / 3
 
 
-## City and hospital use identical base health. From metro onward, each
-## district is 20 percent tougher than the district before it. Wave numbers
-## do not add extra health; this preserves the opening six stages' hit counts.
+## City and hospital keep the same hit counts. Starting with metro, add only
+## three percent of base health per district (not compound growth): fortress
+## reaches 124%, rather than multiplying enemies into bullet sponges. Waves
+## already add pressure through their composition and speed.
 static func zombie_health_scale(stage: int) -> float:
-	return pow(1.2, maxi(district(stage) - 1, 0))
+	return 1.0 + 0.03 * float(maxi(district(stage) - 1, 0))
 
 
 ## All stages are available regardless of the saved number of wins.

@@ -36,10 +36,12 @@ func run(t: TestContext) -> void:
 		await t.discard(level)
 
 	# Every stage within a district uses the same multiplier, including all
-	# its waves. Metro is 1.2 times hospital; every subsequent district compounds.
+	# its waves. Growth is gentle and linear, with a hard end-of-campaign
+	# expectation so an accidental return to compounding cannot sneak in.
+	var expected_scales: Array[float] = [1.0, 1.0, 1.03, 1.06, 1.09, 1.12, 1.15, 1.18, 1.21, 1.24]
 	for district: int in range(10):
 		var stage: int = district * 3
-		var scale: float = pow(1.2, maxi(district - 1, 0))
+		var scale: float = expected_scales[district]
 		var level: CityLevel = t.make_level(stage)
 		await t.frames(2)
 		for offset: int in 3:
