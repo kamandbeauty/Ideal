@@ -1,7 +1,24 @@
-# CI log (run 44903856530)
+# CI log (run 44904320628)
 
 ```
-art:core-patch/growable_array.dart:428:8)
+ackage:flutter/src/rendering/object.dart:5725:42)
+#17     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#18     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#19     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#20     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#21     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#22     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#23     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#24     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#25     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#26     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#27     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#28     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#29     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#30     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#31     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#32     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#33     List.forEach (dart:core-patch/growable_array.dart:428:8)
 #34     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
 #35     List.forEach (dart:core-patch/growable_array.dart:428:8)
 #36     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
@@ -63,11 +80,11 @@ art:core-patch/growable_array.dart:428:8)
 #94     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
 #97     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
 #98     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
-#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:111:20)
+#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:116:20)
 <asynchronous suspension>
-#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:125:7)
+#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:130:7)
 <asynchronous suspension>
-#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:209:5)
+#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:216:5)
 <asynchronous suspension>
 #102    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -175,123 +192,11 @@ When the exception was thrown, this was the stack:
 #94     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
 #97     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
 #98     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
-#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:111:20)
+#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:116:20)
 <asynchronous suspension>
-#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:125:7)
+#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:130:7)
 <asynchronous suspension>
-#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:209:5)
-<asynchronous suspension>
-#102    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
-<asynchronous suspension>
-#103    TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
-<asynchronous suspension>
-<asynchronous suspension>
-(elided 7 frames from class _AssertionError, dart:async, and package:stack_trace)
-════════════════════════════════════════════════════════════════════════════════════════════════════
-══╡ EXCEPTION CAUGHT BY SCHEDULER LIBRARY ╞═════════════════════════════════════════════════════════
-The following assertion was thrown during a scheduler callback:
-'package:flutter/src/rendering/object.dart': Failed assertion: line 5724 pos 14:
-'!semantics.parentDataDirty': is not true.
-
-When the exception was thrown, this was the stack:
-#2      _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5724:14)
-#3      List.forEach (dart:core-patch/growable_array.dart:428:8)
-#4      _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#5      List.forEach (dart:core-patch/growable_array.dart:428:8)
-#6      _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#7      List.forEach (dart:core-patch/growable_array.dart:428:8)
-#8      _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#9      List.forEach (dart:core-patch/growable_array.dart:428:8)
-#10     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#11     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#12     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#13     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#14     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#15     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#16     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#17     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#18     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#19     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#20     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#21     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#22     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#23     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#24     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#25     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#26     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#27     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#28     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#29     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#30     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#31     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#32     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#33     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#34     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#35     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#36     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#37     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#38     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#39     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#40     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#41     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#42     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#43     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#44     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#45     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#46     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#47     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#48     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#49     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#50     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#51     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#52     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#53     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#54     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#55     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#56     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#57     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#58     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#59     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#60     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#61     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#62     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#63     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#64     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#65     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#66     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#67     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#68     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#69     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#70     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#71     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#72     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#73     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#74     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#75     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#76     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#77     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#78     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#79     List.forEach (dart:core-patch/growable_array.dart:428:8)
-#80     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
-#81     _RenderObjectSemantics.debugCheckForParentData (package:flutter/src/rendering/object.dart:5728:5)
-#82     PipelineOwner.flushSemantics.<anonymous closure> (package:flutter/src/rendering/object.dart:1498:34)
-#83     PipelineOwner.flushSemantics (package:flutter/src/rendering/object.dart:1501:8)
-#84     PipelineOwner.flushSemantics (package:flutter/src/rendering/object.dart:1653:15)
-#85     AutomatedTestWidgetsFlutterBinding.drawFrame (package:flutter_test/src/binding.dart:2445:35)
-#86     RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:558:5)
-#87     SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
-#88     SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1345:9)
-#89     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2261:9)
-#92     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
-#93     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
-#94     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
-#97     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
-#98     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
-#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:111:20)
-<asynchronous suspension>
-#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:125:7)
-<asynchronous suspension>
-#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:209:5)
+#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:216:5)
 <asynchronous suspension>
 #102    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -399,11 +304,11 @@ When the exception was thrown, this was the stack:
 #94     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
 #97     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
 #98     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
-#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:111:20)
+#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:116:20)
 <asynchronous suspension>
-#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:125:7)
+#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:130:7)
 <asynchronous suspension>
-#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:209:5)
+#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:216:5)
 <asynchronous suspension>
 #102    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -511,11 +416,123 @@ When the exception was thrown, this was the stack:
 #94     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
 #97     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
 #98     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
-#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:111:20)
+#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:116:20)
 <asynchronous suspension>
-#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:125:7)
+#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:130:7)
 <asynchronous suspension>
-#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:209:5)
+#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:216:5)
+<asynchronous suspension>
+#102    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#103    TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 7 frames from class _AssertionError, dart:async, and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY SCHEDULER LIBRARY ╞═════════════════════════════════════════════════════════
+The following assertion was thrown during a scheduler callback:
+'package:flutter/src/rendering/object.dart': Failed assertion: line 5724 pos 14:
+'!semantics.parentDataDirty': is not true.
+
+When the exception was thrown, this was the stack:
+#2      _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5724:14)
+#3      List.forEach (dart:core-patch/growable_array.dart:428:8)
+#4      _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#5      List.forEach (dart:core-patch/growable_array.dart:428:8)
+#6      _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#7      List.forEach (dart:core-patch/growable_array.dart:428:8)
+#8      _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#9      List.forEach (dart:core-patch/growable_array.dart:428:8)
+#10     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#11     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#12     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#13     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#14     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#15     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#16     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#17     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#18     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#19     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#20     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#21     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#22     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#23     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#24     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#25     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#26     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#27     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#28     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#29     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#30     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#31     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#32     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#33     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#34     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#35     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#36     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#37     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#38     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#39     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#40     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#41     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#42     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#43     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#44     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#45     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#46     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#47     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#48     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#49     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#50     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#51     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#52     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#53     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#54     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#55     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#56     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#57     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#58     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#59     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#60     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#61     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#62     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#63     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#64     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#65     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#66     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#67     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#68     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#69     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#70     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#71     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#72     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#73     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#74     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#75     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#76     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#77     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#78     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#79     List.forEach (dart:core-patch/growable_array.dart:428:8)
+#80     _RenderObjectSemantics.debugCheckForParentData.debugCheckParentDataNotDirty (package:flutter/src/rendering/object.dart:5725:42)
+#81     _RenderObjectSemantics.debugCheckForParentData (package:flutter/src/rendering/object.dart:5728:5)
+#82     PipelineOwner.flushSemantics.<anonymous closure> (package:flutter/src/rendering/object.dart:1498:34)
+#83     PipelineOwner.flushSemantics (package:flutter/src/rendering/object.dart:1501:8)
+#84     PipelineOwner.flushSemantics (package:flutter/src/rendering/object.dart:1653:15)
+#85     AutomatedTestWidgetsFlutterBinding.drawFrame (package:flutter_test/src/binding.dart:2445:35)
+#86     RendererBinding._handlePersistentFrameCallback (package:flutter/src/rendering/binding.dart:558:5)
+#87     SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1430:15)
+#88     SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1345:9)
+#89     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2261:9)
+#92     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#93     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2250:27)
+#94     WidgetTester.pump.<anonymous closure> (package:flutter_test/src/widget_tester.dart:652:53)
+#97     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#98     WidgetTester.pump (package:flutter_test/src/widget_tester.dart:652:27)
+#99     main.settle (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:116:20)
+<asynchronous suspension>
+#100    main.settleIo (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:130:7)
+<asynchronous suspension>
+#101    main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:216:5)
 <asynchronous suspension>
 #102    testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
@@ -525,53 +542,25 @@ When the exception was thrown, this was the stack:
 (elided 7 frames from class _AssertionError, dart:async, and package:stack_trace)
 ════════════════════════════════════════════════════════════════════════════════════════════════════
 ══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
-The following TestFailure was thrown running a test:
-Expected: exactly one matching candidate
-  Actual: _TextWidgetFinder:<Found 0 widgets with text "هنوز وظیفه‌ای نداری": []>
-   Which: means none were found but one was expected
-Null check operator used on a null value at #0
-_ViewportElement.debugVisitOnstageChildren.<anonymous closure>
-(package:flutter/src/widgets/viewport.dart:355:39)
-#1      WhereIterator.moveNext (dart:_internal/iterable.dart:469:13)
-#2      Iterable.forEach (dart:core/iterable.dart:366:23)
-#3      _ViewportElement.debugVisitOnstageChildren
-(package:flutter/src/widgets/viewport.dart:357:10)
-#4      _DepthFirstElementTreeIterator._collectChildren
-(package:flutter_test/src/tree_traversal.dart:131:12)
-#5      _DepthFirstTreeIterator.moveNext (package:flutter_test/src/tree_traversal.dart:77:16)
-#6      CachingIterable._fillNext (package:flutter/src/foundation/basic_types.dart:208:27)
-#7      _LazyListIterator.moveNext (package:flutter/src/foundation/basic_types.dart:238:21)
-#8      WhereIterator.moveNext (dart:_internal/iterable.dart:468:22)
-#9      CachingIterable._fillNext (package:flutter/src/foundation/basic_types.dart:208:27)
-#10     _LazyListIterator.moveNext (package:flutter/src/foundation/basic_types.dart:238:21)
-#11     _FindsCountMatcher.matches (package:flutter_test/src/matchers.dart:1326:39)
-#12     _expect (package:matcher/src/expect/expect.dart:176:30)
-#13     expect (package:matcher/src/expect/expect.dart:65:3)
-#14     expect (package:flutter_test/src/widget_tester.dart:473:18)
-#15     main.<anonymous closure>
-(file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:210:5)
-<asynchronous suspension>
-#16     testWidgets.<anonymous closure>.<anonymous closure>
-(package:flutter_test/src/widget_tester.dart:192:15)
-<asynchronous suspension>
-#17     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
-<asynchronous suspension>
-#18     StackZoneSpecification._registerCallback.<anonymous closure>
-(package:stack_trace/src/stack_zone_specification.dart:114:42)
-<asynchronous suspension>
+The following assertion was thrown running a test:
+'package:flutter_test/src/matchers.dart': Failed assertion: line 1396 pos 12: 'max != null && count
+> min!': is not true.
 
 When the exception was thrown, this was the stack:
-#4      main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:210:5)
+#2      _FindsCountMatcher.describeMismatch (package:flutter_test/src/matchers.dart:1396:12)
+#3      _expect.<anonymous closure> (package:matcher/src/expect/expect.dart:105:13)
+#4      _expect (package:matcher/src/expect/expect.dart:182:17)
+#5      expect (package:matcher/src/expect/expect.dart:65:3)
+#6      expect (package:flutter_test/src/widget_tester.dart:473:18)
+#7      main.<anonymous closure> (file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart:217:5)
 <asynchronous suspension>
-#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
 <asynchronous suspension>
-#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
 <asynchronous suspension>
 <asynchronous suspension>
-(elided one frame from package:stack_trace)
+(elided 3 frames from class _AssertionError and package:stack_trace)
 
-This was caught by the test expectation on the following line:
-  file:///home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart line 210
 The test description was:
   navigates through all five tabs
 ════════════════════════════════════════════════════════════════════════════════════════════════════
@@ -586,8 +575,8 @@ unexpected.
   
 00:02 +1 -1: typed assistant input opens the confirmation sheet
 00:03 +2 -1: a stored note appears in the notes tab
-00:04 +3 -1: (tearDownAll)
-00:04 +3 -1: Some tests failed.
+00:03 +3 -1: (tearDownAll)
+00:03 +3 -1: Some tests failed.
 
 Failing tests:
   /home/runner/work/Ideal/Ideal/test/widget/app_smoke_test.dart: navigates through all five tabs
