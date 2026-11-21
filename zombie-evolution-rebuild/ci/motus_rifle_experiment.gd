@@ -6,7 +6,7 @@ const Model = preload("res://assets/models/motus-fbx2gltf-reference.glb")
 const Rifle = preload("res://assets/models/rifle-quaternius.glb")
 const RIFLE_SCALE := 0.30
 const RIGHT_GRIP := Vector3(0.70, 0.45, 0.0)
-const SUPPORT_GRIP := Vector3(1.55, 0.20, 0.0)
+const SUPPORT_GRIP := Vector3(0.95, 0.20, -0.25)
 var model: Node3D
 var skeleton: Skeleton3D
 var animation: AnimationPlayer
