@@ -1,9 +1,14 @@
 {
-  "checks": 4825,
+  "checks": 5173,
   "engine": "4.7.2-stable (official)",
-  "failures": [],
+  "failures": [
+    "test_specials: but not a brute or the boss",
+    "test_specials: a brute shakes it off sooner (got 0.00000, expected 0.45000 ± 0.00100)",
+    "test_specials: a brute a fraction of it (got 0.00000, expected 0.78000 ± 0.01000)",
+    "test_specials: kills are tallied by type (got 0, expected 1)"
+  ],
   "game": "LAST WALL: Zombie Siege",
-  "passed": true,
+  "passed": false,
   "scope": "Headless logic and scene integration on desktop; not an Android device run",
   "suites": {
     "test_aim": 46,
@@ -12,6 +17,7 @@
     "test_ballistics": 21,
     "test_campaign": 259,
     "test_combat": 37,
+    "test_damage_balance": 348,
     "test_defense": 30,
     "test_economy": 49,
     "test_edge_cases": 86,
