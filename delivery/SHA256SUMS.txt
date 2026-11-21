@@ -1,1 +1,1 @@
-5fc0b0defa02784709cedb3dea98fb763d4b08f0fabb37e9d019c99be77c111a  delivery/LastWall-arm64.apk
+36eebb7ffab7bb89f883f30e542782b68d05922b6c7426a2cce065fd0397ff11  delivery/LastWall-arm64.apk
