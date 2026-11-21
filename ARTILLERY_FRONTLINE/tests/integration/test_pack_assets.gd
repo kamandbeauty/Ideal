@@ -13,11 +13,12 @@ func run(t: TestContext) -> void:
 	if brute != null:
 		t.check(brute.anim.has_animation("hit_chest") and brute.anim.has_animation("hit_head"), "retargeted hit reactions are on the actual model")
 		var hp: float = brute.health
-		brute.take_hit(brute.data.max_health * 0.31, false, brute.position, Vector3.FORWARD)
+		brute.take_hit(brute.data.max_health * 0.51, false, brute.position, Vector3.FORWARD)
 		t.equal(brute.current_clip, "hit_chest", "a nonlethal staggering body hit chooses the chest reaction")
 		t.check(brute.health < hp and brute.alive, "a reaction does not change damage rules")
 		brute.stagger_left = 0.0
-		brute.take_hit(brute.data.max_health * 0.31, true, brute.position, Vector3.FORWARD)
+		brute.health = hp  # Test each reaction with a separate nonlethal hit.
+		brute.take_hit(brute.data.max_health * 0.51, true, brute.position, Vector3.FORWARD)
 		t.equal(brute.current_clip, "hit_head", "a nonlethal staggering head hit chooses the head reaction")
 		t.check(brute.alive, "the second hit remains nonlethal")
 	await t.discard(level)
