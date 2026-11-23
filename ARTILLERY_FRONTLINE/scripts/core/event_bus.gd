@@ -14,6 +14,7 @@ signal boss_appeared(zombie: Node3D)
 signal boss_fell(zombie: Node3D)
 signal tunnel_brute_warning(zombie: Node3D)
 signal quarantine_brute_warning(zombie: Node3D)
+signal foundry_brute_warning(zombie: Node3D)
 signal wall_damaged(amount: float, health: float, max_health: float)
 signal gate_damaged(amount: float, health: float, max_health: float)
 signal gate_destroyed

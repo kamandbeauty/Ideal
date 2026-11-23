@@ -720,6 +720,28 @@ func _later_districts() -> void:
 	check(level.geometry.get_node_or_null("FactorySteel") != null and level.geometry.get_node_or_null("IndustrialPlatform") != null, "industrial yard and defensive platform load")
 	await frames(5)
 	await shot("49-industrial-stage", "play")
+	# Stage twelve's actual third wave; move its boss forward solely for a
+	# staged visibility capture of the new warning, not a real-time playthrough.
+	game.to_menu()
+	await wait_transition()
+	game.select_stage(11)
+	game.start_match()
+	await wait_transition()
+	level = game.level
+	level.director._start_wave(2)
+	simulate(4.2)
+	var foundry: FoundryBrute = level.horde.boss as FoundryBrute
+	check(foundry != null, "stage twelve final wave spawns the foundry boss")
+	if foundry != null:
+		foundry.position = Vector3(0.0, 0.0, -35.0)
+		foundry.path = PackedVector3Array([foundry.position, Vector3(0.0, 0.0, -20.0)])
+		foundry.path_index = 1
+		foundry.guard_left = 0.01
+		foundry.tick(0.1)
+		_aim_at(foundry.position + Vector3(0.0, 1.8, 0.0))
+		await frames(5)
+		check(foundry.warning_ring.visible, "the foundry guard warning is visible")
+		await shot("49a-industrial-boss-warning", "staged")
 	game.to_menu()
 	await wait_transition()
 	game.menus.show_campaign()

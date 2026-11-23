@@ -50,6 +50,7 @@ func run(t: TestContext) -> void:
 		t.equal(started, [0, 1, 2], "the factory waves start in order")
 		t.equal(level.horde.spawned_total, level.wave_set.total_zombies(), "all scheduled attackers spawn")
 		t.equal(level.stats.waves_cleared, 3, "all three waves are recorded")
+		t.equal(level.stats.bosses, 1 if stage == 11 else 0, "the director counts the boss only on the last industrial stage")
 		Events.wave_started.disconnect(on_wave)
 		await t.discard(level)
 	# Isolate a real gate assault: unmodified waves can destroy the wall first,
