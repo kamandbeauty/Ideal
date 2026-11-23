@@ -720,6 +720,17 @@ func _later_districts() -> void:
 	check(level.geometry.get_node_or_null("FactorySteel") != null and level.geometry.get_node_or_null("IndustrialPlatform") != null, "industrial yard and defensive platform load")
 	await frames(5)
 	await shot("49-industrial-stage", "play")
+	var forklift: Node3D = level.geometry.get_node_or_null("IndustrialForklift") as Node3D
+	var truck: Node3D = level.geometry.get_node_or_null("IndustrialBurntTruck") as Node3D
+	check(forklift != null and truck != null and level.fire_nodes.size() == 2, "industrial vehicles and their existing fire effects load")
+	if forklift and truck:
+		# These are the in-game gunner's views, with only the aim moved.
+		_aim_at(forklift.position + Vector3(0.0, 1.7, 0.0))
+		await frames(10)
+		await shot("49b-industrial-forklift", "play")
+		_aim_at(truck.position + Vector3(0.0, 1.8, 0.0))
+		await frames(10)
+		await shot("49c-industrial-burning-truck", "play")
 	# Stage twelve's actual third wave; move its boss forward solely for a
 	# staged visibility capture of the new warning, not a real-time playthrough.
 	game.to_menu()

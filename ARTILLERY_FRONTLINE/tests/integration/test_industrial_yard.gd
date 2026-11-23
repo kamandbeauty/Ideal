@@ -19,11 +19,44 @@ func run(t: TestContext) -> void:
 		t.equal(level.defense.wall_health, 1000.0, "the wall starts at full health")
 		t.equal(level.defense.gate_health, 700.0, "the gate starts at full health")
 		t.check(level.geometry.get_node_or_null("IndustrialGround") != null and level.geometry.get_node_or_null("IndustrialPlatform") != null, "factory ground and gunner platform exist")
-		for batch_name: String in ["FactorySteel", "FactoryCaution", "FactoryDarkPanels"]:
+		for batch_name: String in ["FactorySteel", "FactoryCaution", "FactoryDarkPanels", "FactoryRust", "FactoryGroundWear"]:
 			var batch: MultiMeshInstance3D = level.geometry.get_node_or_null(batch_name) as MultiMeshInstance3D
 			t.check(batch != null and batch.multimesh.instance_count > 0, "yard details are batched: " + batch_name)
 			if batch:
 				t.check(batch.find_children("*", "CollisionObject3D", true, false).is_empty(), "yard details have no collision")
+		# The two vehicles are render-only and have bounded, batched geometry.
+		var forklift: Node3D = level.geometry.get_node_or_null("IndustrialForklift") as Node3D
+		var truck: Node3D = level.geometry.get_node_or_null("IndustrialBurntTruck") as Node3D
+		t.check(forklift != null and truck != null, "both industrial vehicles are present")
+		if forklift and truck:
+			for vehicle: Node3D in [forklift, truck]:
+				var batches: Array[Node] = vehicle.find_children("*", "MultiMeshInstance3D", true, false)
+				t.check(batches.size() >= 4 and batches.size() <= 6, "vehicle detail is grouped into a bounded number of batches")
+				t.check(vehicle.find_children("*", "CollisionObject3D", true, false).is_empty(), "vehicle never blocks a bullet or an enemy")
+				for batch: Node in batches:
+					t.check((batch as MultiMeshInstance3D).multimesh.instance_count > 0, "each vehicle batch contains geometry")
+			# Conservatively bound the full body, wheels and forks, then check
+			# all route center segments plus their maximum lateral width.
+			for vehicle: Node3D in [forklift, truck]:
+				var clearance: float = 3.9 if vehicle == forklift else 5.2
+				var center := Vector2(vehicle.position.x, vehicle.position.z)
+				for route: String in level.layout.route_names():
+					var points: PackedVector3Array = level.layout.routes[route].points
+					var widths: PackedFloat32Array = level.layout.routes[route].widths
+					for i: int in range(1, points.size()):
+						var a := Vector2(points[i - 1].x, points[i - 1].z)
+						var b := Vector2(points[i].x, points[i].z)
+						var closest: Vector2 = Geometry2D.get_closest_point_to_segment(center, a, b)
+						t.check(center.distance_to(closest) > clearance + maxf(widths[i - 1], widths[i]), "vehicle stays clear of route %s segment %d" % [route, i])
+			# Existing fire emitters are anchored on each vehicle and remain
+			# within the low tier's two-fire cap, not an extra effect system.
+			t.equal(level.fire_nodes.size(), 2, "both vehicle fires reuse the existing capped fire system")
+			if level.fire_nodes.size() == 2:
+				t.check(level.fire_nodes[0].position.distance_to(truck.position) < 5.0, "truck flames are anchored to its cab")
+				t.check(level.fire_nodes[1].position.distance_to(forklift.position) < 3.0, "forklift flames are anchored to the vehicle")
+				level.apply_quality("low", Graphics.PROFILES.low)
+				t.check(level.fire_nodes[0].visible and level.fire_nodes[1].visible, "both fires remain within the low quality fire budget")
+				level.apply_quality(Graphics.tier, Graphics.profile())
 		# Rays follow each route center and both outer offsets at waist height.
 		# They detect new WORLD collision, not transparent decorative meshes.
 		var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
