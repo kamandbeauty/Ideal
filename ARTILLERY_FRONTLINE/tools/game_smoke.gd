@@ -672,6 +672,14 @@ func _metro_stage() -> void:
 	await frames(6)
 	check(level.horde.spawned_total > 0, "the metro sends attackers")
 	await shot("47-metro-attack", "play")
+	# Advance only the decoration clock to put a vent puff in the screenshot.
+	# This documents a staged event, not a complete real-time playthrough.
+	level.geometry.call("start_station_events")
+	level.geometry.call("step_station_events", 12.1)
+	check(level.geometry.get("last_station_event") == "vent", "the station emits a harmless vent puff")
+	_aim_at(Vector3(-19.0, 4.2, -68.0))
+	await frames(2)
+	await shot("47a-metro-vent", "staged")
 	# Stage nine: start its actual final wave. The boss is moved into a clear
 	# camera view for evidence; this picture is explicitly marked as staged.
 	game.to_menu()

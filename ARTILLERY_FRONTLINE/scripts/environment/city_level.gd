@@ -64,6 +64,8 @@ func _ready() -> void:
 	effects = EffectPool.new()
 	effects.name = "Effects"
 	add_child(effects)
+	if geometry.has_method("setup_station_events"):
+		geometry.call("setup_station_events", effects)
 	marks = MarkPool.new()
 	marks.name = "Marks"
 	add_child(marks)
@@ -402,6 +404,8 @@ func begin_match() -> void:
 	stats.waves_total = director.wave_count()
 	stats.stage = stage
 	stats.waves_before = wave_set.waves_before if wave_set else 0
+	if geometry.has_method("start_station_events"):
+		geometry.call("start_station_events")
 	defender.aim.reset()
 	defender.set_zoom(false, true)
 	defender.set_input_enabled(true)
@@ -416,6 +420,8 @@ func _process(delta: float) -> void:
 	clock += delta
 	if running and not over:
 		stats.time += delta
+		if geometry.has_method("step_station_events"):
+			geometry.call("step_station_events", delta)
 	if idle_view and defender:
 		# Menu backdrop: the gun sweeps the street on its own.
 		defender.aim.target_yaw = sin(clock * 0.16) * 30.0

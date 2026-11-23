@@ -4,6 +4,14 @@ extends "res://scripts/environment/hospital_geometry.gd"
 
 var emergency_material: StandardMaterial3D
 var emergency_clock: float = 0.0
+## Decorative station failures: fixed schedule and existing pooled particles.
+## They never obstruct, damage or alter any gameplay system.
+var station_effects: EffectPool
+var station_event_timer: float = 12.0
+var station_event_count: int = 0
+var last_station_event: String = ""
+const VENT_POINTS: Array[Vector3] = [Vector3(-19.0, 4.2, -68.0), Vector3(19.0, 4.2, -68.0)]
+const BREAKER_POINTS: Array[Vector3] = [Vector3(-19.0, 6.0, -86.0), Vector3(19.0, 6.0, -86.0)]
 
 
 func is_underground() -> bool:
@@ -66,6 +74,7 @@ func _ready() -> void:
 		_box("Sleeper%d" % index, Vector3(0, 0.03, -52 - index * 3), Vector3(10, 0.08, 0.35), "trim")
 	_box("StationSign", Vector3(0, 15.5, -134.1), Vector3(14, 1.2, 0.2), "red")
 	_station_details()
+	_station_machinery()
 
 
 func _metro_defenses() -> void:
@@ -139,6 +148,57 @@ func _station_details() -> void:
 	_batch_details("MetroBoothGlass", glass, "glass")
 	_batch_details("MetroEmergencyIndicators", warning, "emergency")
 	_batch_details("MetroWetFloor", wet, "wet")
+
+
+## A pair of damaged vent cabinets and circuit boxes, on the shoulders of
+## the station rather than across the firing lanes. They are purely visual.
+func _station_machinery() -> void:
+	var housings: Array[Transform3D] = []
+	var grilles: Array[Transform3D] = []
+	var indicators: Array[Transform3D] = []
+	for side: int in [-1, 1]:
+		var x: float = 19.0 * float(side)
+		_detail(housings, Vector3(x, 4.1, -68.4), Vector3(2.7, 2.0, 0.3))
+		for slat: int in 5:
+			_detail(grilles, Vector3(x, 3.45 + float(slat) * 0.3, -68.22), Vector3(2.1, 0.09, 0.08))
+		_detail(housings, Vector3(x, 6.0, -86.4), Vector3(1.8, 1.7, 0.3))
+		_detail(indicators, Vector3(x, 6.0, -86.2), Vector3(0.6, 0.45, 0.1))
+	_batch_details("MetroMachineryHousings", housings, "trim")
+	_batch_details("MetroVentGrilles", grilles, "concrete")
+	_batch_details("MetroCircuitIndicators", indicators, "emergency")
+
+
+func setup_station_events(pool: EffectPool) -> void:
+	station_effects = pool
+
+
+func start_station_events() -> void:
+	station_event_timer = 12.0
+	station_event_count = 0
+	last_station_event = ""
+
+
+## Called only while the match is running. One small puff or spark at a time;
+## bounded pooled emitters, no physics, no artificial light and no hazards.
+## The low-quality tier skips ambient particles to protect frame time.
+func step_station_events(delta: float) -> void:
+	if station_effects == null:
+		return
+	station_event_timer -= maxf(delta, 0.0)
+	if station_event_timer > 0.0:
+		return
+	var sequence: int = station_event_count
+	station_event_count += 1
+	if sequence % 2 == 0:
+		last_station_event = "vent"
+		station_event_timer = 20.0
+		if station_effects.detail:
+			station_effects.burst("smoke", to_global(VENT_POINTS[(sequence / 2) % 2]), Vector3.UP, 0.38)
+	else:
+		last_station_event = "circuit"
+		station_event_timer = 24.0
+		if station_effects.detail:
+			station_effects.burst("spark", to_global(BREAKER_POINTS[(sequence / 2 + 1) % 2]), Vector3.DOWN, 0.8)
 
 
 func _detail(target: Array[Transform3D], at: Vector3, dimensions: Vector3) -> void:
