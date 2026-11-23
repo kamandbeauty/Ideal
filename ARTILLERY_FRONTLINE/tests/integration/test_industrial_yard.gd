@@ -54,6 +54,13 @@ func run(t: TestContext) -> void:
 			if level.fire_nodes.size() == 2:
 				t.check(level.fire_nodes[0].position.distance_to(truck.position) < 5.0, "truck flames are anchored to its cab")
 				t.check(level.fire_nodes[1].position.distance_to(forklift.position) < 3.0, "forklift flames are anchored to the vehicle")
+				for fire: Node3D in level.fire_nodes:
+					var accent: MeshInstance3D = fire.get_node_or_null("VehicleFlameAccent") as MeshInstance3D
+					t.check(accent != null and accent.mesh != null, "each fire has a visible, low-poly flame accent")
+					if accent:
+						var flame: ArrayMesh = accent.mesh as ArrayMesh
+						t.check(flame != null and flame.get_surface_count() == 1 and flame.surface_get_array_len(0) == 15, "flame triangles are actually populated")
+						t.check(accent.find_children("*", "CollisionObject3D", true, false).is_empty(), "flame accents cannot block combat")
 				level.apply_quality("low", Graphics.PROFILES.low)
 				t.check(level.fire_nodes[0].visible and level.fire_nodes[1].visible, "both fires remain within the low quality fire budget")
 				level.apply_quality(Graphics.tier, Graphics.profile())

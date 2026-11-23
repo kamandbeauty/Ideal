@@ -113,6 +113,8 @@ func _ready() -> void:
 	_build_defenses()
 	_build_lamps()
 	_build_fires()
+	if geometry.has_method("setup_industrial_fire_accents"):
+		geometry.call("setup_industrial_fire_accents", fire_nodes)
 	_build_smoke()
 	_build_ash()
 	defense.struck.connect(_on_struck)

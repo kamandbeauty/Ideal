@@ -723,6 +723,8 @@ func _later_districts() -> void:
 	var forklift: Node3D = level.geometry.get_node_or_null("IndustrialForklift") as Node3D
 	var truck: Node3D = level.geometry.get_node_or_null("IndustrialBurntTruck") as Node3D
 	check(forklift != null and truck != null and level.fire_nodes.size() == 2, "industrial vehicles and their existing fire effects load")
+	if level.fire_nodes.size() == 2:
+		check(level.fire_nodes[0].get_node_or_null("VehicleFlameAccent") != null and level.fire_nodes[1].get_node_or_null("VehicleFlameAccent") != null, "both burning vehicles have a readable flame accent")
 	if forklift and truck:
 		# These are the in-game gunner's views, with only the aim moved.
 		_aim_at(forklift.position + Vector3(0.0, 1.7, 0.0))

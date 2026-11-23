@@ -6,6 +6,8 @@ extends "res://scripts/environment/hospital_geometry.gd"
 # vehicles sit outside the route envelopes rather than on the firing line.
 const FORKLIFT_AT := Vector3(-19.5, 0.0, -68.0)
 const TRUCK_AT := Vector3(19.5, 0.0, -68.5)
+var fire_accents: Array[MeshInstance3D] = []
+var fire_clock: float = 0.0
 
 func _ready() -> void:
 	_setup_materials()
@@ -232,3 +234,60 @@ func _vehicle_batch(parent: Node3D, node_name: String, items: Array[Transform3D]
 	batch.multimesh = multi
 	batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	parent.add_child(batch)
+
+
+## A tiny, animated stylized flame silhouette complements the existing
+## particles. A smoke particle can be hard to see from the distant gunner on a
+## phone, so the burning vehicle should remain readable even between bursts.
+## The accent is parented to the existing fire root: its quality cap, pause
+## behavior and cleanup remain exactly the same as the surrounding fire.
+func setup_industrial_fire_accents(fires: Array[Node3D]) -> void:
+	var mesh := _flame_mesh()
+	for index: int in mini(fires.size(), 2):
+		var accent := MeshInstance3D.new()
+		accent.name = "VehicleFlameAccent"
+		accent.mesh = mesh
+		accent.scale = Vector3.ONE * (1.0 if index == 0 else 0.55)
+		accent.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		fires[index].add_child(accent)
+		fire_accents.append(accent)
+
+
+func _flame_mesh() -> ArrayMesh:
+	var vertices := PackedVector3Array()
+	var colors := PackedColorArray()
+	var ember := Color(0.95, 0.20, 0.01, 0.85)
+	var orange := Color(1.0, 0.43, 0.025, 0.8)
+	var gold := Color(1.0, 0.82, 0.24, 0.9)
+	_flame_tongue(vertices, colors, Vector3(-1.1, 0, 0), Vector3(0.2, 0, 0), Vector3(-0.72, 2.4, 0), ember, orange)
+	_flame_tongue(vertices, colors, Vector3(-0.75, 0, 0), Vector3(0.9, 0, 0), Vector3(0.1, 3.1, 0), ember, orange)
+	_flame_tongue(vertices, colors, Vector3(0.0, 0, 0), Vector3(1.2, 0, 0), Vector3(0.8, 2.2, 0), ember, orange)
+	_flame_tongue(vertices, colors, Vector3(-0.72, 0.02, 0.02), Vector3(0.35, 0.02, 0.02), Vector3(-0.35, 1.55, 0.02), gold, orange)
+	_flame_tongue(vertices, colors, Vector3(-0.25, 0.02, 0.025), Vector3(0.75, 0.02, 0.025), Vector3(0.45, 1.35, 0.025), gold, orange)
+	var arrays: Array = []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = vertices
+	arrays[Mesh.ARRAY_COLOR] = colors
+	var mesh := ArrayMesh.new()
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.vertex_color_use_as_albedo = true
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	mesh.surface_set_material(0, material)
+	return mesh
+
+
+func _flame_tongue(vertices: PackedVector3Array, colors: PackedColorArray, left: Vector3, right: Vector3, top: Vector3, base: Color, tip: Color) -> void:
+	vertices.append_array(PackedVector3Array([left, right, top]))
+	colors.append_array(PackedColorArray([base, base, tip]))
+
+
+func _process(delta: float) -> void:
+	fire_clock += delta
+	for index: int in fire_accents.size():
+		var factor: float = 1.0 if index == 0 else 0.55
+		var flicker: float = fire_clock * 7.0 + float(index) * 1.7
+		fire_accents[index].scale = Vector3(factor * (0.92 + 0.08 * sin(flicker)), factor * (0.93 + 0.07 * sin(flicker * 1.3)), factor)
