@@ -9,7 +9,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  83% ] [90m[1mfirst_scan_filesystem[22m | Starting file scan...[39m[0m
 [92m[ DONE ][39m [1mfirst_scan_filesystem[22m
 [0m
-[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (100 steps)[39m[0m
+[   0% ] [90m[1mupdate_scripts_classes[22m | Started Registering global classes... (102 steps)[39m[0m
 [   0% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [   0% ] [90m[1mupdate_scripts_classes[22m | Campaign[39m[0m
 [   1% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
@@ -45,22 +45,23 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  31% ] [90m[1mupdate_scripts_classes[22m | UITheme[39m[0m
 [  32% ] [90m[1mupdate_scripts_classes[22m | SpawnGroup[39m[0m
 [  33% ] [90m[1mupdate_scripts_classes[22m | WaveData[39m[0m
-[  34% ] [90m[1mupdate_scripts_classes[22m | WaveDirector[39m[0m
-[  35% ] [90m[1mupdate_scripts_classes[22m | WaveSet[39m[0m
-[  36% ] [90m[1mupdate_scripts_classes[22m | Ballistics[39m[0m
-[  37% ] [90m[1mupdate_scripts_classes[22m | BulletPool[39m[0m
-[  38% ] [90m[1mupdate_scripts_classes[22m | ChainGun[39m[0m
-[  39% ] [90m[1mupdate_scripts_classes[22m | ExplosionData[39m[0m
-[  40% ] [90m[1mupdate_scripts_classes[22m | GrenadeData[39m[0m
-[  41% ] [90m[1mupdate_scripts_classes[22m | GrenadePool[39m[0m
-[  42% ] [90m[1mupdate_scripts_classes[22m | RocketLauncher[39m[0m
-[  43% ] [90m[1mupdate_scripts_classes[22m | RocketPool[39m[0m
-[  44% ] [90m[1mupdate_scripts_classes[22m | RotaryGun[39m[0m
-[  45% ] [90m[1mupdate_scripts_classes[22m | TwinHmg[39m[0m
-[  46% ] [90m[1mupdate_scripts_classes[22m | Weapon[39m[0m
-[  47% ] [90m[1mupdate_scripts_classes[22m | WeaponData[39m[0m
-[  48% ] [90m[1mupdate_scripts_classes[22m | WeaponState[39m[0m
-[  49% ] [90m[1mupdate_scripts_classes[22m | AttackLines[39m[0m
+[  33% ] [90m[1mupdate_scripts_classes[22m | WaveDirector[39m[0m
+[  34% ] [90m[1mupdate_scripts_classes[22m | WaveSet[39m[0m
+[  35% ] [90m[1mupdate_scripts_classes[22m | Ballistics[39m[0m
+[  36% ] [90m[1mupdate_scripts_classes[22m | BulletPool[39m[0m
+[  37% ] [90m[1mupdate_scripts_classes[22m | ChainGun[39m[0m
+[  38% ] [90m[1mupdate_scripts_classes[22m | ExplosionData[39m[0m
+[  39% ] [90m[1mupdate_scripts_classes[22m | GrenadeData[39m[0m
+[  40% ] [90m[1mupdate_scripts_classes[22m | GrenadePool[39m[0m
+[  41% ] [90m[1mupdate_scripts_classes[22m | RocketLauncher[39m[0m
+[  42% ] [90m[1mupdate_scripts_classes[22m | RocketPool[39m[0m
+[  43% ] [90m[1mupdate_scripts_classes[22m | RotaryGun[39m[0m
+[  44% ] [90m[1mupdate_scripts_classes[22m | TwinHmg[39m[0m
+[  45% ] [90m[1mupdate_scripts_classes[22m | Weapon[39m[0m
+[  46% ] [90m[1mupdate_scripts_classes[22m | WeaponData[39m[0m
+[  47% ] [90m[1mupdate_scripts_classes[22m | WeaponState[39m[0m
+[  48% ] [90m[1mupdate_scripts_classes[22m | AttackLines[39m[0m
+[  49% ] [90m[1mupdate_scripts_classes[22m | FoundryBrute[39m[0m
 [  50% ] [90m[1mupdate_scripts_classes[22m | Horde[39m[0m
 [  51% ] [90m[1mupdate_scripts_classes[22m | QuarantineBrute[39m[0m
 [  52% ] [90m[1mupdate_scripts_classes[22m | TunnelBrute[39m[0m
@@ -77,6 +78,7 @@ Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
 [  63% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  64% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  65% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
+[  66% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  66% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  67% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
 [  68% ] [90m[1mupdate_scripts_classes[22m | [39m[0m
