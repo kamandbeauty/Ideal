@@ -4,8 +4,8 @@ extends "res://scripts/environment/hospital_geometry.gd"
 
 # Locations and fire anchors are also used by the scene integration tests. Both
 # vehicles sit outside the route envelopes rather than on the firing line.
-const FORKLIFT_AT := Vector3(-24.0, 0.0, -70.0)
-const TRUCK_AT := Vector3(24.0, 0.0, -71.0)
+const FORKLIFT_AT := Vector3(-19.5, 0.0, -68.0)
+const TRUCK_AT := Vector3(19.5, 0.0, -68.5)
 
 func _ready() -> void:
 	_setup_materials()

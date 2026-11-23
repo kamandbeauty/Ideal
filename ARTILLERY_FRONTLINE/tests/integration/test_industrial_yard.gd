@@ -57,9 +57,15 @@ func run(t: TestContext) -> void:
 				level.apply_quality("low", Graphics.PROFILES.low)
 				t.check(level.fire_nodes[0].visible and level.fire_nodes[1].visible, "both fires remain within the low quality fire budget")
 				level.apply_quality(Graphics.tier, Graphics.profile())
+		# Test the player's actual view: the old vehicle placements were
+		# geometrically clear but were hidden behind the near defense arms.
+		var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
+		if forklift and truck:
+			for point: Vector3 in [forklift.position + Vector3(-1.0, 2.0, 1.3), forklift.position + Vector3(0, 3.0, 0), truck.position + Vector3(1.0, 2.3, 3.4), truck.position + Vector3(0, 3.0, 1.0)]:
+				var sight := PhysicsRayQueryParameters3D.create(level.layout.eye_position, point, Layers.WORLD)
+				t.check(space.intersect_ray(sight).is_empty(), "near defenses do not hide the vehicle from the player")
 		# Rays follow each route center and both outer offsets at waist height.
 		# They detect new WORLD collision, not transparent decorative meshes.
-		var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
 		for route: String in level.layout.route_names():
 			for lateral: float in [-1.0, 0.0, 1.0]:
 				var path: PackedVector3Array = level.layout.path_for(route, lateral, "left" if route.ends_with("left") else "right")
