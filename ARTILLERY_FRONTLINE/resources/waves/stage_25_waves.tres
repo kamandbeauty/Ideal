@@ -147,5 +147,5 @@ script = ExtResource("1_uqeon")
 waves = Array[ExtResource("2_7gmmm")]([SubResource("Resource_8df7d"), SubResource("Resource_e8n1i"), SubResource("Resource_6ky5e")])
 health_growth = 0.06
 speed_growth = 0.02
-waves_before = 86
+waves_before = 72
 difficulty_waves_before = 71

@@ -59,13 +59,13 @@ func _approved_play(t: TestContext) -> void:
 			"%s has a scene on the mount" % id)
 	t.check(is_equal_approx(aim.fov_degrees, 43.0) and is_equal_approx(aim.zoom_factor, 2.5), "the eye sees 43 degrees; the drawn-in sight brings the street 2.5 times closer")
 	var waves: WaveSet = Campaign.whole().duplicate()
-	waves.waves = waves.waves.slice(0, 8)
-	t.equal(waves.waves.size(), 8, "the siege is eight waves")
+	waves.waves = waves.waves.slice(0, 9)
+	t.equal(waves.waves.size(), 9, "the city comprises three waves in each of its stages")
 	t.equal(waves.total_zombies(), 325, "of 325 zombies")
 	var sizes: Array = []
 	for stage: int in 3:
 		sizes.append(Campaign.waves(stage).waves.size())
-	t.equal(sizes, [3, 3, 2], "played in three stages: the first of three waves, then three, then the last two")
+	t.equal(sizes, [3, 3, 3], "all three city stages contain three waves")
 	t.equal(Campaign.waves(0).total_zombies(), 74, "the first stage fields 74 zombies")
 	for id: StringName in ZOMBIES:
 		var wanted: Dictionary = ZOMBIES[id]

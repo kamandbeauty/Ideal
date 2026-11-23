@@ -75,9 +75,9 @@ func run(t: TestContext) -> void:
 	Profile.record_match({"victory": true, "stage": 0, "wave": 3, "wave_overall": 3, "kills": 74})
 	t.equal(int(Profile.data.stats.best_wave), 5, "and an earlier stage won again does not lower it")
 	Profile.record_match({"victory": true, "stage": 1, "wave": 3, "wave_overall": 6, "kills": 136})
-	Profile.record_match({"victory": true, "stage": 2, "wave": 2, "wave_overall": 8, "kills": 115})
+	Profile.record_match({"victory": true, "stage": 2, "wave": 3, "wave_overall": 9, "kills": 115})
 	t.equal(int(Profile.data.stats.stages_cleared), 3, "the original three stages are credited")
-	Profile.record_match({"victory": true, "stage": 3, "wave": 3, "wave_overall": 11, "kills": 141})
+	Profile.record_match({"victory": true, "stage": 3, "wave": 3, "wave_overall": 12, "kills": 141})
 	t.equal(int(Profile.data.stats.stages_cleared), 4, "the fourth stage is credited after victory")
 	for stage: int in range(4, Campaign.count()):
 		Profile.record_match({"victory": true, "stage": stage, "wave": 3, "wave_overall": Campaign.waves(stage).waves_before + 3, "kills": 100})
@@ -98,21 +98,28 @@ func run(t: TestContext) -> void:
 	Profile.adopt({"stats": {"stages_cleared": 99}, "settings": {"gun": "pea_shooter"}})
 	t.equal(int(Profile.data.stats.stages_cleared), Campaign.count(), "a nonsense count of stages is brought into range")
 	t.equal(String(Profile.setting("gun")), "twin_hmg", "and a gun that does not exist becomes the twin gun")
-	# V1 records use three metro waves per stage. Preserve their stage and
-	# remap progress within those stages, including records beyond metro.
-	var record_map: Dictionary = {0: 0, 17: 17, 18: 18, 19: 21, 20: 25,
-		21: 26, 22: 29, 23: 33, 24: 34, 25: 37, 26: 41, 27: 42, 89: 104}
-	for old_wave: int in record_map:
-		Profile.adopt({"version": 1, "stats": {"best_wave": old_wave, "stages_cleared": 7, "kills": 50},
-			"economy": {"coins": 123, "upgrades": {"twin_hmg": 2}}, "settings": {"language": "en"}})
-		t.equal(int(Profile.data.stats.best_wave), record_map[old_wave], "legacy wave %d maps to the expanded campaign" % old_wave)
-		t.equal(int(Profile.data.version), 2, "migration writes schema version 2")
-		t.check(int(Profile.data.stats.stages_cleared) == 7 and int(Profile.data.stats.kills) == 50
-			and int(Profile.data.economy.coins) == 123 and Profile.upgrade_level("twin_hmg") == 2
-			and Profile.setting("language") == "en", "migration preserves career, currency, upgrades and settings")
-		var migrated: Dictionary = Profile.data.duplicate(true)
-		Profile.adopt(migrated)
-		t.equal(Profile.data, migrated, "the migrated profile is not shifted twice")
+	# V1 had two city-final waves, then three per metro stage. V2 briefly
+	# had eight metro waves. Keep the stage, progress, and all other data.
+	var maps: Dictionary = {
+		1: {0: 0, 6: 6, 7: 7, 8: 9, 9: 10, 17: 18, 18: 19, 20: 21,
+			21: 22, 23: 24, 24: 25, 26: 27, 27: 28, 89: 90},
+		2: {0: 0, 6: 6, 7: 7, 8: 9, 9: 10, 17: 18,
+			18: 19, 19: 19, 20: 20, 21: 20, 22: 20, 23: 21, 24: 21, 25: 21,
+			26: 22, 33: 24, 34: 25, 41: 27, 42: 28, 104: 90},
+	}
+	for version: int in maps:
+		var record_map: Dictionary = maps[version]
+		for old_wave: int in record_map:
+			Profile.adopt({"version": version, "stats": {"best_wave": old_wave, "stages_cleared": 7, "kills": 50},
+				"economy": {"coins": 123, "upgrades": {"twin_hmg": 2}}, "settings": {"language": "en"}})
+			t.equal(int(Profile.data.stats.best_wave), record_map[old_wave], "v%d wave %d maps to the new campaign" % [version, old_wave])
+			t.equal(int(Profile.data.version), 3, "migration writes schema version 3")
+			t.check(int(Profile.data.stats.stages_cleared) == 7 and int(Profile.data.stats.kills) == 50
+				and int(Profile.data.economy.coins) == 123 and Profile.upgrade_level("twin_hmg") == 2
+				and Profile.setting("language") == "en", "migration preserves career, currency, upgrades and settings")
+			var migrated: Dictionary = Profile.data.duplicate(true)
+			Profile.adopt(migrated)
+			t.equal(Profile.data, migrated, "the migrated profile is not shifted twice")
 	Profile.adopt({})
 	t.equal(int(Profile.data.stats.stages_cleared), 0, "no save at all is a new player")
 	Profile.reset()

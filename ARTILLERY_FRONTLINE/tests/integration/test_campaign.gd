@@ -248,6 +248,7 @@ func run(t: TestContext) -> void:
 	level = game.level
 	var last: WaveSet = Campaign.waves(2)
 	t.check(level.stage == 2 and level.wave_set == last, "the third stage is the last")
+	t.equal(level.director.wave_count(), 3, "the third city stage also has three waves")
 	t.equal(level.stats.waves_before, 6, "the first six waves are counted")
 	var bosses: int = 0
 	for wave: WaveData in last.waves:
@@ -279,6 +280,7 @@ func run(t: TestContext) -> void:
 		level = game.level
 		last = Campaign.waves(index)
 		t.check(level.stage == index and level.wave_set == last, "next loads stage %d with its waves" % (index + 1))
+		t.equal(level.director.wave_count(), 3, "stage %d runs exactly three waves" % (index + 1))
 		if index >= 6 and index < 9:
 			t.check(level.geometry.find_child("TunnelEnd", true, false) != null, "the metro stage has its own scenery")
 			t.check(level.geometry.find_child("SandbagLine", true, false) != null and level.geometry.find_child("FiringPlatform", true, false) != null, "metro gunner stands behind a full sandbag line")

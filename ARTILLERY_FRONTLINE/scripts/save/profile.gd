@@ -4,7 +4,7 @@ extends Node
 signal changed
 
 const DEFAULTS: Dictionary = {
-	"version": 2,
+	"version": 3,
 	"settings": {
 		"language": "fa",
 		"sensitivity": 1.0,
@@ -65,22 +65,29 @@ func adopt(stored: Dictionary) -> void:
 	Loc.language = data.settings.language
 
 
-## V1 had three waves in each metro stage. Preserve the stage and approximate
-## within-stage progress; later stages simply move forward by fifteen waves.
-## Keep the schema marker in the data so saving/reloading cannot migrate twice.
+## V1 had two waves in stage 3 and three in metro. V2 kept that city
+## layout but temporarily had eight metro waves. Map to three waves per stage,
+## retaining the furthest stage and approximate progress within that stage.
+## Version 3 prevents the conversion from being applied twice.
 func _migrate_wave_record(stored: Dictionary) -> void:
-	var old_version: Variant = stored.get("version", 1)
-	if (old_version is int or old_version is float) and int(old_version) >= 2:
+	var raw_version: Variant = stored.get("version", 1)
+	var version: int = int(raw_version) if raw_version is int or raw_version is float else 1
+	if version >= 3:
 		return
 	var best: int = maxi(int(data.stats.best_wave), 0)
-	if best > 17 and best <= 26:
-		var offset: int = best - 18
-		var metro_stage: int = offset / 3
-		var old_wave: int = offset % 3
-		data.stats.best_wave = 18 + metro_stage * 8 + (old_wave * 7 / 2)
-	elif best > 26:
-		data.stats.best_wave = best + 15
-	data.version = 2
+	if best == 8:
+		data.stats.best_wave = 9  # Old city boss wave becomes wave three.
+	elif best >= 9:
+		if version <= 1 or best <= 17:
+			data.stats.best_wave = best + 1
+		elif best <= 41:
+			var offset: int = best - 18
+			var metro_stage: int = offset / 8
+			var wave_in_metro: int = offset % 8 + 1
+			data.stats.best_wave = 18 + metro_stage * 3 + (wave_in_metro * 3 + 7) / 8
+		else:
+			data.stats.best_wave = best - 14
+	data.version = 3
 
 
 ## A save from before the siege was cut into stages only knows how far its player got through the

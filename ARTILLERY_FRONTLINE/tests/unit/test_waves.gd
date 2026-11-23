@@ -6,7 +6,7 @@ extends RefCounted
 func run(t: TestContext) -> void:
 	_stages(t)
 	var siege: WaveSet = Campaign.whole().duplicate()
-	siege.waves = siege.waves.slice(0, 8)
+	siege.waves = siege.waves.slice(0, 9)
 	t.check(siege != null and not siege.waves.is_empty(), "the stages add up to one siege")
 	var layout: LevelLayout = load("res://resources/levels/city_siege_layout.tres")
 	var known: Dictionary = {}
@@ -109,7 +109,7 @@ func _stages(t: TestContext) -> void:
 	var whole: WaveSet = Campaign.whole()
 	for stage: int in Campaign.count():
 		var part: WaveSet = Campaign.waves(stage)
-		t.check(part != null and part.waves.size() >= 2, "stage %d loads with its waves" % (stage + 1))
+		t.check(part != null and part.waves.size() == 3, "stage %d has exactly three waves" % (stage + 1))
 		t.equal(part.waves_before, before, "stage %d knows how many waves came before it" % (stage + 1))
 		var difficulty_start: int = part.difficulty_waves_before if part.difficulty_waves_before >= 0 else before
 		var reference := WaveSet.new()
@@ -117,11 +117,9 @@ func _stages(t: TestContext) -> void:
 		reference.health_growth = part.health_growth
 		t.near(part.health_scale(0), reference.health_scale(difficulty_start), 0.0001, "stage %d keeps its prior difficulty baseline" % (stage + 1))
 		t.near(part.speed_scale(0), reference.speed_scale(difficulty_start), 0.0001, "stage %d keeps its prior opening speed" % (stage + 1))
-		if stage >= 6 and stage <= 8:
-			t.equal(part.waves.size(), 8, "metro stage %d has eight waves" % (stage + 1))
-			t.near(part.speed_scale(7), reference.speed_scale(difficulty_start + 2), 0.0001, "metro expansion does not accelerate enemy speed")
-		else:
-			t.near(part.speed_scale(part.waves.size() - 1), reference.speed_scale(difficulty_start + part.waves.size() - 1), 0.0001, "stage %d retains its speed curve" % (stage + 1))
+		var old_last: int = difficulty_start + (1 if stage == 2 else 2)
+		t.near(part.speed_scale(2), reference.speed_scale(old_last), 0.0001,
+			"stage %d retains its original final-wave speed" % (stage + 1))
 		for index: int in part.waves.size():
 			t.check(part.waves[index].total() == whole.waves[before + index].total(), "stage %d wave %d is that wave, unchanged" % [stage + 1, index + 1])
 			t.equal(Campaign.place_of(before + index + 1), Vector2i(stage + 1, index + 1), "wave %d of the siege is found in its stage" % (before + index + 1))
@@ -132,7 +130,7 @@ func _stages(t: TestContext) -> void:
 	var hospital: LevelLayout = load("res://resources/levels/hospital_layout.tres")
 	var hospital_waves: WaveSet = Campaign.waves(3)
 	t.check(Campaign.scene(3).ends_with("hospital_siege.tscn") and Campaign.scene(2).ends_with("city_siege.tscn"), "the fourth stage selects its own scene")
-	t.equal(hospital_waves.waves_before, 8, "hospital follows the original eight waves")
+	t.equal(hospital_waves.waves_before, 9, "hospital follows the three city stages")
 	var metro: LevelLayout = load("res://resources/levels/metro_layout.tres")
 	for stage: int in range(3, 9):
 		var layout: LevelLayout = hospital if stage < 6 else metro

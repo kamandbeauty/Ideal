@@ -1,294 +1,151 @@
 [gd_resource type="Resource" script_class="WaveSet" format=3]
 
-[ext_resource type="Script" path="res://scripts/waves/wave_set.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/waves/wave_data.gd" id="2"]
-[ext_resource type="Script" path="res://scripts/waves/spawn_group.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/waves/wave_set.gd" id="1_uqeon"]
+[ext_resource type="Script" path="res://scripts/waves/wave_data.gd" id="2_7gmmm"]
+[ext_resource type="Script" path="res://scripts/waves/spawn_group.gd" id="3_ywpqh"]
 
-[sub_resource type="Resource" id="walker_1"]
-script = ExtResource("3")
-zombie = &"walker"
-count = 11
-start_time = 0.0
-interval = 1.4
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="runner_1"]
-script = ExtResource("3")
-zombie = &"runner"
-count = 5
-start_time = 9.0
-interval = 1.6
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="brute_1"]
-script = ExtResource("3")
-zombie = &"brute"
-count = 1
-start_time = 12.0
-interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
-target = "any"
-
-[sub_resource type="Resource" id="wave_1"]
-script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_1"), SubResource("runner_1"), SubResource("brute_1")])
-max_alive = 24
-intermission = 8.0
-resupply_rockets = 0
-resupply_grenades = 1
-
-[sub_resource type="Resource" id="walker_2"]
-script = ExtResource("3")
-zombie = &"walker"
-count = 12
-start_time = 0.0
-interval = 1.4
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="runner_2"]
-script = ExtResource("3")
-zombie = &"runner"
-count = 6
-start_time = 9.0
-interval = 1.6
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="brute_2"]
-script = ExtResource("3")
-zombie = &"brute"
-count = 1
-start_time = 12.0
-interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
-target = "any"
-
-[sub_resource type="Resource" id="wave_2"]
-script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_2"), SubResource("runner_2"), SubResource("brute_2")])
-max_alive = 24
-intermission = 8.0
-resupply_rockets = 1
-resupply_grenades = 0
-
-[sub_resource type="Resource" id="walker_3"]
-script = ExtResource("3")
-zombie = &"walker"
-count = 13
-start_time = 0.0
-interval = 1.4
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="runner_3"]
-script = ExtResource("3")
-zombie = &"runner"
-count = 5
-start_time = 9.0
-interval = 1.6
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="brute_3"]
-script = ExtResource("3")
-zombie = &"brute"
-count = 1
-start_time = 12.0
-interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
-target = "any"
-
-[sub_resource type="Resource" id="wave_3"]
-script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_3"), SubResource("runner_3"), SubResource("brute_3")])
-max_alive = 24
-intermission = 8.0
-resupply_rockets = 0
-resupply_grenades = 1
-
-[sub_resource type="Resource" id="walker_4"]
-script = ExtResource("3")
-zombie = &"walker"
-count = 11
-start_time = 0.0
-interval = 1.4
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="runner_4"]
-script = ExtResource("3")
-zombie = &"runner"
-count = 6
-start_time = 9.0
-interval = 1.6
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="brute_4"]
-script = ExtResource("3")
-zombie = &"brute"
-count = 1
-start_time = 12.0
-interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
-target = "any"
-
-[sub_resource type="Resource" id="wave_4"]
-script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_4"), SubResource("runner_4"), SubResource("brute_4")])
-max_alive = 24
-intermission = 8.0
-resupply_rockets = 1
-resupply_grenades = 0
-
-[sub_resource type="Resource" id="walker_5"]
-script = ExtResource("3")
-zombie = &"walker"
-count = 12
-start_time = 0.0
-interval = 1.4
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="runner_5"]
-script = ExtResource("3")
-zombie = &"runner"
-count = 5
-start_time = 9.0
-interval = 1.6
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="brute_5"]
-script = ExtResource("3")
+[sub_resource type="Resource" id="Resource_lkifr"]
+script = ExtResource("3_ywpqh")
 zombie = &"brute"
 count = 2
-start_time = 12.0
-interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
-target = "any"
+interval = 9.0
+routes = PackedStringArray("ring_right", "alley_right")
 
-[sub_resource type="Resource" id="wave_5"]
-script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_5"), SubResource("runner_5"), SubResource("brute_5")])
-max_alive = 24
-intermission = 8.0
-resupply_rockets = 0
-resupply_grenades = 1
+[sub_resource type="Resource" id="Resource_gy6ni"]
+script = ExtResource("3_ywpqh")
+count = 23
+start_time = 3.0
+interval = 1.0
+routes = PackedStringArray("avenue_left", "avenue_right", "cross_left", "cross_right")
 
-[sub_resource type="Resource" id="walker_6"]
-script = ExtResource("3")
-zombie = &"walker"
-count = 13
-start_time = 0.0
-interval = 1.4
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
+[sub_resource type="Resource" id="Resource_fdqi7"]
+script = ExtResource("3_ywpqh")
+start_time = 6.0
+interval = 1.3
+routes = PackedStringArray("ring_left", "alley_left")
+target = "wall"
 
-[sub_resource type="Resource" id="runner_6"]
-script = ExtResource("3")
+[sub_resource type="Resource" id="Resource_vlw7m"]
+script = ExtResource("3_ywpqh")
 zombie = &"runner"
-count = 6
-start_time = 9.0
-interval = 1.6
+start_time = 20.0
+interval = 0.6
+burst = 2
 routes = PackedStringArray("avenue_left", "avenue_right")
 target = "any"
 
-[sub_resource type="Resource" id="brute_6"]
-script = ExtResource("3")
-zombie = &"brute"
-count = 1
-start_time = 12.0
-interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
-target = "any"
-
-[sub_resource type="Resource" id="wave_6"]
-script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_6"), SubResource("runner_6"), SubResource("brute_6")])
-max_alive = 24
+[sub_resource type="Resource" id="Resource_8df7d"]
+script = ExtResource("2_7gmmm")
+groups = Array[ExtResource("3_ywpqh")]([SubResource("Resource_lkifr"), SubResource("Resource_gy6ni"), SubResource("Resource_fdqi7"), SubResource("Resource_vlw7m")])
 intermission = 8.0
-resupply_rockets = 1
-resupply_grenades = 0
+resupply_rockets = 2
+hint_key = "wave_hint_brutes"
 
-[sub_resource type="Resource" id="walker_7"]
-script = ExtResource("3")
-zombie = &"walker"
-count = 11
-start_time = 0.0
-interval = 1.4
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
+[sub_resource type="Resource" id="Resource_vae0l"]
+script = ExtResource("3_ywpqh")
+count = 20
+interval = 0.9
+routes = PackedStringArray("avenue_left", "avenue_right", "cross_left", "cross_right")
 
-[sub_resource type="Resource" id="runner_7"]
-script = ExtResource("3")
-zombie = &"runner"
-count = 5
-start_time = 9.0
-interval = 1.6
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="brute_7"]
-script = ExtResource("3")
-zombie = &"brute"
-count = 1
-start_time = 12.0
-interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
-target = "any"
-
-[sub_resource type="Resource" id="wave_7"]
-script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_7"), SubResource("runner_7"), SubResource("brute_7")])
-max_alive = 24
-intermission = 8.0
-resupply_rockets = 0
-resupply_grenades = 1
-
-[sub_resource type="Resource" id="walker_8"]
-script = ExtResource("3")
-zombie = &"walker"
+[sub_resource type="Resource" id="Resource_3vvwj"]
+script = ExtResource("3_ywpqh")
 count = 12
-start_time = 0.0
-interval = 1.4
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
+start_time = 3.0
+interval = 1.1
+routes = PackedStringArray("ring_left", "alley_left")
+target = "wall"
 
-[sub_resource type="Resource" id="runner_8"]
-script = ExtResource("3")
-zombie = &"runner"
-count = 6
-start_time = 9.0
-interval = 1.6
-routes = PackedStringArray("avenue_left", "avenue_right")
-target = "any"
-
-[sub_resource type="Resource" id="brute_8"]
-script = ExtResource("3")
+[sub_resource type="Resource" id="Resource_5wrq5"]
+script = ExtResource("3_ywpqh")
 zombie = &"brute"
 count = 2
-start_time = 12.0
-interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
+start_time = 8.0
+interval = 10.0
+routes = PackedStringArray("ring_left", "alley_left")
+target = "wall"
+
+[sub_resource type="Resource" id="Resource_wb018"]
+script = ExtResource("3_ywpqh")
+zombie = &"brute"
+count = 2
+start_time = 14.0
+interval = 10.0
+routes = PackedStringArray("ring_right", "alley_right")
+
+[sub_resource type="Resource" id="Resource_6bwnr"]
+script = ExtResource("3_ywpqh")
+zombie = &"runner"
+count = 18
+start_time = 18.0
+interval = 0.5
+burst = 2
+routes = PackedStringArray()
 target = "any"
 
-[sub_resource type="Resource" id="wave_8"]
-script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_8"), SubResource("runner_8"), SubResource("brute_8")])
-max_alive = 24
+[sub_resource type="Resource" id="Resource_e8n1i"]
+script = ExtResource("2_7gmmm")
+groups = Array[ExtResource("3_ywpqh")]([SubResource("Resource_vae0l"), SubResource("Resource_3vvwj"), SubResource("Resource_5wrq5"), SubResource("Resource_wb018"), SubResource("Resource_6bwnr")])
+max_alive = 46
 intermission = 8.0
-resupply_rockets = 1
-resupply_grenades = 0
+resupply_grenades = 2
+
+[sub_resource type="Resource" id="Resource_5twhb"]
+script = ExtResource("3_ywpqh")
+zombie = &"runner"
+count = 14
+interval = 0.45
+burst = 3
+routes = PackedStringArray("avenue_left", "avenue_right")
+
+[sub_resource type="Resource" id="Resource_xfqln"]
+script = ExtResource("3_ywpqh")
+count = 14
+start_time = 2.0
+interval = 1.0
+routes = PackedStringArray("ring_left", "alley_left", "ring_right", "alley_right")
+target = "any"
+
+[sub_resource type="Resource" id="Resource_asots"]
+script = ExtResource("3_ywpqh")
+zombie = &"runner"
+count = 10
+start_time = 14.0
+interval = 0.45
+burst = 2
+routes = PackedStringArray("cross_left", "cross_right")
+target = "wall"
+
+[sub_resource type="Resource" id="Resource_sfgjm"]
+script = ExtResource("3_ywpqh")
+zombie = &"brute"
+count = 4
+start_time = 16.0
+interval = 6.0
+routes = PackedStringArray("ring_right", "alley_right")
+
+[sub_resource type="Resource" id="Resource_gddej"]
+script = ExtResource("3_ywpqh")
+zombie = &"runner"
+count = 16
+start_time = 28.0
+interval = 0.4
+burst = 2
+routes = PackedStringArray()
+target = "any"
+
+[sub_resource type="Resource" id="Resource_6ky5e"]
+script = ExtResource("2_7gmmm")
+groups = Array[ExtResource("3_ywpqh")]([SubResource("Resource_5twhb"), SubResource("Resource_xfqln"), SubResource("Resource_asots"), SubResource("Resource_sfgjm"), SubResource("Resource_gddej")])
+max_alive = 50
+intermission = 8.0
+resupply_rockets = 2
+resupply_grenades = 2
+hint_key = "wave_hint_swarm"
 
 [resource]
-script = ExtResource("1")
-waves = Array[ExtResource("2")]([SubResource("wave_1"), SubResource("wave_2"), SubResource("wave_3"), SubResource("wave_4"), SubResource("wave_5"), SubResource("wave_6"), SubResource("wave_7"), SubResource("wave_8")])
+script = ExtResource("1_uqeon")
+waves = Array[ExtResource("2_7gmmm")]([SubResource("Resource_8df7d"), SubResource("Resource_e8n1i"), SubResource("Resource_6ky5e")])
 health_growth = 0.06
 speed_growth = 0.02
-waves_before = 25
+waves_before = 21
 difficulty_waves_before = 20
-difficulty_wave_step = 0.2857142857142857

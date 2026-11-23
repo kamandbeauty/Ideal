@@ -7,20 +7,20 @@
 [sub_resource type="Resource" id="Resource_5yywc"]
 script = ExtResource("3_hrfex")
 zombie = &"brute"
-count = 4
+count = 2
 interval = 6.0
 routes = PackedStringArray("ring_right", "alley_right", "cross_right")
 
 [sub_resource type="Resource" id="Resource_3s1bt"]
 script = ExtResource("3_hrfex")
-count = 22
+count = 11
 start_time = 1.0
 interval = 0.8
 routes = PackedStringArray("avenue_left", "avenue_right", "cross_left", "cross_right")
 
 [sub_resource type="Resource" id="Resource_4xll1"]
 script = ExtResource("3_hrfex")
-count = 12
+count = 6
 start_time = 4.0
 interval = 1.0
 routes = PackedStringArray("ring_left", "alley_left")
@@ -29,7 +29,7 @@ target = "wall"
 [sub_resource type="Resource" id="Resource_xltoj"]
 script = ExtResource("3_hrfex")
 zombie = &"brute"
-count = 4
+count = 2
 start_time = 12.0
 interval = 7.0
 routes = PackedStringArray("ring_left", "alley_left")
@@ -38,7 +38,7 @@ target = "wall"
 [sub_resource type="Resource" id="Resource_8h713"]
 script = ExtResource("3_hrfex")
 zombie = &"runner"
-count = 14
+count = 7
 start_time = 22.0
 interval = 0.5
 burst = 2
@@ -50,8 +50,17 @@ script = ExtResource("2_rbrst")
 groups = Array[ExtResource("3_hrfex")]([SubResource("Resource_5yywc"), SubResource("Resource_3s1bt"), SubResource("Resource_4xll1"), SubResource("Resource_xltoj"), SubResource("Resource_8h713")])
 max_alive = 54
 intermission = 9.0
-resupply_rockets = 2
-resupply_grenades = 2
+resupply_rockets = 1
+resupply_grenades = 1
+hint_key = "wave_hint_heavy"
+
+[sub_resource type="Resource" id="wave_middle"]
+script = ExtResource("2_rbrst")
+groups = Array[ExtResource("3_hrfex")]([SubResource("Resource_5yywc"), SubResource("Resource_3s1bt"), SubResource("Resource_4xll1"), SubResource("Resource_xltoj"), SubResource("Resource_8h713")])
+max_alive = 54
+intermission = 9.0
+resupply_rockets = 1
+resupply_grenades = 1
 hint_key = "wave_hint_heavy"
 
 [sub_resource type="Resource" id="Resource_3otnq"]
@@ -113,7 +122,9 @@ hint_key = "wave_hint_boss"
 
 [resource]
 script = ExtResource("1_kyb17")
-waves = Array[ExtResource("2_rbrst")]([SubResource("Resource_s7ii4"), SubResource("Resource_q47uw")])
+waves = Array[ExtResource("2_rbrst")]([SubResource("Resource_s7ii4"), SubResource("wave_middle"), SubResource("Resource_q47uw")])
 health_growth = 0.06
 speed_growth = 0.02
 waves_before = 6
+difficulty_waves_before = 6
+difficulty_wave_step = 0.5

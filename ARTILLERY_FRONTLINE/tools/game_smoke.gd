@@ -656,8 +656,8 @@ func _metro_stage() -> void:
 	game.start_match()
 	await wait_transition()
 	level = game.level
-	level.director._start_wave(7)
-	simulate(2.2)
+	level.director._start_wave(2)
+	simulate(4.2)
 	var tunnel: TunnelBrute = level.horde.boss as TunnelBrute
 	check(tunnel != null, "stage nine final wave spawns the metro boss")
 	if tunnel != null:
