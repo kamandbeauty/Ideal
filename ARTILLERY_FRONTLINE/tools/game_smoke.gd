@@ -626,6 +626,30 @@ func _hospital_stage() -> void:
 	await frames(6)
 	check(level.horde.spawned_total > 0, "the fourth stage sends attackers")
 	await shot("45-hospital-attack", "play")
+	# Stage six, actual final-wave spawn, then stage the boss in camera view
+	# to document the heavy-strike warning rather than claim a live encounter.
+	game.to_menu()
+	await wait_transition()
+	game.select_stage(5)
+	game.start_match()
+	await wait_transition()
+	level = game.level
+	level.director._start_wave(2)
+	simulate(4.2)
+	var quarantine: QuarantineBrute = level.horde.boss as QuarantineBrute
+	check(quarantine != null, "stage six final wave spawns the hospital boss")
+	if quarantine != null:
+		level.horde.find_place(quarantine)
+		quarantine.position = Vector3(0.0, 0.0, -35.0)
+		quarantine.state = Zombie.State.ATTACK
+		quarantine.blows = 2
+		quarantine.attack_clock = 0.0
+		quarantine.attack_landed = false
+		quarantine._swing(0.01)
+		_aim_at(quarantine.position + Vector3(0.0, 1.8, 0.0))
+		await frames(6)
+		check(quarantine.warning_ring.visible, "the heavy-strike warning is visible")
+		await shot("45a-hospital-boss-warning", "staged")
 
 
 func _metro_stage() -> void:
