@@ -1,5 +1,5 @@
 {
-  "checks": 229,
+  "checks": 231,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -69,6 +69,7 @@
       "29-peak-crowd.png",
       "35-second-stage-begins.png",
       "45a-hospital-boss-warning.png",
+      "47a-metro-vent.png",
       "48-metro-boss-warning.png",
       "52-gore-burst.png"
     ],
@@ -170,6 +171,7 @@
       "29-peak-crowd.png",
       "35-second-stage-begins.png",
       "45a-hospital-boss-warning.png",
+      "47a-metro-vent.png",
       "48-metro-boss-warning.png",
       "52-gore-burst.png"
     ]
@@ -184,32 +186,32 @@
   "notes": {
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
-    "blast_kills": 14,
-    "boss_reached_gate_after_s": 57.0,
-    "defeat_time_s": 175.1,
-    "gate_attackers": 4,
-    "gate_fell_after_s": 7.0,
-    "gate_left_with_boss": 0.44,
-    "grenade_kills": 8,
-    "hits": 4,
-    "kills": 2,
+    "blast_kills": 13,
+    "boss_reached_gate_after_s": 66.0,
+    "defeat_time_s": 191.7,
+    "gate_attackers": 6,
+    "gate_fell_after_s": 12.0,
+    "gate_left_with_boss": 0.74,
+    "grenade_kills": 7,
+    "hits": 2,
+    "kills": 1,
     "peak_load": {
       "alive": 50,
-      "draw_calls": 409,
-      "fps": 10.1,
+      "draw_calls": 417,
+      "fps": 9.6,
       "nodes": 1505,
       "orphan_nodes": 0,
-      "primitives": 327874,
+      "primitives": 327916,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 121.2,
-      "striking": 33,
-      "texture_memory_mb": 92.2,
+      "static_memory_mb": 121.3,
+      "striking": 31,
+      "texture_memory_mb": 92.3,
       "tier": "medium",
       "video_memory_mb": 115.1,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 157.69,
-      "worst_physics_tick_ms_in_a_second": 0.88,
+      "worst_frame_ms_in_a_second": 163.07,
+      "worst_physics_tick_ms_in_a_second": 0.89,
       "zombie_nodes": 50
     },
     "phone_20x9": {
@@ -250,17 +252,17 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 369,
-      "fps": 6.3,
+      "draw_calls": 379,
+      "fps": 5.9,
       "nodes": 1081,
       "orphan_nodes": 0,
-      "primitives": 273260,
+      "primitives": 275578,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 122.8,
-      "texture_memory_mb": 88.3,
+      "static_memory_mb": 122.4,
+      "texture_memory_mb": 87.9,
       "tier": "medium",
-      "video_memory_mb": 108.0
+      "video_memory_mb": 107.6
     },
     "rocket_kills": 6,
     "second_stage": {
@@ -276,7 +278,7 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 55.7,
+    "sight_target_m": 57.4,
     "six_barrel_kills": 2,
     "six_barrel_shots": 31,
     "stage_held_preview": {
@@ -337,7 +339,7 @@
       "waves_cleared": 3,
       "waves_total": 3
     },
-    "wall_fell_after_s": 3.0,
+    "wall_fell_after_s": 5.0,
     "window": [
       1440,
       810
@@ -410,6 +412,7 @@
     "45a-hospital-boss-warning.png",
     "46-metro-map.png",
     "47-metro-attack.png",
+    "47a-metro-vent.png",
     "48-metro-boss-warning.png",
     "48-industrial-map.png",
     "49-industrial-stage.png",
