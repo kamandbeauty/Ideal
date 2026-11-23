@@ -648,6 +648,28 @@ func _metro_stage() -> void:
 	await frames(6)
 	check(level.horde.spawned_total > 0, "the metro sends attackers")
 	await shot("47-metro-attack", "play")
+	# Stage nine: start its actual final wave. The boss is moved into a clear
+	# camera view for evidence; this picture is explicitly marked as staged.
+	game.to_menu()
+	await wait_transition()
+	game.select_stage(8)
+	game.start_match()
+	await wait_transition()
+	level = game.level
+	level.director._start_wave(7)
+	simulate(2.2)
+	var tunnel: TunnelBrute = level.horde.boss as TunnelBrute
+	check(tunnel != null, "stage nine final wave spawns the metro boss")
+	if tunnel != null:
+		tunnel.position = Vector3(0.0, 0.0, -40.0)
+		tunnel.path = PackedVector3Array([tunnel.position, Vector3(0.0, 0.0, -20.0)])
+		tunnel.path_index = 1
+		tunnel.rush_left = 0.01
+		simulate(0.1)
+		_aim_at(tunnel.position + Vector3(0.0, 1.8, 0.0))
+		await frames(6)
+		check(tunnel.warning_ring.visible, "the rush warning is visible")
+		await shot("48-metro-boss-warning", "staged")
 
 
 func _later_districts() -> void:

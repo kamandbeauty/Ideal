@@ -1,6 +1,6 @@
 extends RefCounted
 ## The first expanded district uses eight real director-driven waves per stage.
-## The metro boss remains future work; no generic boss is passed off as one.
+## Only the third metro stage fields its own boss, in the final wave.
 
 func run(t: TestContext) -> void:
 	for stage: int in range(6, 9):
@@ -17,6 +17,9 @@ func run(t: TestContext) -> void:
 			t.check(wave.total() >= 12 and wave.total() <= 25 and wave.max_alive <= 24,
 				"wave %d is a manageable encounter" % (index + 1))
 			t.equal(wave.schedule().size(), wave.total(), "every planned attacker is scheduled")
+			t.equal(wave.count_of(&"tunnel_brute"), 1 if stage == 8 and index == 7 else 0,
+				"the tunnel boss appears only in stage 9 wave 8")
+			t.equal(wave.count_of(&"boss"), 0, "metro never substitutes the city boss")
 			for group: SpawnGroup in wave.groups:
 				t.check(level.horde.has_type(group.zombie), "every metro enemy type can spawn")
 				for route: String in group.routes:
@@ -36,5 +39,6 @@ func run(t: TestContext) -> void:
 		t.equal(started, [0, 1, 2, 3, 4, 5, 6, 7], "all waves start in order")
 		t.equal(level.horde.spawned_total, waves.total_zombies(), "the director spawned every scheduled enemy")
 		t.equal(level.stats.waves_cleared, 8, "the match records all eight cleared waves")
+		t.equal(level.stats.bosses, 1 if stage == 8 else 0, "the boss is counted in the right stage")
 		Events.wave_started.disconnect(on_wave)
 		await t.discard(level)

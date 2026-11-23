@@ -21,6 +21,9 @@ extends Resource
 @export var is_boss: bool = false
 ## Text key of the line shown under the warning when a boss appears.
 @export var advice_key: String = ""
+## Existing bosses keep the original warning; new bosses may name themselves.
+@export var warning_key: String = "warn_boss"
+@export var fallen_key: String = "boss_down"
 
 @export_group("Body")
 @export_range(1.0, 100000.0, 1.0) var max_health: float = 80.0

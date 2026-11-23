@@ -252,7 +252,7 @@ resupply_grenades = 1
 [sub_resource type="Resource" id="walker_8"]
 script = ExtResource("3")
 zombie = &"walker"
-count = 13
+count = 8
 start_time = 0.0
 interval = 1.4
 routes = PackedStringArray("avenue_left", "avenue_right")
@@ -261,24 +261,24 @@ target = "any"
 [sub_resource type="Resource" id="runner_8"]
 script = ExtResource("3")
 zombie = &"runner"
-count = 6
+count = 4
 start_time = 9.0
 interval = 1.6
 routes = PackedStringArray("avenue_left", "avenue_right")
 target = "any"
 
-[sub_resource type="Resource" id="brute_8"]
+[sub_resource type="Resource" id="tunnel_boss"]
 script = ExtResource("3")
-zombie = &"brute"
-count = 2
-start_time = 12.0
+zombie = &"tunnel_brute"
+count = 1
+start_time = 2.0
 interval = 6.0
-routes = PackedStringArray("ring_left", "ring_right")
-target = "any"
+routes = PackedStringArray("avenue_left", "avenue_right")
+target = "gate"
 
 [sub_resource type="Resource" id="wave_8"]
 script = ExtResource("2")
-groups = Array[ExtResource("3")]([SubResource("walker_8"), SubResource("runner_8"), SubResource("brute_8")])
+groups = Array[ExtResource("3")]([SubResource("walker_8"), SubResource("runner_8"), SubResource("tunnel_boss")])
 max_alive = 24
 intermission = 8.0
 resupply_rockets = 1

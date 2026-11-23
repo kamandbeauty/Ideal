@@ -151,6 +151,7 @@ func _ready() -> void:
 	Events.explosion.connect(_on_explosion)
 	Events.boss_appeared.connect(_on_boss_appeared)
 	Events.boss_fell.connect(_on_boss_fell)
+	Events.tunnel_brute_warning.connect(_on_tunnel_brute_warning)
 	Events.match_started.connect(_on_match_started)
 	Events.language_changed.connect(refresh_text)
 	Events.settings_changed.connect(_layout)
@@ -852,12 +853,17 @@ func _on_wave_started(index: int, total: int) -> void:
 
 
 func _on_boss_appeared(zombie: Node3D) -> void:
-	var advice: String = (zombie as Zombie).data.advice_key
-	show_banner(Loc.t("warn_boss"), UITheme.RED, Loc.t(advice) if advice != "" else "")
+	var data: ZombieData = (zombie as Zombie).data
+	show_banner(Loc.t(data.warning_key), UITheme.RED, Loc.t(data.advice_key) if data.advice_key != "" else "")
 
 
-func _on_boss_fell(_zombie: Node3D) -> void:
-	show_banner(Loc.t("boss_down"), UITheme.GREEN)
+func _on_tunnel_brute_warning(zombie: Node3D) -> void:
+	if level != null and level.horde.boss == zombie and (zombie as Zombie).alive:
+		show_banner(Loc.t("tunnel_brute_rush"), UITheme.AMBER)
+
+
+func _on_boss_fell(zombie: Node3D) -> void:
+	show_banner(Loc.t((zombie as Zombie).data.fallen_key), UITheme.GREEN)
 
 
 func _on_wave_cleared(index: int, _total: int) -> void:
