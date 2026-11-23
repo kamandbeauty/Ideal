@@ -27,7 +27,7 @@ Baseline reviewed: branch `arena/1f525ed9-ideal`, commit `3f834f242cf8694a246b83
 
 ## Delivery discipline
 
-Keep defense, camera, controls, current saves and weapon behavior intact. Integrate changes incrementally with engine tests and screenshots; profile on target hardware before claiming the mobile performance target. An individual region is complete only after its own eight-wave gameplay, navigation, boss mechanics, environmental systems, localization and performance have been verified. This audit is not a claim that stages 7–30 meet that standard.
+Keep defense, camera, controls, current saves and weapon behavior intact. Integrate changes incrementally with engine tests and screenshots; profile on target hardware before claiming the mobile performance target. An individual region is complete only after its three-wave gameplay, navigation, boss mechanics, environmental systems, localization and performance have been verified. This audit is not a claim that stages 7–30 meet that standard.
 
 ## First implementation increment (not campaign completion)
 
@@ -63,3 +63,7 @@ The Quarantine Brute now appears only in stage 6 wave 3. It follows the existing
 ## Metro scenery and harmless events increment
 
 Metro now includes batched damaged ventilation and electrical cabinets, plus occasional vent smoke and circuit sparks while a match is active. They use existing pooled effects, are skipped on low detail, have no collision or damage, and do not change enemy routes, walls, weapons, waves or the player's station. Their timing and lifecycle are tested separately from combat; a staged software-rendered screenshot documents the vent. These are ambient visual events, not interactive environmental hazards, a finished soundscape, or a fully detailed station. Metro still needs further art and device/player validation; the other seven districts and requested enemies/progression remain incomplete.
+
+## Industrial yard increment
+
+Stages 10–12 now load a factory yard scene rather than the city mesh: a concrete gun platform and industrial gate, distant factory skyline, warehouses, overhead gantry and grouped yard fittings. Most new architecture uses three non-colliding MultiMeshes; permanent floor, platform and defense arms use existing collision conventions. The yard has its own fire/smoke placement but deliberately retains the city mount, attack paths, defense slots, breach paths, wave sets, enemy stats, saves and weapons. It is an initial environment increment, not a full industrial district: its stage-12 regional boss, special events, additional art and design/play/device validation remain outstanding. The later six districts still use the shared city scene. Software-render screenshots and automated logic tests are not phone performance or player-experience validation.

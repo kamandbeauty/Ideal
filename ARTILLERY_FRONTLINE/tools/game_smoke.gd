@@ -717,6 +717,7 @@ func _later_districts() -> void:
 	await wait_transition()
 	level = game.level
 	check(level.geometry.get_node_or_null("DistrictLandmarks3") != null, "industrial skyline loads")
+	check(level.geometry.get_node_or_null("FactorySteel") != null and level.geometry.get_node_or_null("IndustrialPlatform") != null, "industrial yard and defensive platform load")
 	await frames(5)
 	await shot("49-industrial-stage", "play")
 	game.to_menu()

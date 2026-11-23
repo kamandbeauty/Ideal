@@ -45,9 +45,11 @@ static func waves(stage: int) -> WaveSet:
 	return load(STAGES[clampi(stage, 0, STAGES.size() - 1)]) as WaveSet
 
 
-## The first three districts have dedicated layouts. Later districts reuse the
-## city routes and defenses with distinct, collision-free skyline landmarks.
+## The first four districts have their own scenery. Industrial keeps the city
+## route/defense contract; later districts still use the city scene and skyline.
 static func scene(stage: int) -> String:
+	if stage >= 9 and stage < 12:
+		return "res://scenes/levels/industrial_siege.tscn"
 	if stage >= 6 and stage < 9:
 		return "res://scenes/levels/metro_siege.tscn"
 	if stage >= 3 and stage < 6:
