@@ -52,18 +52,20 @@ func run(t: TestContext) -> void:
 		t.equal(level.stats.waves_cleared, 3, "all three waves are recorded")
 		Events.wave_started.disconnect(on_wave)
 		await t.discard(level)
-	# Let the real wave fight without player fire; verify gate, penetration and
-	# wall damage, rather than just emitting gate events synthetically.
+	# Isolate a real gate assault: unmodified waves can destroy the wall first,
+	# so that scenario alone cannot prove behavior after the gate falls.
 	var undefended: CityLevel = t.make_level(9)
 	await t.frames(2)
 	undefended.horde.rng.seed = 722
-	undefended.director.rng.seed = 733
 	undefended.begin_match()
+	undefended.director.stop()
+	for index: int in 10:
+		undefended.horde.spawn(&"brute" if index < 4 else &"walker", "ring_right", "gate")
 	var elapsed: float = 0.0
-	while not undefended.over and elapsed < 900.0:
+	while undefended.horde.entered_total == 0 and not undefended.over and elapsed < 700.0:
 		t.simulate(undefended, 1.0)
 		elapsed += 1.0
-	t.check(undefended.defense.gate_destroyed, "an undefended factory gate falls")
+	t.check(undefended.defense.gate_destroyed, "an undefended factory gate falls under a real attack")
 	t.check(undefended.horde.entered_total > 0, "attackers enter through the fallen factory gate")
-	t.check(undefended.defense.wall_health < undefended.defense.data.wall_max_health, "the factory wall takes damage")
+	t.check(undefended.defense.wall_health < undefended.defense.data.wall_max_health, "the factory wall takes damage after entry")
 	await t.discard(undefended)
