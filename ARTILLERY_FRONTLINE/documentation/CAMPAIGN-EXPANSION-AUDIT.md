@@ -92,3 +92,8 @@ These stages now load a dedicated procedural market scene rather than the shared
 ## Bazaar boss increment
 
 Stage 15 wave 3 now spawns one Bazaar Brute and has fewer escorts than before. It uses the existing boss rig and hitboxes, with a teal-and-red decorative sash, not a bespoke character model. On reaching a defense it has a 3-second delay, then an orange 1.8-second warning and 4 seconds of 1.5× attack speed; each strike has ordinary damage. A blast cancels the warning or frenzy, then a 12-second recovery follows. It has 1900 base health with the district's 1.09 scaling. No new route, hazard or attack is added to other stages. Headless/director tests and staged screenshots do not substitute for human balance or Android performance testing.
+
+
+## Bazaar visual detail pass
+
+The market now uses district-only AI-generated 512px paving, mosaic and woven rug textures, with edge blending on tiled surfaces and mipmapping. Decorative domes, colored tile friezes, rear arch recesses, shutters, high bunting, striped stall valances, rugs, pottery, produce and emissive lantern meshes enrich the view. Wares and repeated details use MultiMesh batches and no physics; lanterns do not add dynamic lights. Stall bounds are tested against the established route envelopes, and route collision rays, director tests and gunner-view screenshots remain in CI. These are lightweight procedural props, not bespoke scanned assets; mobile performance and human readability still need device testing.

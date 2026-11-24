@@ -1,6 +1,8 @@
 extends RefCounted
 ## Dedicated scenery must retain the city's routes, defenses and playable waves.
 
+const BAZAAR_GEOMETRY = preload("res://scripts/environment/bazaar_geometry.gd")
+
 func run(t: TestContext) -> void:
 	var city: LevelLayout = load("res://resources/levels/city_siege_layout.tres")
 	for stage: int in range(12, 15):
@@ -16,12 +18,27 @@ func run(t: TestContext) -> void:
 		t.equal(level.layout.patch_center, city.patch_center, "patch remains unchanged")
 		t.equal(level.director.wave_count(), 3, "three waves")
 		t.check(level.geometry.get_node_or_null("BazaarGround") != null and level.geometry.get_node_or_null("BazaarPlatform") != null, "market ground and defender platform exist")
-		for batch_name: String in ["BazaarMasonry", "BazaarOpenings", "BazaarTile", "BazaarAwnings", "BazaarWood"]:
+		for batch_name: String in ["BazaarMasonry", "BazaarOpenings", "BazaarTile", "BazaarAwnings", "BazaarWood", "BazaarMosaic", "BazaarRugs", "BazaarCanvas", "BazaarLanterns", "BazaarPottery", "BazaarProduce", "BazaarArchRecesses"]:
 			var batch: MultiMeshInstance3D = level.geometry.get_node_or_null(batch_name) as MultiMeshInstance3D
 			t.check(batch != null and batch.multimesh.instance_count > 0, "market detail is batched: " + batch_name)
 			if batch:
 				t.check(batch.find_children("*", "CollisionObject3D", true, false).is_empty(), "market details have no collision")
+		var ground: MeshInstance3D = level.geometry.get_node_or_null("BazaarGround") as MeshInstance3D
+		if ground:
+			var mat: StandardMaterial3D = ground.material_override as StandardMaterial3D
+			t.check(mat != null and mat.albedo_texture != null and mat.albedo_texture.resource_path.ends_with("bazaar_tiles.jpg"), "market uses its own paving texture")
 		var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
+		for stall: Vector3 in BAZAAR_GEOMETRY.MARKET_STALLS:
+			var sight := PhysicsRayQueryParameters3D.create(level.layout.eye_position, stall + Vector3(0, 4.0, 1.6), Layers.WORLD)
+			t.check(space.intersect_ray(sight).is_empty(), "stall awning is visible from the player")
+			for route: String in level.layout.route_names():
+				var points: PackedVector3Array = level.layout.routes[route].points
+				var widths: PackedFloat32Array = level.layout.routes[route].widths
+				for i: int in range(1, points.size()):
+					var a := Vector2(points[i - 1].x, points[i - 1].z)
+					var b := Vector2(points[i].x, points[i].z)
+					var closest: Vector2 = Geometry2D.get_closest_point_to_segment(Vector2(stall.x, stall.z), a, b)
+					t.check(Vector2(stall.x, stall.z).distance_to(closest) > 3.8 + maxf(widths[i - 1], widths[i]), "market stall remains outside route envelope")
 		for route: String in level.layout.route_names():
 			for lateral: float in [-1.0, 0.0, 1.0]:
 				var path: PackedVector3Array = level.layout.path_for(route, lateral, "left" if route.ends_with("left") else "right")

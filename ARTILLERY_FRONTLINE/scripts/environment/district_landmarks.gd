@@ -22,11 +22,12 @@ func build(district: int) -> void:
 				for offset: int in [-1, 1]:
 					_cylinder(Vector3(side * 39 + offset * 6, 35, -119), 2.0, 48.0, steel)
 					_box(Vector3(side * 39 + offset * 6, 54, -119), Vector3(4.5, 3, 4.5), warning)
-		4: # bazaar: arcaded roofs and domes
+		4: # bazaar: arcaded roofs and turquoise domes
+			var dome_tile: StandardMaterial3D = _material(Color(0.44, 0.71, 0.68), "bazaar_mosaic")
 			for side: int in [-1, 1]:
 				_box(Vector3(side * 38, 10, -106), Vector3(26, 20, 30), concrete)
 				for index: int in 3:
-					_dome(Vector3(side * 38, 20, -116 + index * 10), 6.5, warning)
+					_dome(Vector3(side * 38, 20, -116 + index * 10), 6.5, dome_tile)
 		5: # terminal canopies and sign masts
 			for side: int in [-1, 1]:
 				_box(Vector3(side * 37, 18, -110), Vector3(24, 2, 35), steel)
@@ -181,6 +182,7 @@ func _dome(at: Vector3, radius: float, material: Material) -> void:
 	mesh.height = radius * 2.0
 	mesh.radial_segments = 16
 	mesh.rings = 8
+	mesh.is_hemisphere = true
 	_add(mesh, at, material)
 
 
