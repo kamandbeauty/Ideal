@@ -2,14 +2,14 @@
   "passed": true,
   "problems": [],
   "counted": {
-    "paths_checked": 393,
-    "scripts": 58,
-    "scenes": 20,
-    "resources": 54,
+    "paths_checked": 400,
+    "scripts": 59,
+    "scenes": 21,
+    "resources": 55,
     "assets": 139,
     "asset_megabytes": 63.2,
     "sounds": 49,
-    "text_keys": 159
+    "text_keys": 164
   },
   "scope": "static reading of the project tree; nothing is loaded or run"
 }
