@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/environment/city_level.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/environment/bazaar_geometry.gd" id="2"]
@@ -11,12 +11,14 @@
 [ext_resource type="Resource" path="res://resources/zombies/brute.tres" id="9"]
 [ext_resource type="Resource" path="res://resources/zombies/boss.tres" id="10"]
 
+[ext_resource type="Resource" path="res://resources/zombies/bazaar_brute.tres" id="11"]
+
 [node name="BazaarSiege" type="Node3D"]
 script = ExtResource("1")
 layout = ExtResource("4")
 wave_set = ExtResource("5")
 defense_data = ExtResource("6")
-zombie_types = Array[Resource]([ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10")])
+zombie_types = Array[Resource]([ExtResource("7"), ExtResource("8"), ExtResource("9"), ExtResource("10"), ExtResource("11")])
 
 [node name="Geometry" type="Node3D" parent="."]
 script = ExtResource("2")

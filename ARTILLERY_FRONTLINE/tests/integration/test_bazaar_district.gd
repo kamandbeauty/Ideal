@@ -45,5 +45,6 @@ func run(t: TestContext) -> void:
 		t.equal(started, [0, 1, 2], "waves start in order")
 		t.equal(level.horde.spawned_total, level.wave_set.total_zombies(), "all scheduled attackers spawn")
 		t.equal(level.stats.waves_cleared, 3, "all waves are recorded")
+		t.equal(level.stats.bosses, 1 if stage == 14 else 0, "only the last market stage counts the boss")
 		Events.wave_started.disconnect(on_wave)
 		await t.discard(level)

@@ -271,6 +271,8 @@ func _sieges(t: TestContext) -> void:
 		"a weak gunner who uses explosives can complete the current campaign")
 	# A deliberately modest body-shot-only stand-in checks the new boss stage;
 	# this is a deterministic simulation, not a human or device playtest.
+	var bazaar_modest: Dictionary = await _play(t, 14, 90.0, true, "bazaar, 90 dps with explosives")
+	t.check(bazaar_modest.over and not bazaar_modest.breached, "the market boss stage is viable for 90 dps with explosives")
 	var foundry_poor: Dictionary = await _play(t, 11, 60.0, false, "factory, 60 dps guns only")
 	t.check(foundry_poor.over and not foundry_poor.breached, "the factory boss stage is viable for a 60 dps gunner without explosives")
 	var poor: Array = await _campaign(t, 60.0, false, "poor gunner (60 dps, guns only)")

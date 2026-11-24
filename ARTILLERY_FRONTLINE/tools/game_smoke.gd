@@ -774,6 +774,26 @@ func _later_districts() -> void:
 	await frames(5)
 	check(level.horde.spawned_total > 0, "bazaar stage sends attackers")
 	await shot("49f-bazaar-attack", "play")
+	# Actual stage 15 wave, with the boss moved close for a staged HUD capture.
+	game.to_menu()
+	await wait_transition()
+	game.select_stage(14)
+	game.start_match()
+	await wait_transition()
+	level = game.level
+	level.director._start_wave(2)
+	simulate(4.2)
+	var bazaar_boss: BazaarBrute = level.horde.boss as BazaarBrute
+	check(bazaar_boss != null, "stage fifteen final wave spawns the market boss")
+	if bazaar_boss != null:
+		bazaar_boss.position = Vector3(0.0, 0.0, -35.0)
+		bazaar_boss.state = Zombie.State.ATTACK
+		bazaar_boss.fury_left = 0.01
+		bazaar_boss.tick(0.1)
+		_aim_at(bazaar_boss.position + Vector3(0.0, 1.8, 0.0))
+		await frames(5)
+		check(bazaar_boss.warning_ring.visible, "market boss warning is visible")
+		await shot("49g-bazaar-boss-warning", "staged")
 	game.to_menu()
 	await wait_transition()
 	game.menus.show_campaign()
