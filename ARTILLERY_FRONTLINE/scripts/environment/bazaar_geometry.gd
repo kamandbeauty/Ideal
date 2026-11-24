@@ -8,7 +8,7 @@ func _ready() -> void:
 	_setup_materials()
 	(materials["concrete"] as StandardMaterial3D).albedo_color = Color(0.68, 0.59, 0.46)
 	(materials["red"] as StandardMaterial3D).albedo_color = Color(0.08, 0.36, 0.35)
-	(materials["road"] as StandardMaterial3D).albedo_color = Color(0.64, 0.61, 0.53)
+	(materials["road"] as StandardMaterial3D).albedo_color = Color(0.50, 0.48, 0.43)
 	_textured("road", "bazaar_tiles", Vector3(17, 22, 1))
 	materials["bazaar_stone"] = _material(Color(0.86, 0.80, 0.69))
 	_textured("bazaar_stone", "bazaar_stone", Vector3(2, 2, 1))

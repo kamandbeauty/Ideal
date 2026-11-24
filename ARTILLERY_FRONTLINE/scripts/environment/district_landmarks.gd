@@ -23,11 +23,15 @@ func build(district: int) -> void:
 					_cylinder(Vector3(side * 39 + offset * 6, 35, -119), 2.0, 48.0, steel)
 					_box(Vector3(side * 39 + offset * 6, 54, -119), Vector3(4.5, 3, 4.5), warning)
 		4: # bazaar: arcaded roofs and turquoise domes
-			var dome_tile: StandardMaterial3D = _material(Color(0.44, 0.71, 0.68), "bazaar_mosaic")
+			# One smooth, richly colored dome per wing avoids the shimmering
+			# fine tile and overlapping silhouettes of the old roof ornaments.
+			var dome_tile: StandardMaterial3D = _plain(Color(0.055, 0.36, 0.34))
+			var finial: StandardMaterial3D = _plain(Color(0.68, 0.45, 0.15))
 			for side: int in [-1, 1]:
 				_box(Vector3(side * 38, 10, -106), Vector3(26, 20, 30), concrete)
-				for index: int in 3:
-					_dome(Vector3(side * 38, 20, -116 + index * 10), 6.5, dome_tile)
+				_dome(Vector3(side * 38, 20, -106), 7.5, dome_tile)
+				_cylinder(Vector3(side * 38, 20.18, -106), 7.55, 0.36, finial)
+				_cylinder(Vector3(side * 38, 28.0, -106), 0.24, 1.3, finial)
 		5: # terminal canopies and sign masts
 			for side: int in [-1, 1]:
 				_box(Vector3(side * 37, 18, -110), Vector3(24, 2, 35), steel)
@@ -180,8 +184,8 @@ func _dome(at: Vector3, radius: float, material: Material) -> void:
 	var mesh := SphereMesh.new()
 	mesh.radius = radius
 	mesh.height = radius * 2.0
-	mesh.radial_segments = 16
-	mesh.rings = 8
+	mesh.radial_segments = 24
+	mesh.rings = 12
 	mesh.is_hemisphere = true
 	_add(mesh, at, material)
 
