@@ -14,6 +14,12 @@ func _ready() -> void:
 	(materials["concrete"] as StandardMaterial3D).albedo_color = Color(0.40, 0.39, 0.34)
 	(materials["trim"] as StandardMaterial3D).albedo_color = Color(0.28, 0.24, 0.20)
 	(materials["yellow"] as StandardMaterial3D).albedo_color = Color(0.78, 0.54, 0.14)
+	# Purpose-made 512px industrial surfaces are used only in this district.
+	# Keep them mipmapped on mobile and distinct from the shared city assets.
+	(materials["road"] as StandardMaterial3D).albedo_color = Color(0.66, 0.66, 0.62)
+	_textured("road", "industrial_yard", Vector3(18, 18, 1))
+	materials["factory_cladding"] = _material(Color(0.78, 0.74, 0.68), 0.12)
+	_textured("factory_cladding", "industrial_cladding", Vector3(2, 1, 1))
 	materials["factory_rust"] = _material(Color(0.35, 0.17, 0.10), 0.3)
 	materials["factory_char"] = _material(Color(0.075, 0.075, 0.067), 0.15)
 	materials["factory_hub"] = _material(Color(0.45, 0.42, 0.33), 0.45)
@@ -42,17 +48,19 @@ func _factory_defenses() -> void:
 
 
 ## Large structures are behind the routes, with overhead gantries above head
-## and projectile height. All repeated details are three fixed MultiMeshes.
+## and projectile height. Repeated details use a small number of MultiMeshes.
 func _factory_yard() -> void:
 	var steel: Array[Transform3D] = []
 	var caution: Array[Transform3D] = []
 	var dark: Array[Transform3D] = []
 	var rust: Array[Transform3D] = []
 	var ground_marks: Array[Transform3D] = []
+	var cladding: Array[Transform3D] = []
+	var structural: Array[Transform3D] = []
 	for side: int in [-1, 1]:
 		var x: float = float(side)
 		# Low warehouses frame the approach, leaving side route mouths open.
-		_detail(steel, Vector3(x * 46, 7, -76), Vector3(16, 14, 22))
+		_detail(cladding, Vector3(x * 46, 7, -76), Vector3(16, 14, 22))
 		_detail(dark, Vector3(x * 46, 6, -64.9), Vector3(9, 9, 0.15))
 		_detail(caution, Vector3(x * 46, 12.3, -64.75), Vector3(12, 0.7, 0.2))
 		for bay: int in 4:
@@ -78,16 +86,26 @@ func _factory_yard() -> void:
 	_detail(steel, Vector3(0, 18.3, -118), Vector3(59, 1.2, 1.2))
 	_detail(caution, Vector3(0, 17.55, -117.3), Vector3(12, 0.3, 0.15))
 	_detail(steel, Vector3(0, 16.4, -118), Vector3(0.2, 3.0, 0.2))
-	for x: float in [-24.0, -18.0, -12.0, -6.0, 6.0, 12.0, 18.0, 24.0]:
+	for x: float in [-24.0, -18.0, -12.0, -6.0, 0.0, 6.0, 12.0, 18.0, 24.0]:
 		_detail(rust, Vector3(x, 17.4, -118.0), Vector3(0.25, 1.4, 0.5))
+	# Open web of girders: readable depth above the shooting lane, with no
+	# wall or visual clutter at zombie height.
+	_detail(steel, Vector3(0, 15.2, -118), Vector3(59, 0.35, 0.55))
+	for i: int in 19:
+		var x: float = -27.0 + float(i) * 3.0
+		var lean: float = 0.72 if i % 2 == 0 else -0.72
+		structural.append(Transform3D(Basis(Vector3.FORWARD, lean) * Basis.from_scale(Vector3(0.18, 4.0, 0.22)), Vector3(x, 16.8, -117.6)))
 	# A distant loading hall gives the horizon a purpose. Its opening and
 	# everything here are visual only; spawns remain in front of the backdrop.
 	for side: int in [-1, 1]:
-		_detail(steel, Vector3(side * 19.0, 8.0, -151.0), Vector3(25.0, 16.0, 1.0))
+		_detail(cladding, Vector3(side * 19.0, 8.0, -151.0), Vector3(25.0, 16.0, 1.0))
 		for i: int in 4:
 			_detail(dark, Vector3(side * 19.0 + (i - 1.5) * 4.8, 10.0, -150.35), Vector3(3.1, 3.0, 0.2))
 	_detail(steel, Vector3(0.0, 16.2, -151.0), Vector3(63.0, 1.2, 1.2))
 	_detail(rust, Vector3(0.0, 7.4, -151.0), Vector3(13.0, 14.0, 0.8))
+	_detail(caution, Vector3(0.0, 14.5, -150.3), Vector3(14.0, 0.65, 0.25))
+	for x: float in [-6.7, 6.7]:
+		_detail(steel, Vector3(x, 7.2, -150.25), Vector3(0.3, 14.2, 0.3))
 	for x: float in [-5.0, -2.5, 0.0, 2.5, 5.0]:
 		_detail(dark, Vector3(x, 7.4, -150.5), Vector3(0.16, 13.0, 0.18))
 	# Shallow drainage grates and worn, low-contrast oil marks sit on the
@@ -96,6 +114,8 @@ func _factory_yard() -> void:
 		_detail(ground_marks, Vector3(0, 0.02, z), Vector3(2.6, 0.025, 0.7))
 		for i: int in 5:
 			_detail(steel, Vector3(-1.0 + i * 0.5, 0.04, z), Vector3(0.12, 0.025, 0.65))
+	_batch_yard("FactoryCladding", cladding, materials["factory_cladding"])
+	_batch_yard("FactoryTrusses", structural, materials["factory_rust"])
 	_batch_yard("FactorySteel", steel, materials["trim"])
 	_batch_yard("FactoryCaution", caution, materials["yellow"])
 	_batch_yard("FactoryDarkPanels", dark, materials["glass"])
@@ -157,6 +177,11 @@ func _forklift() -> void:
 			_wheel(hubs, Vector3(x * 1.33, 0.5, z))
 	_detail(frame, Vector3(0, 2.9, 1.55), Vector3(2.0, 0.18, 0.22))
 	_detail(frame, Vector3(0, 1.0, 1.68), Vector3(2.1, 0.3, 0.18))
+	# Hydraulic ram, crossbars and rail stops distinguish the lift mechanism.
+	_detail(frame, Vector3(0, 1.45, 1.62), Vector3(0.18, 2.25, 0.18))
+	_detail(frame, Vector3(0, 2.4, 1.6), Vector3(1.7, 0.12, 0.12))
+	for x: float in [-0.6, 0.6]:
+		_detail(yellow, Vector3(x, 1.05, 1.48), Vector3(0.35, 0.18, 0.18))
 	_detail(yellow, Vector3(0.9, 3.36, -0.8), Vector3(0.25, 0.22, 0.25))
 	_vehicle_boxes(root, "ForkliftYellow", yellow, materials["yellow"])
 	_vehicle_boxes(root, "ForkliftFrame", frame, materials["factory_char"])
@@ -195,6 +220,16 @@ func _burnt_truck() -> void:
 			_wheel(hubs, Vector3(x * 1.22, 0.65, z))
 		_detail(trim, Vector3(x * 0.7, 1.45, 4.1), Vector3(0.45, 0.32, 0.08))
 	_detail(trim, Vector3(0, 2.0, -4.7), Vector3(3.1, 1.1, 0.16))
+	# Grille slats, window frame, wipers and mirrors keep the burned cab
+	# readable as a truck from a mobile-sized screen.
+	for y: float in [1.25, 1.38, 1.51, 1.64]:
+		_detail(trim, Vector3(0, y, 4.15), Vector3(1.7, 0.045, 0.06))
+	for x: float in [-1.25, 1.25]:
+		_detail(burnt, Vector3(x, 2.35, 3.57), Vector3(0.12, 1.2, 0.1))
+		_detail(burnt, Vector3(x * 1.35, 2.35, 2.9), Vector3(0.3, 0.46, 0.16))
+	_detail(burnt, Vector3(0, 1.8, 3.59), Vector3(2.7, 0.12, 0.1))
+	_detail(burnt, Vector3(-0.58, 1.95, 3.62), Vector3(1.1, 0.06, 0.06))
+	_detail(burnt, Vector3(0.58, 1.95, 3.62), Vector3(1.1, 0.06, 0.06))
 	_vehicle_boxes(root, "TruckCharredMetal", burnt, materials["factory_char"])
 	_vehicle_boxes(root, "TruckRust", rust, materials["factory_rust"])
 	_vehicle_boxes(root, "TruckBrokenWindows", glass, materials["glass"])

@@ -16,6 +16,6 @@ gate_center = Vector3(16.65, 2.1, -19)
 gate_size = Vector3(0.5, 4.2, 7)
 patch_center = Vector3(-16.8, 1.9, -26.5)
 patch_size = Vector3(0.6, 3.8, 7)
-fires = [{"position": Vector3(19.5, 2.1, -66.0), "scale": 1.6}, {"position": Vector3(-19.5, 1.25, -68.8), "scale": 0.85}]
+fires = [{"position": Vector3(19.5, 2.0, -64.2), "scale": 1.6}, {"position": Vector3(-19.5, 1.25, -68.8), "scale": 0.85}]
 smokes = [{"position": Vector3(-40, 25, -119), "scale": 1.2}, {"position": Vector3(40, 25, -119), "scale": 1.2}]
 lamps = [{"position": Vector3(15.3, 5.3, -19), "range": 13, "energy": 2.2}, {"position": Vector3(-15.8, 4.6, -26.5), "range": 10, "energy": 1.4}]

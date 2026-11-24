@@ -19,11 +19,18 @@ func run(t: TestContext) -> void:
 		t.equal(level.defense.wall_health, 1000.0, "the wall starts at full health")
 		t.equal(level.defense.gate_health, 700.0, "the gate starts at full health")
 		t.check(level.geometry.get_node_or_null("IndustrialGround") != null and level.geometry.get_node_or_null("IndustrialPlatform") != null, "factory ground and gunner platform exist")
-		for batch_name: String in ["FactorySteel", "FactoryCaution", "FactoryDarkPanels", "FactoryRust", "FactoryGroundWear"]:
+		for batch_name: String in ["FactorySteel", "FactoryCaution", "FactoryDarkPanels", "FactoryRust", "FactoryGroundWear", "FactoryCladding", "FactoryTrusses"]:
 			var batch: MultiMeshInstance3D = level.geometry.get_node_or_null(batch_name) as MultiMeshInstance3D
 			t.check(batch != null and batch.multimesh.instance_count > 0, "yard details are batched: " + batch_name)
 			if batch:
 				t.check(batch.find_children("*", "CollisionObject3D", true, false).is_empty(), "yard details have no collision")
+		var ground: MeshInstance3D = level.geometry.get_node_or_null("IndustrialGround") as MeshInstance3D
+		var facade: MultiMeshInstance3D = level.geometry.get_node_or_null("FactoryCladding") as MultiMeshInstance3D
+		if ground and facade:
+			var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
+			var facade_material: StandardMaterial3D = facade.multimesh.mesh.material as StandardMaterial3D
+			t.check(ground_material != null and ground_material.albedo_texture != null and ground_material.albedo_texture.resource_path.ends_with("industrial_yard.jpg"), "factory ground uses its own textured surface")
+			t.check(facade_material != null and facade_material.albedo_texture != null and facade_material.albedo_texture.resource_path.ends_with("industrial_cladding.jpg"), "factory cladding uses its own textured surface")
 		# The two vehicles are render-only and have bounded, batched geometry.
 		var forklift: Node3D = level.geometry.get_node_or_null("IndustrialForklift") as Node3D
 		var truck: Node3D = level.geometry.get_node_or_null("IndustrialBurntTruck") as Node3D
