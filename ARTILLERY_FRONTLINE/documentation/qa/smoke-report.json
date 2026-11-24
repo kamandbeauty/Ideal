@@ -1,5 +1,5 @@
 {
-  "checks": 255,
+  "checks": 258,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -57,6 +57,8 @@
       "49b-industrial-forklift.png",
       "49c-industrial-burning-truck.png",
       "49e-bazaar-stage.png",
+      "49h-bazaar-left-stall.png",
+      "49i-bazaar-right-stall.png",
       "49f-bazaar-attack.png",
       "51-final-stage.png",
       "10-rocket-away.png"
@@ -133,6 +135,8 @@
       "49b-industrial-forklift.png",
       "49c-industrial-burning-truck.png",
       "49e-bazaar-stage.png",
+      "49h-bazaar-left-stall.png",
+      "49i-bazaar-right-stall.png",
       "49f-bazaar-attack.png",
       "51-final-stage.png"
     ],
@@ -200,32 +204,32 @@
   "notes": {
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
-    "blast_kills": 13,
-    "boss_reached_gate_after_s": 67.0,
-    "defeat_time_s": 190.7,
-    "gate_attackers": 5,
+    "blast_kills": 12,
+    "boss_reached_gate_after_s": 68.0,
+    "defeat_time_s": 192.0,
+    "gate_attackers": 3,
     "gate_fell_after_s": 11.0,
-    "gate_left_with_boss": 0.64,
-    "grenade_kills": 7,
-    "hits": 2,
-    "kills": 1,
+    "gate_left_with_boss": 0.7,
+    "grenade_kills": 8,
+    "hits": 6,
+    "kills": 3,
     "peak_load": {
       "alive": 50,
-      "draw_calls": 413,
-      "fps": 9.7,
+      "draw_calls": 418,
+      "fps": 9.9,
       "nodes": 1505,
       "orphan_nodes": 0,
-      "primitives": 330318,
+      "primitives": 327950,
       "renderer": "Compatibility",
       "scale": 0.85,
-      "static_memory_mb": 121.5,
-      "striking": 33,
+      "static_memory_mb": 121.4,
+      "striking": 30,
       "texture_memory_mb": 92.3,
       "tier": "medium",
       "video_memory_mb": 115.1,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 161.69,
-      "worst_physics_tick_ms_in_a_second": 0.85,
+      "worst_frame_ms_in_a_second": 165.4,
+      "worst_physics_tick_ms_in_a_second": 0.88,
       "zombie_nodes": 50
     },
     "phone_20x9": {
@@ -266,11 +270,11 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 368,
-      "fps": 6.2,
+      "draw_calls": 366,
+      "fps": 6.0,
       "nodes": 1081,
       "orphan_nodes": 0,
-      "primitives": 275436,
+      "primitives": 273022,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 122.6,
@@ -278,7 +282,7 @@
       "tier": "medium",
       "video_memory_mb": 107.6
     },
-    "rocket_kills": 6,
+    "rocket_kills": 4,
     "second_stage": {
       "alive_20s_into_its_first_wave": 28,
       "brutes_among_them": 2,
@@ -292,7 +296,7 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 58.2,
+    "sight_target_m": 57.3,
     "six_barrel_kills": 1,
     "six_barrel_shots": 31,
     "stage_held_preview": {
@@ -435,6 +439,8 @@
     "49a-industrial-boss-warning.png",
     "49d-bazaar-map.png",
     "49e-bazaar-stage.png",
+    "49h-bazaar-left-stall.png",
+    "49i-bazaar-right-stall.png",
     "49f-bazaar-attack.png",
     "49g-bazaar-boss-warning.png",
     "50-final-district-map.png",
