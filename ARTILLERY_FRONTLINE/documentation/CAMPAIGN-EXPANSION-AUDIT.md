@@ -82,3 +82,8 @@ Stages 10–12 now feature a modular forklift and a scorched flatbed truck, with
 ## Industrial yard visual polish
 
 Stages 10–12 use two district-only 512 × 512 AI-generated, edge-blended JPEG surfaces for worn pavement and corrugated metal; mipmapped textures replace flat/shared surfaces. The overhead gantry has a batched truss, loading hall has framing and a caution band, and the forklift lift and burnt truck cab have extra batched detail. The existing truck flame was brought toward the front of the cab, still within the original two-fire quality budget. No routes, combat or collision were added or changed; the new architecture is visual-only. This remains a procedural low-poly environment rather than bespoke vehicle models. Software-rendered screenshots and automated tests are evidence of the build, not validation on a physical phone.
+
+
+## Bazaar district, stages 13–15
+
+These stages now load a dedicated procedural market scene rather than the shared city mesh. Its rear arcaded facade, side colonnades, domed skyline, colored tile bands and fabric stalls are decorative and batched; the 512px masonry surface is AI-generated and edge-blended. The scene reuses the exact city routes, wall, gate, attack lines, zombie roster, three existing wave sets and health scaling. No boss, special encounter, hazard or bespoke character model has been added in this increment. Ground and defenses are collidable; market details are not. Automated tests cover route rays and complete director-driven waves; software screenshots are not a substitute for playtesting or device performance measurements.
