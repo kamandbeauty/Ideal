@@ -842,6 +842,31 @@ func _later_districts() -> void:
 	await frames(5)
 	check(level.horde.spawned_total > 0, "terminal stage sends attackers")
 	await shot("49n-terminal-attack", "play")
+	# Stage the actual final-wave signaler near the camera to inspect both cues.
+	game.to_menu()
+	await wait_transition()
+	game.select_stage(17)
+	game.start_match()
+	await wait_transition()
+	level = game.level
+	level.director._start_wave(2)
+	simulate(4.2)
+	var terminal_boss: TerminalBrute = level.horde.boss as TerminalBrute
+	check(terminal_boss != null, "stage eighteen final wave spawns the terminal signaler")
+	if terminal_boss != null:
+		terminal_boss.position = Vector3(0.0, 0.0, -40.0)
+		terminal_boss.path = PackedVector3Array([terminal_boss.position, Vector3(0.0, 0.0, -25.0)])
+		terminal_boss.path_index = 1
+		terminal_boss.signal_left = 0.01
+		terminal_boss.tick(0.1)
+		_aim_at(terminal_boss.position + Vector3(0.0, 1.8, 0.0))
+		await frames(5)
+		check(terminal_boss.warning_ring.visible and not terminal_boss.aura_ring.visible, "terminal warning precedes the signal")
+		await shot("49q-terminal-boss-warning", "staged")
+		terminal_boss.tick(TerminalBrute.WARNING_TIME + 0.01)
+		await frames(5)
+		check(terminal_boss.aura_ring.visible, "terminal active signal displays its radius")
+		await shot("49r-terminal-boss-signal", "staged")
 	game.to_menu()
 	await wait_transition()
 	game.menus.show_campaign()

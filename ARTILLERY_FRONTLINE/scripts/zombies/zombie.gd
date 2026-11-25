@@ -74,6 +74,8 @@ var gait_lean := Vector3.ZERO
 var gait_rate: float = 1.0
 var gait_phase: float = 0.0
 var gait_sway: float = 0.0
+## True only while a temporary movement aura is affecting walk animation.
+var rally_animation_boosted: bool = false
 
 
 func _ready() -> void:
@@ -262,6 +264,7 @@ func _set_hittable(enabled: bool) -> void:
 
 
 func _sleep() -> void:
+	rally_animation_boosted = false
 	state = State.POOLED
 	alive = false
 	visible = false
@@ -305,6 +308,7 @@ func activate(walk_path: PackedVector3Array, claimed: AttackLines.Slot, wanted: 
 	var model_scale: float = {&"walker": 1.0, &"runner": 0.97, &"brute": 1.35, &"boss": 1.9}.get(data.id, 1.0)
 	gait_stride_speed = model_scale * (0.95 / (0.45 * 0.54) if running else 0.72 / (0.60 * 0.85))
 	seen_announced = false
+	rally_animation_boosted = false
 	alive = true
 	state = State.ADVANCE
 	timer = 0.0
@@ -498,6 +502,11 @@ func tick(delta: float) -> void:
 		flinch_left -= delta
 
 
+## Bosses may grant a temporary movement aura. Ordinary bosses never do.
+func escort_speed_multiplier(_other: Zombie) -> float:
+	return 1.0
+
+
 ## True when the end of the path is reached.
 func _walk(delta: float, pace: float) -> bool:
 	if path_index >= path.size():
@@ -507,7 +516,13 @@ func _walk(delta: float, pace: float) -> bool:
 	offset.y = 0.0
 	var distance: float = offset.length()
 	var slow: float = data.flinch_slow if flinch_left > 0.0 else 1.0
-	var step: float = speed * pace * slow * delta
+	var rally: float = 1.0
+	if horde != null and is_instance_valid(horde.boss) and horde.boss != self:
+		rally = horde.boss.escort_speed_multiplier(self)
+	if anim and current_clip == walk_clip and (rally > 1.0 or rally_animation_boosted):
+		anim.speed_scale = speed * pace * rally / maxf(gait_stride_speed, 0.1) * gait_rate
+	rally_animation_boosted = rally > 1.0
+	var step: float = speed * pace * slow * rally * delta
 	if distance <= step:
 		position = Vector3(goal.x, position.y, goal.z)
 		path_index += 1
@@ -516,7 +531,7 @@ func _walk(delta: float, pace: float) -> bool:
 	# Subtle body sway gives each shambler a different weight and cadence;
 	# skeletal footfall still determines leg placement and head hitboxes follow.
 	if model != null and speed > 0.0 and rock == Vector2.ZERO:
-		gait_phase += delta * speed / maxf(gait_stride_speed, 0.1) * TAU
+		gait_phase += delta * speed * rally / maxf(gait_stride_speed, 0.1) * TAU
 		model.rotation = gait_lean + Vector3(sin(gait_phase * 2.0) * gait_sway * 0.35, 0.0, sin(gait_phase) * gait_sway)
 	facing_goal = atan2(offset.x, offset.z)
 	_turn(delta)

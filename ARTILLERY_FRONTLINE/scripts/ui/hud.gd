@@ -155,6 +155,7 @@ func _ready() -> void:
 	Events.quarantine_brute_warning.connect(_on_quarantine_brute_warning)
 	Events.foundry_brute_warning.connect(_on_foundry_brute_warning)
 	Events.bazaar_brute_warning.connect(_on_bazaar_brute_warning)
+	Events.terminal_brute_warning.connect(_on_terminal_brute_warning)
 	Events.match_started.connect(_on_match_started)
 	Events.language_changed.connect(refresh_text)
 	Events.settings_changed.connect(_layout)
@@ -878,6 +879,11 @@ func _on_foundry_brute_warning(zombie: Node3D) -> void:
 func _on_bazaar_brute_warning(zombie: Node3D) -> void:
 	if level != null and level.horde.boss == zombie and (zombie as Zombie).alive:
 		show_banner(Loc.t("bazaar_brute_fury"), UITheme.AMBER)
+
+
+func _on_terminal_brute_warning(zombie: Node3D) -> void:
+	if level != null and level.horde.boss == zombie and (zombie as Zombie).alive:
+		show_banner(Loc.t("terminal_brute_signal"), UITheme.AMBER)
 
 
 func _on_boss_fell(zombie: Node3D) -> void:
