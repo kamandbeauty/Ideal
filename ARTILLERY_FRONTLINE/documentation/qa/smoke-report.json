@@ -1,5 +1,5 @@
 {
-  "checks": 280,
+  "checks": 287,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -65,6 +65,8 @@
       "49l-terminal-west-bus.png",
       "49m-terminal-east-bus.png",
       "49n-terminal-attack.png",
+      "49s-residential-stage.png",
+      "49t-residential-attack.png",
       "51-final-stage.png",
       "10-rocket-away.png"
     ],
@@ -151,6 +153,8 @@
       "49l-terminal-west-bus.png",
       "49m-terminal-east-bus.png",
       "49n-terminal-attack.png",
+      "49s-residential-stage.png",
+      "49t-residential-attack.png",
       "51-final-stage.png"
     ],
     "preview": [
@@ -223,21 +227,21 @@
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
     "blast_kills": 12,
-    "boss_reached_gate_after_s": 73.0,
-    "defeat_time_s": 197.3,
+    "boss_reached_gate_after_s": 50.0,
+    "defeat_time_s": 172.7,
     "gate_attackers": 5,
     "gate_fell_after_s": 12.0,
-    "gate_left_with_boss": 0.73,
+    "gate_left_with_boss": 0.76,
     "grenade_kills": 7,
     "hits": 2,
     "kills": 1,
     "peak_load": {
       "alive": 50,
-      "draw_calls": 418,
-      "fps": 10.5,
+      "draw_calls": 408,
+      "fps": 9.9,
       "nodes": 1505,
       "orphan_nodes": 0,
-      "primitives": 327942,
+      "primitives": 327840,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 121.6,
@@ -246,8 +250,8 @@
       "tier": "medium",
       "video_memory_mb": 115.1,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 138.52,
-      "worst_physics_tick_ms_in_a_second": 1.02,
+      "worst_frame_ms_in_a_second": 156.04,
+      "worst_physics_tick_ms_in_a_second": 0.88,
       "zombie_nodes": 50
     },
     "phone_20x9": {
@@ -288,11 +292,11 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 367,
-      "fps": 7.1,
+      "draw_calls": 368,
+      "fps": 6.2,
       "nodes": 1081,
       "orphan_nodes": 0,
-      "primitives": 275430,
+      "primitives": 275436,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 122.8,
@@ -314,9 +318,9 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 57.8,
+    "sight_target_m": 58.0,
     "six_barrel_kills": 1,
-    "six_barrel_shots": 33,
+    "six_barrel_shots": 31,
     "stage_held_preview": {
       "accuracy": 0.469594594594595,
       "blast_kills": 16,
@@ -375,7 +379,7 @@
       "waves_cleared": 3,
       "waves_total": 3
     },
-    "wall_fell_after_s": 5.0,
+    "wall_fell_after_s": 2.0,
     "window": [
       1440,
       810
@@ -470,6 +474,8 @@
     "49n-terminal-attack.png",
     "49q-terminal-boss-warning.png",
     "49r-terminal-boss-signal.png",
+    "49s-residential-stage.png",
+    "49t-residential-attack.png",
     "50-final-district-map.png",
     "51-final-stage.png",
     "52-gore-burst.png"

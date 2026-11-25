@@ -2,9 +2,9 @@
   "passed": true,
   "problems": [],
   "counted": {
-    "paths_checked": 424,
-    "scripts": 61,
-    "scenes": 23,
+    "paths_checked": 437,
+    "scripts": 62,
+    "scenes": 24,
     "resources": 57,
     "assets": 147,
     "asset_megabytes": 64.2,
