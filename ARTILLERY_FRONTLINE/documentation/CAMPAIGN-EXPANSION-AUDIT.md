@@ -102,3 +102,8 @@ The market now uses district-only AI-generated 512px paving, mosaic and woven ru
 ## Terminal district, stages 16–18
 
 These stages now select a dedicated procedural bus-terminal scene, with a glazed arrival hall and signage, side platform canopies, departure boards, faded lane paint and two abandoned buses. AI-generated 512px edge-blended asphalt and metal cladding are mipmapped and local to the district. Repeated architecture and each six-batch bus are visual-only; lantern meshes do not add dynamic lights. The city routes, defense positions, zombie roster, health scaling, three existing waves per stage and all combat rules are unchanged. No terminal boss, special event, vehicle physics or new hazard was added in this increment. CI exercises all three real directors, route clearance, conservative bus separation and a gate breach; software renders and automated simulations are not a substitute for human or physical Android testing.
+
+
+## Terminal visual detail pass
+
+District-only AI-generated weathered glass, paint and retro destination-poster textures (512px and mipmapped) add visual variation to the hall and vehicles; the tiled surfaces are edge-blended. The terminal now has bilingual signage, enlarged poster billboards, waiting shelters, seats and facade framing. Bus wipers, trim, handles and small luggage use the same six material batches per bus; flat surface wear adds no obstacle and no dynamic lights were added. All new architectural details are visual-only. CI checks shelter and bus clearance, route rays and the three actual wave directors; ordinary gunner-view and staged sight-zoom screenshots are captured. This remains procedural low-poly scenery, and the build has not been profiled or playtested on a physical phone.

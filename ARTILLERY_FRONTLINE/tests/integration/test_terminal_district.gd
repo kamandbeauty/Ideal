@@ -19,7 +19,7 @@ func run(t: TestContext) -> void:
 		t.equal(level.defense.gate_health, 700.0, "gate starts at full health")
 		t.check(level.geometry.get_node_or_null("TerminalGround") != null and level.geometry.get_node_or_null("TerminalPlatform") != null, "road and defender platform exist")
 		t.check(level.geometry.get_node_or_null("TerminalHallSign") is Label3D, "station sign exists")
-		for batch_name: String in ["TerminalCladding", "TerminalFrame", "TerminalGlass", "TerminalSigns", "TerminalRoadMarks", "TerminalLights"]:
+		for batch_name: String in ["TerminalCladding", "TerminalFrame", "TerminalGlass", "TerminalSigns", "TerminalRoadMarks", "TerminalLights", "TerminalDetailFrames", "TerminalPosterBackings", "TerminalPosters", "TerminalHighlights", "TerminalSurfaceWear"]:
 			var batch: MultiMeshInstance3D = level.geometry.get_node_or_null(batch_name) as MultiMeshInstance3D
 			t.check(batch != null and batch.multimesh.instance_count > 0, "terminal detail is batched: " + batch_name)
 			if batch:
@@ -31,7 +31,26 @@ func run(t: TestContext) -> void:
 			var facade_mat: StandardMaterial3D = cladding.multimesh.mesh.material as StandardMaterial3D
 			t.check(ground_mat != null and ground_mat.albedo_texture != null and ground_mat.albedo_texture.resource_path.ends_with("terminal_asphalt.jpg"), "district asphalt is loaded")
 			t.check(facade_mat != null and facade_mat.albedo_texture != null and facade_mat.albedo_texture.resource_path.ends_with("terminal_panel.jpg"), "district cladding is loaded")
+		var glass: MultiMeshInstance3D = level.geometry.get_node_or_null("TerminalGlass") as MultiMeshInstance3D
+		var posters: MultiMeshInstance3D = level.geometry.get_node_or_null("TerminalPosters") as MultiMeshInstance3D
+		if glass and posters:
+			var glass_mat: StandardMaterial3D = glass.multimesh.mesh.material as StandardMaterial3D
+			var poster_mat: StandardMaterial3D = posters.multimesh.mesh.material as StandardMaterial3D
+			t.check(glass_mat != null and glass_mat.albedo_texture != null and glass_mat.albedo_texture.resource_path.ends_with("terminal_glass.jpg"), "station uses weathered glass")
+			t.check(poster_mat != null and poster_mat.albedo_texture != null and poster_mat.albedo_texture.resource_path.ends_with("terminal_poster.jpg"), "travel posters use their own artwork")
+		t.check(level.geometry.get_node_or_null("TerminalHallSubtitle") is Label3D, "the station has bilingual signage")
 		var space: PhysicsDirectSpaceState3D = level.get_world_3d().direct_space_state
+		# Platform furniture has a conservative radius that contains its canopy.
+		for side: float in [-1.0, 1.0]:
+			var shelter := Vector2(side * 28.5, -105.0)
+			for route: String in level.layout.route_names():
+				var points: PackedVector3Array = level.layout.routes[route].points
+				var widths: PackedFloat32Array = level.layout.routes[route].widths
+				for i: int in range(1, points.size()):
+					var a := Vector2(points[i - 1].x, points[i - 1].z)
+					var b := Vector2(points[i].x, points[i].z)
+					var closest: Vector2 = Geometry2D.get_closest_point_to_segment(shelter, a, b)
+					t.check(shelter.distance_to(closest) > 4.0 + maxf(widths[i - 1], widths[i]), "waiting shelter stays outside the route envelope")
 		for bus_name: String in ["WestBus", "EastBus"]:
 			var bus: Node3D = level.geometry.get_node_or_null(bus_name) as Node3D
 			t.check(bus != null, "terminal bus exists: " + bus_name)
@@ -41,6 +60,10 @@ func run(t: TestContext) -> void:
 				t.check(bus.find_children("*", "CollisionObject3D", true, false).is_empty(), "bus has no collision")
 				for batch: Node in batches:
 					t.check((batch as MultiMeshInstance3D).multimesh.instance_count > 0, "bus batch is populated")
+				var bus_body: MultiMeshInstance3D = bus.get_node_or_null("BusBody") as MultiMeshInstance3D
+				if bus_body:
+					var body_mat: StandardMaterial3D = bus_body.multimesh.mesh.material as StandardMaterial3D
+					t.check(body_mat != null and body_mat.albedo_texture != null and body_mat.albedo_texture.resource_path.ends_with("terminal_faded_paint.jpg"), "bus body uses weathered paint")
 				var center := Vector2(bus.position.x, bus.position.z)
 				for route: String in level.layout.route_names():
 					var points: PackedVector3Array = level.layout.routes[route].points
