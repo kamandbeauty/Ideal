@@ -11,7 +11,7 @@ func _ready() -> void:
 	(materials["concrete"] as StandardMaterial3D).albedo_color = Color(0.48, 0.47, 0.44)
 	(materials["red"] as StandardMaterial3D).albedo_color = Color(0.46, 0.31, 0.23)
 	(materials["road"] as StandardMaterial3D).albedo_color = Color(0.65, 0.65, 0.62)
-	_textured("road", "terminal_asphalt", Vector3(18, 22, 1))
+	_textured("road", "residential_asphalt", Vector3(18, 22, 1))
 	materials["apartment"] = _material(Color(0.80, 0.77, 0.69))
 	_textured("apartment", "district_facade_detail", Vector3(3, 3, 1))
 	materials["apartment_trim"] = _material(Color(0.32, 0.29, 0.26))

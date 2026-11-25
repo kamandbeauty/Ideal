@@ -18,6 +18,14 @@ func run(t: TestContext) -> void:
 		t.equal(level.defense.gate_health, 700.0, "gate starts intact")
 		t.equal(level.director.wave_count(), 3, "three original waves")
 		t.check(level.geometry.get_node_or_null("ResidentialGround") != null and level.geometry.get_node_or_null("ResidentialPlatform") != null, "residential ground and platform load")
+		var ground: MeshInstance3D = level.geometry.get_node_or_null("ResidentialGround") as MeshInstance3D
+		if ground != null:
+			var ground_material: StandardMaterial3D = ground.material_override as StandardMaterial3D
+			t.check(ground_material != null and ground_material.albedo_texture != null and ground_material.albedo_texture.resource_path.ends_with("residential_asphalt.jpg"), "district uses the selected asphalt texture")
+			if ground_material:
+				t.equal(ground_material.texture_filter, BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, "road uses mipmap filtering")
+				if ground_material.albedo_texture:
+					t.check(ground_material.albedo_texture.get_image().has_mipmaps(), "imported asphalt contains mipmaps")
 		t.check(level.geometry.get_node_or_null("DistrictLandmarks6") != null, "residential towers are present")
 		for batch_name: String in ["ResidentialFacades", "ResidentialWindows", "ResidentialTrim", "ResidentialBalconies", "ResidentialAccents", "ResidentialTrunks", "ResidentialFoliage", "ResidentialCarA", "ResidentialCarB", "ResidentialCarGlass", "ResidentialCarTires"]:
 			var batch: MultiMeshInstance3D = level.geometry.get_node_or_null(batch_name) as MultiMeshInstance3D
