@@ -103,4 +103,28 @@ func run(t: TestContext) -> void:
 	t.near(reused.signal_left, TerminalBrute.FIRST_SIGNAL, 0.001, "pool reuse resets the initial delay")
 	game.queue_free()
 	await t.frames(3)
+	# Run the real director and naturally advancing horde: the signal must
+	# actually catch scheduled escorts, not only artificially positioned ones.
+	var actual: CityLevel = t.make_level(17)
+	await t.frames(2)
+	actual.horde.rng.seed = 18018
+	actual.director.rng.seed = 18019
+	actual.begin_match()
+	actual.director._start_wave(2)
+	var saw_warning: bool = false
+	var saw_rally: bool = false
+	var boosted_escort: bool = false
+	for frame: int in 750:
+		t.simulate(actual, 0.04, 0.04)
+		var field_boss: TerminalBrute = actual.horde.boss as TerminalBrute
+		if field_boss != null:
+			saw_warning = saw_warning or field_boss.signal_state == TerminalBrute.Rally.WARNING
+			saw_rally = saw_rally or field_boss.signal_state == TerminalBrute.Rally.ACTIVE
+			for zombie: Zombie in actual.horde.active:
+				if field_boss.escort_speed_multiplier(zombie) > 1.0:
+					boosted_escort = true
+	t.check(saw_warning and saw_rally, "actual wave reaches warning then signal without staging")
+	t.check(boosted_escort, "scheduled escorts naturally enter the signal radius")
+	t.check(actual.horde.spawned_total > 1, "actual wave director schedules escorts with the boss")
+	await t.discard(actual)
 	Profile.reset()
