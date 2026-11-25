@@ -1,5 +1,5 @@
 {
-  "checks": 258,
+  "checks": 270,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -26,6 +26,7 @@
       "46-metro-map.png",
       "48-industrial-map.png",
       "49d-bazaar-map.png",
+      "49j-terminal-map.png",
       "50-final-district-map.png",
       "05-match-start.png",
       "06-wave-arrives.png",
@@ -60,6 +61,10 @@
       "49h-bazaar-left-stall.png",
       "49i-bazaar-right-stall.png",
       "49f-bazaar-attack.png",
+      "49k-terminal-stage.png",
+      "49l-terminal-west-bus.png",
+      "49m-terminal-east-bus.png",
+      "49n-terminal-attack.png",
       "51-final-stage.png",
       "10-rocket-away.png"
     ],
@@ -138,6 +143,10 @@
       "49h-bazaar-left-stall.png",
       "49i-bazaar-right-stall.png",
       "49f-bazaar-attack.png",
+      "49k-terminal-stage.png",
+      "49l-terminal-west-bus.png",
+      "49m-terminal-east-bus.png",
+      "49n-terminal-attack.png",
       "51-final-stage.png"
     ],
     "preview": [
@@ -169,6 +178,7 @@
       "46-metro-map.png",
       "48-industrial-map.png",
       "49d-bazaar-map.png",
+      "49j-terminal-map.png",
       "50-final-district-map.png"
     ],
     "slowed": [
@@ -204,32 +214,32 @@
   "notes": {
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
-    "blast_kills": 13,
-    "boss_reached_gate_after_s": 70.0,
-    "defeat_time_s": 189.2,
-    "gate_attackers": 7,
-    "gate_fell_after_s": 6.0,
-    "gate_left_with_boss": 0.41,
+    "blast_kills": 12,
+    "boss_reached_gate_after_s": 65.5,
+    "defeat_time_s": 189.8,
+    "gate_attackers": 4,
+    "gate_fell_after_s": 11.0,
+    "gate_left_with_boss": 0.65,
     "grenade_kills": 7,
-    "hits": 2,
-    "kills": 1,
+    "hits": 5,
+    "kills": 3,
     "peak_load": {
       "alive": 50,
-      "draw_calls": 415,
-      "fps": 9.6,
+      "draw_calls": 404,
+      "fps": 9.8,
       "nodes": 1505,
       "orphan_nodes": 0,
-      "primitives": 327884,
+      "primitives": 327818,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 121.5,
-      "striking": 30,
+      "striking": 33,
       "texture_memory_mb": 92.3,
       "tier": "medium",
       "video_memory_mb": 115.1,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 160.81,
-      "worst_physics_tick_ms_in_a_second": 1.14,
+      "worst_frame_ms_in_a_second": 162.93,
+      "worst_physics_tick_ms_in_a_second": 0.89,
       "zombie_nodes": 50
     },
     "phone_20x9": {
@@ -270,11 +280,11 @@
       "why": "the tier a phone starts on; the frame-time governor is off for the run"
     },
     "render": {
-      "draw_calls": 379,
-      "fps": 5.9,
+      "draw_calls": 356,
+      "fps": 6.1,
       "nodes": 1081,
       "orphan_nodes": 0,
-      "primitives": 275580,
+      "primitives": 275338,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 122.6,
@@ -282,7 +292,7 @@
       "tier": "medium",
       "video_memory_mb": 107.6
     },
-    "rocket_kills": 6,
+    "rocket_kills": 5,
     "second_stage": {
       "alive_20s_into_its_first_wave": 28,
       "brutes_among_them": 2,
@@ -296,7 +306,7 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 56.8,
+    "sight_target_m": 56.7,
     "six_barrel_kills": 1,
     "six_barrel_shots": 31,
     "stage_held_preview": {
@@ -443,6 +453,11 @@
     "49i-bazaar-right-stall.png",
     "49f-bazaar-attack.png",
     "49g-bazaar-boss-warning.png",
+    "49j-terminal-map.png",
+    "49k-terminal-stage.png",
+    "49l-terminal-west-bus.png",
+    "49m-terminal-east-bus.png",
+    "49n-terminal-attack.png",
     "50-final-district-map.png",
     "51-final-stage.png",
     "52-gore-burst.png"
