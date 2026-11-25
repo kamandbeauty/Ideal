@@ -45,9 +45,11 @@ static func waves(stage: int) -> WaveSet:
 	return load(STAGES[clampi(stage, 0, STAGES.size() - 1)]) as WaveSet
 
 
-## The first five districts have their own scenery. Industrial and bazaar keep
-## the city route/defense contract; later districts still use the city scene.
+## The first six districts have their own scenery. The later dedicated scenes
+## keep the city route/defense contract; remaining districts use the city scene.
 static func scene(stage: int) -> String:
+	if stage >= 15 and stage < 18:
+		return "res://scenes/levels/terminal_siege.tscn"
 	if stage >= 12 and stage < 15:
 		return "res://scenes/levels/bazaar_siege.tscn"
 	if stage >= 9 and stage < 12:

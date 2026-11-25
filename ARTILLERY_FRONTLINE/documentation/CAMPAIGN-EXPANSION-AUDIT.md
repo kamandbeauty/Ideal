@@ -97,3 +97,8 @@ Stage 15 wave 3 now spawns one Bazaar Brute and has fewer escorts than before. I
 ## Bazaar visual detail pass
 
 The market now uses district-only AI-generated 512px paving, mosaic and woven rug textures, with edge blending on tiled surfaces and mipmapping. Decorative teal domes with finials, colored tile friezes, rear arch recesses, shutters, high bunting, striped stall valances, rugs, pottery, produce and emissive lantern meshes enrich the view. Wares and repeated details use MultiMesh batches and no physics; lanterns do not add dynamic lights. Stall bounds are tested against the established route envelopes, and route collision rays, director tests and gunner-view screenshots remain in CI. These are lightweight procedural props, not bespoke scanned assets; mobile performance and human readability still need device testing.
+
+
+## Terminal district, stages 16–18
+
+These stages now select a dedicated procedural bus-terminal scene, with a glazed arrival hall and signage, side platform canopies, departure boards, faded lane paint and two abandoned buses. AI-generated 512px edge-blended asphalt and metal cladding are mipmapped and local to the district. Repeated architecture and each six-batch bus are visual-only; lantern meshes do not add dynamic lights. The city routes, defense positions, zombie roster, health scaling, three existing waves per stage and all combat rules are unchanged. No terminal boss, special event, vehicle physics or new hazard was added in this increment. CI exercises all three real directors, route clearance, conservative bus separation and a gate breach; software renders and automated simulations are not a substitute for human or physical Android testing.
