@@ -7,11 +7,11 @@ Verified using v4 scheme (APK Signature Scheme v4): false
 Verified for SourceStamp: false
 Number of signers: 1
 Signer #1 certificate DN: CN=Last Wall Development, O=Frontline, C=NL
-Signer #1 certificate SHA-256 digest: 0bb23737462596661b858b584ba0fc40c3f2d18470bbaf07d36fa1d0e4f34639
-Signer #1 certificate SHA-1 digest: 0af051bd79343535e7fea954ba7473690a5d4c6d
-Signer #1 certificate MD5 digest: 1748f7800a635b2aafb68ca8fa5765e6
+Signer #1 certificate SHA-256 digest: d52521820d303bc87297ddb70c998fecd635b19a5b470367921877c7fca60b96
+Signer #1 certificate SHA-1 digest: 5dedd88271d351e40d1b9e5a3d580dd62d027306
+Signer #1 certificate MD5 digest: 152b560b4cc0e80f63f896a9ff6a6aad
 Signer #1 key algorithm: RSA
 Signer #1 key size (bits): 2048
-Signer #1 public key SHA-256 digest: 65d6937494d9a61d1852eb0ea5ff6b0825299030ab109d1b6c4ea634f11870e3
-Signer #1 public key SHA-1 digest: da2053700587e6919d64e9db24eda09a4058f2b0
-Signer #1 public key MD5 digest: 32c4b9ba8f87e6c2bc6c16618acfbfef
+Signer #1 public key SHA-256 digest: a5e66a39c1fdcd72eed3c2e64c27841955dde6a25953591d3d32dda43166f3c1
+Signer #1 public key SHA-1 digest: 7cbc8ba4114a1b4e85a4236cc1156ebdf5faa8cc
+Signer #1 public key MD5 digest: 6f6a28fa36b3086841d353f752f0db4a
