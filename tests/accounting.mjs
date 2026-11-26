@@ -5,7 +5,7 @@ const db=new PGlite();
 try {
  await db.exec(`create role anon; create role authenticated; create schema auth; create table auth.users(id uuid primary key,phone text,phone_confirmed_at timestamptz); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; grant usage on schema public,auth to authenticated,anon; grant execute on function auth.uid() to authenticated,anon;`);
  const foundation=(await readFile('supabase/migrations/20261126000000_foundation.sql','utf8')).replace('create extension if not exists pgcrypto;','');
- await db.exec(foundation); await db.exec(await readFile('supabase/migrations/20261126010000_accounting.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126020000_resident_portal.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126030000_facilities.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126040000_communications.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126070000_members.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126080000_reports.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126100000_resident_links.sql','utf8'));
+ await db.exec(foundation); await db.exec(await readFile('supabase/migrations/20261126010000_accounting.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126020000_resident_portal.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126030000_facilities.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126040000_communications.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126070000_members.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126080000_reports.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126100000_resident_links.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126110000_unit_identifiers.sql','utf8'));
  await db.exec(`grant select,insert,update on public.buildings,public.units,public.unit_residents,public.building_members to authenticated;
  insert into auth.users(id) values ('00000000-0000-0000-0000-000000000001'),('00000000-0000-0000-0000-000000000002'),('00000000-0000-0000-0000-000000000003'),('00000000-0000-0000-0000-000000000004');
  update auth.users set phone='+989121234567',phone_confirmed_at=now() where id='00000000-0000-0000-0000-000000000003';
@@ -18,6 +18,9 @@ try {
  await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);`);
  const q=async(sql,params=[])=> (await db.query(sql,params)).rows;
  await q("select public.link_unit_resident('40000000-0000-0000-0000-000000000001')");
+ await q("update public.units set parking_number='P-10',storage_number='A-3' where id=$1",[u]);
+ const [identifiers]=await q('select parking_number,storage_number from public.units where id=$1',[u]);assert.deepEqual(identifiers,{parking_number:'P-10',storage_number:'A-3'});
+ await assert.rejects(()=>q('update public.units set parking_number=$1 where id=$2',['x'.repeat(121),u]));
  const [link]=await q("select public.issue_resident_link('40000000-0000-0000-0000-000000000001') token");
  assert.match(link.token,/^[0-9a-f]{64}$/);await assert.rejects(()=>q('select * from public.resident_links'));await assert.rejects(()=>q('select * from public.resolve_resident_link($1)',[link.token]));
  await db.exec(`select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000003',false)`);
