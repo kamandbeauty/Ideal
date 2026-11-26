@@ -48,3 +48,6 @@ motion/*/assets/plates/hd/
 
 # rowling-potter: mix is rebuilt from the tracked VO (node audio/build.mjs)
 motion/rowling-potter/audio/mix.wav
+# derived audio (rebuilt by audio/build.mjs)
+motion/*/audio/mix.wav
+motion/*/audio/vo.wav
