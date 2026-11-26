@@ -17,6 +17,7 @@ signal quarantine_brute_warning(zombie: Node3D)
 signal foundry_brute_warning(zombie: Node3D)
 signal bazaar_brute_warning(zombie: Node3D)
 signal terminal_brute_warning(zombie: Node3D)
+signal residential_brute_warning(zombie: Node3D)
 signal wall_damaged(amount: float, health: float, max_health: float)
 signal gate_damaged(amount: float, health: float, max_health: float)
 signal gate_destroyed

@@ -92,14 +92,14 @@ resupply_grenades = 2
 [sub_resource type="Resource" id="Resource_5twhb"]
 script = ExtResource("3_ywpqh")
 zombie = &"runner"
-count = 11
+count = 7
 interval = 0.45
 burst = 3
 routes = PackedStringArray("avenue_left", "avenue_right")
 
 [sub_resource type="Resource" id="Resource_xfqln"]
 script = ExtResource("3_ywpqh")
-count = 11
+count = 9
 start_time = 2.0
 interval = 1.0
 routes = PackedStringArray("ring_left", "alley_left", "ring_right", "alley_right")
@@ -108,7 +108,7 @@ target = "any"
 [sub_resource type="Resource" id="Resource_asots"]
 script = ExtResource("3_ywpqh")
 zombie = &"runner"
-count = 8
+count = 5
 start_time = 14.0
 interval = 0.45
 burst = 2
@@ -118,7 +118,7 @@ target = "wall"
 [sub_resource type="Resource" id="Resource_sfgjm"]
 script = ExtResource("3_ywpqh")
 zombie = &"brute"
-count = 4
+count = 2
 start_time = 16.0
 interval = 6.0
 routes = PackedStringArray("ring_right", "alley_right")
@@ -126,16 +126,24 @@ routes = PackedStringArray("ring_right", "alley_right")
 [sub_resource type="Resource" id="Resource_gddej"]
 script = ExtResource("3_ywpqh")
 zombie = &"runner"
-count = 13
+count = 8
 start_time = 28.0
 interval = 0.4
 burst = 2
 routes = PackedStringArray()
 target = "any"
 
+[sub_resource type="Resource" id="ResidentialBoss"]
+script = ExtResource("3_ywpqh")
+zombie = &"residential_brute"
+count = 1
+start_time = 4.0
+routes = PackedStringArray("avenue_right", "avenue_left")
+target = "gate"
+
 [sub_resource type="Resource" id="Resource_6ky5e"]
 script = ExtResource("2_7gmmm")
-groups = Array[ExtResource("3_ywpqh")]([SubResource("Resource_5twhb"), SubResource("Resource_xfqln"), SubResource("Resource_asots"), SubResource("Resource_sfgjm"), SubResource("Resource_gddej")])
+groups = Array[ExtResource("3_ywpqh")]([SubResource("Resource_5twhb"), SubResource("Resource_xfqln"), SubResource("Resource_asots"), SubResource("Resource_sfgjm"), SubResource("Resource_gddej"), SubResource("ResidentialBoss")])
 max_alive = 50
 intermission = 8.0
 resupply_rockets = 2

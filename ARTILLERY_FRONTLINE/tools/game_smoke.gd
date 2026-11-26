@@ -881,6 +881,29 @@ func _later_districts() -> void:
 	await frames(5)
 	check(level.horde.spawned_total > 0, "residential wave sends attackers")
 	await shot("49t-residential-attack", "play")
+	# Final-wave boss staged near the camera to inspect its warning and HUD.
+	game.to_menu()
+	await wait_transition()
+	game.select_stage(20)
+	game.start_match()
+	await wait_transition()
+	level = game.level
+	level.director._start_wave(2)
+	simulate(4.2)
+	var residential_boss: ResidentialBrute = level.horde.boss as ResidentialBrute
+	check(residential_boss != null, "stage twenty-one final wave spawns the block breaker")
+	if residential_boss != null:
+		level.horde.find_place(residential_boss)
+		check(residential_boss.slot != null, "residential boss can claim a defense slot")
+		if residential_boss.slot != null:
+			residential_boss.position = Vector3(0.0, 0.0, -35.0)
+			residential_boss.state = Zombie.State.ATTACK
+			residential_boss.shock_left = 0.01
+			residential_boss.tick(0.1)
+			_aim_at(residential_boss.position + Vector3(0.0, 1.8, 0.0))
+			await frames(5)
+			check(residential_boss.warning_ring.visible, "block breaker warns before its shockwave")
+			await shot("49u-residential-boss-warning", "staged")
 	game.to_menu()
 	await wait_transition()
 	game.menus.show_campaign()
