@@ -21,3 +21,17 @@ it('does not show fabricated data when authorization lookup fails',async()=>{
  const db={rpc:vi.fn(async()=>({data:null,error:{message:'دسترسی ممنوع'}}))} as unknown as SupabaseClient;
  render(<ResidentPortal db={db} session={session} goBack={()=>{}}/>);await waitFor(()=>expect(screen.getByRole('alert').textContent).toContain('دسترسی ممنوع'));expect(screen.queryByText('مجموع بدهی')).toBeNull();
 });
+it('opens only the unit selected by a valid account-bound link and removes its token from the address',async()=>{
+ window.history.replaceState({},'', '/resident#link='+ 'a'.repeat(64));
+ const units=[{building_id:'b',building_name:'اول',unit_id:'u1',unit_number:'۱',kind:'tenant'},{building_id:'b',building_name:'دوم',unit_id:'u2',unit_number:'۲',kind:'tenant'}];
+ const rpc=vi.fn(async(name:string)=>name==='my_resident_units'?{data:units,error:null}:name==='resolve_resident_link'?{data:[{building_id:'b',unit_id:'u2'}],error:null}:name==='resident_invoices'?{data:[],error:null}:{data:[{debt:0,credit:0,net_debt:0}],error:null});
+ const query={select:()=>query,eq:()=>query,order:()=>query,range:async()=>({data:[],error:null})};
+ render(<ResidentPortal db={{rpc,from:()=>query} as unknown as SupabaseClient} session={session} goBack={()=>{}}/>);
+ await screen.findByText('مجموع بدهی');expect(rpc).toHaveBeenCalledWith('resolve_resident_link',{token:'a'.repeat(64)});expect(rpc).toHaveBeenCalledWith('resident_invoices',{b:'b',u:'u2'});expect(window.location.hash).toBe('');
+});
+it('rejects invalid links without loading financial information',async()=>{
+ window.history.replaceState({},'', '/resident#link=invalid');
+ const rpc=vi.fn(async(name:string)=>name==='my_resident_units'?{data:[{building_id:'b',unit_id:'u'}],error:null}:{data:null,error:{message:'invalid'}});
+ render(<ResidentPortal db={{rpc} as unknown as SupabaseClient} session={session} goBack={()=>{}}/>);
+ await screen.findByRole('alert');expect(rpc).not.toHaveBeenCalledWith('resident_invoices',expect.anything());window.history.replaceState({},'', '/');
+});
