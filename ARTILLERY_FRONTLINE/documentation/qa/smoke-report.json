@@ -1,5 +1,5 @@
 {
-  "checks": 293,
+  "checks": 302,
   "engine": "4.7.2-stable (official)",
   "evidence": {
     "actual_captures_of_the_running_game": [
@@ -67,6 +67,8 @@
       "49n-terminal-attack.png",
       "49s-residential-stage.png",
       "49t-residential-attack.png",
+      "49v-stadium-stage.png",
+      "49x-stadium-attack.png",
       "51-final-stage.png",
       "10-rocket-away.png"
     ],
@@ -92,6 +94,7 @@
       "49q-terminal-boss-warning.png",
       "49r-terminal-boss-signal.png",
       "49u-residential-boss-warning.png",
+      "49w-stadium-goal-detail.png",
       "52-gore-burst.png"
     ],
     "not_shown_anywhere": "a whole stage played to victory under rendering; an Android device",
@@ -156,6 +159,8 @@
       "49n-terminal-attack.png",
       "49s-residential-stage.png",
       "49t-residential-attack.png",
+      "49v-stadium-stage.png",
+      "49x-stadium-attack.png",
       "51-final-stage.png"
     ],
     "preview": [
@@ -215,6 +220,7 @@
       "49q-terminal-boss-warning.png",
       "49r-terminal-boss-signal.png",
       "49u-residential-boss-warning.png",
+      "49w-stadium-goal-detail.png",
       "52-gore-burst.png"
     ]
   },
@@ -228,22 +234,22 @@
   "notes": {
     "alive_at_24s": 15,
     "attackers_with_boss": 3,
-    "blast_kills": 11,
-    "boss_reached_gate_after_s": 76.5,
-    "defeat_time_s": 194.7,
+    "blast_kills": 13,
+    "boss_reached_gate_after_s": 52.5,
+    "defeat_time_s": 174.8,
     "gate_attackers": 5,
-    "gate_fell_after_s": 5.0,
-    "gate_left_with_boss": 0.35,
+    "gate_fell_after_s": 12.0,
+    "gate_left_with_boss": 0.77,
     "grenade_kills": 7,
-    "hits": 5,
-    "kills": 3,
+    "hits": 2,
+    "kills": 1,
     "peak_load": {
       "alive": 50,
-      "draw_calls": 419,
-      "fps": 10.5,
+      "draw_calls": 418,
+      "fps": 9.5,
       "nodes": 1505,
       "orphan_nodes": 0,
-      "primitives": 327948,
+      "primitives": 327944,
       "renderer": "Compatibility",
       "scale": 0.85,
       "static_memory_mb": 121.8,
@@ -252,8 +258,8 @@
       "tier": "medium",
       "video_memory_mb": 115.1,
       "what": "the cap of the last wave of the last stage alive at once, gun firing; measured on the machine that ran this, not on a phone",
-      "worst_frame_ms_in_a_second": 149.39,
-      "worst_physics_tick_ms_in_a_second": 0.49,
+      "worst_frame_ms_in_a_second": 170.92,
+      "worst_physics_tick_ms_in_a_second": 1.1,
       "zombie_nodes": 50
     },
     "phone_20x9": {
@@ -295,7 +301,7 @@
     },
     "render": {
       "draw_calls": 367,
-      "fps": 6.5,
+      "fps": 5.8,
       "nodes": 1081,
       "orphan_nodes": 0,
       "primitives": 275428,
@@ -306,7 +312,7 @@
       "tier": "medium",
       "video_memory_mb": 107.6
     },
-    "rocket_kills": 4,
+    "rocket_kills": 6,
     "second_stage": {
       "alive_20s_into_its_first_wave": 28,
       "brutes_among_them": 2,
@@ -320,7 +326,7 @@
       "magnification": 2.5,
       "naked_field_of_view": 43.0
     },
-    "sight_target_m": 56.2,
+    "sight_target_m": 57.3,
     "six_barrel_kills": 1,
     "six_barrel_shots": 31,
     "stage_held_preview": {
@@ -381,7 +387,7 @@
       "waves_cleared": 3,
       "waves_total": 3
     },
-    "wall_fell_after_s": 5.0,
+    "wall_fell_after_s": 2.0,
     "window": [
       1440,
       810
@@ -479,6 +485,9 @@
     "49s-residential-stage.png",
     "49t-residential-attack.png",
     "49u-residential-boss-warning.png",
+    "49v-stadium-stage.png",
+    "49w-stadium-goal-detail.png",
+    "49x-stadium-attack.png",
     "50-final-district-map.png",
     "51-final-stage.png",
     "52-gore-burst.png"

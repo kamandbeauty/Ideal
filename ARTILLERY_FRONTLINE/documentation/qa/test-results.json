@@ -1,5 +1,5 @@
 {
-  "checks": 9561,
+  "checks": 10634,
   "engine": "4.7.2-stable (official)",
   "failures": [],
   "game": "LAST WALL: Zombie Siege",
@@ -46,6 +46,7 @@
     "test_siege": 426,
     "test_sight": 67,
     "test_specials": 181,
+    "test_stadium_district": 1073,
     "test_terminal_boss": 127,
     "test_terminal_district": 997,
     "test_tunnel_brute": 17,
