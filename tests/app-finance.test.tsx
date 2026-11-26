@@ -4,7 +4,7 @@ import {afterEach,expect,it,vi} from 'vitest';
 import {cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react';
 import type {SupabaseClient} from '@supabase/supabase-js';
 import AppFinance from '../src/AppFinance';
-afterEach(()=>{cleanup();vi.restoreAllMocks()});
+afterEach(()=>{cleanup();vi.restoreAllMocks();vi.unstubAllGlobals()});
 const report={income_toman:'14000',expense_toman:'3000',net_toman:'11000',entries:2};
 const entry={id:'i',kind:'income',title:'فروش',amount_toman:14000,entry_date:'2026-01-01',note:'دستی',created_by:'admin',voided_at:null,void_reason:null};
 it('shows only server report and voids only with a reason and confirmation',async()=>{
@@ -16,3 +16,11 @@ it('retries an uncertain manual write using the same request id',async()=>{
  render(<AppFinance db={{rpc} as unknown as SupabaseClient}/>);await screen.findByText('۱۴٬۰۰۰ تومان');fireEvent.change(screen.getByLabelText('عنوان'),{target:{value:'درآمد'}});fireEvent.change(screen.getByLabelText('مبلغ (تومان)'),{target:{value:'100'}});fireEvent.submit(screen.getByRole('button',{name:'ثبت سند دستی'}).closest('form')!);await screen.findByRole('alert');fireEvent.click(screen.getByRole('button',{name:'ارسال مجدد همان درخواست'}));await waitFor(()=>expect(rpc.mock.calls.filter(x=>x[0]==='record_app_finance')).toHaveLength(2));const calls=rpc.mock.calls.filter(x=>x[0]==='record_app_finance');expect(calls[0][1]).toEqual(calls[1][1]);
 });
 it('does not fabricate totals when reporting is denied',async()=>{const rpc=vi.fn(async()=>({data:null,error:{message:'Not authorized'}}));render(<AppFinance db={{rpc} as unknown as SupabaseClient}/>);expect((await screen.findByRole('alert')).textContent).toContain('Not authorized');expect(screen.queryByText('درآمد دستی')).toBeNull()});
+it('requests the complete selected range before export, not just the visible page',async()=>{
+ const rpc=vi.fn(async(name:string)=>({data:name==='app_finance_report'?[report]:name==='app_finance_export'?[{...entry,created_at:'2026-01-01T00:00:00Z'}]:[],error:null}));const create=vi.fn().mockReturnValue('blob:test');vi.stubGlobal('URL',Object.assign(class extends URL {},{createObjectURL:create,revokeObjectURL:vi.fn()}));const click=vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});
+ render(<AppFinance db={{rpc} as unknown as SupabaseClient}/>);await screen.findByText('۱۴٬۰۰۰ تومان');fireEvent.click(screen.getByRole('button',{name:'دانلود گزارش CSV'}));await waitFor(()=>expect(rpc).toHaveBeenCalledWith('app_finance_export',expect.objectContaining({p_from:expect.any(String),p_to:expect.any(String)})));expect(create).toHaveBeenCalled();expect(click).toHaveBeenCalled();
+});
+it('does not download partial data when server rejects an oversized export',async()=>{
+ const rpc=vi.fn(async(name:string)=>name==='app_finance_report'?{data:[report],error:null}:name==='app_finance_export'?{data:null,error:{message:'Export exceeds 1000 records'}}:{data:[],error:null});const click=vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});
+ render(<AppFinance db={{rpc} as unknown as SupabaseClient}/>);await screen.findByText('۱۴٬۰۰۰ تومان');fireEvent.click(screen.getByRole('button',{name:'دانلود گزارش CSV'}));expect((await screen.findByRole('alert')).textContent).toContain('بازه کوتاه‌تری');expect(click).not.toHaveBeenCalled();
+});
