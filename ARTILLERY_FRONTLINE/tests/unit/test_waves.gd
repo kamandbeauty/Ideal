@@ -142,7 +142,7 @@ func _stages(t: TestContext) -> void:
 	var city: LevelLayout = load("res://resources/levels/city_siege_layout.tres")
 	for stage: int in range(9, Campaign.count()):
 		t.equal(Campaign.district(stage), stage / 3, "later stage belongs to its district")
-		var expected: String = "industrial" if stage < 12 else ("bazaar" if stage < 15 else ("terminal" if stage < 18 else ("residential" if stage < 21 else "city")))
+		var expected: String = "industrial" if stage < 12 else ("bazaar" if stage < 15 else ("terminal" if stage < 18 else ("residential" if stage < 21 else ("stadium" if stage < 24 else "city"))))
 		t.check(Campaign.scene(stage).contains(expected), "later district selects its scene")
 		for wave: WaveData in Campaign.waves(stage).waves:
 			for group: SpawnGroup in wave.groups:
