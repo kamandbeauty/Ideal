@@ -93,5 +93,26 @@ func run(t: TestContext) -> void:
 	actual.director._start_wave(2)
 	t.simulate(actual, 4.5)
 	t.check(actual.horde.boss is ResidentialBrute, "real director spawns the residential boss")
+	var naturally_warned: bool = false
+	var naturally_hit: bool = false
+	for frame: int in 2400:
+		var field_boss: ResidentialBrute = actual.horde.boss as ResidentialBrute
+		var prior_shock: bool = field_boss != null and field_boss.shock == ResidentialBrute.Shock.WARNING
+		var wall_before: float = actual.defense.wall_health
+		var gate_before: float = actual.defense.gate_health
+		t.simulate(actual, 0.1, 0.1)
+		for enemy: Zombie in actual.horde.active.duplicate():
+			if enemy.alive and enemy != field_boss:
+				enemy.kill()
+		if field_boss != null:
+			naturally_warned = naturally_warned or field_boss.shock == ResidentialBrute.Shock.WARNING
+			if prior_shock and field_boss.shock == ResidentialBrute.Shock.RECOVER:
+				naturally_hit = absf(wall_before - actual.defense.wall_health - ResidentialBrute.SHOCK_DAMAGE) < 0.01 and absf(gate_before - actual.defense.gate_health - ResidentialBrute.SHOCK_DAMAGE) < 0.01
+				if naturally_hit:
+					break
+		if actual.over:
+			break
+	t.check(naturally_warned, "naturally advancing boss reaches its warned attack at the defenses")
+	t.check(naturally_hit, "real director and horde deliver one shock to both intact defenses")
 	await t.discard(actual)
 	Profile.reset()

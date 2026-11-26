@@ -896,7 +896,7 @@ func _later_districts() -> void:
 		level.horde.find_place(residential_boss)
 		check(residential_boss.slot != null, "residential boss can claim a defense slot")
 		if residential_boss.slot != null:
-			residential_boss.position = Vector3(0.0, 0.0, -35.0)
+			residential_boss.position = Vector3(7.0, 0.0, -32.0)
 			residential_boss.state = Zombie.State.ATTACK
 			residential_boss.shock_left = 0.01
 			residential_boss.tick(0.1)
