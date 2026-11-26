@@ -1,0 +1,57 @@
+import {PGlite} from '@electric-sql/pglite';
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const db=new PGlite();
+try {
+ await db.exec(`create role anon; create role authenticated; create schema auth; create table auth.users(id uuid primary key,phone text,phone_confirmed_at timestamptz); create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$; grant usage on schema public,auth to authenticated,anon; grant execute on function auth.uid() to authenticated,anon;`);
+ const foundation=(await readFile('supabase/migrations/20261126000000_foundation.sql','utf8')).replace('create extension if not exists pgcrypto;','');
+ await db.exec(foundation); await db.exec(await readFile('supabase/migrations/20261126010000_accounting.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126020000_resident_portal.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126030000_facilities.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126040000_communications.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126070000_members.sql','utf8')); await db.exec(await readFile('supabase/migrations/20261126080000_reports.sql','utf8'));
+ await db.exec(`grant select,insert,update on public.buildings,public.units,public.unit_residents,public.building_members to authenticated;
+ insert into auth.users(id) values ('00000000-0000-0000-0000-000000000001'),('00000000-0000-0000-0000-000000000002'),('00000000-0000-0000-0000-000000000003'),('00000000-0000-0000-0000-000000000004');
+ update auth.users set phone='+989121234567',phone_confirmed_at=now() where id='00000000-0000-0000-0000-000000000003';
+ insert into public.buildings(id,name,created_by) values('10000000-0000-0000-0000-000000000001','تست','00000000-0000-0000-0000-000000000001'),('10000000-0000-0000-0000-000000000002','دیگر','00000000-0000-0000-0000-000000000003');
+ insert into public.building_members(building_id,user_id,role) values('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','manager'),('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','resident');
+ insert into public.units(id,building_id,number,area,occupants,parking,storage) values ('20000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','۱',50,1,1,0),('20000000-0000-0000-0000-000000000002','10000000-0000-0000-0000-000000000001','۲',100,2,0,1);
+ insert into public.unit_residents(building_id,unit_id,user_id,full_name,kind) values('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','ساکن آزمایشی','tenant');
+ insert into public.unit_residents(id,building_id,unit_id,full_name,phone,kind) values('40000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000002','مالک آزمایشی','۰۹۱۲۱۲۳۴۵۶۷','owner');`);
+ const b='10000000-0000-0000-0000-000000000001',u='20000000-0000-0000-0000-000000000001',u2='20000000-0000-0000-0000-000000000002';
+ await db.exec(`set role authenticated; select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false);`);
+ const q=async(sql,params=[])=> (await db.query(sql,params)).rows;
+ await q("select public.link_unit_resident('40000000-0000-0000-0000-000000000001')");
+ const [staff]=await q("select public.assign_staff($1,'۰۹۱۲۱۲۳۴۵۶۷','accountant') id",[b]);
+ assert.equal((await q('select * from public.list_staff($1)',[b])).length,1);
+ await assert.rejects(()=>q("select public.assign_staff($1,'09121234567','manager')",[b]));
+ await q('select public.remove_staff($1,$2)',[b,staff.id]);
+ assert.equal((await q('select * from public.list_staff($1)',[b])).length,0);
+ let [p]=await q(`select public.create_charge_period($1,'دوره تست','2026-01-01','2026-02-01',1001,50,50,0,0,0) id`,[b]);
+ let preview=await q('select * from public.preview_charge_period($1)',[p.id]);assert.equal(preview.reduce((n,x)=>n+Number(x.amount),0),1001);assert.deepEqual(preview.map(x=>Number(x.amount)),[417,584]);
+ assert.equal(Number((await q('select public.issue_charge_period($1) n',[p.id]))[0].n),2);
+ await assert.rejects(()=>q('select public.issue_charge_period($1)',[p.id]));
+ const invoices=await q('select * from public.invoices order by unit_id'); assert.equal(invoices.length,2);assert.equal(Number(invoices[0].principal),417);
+ const [account]=await q(`select public.create_account($1,'نقدی','cash') id`,[b]);
+ const request='30000000-0000-0000-0000-000000000001';const [payment]=await q(`select public.record_manual_payment($1,$2,$3,100,'cash',$4) id`,[b,u,account.id,request]);
+ const [retry]=await q(`select public.record_manual_payment($1,$2,$3,100,'cash',$4) id`,[b,u,account.id,request]);assert.equal(payment.id,retry.id);
+ await assert.rejects(()=>q(`select public.record_manual_payment($1,$2,$3,101,'cash',$4)`,[b,u,account.id,request]));
+ let [balance]=await q('select * from public.unit_balance($1,$2)',[b,u]);assert.equal(Number(balance.debt),317);assert.equal((await q('select status from public.invoices where unit_id=$1',[u]))[0].status,'partially_paid');
+ await q(`select public.record_manual_payment($1,$2,$3,400,'bank_transfer','30000000-0000-0000-0000-000000000002')`,[b,u,account.id]);
+ [balance]=await q('select * from public.unit_balance($1,$2)',[b,u]);assert.equal(Number(balance.debt),0);assert.equal(Number(balance.credit),83);const reports=await q('select * from public.report_unit_balances($1,null)',[b]);assert.equal(Number(reports.find(r=>r.unit_id===u).credit),83);assert.equal(Number(reports.find(r=>r.unit_id===u2).debt),584);assert.equal((await q('select status from public.invoices where unit_id=$1',[u]))[0].status,'paid');
+ assert.equal((await q('select * from public.financial_transactions')).length,2);
+ // Advance credit is automatically applied to the next issued invoice without a second cash receipt.
+ const [p2]=await q(`select public.create_charge_period($1,'دوره دوم','2026-02-01','2026-03-01',200,100,0,0,0,0) id`,[b]);
+ await q('select public.issue_charge_period($1)',[p2.id]);[balance]=await q('select * from public.unit_balance($1,$2)',[b,u]);assert.equal(Number(balance.debt),17);assert.equal(Number(balance.credit),0);assert.equal((await q('select * from public.financial_transactions')).length,2);
+ // One payment is allocated across both open invoices belonging to the same unit.
+ const [p3]=await q(`select public.create_charge_period($1,'دوره سوم','2026-03-01','2026-04-01',200,100,0,0,0,0) id`,[b]);await q('select public.issue_charge_period($1)',[p3.id]);
+ const [multi]=await q(`select public.record_manual_payment($1,$2,$3,117,'cash','30000000-0000-0000-0000-000000000005') id`,[b,u,account.id]);assert.equal((await q('select * from public.payment_allocations where payment_id=$1',[multi.id])).length,2);[balance]=await q('select * from public.unit_balance($1,$2)',[b,u]);assert.equal(Number(balance.debt),0);
+ const [invalid]=await q(`select public.create_charge_period($1,'بدون پارکینگ','2026-04-01','2026-05-01',100,0,0,0,0,100) id`,[b]);
+ await db.exec('reset role; update public.units set storage=0; set role authenticated');
+ await assert.rejects(()=>q('select * from public.preview_charge_period($1)',[invalid.id]));
+
+ const [expense]=await q(`select public.record_expense($1,$2,'نظافت',50,'30000000-0000-0000-0000-000000000003') id`,[b,account.id]);const [again]=await q(`select public.record_expense($1,$2,'نظافت',50,'30000000-0000-0000-0000-000000000003') id`,[b,account.id]);assert.equal(expense.id,again.id);await q('select public.reverse_expense($1,$2,$3)',[b,expense.id,'اصلاح']);await assert.rejects(()=>q('select public.reverse_expense($1,$2,$3)',[b,expense.id,'اصلاح']));
+ await db.exec(`select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000002',false)`);
+ assert.equal((await q('select * from public.invoices')).length,3);assert.equal((await q('select * from public.my_resident_units()')).length,1);await assert.rejects(()=>q('select * from public.list_staff($1)',[b]));await assert.rejects(()=>q('select * from public.report_unit_balances($1,null)',[b]));await assert.rejects(()=>q("select public.unlink_unit_resident('40000000-0000-0000-0000-000000000001')"));assert.equal((await q('select * from public.resident_invoices($1,$2)',[b,u])).length,3);await assert.rejects(()=>q('select * from public.resident_invoices($1,$2)',[b,u2]));assert.equal((await q('select * from public.financial_transactions')).length,0);await assert.rejects(()=>q('select * from public.unit_balance($1,$2)',[b,u2]));await assert.rejects(()=>q(`select public.record_manual_payment($1,$2,$3,5,'cash','30000000-0000-0000-0000-000000000004')`,[b,u,account.id]));await assert.rejects(()=>q('delete from public.invoices'));
+ await db.exec(`select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000003',false)`);assert.equal((await q('select * from public.my_resident_units()')).length,1);assert.equal((await q('select * from public.resident_invoices($1,$2)',[b,u2])).length,3);await assert.rejects(()=>q('select * from public.resident_invoices($1,$2)',[b,u]));
+ await db.exec(`select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',false)`);await q("select public.unlink_unit_resident('40000000-0000-0000-0000-000000000001')");
+ await db.exec(`select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000003',false)`);assert.equal((await q('select * from public.my_resident_units()')).length,0);await assert.rejects(()=>q('select * from public.resident_invoices($1,$2)',[b,u2]));
+ await db.exec(`select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000004',false)`);assert.equal((await q('select * from public.invoices')).length,0);await assert.rejects(()=>q('select * from public.unit_balance($1,$2)',[b,u]));
+ console.log('PASS: owner, tenant and manager authorization; migration, mixed charge, issuance, partial/full payment, credit, idempotency, reversal, resident and cross-building RLS.');
+} finally {await db.close()}
