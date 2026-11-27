@@ -1,3 +1,4 @@
+import {Bell,X} from 'lucide-react';
 import {useCallback,useEffect,useState} from 'react';
 import type {FormEvent} from 'react';
 import type {SupabaseClient} from '@supabase/supabase-js';
@@ -5,10 +6,10 @@ type Announcement={id:string;title:string;body:string;published_at:string;archiv
 const errorText=(e:unknown)=>e&&typeof e==='object'&&'message' in e?String(e.message):'ارتباط با سرور برقرار نشد.';
 const date=(s:string)=>new Intl.DateTimeFormat('fa-IR-u-ca-persian',{dateStyle:'medium',timeStyle:'short'}).format(new Date(s));
 function Entry({item}:{item:Announcement}){return <div className="app-notice-entry"><b>{item.title}</b><small>{date(item.published_at)}{item.archived_at?' · بایگانی‌شده':''}</small><p>{item.body}</p></div>}
-export function AppNotices({db}:{db:SupabaseClient}){
- const [open,setOpen]=useState(false);const [rows,setRows]=useState<Announcement[]>([]);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [retry,setRetry]=useState(0);
+export function AppNotices({db,compact=false}:{db:SupabaseClient;compact?:boolean}){
+ const [open,setOpen]=useState(false);useEffect(()=>{if(!open)return;const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setOpen(false)};window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close)},[open]);const [rows,setRows]=useState<Announcement[]>([]);const [error,setError]=useState('');const [busy,setBusy]=useState(false);const [retry,setRetry]=useState(0);
  useEffect(()=>{let active=true;if(!open)return;setBusy(true);setError('');setRows([]);Promise.resolve(db.rpc('current_app_announcements')).then(({data,error})=>{if(error)throw error;if(active)setRows(data||[])}).catch(e=>{if(active)setError(errorText(e))}).finally(()=>{if(active)setBusy(false)});return()=>{active=false}},[db,open,retry]);
- return <section className="app-notices"><button className="outline" aria-expanded={open} onClick={()=>setOpen(x=>!x)}>اطلاعیه‌های اپلیکیشن</button>{open&&<div className="panel app-notices-panel"><div className="panel-head"><h2>اطلاعیه‌های اپلیکیشن</h2><button className="link" disabled={busy} onClick={()=>setRetry(x=>x+1)}>به‌روزرسانی</button></div><p>آخرین ۲۰ اطلاعیه فعال؛ جدا از اطلاعیه‌های ساختمان.</p>{busy?<p>در حال دریافت...</p>:error?<div role="alert" className="notice error">{error}</div>:rows.length?rows.map(item=><Entry key={item.id} item={item}/>):<p>اطلاعیه‌ای وجود ندارد.</p>}</div>}</section>;
+ return <section className={compact?"app-notices app-notices-compact":"app-notices"}><button type="button" className="outline notice-trigger" aria-label="اطلاعیه‌های اپلیکیشن" aria-expanded={open} onClick={()=>setOpen(x=>!x)}><Bell size={19}/><span>اطلاعیه‌های اپلیکیشن</span></button>{open&&<div className="panel app-notices-panel"><div className="panel-head"><h2>اطلاعیه‌های اپلیکیشن</h2><div className="notice-controls"><button className="link" disabled={busy} onClick={()=>setRetry(x=>x+1)}>به‌روزرسانی</button>{compact&&<button className="icon-btn" aria-label="بستن اطلاعیه‌ها" onClick={()=>setOpen(false)}><X size={18}/></button>}</div></div><p>آخرین ۲۰ اطلاعیه فعال؛ جدا از اطلاعیه‌های ساختمان.</p>{busy?<p>در حال دریافت...</p>:error?<div role="alert" className="notice error">{error}</div>:rows.length?rows.map(item=><Entry key={item.id} item={item}/>):<p>اطلاعیه‌ای وجود ندارد.</p>}</div>}</section>;
 }
 export function AppAnnouncementsAdmin({db}:{db:SupabaseClient}){
  const [rows,setRows]=useState<Announcement[]>([]);const [offset,setOffset]=useState(0);const [busy,setBusy]=useState(false);const [ready,setReady]=useState(false);const [error,setError]=useState('');const [success,setSuccess]=useState('');const [retry,setRetry]=useState(0);

@@ -1,0 +1,67 @@
+/* Apartment-yar / Violet — shared design tokens for every portal.
+   Success, warning and error colors remain semantic rather than decorative. */
+:root {
+  --app-bg: #f7f4fc;
+  --surface: #ffffff;
+  --surface-subtle: #faf8fe;
+  --surface-muted: #f3eef9;
+  --accent-soft: #eee6fc;
+  --accent-border: #dfd0f7;
+  --border: #e7dff0;
+  --text: #2b203c;
+  --text-secondary: #4f4164;
+  --muted: #6c607c;
+  --accent: #7040c4;
+  --accent-hover: #572da3;
+  --accent-strong: #5d2eb2;
+  --accent-light: #a484e4;
+  --focus: #9064d9;
+  --on-accent: #ffffff;
+  --hero-start: #7644cb;
+  --hero-end: #5d2eac;
+  --hero-soft: #f2eafa;
+  --hero-muted: #eaddff;
+  --shadow: 0 8px 28px #42256409, 0 1px 2px #42256408;
+  --accent-shadow: 0 5px 15px #6f3fc42a;
+  --overlay: #24153599;
+  --success-bg: #e8f6ed;
+  --success-fg: #256a48;
+  --warning-bg: #fff7e9;
+  --warning-fg: #895b24;
+  --warning-border: #f2dfbf;
+  --danger-bg: #fff0f1;
+  --danger-fg: #a83946;
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 22px;
+}
+.dark-app {
+  --app-bg: #171121;
+  --surface: #241a31;
+  --surface-subtle: #292038;
+  --surface-muted: #30243e;
+  --accent-soft: #39284f;
+  --accent-border: #5b4277;
+  --border: #40344f;
+  --text: #f4ecff;
+  --text-secondary: #e2d6f2;
+  --muted: #c0b2d2;
+  --accent: #b895ff;
+  --accent-strong: #c3a5ff;
+  --accent-hover: #5a329d;
+  --focus: #c0a0ff;
+  --hero-start: #7040c4;
+  --hero-end: #4b268c;
+  --hero-soft: #302140;
+  --hero-muted: #eaddff;
+  --shadow: 0 8px 24px #08040d30;
+  --accent-shadow: 0 5px 15px #14092350;
+  --overlay: #08040bb0;
+  --success-bg: #17392b;
+  --success-fg: #abdfbd;
+  --warning-bg: #44321b;
+  --warning-fg: #f4d19d;
+  --warning-border: #674824;
+  --danger-bg: #492330;
+  --danger-fg: #ffd0d7;
+}
