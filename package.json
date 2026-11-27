@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
-    "test": "node tests/accounting.mjs && node tests/facilities.mjs",
+    "test": "node tests/accounting.mjs && node tests/facilities.mjs && node tests/detailed-billing.mjs",
     "test:ui": "vitest run"
   },
   "dependencies": {
