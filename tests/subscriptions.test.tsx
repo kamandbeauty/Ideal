@@ -6,8 +6,8 @@ import type {SupabaseClient} from '@supabase/supabase-js';
 import {AppSubscriptionAdmin,SubscriptionQuotes} from '../src/Subscriptions';
 afterEach(()=>{cleanup();vi.restoreAllMocks()});
 it('shows server calculated price, with purchase disabled',async()=>{
- const rpc=vi.fn(async()=>({data:[{plan_id:'p',title:'سالانه',duration_days:365,unit_count:2,unit_price_toman:7000,total_toman:14000}],error:null}));
- render(<SubscriptionQuotes db={{rpc} as unknown as SupabaseClient} buildingId="b"/>);await screen.findByText(/برآورد کل/);expect(screen.getByText(/۱۴٬۰۰۰/)).toBeTruthy();expect((screen.getByRole('button',{name:'خرید بازار در دست توسعه'}) as HTMLButtonElement).disabled).toBe(true);expect(rpc).toHaveBeenCalledWith('quote_subscription_plans',{b:'b'});expect(screen.getByText(/تمدید خودکار نیست/)).toBeTruthy();
+ const rpc=vi.fn(async(name:string)=>({data:name==='building_subscription_status'?[{state:'trial',access_until:'2026-12-05T00:00:00Z'}]:[{plan_id:'p',title:'سالانه',duration_days:365,unit_count:2,unit_price_toman:7000,total_toman:14000}],error:null}));
+ render(<SubscriptionQuotes db={{rpc} as unknown as SupabaseClient} buildingId="b"/>);await screen.findByText(/برآورد کل/);expect(await screen.findByText('دوره رایگان هفت‌روزه')).toBeTruthy();expect(screen.getByText(/۱۴٬۰۰۰/)).toBeTruthy();expect((screen.getByRole('button',{name:'خرید بازار در دست توسعه'}) as HTMLButtonElement).disabled).toBe(true);expect(rpc).toHaveBeenCalledWith('quote_subscription_plans',{b:'b'});expect(screen.getByText(/تمدید خودکار نیست/)).toBeTruthy();
 });
 it('saves per-period price only after confirmation',async()=>{
  const rpc=vi.fn(async(name:string)=>({data:name==='list_subscription_plans_admin'?[]:'p',error:null}));const confirm=vi.spyOn(window,'confirm').mockReturnValue(false);

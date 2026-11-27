@@ -12,6 +12,11 @@ try {
  set role authenticated; select set_config('request.jwt.claim.sub','${manager}',false);`);
  const q=async(sql,p=[])=> (await db.query(sql,p)).rows;
  const as=async(user)=>q("select set_config('request.jwt.claim.sub',$1,false)",[user]);
+ assert.equal((await q('select * from public.building_subscription_status($1)',[b]))[0].state,'trial');
+ await q('reset role');await q("update public.buildings set created_at=now()-interval '8 days' where id=$1",[other]);await q('set role authenticated');await as(outsider);
+ assert.equal((await q('select * from public.building_subscription_status($1)',[other]))[0].state,'expired');
+ await q('reset role');await q("insert into public.building_entitlements(building_id,paid_until) values($1,now()+interval '30 days')",[other]);await q('set role authenticated');
+ assert.equal((await q('select * from public.building_subscription_status($1)',[other]))[0].state,'active');await as(manager);
  const unit=(n,area,amount)=>({number:n,area,occupants:1,parking:1,storage:0,default_owner_charge:amount,default_resident_charge:amount,landline:'0210000000',is_vacant:false});
  const [u]=await q("select public.create_unit_with_contacts($1,$2,'مالک','09120000000','ساکن','09120000001') id",[b,unit('1',50,100)]);
  const [v]=await q("select public.create_unit_with_contacts($1,$2,'','','','') id",[b,unit('2',100,200)]);
