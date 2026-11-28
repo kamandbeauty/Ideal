@@ -17,6 +17,8 @@ var ranges := PackedFloat32Array()
 var pierce := PackedInt32Array()
 var pierce_scales := PackedFloat32Array()
 var tracers := PackedByteArray()
+## Turret rounds still damage and show effects, but do not inflate player weapon accuracy.
+var tracked_hits := PackedByteArray()
 var excludes: Array = []
 var active_count: int = 0
 var cursor: int = 0
@@ -40,6 +42,7 @@ func _ready() -> void:
 	pierce.resize(CAPACITY)
 	pierce_scales.resize(CAPACITY)
 	tracers.resize(CAPACITY)
+	tracked_hits.resize(CAPACITY)
 	excludes.resize(CAPACITY)
 	for index: int in CAPACITY:
 		excludes[index] = []
@@ -76,7 +79,7 @@ func _build_tracers() -> void:
 
 ## Returns the slot used, or -1 when every round is still in flight.
 func fire(origin: Vector3, velocity: Vector3, damage: float, max_range: float, tracer: bool = true, penetration: int = 0,
-		penetration_scale: float = 0.5, headshot_scale: float = 2.0) -> int:
+		penetration_scale: float = 0.5, headshot_scale: float = 2.0, track_accuracy: bool = true) -> int:
 	if active_count >= CAPACITY:
 		return -1
 	var slot: int = cursor
@@ -93,6 +96,7 @@ func fire(origin: Vector3, velocity: Vector3, damage: float, max_range: float, t
 	pierce[slot] = penetration
 	pierce_scales[slot] = penetration_scale
 	tracers[slot] = 1 if tracer else 0
+	tracked_hits[slot] = 1 if track_accuracy else 0
 	excludes[slot].clear()
 	active_count += 1
 	launched += 1
@@ -165,7 +169,8 @@ func _resolve(slot: int, hit: Dictionary, velocity: Vector3) -> bool:
 				effects.burst("blood_mist", at, -velocity.normalized())
 				effects.burst("gore_chunk", at, -velocity.normalized())
 		Sound.play_at("headshot" if head else "impact_flesh", at, -6.0, randf_range(0.9, 1.12))
-		Events.zombie_hit.emit(at, head, lethal)
+		if tracked_hits[slot] != 0:
+			Events.zombie_hit.emit(at, head, lethal)
 		if pierce[slot] <= 0:
 			return true
 		pierce[slot] -= 1
