@@ -129,7 +129,7 @@ func spawn(type_id: StringName, route: String, target: String = "gate") -> Zombi
 	else:
 		# The big ones pick their place when they get there, and take it.
 		side = _side_of(target, side)
-	var path: PackedVector3Array = layout.path_for(route, lane, side)
+	var path: PackedVector3Array = layout.path_for(route, lane, side, layout.spawn_advance_meters)
 	zombie.activate(path, slot, target, side, lane, health_scale, speed_scale, rng)
 	if gone:
 		# Walk the route first, then pour through the gap.
