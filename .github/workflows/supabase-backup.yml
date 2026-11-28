@@ -1,0 +1,92 @@
+name: Supabase encrypted backup and recovery
+
+on:
+  schedule:
+    - cron: '17 3 * * 1'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Backup or restore into a separate recovery project
+        type: choice
+        required: true
+        options: [backup, restore]
+        default: backup
+      backup_path:
+        description: Encrypted object path for restore, for example 2026-11-28T03-17-00.000Z.tar.gz.gpg
+        type: string
+      confirm_restore:
+        description: Type RESTORE_TO_RECOVERY_PROJECT to enable recovery
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    if: github.event_name == 'schedule' || inputs.mode == 'backup'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check backup configuration
+        id: backup_config
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          if [ -n "$SUPABASE_DB_URL" ] && [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_SERVICE_ROLE_KEY" ] && [ -n "$BACKUP_PASSPHRASE" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Explain skipped backup
+        if: steps.backup_config.outputs.ready != 'true'
+        run: echo 'Backup is skipped until the required repository secrets are configured.'
+      - uses: actions/checkout@v4
+        if: steps.backup_config.outputs.ready == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.backup_config.outputs.ready == 'true'
+        with:
+          node-version: 22
+      - uses: supabase/setup-cli@v3
+        if: steps.backup_config.outputs.ready == 'true'
+        with:
+          version: latest
+      - name: Install encryption tools
+        if: steps.backup_config.outputs.ready == 'true'
+        run: sudo apt-get update && sudo apt-get install -y gpg
+      - name: Create encrypted backup in private Supabase Storage
+        if: steps.backup_config.outputs.ready == 'true'
+        run: node scripts/supabase-backup.mjs backup
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+
+  restore:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'restore'
+    runs-on: ubuntu-latest
+    environment: supabase-recovery
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - name: Install encryption tools
+        run: sudo apt-get update && sudo apt-get install -y gpg
+      - name: Restore to the separate empty recovery project
+        run: node scripts/supabase-backup.mjs restore "$BACKUP_PATH" "$CONFIRM_RESTORE"
+        env:
+          BACKUP_PATH: ${{ inputs.backup_path }}
+          CONFIRM_RESTORE: ${{ inputs.confirm_restore }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_RESTORE_DB_URL: ${{ secrets.SUPABASE_RESTORE_DB_URL }}
+          SUPABASE_RESTORE_URL: ${{ secrets.SUPABASE_RESTORE_URL }}
+          SUPABASE_RESTORE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_RESTORE_SERVICE_ROLE_KEY }}
+          SUPABASE_RESTORE_PROJECT_IS_EMPTY: ${{ secrets.SUPABASE_RESTORE_PROJECT_IS_EMPTY }}
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
