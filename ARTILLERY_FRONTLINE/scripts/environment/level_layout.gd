@@ -5,6 +5,8 @@ extends Resource
 ## with the level mesh, and editable in the inspector afterwards.
 
 @export var mount_position: Vector3 = Vector3.ZERO
+## Pull long approach routes closer to the defender without shortening the final court approach.
+@export_range(0.0, 60.0, 1.0) var spawn_advance_meters: float = 28.0
 @export var eye_position: Vector3 = Vector3(0.0, 1.6, 0.0)
 ## Distance from the centre line of the court to the inner face of either wall arm.
 @export var court_half_width: float = 17.0
@@ -41,7 +43,7 @@ func has_route(route: String) -> bool:
 
 ## Walking path for one zombie: the route shifted sideways by `lateral`
 ## (-1..1 of each waypoint's half-width), ending at the court mouth for `side`.
-func path_for(route: String, lateral: float, side: String) -> PackedVector3Array:
+func path_for(route: String, lateral: float, side: String, spawn_advance: float = 0.0) -> PackedVector3Array:
 	var path := PackedVector3Array()
 	if not routes.has(route):
 		return path
@@ -58,6 +60,27 @@ func path_for(route: String, lateral: float, side: String) -> PackedVector3Array
 		var mouth: Dictionary = mouths[side]
 		# Across the mouth the offset runs along X; keep each zombie on the side it came down.
 		path.append((mouth.position as Vector3) + Vector3(lateral * float(mouth.width), 0.0, 0.0))
+	return _advance_spawn(path, spawn_advance)
+
+
+## Start long routes farther along, but keep at least 34 metres of approach before the court.
+func _advance_spawn(path: PackedVector3Array, requested: float) -> PackedVector3Array:
+	if requested <= 0.0 or path.size() < 3:
+		return path
+	var total: float = 0.0
+	for index: int in range(1, path.size()):
+		total += path[index - 1].distance_to(path[index])
+	var remaining: float = minf(requested, maxf(0.0, total - 34.0))
+	while remaining > 0.01 and path.size() > 2:
+		var segment: float = path[0].distance_to(path[1])
+		if segment <= 0.001:
+			path.remove_at(0)
+		elif remaining >= segment and path.size() > 2:
+			remaining -= segment
+			path.remove_at(0)
+		else:
+			path[0] = path[0].move_toward(path[1], remaining)
+			remaining = 0.0
 	return path
 
 
