@@ -22,6 +22,8 @@ const DEFAULTS: Dictionary = {
 	},
 	"economy": {
 		"coins": 0,
+		"auto_turret_left": false,
+		"auto_turret_right": false,
 		"upgrades": {"twin_hmg": 0, "rotary_gun": 0, "dual_mauler": 0, "bushmaster": 0, "gilded_minigun": 0, "rpg_launcher": 0, "frag_grenade": 0, "heavy_rpg": 0, "blast_grenade": 0},
 	},
 	"stats": {
@@ -41,6 +43,9 @@ const LAUNCHERS: Array[String] = ["rpg_launcher", "heavy_rpg"]
 const GRENADES: Array[String] = ["frag_grenade", "blast_grenade"]
 const EQUIPMENT: Array[String] = ["twin_hmg", "rotary_gun", "dual_mauler", "bushmaster", "gilded_minigun", "rpg_launcher", "frag_grenade", "heavy_rpg", "blast_grenade"]
 const MAX_UPGRADE: int = 5
+## Side-mounted automatic guns are available from the third district onward.
+const AUTO_TURRET_UNLOCK_DISTRICT: int = 2
+const AUTO_TURRET_COST: int = 500
 
 var save_path: String = "user://lastwall_v1.json"
 ## Tests switch persistence off so they never touch a real save.
@@ -220,6 +225,30 @@ func buy_upgrade(id: String) -> bool:
 	if not save():
 		data.economy.coins += cost
 		data.economy.upgrades[id] -= 1
+		return false
+	changed.emit()
+	return true
+
+
+## Whether one side of the bunker has a permanently purchased automatic gun.
+func has_auto_turret(side: String) -> bool:
+	if side != "left" and side != "right":
+		return false
+	return bool(data.economy.get("auto_turret_" + side, false))
+
+
+## Buy one side independently. The saved balance and installation change together.
+func buy_auto_turret(side: String, district: int) -> bool:
+	if (side != "left" and side != "right") or district < AUTO_TURRET_UNLOCK_DISTRICT:
+		return false
+	var key: String = "auto_turret_" + side
+	if bool(data.economy.get(key, false)) or int(data.economy.coins) < AUTO_TURRET_COST:
+		return false
+	data.economy.coins -= AUTO_TURRET_COST
+	data.economy[key] = true
+	if not save():
+		data.economy.coins += AUTO_TURRET_COST
+		data.economy[key] = false
 		return false
 	changed.emit()
 	return true
