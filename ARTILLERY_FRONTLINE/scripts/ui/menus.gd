@@ -664,10 +664,13 @@ func _build_equipment() -> void:
 	_zone(UITheme.outline(_text(Loc.t("select_equipment_hint"), 17, UITheme.TEXT, false), 3), Rect2(0.01, 0.32, 0.20, 0.15), "EquipmentHint")
 	_zone(UITheme.button(Loc.t("machine_guns"), func() -> void:
 		equipment_group = "guns"
-		_show("equipment"), "accent" if equipment_group == "guns" else "plain"), Rect2(0.23, 0.12, 0.32, 0.10), "MachineGunsTab")
+		_show("equipment"), "accent" if equipment_group == "guns" else "plain"), Rect2(0.23, 0.12, 0.23, 0.10), "MachineGunsTab")
 	_zone(UITheme.button(Loc.t("explosives"), func() -> void:
 		equipment_group = "explosives"
-		_show("equipment"), "accent" if equipment_group == "explosives" else "plain"), Rect2(0.58, 0.12, 0.36, 0.10), "ExplosivesTab")
+		_show("equipment"), "accent" if equipment_group == "explosives" else "plain"), Rect2(0.48, 0.12, 0.23, 0.10), "ExplosivesTab")
+	_zone(UITheme.button(Loc.t("bunker_defenses"), func() -> void:
+		equipment_group = "defenses"
+		_show("equipment"), "accent" if equipment_group == "defenses" else "plain"), Rect2(0.73, 0.12, 0.23, 0.10), "BunkerDefensesTab")
 	var labels: Array = []
 	var icons: Array = []
 	for id: String in Profile.EQUIPMENT:
@@ -693,12 +696,37 @@ func _build_equipment() -> void:
 	for index: int in equipment_choices.buttons.size():
 		var button: Button = equipment_choices.buttons[index]
 		equipment_choices.remove_child(button)
-		var active: bool = (index < Profile.GUNS.size()) == (equipment_group == "guns")
+		var active: bool = equipment_group != "defenses" and ((index < Profile.GUNS.size()) == (equipment_group == "guns"))
 		var position_in_group: int = index if index < Profile.GUNS.size() else index - Profile.GUNS.size()
 		var col: int = position_in_group % 3
 		var row: int = position_in_group / 3
 		_zone(button, Rect2(0.23 + 0.22 * col, 0.26 + 0.34 * row, 0.20, 0.29), "EquipmentCard%d" % index)
 		button.visible = active
+	if equipment_group == "defenses":
+		_build_turret_shop()
+
+
+func _build_turret_shop() -> void:
+	_zone(_plate(), Rect2(0.23, 0.25, 0.74, 0.60), "TurretShopPanel")
+	_zone(UITheme.outline(_heading(Loc.t("turret_shop_title"), 30, UITheme.AMBER), 4), Rect2(0.27, 0.28, 0.66, 0.09), "TurretShopTitle")
+	var unlocked: bool = Campaign.district(stage) >= Profile.AUTO_TURRET_UNLOCK_DISTRICT
+	var hint_key: String = "turret_shop_hint" if unlocked else "turret_locked"
+	var hint_args: Array = [] if unlocked else [Profile.AUTO_TURRET_UNLOCK_DISTRICT + 1]
+	_zone(UITheme.outline(_text(Loc.t(hint_key, hint_args), 20, UITheme.TEXT), 3), Rect2(0.28, 0.39, 0.64, 0.12), "TurretShopHint")
+	for side: String in ["left", "right"]:
+		var side_name: String = Loc.t("turret_" + side)
+		var x: float = 0.28 if side == "left" else 0.63
+		_zone(_text(side_name, 19, UITheme.TEXT), Rect2(x, 0.52, 0.31, 0.07), "TurretSide_" + side)
+		var owned: bool = Profile.has_auto_turret(side)
+		var label: String = Loc.t("turret_installed") if owned else Loc.t("turret_buy", [Loc.number(Profile.AUTO_TURRET_COST)])
+		var button := UITheme.button(label, func() -> void: _buy_auto_turret(side), "accent" if not owned else "plain")
+		button.disabled = not unlocked or owned or int(Profile.data.economy.coins) < Profile.AUTO_TURRET_COST
+		_zone(button, Rect2(x, 0.62, 0.31, 0.16), "TurretBuy_" + side)
+
+
+func _buy_auto_turret(side: String) -> void:
+	if Profile.buy_auto_turret(side, Campaign.district(stage)):
+		_show("equipment")
 
 
 func _build_upgrade() -> void:
