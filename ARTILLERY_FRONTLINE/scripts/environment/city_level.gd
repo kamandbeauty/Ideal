@@ -111,6 +111,7 @@ func _ready() -> void:
 	director.horde = horde
 	add_child(director)
 	_build_defenses()
+	_build_auto_turrets()
 	_build_lamps()
 	_build_fires()
 	if geometry.has_method("setup_industrial_fire_accents"):
@@ -210,6 +211,23 @@ func _build_sun() -> void:
 	sun.shadow_normal_bias = 1.6
 	add_child(sun)
 	sun.look_at_from_position(Vector3.ZERO, SUN_TRAVEL, Vector3.UP)
+
+
+## Install only the sides the player bought, from district three onward.
+func _build_auto_turrets() -> void:
+	if Campaign.district(stage) < Profile.AUTO_TURRET_UNLOCK_DISTRICT:
+		return
+	for side: String in ["left", "right"]:
+		if not Profile.has_auto_turret(side):
+			continue
+		var turret := AutoTurret.new()
+		turret.name = "AutoTurret_" + side.capitalize()
+		turret.horde = horde
+		turret.bullets = bullets
+		turret.effects = effects
+		var flank: float = -1.0 if side == "left" else 1.0
+		turret.position = layout.mount_position + Vector3(flank * 3.2, -0.2, -0.15)
+		add_child(turret)
 
 
 func _build_defenses() -> void:
