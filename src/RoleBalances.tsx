@@ -1,0 +1,9 @@
+import {useEffect,useState} from 'react';
+import type {SupabaseClient} from '@supabase/supabase-js';
+import {amountText} from './billingLabels';
+type Row={unit_id:string;unit_number:string;responsibility:'owner'|'resident';debt:number;credit:number;net_debt:number};
+export default function RoleBalances({db,buildingId}:{db:SupabaseClient;buildingId:string}){
+ const [rows,setRows]=useState<Row[]>([]),[error,setError]=useState(''),[busy,setBusy]=useState(true),[role,setRole]=useState('all');
+ useEffect(()=>{let live=true;setRows([]);setError('');setBusy(true);Promise.resolve(db.rpc('report_role_balances',{b:buildingId}).range(0,999)).then(({data,error})=>{if(!live)return;if(error)throw error;if((data||[]).length>=1000)throw Error('تعداد حساب‌ها بیش از ظرفیت گزارش است.');setRows(data||[])}).catch(e=>{if(live)setError(e?.message||'دریافت گزارش ناموفق بود.')}).finally(()=>{if(live)setBusy(false)});return()=>{live=false}},[db,buildingId]);
+ return <section className="panel"><h2>حساب تفصیلی مالک و مستأجر</h2><p>مانده و اعتبار هر نقش مستقل از نقش دیگر است.</p><label className="unit-search">نوع حساب<select value={role} onChange={e=>setRole(e.target.value)}><option value="all">همه حساب‌ها</option><option value="owner">مالک</option><option value="resident">مستأجر / ساکن</option></select></label>{busy?<p>در حال دریافت...</p>:error?<p role="alert">{error}</p>:<div className="table-scroll"><table><thead><tr><th>واحد</th><th>حساب</th><th>بدهی</th><th>اعتبار</th><th>خالص بدهی</th></tr></thead><tbody>{rows.filter(r=>role==='all'||r.responsibility===role).map(r=><tr key={r.unit_id+r.responsibility}><td>{r.unit_number}</td><td>{r.responsibility==='owner'?'مالک':'مستأجر'}</td><td>{amountText(r.debt)}</td><td>{amountText(r.credit)}</td><td>{amountText(r.net_debt)}</td></tr>)}</tbody></table></div>}</section>
+}
